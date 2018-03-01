@@ -43,6 +43,8 @@ import { NavigationControlsComponent } from './components/navigation-controls/na
 import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
 import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
 import { ModalComponent } from 'app/components/modal/modal.component';
+import { WebsocketService } from './service/websocket.service';
+import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 
 
 export const APP_ROUTES: Routes = [
@@ -102,12 +104,16 @@ export const APP_ROUTES: Routes = [
     UpgradeService,
     UnitService,
     PlanetService,
-    NavigationService
+    NavigationService,
+    WebsocketService
   ],
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  constructor(private injector: Injector) {
+  constructor(private injector: Injector, private _websocketService: WebsocketService) {
     ServiceLocator.injector = this.injector;
+    window['globalShit'] = this._websocketService;
+    this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
+    this._websocketService.initSocket('http://127.0.0.1:3000').then(() => console.log('good'));
   }
 }

@@ -7,7 +7,8 @@ export class ProtocolVersion {
     private parsedVersion: ProtocolVersionProperties = <any>{};
 
     public static isValidVersion(target: string): boolean {
-        return this._execRegularExpression(target).length === 4;
+        const regularExpResult: string[] = this._execRegularExpression(target);
+        return regularExpResult && regularExpResult.length === 4;
     }
 
     public static getInstance(version: string): ProtocolVersion {

@@ -5,10 +5,10 @@ import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { AutoUpdatedResources } from './../class/auto-updated-resources';
 import { Http, Response, RequestOptions, URLSearchParams } from '@angular/http';
-import { Observable } from 'rxjs';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { ServiceLocator } from '../service-locator/service-locator';
+import { Observable } from 'rxjs';
 
 export abstract class BaseHttpService {
 
@@ -26,7 +26,7 @@ export abstract class BaseHttpService {
   }
 
   protected doGet(url: string, urlSearchParams: URLSearchParams = undefined, requestOptions: RequestOptions = undefined): Observable<any> {
-    let request: RequestObject = new RequestObject(urlSearchParams, requestOptions);
+    const request: RequestObject = new RequestObject(urlSearchParams, requestOptions);
 
     return this.http.get(url, request.requestOptions)
       .map((res: Response) => {
@@ -80,7 +80,7 @@ export abstract class BaseHttpService {
    */
   protected translateServerError(error: Response): string {
     try {
-      let body = error.json() || ''; // Should have a default server exception pojo
+      const body = error.json() || ''; // Should have a default server exception pojo
       return body.message ? body.message : 'El servidor no respondió correctamente';
     } catch (e) {
       return 'El servidor no devolvió un JSON válido';
@@ -93,7 +93,7 @@ export abstract class BaseHttpService {
    * @author Kevin Guanche Darias
    */
   protected resourcesAutoUpdate() {
-    let resourceManager: ResourceManagerService = ServiceLocator.injector.get(ResourceManagerService);
+    const resourceManager: ResourceManagerService = ServiceLocator.injector.get(ResourceManagerService);
     this.resources = new AutoUpdatedResources(resourceManager);
     this.resources.resourcesAutoUpdate();
   }
@@ -107,7 +107,7 @@ export abstract class BaseHttpService {
    */
   protected httpDoGetWithAuthorization(loginSessionService: LoginSessionService, url: string,
     urlSearchParams: URLSearchParams = undefined): Observable<any> {
-    let requestOptions: RequestOptions = new RequestOptions();
+    const requestOptions: RequestOptions = new RequestOptions();
     requestOptions.headers = Config.genCommonFormUrlencoded();
     requestOptions.headers = loginSessionService.genHttpHeaders(requestOptions.headers);
 

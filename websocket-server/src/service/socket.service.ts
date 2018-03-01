@@ -35,7 +35,7 @@ export class SocketService {
      * @type {number}
      * @memberof SocketService
      */
-    private static readonly AUTHENTICATION_TIMEOUT = 30;
+    private static readonly AUTHENTICATION_TIMEOUT = 15;
 
     private _io: SocketIO.Server;
     private _nonAuthenticatedConnections: WebsocketClient[] = [];
@@ -84,6 +84,7 @@ export class SocketService {
                 const nowTime: number = (new Date().getTime()) / 1000;
                 const targetTime: number = current.lastAction.getTime() / 1000;
                 if ((nowTime - targetTime) >= SocketService.AUTHENTICATION_TIMEOUT) {
+                    this._log.d('_registerDeathUnauthenticatedSocketsCleaner', 'removing disconnected socket');
                     current.disconnect(true);
                     return null;
                 } else {
@@ -141,7 +142,7 @@ export class SocketService {
             } else if (this._authenticationService.isValid(parsedMessage.value)) {
                 this._nonAuthenticatedConnections = this._nonAuthenticatedConnections.filter(current => current.id !== client.id);
                 client.user = this._authenticationService.findTokenUser(parsedMessage.value);
-                this._log.d('_handleAuthentication()', 'User identified as ' + client.user);
+                this._log.d('_handleAuthentication()', 'User identified as ' + client.user.id);
                 this._registerAuthenticatedSocket(client);
                 client.emit('authentication', { status: 'ok' });
             } else {

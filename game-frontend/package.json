@@ -33,13 +33,16 @@
     "rxjs": "^5.1.0",
     "tether": "^1.4.0",
     "ts-helpers": "^1.1.1",
-    "zone.js": "^0.8.4"
+    "zone.js": "^0.8.4",
+    "socket.io-client": "^1.7.3",
+    "ng2-logger": "^2.0.35"
   },
   "devDependencies": {
     "@angular/cli": "^1.2.0",
     "@angular/compiler-cli": "^4.0.0",
     "@types/jasmine": "2.5.38",
     "@types/node": "~6.0.60",
+    "@types/socket.io-client": "^1.4.29",
     "codelyzer": "~2.0.0",
     "jasmine-core": "~2.5.2",
     "jasmine-spec-reporter": "~3.2.0",
