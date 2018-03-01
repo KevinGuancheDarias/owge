@@ -1,0 +1,50 @@
+<div *ngIf="faction">
+  <table>
+    <tr>
+      <th>Nombre:</th>
+      <td>{{ faction.name }}</td>
+    </tr>
+
+    <tr>
+      <th>Recurso primario</th>
+      <td>{{ faction.primaryResourceName }}
+    </tr>
+    <tr>
+      <th>Recurso segundario</th>
+      <td>{{ faction.secondaryResourceName }}
+    </tr>
+    <tr>
+      <th>Energía</th>
+      <td>{{ faction.energyName }}
+    </tr>
+
+    <tr>
+      <th>Recurso primario inicial</th>
+      <td>{{ faction.initialPrimaryResource }}
+    </tr>
+    <tr>
+      <th>Recurso segundario inicial</th>
+      <td>{{ faction.initialSecondaryResource }}
+    </tr>
+    <tr>
+      <th>Recurso energía inicial</th>
+      <td>{{ faction.initialEnergy }}
+    </tr>
+
+    <tr>
+      <th>Producción recurso primario</th>
+      <td>{{ faction.primaryResourceProduction }}</td>
+    </tr>
+    <tr>
+      <th>Producción recurso segundario</th>
+      <td>{{ faction.secondaryResourceProduction }}</td>
+    </tr>
+
+    <tr>
+      <th colspan="2">Descripción</th>
+    </tr>
+    <tr>
+      <td colspan="2">{{ faction.description }}</td>
+    </tr>
+  </table>
+</div>

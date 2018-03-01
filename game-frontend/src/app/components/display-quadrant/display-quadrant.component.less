@@ -1,0 +1,52 @@
+@import '../../../colors.less';
+@import "../../../common_include.less";
+
+
+div.sgt-quadrant{
+    float: left;
+    margin-top: 7px;
+    margin-left: 10px;
+    width: 100px;
+    background-color: @bgColor;
+    color: @mainColor;
+    box-shadow: @commonBoxShadow;
+    text-shadow: @commonTextShadow;
+
+    &:hover {
+        box-shadow: @commonHoverBoxShadow;
+    }
+
+    h5 {
+        font-size: 10pt;
+        letter-spacing: 1.5px;
+        position: relative;
+        top: 6px;
+        left: 6px;
+    }
+
+    .planet-image {
+        width: 95px;
+        height: 95px;
+        border-radius: 92.5px;
+        filter: drop-shadow(1px 0px 2px blue);
+
+        &:hover {
+            filter: drop-shadow(3px 0px 6px blue);
+        }
+    }    
+    .planet-actions {
+        width: 100%;
+        min-height: 20px;
+
+        img {
+            float: left;
+            height: 20px;
+            margin-left: 5px;
+            margin-bottom: 5px;
+
+            &:hover {
+                .fn-ui-circular-icon-focus;
+            }
+        }
+    }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "sgtu1.5_websocket",
+  "version": "0.0.1",
+  "description": "Websocket subsystem for SGT",
+  "main": "main.js",
+  "scripts": {
+    "tsc": "tsc",
+    "lint": "tslint \"src/**/*.ts\"",
+    "compile": "tsc && node dist/main.js",
+    "dev": "nodemon -e ts  --exec \"npm run compile\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kevin Guanche Darias",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "jsrsasign": "^8.0.4",
+    "ng2-logger": "^2.0.35",
+    "promise-mysql": "^3.1.3",
+    "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/socket.io": "^1.4.31",
+    "nodemon": "^1.12.5",
+    "tslib": "^1.8.1",
+    "tslint": "^4.5.0",
+    "typescript": "^2.6.2"
+  }
+}

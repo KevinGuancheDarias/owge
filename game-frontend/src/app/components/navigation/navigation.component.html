@@ -1,0 +1,14 @@
+<app-loading [isReady]="navigationData && navigationConfig">
+  <div class="sgt-base-colors navigation-controls">
+    <app-navigation-controls *ngIf="navigationData" [navigationData]="navigationData" [navigationConfig]="navigationConfig" (onNavigation)="changePosition($event)"></app-navigation-controls>
+  </div>
+  <div class="sgt-base-colors navigation-controls" *ngIf="navigationConfig && navigationData">
+    Coordenadas actuales Galaxia:
+    <b>{{ findSelectedGalaxyName() }}</b>, Sector:
+    <b>{{ navigationConfig.sector }}</b>, Cuadrante:
+    <b>{{ navigationConfig.quadrant }}</b>
+  </div>
+  <div>
+    <app-display-quadrant *ngIf="navigationData" [navigationData]="navigationData"></app-display-quadrant>
+  </div>
+</app-loading>

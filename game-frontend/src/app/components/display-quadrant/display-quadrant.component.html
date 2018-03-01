@@ -1,0 +1,13 @@
+<ng-container *ngIf="navigationData">
+  <div class="card sgt-quadrant" *ngFor="let planet of navigationData.planets">
+    <div class="card-block">
+      <h5 class="card-title">{{ planet.name | planetDisplayName }}</h5>
+    </div>
+    <img class="card-img-top planet-image" src="{{ findImage(planet) }}" alt="image of the planet">
+    <div class="card-block">
+      <p class="card-text planet-actions">
+        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="showMissionDialog()" />
+      </p>
+    </div>
+  </div>
+</ng-container>

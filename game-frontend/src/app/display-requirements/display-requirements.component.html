@@ -1,0 +1,7 @@
+<div *ngIf="userData">
+  <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
+    [resourceValue]="requirements.requiredPrimary"></app-display-single-resource>
+  <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName" [resourceImage]="userData.factionDto.secondaryResourceImage"
+    [resourceValue]="requirements.requiredSecondary"></app-display-single-resource>
+  <app-display-single-resource [resourceName]="'Tiempo'" [resourceImage]="timeImage" [staticImage]="true" [resourceValue]="requirements.requiredTime"></app-display-single-resource>
+</div>

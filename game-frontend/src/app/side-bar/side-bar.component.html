@@ -1,0 +1,22 @@
+<div id="sideBarRoot">
+      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}" routerLinkActive="selectedMenu">Inicio</a>
+      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UPGRADES }}" routerLinkActive="selectedMenu">Mejoras</a>
+      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu">Units</a>
+      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu">Navegación</a>
+      <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
+      <div *ngIf="userData">
+            <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
+                  [resourceValue]="resources.currentPrimaryResource">
+
+            </app-display-single-resource>
+
+            <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName" [resourceImage]="userData.factionDto.secondaryResourceImage"
+                  [resourceValue]="resources.currentSecondaryResource">
+
+            </app-display-single-resource>
+
+            <app-display-single-resource [resourceName]="userData.factionDto.energyName" [resourceImage]="userData.factionDto.energyImage"
+                  [resourceValue]="resources.currentEnergy" [resourceMaxValue]="resources.currentMaxEnergy">
+            </app-display-single-resource>
+      </div>
+</div>

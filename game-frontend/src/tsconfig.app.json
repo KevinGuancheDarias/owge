@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/app",
+    "module": "es2015",
+    "baseUrl": "",
+    "types": []
+  },
+  "exclude": [
+    "test.ts",
+    "helpers/abstract-common-test.helper.ts",
+    "helpers/common-component-test.helper.ts",
+    "helpers/common-service-test.helper.ts",
+    "helpers/game-common-test.helper.ts",
+    "app/shared-test/*.ts",
+    "**/*.spec.ts"
+  ]
+}

@@ -1,0 +1,60 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layout/template.xhtml">
+
+	<ui:define name="content">
+
+		<h:form id="showListForm">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:dataTable var="currentType"
+				value="#{unitTypesController.unitTypes}" id="resultList"
+				selectionMode="single"
+				selection="#{unitTypesController.selectedObject}"
+				rowKey="#{currentType.id}">
+				
+				<p:ajax event="rowSelect" update=":writeForm:writeDialog" oncomplete="PF('writeDialog').show()"></p:ajax>
+				<p:column headerText="Nombre" width="90%">
+					<h:outputText value="#{currentType.name}" />
+				</p:column>
+				<p:column headerText="Acciones">
+					<p:commandButton id="delete" icon="fa fa-times"
+						action="#{unitTypesController.delete(currentType)}"
+						update=":showListForm:resultList" />
+				</p:column>
+			</p:dataTable>
+
+			<p:commandButton id="new" icon="fa fa-plus-circle" resetValues="true"
+				value="Crear" action="#{unitTypesController.newObject()}"
+				update="writeForm:writeDialog" oncomplete="PF('writeDialog').show()"
+				styleClass="ui-priority-primary" />
+
+		</h:form>
+		<h:form id="writeForm">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:dialog id="writeDialog" header="Detalles tipo de unidad"
+				widgetVar="writeDialog">
+				<p:fragment>
+					<h:panelGrid columns="2" cellpadding="5">
+						<p:outputLabel for="objectName" value="Nombre:"></p:outputLabel>
+						<p:inputText required="true" id="objectName" maxlength="20"
+							value="#{unitTypesController.selectedObject.name}"></p:inputText>
+					</h:panelGrid>
+
+					<div align="right">
+						<p:commandButton value="Guardar" id="saveItem"
+							disabled="#{fn.length(unitTypesController.selectedObject.name) == 0}"
+							oncomplete="PF('writeDialog').hide()"
+							styleClass="ui-priority-primary"
+							update=":showListForm:resultList"
+							action="#{unitTypesController.save()}" />
+					</div>
+				</p:fragment>
+			</p:dialog>
+		</h:form>
+	</ui:define>
+</ui:composition>

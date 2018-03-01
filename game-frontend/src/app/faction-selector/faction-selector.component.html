@@ -1,0 +1,25 @@
+<div class="modal fade show in danger" id="factionSelectorModal" role="dialog">
+    <div class="modal-dialog singleReserveInfoContainer">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Seleccionar facción</h4>
+            </div>
+            <div class="modal-body">
+                <form (ngSubmit)="onFormSubmit()" #localForm="ngForm">
+                    <select (change)="onSelect()" class="form-control" required [(ngModel)]="selectedFactionIndex" name="selectedFaction" pattern="^[0-9]$">
+                      <option value="NaN">No seleccionado</option>
+                      <option *ngFor="let faction of factionsList; let i = index;" [value]="i">{{faction.name}}</option>
+                  </select>
+                    <!-- Show universe information on selected -->
+                    <app-display-single-faction [faction]="selectedFaction"></app-display-single-faction>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button [disabled]="!localForm.form.valid" type="submit" class="btn btn-default" (click)="onFormSubmit()" data-dismiss="modal">Seleccionar</button>
+            </div>
+        </div>
+    </div>
+</div>

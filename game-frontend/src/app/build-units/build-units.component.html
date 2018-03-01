@@ -1,0 +1,3 @@
+<app-loading [isReady]="buildingUnit !== undefined">
+  <app-display-single-unit *ngFor="let unit of unlockedUnits" [unit]="unit" [withBuildMode]="true" [building]="buildingUnit"></app-display-single-unit>
+</app-loading>

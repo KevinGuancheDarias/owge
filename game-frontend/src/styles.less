@@ -1,0 +1,103 @@
+@import 'colors.less';
+@import "common_include.less";
+
+@selectedMenuColor: #66F;
+/* You can add global styles to this file, and also import other style files */
+body{
+    background-color: silver;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-image:url('/assets/img/bg.jpg');
+}
+
+/* NOTICE: Temporary addon, .resourceImage should be in CSS of display-single-resource , but CSS isolation doesn't allow parent-child CSS inherit for now! */
+.resourceImage, .sgt.card .resourceImage{
+    width: 40px;
+    height: 40px;
+}
+
+.btn{
+        background-color: @bgColor;
+        color: @mainColor;
+        border-color: none;
+}
+
+a.btn{
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 4px 4px 4px black;
+    transition: all 0.5s;
+    &:hover{
+        box-shadow: 2px 2px 2px black;
+        width: 99%;
+        color: @mainColor;
+    }
+}
+
+a.selectedMenu{
+        box-shadow: 2px 2px 2px @selectedMenuColor;
+        color: @mainColor;
+
+    &:hover{
+        box-shadow: 1px 1px 1px @selectedMenuColor;
+        color: @mainColor;
+    }
+}
+
+// START common game card
+
+.sgt.card{
+    width: 316px;
+    background-color: @bgColor;
+    color: @mainColor;
+    box-shadow: @commonBoxShadow;
+    text-shadow: @commonTextShadow;
+    transition: all 0.3s;
+    h5{
+        font-size: 12pt;
+    }
+
+    h6{
+        font-size: 10pt;
+    }
+
+    img.card-img-top {
+        transition: all 0.3s;
+        width: 310px;
+        height: 194px;
+        padding-left: 3px;
+    }
+
+    &:hover{
+        width: 308px;
+        box-shadow: @commonHoverBoxShadow;
+
+        img.card-img-top{
+            width: 304px;
+        }
+    }
+
+    a{
+        box-shadow: 0 0 15px black;
+        margin-bottom: 3px;
+    }
+    a:hover{
+        width: 100%;
+        box-shadow: 0 0 9px silver;
+    }
+
+    .upgrading-countdown {
+        text-align: center;
+    }
+}
+
+// END Common game card
+
+// START Common items
+.sgt-base-colors {
+    background-color: @bgColor;
+    color: @mainColor;
+    box-shadow: @commonBoxShadow;
+    text-shadow: @commonTextShadow;
+}
+// END Common items

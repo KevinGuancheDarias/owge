@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/WEB-INF/layout/template.xhtml">
+	<ui:define name="content">
+		<h:form id="showListForm">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:dataTable var="currentObject" rows="10"
+				value="#{specialLocationsController.objectList}" id="resultList"
+				selectionMode="single"
+				selection="#{specialLocationsController.selectedObject}"
+				paginator="#{specialLocationsController.objectList.size() > 10}"
+				paginatorPosition="bottom" rowKey="#{currentObject.id}"
+				widgetVar="dataTable">
+
+				<p:ajax event="rowSelect" update=":writeForm,:showListForm"
+					listener="#{specialLocationsController.prepareForUpdate()}"></p:ajax>
+
+				<p:column headerText="Nombre" width="40%">
+					<h:outputText value="#{currentObject.name}" />
+				</p:column>
+				<p:column headerText="Acciones" width="15%">
+					<p:commandButton id="delete" icon="fa fa-times"
+						action="#{specialLocationsController.delete(currentObject)}"
+						update=":showListForm:resultList" />
+				</p:column>
+			</p:dataTable>
+
+			<p:commandButton id="new" icon="fa fa-plus-circle" resetValues="true"
+				rendered="#{specialLocationsController.selectedObject == null}"
+				value="Crear" action="#{specialLocationsController.newObject()}"
+				update=":writeForm,:showListForm" styleClass="ui-priority-primary" />
+
+		</h:form>
+
+		<h:form id="writeForm" enctype="multipart/form-data">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:panel id="writePanel" header="Detalles de facción"
+				widgetVar="writePanel"
+				rendered="#{specialLocationsController.selectedObject != null}">
+				<p:panelGrid cellpadding="5">
+					<p:fragment id="dataFragment">
+						<p:row
+							rendered="#{specialLocationsController.findImageWithUrlPath() != null}">
+							<p:column>
+								<p:graphicImage
+									value="#{specialLocationsController.findImageWithUrlPath()}"
+									width="200" height="200" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel for="objectName" value="Nombre:" />
+							</p:column>
+							<p:column>
+								<p:inputText required="true" id="objectName" maxlength="30"
+									value="#{specialLocationsController.selectedObject.name}" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column colspan="2">
+								<p:inputTextarea id="description" style="width:100%;"
+									value="#{specialLocationsController.selectedObject.description}"></p:inputTextarea>
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel for="galaxy" value="Galaxia asignada:"></p:outputLabel>
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="galaxy"
+									value="#{specialLocationsController.selectedObject.galaxy}"
+									converter="entityConverter">
+									<p:ajax event="change" update=":writeForm:writePanel"></p:ajax>
+
+									<f:selectItem itemLabel="Seleccionar..." itemValue="" />
+									<f:selectItems
+										value="#{specialLocationsController.availableGalaxies}"
+										var="currentGalaxy" itemValue="#{currentGalaxy}"
+										itemLabel="#{currentGalaxy.name}" />
+								</p:selectOneMenu>
+							</p:column>
+						</p:row>
+						<p:row
+							rendered="#{specialLocationsController.selectedObject.galaxy != null}">
+							<p:column>
+								<p:outputLabel value="Planeta asignado:"></p:outputLabel>
+							</p:column>
+							<p:column
+								rendered="#{specialLocationsController.selectedObject.assignedPlanet == null}">
+
+								<h:panelGroup id="loading"></h:panelGroup>
+								<p:commandButton immediate="true" process="@this"
+									onclick="showLoading(this,'#writeForm\\:loading');"
+									value="Asignar planeta" update=":writeForm:writePanel"
+									action="#{specialLocationsController.assignPlanet()}"></p:commandButton>
+							</p:column>
+
+							<p:column
+								rendered="#{specialLocationsController.selectedObject.assignedPlanet != null}">
+								<h:outputText
+									value="#{specialLocationsController.selectedObject.assignedPlanet.name}" />
+								<p:commandButton id="delete" icon="fa fa-times"
+									action="#{specialLocationsController.deleteAssignedPlanet()}"
+									update=":writeForm:writePanel" />
+							</p:column>
+						</p:row>
+					</p:fragment>
+					<p:row>
+						<p:column>
+							<p:outputLabel for="image" value="Imagen:" />
+						</p:column>
+						<p:column>
+							<h:inputFile
+								value="#{specialLocationsController.imageUploadHandler.uploadedFile}"
+								required="true" id="image">
+								<f:ajax listener="#{specialLocationsController.uploadImage()}"
+									onevent="fixFileUpload" render="@form" />
+							</h:inputFile>
+						</p:column>
+					</p:row>
+					<ui:include src="/WEB-INF/layout/admin/partial/improvements.xhtml" />
+				</p:panelGrid>
+
+				<div align="right">
+					<p:commandButton value="Guardar" id="saveItem"
+						process=":writeForm:dataFragment,@this"
+						disabled="#{fn.length(specialLocationsController.selectedObject.name) == 0}"
+						styleClass="ui-priority-primary" update=":showListForm,:writeForm"
+						action="#{specialLocationsController.save()}" />
+				</div>
+
+				<f:facet name="actions">
+					<p:fragment>
+						<p:commandLink
+							actionListener="#{specialLocationsController.setSelectedObject(null)}"
+							update=":showListForm,:writeForm" process="@this"
+							styleClass="ui-panel-titlebar-icon ui-corner-all ui-state-default">
+							<h:outputText styleClass="ui-icon ui-icon-close" />
+						</p:commandLink>
+					</p:fragment>
+				</f:facet>
+			</p:panel>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="dialogSection">
+		<ui:include
+			src="/WEB-INF/layout/admin/partial/improvements_unit_types.xhtml" />
+	</ui:define>
+</ui:composition>
+</html>

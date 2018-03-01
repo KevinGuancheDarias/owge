@@ -1,0 +1,10 @@
+@validationBorderWidth: 5px;
+@validationBorderStyle: solid;
+
+.ng-valid[required], .ng-valid.required  {
+  border-left: @validationBorderWidth @validationBorderStyle #42A948; /* green */
+}
+
+.ng-invalid:not(form)  {
+  border-left: @validationBorderWidth @validationBorderStyle #a94442; /* red */
+}

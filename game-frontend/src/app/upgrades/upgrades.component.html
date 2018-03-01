@@ -1,0 +1,3 @@
+<div *ngFor="let obtainedUpgrade of obtainedUpgrades">
+  <app-display-single-upgrade *ngIf="obtainedUpgrade.available" [obtainedUpgrade]="obtainedUpgrade" (onRunningUpgradeDone)="onRunningUpgradeDone()"></app-display-single-upgrade>
+</div>

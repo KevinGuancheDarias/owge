@@ -1,0 +1,42 @@
+@import "../../colors.less";
+#sideBarRoot{
+    position: fixed;
+    z-index: 90;
+    height: 100%;
+    top: 0px;
+    padding: .5em;
+    width: 100%;
+    max-width: 200px;
+    background-color: rgba(190, 190, 250, 0.4);
+    box-shadow:  3px 3px 3px black;
+
+    a ~ div{
+        transition: all 2s;
+        padding: 2px;
+        a{
+            box-shadow:  1px 1px 1px black;
+            width: 80%;
+            margin-left: 10%;
+            margin-top: 2px;
+            margin-bottom: 2px;
+            transition: opacity 0.4s height 0.8s;
+        }
+
+        a:hover{
+            box-shadow:  0px 0px 0px black;
+        }
+    }
+
+    .ola a{
+        height: 40px;
+        opacity: 1;
+    }
+}
+.anterior{
+    height: 0px;
+
+    a{
+        opacity: 0;
+        height: 0px;
+    }
+}

@@ -1,0 +1,7 @@
+<div>
+  <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selectedMenu' : isDeployedRoute()}">En planeta</a>
+  <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selectedMenu' : isBuildRoute()}">Construir</a>
+</div>
+<div class="clearFloat"></div>
+<app-build-units *ngIf="isBuildRoute()"></app-build-units>
+<app-deployed-units-big *ngIf="isDeployedRoute()"></app-deployed-units-big>

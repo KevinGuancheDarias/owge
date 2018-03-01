@@ -1,0 +1,226 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layout/template.xhtml">
+
+	<ui:define name="content">
+
+		<h:form id="showListForm">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:dataTable var="currentObject" rows="10"
+				value="#{upgradesController.objectList}" id="resultList"
+				selectionMode="single"
+				selection="#{upgradesController.selectedObject}"
+				paginator="#{upgradesController.objectList.size() > 10}"
+				paginatorPosition="bottom" rowKey="#{currentObject.id}"
+				widgetVar="dataTable">
+
+				<p:ajax event="rowSelect" update=":writeForm,:showListForm"
+					listener="#{upgradesController.prepareForUpdate()}"></p:ajax>
+
+				<p:column headerText="Nombre" width="40%">
+					<h:outputText value="#{currentObject.name}" />
+				</p:column>
+
+				<p:column headerText="Recurso primario" width="15%">
+					<h:outputText value="#{currentObject.primaryResource}"
+						styleClass="numeric-input" />
+				</p:column>
+
+				<p:column headerText="Recurso secundario" width="15%">
+					<h:outputText value="#{currentObject.secondaryResource}"
+						styleClass="numeric-input" />
+				</p:column>
+
+				<p:column headerText="Tiempo segundos" width="15%">
+					<h:outputText value="#{currentObject.time}"
+						styleClass="numeric-input" />
+				</p:column>
+
+				<p:column headerText="Acciones" width="15%">
+					<p:commandButton id="delete" icon="fa fa-times"
+						action="#{upgradesController.delete(currentObject)}"
+						update=":showListForm:resultList" />
+				</p:column>
+			</p:dataTable>
+
+			<p:commandButton id="new" icon="fa fa-plus-circle" resetValues="true"
+				rendered="#{upgradesController.selectedObject == null}"
+				value="Crear" action="#{upgradesController.newObject()}"
+				update=":writeForm,:showListForm" styleClass="ui-priority-primary" />
+
+		</h:form>
+		<h:form id="writeForm" enctype="multipart/form-data">
+			<input type="hidden" name="#{_csrf.parameterName}"
+				value="#{_csrf.token}" />
+			<p:panel id="writePanel" header="Detalles de mejora"
+				widgetVar="writePanel"
+				rendered="#{upgradesController.selectedObject != null}">
+				<p:panelGrid cellpadding="5">
+					<p:fragment id="dataFragment">
+						<p:row
+							rendered="#{upgradesController.findImageWithUrlPath() != null}">
+							<p:column>
+								<p:graphicImage
+									value="#{upgradesController.findImageWithUrlPath()}"
+									width="200" height="200" />
+							</p:column>
+						</p:row>
+						
+						<p:row>
+							<p:column>
+								<p:outputLabel for="objectName" value="Nombre:"></p:outputLabel>
+							</p:column>
+							<p:column>
+								<p:inputText required="true" id="objectName" maxlength="20"
+									value="#{upgradesController.selectedObject.name}" />
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel for="points" value="Puntos:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="points" styleClass="numeric-input"
+									converterMessage="Sólo números"
+									value="#{upgradesController.selectedObject.points}" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel for="primaryResource" value="Recurso primario:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="primaryResource" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{upgradesController.selectedObject.primaryResource}" />
+							</p:column>
+						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel for="secondaryResource"
+									value="Recurso secundario:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="secondaryResource" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{upgradesController.selectedObject.secondaryResource}" />
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel for="time" value="Tiempo:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="time" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{upgradesController.selectedObject.time}" />
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column colspan="2">
+								<p:outputLabel for="description" value="Descripción:"
+									style="display:block; text-align: center" />
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column colspan="2">
+								<p:inputTextarea id="description" style="width:100%;"
+									value="#{upgradesController.selectedObject.description}"></p:inputTextarea>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel for="type" value="Tipo:" />
+							</p:column>
+							<p:column>
+								<p:selectOneMenu id="type"
+									value="#{upgradesController.selectedObject.type}"
+									converter="entityConverter">
+									<f:selectItem itemLabel="Invisible" itemValue="" />
+									<f:selectItems value="#{upgradesController.upgradeTypes}"
+										var="currentUpgradeType"
+										itemLabel="#{currentUpgradeType.name}" />
+								</p:selectOneMenu>
+							</p:column>
+						</p:row>
+
+						<p:row>
+							<p:column>
+								<p:outputLabel for="levelEffect" value="Efecto nivel:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="levelEffect"
+									value="#{upgradesController.selectedObject.levelEffect}"
+									styleClass="numeric-input" stepFactor="0.5" />
+							</p:column>
+						</p:row>
+
+						<ui:include src="/WEB-INF/layout/admin/partial/improvements.xhtml" />
+
+						<p:row rendered="#{upgradesController.selectedObject.id != null}">
+							<p:column colspan="2">
+								<p:commandButton value="Modificar requisitos"
+									style="text-align: right;" immediate="true"
+									action="#{requirementsController.loadRequirements('UPGRADE',upgradesController.selectedObject.id)}"
+									update=":requirementsForm"
+									oncomplete="PF('requirementsDialog').show()" process="@this" />
+							</p:column>
+						</p:row>
+					</p:fragment>
+					<p:row>
+						<p:column>
+							<p:outputLabel for="image" value="Imagen:" />
+						</p:column>
+						<p:column>
+							<h:inputFile
+								value="#{upgradesController.imageUploadHandler.uploadedFile}"
+								required="true" id="image">
+								<f:ajax listener="#{upgradesController.uploadImage()}"
+									onevent="fixFileUpload" render="@form" />
+							</h:inputFile>
+						</p:column>
+					</p:row>
+				</p:panelGrid>
+
+				<div align="right">
+					<p:commandButton value="Guardar" id="saveItem"
+						process=":writeForm:dataFragment,@this"
+						disabled="#{fn.length(upgradesController.selectedObject.name) == 0}"
+						styleClass="ui-priority-primary" update=":showListForm,:writeForm"
+						action="#{upgradesController.save()}" />
+				</div>
+
+				<f:facet name="actions">
+					<p:fragment>
+						<p:commandLink
+							actionListener="#{upgradesController.setSelectedObject(null)}"
+							update=":showListForm,:writeForm" process="@this"
+							styleClass="ui-panel-titlebar-icon ui-corner-all ui-state-default">
+							<h:outputText styleClass="ui-icon ui-icon-close" />
+						</p:commandLink>
+					</p:fragment>
+				</f:facet>
+			</p:panel>
+		</h:form>
+	</ui:define>
+
+	<ui:define name="dialogSection">
+		<p:dialog modal="true" widgetVar="requirementsDialog">
+			<ui:include src="/WEB-INF/layout/admin/partial/requirements.xhtml" />
+		</p:dialog>
+		<ui:include
+			src="/WEB-INF/layout/admin/partial/requirements_add_edit.xhtml" />
+
+		<ui:include
+			src="/WEB-INF/layout/admin/partial/improvements_unit_types.xhtml" />
+	</ui:define>
+</ui:composition>

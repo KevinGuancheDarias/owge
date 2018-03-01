@@ -1,0 +1,26 @@
+<div class="modal fade show in danger" id="universeSelectorModal" role="dialog">
+    <div class="modal-dialog singleReserveInfoContainer">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Seleccionar universo</h4>
+            </div>
+            <div class="modal-body">
+                <form (ngSubmit)="onFormSubmit()" #localForm="ngForm">
+                    <select (change)="onSelect()" class="form-control" required [(ngModel)]="selectedUniverseIndex" name="selectedUniverse" pattern="^[0-9]$">
+                      <option value="NaN">No seleccionado</option>
+                      <option *ngFor="let universe of universes; let i = index;" [value]="i">{{universe.name}}</option>
+                  </select>
+                    <!-- Show universe information on selected -->
+                    <app-display-single-universe [universe]="selectedUniverse"></app-display-single-universe>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button [disabled]="!localForm.form.valid" type="submit" class="btn btn-default" (click)="onFormSubmit()" data-dismiss="modal">Seleccionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<app-faction-selector *ngIf="showFactionSelector"></app-faction-selector>

@@ -1,0 +1,90 @@
+<!-- Intended to append to an existing datatable -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition>
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreSoldiersProduction"
+				value="Más producción soldados(%):" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreSoldiersProduction"
+				value="#{improvementsController.selectedObject.improvement.moreSoldiersProduction}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row>
+		<p:column>
+			<p:outputLabel for="morePrimaryResourceProduction"
+				value="Más producción RP(%):" title="Recurso primario" />
+		</p:column>
+		<p:column>
+			<p:spinner id="morePrimaryResourceProduction"
+				value="#{improvementsController.selectedObject.improvement.morePrimaryResourceProduction}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreSecondaryResourceProduction"
+				value="Más producción RS(%):" title="Recurso secundario" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreSecondaryResourceProduction"
+				value="#{improvementsController.selectedObject.improvement.moreSecondaryResourceProduction}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreEnergyProduction"
+				value="Más producción Energía(%):" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreEnergyProduction"
+				value="#{improvementsController.selectedObject.improvement.moreEnergyProduction}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreChargeCapacity"
+				value="Más capacidad de carga(%):" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreChargeCapacity"
+				value="#{improvementsController.selectedObject.improvement.moreChargeCapacity}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreMissions" value="Más misiones:" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreMissions"
+				value="#{improvementsController.selectedObject.improvement.moreMisions}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
+
+	<p:row rendered="#{improvementsController.selectedObject.id != null}">
+		<p:column colspan="2">
+			<p:commandButton value="Modificar mejoras para tipos de unidad"
+				style="text-align: right;" immediate="true"
+				action="#{improvementsController.loadSelectedObjectProxies()}"
+				update=":unitTypeImprovementsForm:unitTypeImprovementsDialog"
+				oncomplete="PF('unitTypeImprovementsDialog').show()" process="@this" />
+		</p:column>
+	</p:row>
+</ui:composition>
+</html>

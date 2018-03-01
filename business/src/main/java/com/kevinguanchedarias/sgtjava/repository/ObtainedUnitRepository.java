@@ -1,0 +1,25 @@
+package com.kevinguanchedarias.sgtjava.repository;
+
+import java.io.Serializable;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+
+public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Number>, Serializable {
+	public List<ObtainedUnit> findByMissionId(Long missionId);
+
+	public List<ObtainedUnit> findBySourcePlanetId(Long planetId);
+
+	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId);
+
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId);
+
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(Integer userId, Integer unitId,
+			Long sourcePlanetId, Long id);
+
+	public Long countByUserIdAndUnitId(Integer userId, Integer unitId);
+
+	public Long deleteByMissionId(Long missionId);
+}

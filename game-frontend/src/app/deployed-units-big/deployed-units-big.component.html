@@ -1,0 +1,3 @@
+<app-loading [isReady]="obtainedUnits">
+  <app-display-single-unit *ngFor="let unit of obtainedUnits" [unit]="unit.unit" [withInPlanetMode]="true" [inPlanetCount]="unit.count"></app-display-single-unit>
+</app-loading>

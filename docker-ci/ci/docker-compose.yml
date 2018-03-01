@@ -1,0 +1,22 @@
+version: '2'
+services:
+    main_reverse_proxy:
+        # Notice main_reserve_proxy/install.sh should have been executed before docker-compose!
+        build: main_reverse_proxy/.
+        volumes:
+          - ${STATIC_IMAGES_DIR}:/var/sgt_data/static
+          - ${DYNAMIC_IMAGES_DIR}:/var/sgt_data/dynamic
+        links:
+          - "admin_panel_and_rest_game:sgtjava_admin_and_rest_game"
+        ports:
+          - "8083:80"
+    admin_panel_and_rest_game:
+        build:
+           context: admin_panel_and_rest_game/.
+           args:
+             - warLocationFolder=target
+        volumes:
+           - ${STATIC_IMAGES_DIR}:/var/sgt_data/static
+           - ${DYNAMIC_IMAGES_DIR}:/var/sgt_data/dynamic
+        expose:
+           - "8080"

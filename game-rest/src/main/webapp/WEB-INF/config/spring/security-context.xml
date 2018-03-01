@@ -1,0 +1,51 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
+	<bean id="restAuthenticationEntryPoint" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.RestAuthenticationEntryPoint"></bean>
+	<bean id="jwtAuthenticationSuccessHandler" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationSuccessHandler"></bean>
+	<bean id="jwtAuthenticationProvider" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationProvider"></bean>
+	
+	<bean id="sgtTokenConfigLoader" class="com.kevinguanchedarias.sgtjava.business.SgtTokenConfigLoader"></bean>
+	<bean id="sgtResourceAutoUpdateEventHandler" class="com.kevinguanchedarias.sgtjava.event.ResourceAutoUpdateEventHandler"></bean>
+	
+	<bean id="jwtAuthenticationFilter" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationFilter">
+		<property name="authenticationManager" ref="authenticationManager"></property>
+		<property name="authenticationSuccessHandler" ref="jwtAuthenticationSuccessHandler"></property>
+		<property name="tokenConfigLoader" ref="sgtTokenConfigLoader"></property>
+		<property name="convertExceptionToJson" value="true"></property>
+		<property name="filterEventHandler" ref="sgtResourceAutoUpdateEventHandler"></property>
+	</bean>
+	
+	<!--  START Allow using CORS inside a Spring security application  -->
+	<bean id="corsConfiguration" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.cors.SimpleCorsConfigurator">
+		<property name="originList">
+			<list>
+				<value>http://sgtjava_ci.kevinguanchedarias.com</value>
+				<value>http://localhost:4200</value>
+				<value>http://localhost</value>
+				<value>http://192.168.99.100</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="corsFilter" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.cors.CorsFilter">
+		<property name="corsConfigurator" ref="corsConfiguration"></property>
+	</bean>
+	<!--  END Allow using CORS inside a Spring security application  -->
+	
+	<security:global-method-security
+		pre-post-annotations="enabled" />
+
+	<security:http pattern="/login" security="none" />
+	<security:http pattern="/universe/findOfficials" security="none" />
+	<security:http pattern="/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
+		<security:csrf disabled="true"/>
+		<security:custom-filter before="PRE_AUTH_FILTER" ref="corsFilter"/>
+		<security:custom-filter before="FORM_LOGIN_FILTER" ref="jwtAuthenticationFilter"/>
+	</security:http>
+	
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider ref="jwtAuthenticationProvider"></security:authentication-provider>
+	</security:authentication-manager>
+	
+</beans>

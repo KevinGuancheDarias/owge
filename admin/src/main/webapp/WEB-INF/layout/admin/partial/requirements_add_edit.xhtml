@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition>
+	<h:form id="addEditRequirementForm"
+		styleClass="addEditRequirementsForm">
+		<input type="hidden" name="#{_csrf.parameterName}"
+			value="#{_csrf.token}" />
+		<p:dialog id="addEditRequirementDialog" modal="true"
+			header="Detalles del requisito" widgetVar="addEditRequirementDialog">
+			<p:panelGrid columns="2" styleClass="addEditRequirementPanel">
+				<p:outputLabel for="requirementType" value="Seleccionar requisito"></p:outputLabel>
+				<p:selectOneMenu id="requirementType"
+					value="#{requirementsController.selectedRequirement}"
+					converter="entityConverter">
+					<p:ajax event="change" update="@(.addEditRequirementPanel)"
+						listener="#{requirementsController.selectRequirement()}" />
+					<f:selectItem itemLabel="Seleccionar..." itemValue="" />
+					<f:selectItems value="#{requirementsController.requirementTypes}"
+						var="currentType" itemLabel="#{currentType.description}" />
+				</p:selectOneMenu>
+
+				<p:outputLabel for="selectTarget"
+					value="#{requirementsController.selectedRequirementLabel}"
+					rendered="#{requirementsController.selectedRequirementLabel != null}"></p:outputLabel>
+				<p:selectOneMenu id="selectTarget"
+					value="#{requirementsController.selectedRequirementValue}"
+					rendered="#{requirementsController.selectedRequirementLabel != null}"
+					converter="entityConverter">
+					<p:ajax event="change" update="@(.addEditRequirementPanel)" />
+					<f:selectItem itemLabel="Seleccionar..." itemValue="" />
+					<f:selectItems
+						value="#{requirementsController.selectedRequirementAvailableData}"
+						var="currentType" itemLabel="#{currentType.name}" />
+				</p:selectOneMenu>
+
+				<p:outputLabel for="selectSecondTarget"
+					value="#{requirementsController.selectedRequirementSecondLabel}"
+					rendered="#{requirementsController.selectedRequirementSecondLabel != null}"></p:outputLabel>
+				<p:spinner id="selectSecondTarget"
+					rendered="#{requirementsController.selectedRequirementSecondLabel != null}"
+					value="#{requirementsController.selectedRequirementSecondValue}">
+					<p:ajax process="@this" immediate="true" />
+				</p:spinner>
+				<p:commandButton action="#{requirementsController.save()}"
+					value="Guardar" update="@(.requirementsDataTable)" immediate="true"
+					process="@this" />
+			</p:panelGrid>
+		</p:dialog>
+	</h:form>
+</ui:composition>
+</html>
