@@ -64,6 +64,13 @@ public class Mission implements SimpleIdEntity {
 	@Fetch(FetchMode.JOIN)
 	private MissionInformation missionInformation;
 
+	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "related_mission", nullable = true)
+	private Mission relatedMission;
+
+	@Column(nullable = true)
+	private Boolean resolved = false;
+
 	@Override
 	public Long getId() {
 		return id;
@@ -151,6 +158,28 @@ public class Mission implements SimpleIdEntity {
 
 	public void setMissionInformation(MissionInformation missionInformation) {
 		this.missionInformation = missionInformation;
+	}
+
+	public Mission getRelatedMission() {
+		return relatedMission;
+	}
+
+	public void setRelatedMission(Mission relatedMission) {
+		this.relatedMission = relatedMission;
+	}
+
+	/**
+	 * If this mission has been solved with success
+	 *
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getResolved() {
+		return resolved;
+	}
+
+	public void setResolved(Boolean resolved) {
+		this.resolved = resolved;
 	}
 
 }

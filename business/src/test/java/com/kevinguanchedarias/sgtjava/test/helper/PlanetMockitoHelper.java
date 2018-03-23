@@ -5,6 +5,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 
 import com.kevinguanchedarias.sgtjava.business.PlanetBo;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 /**
  * This class contains methods useful to fake Planet operations
@@ -24,4 +25,13 @@ public class PlanetMockitoHelper {
 		Mockito.when(planetBoMock.findById(id)).thenReturn(planet);
 		Mockito.when(planetBoMock.exists(id)).thenReturn(true);
 	}
+
+	public void fakeExplored(UserStorage user, Planet planet) {
+		Mockito.when(planetBoMock.isExplored(user, planet)).thenReturn(true);
+	}
+
+	public PlanetBo getPlanetBoMock() {
+		return planetBoMock;
+	}
+
 }

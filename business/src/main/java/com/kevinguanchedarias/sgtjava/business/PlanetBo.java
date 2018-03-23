@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import com.kevinguanchedarias.sgtjava.entity.ExploredPlanet;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendUniverseIsFull;
@@ -22,7 +23,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 	private PlanetRepository planetRepository;
 
 	@Autowired
-	private ExploredPlanetRepository exploredPlaneRepository;
+	private ExploredPlanetRepository exploredPlanetRepository;
 
 	@Autowired
 	private GalaxyBo galaxyBo;
@@ -110,7 +111,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	public boolean isExplored(Integer userId, Long planetId) {
 		return isOfUserProperty(userId, planetId)
-				|| exploredPlaneRepository.findOneByUserIdAndPlanetId(userId, planetId) != null;
+				|| exploredPlanetRepository.findOneByUserIdAndPlanetId(userId, planetId) != null;
 	}
 
 	public boolean myIsExplored(Planet planet) {
@@ -119,6 +120,17 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	public boolean myIsExplored(Long planetId) {
 		return isExplored(userStorageBo.findLoggedIn().getId(), planetId);
+	}
+
+	public void defineAsExplored(UserStorage user, Planet targetPlanet) {
+		ExploredPlanet exploredPlanet = new ExploredPlanet();
+		exploredPlanet.setUser(user);
+		exploredPlanet.setPlanet(targetPlanet);
+		exploredPlanetRepository.save(exploredPlanet);
+	}
+
+	public void myDefineAsExplored(Planet targetPlanet) {
+		defineAsExplored(userStorageBo.findLoggedIn(), targetPlanet);
 	}
 
 }

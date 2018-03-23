@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.sgtjava.test.tests;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
@@ -7,6 +8,9 @@ import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -14,13 +18,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.sgtjava.business.PlanetBo;
+import com.kevinguanchedarias.sgtjava.entity.ExploredPlanet;
 import com.kevinguanchedarias.sgtjava.entity.Galaxy;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.SpecialLocation;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendUniverseIsFull;
+import com.kevinguanchedarias.sgtjava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.sgtjava.repository.GalaxyRepository;
 import com.kevinguanchedarias.sgtjava.repository.SpecialLocationRepository;
+import com.kevinguanchedarias.sgtjava.test.helper.UserMockitoHelper;
 
 @ActiveProfiles("dev")
 @ContextConfiguration(locations = { "file:src/test/resources/dao-context.xml",
@@ -40,9 +47,12 @@ public class PlanetBoTest extends TestCommon {
 
 	private UserStorage user;
 
+	private ExploredPlanetRepository explorePlanetRepositoryMock;
+
 	@Before
 	public void init() {
 		user = persistValidUserStorage(1);
+		explorePlanetRepositoryMock = Mockito.mock(ExploredPlanetRepository.class);
 	}
 
 	@Test(expected = SgtBackendUniverseIsFull.class)
@@ -81,6 +91,31 @@ public class PlanetBoTest extends TestCommon {
 		Galaxy galaxy = prepareGalaxy(200L, null, false);
 		galaxy = galaxyRepository.save(galaxy);
 		assertNotNull(planetBo.findRandomPlanet(null));
+	}
+
+	@Test
+	public void shouldDefinePlanetAsExplored() {
+		ArgumentCaptor<ExploredPlanet> captor = ArgumentCaptor.forClass(ExploredPlanet.class);
+		Whitebox.setInternalState(planetBo, "exploredPlanetRepository", explorePlanetRepositoryMock);
+		Mockito.when(explorePlanetRepositoryMock.save(captor.capture())).thenReturn(null);
+		UserStorage user = prepareValidUser(1);
+		Planet planet = preparePlanet("1234", null);
+		planetBo.defineAsExplored(user, planet);
+		ExploredPlanet savedPlanet = captor.getValue();
+		assertEquals(user, savedPlanet.getUser());
+		assertEquals(planet, savedPlanet.getPlanet());
+		Mockito.verify(explorePlanetRepositoryMock, Mockito.times(1)).save(savedPlanet);
+	}
+
+	@Test
+	public void shouldInvokeDefinePlanetAsExploredAsLoggedInUser() {
+		UserMockitoHelper userMockitoHelper = new UserMockitoHelper(planetBo);
+		UserStorage user = prepareValidUser(1);
+		Planet planet = preparePlanet("1234", null);
+		userMockitoHelper.fakeLoggedIn(user);
+		PlanetBo planetBoSpy = Mockito.spy(planetBo);
+		planetBoSpy.myDefineAsExplored(planet);
+		Mockito.verify(planetBoSpy, Mockito.times(1)).defineAsExplored(user, planet);
 	}
 
 	/**

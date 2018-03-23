@@ -17,17 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
-import com.kevinguanchedarias.sgtjava.business.BaseBo;
-import com.kevinguanchedarias.sgtjava.business.ObjectRelationBo;
-import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.sgtjava.business.ObtainedUpradeBo;
-import com.kevinguanchedarias.sgtjava.business.PlanetBo;
-import com.kevinguanchedarias.sgtjava.business.RequirementBo;
-import com.kevinguanchedarias.sgtjava.business.UnitBo;
-import com.kevinguanchedarias.sgtjava.business.UnlockedRelationBo;
-import com.kevinguanchedarias.sgtjava.business.UpgradeBo;
-import com.kevinguanchedarias.sgtjava.business.UserImprovementBo;
-import com.kevinguanchedarias.sgtjava.business.UserStorageBo;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
@@ -179,5 +168,18 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 
 	protected TriggerKey genTriggerKey(Mission mission) {
 		return new TriggerKey("trigger_" + mission.getId().toString(), getGroupName());
+	}
+
+	/**
+	 * Defines the mission as resolved and saves it to the database
+	 * 
+	 * @param mission
+	 *            Mission to persist
+	 * @return Persisted entity
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	protected Mission resolveMission(Mission mission) {
+		mission.setResolved(true);
+		return missionRepository.saveAndFlush(mission);
 	}
 }

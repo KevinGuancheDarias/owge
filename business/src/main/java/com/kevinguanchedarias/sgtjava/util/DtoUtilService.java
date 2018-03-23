@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.sgtjava.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,9 @@ import com.kevinguanchedarias.sgtjava.dto.DtoFromEntity;
 import com.kevinguanchedarias.sgtjava.exception.CommonException;
 
 @Service
-public class DtoUtilService {
+public class DtoUtilService implements Serializable {
+	private static final long serialVersionUID = -2451840948119691965L;
+
 	private static final String INSTANTIATION_ERROR = "Could not create a new instance";
 
 	/**
@@ -23,7 +26,7 @@ public class DtoUtilService {
 	 *         generated dto
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public static <E, P extends DtoFromEntity<E>> P dtoFromEntity(Class<P> targetDtoClass, E entity) {
+	public static <E, P extends DtoFromEntity<E>> P staticDtoFromEntity(Class<P> targetDtoClass, E entity) {
 		if (entity != null) {
 			try {
 				P retVal = targetDtoClass.newInstance();
@@ -35,6 +38,10 @@ public class DtoUtilService {
 		} else {
 			return null;
 		}
+	}
+
+	public <E, P extends DtoFromEntity<E>> P dtoFromEntity(Class<P> targetDtoClass, E entity) {
+		return DtoUtilService.staticDtoFromEntity(targetDtoClass, entity);
 	}
 
 	/**
@@ -50,7 +57,7 @@ public class DtoUtilService {
 	public <E, P extends DtoFromEntity<E>> List<P> convertEntireArray(Class<P> targetDtoClass, List<E> entities) {
 		List<P> retVal = new ArrayList<>();
 		entities.forEach(current -> {
-			P currentPojo = DtoUtilService.dtoFromEntity(targetDtoClass, current);
+			P currentPojo = DtoUtilService.staticDtoFromEntity(targetDtoClass, current);
 			retVal.add(currentPojo);
 		});
 		return retVal;

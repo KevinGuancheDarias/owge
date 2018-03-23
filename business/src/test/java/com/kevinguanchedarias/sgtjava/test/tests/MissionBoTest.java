@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -305,8 +304,8 @@ public class MissionBoTest extends TestCommon {
 		MissionInformation savedMissionInformation = savedMission.getMissionInformation();
 		assertEquals(relationUnit, savedMissionInformation.getRelation());
 		assertEquals(PLANET_ID.longValue(), savedMissionInformation.getValue().longValue());
-		assertEquals(REQUIRED_PRIMARY, savedMission.getPrimaryResource(), 0.1);
-		assertEquals(REQUIRED_SECONDARY, savedMission.getSecondaryResource(), 0.1);
+		assertEquals(REQUIRED_PRIMARY, savedMission.getPrimaryResource());
+		assertEquals(REQUIRED_SECONDARY, savedMission.getSecondaryResource());
 		assertEquals(savedMission, savedMissionInformation.getMission());
 		assertEquals(count, captor.getValue().getCount().longValue());
 	}
@@ -373,13 +372,6 @@ public class MissionBoTest extends TestCommon {
 		assertEquals(currentUserSecondaryResource + mission.getSecondaryResource(),
 				user.getSecondaryResource().doubleValue(), 0D);
 		Mockito.verify(userStorageBoMock).save(user);
-	}
-
-	private SchedulerFactoryBean mockScheduler() {
-		SchedulerFactoryBean schedulerFactoryBeanMock = Mockito.mock(SchedulerFactoryBean.class);
-		Scheduler schedulerMock = Mockito.mock(Scheduler.class);
-		Mockito.when(schedulerFactoryBeanMock.getScheduler()).thenReturn(schedulerMock);
-		return schedulerFactoryBeanMock;
 	}
 
 	private Mission prepareValidMissionWithInformation(ObjectRelation relation) {

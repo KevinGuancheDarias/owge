@@ -11,10 +11,15 @@ import java.util.List;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import com.kevinguanchedarias.sgtjava.entity.Faction;
 import com.kevinguanchedarias.sgtjava.entity.Galaxy;
@@ -303,5 +308,23 @@ public abstract class TestCommon {
 			}
 		}
 
+	}
+
+	protected SchedulerFactoryBean mockScheduler() {
+		SchedulerFactoryBean schedulerFactoryBeanMock = Mockito.mock(SchedulerFactoryBean.class);
+		return mockScheduler(schedulerFactoryBeanMock);
+	}
+
+	protected SchedulerFactoryBean mockScheduler(SchedulerFactoryBean schedulerFactoryBeanMock) {
+		Scheduler schedulerMock = Mockito.mock(Scheduler.class);
+		Mockito.when(schedulerFactoryBeanMock.getScheduler()).thenReturn(schedulerMock);
+		return schedulerFactoryBeanMock;
+	}
+
+	protected void testHasScheduledJob(SchedulerFactoryBean schedulerFactoryBeanMock) throws SchedulerException {
+		Scheduler schedulerMock = schedulerFactoryBeanMock.getScheduler();
+		Mockito.verify(schedulerMock, Mockito.times(1)).addJob(Mockito.any(JobDetail.class), Mockito.anyBoolean(),
+				Mockito.anyBoolean());
+		Mockito.verify(schedulerMock, Mockito.times(1)).scheduleJob(Mockito.any(Trigger.class));
 	}
 }

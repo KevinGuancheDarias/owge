@@ -20,9 +20,9 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 		unit = new UnitDto();
 		unit.dtoFromEntity(entity.getUnit());
 		count = entity.getCount();
-		sourcePlanet = DtoUtilService.dtoFromEntity(PlanetDto.class, entity.getSourcePlanet());
-		targetPlanet = DtoUtilService.dtoFromEntity(PlanetDto.class, entity.getTargetPlanet());
-		mission = DtoUtilService.dtoFromEntity(MissionDto.class, entity.getMission());
+		sourcePlanet = DtoUtilService.staticDtoFromEntity(PlanetDto.class, entity.getSourcePlanet());
+		targetPlanet = DtoUtilService.staticDtoFromEntity(PlanetDto.class, entity.getTargetPlanet());
+		mission = DtoUtilService.staticDtoFromEntity(MissionDto.class, entity.getMission());
 		expiration = entity.getExpiration();
 	}
 

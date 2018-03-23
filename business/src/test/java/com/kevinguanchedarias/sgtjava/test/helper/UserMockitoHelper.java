@@ -40,6 +40,10 @@ public class UserMockitoHelper {
 		Mockito.when(userStorageBoMock.findLoggedIn()).thenReturn(user);
 	}
 
+	public void testLoggedInInvoked() {
+		Mockito.verify(userStorageBoMock, Mockito.times(1)).findLoggedIn();
+	}
+
 	/**
 	 * Fake the user exists functionality
 	 * 
@@ -52,4 +56,9 @@ public class UserMockitoHelper {
 	public void fakeUserExists(Integer userId, UserStorage user) {
 		Mockito.when(userStorageBoMock.findById(userId)).thenReturn(user);
 	}
+
+	public UserStorageBo getUserStorageBoMock() {
+		return userStorageBoMock;
+	}
+
 }

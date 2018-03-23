@@ -3,7 +3,6 @@ package com.kevinguanchedarias.sgtjava.business;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,15 +10,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+import com.kevinguanchedarias.sgtjava.entity.Planet;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.NotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
+import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
@@ -30,6 +33,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private ConfigurationBo configurationBo;
+
+	@Autowired
+	private SocketIoService socketIoService;
+
+	private DtoUtilService dtoUtilService = new DtoUtilService();
 
 	@Override
 	public String getGroupName() {
@@ -58,7 +66,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public UnitRunningMissionDto myRegisterExploreMission(UnitMissionInformation missionInformation) {
-		checkInvokerIsTheLoggedUser(missionInformation.getUserId());
+		if (missionInformation.getUserId() == null) {
+			missionInformation.setUserId(userStorageBo.findLoggedIn().getId());
+		} else {
+			checkInvokerIsTheLoggedUser(missionInformation.getUserId());
+		}
 		return adminRegisterExploreMission(missionInformation);
 	}
 
@@ -82,18 +94,71 @@ public class UnitMissionBo extends AbstractMissionBo {
 		List<ObtainedUnit> obtainedUnits = checkAndLoadObtainedUnits(missionInformation);
 		Mission mission = missionRepository
 				.saveAndFlush((prepareMission(targetMissionInformation, MissionType.EXPLORE)));
-		obtainedUnits.forEach(current -> current.setMission(mission));
+		obtainedUnits.forEach(current -> {
+			current.setMission(mission);
+			current.setSourcePlanet(mission.getTargetPlanet());
+			current.setTargetPlanet(mission.getSourcePlanet());
+		});
 		obtainedUnitBo.save(obtainedUnits);
 		scheduleMission(mission);
 		return new UnitRunningMissionDto(mission, obtainedUnits);
 	}
 
+	/**
+	 * Parses the exploration of a planet
+	 * 
+	 * @todo in the future generate a report with the explore result
+	 * @param missionId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
 	public void processExplore(Long missionId) {
 		Mission mission = findById(missionId);
-		if (mission != null) {
-			// mission.getTargetPlanet()
-			throw new NotImplementedException("MUST finish this!");
+		UserStorage user = mission.getUser();
+		Planet targetPlanet = mission.getTargetPlanet();
+		if (!planetBo.isExplored(user, targetPlanet)) {
+			planetBo.defineAsExplored(user, targetPlanet);
 		}
+		adminRegisterReturnMission(mission);
+		resolveMission(mission);
+		emitLocalMissionChange(mission, user);
+	}
+
+	/**
+	 * Creates a return mission from an existing mission
+	 * 
+	 * @param mission
+	 *            Existing mission that will be returned
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void adminRegisterReturnMission(Mission mission) {
+		Mission returnMission = new Mission();
+		returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
+		returnMission.setRequiredTime(mission.getRequiredTime());
+		returnMission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+		returnMission.setSourcePlanet(mission.getTargetPlanet());
+		returnMission.setTargetPlanet(mission.getSourcePlanet());
+		returnMission.setUser(mission.getUser());
+		returnMission.setRelatedMission(mission);
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+		missionRepository.saveAndFlush(returnMission);
+		obtainedUnits.forEach(current -> current.setMission(returnMission));
+		obtainedUnitBo.save(obtainedUnits);
+		scheduleMission(returnMission);
+	}
+
+	@Transactional
+	public void proccessReturnMission(Long missionId) {
+		Mission mission = missionRepository.findOne(missionId);
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+		obtainedUnits.forEach(current -> {
+			current.setMission(null);
+			current.setSourcePlanet(mission.getTargetPlanet());
+			current.setTargetPlanet(null);
+		});
+		resolveMission(mission);
+		emitLocalMissionChange(mission, mission.getUser());
 	}
 
 	/**
@@ -204,6 +269,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 		retVal.setType(findMissionType(type));
 		retVal.setUser(userStorageBo.findById(missionInformation.getUserId()));
 		retVal.setRequiredTime(requiredTime);
+		Long sourcePlanetId = missionInformation.getSourcePlanetId();
+		Long targetPlanetId = missionInformation.getTargetPlanetId();
+		if (sourcePlanetId != null) {
+			retVal.setSourcePlanet(planetBo.findById(sourcePlanetId));
+		}
+		if (targetPlanetId != null) {
+			retVal.setTargetPlanet(planetBo.findById(targetPlanetId));
+		}
+
 		retVal.setTerminationDate(computeTerminationDate(requiredTime));
 		return retVal;
 	}
@@ -219,5 +293,17 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	private Double calculateRequiredTime(MissionType type) {
 		return Double.valueOf(configurationBo.findMissionBaseTimeByType(type));
+	}
+
+	/**
+	 * Emits a local mission change to the target user
+	 * 
+	 * @param mission
+	 * @param user
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void emitLocalMissionChange(Mission mission, UserStorage user) {
+		socketIoService.sendMessage(user, "local_mission_change",
+				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
 	}
 }

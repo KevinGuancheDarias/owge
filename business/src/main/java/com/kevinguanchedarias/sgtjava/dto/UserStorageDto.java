@@ -25,9 +25,10 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	@Override
 	public void dtoFromEntity(UserStorage entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
-		improvements = new ImprovementDto();
-		improvements.dtoFromEntity(entity.getImprovements());
-
+		if (entity.getImprovements() != null) {
+			improvements = new ImprovementDto();
+			improvements.dtoFromEntity(entity.getImprovements());
+		}
 	}
 
 	public Integer getId() {

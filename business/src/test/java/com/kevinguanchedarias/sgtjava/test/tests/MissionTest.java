@@ -51,4 +51,5 @@ public class MissionTest extends TestCommon {
 	public void shouldSave() {
 		persistValidMission();
 	}
+
 }

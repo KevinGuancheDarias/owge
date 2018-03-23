@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.5
+-- version 4.7.9
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  jeu. 01 mars 2018 à 11:26
+-- Généré le :  ven. 23 mars 2018 à 00:37
 -- Version du serveur :  5.7.19-log
--- Version de PHP :  7.1.9
+-- Version de PHP :  7.2.2
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -241,7 +241,9 @@ CREATE TABLE `missions` (
   `secondary_resource` double DEFAULT NULL,
   `required_energy` double DEFAULT NULL,
   `source_planet` bigint(20) DEFAULT NULL,
-  `target_planet` bigint(20) DEFAULT NULL
+  `target_planet` bigint(20) DEFAULT NULL,
+  `related_mission` bigint(20) UNSIGNED DEFAULT NULL,
+  `resolved` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -843,7 +845,8 @@ ALTER TABLE `mensajes`
 ALTER TABLE `missions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `type` (`type`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `related_mission` (`related_mission`);
 
 --
 -- Index pour la table `mission_information`
@@ -1113,7 +1116,7 @@ ALTER TABLE `especialesderaza`
 -- AUTO_INCREMENT pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT pour la table `factions`
@@ -1149,7 +1152,7 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
@@ -1161,7 +1164,7 @@ ALTER TABLE `mission_information`
 -- AUTO_INCREMENT pour la table `mission_types`
 --
 ALTER TABLE `mission_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT pour la table `object_relations`
@@ -1251,7 +1254,7 @@ ALTER TABLE `user_improvements`
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- Contraintes pour les tables déchargées
@@ -1282,7 +1285,8 @@ ALTER TABLE `improvements_unit_types`
 --
 ALTER TABLE `missions`
   ADD CONSTRAINT `missions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`),
-  ADD CONSTRAINT `missions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `mission_types` (`id`);
+  ADD CONSTRAINT `missions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `mission_types` (`id`),
+  ADD CONSTRAINT `missions_ibfk_3` FOREIGN KEY (`related_mission`) REFERENCES `missions` (`id`);
 
 --
 -- Contraintes pour la table `mission_information`

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.business;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -30,6 +31,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
+import com.kevinguanchedarias.sgtjava.dto.UserStorageDto;
+import com.kevinguanchedarias.sgtjava.dto.WebsocketMessageStatusDto;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.entity.WebsocketMessageStatus;
 import com.kevinguanchedarias.sgtjava.exception.CommonException;
@@ -41,12 +44,14 @@ import com.kevinguanchedarias.sgtjava.exception.SocketServerProgrammingException
 import com.kevinguanchedarias.sgtjava.pojo.AbstractMissionReport;
 import com.kevinguanchedarias.sgtjava.pojo.DeliveryQueueEntry;
 import com.kevinguanchedarias.sgtjava.pojo.WebsocketMessage;
+import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
 @Service
-public class SocketIoService {
+public class SocketIoService implements Serializable {
+	private static final long serialVersionUID = 8523658662096226104L;
 
 	private static final String PROTOCOL_VERSION = "0.1.0";
 	private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
@@ -59,7 +64,8 @@ public class SocketIoService {
 	@Autowired
 	private WebsocketMessageBo websocketMessageBo;
 
-	private Socket io;
+	private DtoUtilService dtoUtilService = new DtoUtilService();
+	private transient Socket io;
 	private ObjectMapper mapper = new ObjectMapper();
 
 	/**
@@ -68,13 +74,13 @@ public class SocketIoService {
 	 * 
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private Map<BigInteger, DeliveryQueueEntry> messageHandshakingStorage = new HashMap<>();
+	private transient Map<BigInteger, DeliveryQueueEntry> messageHandshakingStorage = new HashMap<>();
 
 	/**
 	 * Has the successfully delivered messages <br>
 	 * The messages should be removed after first read
 	 */
-	private Map<BigInteger, DeliveryQueueEntry> completedDeliveryQueries = new HashMap<>();
+	private transient Map<BigInteger, DeliveryQueueEntry> completedDeliveryQueries = new HashMap<>();
 
 	public SocketIoService() {
 		mapper.registerModule(new JsonOrgModule());
@@ -103,8 +109,14 @@ public class SocketIoService {
 			String eventName, Object messageContent) {
 		CompletableFuture<DeliveryQueueEntry> retVal = new CompletableFuture<>();
 		Map<String, Object> jsonRoot = new HashMap<>();
-		jsonRoot.put("sourceUser", mapper.convertValue(sourceUser, JSONObject.class));
-		jsonRoot.put("targetUser", mapper.convertValue(targetUser, JSONObject.class));
+		if (sourceUser != null) {
+			jsonRoot.put("sourceUser", mapper
+					.convertValue(dtoUtilService.dtoFromEntity(UserStorageDto.class, sourceUser), JSONObject.class));
+		}
+		if (targetUser != null) {
+			jsonRoot.put("targetUser", mapper
+					.convertValue(dtoUtilService.dtoFromEntity(UserStorageDto.class, targetUser), JSONObject.class));
+		}
 		Object parsedContent;
 		if (messageContent instanceof String || messageContent instanceof Number) {
 			parsedContent = messageContent;
@@ -173,7 +185,8 @@ public class SocketIoService {
 		websocketMessageStatus.setUser(user);
 		final WebsocketMessageStatus persistedMessage = websocketMessageBo.save(websocketMessageStatus);
 
-		data.put(MESSAGE_STATUS_JSON_KEY, mapper.convertValue(websocketMessageStatus, JSONObject.class));
+		data.put(MESSAGE_STATUS_JSON_KEY,
+				mapper.convertValue(convertMessageStatusToDto(websocketMessageStatus), JSONObject.class));
 		initializeSocketIo().thenAccept(status -> {
 			io.emit(DELIVER_EVENT_NAME, data);
 			storeMessageStatus(websocketMessageBo.save(persistedMessage), retVal, data);
@@ -215,7 +228,7 @@ public class SocketIoService {
 
 	private void registerAckEventHandlers() {
 		io.on("websocket_server_ack", (Object... args) -> {
-			WebsocketMessageStatus sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
+			WebsocketMessageStatusDto sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
 			WebsocketMessageStatus savedStatus = checkMessageCorrelations(sentStatus);
 			if (savedStatus.getSocketServerAck()) {
 				LOCAL_LOGGER.warn("Message with id " + savedStatus.getId() + " was already notified");
@@ -228,7 +241,7 @@ public class SocketIoService {
 			}
 		});
 		io.on("no_client_socket", (Object... args) -> {
-			WebsocketMessageStatus sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
+			WebsocketMessageStatusDto sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
 			WebsocketMessageStatus savedStatus = checkMessageCorrelations(sentStatus);
 			discardWebsocketMessage(savedStatus);
 			if (savedStatus.getSocketServerAck()) {
@@ -242,7 +255,7 @@ public class SocketIoService {
 			}
 		});
 		io.on("web_browser_ack", (Object... args) -> {
-			WebsocketMessageStatus sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
+			WebsocketMessageStatusDto sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
 			WebsocketMessageStatus savedStatus = checkMessageCorrelations(sentStatus);
 			if (savedStatus.getSocketServerAck()) {
 				LOCAL_LOGGER.debug("The client browser is aware of the websocket message");
@@ -255,7 +268,7 @@ public class SocketIoService {
 			}
 		});
 		io.on("user_ack", (Object... args) -> {
-			WebsocketMessageStatus sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
+			WebsocketMessageStatusDto sentStatus = checkWebsocketMessageStatus(parseServerResult(args));
 			WebsocketMessageStatus savedStatus = checkMessageCorrelations(sentStatus);
 			if (savedStatus.getSocketServerAck()) {
 				LOCAL_LOGGER.debug("User acknowledges the message");
@@ -383,7 +396,7 @@ public class SocketIoService {
 	 * @return The found saved message
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private WebsocketMessageStatus checkMessageCorrelations(WebsocketMessageStatus sentStatus) {
+	private WebsocketMessageStatus checkMessageCorrelations(WebsocketMessageStatusDto sentStatus) {
 		WebsocketMessageStatus savedStatus = websocketMessageBo.findById(sentStatus.getId());
 		if (savedStatus == null) {
 			throw new SocketServerProgrammingException("This message is not registered");
@@ -391,12 +404,12 @@ public class SocketIoService {
 		return savedStatus;
 	}
 
-	private WebsocketMessageStatus checkWebsocketMessageStatus(JSONObject serverResult) {
+	private WebsocketMessageStatusDto checkWebsocketMessageStatus(JSONObject serverResult) {
 		JSONObject statusJson = findJsonEntryObject(serverResult, MESSAGE_STATUS_JSON_KEY);
 		if (statusJson == null) {
 			throw new SocketServerProgrammingException("message doesn't contain a status object");
 		}
-		WebsocketMessageStatus status = convertJsonObjectToPojo(statusJson, WebsocketMessageStatus.class);
+		WebsocketMessageStatusDto status = convertJsonObjectToPojo(statusJson, WebsocketMessageStatusDto.class);
 		if (status.getSocketServerAck() == null || status.getSocketNotFound() == null
 				|| status.getWebBrowserAck() == null) {
 			throw new SocketServerProgrammingException("message contain null values");
@@ -495,5 +508,9 @@ public class SocketIoService {
 		}
 
 		return retVal;
+	}
+
+	private WebsocketMessageStatusDto convertMessageStatusToDto(WebsocketMessageStatus status) {
+		return dtoUtilService.dtoFromEntity(WebsocketMessageStatusDto.class, status);
 	}
 }

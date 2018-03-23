@@ -38,23 +38,29 @@ public class RealizationJob extends QuartzJobBean {
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 		injectSpringBeans(context);
 		Mission mission = missionBo.findById(missionId);
-
-		try {
-			switch (MissionType.valueOf(mission.getType().getCode())) {
-			case BUILD_UNIT:
-				missionBo.processBuildUnit(missionId);
-				break;
-			case LEVEL_UP:
-				missionBo.processLevelUpAnUpgrade(missionId);
-				break;
-			case EXPLORE:
-				unitMissionBo.processExplore(missionId);
-				break;
-			default:
-				throw new CommonException("Unimplemented mission type " + mission.getType().getCode());
+		if (mission != null && !mission.getResolved()) {
+			try {
+				LOG.debug("Executing mission id " + mission.getId() + " of type "
+						+ MissionType.valueOf(mission.getType().getCode()));
+				switch (MissionType.valueOf(mission.getType().getCode())) {
+				case BUILD_UNIT:
+					missionBo.processBuildUnit(missionId);
+					break;
+				case LEVEL_UP:
+					missionBo.processLevelUpAnUpgrade(missionId);
+					break;
+				case EXPLORE:
+					unitMissionBo.processExplore(missionId);
+					break;
+				case RETURN_MISSION:
+					unitMissionBo.proccessReturnMission(missionId);
+					break;
+				default:
+					throw new CommonException("Unimplemented mission type " + mission.getType().getCode());
+				}
+			} catch (Exception e) {
+				LOG.error("Unexpected fatal ecxception", e);
 			}
-		} catch (Exception e) {
-			LOG.error("Unexpected fatal ecxception", e);
 		}
 	}
 
