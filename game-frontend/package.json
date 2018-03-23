@@ -17,9 +17,9 @@
     "@angular/core": "^4.0.0",
     "@angular/forms": "^4.0.0",
     "@angular/http": "^4.0.0",
+    "@angular/language-service": "^4.0.0",
     "@angular/platform-browser": "^4.0.0",
     "@angular/platform-browser-dynamic": "^4.0.0",
-    "@angular/language-service": "^4.0.0",
     "@angular/router": "^4.0.0",
     "angular2-fontawesome": "~0.8.0",
     "angular2-modal": "^2.0.2",
@@ -30,12 +30,13 @@
     "karma-spec-reporter": "0.0.26",
     "kgd-ng2-widgets": "^1.2.1",
     "ng-sidebar": "^2.0.0",
+    "ng2-logger": "^2.0.35",
+    "popper.js": "^1.14.1",
     "rxjs": "^5.1.0",
+    "socket.io-client": "^1.7.3",
     "tether": "^1.4.0",
     "ts-helpers": "^1.1.1",
-    "zone.js": "^0.8.4",
-    "socket.io-client": "^1.7.3",
-    "ng2-logger": "^2.0.35"
+    "zone.js": "^0.8.4"
   },
   "devDependencies": {
     "@angular/cli": "^1.2.0",
@@ -57,7 +58,7 @@
     "protractor": "~5.1.0",
     "ts-node": "~2.0.0",
     "tslint": "~4.5.0",
-    "typescript": "~2.2.0",
+    "typescript": "2.2.0",
     "webdriver-manager": "10.2.5"
   }
 }
