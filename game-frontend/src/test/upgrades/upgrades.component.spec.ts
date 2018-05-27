@@ -28,7 +28,7 @@ describe('UpgradesComponent', () => {
 
   });
 
-  fit('should call onRunningUpgradeDone(), when child says so', async(() => {
+  it('should call onRunningUpgradeDone(), when child says so', async(() => {
     spyOn(helper.component, 'ngOnInit').and.stub();
     spyOn(helper.component, 'onRunningUpgradeDone').and.stub();
     helper.component.obtainedUpgrades = <any>[{ available: true }];
