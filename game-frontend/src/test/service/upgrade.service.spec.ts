@@ -3,6 +3,6 @@ import { CommonServiceTestHelper } from './../../helpers/common-service-test.hel
 import { UpgradeService } from './../../app/service/upgrade.service';
 
 describe('UpgradeService', () => {
-  const helper: CommonServiceTestHelper<UpgradeService> = new CommonServiceTestHelper(UpgradeService, testingConfig);
+  const helper: CommonServiceTestHelper<UpgradeService> = new CommonServiceTestHelper(UpgradeService, true, testingConfig);
   helper.testItCreates();
 });

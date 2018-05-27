@@ -6,7 +6,7 @@ import { ServiceLocator } from './../app/service-locator/service-locator';
 import { TestBed, async, TestModuleMetadata } from '@angular/core/testing';
 import { Injector, Type } from '@angular/core';
 
-type StatePrefix = 'f' | 'x' | '';
+export type StatePrefix = 'f' | 'x' | '';
 export abstract class AbstractCommonTestHelper<T> {
     /**
      * Returns the last observable defined by mockReturnedObservable <br>
@@ -20,7 +20,11 @@ export abstract class AbstractCommonTestHelper<T> {
     }
     protected _lastDefinedObservable: Observable<any>;
 
-    protected _targetClass: Type<T>;
+    protected _targetClass: Type<T> | string;
+
+    public constructor(targetClass: Type<T> | string) {
+        this._targetClass = targetClass;
+    }
 
     /**
      * Apply the settings to TestBed and compile components
@@ -178,14 +182,105 @@ export abstract class AbstractCommonTestHelper<T> {
      * Resets the spy, just as if it was not used, before in this it()
      *
      * @param {*} spyMethod spy method to reset
-     * @param {*} [newValue] (Optionally) specify new returnVal
+     * @param {*} [newValue] (Optionally) specify new returnVal, if a function, will call as passed "fake function"
      * @memberOf TestUtil
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public resetSpyCalls(spyMethod: any, newValue?: any): void {
         spyMethod.calls.reset();
-        if (typeof newValue !== 'undefined') {
+        if (typeof newValue === 'function') {
+            spyMethod.and.callFake(newValue);
+        } else if (typeof newValue !== 'undefined') {
             spyMethod.and.returnValue(newValue);
+        }
+    }
+
+    /**
+     * Returns as a promise
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {any} [retVal] Value to return
+     * @returns Promise with <i>retVal</i> as value
+     * @memberof AbstractCommonTestHelper
+     */
+    public async promiseReturn(retVal?: any): Promise<any> {
+        return retVal;
+    }
+
+    /**
+     * "Jasmine expects" the input to be an array
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {any[]} targetData array to check if it's an array
+     * @returns {boolean} true if input is an array
+     * @memberof AbstractCommonTestHelper
+     */
+    public expectArray(targetData: any[]): boolean {
+        expect(targetData).toEqual(jasmine.any(Array), 'input is not an array');
+        return targetData instanceof Array;
+    }
+
+    /**
+     * Executes jasmine expects() over all objects in <i>data</i> array
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {any[]} data data to test
+     * @param {Function} [targetClass] expected class, if not specified will use the helper target class
+     * @throws {ProgrammingError} When targetClass is not defined, and default one is a string
+     * @memberof AbstractCommonTestHelper
+     */
+    public expectInstancesOf(data: any[], targetClass?: Function): void {
+        let finalTargetClass: Function;
+        if (targetClass) {
+            finalTargetClass = targetClass;
+        } else if (typeof this._targetClass !== 'string') {
+            finalTargetClass = this._targetClass;
+        } else {
+            throw new ProgrammingError(
+                'Can NOT use expectInstancesOf() without targetClass argument, when the default targetClass is a string'
+            );
+        }
+
+        this.expectArray(data);
+        data.forEach((current, i) => {
+            expect(current).toEqual(
+                jasmine.any(finalTargetClass), 'object in index ' + i + ' is not an instance of ' + finalTargetClass.name
+            );
+            return current;
+        });
+    }
+
+    /**
+     * Waits for some milliseconds
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {number} [milliseconds=0] Number of milliseconds, if 0 will just resolve when all "await-ready" events are solved
+     * @param {any} [value] Expected resolution value (useful when doWait is used as a value)
+     * @returns {Promise<any>} Resolved value
+     * @memberof AbstractCommonTestHelper
+     */
+    public doWait(milliseconds: number = 0, value?: any): Promise<any> {
+        return new Promise(resolve => window.setTimeout(() => resolve(value), milliseconds));
+    }
+
+    /**
+     * Iterates in an object, useful as it discards the object methods
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {T} target target object to iterate
+     * @param {(prop: keyof T, currentValue?:any) => void} callback Action to run for each property,
+     *  currentValue is the value of the prop in the object
+     * @throws {ProgrammingError} If input is not an object
+     * @memberof AbstractCommonTestHelper
+     */
+    public iterateProperties(target: T, callback: (prop: keyof T, currentValue?: any) => void) {
+        if (typeof target !== 'object') {
+            throw new ProgrammingError('Input target is not an object');
+        }
+        for (const prop in target) {
+            if (target.hasOwnProperty(prop) && typeof target[prop] !== 'function') {
+                callback.apply(target, [prop, target[prop]]);
+            }
         }
     }
 }

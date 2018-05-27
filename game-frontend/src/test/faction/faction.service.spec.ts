@@ -4,6 +4,6 @@ import { FactionService } from './../../app/faction/faction.service';
 
 
 describe('FactionService', () => {
-  const helper: CommonServiceTestHelper<FactionService> = new CommonServiceTestHelper(FactionService, testingConfig);
+  const helper: CommonServiceTestHelper<FactionService> = new CommonServiceTestHelper(FactionService, true, testingConfig);
   helper.testItCreates();
 });

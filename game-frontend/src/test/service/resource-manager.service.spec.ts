@@ -5,6 +5,7 @@ import { ResourceManagerService } from './../../app/service/resource-manager.ser
 describe('ResourceManagerService', () => {
   const helper: CommonServiceTestHelper<ResourceManagerService> = new CommonServiceTestHelper(
     ResourceManagerService,
+    true,
     testingConfig
   );
   helper.testItCreates();

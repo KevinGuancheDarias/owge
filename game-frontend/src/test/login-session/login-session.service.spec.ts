@@ -16,7 +16,7 @@ describe('LoginSessionService', () => {
         sub: 826737263
     };
 
-    const helper: CommonServiceTestHelper<LoginSessionService> = new CommonServiceTestHelper(LoginSessionService, testingConfig);
+    const helper: CommonServiceTestHelper<LoginSessionService> = new CommonServiceTestHelper(LoginSessionService, true, testingConfig);
     helper.testItCreates();
 
     helper.testAsync('findTokenData() should return data if token exists and is not expired', () => {

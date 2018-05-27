@@ -5,6 +5,7 @@ import { ProgrammingError } from './../error/programming.error';
 import { Type } from '@angular/core';
 
 export class CommonServiceTestHelper<T> extends AbstractCommonTestHelper<T> {
+
     /**
      * Represents the service instance <br>
      * <b>IMPORTANT:</b> Available after createService has been called
@@ -28,15 +29,14 @@ export class CommonServiceTestHelper<T> extends AbstractCommonTestHelper<T> {
      * Creates an instance of CommonServiceTestHelper.
      *
      * @param {Type<T>} targetClass The target class
-     * @param {TestModuleMetadata} config Declarations, providers, etc
      * @param {boolean} [fastSpawn=true] Configures TestBed and automatically create the service, and defines ServiceLocator's injector
+     * @param {TestModuleMetadata} [config] Declarations, providers, etc, defaults to app settings
      *
      * @memberOf CommonServiceTestHelper
      * @author Kevin Guanche Darias
      */
-    public constructor(targetClass: Type<T>, config: TestModuleMetadata, fastSpawn = true) {
-        super();
-        this._targetClass = targetClass;
+    public constructor(targetClass: Type<T> | string, fastSpawn = true, config?: TestModuleMetadata) {
+        super(targetClass);
         if (fastSpawn) {
             this.configureTestingModule(config).configureServiceLocator().createService();
         }
@@ -51,7 +51,9 @@ export class CommonServiceTestHelper<T> extends AbstractCommonTestHelper<T> {
      * @author Kevin Guanche Darias
      */
     public createService(): this {
-        this.beforeEach(() => this._serviceInstance = ServiceLocator.injector.get(this._targetClass));
+        this.beforeEach(() => {
+            this._serviceInstance = ServiceLocator.injector.get(this._targetClass);
+        });
         return this;
     }
 
