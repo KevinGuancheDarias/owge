@@ -5,8 +5,17 @@ import { PlanetPojo } from './../app/shared-pojo/planet.pojo';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { TestBed } from '@angular/core/testing';
 import { LoginSessionService } from './../app/login-session/login-session.service';
+import { Universe } from '../app/shared-pojo/universe.pojo';
+import { AbstractCommonTestHelper } from './abstract-common-test.helper';
+import { HttpHeaders } from '@angular/common/http';
 
-export class GameCommonTestHelper<T> {
+export class GameCommonTestHelper<T = any> {
+
+    private _universe: Universe = {
+        id: 2,
+        name: 'World Of Test',
+        restBaseUrl: '/fakeverse'
+    };
 
     /**
      * Contains the commn-helper, this can be of type component or service
@@ -15,7 +24,7 @@ export class GameCommonTestHelper<T> {
      * @type {T} CommonComponentTestHelper or CommonServiceTestHelper
      * @memberOf GameCommonTestHelper
      */
-    private _encapsulatedHelper: T;
+    private _encapsulatedHelper: CommonComponentTestHelper<T> | CommonServiceTestHelper<T>;
 
     public constructor(helper: T) {
         if (!(helper instanceof CommonComponentTestHelper) && !(helper instanceof CommonServiceTestHelper)) {
@@ -25,7 +34,7 @@ export class GameCommonTestHelper<T> {
         this._encapsulatedHelper = <any>helper;
     }
 
-    public getEncapsulatedHelper(): T {
+    public getEncapsulatedHelper(): CommonComponentTestHelper<T> | CommonServiceTestHelper<T> {
         return this._encapsulatedHelper;
     }
 
@@ -49,6 +58,36 @@ export class GameCommonTestHelper<T> {
     public fakeLoginSessionServiceFindSelectedPlanet(selectedPlanet?: PlanetPojo): this {
         const subject: BehaviorSubject<PlanetPojo> = new BehaviorSubject(selectedPlanet);
         (<any>this._getLogginSessionService())._findSelectedPlanet = subject;
+        return this;
+    }
+
+    public getUniverse(): Universe {
+        return this._universe;
+    }
+
+    /**
+     * Mocks the getSelectedUniverse() of LoginSessionService
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @returns {this}
+     * @memberof GameCommonTestHelper
+     */
+    public mockUniverse(): this {
+        const service: LoginSessionService = TestBed.get(LoginSessionService);
+        this._encapsulatedHelper.spyOn(service, 'getSelectedUniverse').and.returnValue(this._universe);
+        return this;
+    }
+
+    public mockGetHttpClientHeaders(): this {
+        const service: LoginSessionService = TestBed.get(LoginSessionService);
+        this._encapsulatedHelper
+            .spyOn(service, 'genHttpClientHeaders')
+            .and.returnValue(new HttpHeaders().append('Authorization', 'Bearer fake'));
+        return this;
+    }
+
+    public expectHttpClientHeaders(headers: HttpHeaders): this {
+        expect(headers.get('Authorization')).toBe('Bearer fake');
         return this;
     }
 

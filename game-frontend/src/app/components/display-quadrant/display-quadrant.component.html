@@ -1,12 +1,30 @@
+<app-modal #missionModal>
+  <div class="header">
+    Send mission to planet {{ selectedPlanet | planetDisplayName }}
+  </div>
+  <div class="body">
+    <span>Mission type:</span>
+    <select>
+      <option [ngValue]="null">None</option>
+      <option selected value="EXPLORE">Explore</option>
+    </select>
+    <div class="unit-selection">
+      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"></app-deployed-units-list>
+    </div>
+  </div>
+  <div class="footer">
+    <button (click)="sendMission()" [disabled]="!areUnitsSelected()" class="btn-primary btn-send-mission">Send mission</button>
+  </div>
+</app-modal>
 <ng-container *ngIf="navigationData">
   <div class="card sgt-quadrant" *ngFor="let planet of navigationData.planets">
     <div class="card-block">
-      <h5 class="card-title">{{ planet.name | planetDisplayName }}</h5>
+      <h5 class="card-title">{{ planet | planetDisplayName }}</h5>
     </div>
     <img class="card-img-top planet-image" src="{{ findImage(planet) }}" alt="image of the planet">
     <div class="card-block">
       <p class="card-text planet-actions">
-        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="showMissionDialog()" />
+        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="showMissionDialog(planet)" />
       </p>
     </div>
   </div>

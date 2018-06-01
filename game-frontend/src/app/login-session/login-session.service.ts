@@ -11,6 +11,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { BaseHttpService } from '../base-http/base-http.service';
+import { HttpHeaders } from '@angular/common/http';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -108,10 +109,12 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
 
   /**
    * Generates the HTTP headers with the Authorization token included
-   * @param {Headers} headers If present will append to existing, else will create new
+   *
+   * @deprecated Use genHttpClientHeaders
+   * @param {Headers} [headers] If present will append to existing, else will create new
    * @return {Headers}
    */
-  public genHttpHeaders(headers: Headers = undefined): Headers {
+  public genHttpHeaders(headers?: Headers): Headers {
     if (!headers) {
       headers = new Headers();
     }
@@ -119,6 +122,20 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     return headers;
   }
 
+  /**
+   * Generates the HTTP headers with the Authorization token included
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {HttpHeaders} [headers] If present will append to existing, else will create new
+   * @returns {HttpHeaders}
+   * @memberof LoginSessionService
+   */
+  public genHttpClientHeaders(headers?: HttpHeaders): HttpHeaders {
+    const target: HttpHeaders = headers
+      ? headers
+      : new HttpHeaders();
+    return target.append('Authorization', `Bearer ${this.getRawToken()}`);
+  }
   public findLoggedInUserData(): Observable<UserPojo> {
     return this.httpDoGetWithAuthorization(this, this.getSelectedUniverse().restBaseUrl + '/user/findData');
   }

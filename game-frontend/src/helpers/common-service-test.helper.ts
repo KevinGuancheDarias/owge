@@ -36,9 +36,17 @@ export class CommonServiceTestHelper<T> extends AbstractCommonTestHelper<T> {
      * @author Kevin Guanche Darias
      */
     public constructor(targetClass: Type<T> | string, fastSpawn = true, config?: TestModuleMetadata) {
+        let targetConfig: TestModuleMetadata = config;
+        if (config && config.providers instanceof Array) {
+            targetConfig.providers = config.providers.concat([targetClass]);
+        } else {
+            targetConfig = {
+                providers: [targetClass]
+            };
+        }
         super(targetClass);
         if (fastSpawn) {
-            this.configureTestingModule(config).configureServiceLocator().createService();
+            this.configureTestingModule(targetConfig).configureServiceLocator().createService();
         }
     }
 

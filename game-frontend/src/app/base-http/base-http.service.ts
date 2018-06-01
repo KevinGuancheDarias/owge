@@ -9,10 +9,20 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 
 import { ServiceLocator } from '../service-locator/service-locator';
 import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 export abstract class BaseHttpService {
 
-  protected http;
+  /**
+   *
+   * @deprecated Use <i>_http</i> instead
+   * @protected
+   * @type {Http}
+   * @memberof BaseHttpService
+   */
+  protected http: Http;
+
+  protected _http: HttpClient;
   protected resources: AutoUpdatedResources;
   protected _selectedPlanet: PlanetPojo;
 
@@ -23,9 +33,10 @@ export abstract class BaseHttpService {
    */
   public constructor() {
     this.http = ServiceLocator.injector.get(Http);
+    this._http = ServiceLocator.injector.get(HttpClient);
   }
 
-  protected doGet(url: string, urlSearchParams: URLSearchParams = undefined, requestOptions: RequestOptions = undefined): Observable<any> {
+  protected doGet(url: string, urlSearchParams?: URLSearchParams, requestOptions?: RequestOptions): Observable<any> {
     const request: RequestObject = new RequestObject(urlSearchParams, requestOptions);
 
     return this.http.get(url, request.requestOptions)
@@ -106,11 +117,19 @@ export abstract class BaseHttpService {
    * @memberOf BaseHttpService
    */
   protected httpDoGetWithAuthorization(loginSessionService: LoginSessionService, url: string,
-    urlSearchParams: URLSearchParams = undefined): Observable<any> {
+    urlSearchParams?: URLSearchParams): Observable<any> {
     const requestOptions: RequestOptions = new RequestOptions();
     requestOptions.headers = Config.genCommonFormUrlencoded();
     requestOptions.headers = loginSessionService.genHttpHeaders(requestOptions.headers);
 
     return this.doGet(url, urlSearchParams, requestOptions);
+  }
+
+  protected _httpDoPostWithAuthorization(
+    loginSessionService: LoginSessionService,
+    url: string,
+    body: any
+  ): Observable<any> {
+    return this._http.post(url, body, { headers: loginSessionService.genHttpClientHeaders() });
   }
 }

@@ -6,6 +6,7 @@ import { HttpModule } from '@angular/http';
 import { RouterModule, Routes } from '@angular/router';
 import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome';
 import { Injector } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 
 import { ServiceLocator } from './service-locator/service-locator';
 import { LoginService } from './login/login.service';
@@ -42,9 +43,11 @@ import { NavigationComponent } from './components/navigation/navigation.componen
 import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
 import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
 import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
-import { ModalComponent } from 'app/components/modal/modal.component';
+import { ModalComponent } from './components/modal/modal.component';
 import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
+import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
+import { MissionService } from './services/mission.service';
 
 
 export const APP_ROUTES: Routes = [
@@ -86,7 +89,8 @@ export const APP_ROUTES: Routes = [
     NavigationControlsComponent,
     DisplayQuadrantComponent,
     PlanetDisplayNamePipe,
-    ModalComponent
+    ModalComponent,
+    DeployedUnitsListComponent
   ],
   imports: [
     BrowserModule,
@@ -95,7 +99,8 @@ export const APP_ROUTES: Routes = [
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES),
     SidebarModule,
-    KgdNg2WidgetsModule
+    KgdNg2WidgetsModule,
+    HttpClientModule
   ],
   providers: [
     LoginService,
@@ -105,7 +110,8 @@ export const APP_ROUTES: Routes = [
     UnitService,
     PlanetService,
     NavigationService,
-    WebsocketService
+    WebsocketService,
+    MissionService
   ],
   bootstrap: [AppComponent]
 })

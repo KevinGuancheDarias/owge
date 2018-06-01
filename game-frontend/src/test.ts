@@ -15,6 +15,9 @@ import {
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting
 } from '@angular/platform-browser-dynamic/testing';
+import { MEDIA_ROUTES } from './app/config/config.pojo';
+import { FakeClass } from './helpers/fake-class';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 // Unfortunately there's no typing for the `__karma__` variable. Just declare it as any.
 declare var __karma__: any;
@@ -23,11 +26,28 @@ declare var require: any;
 // Prevent Karma from running prematurely.
 __karma__.loaded = function () { };
 
+// CHANGE media root
+const imagesRoot = 'http://192.168.99.100';
+for (const key in MEDIA_ROUTES) {
+  if (MEDIA_ROUTES.hasOwnProperty(key)) {
+    MEDIA_ROUTES[key] = `${imagesRoot}${MEDIA_ROUTES[key]}`;
+  }
+}
+
 // Register dependency maps
 TestMetadataBuilder.registerDependencyGroup('BaseComponent', {
   declarations: [],
   providers: [LoginSessionService, ResourceManagerService],
   imports: [HttpModule]
+});
+TestMetadataBuilder.registerDependencyGroup('BaseHttpService', {
+  providers: [
+    { provide: LoginSessionService, useValue: FakeClass.getInstance(LoginSessionService) }
+  ],
+  imports: [
+    HttpModule,
+    HttpClientTestingModule
+  ]
 });
 // END Register dependency maps
 

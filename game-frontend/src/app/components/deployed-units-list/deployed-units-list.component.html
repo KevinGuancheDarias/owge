@@ -1,0 +1,21 @@
+<app-loading [isReady]="obtainedUnits">
+  <div class="list">
+    <div class="card sgt" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
+      <div class="card-block" *ngIf="selectedCounts">
+        <div class="card-title">
+          <span *ngIf="selectedCounts[i]">
+            {{ selectedCounts[i] }}/{{ obtainedUnit.count }}
+          </span>
+          <span *ngIf="!selectedCounts[i]">
+            {{ obtainedUnit.count }}
+          </span>
+        </div>
+      </div>
+      <img [src]="findUnitImageUrl(obtainedUnit.unit)" />
+      <div class="card-block" *ngIf="selectable">
+        <input min="0" [max]="obtainedUnit.count" type="number" placeholder="Select count" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"
+        />
+      </div>
+    </div>
+  </div>
+</app-loading>

@@ -74,6 +74,15 @@ export class TestMetadataBuilder {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public static registerDependencyGroup(groupName: string, data: TestModuleMetadata): void {
+        if (!data.declarations) {
+            data.declarations = [];
+        }
+        if (!data.providers) {
+            data.providers = [];
+        }
+        if (!data.imports) {
+            data.imports = [];
+        }
         TestMetadataBuilder.dependenciesMap[groupName] = data;
     }
 
@@ -102,13 +111,13 @@ export class TestMetadataBuilder {
     /**
      * Creates an instance of TestMetadataBuilder.
      *
-     * @param {boolean} [withDefaultInformationAdded=true] If true; will load testing information from settings.ts , defaults to true
+     * @param {boolean} [withDefaultInformationAdded=false] If true; will load testing information from settings.ts , defaults to false
      *
      * @memberOf TestMetadataBuilder
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    public constructor(withDefaultInformationAdded = true) {
+    public constructor(withDefaultInformationAdded = false) {
         if (withDefaultInformationAdded) {
             this._testModuleMetadata = TestMetadataBuilder._cloneObject(testingConfig);
         }

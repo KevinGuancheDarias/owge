@@ -283,4 +283,23 @@ export abstract class AbstractCommonTestHelper<T> {
             }
         }
     }
+
+    /**
+     * Spies on a method, event if that method doesn't exists <br>
+     * NOTICE: Silently defines a no-action method in <i>target</i>
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {F} target
+     * @param {keyof F} method
+     * @returns {jasmine.Spy}
+     * @memberof AbstractCommonTestHelper
+     */
+    public spyOn<F>(target: F, method: keyof F): jasmine.Spy {
+        if (typeof target[method] !== 'undefined' && typeof target[method] !== 'function') {
+            throw new ProgrammingError(`FATAL, spyOn can't be used in properties, near ${target.constructor.name}.${method}`);
+        } else if (typeof target[method] === 'undefined') {
+            target[method] = <any>(() => { });
+        }
+        return spyOn(target, method);
+    }
 }

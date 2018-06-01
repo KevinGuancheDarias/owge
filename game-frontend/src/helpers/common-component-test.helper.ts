@@ -18,6 +18,11 @@ export interface ComponentElement<T> {
     element: HTMLElement;
 }
 
+export interface DirectiveNameValue {
+    name: string;
+    value: any;
+}
+
 /**
  * This helper simplifies testing configuration for a <b>component</b><br>
  * So one can assign time to the important things <br>
@@ -311,6 +316,14 @@ export class CommonComponentTestHelper<T> extends AbstractCommonTestHelper<T> {
         return this;
     }
 
+    public itDirectivesForSelector(selector: string, ...directives: DirectiveNameValue[]): void {
+        directives.forEach(current => {
+            it(`Should pass ${current.name} to ${selector}`, () => {
+                this.testDirectiveValue(selector, current.name, current.value);
+            });
+        });
+    }
+
     /**
      * Reloads the view, this method is a shortcut to calling this.startNgLifeCycle() and fixture.whenStable()
      *
@@ -392,7 +405,7 @@ export class CommonComponentTestHelper<T> extends AbstractCommonTestHelper<T> {
      * @template C Component
      * @memberof CommonComponentTestHelper
      */
-    public findComponentInstanceByAngularId<C>(angularId: string): ComponentElement<C> {
+    public findComponentInstanceByAngularId<C = any>(angularId: string): ComponentElement<C> {
         const el: HTMLElement = this.findElementByAngularId(angularId);
         const tempId: string = 't' + new Date().getTime().toString();
         const oldId = el.id;
@@ -451,5 +464,13 @@ export class CommonComponentTestHelper<T> extends AbstractCommonTestHelper<T> {
         for (let i = 0; i < tds.length; i++) {
             expect(tds.item(i).textContent).toBe(stringFields[i], 'fatal, in field index ' + i);
         }
+    }
+
+    public triggerNgModel(input: HTMLInputElement | string, value: string) {
+        const targetEl: HTMLInputElement = typeof input === 'string'
+            ? <any>document.querySelector(input)
+            : input;
+        targetEl.value = value;
+        targetEl.dispatchEvent(new Event('input'));
     }
 }

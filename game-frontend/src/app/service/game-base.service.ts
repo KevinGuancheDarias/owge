@@ -40,16 +40,25 @@ export class GameBaseService extends BaseHttpService {
     await this._findSelectedPlanet;
   }
 
-  protected doGetWithAuthorization(url: string, urlSearchParams: URLSearchParams = undefined): Observable<any> {
+  protected doGetWithAuthorization(url: string, urlSearchParams?: URLSearchParams): Observable<any> {
     return this.httpDoGetWithAuthorization(this._loginSessionService, url, urlSearchParams);
+  }
+
+  protected _doPostWithAuthorization(url: string, body: any): Observable<any> {
+    return this._httpDoPostWithAuthorization(this._loginSessionService, url, body);
   }
 
   /**
    * Will do exactly the same that doGetWithAuthorization() but appending universe URL to the beggining
    */
-  protected doGetWithAuthorizationToGame(url: string, urlSearchParams: URLSearchParams = undefined): Observable<any> {
+  protected doGetWithAuthorizationToGame(url: string, urlSearchParams?: URLSearchParams): Observable<any> {
     const absoluteUrl: string = this.getUniverseUrl() + '/' + url;
     return this.doGetWithAuthorization(absoluteUrl, urlSearchParams);
+  }
+
+  protected _doPostWithAuthorizationToGame<B = any>(url: string, body: B): Observable<any> {
+    const absoluteUrl: string = this.getUniverseUrl() + '/' + url;
+    return this._doPostWithAuthorization(absoluteUrl, body);
   }
 
   /**
