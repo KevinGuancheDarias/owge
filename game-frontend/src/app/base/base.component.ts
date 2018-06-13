@@ -6,6 +6,8 @@ import { Component } from '@angular/core';
 
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
+import { LoadingService } from '../services/loading.service';
+import { promise } from 'protractor';
 
 @Component({
   selector: 'app-base',
@@ -16,6 +18,7 @@ export class BaseComponent {
 
   protected loginSessionService: LoginSessionService;
   protected resources: AutoUpdatedResources;
+  private _loadingService: LoadingService;
 
   public get userData(): UserPojo {
     return this._userData;
@@ -25,6 +28,7 @@ export class BaseComponent {
 
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
+    this._loadingService = ServiceLocator.injector.get(LoadingService);
   }
 
   /**
@@ -35,6 +39,36 @@ export class BaseComponent {
    */
   public displayError(message: string) {
     alert(message);
+  }
+
+  /**
+   * Executes a promise or promises displaying the loading icon globally, until the promise is resolved
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {...Promise<any>[]} promises
+   * @returns {Promise<any>}
+   * @memberof BaseComponent
+   */
+  protected _doWithLoading(...promises: Promise<any>[]): Promise<any> {
+    if (promises.length === 1) {
+      return this._loadingService.addPromise(promises[0]);
+    } else {
+      return Promise.all(promises.map(current => this._loadingService.addPromise(current)));
+    }
+  }
+
+
+  /**
+   * Does the same than <i>doWithLoading()</i> but executing a function that returns a promise instead
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @template T
+   * @param {() => Promise<T>} action
+   * @returns {Promise<T>}
+   * @memberof BaseComponent
+   */
+  protected async _runWithLoading<T = any>(action: () => Promise<T>): Promise<T> {
+    return await action();
   }
 
   /**

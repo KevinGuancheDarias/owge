@@ -1,6 +1,7 @@
 import { PlanetPojo } from './shared-pojo/planet.pojo';
 import { LoginSessionService } from './login-session/login-session.service';
 import { Component, OnInit } from '@angular/core';
+import { LoadingService } from './services/loading.service';
 
 @Component({
   selector: 'app-root',
@@ -11,16 +12,23 @@ export class AppComponent implements OnInit {
 
   public selectedPlanet: PlanetPojo;
   public isInGame: boolean;
-  public someDate: Date;
 
-  public constructor(private _loginSessionService: LoginSessionService) {
+
+  /**
+   * Represents a global version of the loading state, any service can force to disable all the interface, by using <i>LoadingService</i>
+   *
+   * @type {boolean}
+   * @memberof AppComponent
+   */
+  public isLoading: boolean;
+
+  public constructor(private _loginSessionService: LoginSessionService, private _loadingService: LoadingService) {
 
   }
 
   public ngOnInit() {
     this._loginSessionService.isInGame.subscribe(isInGame => this.isInGame = isInGame);
     this._loginSessionService.findSelectedPlanet.subscribe(selectedPlanet => this.selectedPlanet = selectedPlanet);
-    let now = new Date();
-    this.someDate = new Date(now.getTime() + 100000);
+    this._loadingService.observeLoading().subscribe(current => this.isLoading = current);
   }
 }

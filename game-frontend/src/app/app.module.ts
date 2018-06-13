@@ -48,6 +48,7 @@ import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
 import { MissionService } from './services/mission.service';
+import { LoadingService } from './services/loading.service';
 
 
 export const APP_ROUTES: Routes = [
@@ -111,7 +112,8 @@ export const APP_ROUTES: Routes = [
     PlanetService,
     NavigationService,
     WebsocketService,
-    MissionService
+    MissionService,
+    LoadingService
   ],
   bootstrap: [AppComponent]
 })

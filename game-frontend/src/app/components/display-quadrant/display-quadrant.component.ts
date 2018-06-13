@@ -20,6 +20,9 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   @Input()
   public navigationData: NavigationData;
 
+  @ViewChild('missionModal')
+  private _missionModal: ModalComponent;
+
   /**
    * Planet to which mission is going to be send
    *
@@ -39,9 +42,6 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   public obtainedUnits: ObtainedUnit[];
 
   public selectedUnits: SelectedUnit[];
-
-  @ViewChild('missionModal')
-  private _missionModal: ModalComponent;
 
   constructor(private _unitService: UnitService, private _missionService: MissionService) {
     super();
@@ -63,7 +63,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   public showMissionDialog(targetPlanet: PlanetPojo): void {
     this.selectedPlanet = targetPlanet;
-    this._unitService.findInMyPlanet(this.myPlanet.id).subscribe(units => this.obtainedUnits = units);
+    this._findObtainedUnits();
     this._missionModal.show();
   }
 
@@ -72,6 +72,14 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   }
 
   public async sendMission(): Promise<void> {
-    await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+    await this._runWithLoading(async () => {
+      await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      await this._findObtainedUnits();
+    });
+    this._missionModal.hide();
+  }
+
+  private async _findObtainedUnits(): Promise<void> {
+    this.obtainedUnits = await this._unitService.findInMyPlanet(this.myPlanet.id).toPromise();
   }
 }
