@@ -89,15 +89,22 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public UnitRunningMissionDto adminRegisterExploreMission(UnitMissionInformation missionInformation) {
+		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
-		targetMissionInformation.setUserId(userStorageBo.findLoggedIn().getId());
-		List<ObtainedUnit> obtainedUnits = checkAndLoadObtainedUnits(missionInformation);
+		UserStorage user = userStorageBo.findLoggedIn();
+		targetMissionInformation.setUserId(user.getId());
+		checkAndLoadObtainedUnits(missionInformation);
 		Mission mission = missionRepository
 				.saveAndFlush((prepareMission(targetMissionInformation, MissionType.EXPLORE)));
-		obtainedUnits.forEach(current -> {
-			current.setMission(mission);
-			current.setSourcePlanet(mission.getTargetPlanet());
-			current.setTargetPlanet(mission.getSourcePlanet());
+		targetMissionInformation.getInvolvedUnits().forEach(current -> {
+			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
+			currentObtainedUnit.setMission(mission);
+			currentObtainedUnit.setCount(current.getCount());
+			currentObtainedUnit.setUser(user);
+			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
+			currentObtainedUnit.setSourcePlanet(mission.getTargetPlanet());
+			currentObtainedUnit.setTargetPlanet(mission.getSourcePlanet());
+			obtainedUnits.add(currentObtainedUnit);
 		});
 		obtainedUnitBo.save(obtainedUnits);
 		scheduleMission(mission);
@@ -152,10 +159,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessReturnMission(Long missionId) {
 		Mission mission = missionRepository.findOne(missionId);
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+		List<ObtainedUnit> inPlanet = obtainedUnitBo.findByUserIdAndSourcePlanetAndMissionIdIsNull(mission.getUser(),
+				mission.getTargetPlanet());
 		obtainedUnits.forEach(current -> {
-			current.setMission(null);
-			current.setSourcePlanet(mission.getTargetPlanet());
-			current.setTargetPlanet(null);
+			ObtainedUnit existingUnit = obtainedUnitBo.findHavingSameUnit(inPlanet, current);
+			if (existingUnit == null) {
+				current.setMission(null);
+				current.setSourcePlanet(mission.getTargetPlanet());
+				current.setTargetPlanet(null);
+			} else {
+				existingUnit.addCount(current.getCount());
+				obtainedUnitBo.delete(current);
+			}
 		});
 		resolveMission(mission);
 		emitLocalMissionChange(mission, mission.getUser());
@@ -170,15 +185,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * <li>Check if the user exists</li>
 	 * <li>Check if the sourcePlanet exists</li>
 	 * <li>Check if the targetPlanet exists</li>
-	 * <li>Check for each obtained unit if the id exists</li>
-	 * <li>Check for each obtained unit if it doesn't have already a
-	 * mission</li>
-	 * <li>Check for each obtained unit if they belongs to <i>userId</i></li>
-	 * <li>Check if the obtained units they belong to the sourcePlanet</li>
+	 * <li>Check for each selected unit if there is an associated obtainedUnit
+	 * and if count is valid</li>
 	 * </ul>
 	 * 
 	 * @param missionInformation
-	 * @return Database list of <i>ObtainedUnit</i>
+	 * @return Database list of <i>ObtainedUnit</i> with the subtraction
+	 *         <b>already applied</b>
 	 * @throws SgtBackendInvalidInputException
 	 *             when validation was not passed
 	 * @throws UserNotFoundException
@@ -196,17 +209,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			throw new SgtBackendInvalidInputException("involvedUnits can't be empty");
 		}
 		missionInformation.getInvolvedUnits().forEach(current -> {
-			ObtainedUnit currentObtainedUnit = findObtainedUnit(current.getId());
-			if (currentObtainedUnit.getMission() != null) {
-				throw new SgtBackendInvalidInputException("obtainedUnit already involved in mission");
+			if (current.getCount() == null) {
+				throw new SgtBackendInvalidInputException("No count was specified for unit " + current.getId());
 			}
-			if (!currentObtainedUnit.getUser().getId().equals(missionInformation.getUserId())) {
-				throw new SgtBackendInvalidInputException("obtainedUnit doesn't belong to invoker user");
-			}
-			if (!currentObtainedUnit.getSourcePlanet().getId().equals(missionInformation.getSourcePlanetId())) {
-				throw new SgtBackendInvalidInputException("obtainedUnit doesn't belong to sourcePlanet");
-			}
-			retVal.add(currentObtainedUnit);
+			ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNull(
+					missionInformation.getUserId(), current.getId(), missionInformation.getSourcePlanetId());
+			retVal.add(obtainedUnitBo.saveWithSubtraction(currentObtainedUnit, current.getCount()));
 		});
 		return retVal;
 	}
@@ -225,7 +233,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Checks if the input <i>id</i> exists, and returns it if found
+	 * Checks if the input Unit <i>id</i> exists, and returns the associated
+	 * ObtainedUnit
 	 * 
 	 * @param id
 	 * @return the expected obtained id
@@ -233,10 +242,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 *             If obtainedUnit doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private ObtainedUnit findObtainedUnit(Long id) {
-		ObtainedUnit retVal = obtainedUnitBo.findById(id);
+	private ObtainedUnit findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNull(Integer userId, Integer unitId,
+			Long planetId) {
+		ObtainedUnit retVal = obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIdIsNull(userId, unitId,
+				planetId);
 		if (retVal == null) {
-			throw new NotFoundException("No obtainedUnit with id " + id + " was found, nice try, dirty hacker!");
+			throw new NotFoundException("No obtainedUnit for unit with id " + unitId + " was found in planet "
+					+ planetId + ", nice try, dirty hacker!");
 		}
 		return retVal;
 	}

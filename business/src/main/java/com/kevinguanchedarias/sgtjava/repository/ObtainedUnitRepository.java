@@ -22,4 +22,9 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 	public Long countByUserIdAndUnitId(Integer userId, Integer unitId);
 
 	public Long deleteByMissionId(Long missionId);
+
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Integer unitId,
+			Long planetId);
+
+	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
 }

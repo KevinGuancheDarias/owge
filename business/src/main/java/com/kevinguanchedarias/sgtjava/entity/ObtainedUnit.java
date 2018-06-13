@@ -55,6 +55,13 @@ public class ObtainedUnit implements SimpleIdEntity {
 
 	private Date expiration;
 
+	public void addCount(Long count) {
+		if (this.count == null) {
+			this.count = 0L;
+		}
+		this.count += count;
+	}
+
 	@Override
 	public Long getId() {
 		return id;
@@ -118,10 +125,6 @@ public class ObtainedUnit implements SimpleIdEntity {
 
 	public void setExpiration(Date expiration) {
 		this.expiration = expiration;
-	}
-
-	public static long getSerialversionuid() {
-		return serialVersionUID;
 	}
 
 }

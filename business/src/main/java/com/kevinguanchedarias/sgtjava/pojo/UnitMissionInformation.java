@@ -2,8 +2,6 @@ package com.kevinguanchedarias.sgtjava.pojo;
 
 import java.util.List;
 
-import com.kevinguanchedarias.sgtjava.dto.ObtainedUnitDto;
-
 /**
  * Represents the required information to register an "unit based mission"
  *
@@ -13,7 +11,7 @@ public class UnitMissionInformation {
 	private Integer userId;
 	private Long sourcePlanetId;
 	private Long targetPlanetId;
-	private List<ObtainedUnitDto> involvedUnits;
+	private List<SelectedUnit> involvedUnits;
 
 	public Integer getUserId() {
 		return userId;
@@ -39,11 +37,11 @@ public class UnitMissionInformation {
 		this.targetPlanetId = targetPlanetId;
 	}
 
-	public List<ObtainedUnitDto> getInvolvedUnits() {
+	public List<SelectedUnit> getInvolvedUnits() {
 		return involvedUnits;
 	}
 
-	public void setInvolvedUnits(List<ObtainedUnitDto> involvedUnits) {
+	public void setInvolvedUnits(List<SelectedUnit> involvedUnits) {
 		this.involvedUnits = involvedUnits;
 	}
 
