@@ -22,19 +22,17 @@ export class LoginComponent implements OnInit {
     private _router: Router
   ) { }
 
-  ngOnInit() {
-    this.loginSessionService.isInGame.subscribe((isInGame) => {
-      if (isInGame) {
-        this._router.navigate([ROUTES.GAME_INDEX]);
-      }
+  public ngOnInit() {
+    this.loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
+      this._router.navigate([ROUTES.GAME_INDEX]);
     });
   }
 
   onLoginFormSubmit() {
     this.loginService.login(this.email, this.password)
       .subscribe(
-      loginData => this.onLoginSuccess(loginData),
-      error => alert(error)
+        loginData => this.onLoginSuccess(loginData),
+        error => alert(error)
       );
   }
 

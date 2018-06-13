@@ -1,9 +1,8 @@
 # SGT changelog
 
-__Notice: Features are considered done when the frontend flow works as expected, backend services `won't` have their own changelog__
-
 v0.2.1
 ===========
+* __Fix:__ Login webpage doesn't redirect to Game index if already logged in
 * __Fix:__ When a user clicks navigate, the Galaxy dissapears from the selection, while it still works as selected
 * __Fix:__ When the navigation page is loaded the first, won't work
 * __Improvement:__ Show the current navigation somewhere
