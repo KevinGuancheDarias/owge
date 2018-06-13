@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUnitRepository;
 
@@ -37,6 +40,19 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndItNot(Integer userId, Integer unitId,
 			Long sourcePlanetId, Long id) {
 		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(userId, unitId, sourcePlanetId, id);
+	}
+
+	public List<ObtainedUnit> findByUserIdAndSourcePlanetAndMissionIdIsNull(UserStorage user, Planet targetPlanet) {
+		return findByUserIdAndSourcePlanetAndMissionIdIsNull(user.getId(), targetPlanet.getId());
+	}
+
+	public List<ObtainedUnit> findByUserIdAndSourcePlanetAndMissionIdIsNull(Integer userId, Long planetId) {
+		return repository.findByUserIdAndSourcePlanetIdAndMissionIdIsNull(userId, planetId);
+	}
+
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIdIsNull(Integer userId, Integer unitId,
+			Long planetId) {
+		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIdIsNull(userId, unitId, planetId);
 	}
 
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId) {
@@ -76,6 +92,47 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 			throw new SgtBackendNotImplementedException("This type of action is not actually implemented");
 		}
 		return retVal;
+	}
+
+	/**
+	 * Saves the Obtained unit with subtraction
+	 * 
+	 * @param obtainedUnit
+	 *            Target obtained unit
+	 * @param substractionCount
+	 *            Count to subtract
+	 * @return saved obtained unit, null if the count is the same
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount) {
+		if (substractionCount > obtainedUnit.getCount()) {
+			throw new SgtBackendInvalidInputException(
+					"Can't not subtract because, obtainedUnit count is less than the amount to subtract");
+		} else if (obtainedUnit.getCount() > substractionCount) {
+			obtainedUnit.setCount(obtainedUnit.getCount() - substractionCount);
+			return save(obtainedUnit);
+		} else if (obtainedUnit.getCount() == substractionCount) {
+			delete(obtainedUnit);
+			return null;
+		} else {
+			throw new ProgrammingException("Should never ever happend");
+		}
+	}
+
+	/**
+	 * Searches an ObtainedUnit in <i>storage</i> having an unit with the
+	 * <b>same id</b> than <i>searchValue</i>
+	 * 
+	 * @param storage
+	 *            List that will be searched through
+	 * @param searchValue
+	 *            Value that is going to be search inside <i>storage</i>
+	 * @return ObtainedUnit found or <b>null if NOT found</b>
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObtainedUnit findHavingSameUnit(List<ObtainedUnit> storage, ObtainedUnit searchValue) {
+		return storage.stream().filter(currentUnit -> searchValue.getUnit().getId() == currentUnit.getUnit().getId())
+				.findFirst().orElse(null);
 	}
 
 	public Long deleteByMissionId(Long missionId) {

@@ -21,9 +21,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.Trigger;
+import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import com.kevinguanchedarias.sgtjava.business.ConfigurationBo;
@@ -31,7 +30,6 @@ import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.sgtjava.business.SocketIoService;
 import com.kevinguanchedarias.sgtjava.business.UnitMissionBo;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
-import com.kevinguanchedarias.sgtjava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.MissionType;
@@ -40,10 +38,10 @@ import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
-import com.kevinguanchedarias.sgtjava.exception.CommonException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
+import com.kevinguanchedarias.sgtjava.pojo.SelectedUnit;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.sgtjava.repository.MissionRepository;
 import com.kevinguanchedarias.sgtjava.repository.MissionTypeRepository;
@@ -64,7 +62,6 @@ public class UnitMissionBoTest extends TestCommon {
 		LOGGED_USER.setUsername("test_user");
 	}
 
-	@Mock
 	private ObtainedUnitBo obtainedUnitBoMock;
 
 	@Mock
@@ -94,11 +91,65 @@ public class UnitMissionBoTest extends TestCommon {
 
 	private MissionDto fakeMissionDto;
 
+	/**
+	 * Represents the information required for a return mission
+	 *
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	class ReturnMissionInformation {
+		private Planet sourcePlanet;
+		private Planet targetPlanet;
+		private Mission mission;
+		private List<ObtainedUnit> obtainedUnits;
+
+		public ReturnMissionInformation(Planet sourcePlanet, Planet targetPlanet, Mission mission,
+				List<ObtainedUnit> obtainedUnits) {
+			this.sourcePlanet = sourcePlanet;
+			this.targetPlanet = targetPlanet;
+			this.mission = mission;
+			this.obtainedUnits = obtainedUnits;
+		}
+
+		public Planet getSourcePlanet() {
+			return sourcePlanet;
+		}
+
+		public void setSourcePlanet(Planet sourcePlanet) {
+			this.sourcePlanet = sourcePlanet;
+		}
+
+		public Planet getTargetPlanet() {
+			return targetPlanet;
+		}
+
+		public void setTargetPlanet(Planet targetPlanet) {
+			this.targetPlanet = targetPlanet;
+		}
+
+		public Mission getMission() {
+			return mission;
+		}
+
+		public void setMission(Mission mission) {
+			this.mission = mission;
+		}
+
+		public List<ObtainedUnit> getObtainedUnits() {
+			return obtainedUnits;
+		}
+
+		public void setObtainedUnits(List<ObtainedUnit> obtainedUnits) {
+			this.obtainedUnits = obtainedUnits;
+		}
+
+	}
+
 	@Before
 	public void init() {
 		userMockitoHelper = new UserMockitoHelper(unitMissionBo);
 		planetMockitoHelper = new PlanetMockitoHelper(unitMissionBo);
 		unitMockitoHelper = new UnitMockitoHelper(unitMissionBo);
+		obtainedUnitBoMock = unitMockitoHelper.getObtainedUnitBoMock();
 		mockScheduler(schedulerFactoryBeanMock);
 		fakeMissionDto = new MissionDto();
 		Mockito.when(dtoUtilServiceMock.dtoFromEntity(Mockito.any(), Mockito.any(Mission.class)))
@@ -163,97 +214,46 @@ public class UnitMissionBoTest extends TestCommon {
 
 	@Test
 	public void registerExploreShouldCheckInvolvedUnitExists() {
-		wrapAssertExceptionMessage("No obtainedUnit with id 1 was found, nice try, dirty hacker!", message -> {
-			userMockitoHelper.fakeLoggedIn(LOGGED_USER);
-			userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
-			planetMockitoHelper.fakePlanetExists(1L, new Planet());
-			planetMockitoHelper.fakePlanetExists(2L, new Planet());
-			unitMissionBo.myRegisterExploreMission(prepareValidUnitMissionInformation());
-		});
-	}
-
-	@Test
-	public void registerExploreShouldCheckInvolvedUnitNotInMission() {
-		wrapAssertExceptionMessage("obtainedUnit already involved in mission", message -> {
-			userMockitoHelper.fakeLoggedIn(LOGGED_USER);
-			userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
-			planetMockitoHelper.fakePlanetExists(1L, new Planet());
-			planetMockitoHelper.fakePlanetExists(2L, new Planet());
-			ObtainedUnit obtainedUnit = prepareObtainedUnit();
-			obtainedUnit.setMission(new Mission());
-			unitMockitoHelper.fakeObtainedUnitExists(1L, obtainedUnit);
-			unitMissionBo.myRegisterExploreMission(prepareValidUnitMissionInformation());
-			Scheduler schedulerMock = Mockito.mock(Scheduler.class);
-			try {
-				Mockito.when(schedulerFactoryBeanMock.getScheduler()).thenReturn(schedulerMock);
-				Mockito.verify(schedulerFactoryBeanMock, Mockito.times(1)).getScheduler();
-				Mockito.verify(schedulerMock, Mockito.times(1)).addJob(Mockito.any(), Mockito.anyBoolean(),
-						Mockito.anyBoolean());
-				Mockito.verify(schedulerMock, Mockito.times(1)).scheduleJob(Mockito.any(Trigger.class));
-			} catch (SchedulerException e) {
-				throw new CommonException("Testing error", e);
-			}
-		});
-	}
-
-	@Test
-	public void registerExploreShouldCheckInvolvedUnitBelongsToInvoker() {
-		wrapAssertExceptionMessage("obtainedUnit doesn't belong to invoker user", message -> {
-			userMockitoHelper.fakeLoggedIn(LOGGED_USER);
-			userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
-			planetMockitoHelper.fakePlanetExists(1L, new Planet());
-			planetMockitoHelper.fakePlanetExists(2L, new Planet());
-			ObtainedUnit obtainedUnit = prepareObtainedUnit();
-			obtainedUnit.getUser().setId(2);
-			unitMockitoHelper.fakeObtainedUnitExists(1L, obtainedUnit);
-			unitMissionBo.myRegisterExploreMission(prepareValidUnitMissionInformation());
-
-		});
-	}
-
-	@Test
-	public void registerExploreShouldCheckInvolvedUnitBelongsToSourcePlanet() {
-		wrapAssertExceptionMessage("obtainedUnit doesn't belong to sourcePlanet", message -> {
-			userMockitoHelper.fakeLoggedIn(LOGGED_USER);
-			userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
-			planetMockitoHelper.fakePlanetExists(1L, new Planet());
-			planetMockitoHelper.fakePlanetExists(2L, new Planet());
-			ObtainedUnit obtainedUnit = prepareObtainedUnit();
-			obtainedUnit.getSourcePlanet().setId(4L);
-			unitMockitoHelper.fakeObtainedUnitExists(1L, obtainedUnit);
-			unitMissionBo.myRegisterExploreMission(prepareValidUnitMissionInformation());
-		});
+		wrapAssertExceptionMessage("No obtainedUnit for unit with id 1 was found in planet 1, nice try, dirty hacker!",
+				message -> {
+					userMockitoHelper.fakeLoggedIn(LOGGED_USER);
+					userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
+					planetMockitoHelper.fakePlanetExists(1L, new Planet());
+					planetMockitoHelper.fakePlanetExists(2L, new Planet());
+					unitMissionBo.myRegisterExploreMission(prepareValidUnitMissionInformation());
+				});
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void registerExploreShouldRegisterMissionWhenAllIsOk() {
-		wrapAssertExceptionMessage("obtainedUnit doesn't belong to sourcePlanet", message -> {
-			ObtainedUnit involvedUnit = prepareObtainedUnit();
-			Planet sourcePlanet = new Planet();
-			Planet targetPlanet = new Planet();
-			Mission savedMission = new Mission();
-			savedMission.setId(4L);
-			savedMission.setSourcePlanet(sourcePlanet);
-			savedMission.setTargetPlanet(targetPlanet);
-			savedMission.setTerminationDate(new Date());
-			userMockitoHelper.fakeLoggedIn(LOGGED_USER);
-			userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
-			planetMockitoHelper.fakePlanetExists(1L, sourcePlanet);
-			planetMockitoHelper.fakePlanetExists(2L, targetPlanet);
-			unitMockitoHelper.fakeObtainedUnitExists(1L, involvedUnit);
-			Mockito.when(missionTyperepositoryMock.findOneByCode("EXPLORE")).thenReturn(new MissionType());
-			Mockito.when(missionRepositoryMock.saveAndFlush(Mockito.any(Mission.class))).thenReturn(savedMission);
-			Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(savedMission);
-			UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
-			doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
-			unitMissionBoSpy.myRegisterExploreMission(prepareValidUnitMissionInformation());
-			Mockito.verify(missionRepositoryMock, Mockito.times(1)).saveAndFlush(Mockito.any(Mission.class));
-			Mockito.verify(unitMockitoHelper.getObtainedUnitBoMock(), Mockito.times(1)).save(Mockito.anyList());
-			assertEquals(sourcePlanet, involvedUnit.getTargetPlanet());
-			assertEquals(targetPlanet, involvedUnit.getSourcePlanet());
-		});
-
+		ObtainedUnit involvedUnit = prepareObtainedUnit();
+		Planet sourcePlanet = new Planet();
+		Planet targetPlanet = new Planet();
+		Mission savedMission = new Mission();
+		savedMission.setId(4L);
+		savedMission.setSourcePlanet(sourcePlanet);
+		savedMission.setTargetPlanet(targetPlanet);
+		savedMission.setTerminationDate(new Date());
+		userMockitoHelper.fakeLoggedIn(LOGGED_USER);
+		userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
+		planetMockitoHelper.fakePlanetExists(1L, sourcePlanet);
+		planetMockitoHelper.fakePlanetExists(2L, targetPlanet);
+		unitMockitoHelper.fakeFindUnit(1, involvedUnit.getUnit());
+		unitMockitoHelper.fakeObtainedUnitExistsForGivenUnitAndPlanet(LOGGED_USER.getId(),
+				involvedUnit.getUnit().getId(), 1L, involvedUnit);
+		Mockito.when(missionTyperepositoryMock.findOneByCode("EXPLORE")).thenReturn(new MissionType());
+		Mockito.when(missionRepositoryMock.saveAndFlush(Mockito.any(Mission.class))).thenReturn(savedMission);
+		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(savedMission);
+		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
+		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
+		ArgumentCaptor<List<ObtainedUnit>> captor = unitMockitoHelper.captureObtainedUnitListSave();
+		unitMissionBoSpy.myRegisterExploreMission(prepareValidUnitMissionInformation());
+		Mockito.verify(missionRepositoryMock, Mockito.times(1)).saveAndFlush(Mockito.any(Mission.class));
+		Mockito.verify(unitMockitoHelper.getObtainedUnitBoMock(), Mockito.times(1)).save(Mockito.anyList());
+		ObtainedUnit savedUnit = captor.getValue().get(0);
+		assertEquals(sourcePlanet, savedUnit.getTargetPlanet());
+		assertEquals(targetPlanet, savedUnit.getSourcePlanet());
 	}
 
 	@Test
@@ -345,31 +345,42 @@ public class UnitMissionBoTest extends TestCommon {
 
 	@Test
 	public void processReturnMissionShouldUpdateUnitsPosition() {
-		Mission returnMission = new Mission();
-		returnMission.setId(1L);
-		returnMission.setUser(LOGGED_USER);
-		Planet originalMissionSourcePlanet = prepareValidPlanet(prepareValidGalaxy());
-		originalMissionSourcePlanet.setId(4L);
-		returnMission.setTargetPlanet(originalMissionSourcePlanet);
-		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(returnMission);
-		ObtainedUnit obtainedUnit = prepareObtainedUnit();
-		obtainedUnit.setMission(returnMission);
-		Planet somePlanet = prepareValidPlanet(prepareValidGalaxy());
-		obtainedUnit.setSourcePlanet(somePlanet);
-		obtainedUnit.setTargetPlanet(somePlanet);
-		List<ObtainedUnit> involvedUnits = new ArrayList<>();
-		involvedUnits.add(obtainedUnit);
-		Mockito.when(obtainedUnitBoMock.findByMissionId(1L)).thenReturn(involvedUnits);
-		Whitebox.setInternalState(unitMissionBo, "obtainedUnitBo", obtainedUnitBoMock);
+		ReturnMissionInformation returnMissionInformation = doCommonReturnMissionHandling();
+		ObtainedUnit obtainedUnit = returnMissionInformation.getObtainedUnits().get(0);
+		Mission returnMission = returnMissionInformation.getMission();
 		unitMissionBo.proccessReturnMission(1L);
 		Mockito.verify(missionRepositoryMock, Mockito.times(1)).findOne(1L);
 		Mockito.verify(obtainedUnitBoMock, Mockito.times(1)).findByMissionId(1L);
 		assertNull(obtainedUnit.getMission());
-		assertEquals(originalMissionSourcePlanet, obtainedUnit.getSourcePlanet());
+		assertEquals(returnMissionInformation.getSourcePlanet(), obtainedUnit.getSourcePlanet());
 		assertNull(obtainedUnit.getTargetPlanet());
 		Mockito.verify(missionRepositoryMock, Mockito.times(1)).saveAndFlush(returnMission);
 		assertEquals(true, returnMission.getResolved());
 		testMissionChangeEmmited(LOGGED_USER, returnMission);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void proccessReturnMissionShouldAppendToCountIfExistingInPlanet() {
+		ReturnMissionInformation returnMissionInformation = doCommonReturnMissionHandling();
+		ObtainedUnit obtainedUnit = returnMissionInformation.getObtainedUnits().get(0);
+		obtainedUnit.setCount(10L);
+		Unit unit = obtainedUnit.getUnit();
+		Planet targetPlanet = returnMissionInformation.getTargetPlanet();
+		ObtainedUnit existingUnit = new ObtainedUnit();
+		BeanUtils.copyProperties(obtainedUnit, existingUnit);
+		Long existingId = 2L;
+		existingUnit.setId(existingId);
+		existingUnit.setCount(8L);
+		unitMockitoHelper.fakeObtainedUnitExistsForGivenUnitAndPlanet(1, unit.getId(), targetPlanet.getId(),
+				existingUnit);
+		Mockito.when(obtainedUnitBoMock.findHavingSameUnit(Mockito.anyList(), Mockito.any(ObtainedUnit.class)))
+				.thenReturn(existingUnit);
+		unitMissionBo.proccessReturnMission(1L);
+		Mockito.verify(obtainedUnitBoMock, Mockito.times(1)).delete(obtainedUnit);
+		ObtainedUnit savedUnit = existingUnit;
+		assertEquals(existingId, savedUnit.getId());
+		assertEquals(18L, (long) savedUnit.getCount());
 	}
 
 	private UnitMissionInformation prepareValidUnitMissionInformation() {
@@ -381,10 +392,10 @@ public class UnitMissionBoTest extends TestCommon {
 		return retVal;
 	}
 
-	private List<ObtainedUnitDto> prepareInvolvedUnits() {
-		List<ObtainedUnitDto> retVal = new ArrayList<>();
-		ObtainedUnitDto current = new ObtainedUnitDto();
-		current.setId(1L);
+	private List<SelectedUnit> prepareInvolvedUnits() {
+		List<SelectedUnit> retVal = new ArrayList<>();
+		SelectedUnit current = new SelectedUnit();
+		current.setId(1);
 		current.setCount(40L);
 		retVal.add(current);
 		return retVal;
@@ -406,7 +417,7 @@ public class UnitMissionBoTest extends TestCommon {
 		retVal.setId(1L);
 		retVal.setCount(5L);
 		UserStorage user = new UserStorage();
-		user.setId(1);
+		user.setId(LOGGED_USER.getId());
 		Planet planet = new Planet();
 		planet.setId(1L);
 		retVal.setSourcePlanet(planet);
@@ -424,5 +435,24 @@ public class UnitMissionBoTest extends TestCommon {
 	private void testMissionChangeEmmited(UserStorage targetUser, Mission missionToNotify) {
 		Mockito.verify(socketIoService, Mockito.times(1)).sendMessage(targetUser, "local_mission_change",
 				fakeMissionDto);
+	}
+
+	private ReturnMissionInformation doCommonReturnMissionHandling() {
+		Mission returnMission = new Mission();
+		returnMission.setId(1L);
+		returnMission.setUser(LOGGED_USER);
+		Planet originalMissionSourcePlanet = prepareValidPlanet(prepareValidGalaxy());
+		originalMissionSourcePlanet.setId(4L);
+		returnMission.setTargetPlanet(originalMissionSourcePlanet);
+		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(returnMission);
+		ObtainedUnit obtainedUnit = prepareObtainedUnit();
+		obtainedUnit.setMission(returnMission);
+		Planet somePlanet = prepareValidPlanet(prepareValidGalaxy());
+		obtainedUnit.setSourcePlanet(somePlanet);
+		obtainedUnit.setTargetPlanet(somePlanet);
+		List<ObtainedUnit> involvedUnits = new ArrayList<>();
+		involvedUnits.add(obtainedUnit);
+		Mockito.when(obtainedUnitBoMock.findByMissionId(1L)).thenReturn(involvedUnits);
+		return new ReturnMissionInformation(originalMissionSourcePlanet, somePlanet, returnMission, involvedUnits);
 	}
 }
