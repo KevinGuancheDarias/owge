@@ -25,6 +25,8 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -105,6 +107,7 @@ public class SocketIoService implements Serializable {
 		return sendMessage(sourceUser, targetUser, report.getEventName(), report);
 	}
 
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public CompletableFuture<DeliveryQueueEntry> sendMessage(UserStorage sourceUser, UserStorage targetUser,
 			String eventName, Object messageContent) {
 		CompletableFuture<DeliveryQueueEntry> retVal = new CompletableFuture<>();
@@ -130,6 +133,7 @@ public class SocketIoService implements Serializable {
 		return retVal;
 	}
 
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public CompletableFuture<DeliveryQueueEntry> sendMessage(UserStorage targetUser, String eventName,
 			Object messageContent) {
 		return sendMessage(null, targetUser, eventName, messageContent);
@@ -187,9 +191,9 @@ public class SocketIoService implements Serializable {
 
 		data.put(MESSAGE_STATUS_JSON_KEY,
 				mapper.convertValue(convertMessageStatusToDto(websocketMessageStatus), JSONObject.class));
+		storeMessageStatus(websocketMessageBo.save(persistedMessage), retVal, data);
 		initializeSocketIo().thenAccept(status -> {
 			io.emit(DELIVER_EVENT_NAME, data);
-			storeMessageStatus(websocketMessageBo.save(persistedMessage), retVal, data);
 		});
 		return retVal;
 	}

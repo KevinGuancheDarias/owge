@@ -2,6 +2,7 @@
 
 v0.2.1
 ===========
+* __Fix:__ Fix a strange error that occurs when the sendMessage() is invoked too quickly after another sendMessage
 * __Fix:__ Login webpage doesn't redirect to Game index if already logged in
 * __Fix:__ When a user clicks navigate, the Galaxy dissapears from the selection, while it still works as selected
 * __Fix:__ When the navigation page is loaded the first, won't work
