@@ -68,7 +68,7 @@ export class BaseComponent {
    * @memberof BaseComponent
    */
   protected async _runWithLoading<T = any>(action: () => Promise<T>): Promise<T> {
-    return await action();
+    return await this._loadingService.addPromise(action());
   }
 
   /**
