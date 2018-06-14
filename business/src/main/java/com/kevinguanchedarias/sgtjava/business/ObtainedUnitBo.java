@@ -64,6 +64,18 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	/**
+	 * Returns the units in the <i>targetPlanet</i> that are not in mission <br>
+	 * Ideally used to explore a planet
+	 * 
+	 * @param targetPlanet
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> explorePlanetUnits(Planet targetPlanet) {
+		return repository.findBySourcePlanetIdAndMissionIsNull(targetPlanet.getId());
+	}
+
+	/**
 	 * Saves the obtained unit to the database <br>
 	 * <b>IMPORTANT:</b> it may change the id, use the resultant value <br>
 	 * Will add the count to existing one, <b>if it exists in the planet</b>

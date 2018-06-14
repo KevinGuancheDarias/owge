@@ -27,4 +27,6 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 			Long planetId);
 
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
+
+	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
 }

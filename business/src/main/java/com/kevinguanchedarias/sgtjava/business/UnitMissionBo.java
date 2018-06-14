@@ -2,6 +2,7 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
@@ -10,9 +11,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.kevinguanchedarias.sgtjava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
+import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
@@ -21,6 +24,7 @@ import com.kevinguanchedarias.sgtjava.exception.NotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
+import com.kevinguanchedarias.sgtjava.pojo.DeliveryQueueEntry;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
@@ -36,6 +40,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private SocketIoService socketIoService;
+
+	@Autowired
+	private MissionReportBo missionReportBo;
 
 	private DtoUtilService dtoUtilService = new DtoUtilService();
 
@@ -114,7 +121,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Parses the exploration of a planet
 	 * 
-	 * @todo in the future generate a report with the explore result
 	 * @param missionId
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -122,12 +128,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void processExplore(Long missionId) {
 		Mission mission = findById(missionId);
 		UserStorage user = mission.getUser();
+		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		if (!planetBo.isExplored(user, targetPlanet)) {
 			planetBo.defineAsExplored(user, targetPlanet);
 		}
+		List<ObtainedUnit> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(targetPlanet);
 		adminRegisterReturnMission(mission);
 		resolveMission(mission);
+		UnitMissionReportBuilder builder = UnitMissionReportBuilder
+				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+				.withExploredInformation(unitsInPlanet);
+		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport = missionReportBo.save(missionReport);
+		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		socketIoService.sendMessage(user, "explore_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -314,8 +329,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @param user
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private void emitLocalMissionChange(Mission mission, UserStorage user) {
-		socketIoService.sendMessage(user, "local_mission_change",
+	private CompletableFuture<DeliveryQueueEntry> emitLocalMissionChange(Mission mission, UserStorage user) {
+		return socketIoService.sendMessage(user, "local_mission_change",
 				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
 	}
 }
