@@ -122,6 +122,6 @@ export class AppModule {
     ServiceLocator.injector = this.injector;
     window['globalShit'] = this._websocketService;
     this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-    this._websocketService.initSocket('http://127.0.0.1:3000').then(() => console.log('good'));
+    this._websocketService.initSocket('http://127.0.0.1:3000');
   }
 }

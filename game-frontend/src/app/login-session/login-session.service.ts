@@ -12,6 +12,7 @@ import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { BaseHttpService } from '../base-http/base-http.service';
 import { HttpHeaders } from '@angular/common/http';
+import { WebsocketService } from '../service/websocket.service';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -45,7 +46,10 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   }
   private _findSelectedPlanet: BehaviorSubject<PlanetPojo> = new BehaviorSubject(null);
 
-  constructor(private _injector: Injector, private _resourceManagerService: ResourceManagerService) {
+  constructor(private _injector: Injector,
+    private _resourceManagerService: ResourceManagerService,
+    private _websocketService: WebsocketService
+  ) {
     super();
   }
 
@@ -102,6 +106,7 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     const loadingRoute = route.url[0].path;
     if (loadingRoute !== 'universe-selection' && loadingRoute !== 'faction-selection' && !this.alreadyNotified) {
       this._notifyGameFrontendCore();
+      this._websocketService.authenticate(this.getRawToken());
       this.alreadyNotified = true;
     }
     return this.isLoggedIn();

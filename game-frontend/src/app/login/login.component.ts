@@ -1,9 +1,11 @@
-import { ROUTES } from './../config/config.pojo';
+
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { ROUTES } from './../config/config.pojo';
 import { LoginService } from './login.service';
 import { LoginSessionService } from '../login-session/login-session.service';
+import { WebsocketService } from '../service/websocket.service';
 
 @Component({
   selector: 'app-login',
@@ -15,23 +17,23 @@ export class LoginComponent implements OnInit {
   public email: string;
   public password: string;
 
-  public loginCredentials: Object;
   constructor(
-    private loginService: LoginService,
-    private loginSessionService: LoginSessionService,
+    private _loginService: LoginService,
+    private _loginSessionService: LoginSessionService,
+    private _websocketService: WebsocketService,
     private _router: Router
   ) { }
 
-  public ngOnInit() {
-    this.loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
+  ngOnInit() {
+    this._loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
       this._router.navigate([ROUTES.GAME_INDEX]);
     });
   }
 
   onLoginFormSubmit() {
-    this.loginService.login(this.email, this.password)
+    this._loginService.login(this.email, this.password)
       .subscribe(
-        loginData => this.onLoginSuccess(loginData),
+        token => this.onLoginSuccess(token),
         error => alert(error)
       );
   }
@@ -39,10 +41,12 @@ export class LoginComponent implements OnInit {
 
   /**
    * Call when login is ok
-   * @param data - Data sent by the server, which is unrequired, but who knows!
+   *
+   * @param {string} token Token from backend
    * @author Kevin Guanche Darias
    */
-  private onLoginSuccess(data: any): void {
+  private onLoginSuccess(token: string): void {
+    this._websocketService.authenticate(token);
     this._router.navigate(['/universe-selection']);
   }
 }
