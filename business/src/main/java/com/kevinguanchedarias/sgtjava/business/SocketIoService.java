@@ -230,7 +230,7 @@ public class SocketIoService implements Serializable {
 			io.connect();
 		} else if (io != null && io.connected()) {
 			if (initializingSocket == null) {
-				initializingSocket = new CompletableFuture<Boolean>();
+				initializingSocket = new CompletableFuture<>();
 			}
 			retVal = initializingSocket;
 			initializingSocket.complete(true);
