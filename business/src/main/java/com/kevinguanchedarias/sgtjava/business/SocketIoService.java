@@ -25,8 +25,6 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -71,6 +69,12 @@ public class SocketIoService implements Serializable {
 	private ObjectMapper mapper = new ObjectMapper();
 
 	/**
+	 * Represents the initializing promise, if defined, means an initializing
+	 * proccess is going on
+	 */
+	private transient CompletableFuture<Boolean> initializingSocket;
+
+	/**
 	 * This field stores the Promises to keep trace of the <b>message
 	 * delivery</b>
 	 * 
@@ -107,7 +111,6 @@ public class SocketIoService implements Serializable {
 		return sendMessage(sourceUser, targetUser, report.getEventName(), report);
 	}
 
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public CompletableFuture<DeliveryQueueEntry> sendMessage(UserStorage sourceUser, UserStorage targetUser,
 			String eventName, Object messageContent) {
 		CompletableFuture<DeliveryQueueEntry> retVal = new CompletableFuture<>();
@@ -133,7 +136,6 @@ public class SocketIoService implements Serializable {
 		return retVal;
 	}
 
-	@Transactional(propagation = Propagation.SUPPORTS)
 	public CompletableFuture<DeliveryQueueEntry> sendMessage(UserStorage targetUser, String eventName,
 			Object messageContent) {
 		return sendMessage(null, targetUser, eventName, messageContent);
@@ -177,6 +179,7 @@ public class SocketIoService implements Serializable {
 		if (status.getId() == null) {
 			throw new ProgrammingException("messageStatus MUST have id prior to adding to delivery cache");
 		}
+		LOCAL_LOGGER.debug("Storing message with id " + status.getId());
 		DeliveryQueueEntry deliveryQueueEntry = new DeliveryQueueEntry(completableStatus, data);
 		return messageHandshakingStorage.put(status.getId(), deliveryQueueEntry);
 	}
@@ -192,9 +195,7 @@ public class SocketIoService implements Serializable {
 		data.put(MESSAGE_STATUS_JSON_KEY,
 				mapper.convertValue(convertMessageStatusToDto(websocketMessageStatus), JSONObject.class));
 		storeMessageStatus(websocketMessageBo.save(persistedMessage), retVal, data);
-		initializeSocketIo().thenAccept(status -> {
-			io.emit(DELIVER_EVENT_NAME, data);
-		});
+		initializeSocketIo().thenAccept(status -> io.emit(DELIVER_EVENT_NAME, data));
 		return retVal;
 	}
 
@@ -204,8 +205,10 @@ public class SocketIoService implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private CompletableFuture<Boolean> initializeSocketIo() {
-		CompletableFuture<Boolean> retVal = new CompletableFuture<>();
-		if (io == null || !io.connected()) {
+		CompletableFuture<Boolean> retVal;
+		if ((io == null || !io.connected()) && this.initializingSocket == null) {
+			initializingSocket = new CompletableFuture<>();
+			retVal = initializingSocket;
 			try {
 				io = IO.socket(
 						configurationBo.findConfigurationParam(ConfigurationBo.WEBSOCKET_ENDPOINT_KEY).getValue());
@@ -220,12 +223,20 @@ public class SocketIoService implements Serializable {
 						LOCAL_LOGGER.debug("Authentication websocket event");
 						JSONObject object = parseServerResult(results);
 						checkErrorAndClose(object);
-						retVal.complete(true);
+						initializingSocket.complete(true);
+						initializingSocket = null;
 					});
 			registerAckEventHandlers();
 			io.connect();
-		} else if (io.connected()) {
-			retVal.complete(true);
+		} else if (io != null && io.connected()) {
+			if (initializingSocket == null) {
+				initializingSocket = new CompletableFuture<Boolean>();
+			}
+			retVal = initializingSocket;
+			initializingSocket.complete(true);
+			initializingSocket = null;
+		} else {
+			retVal = initializingSocket;
 		}
 		return retVal;
 	}
@@ -403,7 +414,7 @@ public class SocketIoService implements Serializable {
 	private WebsocketMessageStatus checkMessageCorrelations(WebsocketMessageStatusDto sentStatus) {
 		WebsocketMessageStatus savedStatus = websocketMessageBo.findById(sentStatus.getId());
 		if (savedStatus == null) {
-			throw new SocketServerProgrammingException("This message is not registered");
+			throw new SocketServerProgrammingException("Message with id " + sentStatus.getId() + " is not registered");
 		}
 		return savedStatus;
 	}
