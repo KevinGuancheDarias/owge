@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  ven. 23 mars 2018 à 00:37
+-- Généré le :  Dim 17 juin 2018 à 10:58
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -243,6 +243,7 @@ CREATE TABLE `missions` (
   `source_planet` bigint(20) DEFAULT NULL,
   `target_planet` bigint(20) DEFAULT NULL,
   `related_mission` bigint(20) UNSIGNED DEFAULT NULL,
+  `report_id` bigint(20) UNSIGNED DEFAULT NULL,
   `resolved` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -258,6 +259,20 @@ CREATE TABLE `mission_information` (
   `relation_id` smallint(5) UNSIGNED DEFAULT NULL COMMENT 'Represents the relation id if applicable',
   `value` double DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Some missions may require having some information about the mission itself.  for example the level up upgrade mission needs the relation id';
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `mission_reports`
+--
+
+CREATE TABLE `mission_reports` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `json_body` mediumtext NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `user_aware_date` datetime DEFAULT NULL,
+  `user_read_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -846,7 +861,8 @@ ALTER TABLE `missions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `type` (`type`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `related_mission` (`related_mission`);
+  ADD KEY `related_mission` (`related_mission`),
+  ADD KEY `report` (`report_id`);
 
 --
 -- Index pour la table `mission_information`
@@ -855,6 +871,13 @@ ALTER TABLE `mission_information`
   ADD PRIMARY KEY (`id`),
   ADD KEY `mission_id` (`mission_id`),
   ADD KEY `relation_id` (`relation_id`);
+
+--
+-- Index pour la table `mission_reports`
+--
+ALTER TABLE `mission_reports`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Index pour la table `mission_types`
@@ -1116,7 +1139,7 @@ ALTER TABLE `especialesderaza`
 -- AUTO_INCREMENT pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT pour la table `factions`
@@ -1152,13 +1175,19 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
 --
 ALTER TABLE `mission_information`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `mission_reports`
+--
+ALTER TABLE `mission_reports`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT pour la table `mission_types`
@@ -1176,7 +1205,7 @@ ALTER TABLE `object_relations`
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
@@ -1254,7 +1283,7 @@ ALTER TABLE `user_improvements`
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=486;
 
 --
 -- Contraintes pour les tables déchargées
@@ -1286,7 +1315,8 @@ ALTER TABLE `improvements_unit_types`
 ALTER TABLE `missions`
   ADD CONSTRAINT `missions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`),
   ADD CONSTRAINT `missions_ibfk_2` FOREIGN KEY (`type`) REFERENCES `mission_types` (`id`),
-  ADD CONSTRAINT `missions_ibfk_3` FOREIGN KEY (`related_mission`) REFERENCES `missions` (`id`);
+  ADD CONSTRAINT `missions_ibfk_3` FOREIGN KEY (`related_mission`) REFERENCES `missions` (`id`),
+  ADD CONSTRAINT `missions_ibfk_4` FOREIGN KEY (`report_id`) REFERENCES `mission_reports` (`id`);
 
 --
 -- Contraintes pour la table `mission_information`
@@ -1294,6 +1324,12 @@ ALTER TABLE `missions`
 ALTER TABLE `mission_information`
   ADD CONSTRAINT `mission_information_ibfk_2` FOREIGN KEY (`relation_id`) REFERENCES `object_relations` (`id`),
   ADD CONSTRAINT `mission_information_ibfk_3` FOREIGN KEY (`mission_id`) REFERENCES `missions` (`id`);
+
+--
+-- Contraintes pour la table `mission_reports`
+--
+ALTER TABLE `mission_reports`
+  ADD CONSTRAINT `mission_reports_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
 -- Contraintes pour la table `object_relations`

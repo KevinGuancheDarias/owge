@@ -9,6 +9,7 @@ import com.kevinguanchedarias.sgtjava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.sgtjava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.sgtjava.entity.Improvement;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
+import com.kevinguanchedarias.sgtjava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.sgtjava.entity.MissionInformation;
 import com.kevinguanchedarias.sgtjava.entity.ObjectRelation;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
@@ -185,6 +186,10 @@ public class MissionBo extends AbstractMissionBo {
 		} else {
 			return null;
 		}
+	}
+
+	public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId) {
+		return missionRepository.findOneByReportId(reportId);
 	}
 
 	/**

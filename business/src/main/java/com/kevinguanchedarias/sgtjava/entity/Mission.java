@@ -24,6 +24,12 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 public class Mission implements SimpleIdEntity {
 	private static final long serialVersionUID = -5258361356566850987L;
 
+	public interface MissionIdAndTerminationDateProjection {
+		Long getId();
+
+		Date getDate();
+	}
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -67,6 +73,10 @@ public class Mission implements SimpleIdEntity {
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "related_mission", nullable = true)
 	private Mission relatedMission;
+
+	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "report_id", nullable = true)
+	private MissionReport report;
 
 	@Column(nullable = true)
 	private Boolean resolved = false;
@@ -166,6 +176,14 @@ public class Mission implements SimpleIdEntity {
 
 	public void setRelatedMission(Mission relatedMission) {
 		this.relatedMission = relatedMission;
+	}
+
+	public MissionReport getReport() {
+		return report;
+	}
+
+	public void setReport(MissionReport report) {
+		this.report = report;
 	}
 
 	/**

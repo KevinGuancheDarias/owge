@@ -9,8 +9,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 
@@ -26,9 +27,12 @@ public class MissionReport implements SimpleIdEntity {
 	@Column(name = "json_body", nullable = false)
 	private String jsonBody;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "related_mission_id", nullable = false)
+	@Transient
 	private Mission relatedMission;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private UserStorage user;
 
 	@Column(name = "user_aware_date")
 	private Date userAwareDate;
@@ -64,6 +68,14 @@ public class MissionReport implements SimpleIdEntity {
 
 	public void setRelatedMission(Mission relatedMission) {
 		this.relatedMission = relatedMission;
+	}
+
+	public UserStorage getUser() {
+		return user;
+	}
+
+	public void setUser(UserStorage user) {
+		this.user = user;
 	}
 
 	public Date getUserAwareDate() {
