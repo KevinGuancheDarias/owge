@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.3.0
+===========
+* __Feature:__ As a player I would like to be able to explore a planet with my units
+
 v0.2.1
 ===========
 * __Fix:__ Fix Websocket not authenticating automatically

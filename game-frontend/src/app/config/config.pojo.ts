@@ -9,12 +9,13 @@ export const MEDIA_ROUTES = {
 };
 
 export const ROUTES = {
-    'LOGIN': '/login',
-    'UNIVERSE_SELECTION': '/universe-selection',
-    'GAME_INDEX': '/home',
-    'UPGRADES': '/upgrades',
-    'UNITS': '/units',
-    NAVIGATE: '/navigate'
+    LOGIN: '/login',
+    UNIVERSE_SELECTION: '/universe-selection',
+    GAME_INDEX: '/home',
+    UPGRADES: '/upgrades',
+    UNITS: '/units',
+    NAVIGATE: '/navigate',
+    REPORTS: '/reports'
 };
 
 export class Config {

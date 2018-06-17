@@ -16,6 +16,7 @@ import { promise } from 'protractor';
 })
 export class BaseComponent {
 
+  public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';
   protected loginSessionService: LoginSessionService;
   protected resources: AutoUpdatedResources;
   private _loadingService: LoadingService;

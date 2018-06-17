@@ -1,0 +1,47 @@
+<app-modal #reportDetailsModal>
+  <div class="header">
+    Mission to {{ selectedReport?.parsedJson.targetPlanet.name }} as of {{ selectedReport?.missionDate | date: commonDateFormat}}
+  </div>
+  <div class="body">
+    <ng-container *ngIf="selectedReport">
+      <h1>Coordinates</h1>
+      <div class="card sgt planet-card">
+        <div class="card-block">
+          <div class="card-title">Source planet</div>
+        </div>
+        <app-display-single-planet [planet]="selectedReport.parsedJson.sourcePlanet"></app-display-single-planet>
+      </div>
+      <div class="card sgt planet-card">
+        <div class="card-block">
+          <div class="card-title">Target planet</div>
+        </div>
+        <app-display-single-planet [planet]="selectedReport.parsedJson.targetPlanet"></app-display-single-planet>
+      </div>
+      <h1>Involved units</h1>
+      <app-deployed-units-list [obtainedUnits]="selectedReport.parsedJson.involvedUnits"></app-deployed-units-list>
+      <ng-container *ngIf="selectedReport.parsedJson.unitsInPlanet">
+        <h1>Units in planet</h1>
+        <app-deployed-units-list [obtainedUnits]="selectedReport.parsedJson.unitsInPlanet"></app-deployed-units-list>
+      </ng-container>
+    </ng-container>
+  </div>
+</app-modal>
+<app-loading [isReady]="reports">
+  <ng-container *ngIf="reports">
+    <div *ngIf="!reports.length" class="sgt-empty-collection">
+      No mission reports are available for now
+    </div>
+    <div class="card sgt" *ngFor="let report of reports">
+      <div class="card-block">
+        <h5 class="card-title">Mission to {{ report.parsedJson.targetPlanet.name }}</h5>
+      </div>
+      <div class="card-block">
+        <p class="card-text">Date: {{ report.missionDate | date: commonDateFormat }}</p>
+        <p class="card-text">Owner: Find owner NOT implemented =/</p>
+      </div>
+      <div class="card-block">
+        <button (click)="showReportDetails(report)">Show details</button>
+      </div>
+    </div>
+  </ng-container>
+</app-loading>

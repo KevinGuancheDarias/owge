@@ -1,5 +1,5 @@
 <app-loading [isReady]="obtainedUnits">
-  <div class="list">
+  <div *ngIf="obtainedUnits" class="list">
     <div class="card sgt" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block" *ngIf="selectedCounts">
         <div class="card-title">
@@ -17,5 +17,8 @@
         />
       </div>
     </div>
+  </div>
+  <div *ngIf="!obtainedUnits || !obtainedUnits.length" class="sgt-empty-collection">
+    There are no units in the planet
   </div>
 </app-loading>

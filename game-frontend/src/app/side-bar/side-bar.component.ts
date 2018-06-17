@@ -1,7 +1,8 @@
+import { Component, OnInit, Input } from '@angular/core';
+
 import { BaseComponent } from './../base/base.component';
 import { ROUTES } from './../config/config.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
-import { Component, OnInit, Input } from '@angular/core';
 
 @Component({
   selector: 'app-side-bar',
@@ -9,7 +10,7 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['./side-bar.component.less']
 })
 export class SideBarComponent extends BaseComponent implements OnInit {
-  public sideBarOpen: boolean = true;
+  public sideBarOpen = true;
   public menuRoutes = ROUTES;
 
   @Input()

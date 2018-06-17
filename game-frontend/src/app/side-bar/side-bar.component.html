@@ -3,6 +3,7 @@
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UPGRADES }}" routerLinkActive="selectedMenu">Mejoras</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu">Units</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu">Navegación</a>
+      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.REPORTS }}" routerLinkActive="selectedMenu">Reports</a>
       <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
       <div *ngIf="userData">
             <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"

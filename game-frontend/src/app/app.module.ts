@@ -49,6 +49,8 @@ import { PingWebsocketApplicationHandler } from './class/ping-websocket-applicat
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
 import { MissionService } from './services/mission.service';
 import { LoadingService } from './services/loading.service';
+import { ReportsListComponent } from './components/reports-list/reports-list.component';
+import { ReportService } from './services/report.service';
 
 
 export const APP_ROUTES: Routes = [
@@ -60,6 +62,7 @@ export const APP_ROUTES: Routes = [
   { path: 'units/build', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'units/deployed', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'navigate', component: NavigationComponent, canActivate: [LoginSessionService] },
+  { path: 'reports', component: ReportsListComponent, canActivate: [LoginSessionService] },
   { path: '**', component: PageNotFoundComponent }
 ];
 
@@ -91,7 +94,8 @@ export const APP_ROUTES: Routes = [
     DisplayQuadrantComponent,
     PlanetDisplayNamePipe,
     ModalComponent,
-    DeployedUnitsListComponent
+    DeployedUnitsListComponent,
+    ReportsListComponent
   ],
   imports: [
     BrowserModule,
@@ -113,7 +117,8 @@ export const APP_ROUTES: Routes = [
     NavigationService,
     WebsocketService,
     MissionService,
-    LoadingService
+    LoadingService,
+    ReportService
   ],
   bootstrap: [AppComponent]
 })

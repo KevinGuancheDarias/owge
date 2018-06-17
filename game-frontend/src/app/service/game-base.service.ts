@@ -51,7 +51,7 @@ export class GameBaseService extends BaseHttpService {
   /**
    * Will do exactly the same that doGetWithAuthorization() but appending universe URL to the beggining
    */
-  protected doGetWithAuthorizationToGame(url: string, urlSearchParams?: URLSearchParams): Observable<any> {
+  protected doGetWithAuthorizationToGame<T = any>(url: string, urlSearchParams?: URLSearchParams): Observable<T> {
     const absoluteUrl: string = this.getUniverseUrl() + '/' + url;
     return this.doGetWithAuthorization(absoluteUrl, urlSearchParams);
   }
