@@ -135,13 +135,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		List<ObtainedUnit> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(targetPlanet);
 		adminRegisterReturnMission(mission);
-		resolveMission(mission);
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
 				.withExploredInformation(unitsInPlanet);
 		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport.setUser(user);
 		missionReport = missionReportBo.save(missionReport);
 		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		mission.setReport(missionReport);
+		resolveMission(mission);
 		socketIoService.sendMessage(user, "explore_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
