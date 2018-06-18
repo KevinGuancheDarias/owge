@@ -17,6 +17,7 @@ public class FactionDto {
 	private Integer initialEnergy;
 	private Float primaryResourceProduction;
 	private Float secondaryResourceProduction;
+	private Integer maxPlanets;
 	private Boolean clonedImprovements = false;
 
 	public Integer getId() {
@@ -147,4 +148,11 @@ public class FactionDto {
 		this.energyImage = energyImage;
 	}
 
+	public Integer getMaxPlanets() {
+		return maxPlanets;
+	}
+
+	public void setMaxPlanets(Integer maxPlanets) {
+		this.maxPlanets = maxPlanets;
+	}
 }

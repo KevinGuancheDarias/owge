@@ -67,6 +67,9 @@ public class Faction extends EntityWithImage implements EntityWithImprovements {
 	@Column(name = "secondary_resource_production")
 	private Float secondaryResourceProduction;
 
+	@Column(name = "max_planets", nullable = false)
+	private Integer maxPlanets;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "improvement_id")

@@ -157,6 +157,7 @@ CREATE TABLE `factions` (
   `initial_energy` mediumint(8) UNSIGNED NOT NULL,
   `primary_resource_production` float NOT NULL COMMENT 'Per minut',
   `secondary_resource_production` float NOT NULL COMMENT 'Per minut',
+  `max_planets` tinyint(3) UNSIGNED NOT NULL COMMENT 'Max number of planets',
   `improvement_id` smallint(6) UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
