@@ -8,6 +8,8 @@ import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
 import { UnitService } from '../../service/unit.service';
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
 import { MissionService } from '../../services/mission.service';
+import { MissionType } from '../../shared/types/mission.type';
+import { ProgrammingError } from '../../../error/programming.error';
 
 @Component({
   selector: 'app-display-quadrant',
@@ -19,9 +21,6 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   @Input()
   public navigationData: NavigationData;
-
-  @ViewChild('missionModal')
-  private _missionModal: ModalComponent;
 
   /**
    * Planet to which mission is going to be send
@@ -42,6 +41,11 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   public obtainedUnits: ObtainedUnit[];
 
   public selectedUnits: SelectedUnit[];
+
+  public missionType: MissionType = 'EXPLORE';
+
+  @ViewChild('missionModal')
+  private _missionModal: ModalComponent;
 
   constructor(private _unitService: UnitService, private _missionService: MissionService) {
     super();
@@ -73,7 +77,13 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   public async sendMission(): Promise<void> {
     await this._runWithLoading(async () => {
-      await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      if (this.missionType === 'EXPLORE') {
+        await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      } else if (this.missionType === 'GATHER') {
+        await this._missionService.sendGatherMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      } else {
+        throw new ProgrammingError(`Unexpected mission type ${this.missionType}`);
+      }
       await this._findObtainedUnits();
     });
     this._missionModal.hide();
