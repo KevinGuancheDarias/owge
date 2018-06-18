@@ -95,6 +95,16 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
+	public UnitMissionReportBuilder withEstablishBaseInformation(Boolean status) {
+		return withEstablishBaseInformation(status, "");
+	}
+
+	public UnitMissionReportBuilder withEstablishBaseInformation(Boolean status, String statusStr) {
+		createdMap.put("establishBaseStatus", status);
+		createdMap.put("establishBaseStatusStr", statusStr);
+		return this;
+	}
+
 	/**
 	 * A builder class can't be instantiate
 	 * 

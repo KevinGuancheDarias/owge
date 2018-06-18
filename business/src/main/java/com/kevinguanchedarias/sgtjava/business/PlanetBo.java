@@ -133,4 +133,17 @@ public class PlanetBo implements WithNameBo<Planet> {
 		defineAsExplored(userStorageBo.findLoggedIn(), targetPlanet);
 	}
 
+	/**
+	 * Checks if the user, has already the max planets he/she can have
+	 * 
+	 * @param user
+	 * @return True, if the user has already the max planets he/she can have
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean hasMaxPlanets(UserStorage user) {
+		int factionMax = user.getFaction().getMaxPlanets();
+		int userPlanets = planetRepository.countByOwnerId(user.getId());
+		return userPlanets >= factionMax;
+	}
+
 }

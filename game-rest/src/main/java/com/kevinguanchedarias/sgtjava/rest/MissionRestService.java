@@ -30,4 +30,8 @@ public class MissionRestService {
 		return unitMissionBo.myRegisterGatherMission(missionInformation);
 	}
 
+	@RequestMapping(value = "establishBase", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public UnitRunningMissionDto establishBase(@RequestBody UnitMissionInformation missionInformation) {
+		return unitMissionBo.myRegisterEstablishBaseMission(missionInformation);
+	}
 }

@@ -107,6 +107,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return commonMissionRegister(missionInformation, MissionType.GATHER);
 	}
 
+	public UnitRunningMissionDto myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterEstablishBase(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
+		return commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
+	}
+
 	/**
 	 * Parses the exploration of a planet
 	 * 
@@ -156,6 +166,38 @@ public class UnitMissionBo extends AbstractMissionBo {
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "gather_report", builder.build());
+		emitLocalMissionChange(mission, user);
+	}
+
+	@Transactional
+	public void processEstablishBase(Long missionId) {
+		Mission mission = findById(missionId);
+		UserStorage user = mission.getUser();
+		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		Planet targetPlanet = mission.getTargetPlanet();
+		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+				targetPlanet, involvedUnits);
+		UserStorage planetOwner = targetPlanet.getOwner();
+		boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
+		if (planetOwner != null || hasMaxPlanets) {
+			adminRegisterReturnMission(mission);
+			if (planetOwner != null) {
+				builder.withEstablishBaseInformation(false, "The planet already belongs to a user");
+			} else {
+				builder.withEstablishBaseInformation(false, "You already have the max planets, you can have");
+			}
+		} else {
+			builder.withEstablishBaseInformation(true);
+			targetPlanet.setOwner(user);
+			involvedUnits.forEach(current -> {
+				current.setSourcePlanet(targetPlanet);
+				current.setTargetPlanet(null);
+				current.setMission(null);
+			});
+		}
+		hanleMissionReportSave(mission, builder);
+		resolveMission(mission);
+		socketIoService.sendMessage(user, "establish_base_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -399,4 +441,5 @@ public class UnitMissionBo extends AbstractMissionBo {
 		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
 		mission.setReport(missionReport);
 	}
+
 }

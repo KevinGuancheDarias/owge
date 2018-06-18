@@ -27,3 +27,4 @@ INSERT INTO mission_types (id,code,description,is_shared) VALUES (3,'BUILD_UNIT'
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (4,'EXPLORE','Explores a planet',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (5,'RETURN_MISSIONT','Returns the unit to the source planet',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (6,'GATHER','Gather resources from specified planet',0);
+INSERT INTO mission_types (id,code,description,is_shared) VALUES (7,'ESTABLISH_BASE','Establish a base in a new planet',0);
