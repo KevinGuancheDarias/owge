@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doReturn;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.log4j.Logger;
@@ -33,11 +34,13 @@ import com.kevinguanchedarias.sgtjava.business.UnitMissionBo;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
+import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.MissionType;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
+import com.kevinguanchedarias.sgtjava.entity.UserImprovement;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
@@ -46,6 +49,7 @@ import com.kevinguanchedarias.sgtjava.pojo.SelectedUnit;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.sgtjava.repository.MissionRepository;
 import com.kevinguanchedarias.sgtjava.repository.MissionTypeRepository;
+import com.kevinguanchedarias.sgtjava.test.helper.MissionReportMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.PlanetMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.UnitMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.UserMockitoHelper;
@@ -56,6 +60,7 @@ public class UnitMissionBoTest extends TestCommon {
 
 	private static final Logger LOG = Logger.getLogger(UnitMissionBoTest.class);
 
+	private static final int CHARGE_DEFAULT_UNIT_AMOUNT = 20;
 	private static final UserStorage LOGGED_USER;
 	static {
 		LOGGED_USER = new UserStorage();
@@ -84,7 +89,7 @@ public class UnitMissionBoTest extends TestCommon {
 	private DtoUtilService dtoUtilServiceMock;
 
 	@Mock
-	private MissionReportBo missionReportBo;
+	private MissionReportBo missionReportBoMock;
 
 	@InjectMocks
 	private UnitMissionBo unitMissionBo;
@@ -92,6 +97,7 @@ public class UnitMissionBoTest extends TestCommon {
 	private UserMockitoHelper userMockitoHelper;
 	private PlanetMockitoHelper planetMockitoHelper;
 	private UnitMockitoHelper unitMockitoHelper;
+	private MissionReportMockitoHelper missionReportMockitoHelper;
 
 	private MissionDto fakeMissionDto;
 
@@ -153,6 +159,7 @@ public class UnitMissionBoTest extends TestCommon {
 		userMockitoHelper = new UserMockitoHelper(unitMissionBo);
 		planetMockitoHelper = new PlanetMockitoHelper(unitMissionBo);
 		unitMockitoHelper = new UnitMockitoHelper(unitMissionBo);
+		missionReportMockitoHelper = new MissionReportMockitoHelper(missionReportBoMock);
 		obtainedUnitBoMock = unitMockitoHelper.getObtainedUnitBoMock();
 		mockScheduler(schedulerFactoryBeanMock);
 		fakeMissionDto = new MissionDto();
@@ -261,7 +268,7 @@ public class UnitMissionBoTest extends TestCommon {
 	}
 
 	@Test
-	public void proccessExploreShouldNotDefineAsExploredIfAlreadyDone() throws SchedulerException {
+	public void processExploreShouldNotDefineAsExploredIfAlreadyDone() throws SchedulerException {
 		Mission savedMission = new Mission();
 		savedMission.setId(1L);
 		savedMission.setRequiredTime(1D);
@@ -273,6 +280,7 @@ public class UnitMissionBoTest extends TestCommon {
 		planetMockitoHelper.fakeExplored(involvedUser, targetPlanet);
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
+		missionReportMockitoHelper.captureMissionReportSave();
 		unitMissionBoSpy.processExplore(1L);
 		Mockito.verify(planetMockitoHelper.getPlanetBoMock(), Mockito.times(1)).isExplored(involvedUser, targetPlanet);
 		Mockito.verify(planetMockitoHelper.getPlanetBoMock(), Mockito.never()).defineAsExplored(involvedUser,
@@ -282,7 +290,7 @@ public class UnitMissionBoTest extends TestCommon {
 	}
 
 	@Test
-	public void proccessExploreShouldDefineAsExplored() {
+	public void processExploreShouldDefineAsExplored() {
 		Mission savedMission = new Mission();
 		savedMission.setRequiredTime(1D);
 		UserStorage involvedUser = new UserStorage();
@@ -292,6 +300,7 @@ public class UnitMissionBoTest extends TestCommon {
 		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(savedMission);
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
+		missionReportMockitoHelper.captureMissionReportSave();
 		unitMissionBoSpy.processExplore(1L);
 		Mockito.verify(planetMockitoHelper.getPlanetBoMock(), Mockito.times(1)).isExplored(involvedUser, targetPlanet);
 		Mockito.verify(planetMockitoHelper.getPlanetBoMock(), Mockito.times(1)).defineAsExplored(involvedUser,
@@ -300,6 +309,40 @@ public class UnitMissionBoTest extends TestCommon {
 		Mockito.verify(missionRepositoryMock, Mockito.times(1)).saveAndFlush(savedMission);
 		assertEquals(true, savedMission.getResolved());
 		testMissionChangeEmmited(involvedUser, savedMission);
+	}
+
+	@Test
+	public void processGatherShouldIncreaseUserResourcesAmount() {
+		Mission savedMission = new Mission();
+		savedMission.setId(1L);
+		savedMission.setRequiredTime(1D);
+		UserStorage involvedUser = new UserStorage();
+		BeanUtils.copyProperties(LOGGED_USER, involvedUser);
+		UserImprovement userImprovement = new UserImprovement();
+		userImprovement.setMoreChargeCapacity(10F);
+		involvedUser.setImprovements(userImprovement);
+		involvedUser.setPrimaryResource(200D);
+		involvedUser.setSecondaryResource(400D);
+		Planet targetPlanet = new Planet();
+		targetPlanet.setRichness(40);
+		savedMission.setUser(involvedUser);
+		savedMission.setTargetPlanet(targetPlanet);
+		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(savedMission);
+		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
+		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
+		ArgumentCaptor<MissionReport> captor = missionReportMockitoHelper.captureMissionReportSave();
+		unitMockitoHelper.fakeFindByMissionId(1L, prepareObtainedUnit());
+		unitMissionBoSpy.processGather(1L);
+		Map<String, Object> savedJsonMap = parseJson(captor.getValue().getJsonBody());
+		Double expectedGatheredPrimary = 30.8D;
+		Double expectedGatheredSecondary = 13.2D;
+		Double expectedUserPrimary = 200D + expectedGatheredPrimary;
+		Double expectedUserSecondary = 413.2D;
+		assertEquals(expectedUserPrimary, involvedUser.getPrimaryResource(), 0.1D);
+		assertEquals(expectedUserSecondary, involvedUser.getSecondaryResource(), 0.1D);
+		assertEquals(expectedGatheredPrimary, (Double) savedJsonMap.get("gatheredPrimary"), 0.1D);
+		assertEquals(expectedGatheredSecondary, (Double) savedJsonMap.get("gatheredSecondary"), 0.1D);
+
 	}
 
 	@Test
@@ -432,6 +475,7 @@ public class UnitMissionBoTest extends TestCommon {
 		Unit unit = new Unit();
 		unit.setId(1);
 		unit.setType(unitType);
+		unit.setCharge(CHARGE_DEFAULT_UNIT_AMOUNT);
 		retVal.setUnit(unit);
 		return retVal;
 	}

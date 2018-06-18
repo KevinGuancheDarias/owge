@@ -20,6 +20,7 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendSchedulerException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
 import com.kevinguanchedarias.sgtjava.job.RealizationJob;
@@ -128,7 +129,11 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	 * @author Kevin Guanche Darias
 	 */
 	protected com.kevinguanchedarias.sgtjava.entity.MissionType findMissionType(MissionType type) {
-		return missionTypeRepository.findOneByCode(type.name());
+		com.kevinguanchedarias.sgtjava.entity.MissionType retVal = missionTypeRepository.findOneByCode(type.name());
+		if (retVal == null) {
+			throw new SgtBackendInvalidInputException("No MissionType " + type.name() + " was found in the database");
+		}
+		return retVal;
 	}
 
 	/**

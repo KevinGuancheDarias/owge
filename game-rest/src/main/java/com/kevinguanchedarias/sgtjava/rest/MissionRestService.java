@@ -16,12 +16,18 @@ import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 @ApplicationScope
 public class MissionRestService {
 
+	private static final String TARGET_CONSUMES_MEDIATYPE = "application/json";
 	@Autowired
 	private UnitMissionBo unitMissionBo;
 
-	@RequestMapping(value = "explorePlanet", method = RequestMethod.POST, consumes = "application/json")
+	@RequestMapping(value = "explorePlanet", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public UnitRunningMissionDto explorePlanet(@RequestBody UnitMissionInformation missionInformation) {
 		return unitMissionBo.myRegisterExploreMission(missionInformation);
+	}
+
+	@RequestMapping(value = "gather", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public UnitRunningMissionDto gather(@RequestBody UnitMissionInformation missionInformation) {
+		return unitMissionBo.myRegisterGatherMission(missionInformation);
 	}
 
 }

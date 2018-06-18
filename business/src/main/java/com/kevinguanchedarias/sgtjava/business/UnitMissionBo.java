@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,11 +74,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public UnitRunningMissionDto myRegisterExploreMission(UnitMissionInformation missionInformation) {
-		if (missionInformation.getUserId() == null) {
-			missionInformation.setUserId(userStorageBo.findLoggedIn().getId());
-		} else {
-			checkInvokerIsTheLoggedUser(missionInformation.getUserId());
-		}
+		myRegister(missionInformation);
 		return adminRegisterExploreMission(missionInformation);
 	}
 
@@ -96,26 +93,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public UnitRunningMissionDto adminRegisterExploreMission(UnitMissionInformation missionInformation) {
-		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
-		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
-		UserStorage user = userStorageBo.findLoggedIn();
-		targetMissionInformation.setUserId(user.getId());
-		checkAndLoadObtainedUnits(missionInformation);
-		Mission mission = missionRepository
-				.saveAndFlush((prepareMission(targetMissionInformation, MissionType.EXPLORE)));
-		targetMissionInformation.getInvolvedUnits().forEach(current -> {
-			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
-			currentObtainedUnit.setMission(mission);
-			currentObtainedUnit.setCount(current.getCount());
-			currentObtainedUnit.setUser(user);
-			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
-			currentObtainedUnit.setSourcePlanet(mission.getTargetPlanet());
-			currentObtainedUnit.setTargetPlanet(mission.getSourcePlanet());
-			obtainedUnits.add(currentObtainedUnit);
-		});
-		obtainedUnitBo.save(obtainedUnits);
-		scheduleMission(mission);
-		return new UnitRunningMissionDto(mission, obtainedUnits);
+		return commonMissionRegister(missionInformation, MissionType.EXPLORE);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto myRegisterGatherMission(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterGatherMission(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterGatherMission(UnitMissionInformation missionInformation) {
+		return commonMissionRegister(missionInformation, MissionType.GATHER);
 	}
 
 	/**
@@ -138,13 +127,35 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
 				.withExploredInformation(unitsInPlanet);
-		MissionReport missionReport = new MissionReport("{}", mission);
-		missionReport.setUser(user);
-		missionReport = missionReportBo.save(missionReport);
-		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-		mission.setReport(missionReport);
+		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "explore_report", builder.build());
+		emitLocalMissionChange(mission, user);
+	}
+
+	@Transactional
+	public void processGather(Long missionId) {
+		Mission mission = findById(missionId);
+		UserStorage user = mission.getUser();
+		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		Planet targetPlanet = mission.getTargetPlanet();
+		adminRegisterReturnMission(mission);
+		Long gathered = involvedUnits.stream()
+				.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
+				.reduce(0L, (sum, current) -> sum + current);
+		Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
+		Double withUserImprovement = withPlanetRichness
+				+ (withPlanetRichness * user.getImprovements().findRationalChargeCapacity());
+		Double primaryResource = withUserImprovement * 0.7;
+		Double secondaryResource = withUserImprovement * 0.3;
+		user.addtoPrimary(primaryResource);
+		user.addToSecondary(secondaryResource);
+		UnitMissionReportBuilder builder = UnitMissionReportBuilder
+				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+				.withGatherInformation(primaryResource, secondaryResource);
+		hanleMissionReportSave(mission, builder);
+		resolveMission(mission);
+		socketIoService.sendMessage(user, "gather_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -191,6 +202,44 @@ public class UnitMissionBo extends AbstractMissionBo {
 		});
 		resolveMission(mission);
 		emitLocalMissionChange(mission, mission.getUser());
+	}
+
+	/**
+	 * Executes modifications to <i>missionInformation</i> to define the logged
+	 * in user as the sender user
+	 * 
+	 * @param missionInformation
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void myRegister(UnitMissionInformation missionInformation) {
+		if (missionInformation.getUserId() == null) {
+			missionInformation.setUserId(userStorageBo.findLoggedIn().getId());
+		} else {
+			checkInvokerIsTheLoggedUser(missionInformation.getUserId());
+		}
+	}
+
+	private UnitRunningMissionDto commonMissionRegister(UnitMissionInformation missionInformation,
+			MissionType missionType) {
+		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
+		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
+		UserStorage user = userStorageBo.findLoggedIn();
+		targetMissionInformation.setUserId(user.getId());
+		checkAndLoadObtainedUnits(missionInformation);
+		Mission mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
+		targetMissionInformation.getInvolvedUnits().forEach(current -> {
+			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
+			currentObtainedUnit.setMission(mission);
+			currentObtainedUnit.setCount(current.getCount());
+			currentObtainedUnit.setUser(user);
+			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
+			currentObtainedUnit.setSourcePlanet(mission.getTargetPlanet());
+			currentObtainedUnit.setTargetPlanet(mission.getSourcePlanet());
+			obtainedUnits.add(currentObtainedUnit);
+		});
+		obtainedUnitBo.save(obtainedUnits);
+		scheduleMission(mission);
+		return new UnitRunningMissionDto(mission, obtainedUnits);
 	}
 
 	/**
@@ -334,5 +383,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private CompletableFuture<DeliveryQueueEntry> emitLocalMissionChange(Mission mission, UserStorage user) {
 		return socketIoService.sendMessage(user, "local_mission_change",
 				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
+	}
+
+	/**
+	 * Saves the MissionReport to the database
+	 * 
+	 * @param mission
+	 * @param builder
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
+		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport.setUser(mission.getUser());
+		missionReport = missionReportBo.save(missionReport);
+		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		mission.setReport(missionReport);
 	}
 }

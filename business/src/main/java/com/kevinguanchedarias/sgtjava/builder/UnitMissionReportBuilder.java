@@ -89,6 +89,12 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
+	public UnitMissionReportBuilder withGatherInformation(Double primaryResource, Double secondaryResource) {
+		createdMap.put("gatheredPrimary", primaryResource);
+		createdMap.put("gatheredSecondary", secondaryResource);
+		return this;
+	}
+
 	/**
 	 * A builder class can't be instantiate
 	 * 

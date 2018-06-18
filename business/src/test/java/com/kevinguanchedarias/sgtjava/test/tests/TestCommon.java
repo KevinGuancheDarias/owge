@@ -2,11 +2,14 @@ package com.kevinguanchedarias.sgtjava.test.tests;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -21,6 +24,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.kevinguanchedarias.sgtjava.entity.Faction;
 import com.kevinguanchedarias.sgtjava.entity.Galaxy;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
@@ -36,6 +42,7 @@ import com.kevinguanchedarias.sgtjava.entity.Upgrade;
 import com.kevinguanchedarias.sgtjava.entity.UpgradeType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.sgtjava.exception.CommonException;
 import com.kevinguanchedarias.sgtjava.repository.FactionRepository;
 import com.kevinguanchedarias.sgtjava.repository.GalaxyRepository;
 import com.kevinguanchedarias.sgtjava.repository.MissionRepository;
@@ -326,5 +333,16 @@ public abstract class TestCommon {
 		Mockito.verify(schedulerMock, Mockito.times(1)).addJob(Mockito.any(JobDetail.class), Mockito.anyBoolean(),
 				Mockito.anyBoolean());
 		Mockito.verify(schedulerMock, Mockito.times(1)).scheduleJob(Mockito.any(Trigger.class));
+	}
+
+	protected Map<String, Object> parseJson(String json) {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JsonOrgModule());
+		try {
+			return mapper.readValue(json, new TypeReference<HashMap<String, Object>>() {
+			});
+		} catch (IOException e) {
+			throw new CommonException("Couldn't parse JSON", e);
+		}
 	}
 }

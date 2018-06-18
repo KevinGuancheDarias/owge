@@ -134,6 +134,8 @@ public class ConfigurationBo implements Serializable {
 		Long retVal;
 		if (type == MissionType.EXPLORE) {
 			retVal = findMissionExploreBaseTime();
+		} else if (type == MissionType.GATHER) {
+			retVal = findMissionGatherBaseTime();
 		} else {
 			throw new SgtBackendInvalidInputException("Unsupported mission base time type, specified: " + type.name());
 		}

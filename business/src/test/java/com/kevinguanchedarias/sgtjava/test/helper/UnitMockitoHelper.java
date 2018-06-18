@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.sgtjava.test.helper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.mockito.ArgumentCaptor;
@@ -36,6 +37,16 @@ public class UnitMockitoHelper {
 		Mockito.when(
 				obtainedUnitBoMock.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIdIsNull(userId, unitId, planetId))
 				.thenReturn(retVal);
+	}
+
+	public void fakeFindByMissionId(Long id, ObtainedUnit obtainedUnit) {
+		List<ObtainedUnit> retVal = new ArrayList<>();
+		retVal.add(obtainedUnit);
+		fakeFindByMissionId(id, retVal);
+	}
+
+	public void fakeFindByMissionId(Long id, List<ObtainedUnit> retVal) {
+		Mockito.when(obtainedUnitBoMock.findByMissionId(id)).thenReturn(retVal);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

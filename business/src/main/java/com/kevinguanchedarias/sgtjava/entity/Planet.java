@@ -53,6 +53,10 @@ public class Planet implements SimpleIdEntity {
 	@Cascade({ CascadeType.MERGE, CascadeType.PERSIST })
 	private SpecialLocation specialLocation;
 
+	public Double findRationalRichness() {
+		return richness / (double) 100;
+	}
+
 	@Override
 	public Long getId() {
 		return id;

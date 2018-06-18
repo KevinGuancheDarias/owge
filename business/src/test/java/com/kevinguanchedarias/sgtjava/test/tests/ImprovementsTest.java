@@ -21,6 +21,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.sgtjava.business.ImprovementBo;
+import com.kevinguanchedarias.sgtjava.entity.Improvement;
 import com.kevinguanchedarias.sgtjava.entity.ImprovementUnitType;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.repository.UnitTypeRepository;
@@ -155,6 +156,13 @@ public class ImprovementsTest {
 		;
 
 		assertFalse(improvementsBo.isDuplicated(testList, compared));
+	}
+
+	@Test
+	public void shouldProperlyHandleRationalFinders() {
+		Improvement instance = new Improvement();
+		instance.setMoreChargeCapacity(80F);
+		assertEquals(0.8D, instance.findRationalChargeCapacity(), 0.1D);
 	}
 
 	private ImprovementUnitType prepareValid(Integer id) {

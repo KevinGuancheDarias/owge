@@ -67,6 +67,10 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 		moreMisions += value;
 	}
 
+	public Double findRationalChargeCapacity() {
+		return moreChargeCapacity / (double) 100;
+	}
+
 	public Float getMoreSoldiersProduction() {
 		return moreSoldiersProduction;
 	}
