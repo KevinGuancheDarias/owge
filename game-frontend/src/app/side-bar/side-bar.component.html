@@ -1,10 +1,26 @@
+<app-modal #planetSelectionModal>
+      <div class="header">
+            Select the planet
+      </div>
+      <div class="body">
+            <div *ngFor="let planet of myPlanets" class="card sgt planet-card">
+                  <app-display-single-planet [planet]="planet"></app-display-single-planet>
+                  <div class="card-block">
+                        <a class="btn btn-block" (click)="selectPlanet(planet)">Select</a>
+                  </div>
+            </div>
+      </div>
+</app-modal>
 <div id="sideBarRoot">
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}" routerLinkActive="selectedMenu">Inicio</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UPGRADES }}" routerLinkActive="selectedMenu">Mejoras</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu">Units</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu">Navegación</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.REPORTS }}" routerLinkActive="selectedMenu">Reports</a>
-      <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
+      <div class="selected-planet">
+            <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()" class="fa fa-globe"></i>
+            <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
+      </div>
       <div *ngIf="userData">
             <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
                   [resourceValue]="resources.currentPrimaryResource">

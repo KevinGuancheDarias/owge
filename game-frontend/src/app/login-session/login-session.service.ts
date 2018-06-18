@@ -41,8 +41,8 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   }
   private _isInGame: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
-  public get findSelectedPlanet(): BehaviorSubject<PlanetPojo> {
-    return this._findSelectedPlanet;
+  public get findSelectedPlanet(): Observable<PlanetPojo> {
+    return this._findSelectedPlanet.asObservable();
   }
   private _findSelectedPlanet: BehaviorSubject<PlanetPojo> = new BehaviorSubject(null);
 
@@ -159,6 +159,10 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
 
   public setSelectedFaction(faction: Faction) {
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_FACTION, JSON.stringify(faction));
+  }
+
+  public defineSelectedPlanet(planet: PlanetPojo): void {
+    this._findSelectedPlanet.next(planet);
   }
 
   /**

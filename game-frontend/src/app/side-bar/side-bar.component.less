@@ -10,6 +10,20 @@
     background-color: rgba(190, 190, 250, 0.4);
     box-shadow:  3px 3px 3px black;
 
+    .selected-planet {
+        i {
+            position: relative;
+            top: 34px;
+            left: 158px;
+            color: lightgray;
+
+            &:hover {
+                color: black;
+                cursor: pointer;
+            }
+        }
+    }
+
     a ~ div{
         transition: all 2s;
         padding: 2px;
@@ -27,11 +41,12 @@
         }
     }
 
-    .ola a{
-        height: 40px;
-        opacity: 1;
-    }
+    
 }
+app-modal .planet-card {
+    float: left;
+}
+
 .anterior{
     height: 0px;
 

@@ -1,5 +1,7 @@
 <div class="container" *ngIf="planet">
-    <p>{{ planet.name }} </p>
-    <img src="{{ planetImage }}"/>
-    
+    <p>
+        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet.name }}
+    </p>
+    <img src="{{ planetImage }}" />
+
 </div>

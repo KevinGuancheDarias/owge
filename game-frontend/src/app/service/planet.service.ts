@@ -1,7 +1,8 @@
 import { GameBaseService } from './game-base.service';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 @Injectable()
 export class PlanetService extends GameBaseService {
@@ -11,8 +12,8 @@ export class PlanetService extends GameBaseService {
    *
    * @author Kevin Guanche Darias
    */
-  public get myPlanets(): BehaviorSubject<PlanetPojo[]> {
-    return this._myPlanets;
+  public get myPlanets(): Observable<PlanetPojo[]> {
+    return this._myPlanets.asObservable();
   }
   private _myPlanets: BehaviorSubject<PlanetPojo[]> = new BehaviorSubject(null);
 

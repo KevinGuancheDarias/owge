@@ -5,6 +5,7 @@ v0.3.0
 * __Feature:__ As a player I would like to be able to explore a planet with my units
 * __Feature:__ As a player, I would like to gather resources from a planet
 * __Feature:__ As a admin, I would like to establish the max number of planets for given faction
+* __Feature:__ As a player, I would like to establish a base in a new planet
 
 v0.2.1
 ===========
