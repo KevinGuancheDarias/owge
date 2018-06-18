@@ -20,6 +20,10 @@ export class MissionService extends GameBaseService {
     return this._sendMission('mission/gather', sourcePlanet, targetPlanet, involvedUnits);
   }
 
+  public sendEstablishBaseMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+    return this._sendMission('mission/establishBase', sourcePlanet, targetPlanet, involvedUnits);
+  }
+
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._doPostWithAuthorizationToGame<UnitMissionInformation>(
       url, {
