@@ -42,6 +42,7 @@ public class FactionsController extends SgtCommonController<Faction> implements 
 
 	public void newObject() {
 		Faction selectedObject = new Faction();
+		selectedObject.setMaxPlanets(1);
 		selectedObject.setImprovement(new Improvement());
 		improvementsController.setSelectedObject(selectedObject);
 		clearUploadedImages();

@@ -220,4 +220,12 @@ public class Faction extends EntityWithImage implements EntityWithImprovements {
 		this.energyImage = energyImage;
 	}
 
+	public Integer getMaxPlanets() {
+		return maxPlanets;
+	}
+
+	public void setMaxPlanets(Integer maxPlanets) {
+		this.maxPlanets = maxPlanets;
+	}
+
 }

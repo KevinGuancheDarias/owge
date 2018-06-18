@@ -183,6 +183,17 @@
 									value="#{factionsController.selectedObject.secondaryResourceProduction}" />
 							</p:column>
 						</p:row>
+						<p:row>
+							<p:column>
+								<p:outputLabel for="maxPlanets"
+									title="Por raza" value="Planetas máximos" />
+							</p:column>
+							<p:column>
+								<p:spinner id="maxPlanets" required="true" converterMessage="Sólo números"
+								styleClass="numeric-input" stepFactor="1" min="1" max="15"
+								value="#{factionsController.selectedObject.maxPlanets}"/>
+							</p:column>
+						</p:row>
 
 						<p:row>
 							<p:column colspan="2">
