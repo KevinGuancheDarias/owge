@@ -2,6 +2,7 @@
 
 v0.3.0
 ===========
+* __Fix:__ After migrating to Angular 5, upgrades component suddenly stopped working
 * __Feature:__ As a player I would like to be able to explore a planet with my units
 * __Feature:__ As a player, I would like to gather resources from a planet
 * __Feature:__ As a admin, I would like to establish the max number of planets for given faction
