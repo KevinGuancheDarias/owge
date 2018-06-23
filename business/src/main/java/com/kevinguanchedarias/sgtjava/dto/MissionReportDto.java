@@ -24,8 +24,10 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 	}
 
 	public void parseMission(MissionIdAndTerminationDateProjection missionIdAndTerminationDateProjection) {
-		missionId = missionIdAndTerminationDateProjection.getId();
-		missionDate = missionIdAndTerminationDateProjection.getDate();
+		if (missionIdAndTerminationDateProjection != null) {
+			missionId = missionIdAndTerminationDateProjection.getId();
+			missionDate = missionIdAndTerminationDateProjection.getDate();
+		}
 	}
 
 	public Long getId() {
