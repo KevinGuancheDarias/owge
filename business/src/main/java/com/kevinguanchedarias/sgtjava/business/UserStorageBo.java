@@ -222,6 +222,10 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 		}
 	}
 
+	public void addPointsToUser(UserStorage user, Double points) {
+		userStorageRepository.addPointsToUser(user, points);
+	}
+
 	private TokenUser findTokenUser() {
 		return (TokenUser) securityContextService.getAuthentication().getDetails();
 	}

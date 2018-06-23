@@ -1,8 +1,12 @@
 package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
@@ -19,10 +23,12 @@ import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
+import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.NotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
+import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
 import com.kevinguanchedarias.sgtjava.pojo.DeliveryQueueEntry;
@@ -35,6 +41,303 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
 	private static final String JOB_GROUP_NAME = "UnitMissions";
+
+	/**
+	 * Represents an ObtainedUnit, its full attack, and the pending attack is
+	 * has
+	 *
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public class AttackObtainedUnit {
+		Double pendingAttack;
+		Double availableShield;
+		Double availableHealth;
+		Long finalCount;
+		ObtainedUnit obtainedUnit;
+
+		private Double totalAttack;
+		private Long initialCount;
+		private Double totalShield;
+		private Double totalHealth;
+
+		public Double getTotalAttack() {
+			return totalAttack;
+		}
+
+		public void setTotalAttack(Double totalAttack) {
+			this.totalAttack = totalAttack;
+		}
+
+		public Long getInitialCount() {
+			return initialCount;
+		}
+
+		public void setInitialCount(Long initialCount) {
+			this.initialCount = initialCount;
+		}
+
+		public Double getTotalShield() {
+			return totalShield;
+		}
+
+		public void setTotalShield(Double totalShield) {
+			this.totalShield = totalShield;
+		}
+
+		public Double getTotalHealth() {
+			return totalHealth;
+		}
+
+		public void setTotalHealth(Double totalHealth) {
+			this.totalHealth = totalHealth;
+		}
+
+		public Long getFinalCount() {
+			return finalCount;
+		}
+
+		public ObtainedUnit getObtainedUnit() {
+			return obtainedUnit;
+		}
+
+		/**
+		 * Notice: Setter with logic, check it
+		 * 
+		 * @param obtainedUnit
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public void setObtainedUnit(ObtainedUnit obtainedUnit) {
+			Unit unit = obtainedUnit.getUnit();
+			initialCount = obtainedUnit.getCount();
+			finalCount = initialCount;
+			totalAttack = initialCount.doubleValue() * unit.getAttack();
+			pendingAttack = totalAttack;
+			totalShield = initialCount.doubleValue() * unit.getShield();
+			availableShield = totalShield;
+			totalHealth = initialCount.doubleValue() * unit.getHealth();
+			availableHealth = totalHealth;
+			this.obtainedUnit = obtainedUnit;
+		}
+
+	}
+
+	public class AttackUserInformation {
+		AttackInformation attackInformationRef;
+		private UserStorage user;
+		Double earnedPoints = 0D;
+		List<AttackObtainedUnit> unitsWithAvailableAttack = new ArrayList<>();
+		List<AttackObtainedUnit> unitsWithoutAttack = new ArrayList<>();
+		boolean isDefeated = false;
+		boolean canAttack = true;
+
+		public AttackUserInformation(UserStorage user) {
+			this.setUser(user);
+		}
+
+		/**
+		 * List of users that the current user can attack
+		 * 
+		 * @return
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public List<AttackUserInformation> findVictims(List<AttackUserInformation> allUsers) {
+			return allUsers.stream()
+					.filter(current -> !current.isDefeated && !current.getUser().getId().equals(getUser().getId()))
+					.collect(Collectors.toList());
+		}
+
+		public List<AttackObtainedUnit> findAllUnits() {
+			List<AttackObtainedUnit> retVal = new ArrayList<>();
+			retVal.addAll(unitsWithAvailableAttack);
+			retVal.addAll(unitsWithoutAttack);
+			return retVal;
+		}
+
+		public List<AttackObtainedUnit> findUnitsWithLife() {
+			return findAllUnits().stream().filter(current -> current.availableHealth >= 0.0D)
+					.collect(Collectors.toList());
+		}
+
+		public void attackVictim(AttackUserInformation targetVictim, List<AttackUserInformation> allUsers) {
+			unitsWithAvailableAttack.stream().filter(current -> {
+				List<AttackObtainedUnit> victimUnitsWithLife = targetVictim.findUnitsWithLife();
+				final AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
+				victimUnitsWithLife.stream().filter(victimUnit -> {
+					Double myAttack = current.pendingAttack;
+					Double victimShield = victimUnit.availableShield;
+					if (victimShield > myAttack) {
+						current.pendingAttack = 0D;
+						victimUnit.availableShield -= myAttack;
+					} else {
+						myAttack -= victimUnit.availableShield;
+						victimUnit.availableShield = 0D;
+						Double victimHealth = victimUnit.availableHealth;
+						addPointsAndUpdateCount(myAttack, victimUnit);
+						if (victimHealth > myAttack) {
+							current.pendingAttack = 0D;
+							victimUnit.availableHealth -= myAttack;
+						} else {
+							current.pendingAttack = myAttack - victimHealth;
+							victimUnit.availableHealth = 0D;
+							obtainedUnitBo.delete(victimUnit.obtainedUnit);
+							deleteMissionIfRequired(victimUnit.obtainedUnit);
+							count.decrementAndGet();
+						}
+					}
+					if (current.pendingAttack == 0D) {
+						unitsWithoutAttack.add(current);
+					}
+					return current.pendingAttack == 0D;
+				}).findFirst();
+				if (count.get() == 0) {
+					targetVictim.isDefeated = true;
+				}
+				return count.get() == 0;
+			}).findFirst();
+			updateUnitsWithAvailableAttack();
+			updateCanAttack(allUsers);
+		}
+
+		public UserStorage getUser() {
+			return user;
+		}
+
+		public void setUser(UserStorage user) {
+			this.user = user;
+		}
+
+		public Double getEarnedPoints() {
+			return earnedPoints;
+		}
+
+		/**
+		 * Deletes the mission from the system, when all units involved ade
+		 * death
+		 * 
+		 * Notice, should be invoked after <b>removing the obtained unit</b>
+		 * 
+		 * @param obtainedUnit
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		private void deleteMissionIfRequired(ObtainedUnit obtainedUnit) {
+			Mission mission = obtainedUnit.getMission();
+			if (mission != null && !obtainedUnitBo.existsByMission(mission)) {
+				if (attackInformationRef.attackMission.getId().equals(mission.getId())) {
+					attackInformationRef.setRemoved(true);
+				} else {
+					delete(mission);
+				}
+			}
+		}
+
+		private void updateUnitsWithAvailableAttack() {
+			unitsWithAvailableAttack = unitsWithAvailableAttack.stream().filter(current -> current.pendingAttack > 0D)
+					.collect(Collectors.toList());
+		}
+
+		private void updateCanAttack(List<AttackUserInformation> allUsers) {
+			canAttack = !unitsWithAvailableAttack.isEmpty() && !findVictims(allUsers).isEmpty();
+		}
+
+		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit victimUnit) {
+			Double healthForEachUnit = victimUnit.totalHealth / victimUnit.initialCount;
+			Long killedCount = (long) Math.floor(usedAttack / healthForEachUnit);
+			if (killedCount > victimUnit.finalCount) {
+				killedCount = victimUnit.finalCount;
+				victimUnit.finalCount = 0L;
+			} else {
+				victimUnit.finalCount -= killedCount;
+			}
+			earnedPoints += killedCount * victimUnit.obtainedUnit.getUnit().getPoints();
+		}
+	}
+
+	public class AttackInformation {
+		private Mission attackMission;
+		private boolean isRemoved = false;
+		private List<AttackUserInformation> users = new ArrayList<>();
+
+		public AttackInformation() {
+			throw new ProgrammingException(
+					"Can't invoke constructor for " + this.getClass().getName() + " without arguments");
+		}
+
+		public AttackInformation(Mission attackMission) {
+			this.attackMission = attackMission;
+		}
+
+		/**
+		 * To have the expected behavior sohuld be invoked after
+		 * <i>startAttack()</i>
+		 * 
+		 * @return true if the mission has been removed from the database
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public boolean isMissionRemoved() {
+			return isRemoved;
+		}
+
+		public void startAttack() {
+			doAttack();
+			updatePoints();
+		}
+
+		public void addUnitToUser(ObtainedUnit unitToAdd) {
+
+			AttackUserInformation attackUserInformation = users.stream()
+					.filter(current -> current.getUser().getId().equals(unitToAdd.getUser().getId())).findFirst()
+					.orElse(null);
+			if (attackUserInformation == null) {
+				attackUserInformation = new AttackUserInformation(unitToAdd.getUser());
+				attackUserInformation.attackInformationRef = this;
+				users.add(attackUserInformation);
+			}
+			AttackObtainedUnit attackObtainedUnit = new AttackObtainedUnit();
+			attackObtainedUnit.setObtainedUnit(unitToAdd);
+			attackUserInformation.unitsWithAvailableAttack.add(attackObtainedUnit);
+		}
+
+		public List<AttackUserInformation> getUsers() {
+			return users;
+		}
+
+		public void setUsers(List<AttackUserInformation> users) {
+			this.users = users;
+		}
+
+		public Mission getAttackMission() {
+			return attackMission;
+		}
+
+		public void setRemoved(boolean isRemoved) {
+			this.isRemoved = isRemoved;
+		}
+
+		private void doAttack() {
+			Collections.shuffle(users);
+			List<AttackUserInformation> attackerUsers = users.stream().filter(current -> current.canAttack)
+					.collect(Collectors.toList());
+			if (!attackerUsers.isEmpty()) {
+				AttackUserInformation attackerUser = attackerUsers.get(0);
+				List<AttackUserInformation> victims = attackerUser.findVictims(users);
+				if (victims.isEmpty()) {
+					attackerUser.canAttack = false;
+				} else {
+					victims.stream().filter(current -> {
+						attackerUser.attackVictim(current, users);
+						return !attackerUser.canAttack;
+					}).findFirst();
+				}
+				doAttack();
+			}
+
+		}
+
+		private void updatePoints() {
+			users.forEach(current -> userStorageBo.addPointsToUser(current.getUser(), current.earnedPoints));
+		}
+
+	}
 
 	@Autowired
 	private ConfigurationBo configurationBo;
@@ -115,6 +418,17 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public UnitRunningMissionDto adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
 		return commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto myRegisterAttackMission(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterAttackMission(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterAttackMission(UnitMissionInformation missionInformation) {
+		return commonMissionRegister(missionInformation, MissionType.ATTACK);
 	}
 
 	/**
@@ -199,6 +513,24 @@ public class UnitMissionBo extends AbstractMissionBo {
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "establish_base_report", builder.build());
 		emitLocalMissionChange(mission, user);
+	}
+
+	@Transactional
+	public void processAttack(Long missionId) {
+		Mission mission = findById(missionId);
+		Planet targetPlanet = mission.getTargetPlanet();
+		AttackInformation attackInformation = buildAttackInformation(targetPlanet, mission);
+		attackInformation.startAttack();
+		if (!attackInformation.isMissionRemoved()) {
+			adminRegisterReturnMission(mission);
+		}
+		resolveMission(mission);
+		UnitMissionReportBuilder builder = UnitMissionReportBuilder
+				.create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, null)
+				.withAttackInformation(attackInformation);
+		hanleMissionReportSave(mission, builder,
+				attackInformation.users.stream().map(current -> current.user).collect(Collectors.toList()));
+		emitLocalMissionChange(mission, mission.getUser());
 	}
 
 	/**
@@ -442,4 +774,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 		mission.setReport(missionReport);
 	}
 
+	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
+		users.forEach(currentUser -> {
+			MissionReport missionReport = new MissionReport("{}", mission);
+			missionReport.setUser(currentUser);
+			missionReport = missionReportBo.save(missionReport);
+			missionReport.setReportDate(new Date());
+			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+			mission.setReport(missionReport);
+		});
+	}
+
+	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
+		AttackInformation retVal = new AttackInformation(attackMission);
+		obtainedUnitBo.findInvolvedInAttack(targetPlanet, attackMission).forEach(retVal::addUnitToUser);
+		return retVal;
+	}
 }

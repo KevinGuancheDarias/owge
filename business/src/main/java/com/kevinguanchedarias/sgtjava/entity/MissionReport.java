@@ -34,6 +34,9 @@ public class MissionReport implements SimpleIdEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private UserStorage user;
 
+	@Column(name = "report_date")
+	private Date reportDate;
+
 	@Column(name = "user_aware_date")
 	private Date userAwareDate;
 
@@ -76,6 +79,14 @@ public class MissionReport implements SimpleIdEntity {
 
 	public void setUser(UserStorage user) {
 		this.user = user;
+	}
+
+	public Date getReportDate() {
+		return reportDate;
+	}
+
+	public void setReportDate(Date reportDate) {
+		this.reportDate = reportDate;
 	}
 
 	public Date getUserAwareDate() {

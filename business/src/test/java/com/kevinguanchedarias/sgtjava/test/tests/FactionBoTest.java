@@ -31,6 +31,7 @@ public class FactionBoTest {
 		int times = 4;
 		Faction model = new Faction();
 		model.setHidden(false);
+		model.setMaxPlanets(1);
 		saveMultiple(model, times);
 
 		model.setHidden(true);
@@ -45,6 +46,7 @@ public class FactionBoTest {
 		int times = 4;
 		Faction model = new Faction();
 		model.setHidden(false);
+		model.setMaxPlanets(1);
 		saveMultiple(model, times);
 
 		model.setHidden(true);

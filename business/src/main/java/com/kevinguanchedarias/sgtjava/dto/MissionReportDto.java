@@ -14,6 +14,7 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 	private Map<String, Object> parsedJson;
 	private Long missionId;
 	private Date missionDate;
+	private Date reportDate;
 	private Date userAwareDate;
 	private Date userReadDate;
 
@@ -65,6 +66,14 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 
 	public void setMissionDate(Date missionDate) {
 		this.missionDate = missionDate;
+	}
+
+	public Date getReportDate() {
+		return reportDate;
+	}
+
+	public void setReportDate(Date reportDate) {
+		this.reportDate = reportDate;
 	}
 
 	public Date getUserAwareDate() {

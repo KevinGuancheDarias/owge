@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 
 public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Number>, Serializable {
@@ -29,4 +30,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
 
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
+
+	public List<ObtainedUnit> findByTargetPlanetIdAndMissionIdNotNull(Long planetId);
+
+	public ObtainedUnit findOneByMission(Mission mission);
 }

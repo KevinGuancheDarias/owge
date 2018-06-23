@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  Dim 17 juin 2018 à 10:58
+-- Généré le :  sam. 23 juin 2018 à 03:28
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -271,6 +271,7 @@ CREATE TABLE `mission_reports` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `json_body` mediumtext NOT NULL,
   `user_id` int(11) UNSIGNED NOT NULL,
+  `report_date` datetime DEFAULT NULL,
   `user_aware_date` datetime DEFAULT NULL,
   `user_read_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -750,7 +751,8 @@ CREATE TABLE `user_storage` (
   `energy` double UNSIGNED NOT NULL,
   `primary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `secondary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
-  `max_energy` double UNSIGNED DEFAULT NULL
+  `max_energy` double UNSIGNED DEFAULT NULL,
+  `points` double NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';
 
 -- --------------------------------------------------------
@@ -1140,7 +1142,7 @@ ALTER TABLE `especialesderaza`
 -- AUTO_INCREMENT pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT pour la table `factions`
@@ -1176,25 +1178,25 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=246;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
 --
 ALTER TABLE `mission_information`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT pour la table `mission_reports`
 --
 ALTER TABLE `mission_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT pour la table `mission_types`
 --
 ALTER TABLE `mission_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT pour la table `object_relations`
@@ -1206,7 +1208,7 @@ ALTER TABLE `object_relations`
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=136;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
@@ -1260,7 +1262,7 @@ ALTER TABLE `unit_types`
 -- AUTO_INCREMENT pour la table `unlocked_relation`
 --
 ALTER TABLE `unlocked_relation`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT pour la table `upgrades`
@@ -1284,7 +1286,7 @@ ALTER TABLE `user_improvements`
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=486;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=533;
 
 --
 -- Contraintes pour les tables déchargées

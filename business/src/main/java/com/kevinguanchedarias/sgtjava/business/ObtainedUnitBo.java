@@ -1,11 +1,13 @@
 package com.kevinguanchedarias.sgtjava.business;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
@@ -154,6 +156,27 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	public List<ObtainedUnit> findInMyPlanet(Long planetId) {
 		userStorageBo.checkOwnPlanet(planetId);
 		return repository.findBySourcePlanetId(planetId);
+	}
+
+	/**
+	 * Finds the involved units in an attack
+	 * 
+	 * @todo In the future find too the deployed units, and discard the ones in
+	 *       return missions (we don't want to kill people in return state)
+	 * @param attackedPlanet
+	 * @param attackMission
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet, Mission attackMission) {
+		List<ObtainedUnit> retVal = new ArrayList<>();
+		retVal.addAll(repository.findBySourcePlanetId(attackedPlanet.getId()));
+		retVal.addAll(repository.findByTargetPlanetIdAndMissionIdNotNull(attackedPlanet.getId()));
+		return retVal;
+	}
+
+	public boolean existsByMission(Mission mission) {
+		return repository.findOneByMission(mission) != null;
 	}
 
 	private boolean isDeployedInUserPlanet(ObtainedUnit obtainedUnit) {

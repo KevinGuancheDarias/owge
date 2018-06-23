@@ -50,6 +50,7 @@ import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.sgtjava.repository.MissionRepository;
 import com.kevinguanchedarias.sgtjava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.sgtjava.test.helper.MissionReportMockitoHelper;
+import com.kevinguanchedarias.sgtjava.test.helper.MissionTypeMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.PlanetMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.UnitMockitoHelper;
 import com.kevinguanchedarias.sgtjava.test.helper.UserMockitoHelper;
@@ -90,6 +91,9 @@ public class UnitMissionBoTest extends TestCommon {
 
 	@Mock
 	private MissionReportBo missionReportBoMock;
+
+	@Mock
+	private MissionTypeMockitoHelper missionTypeMockitoHelper;
 
 	@InjectMocks
 	private UnitMissionBo unitMissionBo;
@@ -160,6 +164,7 @@ public class UnitMissionBoTest extends TestCommon {
 		planetMockitoHelper = new PlanetMockitoHelper(unitMissionBo);
 		unitMockitoHelper = new UnitMockitoHelper(unitMissionBo);
 		missionReportMockitoHelper = new MissionReportMockitoHelper(missionReportBoMock);
+		missionTypeMockitoHelper = new MissionTypeMockitoHelper(missionTyperepositoryMock);
 		obtainedUnitBoMock = unitMockitoHelper.getObtainedUnitBoMock();
 		mockScheduler(schedulerFactoryBeanMock);
 		fakeMissionDto = new MissionDto();
@@ -343,6 +348,120 @@ public class UnitMissionBoTest extends TestCommon {
 		assertEquals(expectedGatheredPrimary, (Double) savedJsonMap.get("gatheredPrimary"), 0.1D);
 		assertEquals(expectedGatheredSecondary, (Double) savedJsonMap.get("gatheredSecondary"), 0.1D);
 
+	}
+
+	@Test
+	public void proccessAttackShouldWorkWithoutExcedingAttack() {
+		Mission mission = new Mission();
+		mission.setId(1L);
+		mission.setTargetPlanet(new Planet());
+		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(mission);
+		List<ObtainedUnit> involvedUnits = new ArrayList<>();
+
+		UserStorage user1 = new UserStorage();
+		user1.setId(1);
+		Unit unit1 = new Unit();
+		unit1.setId(1);
+		unit1.setShield(10);
+		unit1.setHealth(100);
+		unit1.setAttack(90);
+		unit1.setPoints(10);
+		unit1.setType(prepareValidUnitType(1));
+		ObtainedUnit obtainedUnit1 = new ObtainedUnit();
+		obtainedUnit1.setCount(4L);
+		obtainedUnit1.setUnit(unit1);
+		obtainedUnit1.setUser(user1);
+		obtainedUnit1.setMission(mission);
+		mission.setUser(user1);
+
+		UserStorage user2 = new UserStorage();
+		user2.setId(2);
+		Unit unit2 = new Unit();
+		unit2.setId(2);
+		unit2.setShield(40);
+		unit2.setHealth(60);
+		unit2.setAttack(61);
+		unit2.setPoints(15);
+		unit2.setType(prepareValidUnitType(2));
+		ObtainedUnit obtainedUnit2 = new ObtainedUnit();
+		obtainedUnit2.setCount(4L);
+		obtainedUnit2.setUnit(unit2);
+		obtainedUnit2.setUser(user2);
+		Mission mission2 = new Mission();
+		mission2.setId(3L);
+		obtainedUnit2.setMission(mission2);
+
+		involvedUnits.add(obtainedUnit1);
+		involvedUnits.add(obtainedUnit2);
+
+		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet(), mission))
+				.thenReturn(involvedUnits);
+		missionReportMockitoHelper.captureMissionReportSave();
+		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
+		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(mission);
+		unitMissionBoSpy.processAttack(1L);
+		Mockito.verify(obtainedUnitBoMock, Mockito.never()).existsByMission(Mockito.any());
+		Mockito.verify(obtainedUnitBoMock, Mockito.never()).delete(Mockito.any());
+		Mockito.verify(unitMissionBoSpy, Mockito.never()).delete(Mockito.any(Mission.class));
+		Mockito.verify(unitMissionBoSpy, Mockito.times(1)).adminRegisterReturnMission(mission);
+	}
+
+	@Test
+	public void proccessAttackShouldWorkWithExcedingAttack() {
+		Mission mission = new Mission();
+		mission.setId(1L);
+		mission.setTargetPlanet(new Planet());
+		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(mission);
+		List<ObtainedUnit> involvedUnits = new ArrayList<>();
+
+		UserStorage user1 = new UserStorage();
+		user1.setId(1);
+		Unit unit1 = new Unit();
+		unit1.setId(1);
+		unit1.setShield(10);
+		unit1.setHealth(100);
+		unit1.setAttack(90000);
+		unit1.setPoints(10);
+		unit1.setType(prepareValidUnitType(1));
+		ObtainedUnit obtainedUnit1 = new ObtainedUnit();
+		obtainedUnit1.setCount(4L);
+		obtainedUnit1.setUnit(unit1);
+		obtainedUnit1.setUser(user1);
+		obtainedUnit1.setMission(mission);
+		mission.setUser(user1);
+
+		UserStorage user2 = new UserStorage();
+		user2.setId(2);
+		Unit unit2 = new Unit();
+		unit2.setId(2);
+		unit2.setShield(40);
+		unit2.setHealth(60);
+		unit2.setAttack(61000);
+		unit2.setPoints(15);
+		unit2.setType(prepareValidUnitType(2));
+		ObtainedUnit obtainedUnit2 = new ObtainedUnit();
+		obtainedUnit2.setCount(4L);
+		obtainedUnit2.setUnit(unit2);
+		obtainedUnit2.setUser(user2);
+		Mission mission2 = new Mission();
+		mission2.setId(3L);
+		obtainedUnit2.setMission(mission2);
+
+		involvedUnits.add(obtainedUnit1);
+		involvedUnits.add(obtainedUnit2);
+
+		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet(), mission))
+				.thenReturn(involvedUnits);
+		missionReportMockitoHelper.captureMissionReportSave();
+
+		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
+		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(mission);
+		unitMissionBoSpy.processAttack(1L);
+		Mockito.verify(obtainedUnitBoMock, Mockito.times(2)).existsByMission(Mockito.any());
+		Mockito.verify(obtainedUnitBoMock, Mockito.times(2)).delete(Mockito.any());
+		Mockito.verify(unitMissionBoSpy, Mockito.times(1)).delete(Mockito.any(Mission.class));
+		Mockito.verify(unitMissionBoSpy, Mockito.never()).adminRegisterReturnMission(mission);
+		Mockito.verify(missionReportBoMock, Mockito.times(2)).save(Mockito.any(MissionReport.class));
 	}
 
 	@Test

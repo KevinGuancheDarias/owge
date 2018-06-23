@@ -61,6 +61,9 @@ public class UserStorage implements SimpleIdEntity {
 	@Column(name = "max_energy")
 	private Double maxEnergy;
 
+	@Column(nullable = false)
+	private Double points = 0D;
+
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<UnlockedRelation> unlockedRelations;
 
@@ -218,6 +221,14 @@ public class UserStorage implements SimpleIdEntity {
 
 	public void setMaxEnergy(Double maxEnergy) {
 		this.maxEnergy = maxEnergy;
+	}
+
+	public Double getPoints() {
+		return points;
+	}
+
+	public void setPoints(Double points) {
+		this.points = points;
 	}
 
 	public List<UnlockedRelation> getUnlockedRelations() {

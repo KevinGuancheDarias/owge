@@ -34,4 +34,9 @@ public class MissionRestService {
 	public UnitRunningMissionDto establishBase(@RequestBody UnitMissionInformation missionInformation) {
 		return unitMissionBo.myRegisterEstablishBaseMission(missionInformation);
 	}
+
+	@RequestMapping(value = "attack", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public UnitRunningMissionDto attack(@RequestBody UnitMissionInformation missionInformation) {
+		return unitMissionBo.myRegisterAttackMission(missionInformation);
+	}
 }

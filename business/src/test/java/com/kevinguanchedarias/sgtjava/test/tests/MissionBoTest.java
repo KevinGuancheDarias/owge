@@ -294,6 +294,7 @@ public class MissionBoTest extends TestCommon {
 		Mockito.when(unitBoMock.calculateRequirements(Mockito.any(Unit.class), Mockito.anyLong()))
 				.thenReturn(resourceRequirementsMock);
 		Mockito.when(obtainedUnitBo.save(captor.capture())).thenReturn(null);
+		Mockito.when(missionTypeRepositoryMock.findOneByCode("BUILD_UNIT")).thenReturn(missionType);
 		missionBo.registerBuildUnit(USER_ID, 1L, UNIT_ID, count);
 
 		assertTrue(user.getPrimaryResource() < userPrimary);

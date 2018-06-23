@@ -99,6 +99,7 @@ public abstract class TestCommon {
 		faction.setInitialEnergy(100);
 		faction.setPrimaryResourceProduction(100.0F);
 		faction.setSecondaryResourceProduction(100.0F);
+		faction.setMaxPlanets(1);
 
 		return faction;
 	}
