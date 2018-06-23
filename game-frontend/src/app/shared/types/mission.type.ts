@@ -1,1 +1,1 @@
-export type MissionType = 'EXPLORE' | 'GATHER' | 'ESTABLISH_BASE';
+export type MissionType = 'EXPLORE' | 'GATHER' | 'ESTABLISH_BASE' | 'ATTACK';

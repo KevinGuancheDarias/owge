@@ -83,6 +83,8 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
         await this._missionService.sendGatherMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
       } else if (this.missionType === 'ESTABLISH_BASE') {
         await this._missionService.sendEstablishBaseMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      } else if (this.missionType === 'ATTACK') {
+        await this._missionService.sendAttackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
       } else {
         throw new ProgrammingError(`Unexpected mission type ${this.missionType}`);
       }
