@@ -35,4 +35,14 @@ export class ReportsListComponent extends BaseComponent implements OnInit {
     this.selectedReport = report;
     this._modal.show();
   }
+
+  public findReportDate(report: MissionReport): Date {
+    if (report) {
+      return report.reportDate
+        ? report.reportDate
+        : report.missionDate;
+    } else {
+      return new Date('1970-01-01');
+    }
+  }
 }

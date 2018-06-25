@@ -10,8 +10,9 @@ import { AnyMissionReportJson } from './any-mission-report-json.type';
  * @interface MissionReport
  */
 export interface MissionReport<T extends MissionReportJson = AnyMissionReportJson> {
-    missionId: number;
-    missionDate: Date;
+    missionId?: number;
+    missionDate?: Date;
+    reportDate: Date;
     id: number;
     parsedJson: T;
 }

@@ -1,5 +1,5 @@
 import { ExploreMissionReportJson } from './explore-mission-report-json.type';
-
+import { AttackMissionReportJson } from './attack-mission-report-json.type';
 
 /**
  * Represents any type of mission, "Extends all mission types"
@@ -8,8 +8,8 @@ import { ExploreMissionReportJson } from './explore-mission-report-json.type';
  * @export
  * @interface AnyMissionReportJson
  * @extends {ExploreMissionReportJson}
+ * @extends {AttackMissionReportJson}
  */
-// tslint:disable-next-line:no-empty-interface
-export interface AnyMissionReportJson extends ExploreMissionReportJson {
+export interface AnyMissionReportJson extends ExploreMissionReportJson, AttackMissionReportJson {
 
 }

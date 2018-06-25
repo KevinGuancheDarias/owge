@@ -1,0 +1,17 @@
+<div *ngIf="units" class="sgt-card-list">
+  <div #unitRoot class="card sgt" *ngFor="let unit of units, let i = index">
+    <div class="card-block">
+      <div class="card-title">
+        <span *ngIf="calculateDeathUnits(unit)">
+          {{ unit.initialCount }}
+          <span class="negative"> -{{ calculateDeathUnits(unit) }}</span>
+          <span class="result"> => {{ unit.finalCount }}</span>
+        </span>
+        <span *ngIf="!calculateDeathUnits(unit)">
+          {{ unit.initialCount }}
+        </span>
+      </div>
+    </div>
+    <img [src]="findUnitImageUrl(unit?.obtainedUnit?.unit)" />
+  </div>
+</div>

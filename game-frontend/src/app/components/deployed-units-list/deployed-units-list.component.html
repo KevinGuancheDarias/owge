@@ -1,5 +1,5 @@
 <app-loading [isReady]="obtainedUnits">
-  <div *ngIf="obtainedUnits" class="list">
+  <div *ngIf="obtainedUnits" class="sgt-card-list">
     <div class="card sgt" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block" *ngIf="selectedCounts">
         <div class="card-title">

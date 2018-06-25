@@ -22,6 +22,15 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   @Input()
   public selectable = false;
 
+  /**
+   * Optional, if specified, will display the sustractionf of obtainedUnit.count - <i>finalCount</i>
+   *
+   * @type {number}
+   * @memberof DeployedUnitsListComponent
+   */
+  @Input()
+  public finalCount: number;
+
   @Output()
   public selection: EventEmitter<SelectedUnit[]> = new EventEmitter();
 

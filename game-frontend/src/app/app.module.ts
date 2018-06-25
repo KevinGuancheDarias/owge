@@ -51,6 +51,7 @@ import { MissionService } from './services/mission.service';
 import { LoadingService } from './services/loading.service';
 import { ReportsListComponent } from './components/reports-list/reports-list.component';
 import { ReportService } from './services/report.service';
+import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
 
 
 export const APP_ROUTES: Routes = [
@@ -95,7 +96,8 @@ export const APP_ROUTES: Routes = [
     PlanetDisplayNamePipe,
     ModalComponent,
     DeployedUnitsListComponent,
-    ReportsListComponent
+    ReportsListComponent,
+    UnitsAliveDeathListComponent
   ],
   imports: [
     BrowserModule,

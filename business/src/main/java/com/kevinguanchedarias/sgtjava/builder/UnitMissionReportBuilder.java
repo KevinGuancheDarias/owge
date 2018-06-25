@@ -120,7 +120,7 @@ public class UnitMissionReportBuilder {
 				Map<String, Object> unitMap = new HashMap<>();
 				unitMap.put("initialCount", currentUnit.getInitialCount());
 				unitMap.put("finalCount", currentUnit.getFinalCount());
-				unitMap.put("obtainedunit", obtainedUnitToDto(currentUnit.getObtainedUnit()));
+				unitMap.put("obtainedUnit", obtainedUnitToDto(currentUnit.getObtainedUnit()));
 				userUnits.add(unitMap);
 			});
 			userMap.put("units", userUnits);
