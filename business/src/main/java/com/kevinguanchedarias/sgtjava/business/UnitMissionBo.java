@@ -431,6 +431,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return commonMissionRegister(missionInformation, MissionType.ATTACK);
 	}
 
+	@Transactional
+	public UnitRunningMissionDto myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterCounterattackMission(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+		if (!planetBo.isOfUserProperty(missionInformation.getUserId(), missionInformation.getTargetPlanetId())) {
+			throw new SgtBackendInvalidInputException("TargetPlanet doesn't belong to sender user");
+		}
+		return commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
+	}
+
 	/**
 	 * Parses the exploration of a planet
 	 * 
@@ -532,6 +546,19 @@ public class UnitMissionBo extends AbstractMissionBo {
 		hanleMissionReportSave(mission, builder,
 				attackInformation.users.stream().map(current -> current.user).collect(Collectors.toList()));
 		emitLocalMissionChange(mission, mission.getUser());
+	}
+
+	/**
+	 * Executes the counterattack logic <br>
+	 * <b>NOTICE: </b> For now the current implementation just calls the
+	 * processAttack()
+	 * 
+	 * @param missionId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void processCounterattack(Long missionId) {
+		processAttack(missionId);
 	}
 
 	/**

@@ -64,6 +64,9 @@ public class RealizationJob extends QuartzJobBean {
 				case ATTACK:
 					unitMissionBo.processAttack(missionId);
 					break;
+				case COUNTERATTACK:
+					unitMissionBo.processCounterattack(missionId);
+					break;
 				default:
 					throw new CommonException("Unimplemented mission type " + mission.getType().getCode());
 				}

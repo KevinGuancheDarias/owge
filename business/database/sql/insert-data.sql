@@ -29,3 +29,4 @@ INSERT INTO mission_types (id,code,description,is_shared) VALUES (5,'RETURN_MISS
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (6,'GATHER','Gather resources from specified planet',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (7,'ESTABLISH_BASE','Establish a base in a new planet',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (8,'ATTACK','Attacks an user',0);
+INSERT INTO mission_types (id,code,description,is_shared) VALUES (9,'COUNTERATTACK','Counterattacks a own planet',0);
