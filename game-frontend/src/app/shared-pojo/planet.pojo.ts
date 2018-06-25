@@ -7,7 +7,7 @@ export class PlanetPojo {
     public sector: number;
     public quadrant: number;
     public planetNumber: number;
-    public owner: number;
+    public ownerId: number;
     public richness: number;
     public home: boolean;
     public specialLocationId: number;

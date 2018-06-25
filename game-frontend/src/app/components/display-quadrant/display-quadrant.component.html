@@ -4,12 +4,13 @@
   </div>
   <div class="body">
     <span>Mission type:</span>
-    <select [(ngModel)]="missionType">
+    <select *ngIf="selectedPlanet" [(ngModel)]="missionType">
       <option [ngValue]="null">None</option>
       <option value="EXPLORE">Explore</option>
       <option value="GATHER">Gather</option>
       <option value="ESTABLISH_BASE">Establish base</option>
-      <option value="ATTACK">Attack</option>
+      <option *ngIf="!planetIsMine(selectedPlanet)" value="ATTACK">Attack</option>
+      <option *ngIf="planetIsMine(selectedPlanet)" value="COUNTERATTACK">Counterattack</option>
     </select>
     <div class="unit-selection">
       <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"></app-deployed-units-list>

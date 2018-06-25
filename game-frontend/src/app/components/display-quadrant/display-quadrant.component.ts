@@ -10,6 +10,7 @@ import { SelectedUnit } from '../../shared/types/selected-unit.type';
 import { MissionService } from '../../services/mission.service';
 import { MissionType } from '../../shared/types/mission.type';
 import { ProgrammingError } from '../../../error/programming.error';
+import { PlanetService } from '../../service/planet.service';
 
 @Component({
   selector: 'app-display-quadrant',
@@ -47,7 +48,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   @ViewChild('missionModal')
   private _missionModal: ModalComponent;
 
-  constructor(private _unitService: UnitService, private _missionService: MissionService) {
+  constructor(private _unitService: UnitService, private _missionService: MissionService, private _planetService: PlanetService) {
     super();
   }
 
@@ -85,12 +86,18 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
         await this._missionService.sendEstablishBaseMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
       } else if (this.missionType === 'ATTACK') {
         await this._missionService.sendAttackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+      } else if (this.missionType === 'COUNTERATTACK') {
+        await this._missionService.sendCounterattackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
       } else {
         throw new ProgrammingError(`Unexpected mission type ${this.missionType}`);
       }
       await this._findObtainedUnits();
     });
     this._missionModal.hide();
+  }
+
+  public planetIsMine(planet: PlanetPojo): boolean {
+    return this._planetService.isMine(planet);
   }
 
   private async _findObtainedUnits(): Promise<void> {

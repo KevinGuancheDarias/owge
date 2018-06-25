@@ -28,6 +28,10 @@ export class MissionService extends GameBaseService {
     return this._sendMission('mission/attack', sourcePlanet, targetPlanet, involvedUnits);
   }
 
+  public sendCounterattackMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+    return this._sendMission('mission/counterattack', sourcePlanet, targetPlanet, involvedUnits);
+  }
+
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._doPostWithAuthorizationToGame<UnitMissionInformation>(
       url, {

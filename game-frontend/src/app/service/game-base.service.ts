@@ -21,7 +21,7 @@ import { BaseHttpService } from '../base-http/base-http.service';
  */
 export class GameBaseService extends BaseHttpService {
 
-  private _loginSessionService: LoginSessionService;
+  protected _loginSessionService: LoginSessionService;
 
   constructor() {
     super();

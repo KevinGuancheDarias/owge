@@ -25,4 +25,8 @@ export class PlanetService extends GameBaseService {
   public findMyPlanets(): void {
     this.doGetWithAuthorizationToGame('planet/findMyPlanets').subscribe(result => this._myPlanets.next(result));
   }
+
+  public isMine(planet: PlanetPojo): boolean {
+    return planet.ownerId === this._loginSessionService.findTokenData().id;
+  }
 }
