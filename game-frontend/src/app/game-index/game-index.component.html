@@ -3,6 +3,18 @@
     <div *ngIf="myUnitRunningMissions" class="sgt-card-list">
       <h1 class="sgt-title">My missions</h1>
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions"></app-list-running-missions>
+      <p *ngIf="!myUnitRunningMissions.length" class="sgt-base-colors">
+        You are not running any mission
+      </p>
+    </div>
+  </app-loading>
+  <app-loading [isReady]="enemyRunningMissions">
+    <div *ngIf="enemyRunningMissions" class="sgt-card-list">
+      <h1 class="sgt-title">Enemy missions</h1>
+      <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"></app-list-running-missions>
+      <p *ngIf="!enemyRunningMissions.length" class="sgt-base-colors">
+        No enemy mission are running to any of your planets
+      </p>
     </div>
   </app-loading>
 </div>

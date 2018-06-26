@@ -5,8 +5,7 @@ import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { Observable } from 'rxjs/Observable';
 import { UnitMissionInformation } from '../shared/types/unit-mission-information.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
-import { fromPromise } from 'rxjs/observable/fromPromise';
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
+import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '../shared/types/mission.type';
 
 @Injectable()
@@ -18,6 +17,10 @@ export class MissionService extends GameBaseService {
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
     return this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findMy');
+  }
+
+  public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
+    return this.doGetWithAuthorizationToGame<UnitRunningMission[]>('mission/findEnemy');
   }
 
   public sendExploreMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

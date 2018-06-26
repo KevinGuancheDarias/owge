@@ -15,6 +15,9 @@ export class ListRunningMissionsComponent extends BaseComponent {
   @Input()
   public runningUnitMissions: UnitRunningMission[];
 
+  @Input()
+  public displayUser: boolean;
+
   @ViewChild('tooltipPlanet', { read: ElementRef })
   public tooltipPlanetComponent: ElementRef;
 

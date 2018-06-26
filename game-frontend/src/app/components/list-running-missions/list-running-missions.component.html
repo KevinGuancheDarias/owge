@@ -1,6 +1,8 @@
 <app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
     <div #missionRoot class="card sgt auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
+      <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
+      <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
       <ng-template #tooltipPlanetComponent>
         <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
       </ng-template>
@@ -9,10 +11,10 @@
           <span class="auto-expand">
             Mission from
             <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
-              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission.sourcePlanet.name }}</a>
+              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
             to
             <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
-              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission.targetPlanet.name }}</a>
+              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
 
           </span>
         </div>

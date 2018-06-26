@@ -54,6 +54,8 @@ import { ReportsListComponent } from './components/reports-list/reports-list.com
 import { ReportService } from './services/report.service';
 import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
 import { ListRunningMissionsComponent } from './components/list-running-missions/list-running-missions.component';
+import { DisplayUsernamePipe } from './pipes/display-username.pipe';
+import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
 
 
 export const APP_ROUTES: Routes = [
@@ -100,7 +102,9 @@ export const APP_ROUTES: Routes = [
     DeployedUnitsListComponent,
     ReportsListComponent,
     UnitsAliveDeathListComponent,
-    ListRunningMissionsComponent
+    ListRunningMissionsComponent,
+    DisplayUsernamePipe,
+    DisplayMissionTypePipe
   ],
   imports: [
     BrowserModule,

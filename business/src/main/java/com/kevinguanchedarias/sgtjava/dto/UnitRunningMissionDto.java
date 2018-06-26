@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 /**
  * This pojo represents a mission where units are involved, such as explore,
@@ -16,6 +17,7 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	private Boolean invisible = false;
 	private PlanetDto sourcePlanet;
 	private PlanetDto targetPlanet;
+	private UserStorageDto user;
 
 	public UnitRunningMissionDto(Mission mission) {
 		this(mission, mission.getInvolvedUnits());
@@ -26,6 +28,10 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 		this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);
 		sourcePlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getSourcePlanet());
 		targetPlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getTargetPlanet());
+		UserStorage userEntity = mission.getUser();
+		user = new UserStorageDto();
+		user.setId(userEntity.getId());
+		user.setUsername(userEntity.getUsername());
 	}
 
 	/**
@@ -34,11 +40,12 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	 * 
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public void nullifyInvolvedUnitsPlanets() {
+	public UnitRunningMissionDto nullifyInvolvedUnitsPlanets() {
 		this.involvedUnits.forEach(current -> {
 			current.setSourcePlanet(null);
 			current.setTargetPlanet(null);
 		});
+		return this;
 	}
 
 	public List<ObtainedUnitDto> getInvolvedUnits() {
@@ -71,6 +78,14 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 
 	public void setTargetPlanet(PlanetDto targetPlanet) {
 		this.targetPlanet = targetPlanet;
+	}
+
+	public UserStorageDto getUser() {
+		return user;
+	}
+
+	public void setUser(UserStorageDto user) {
+		this.user = user;
 	}
 
 }

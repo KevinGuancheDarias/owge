@@ -298,7 +298,7 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
 		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
-				.collect(Collectors.toList());
+				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -315,6 +315,7 @@ public class MissionBo extends AbstractMissionBo {
 					retVal.nullifyInvolvedUnitsPlanets();
 					if (!planetBo.isExplored(user, current.getSourcePlanet())) {
 						retVal.setSourcePlanet(null);
+						retVal.setUser(null);
 					}
 					return retVal;
 				}).collect(Collectors.toList());

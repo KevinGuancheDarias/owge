@@ -16,7 +16,7 @@ export class PlanetDisplayNamePipe implements PipeTransform {
 
   transform(planet: PlanetPojo): string {
     if (!planet) {
-      return 'Undefined :(';
+      return 'Unexplored :(';
     } else if (planet.name) {
       return planet.name;
     } else {

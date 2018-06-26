@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { BaseComponent } from '../base/base.component';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionService } from '../services/mission.service';
+import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 
 @Component({
   selector: 'app-game-index',
@@ -12,6 +13,7 @@ import { MissionService } from '../services/mission.service';
 export class GameIndexComponent extends BaseComponent implements OnInit {
 
   public myUnitRunningMissions: AnyRunningMission[];
+  public enemyRunningMissions: UnitRunningMission[];
 
   public constructor(private _missionService: MissionService) {
     super();
@@ -22,8 +24,10 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
     this.loginSessionService
       .findLoggedInUserData()
       .subscribe(async () => {
-        const myRunningMissions = await this._missionService.findMyRunningMissions().toPromise();
-        this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
+        this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
+          this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
+        });
+        this.enemyRunningMissions = await this._missionService.findEnemyRunningMissions().toPromise();
       });
   }
 }
