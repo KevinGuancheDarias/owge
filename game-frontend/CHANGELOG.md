@@ -2,6 +2,7 @@
 
 v0.3.0
 ===========
+* __Fix:__ Endpoint that returns the units in my planet, is also returning enemy units
 * __Fix:__ After migrating to Angular 5, upgrades component suddenly stopped working
 * __Feature:__ As a user, I would like to logout
 * __Feature:__ As a user I would like to see missions been realized to my planets, by other users
