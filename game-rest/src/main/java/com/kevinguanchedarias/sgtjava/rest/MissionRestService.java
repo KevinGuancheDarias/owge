@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.sgtjava.rest;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,5 +50,10 @@ public class MissionRestService {
 	@RequestMapping(value = "conquest", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public UnitRunningMissionDto conquest(@RequestBody UnitMissionInformation missionInformation) {
 		return unitMissionBo.myRegisterConquestMission(missionInformation);
+	}
+
+	@RequestMapping(value = "findMy", method = RequestMethod.GET)
+	public List<UnitRunningMissionDto> findMy() {
+		return unitMissionBo.myFindUserRunningMissions();
 	}
 }

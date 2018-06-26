@@ -3,6 +3,7 @@ package com.kevinguanchedarias.sgtjava.dto;
 import java.util.Date;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 public abstract class AbstractRunningMissionDto {
@@ -10,6 +11,7 @@ public abstract class AbstractRunningMissionDto {
 	private Double requiredPrimary;
 	private Double requiredSecondary;
 	private Date terminationDate;
+	private MissionType type;
 
 	public AbstractRunningMissionDto() {
 		throw new UnsupportedOperationException("Can't create a RunningMissionDto from an empty constructor");
@@ -24,6 +26,7 @@ public abstract class AbstractRunningMissionDto {
 		requiredPrimary = mission.getPrimaryResource();
 		requiredSecondary = mission.getSecondaryResource();
 		terminationDate = mission.getTerminationDate();
+		type = MissionType.valueOf(mission.getType().getCode());
 	}
 
 	public Long getMissionId() {
@@ -56,6 +59,14 @@ public abstract class AbstractRunningMissionDto {
 
 	public void setTerminationDate(Date terminationDate) {
 		this.terminationDate = terminationDate;
+	}
+
+	public MissionType getType() {
+		return type;
+	}
+
+	public void setType(MissionType type) {
+		this.type = type;
 	}
 
 }

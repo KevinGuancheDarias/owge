@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -77,6 +79,9 @@ public class Mission implements SimpleIdEntity {
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "report_id", nullable = true)
 	private MissionReport report;
+
+	@OneToMany(mappedBy = "mission")
+	private List<ObtainedUnit> involvedUnits;
 
 	@Column(nullable = true)
 	private Boolean resolved = false;
@@ -184,6 +189,14 @@ public class Mission implements SimpleIdEntity {
 
 	public void setReport(MissionReport report) {
 		this.report = report;
+	}
+
+	public List<ObtainedUnit> getInvolvedUnits() {
+		return involvedUnits;
+	}
+
+	public void setInvolvedUnits(List<ObtainedUnit> involvedUnits) {
+		this.involvedUnits = involvedUnits;
 	}
 
 	/**

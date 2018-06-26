@@ -653,6 +653,30 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
+	 * Returns all running missions by the logged in user
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> myFindUserRunningMissions() {
+		return findUserRunningMissions(userStorageBo.findLoggedIn().getId());
+	}
+
+	/**
+	 * Returns all the running missions for the specified user
+	 * 
+	 * @param userId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
+		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
+				.collect(Collectors.toList());
+	}
+
+	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged
 	 * in user as the sender user
 	 * 

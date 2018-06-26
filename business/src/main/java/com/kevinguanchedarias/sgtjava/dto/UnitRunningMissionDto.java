@@ -15,6 +15,10 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	private List<ObtainedUnitDto> involvedUnits;
 	private Boolean invisible = false;
 
+	public UnitRunningMissionDto(Mission mission) {
+		this(mission, mission.getInvolvedUnits());
+	}
+
 	public UnitRunningMissionDto(Mission mission, List<ObtainedUnit> involvedUnits) {
 		super(mission);
 		this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);

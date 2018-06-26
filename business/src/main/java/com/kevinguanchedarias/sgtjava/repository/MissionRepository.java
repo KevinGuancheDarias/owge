@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.repository;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,6 @@ public interface MissionRepository extends JpaRepository<Mission, Number>, Seria
 
 	@Query("SELECT m.id as id, m.terminationDate as date FROM Mission m WHERE m.report.id = ?1")
 	public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId);
+
+	public List<Mission> findByUserIdAndResolvedFalse(Integer userId);
 }
