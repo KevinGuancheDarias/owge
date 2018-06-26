@@ -17,6 +17,7 @@
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu">Units</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu">Navegación</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.REPORTS }}" routerLinkActive="selectedMenu">Reports</a>
+      <a class="btn btn-block" role="button" (click)="logout()" href="javascript:void">logout</a>
       <div class="selected-planet">
             <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()" class="fa fa-globe"></i>
             <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>

@@ -36,8 +36,8 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   }
   private _userData: BehaviorSubject<UserPojo> = new BehaviorSubject(null);
 
-  public get isInGame(): BehaviorSubject<boolean> {
-    return this._isInGame;
+  public get isInGame(): Observable<boolean> {
+    return this._isInGame.asObservable();
   }
   private _isInGame: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
@@ -163,6 +163,12 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
 
   public defineSelectedPlanet(planet: PlanetPojo): void {
     this._findSelectedPlanet.next(planet);
+  }
+
+  public logout(): any {
+    this._clearSessionData();
+    this.alreadyNotified = false;
+    this._redirectIfNotLoggedIn();
   }
 
   /**

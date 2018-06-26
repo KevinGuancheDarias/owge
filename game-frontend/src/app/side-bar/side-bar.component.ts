@@ -41,4 +41,8 @@ export class SideBarComponent extends BaseComponent implements OnInit {
   public selectPlanet(planet: PlanetPojo): void {
     this.loginSessionService.defineSelectedPlanet(planet);
   }
+
+  public logout(): void {
+    this.loginSessionService.logout();
+  }
 }

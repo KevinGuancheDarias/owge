@@ -3,6 +3,7 @@
 v0.3.0
 ===========
 * __Fix:__ After migrating to Angular 5, upgrades component suddenly stopped working
+* __Feature:__ As a user, I would like to logout
 * __Feature:__ As a user I would like to see missions been realized to my planets, by other users
 * __Feature:__ As a user I would like to see my running missions
 * __Feature:__ As a player I would like to conquest an enemy planet
