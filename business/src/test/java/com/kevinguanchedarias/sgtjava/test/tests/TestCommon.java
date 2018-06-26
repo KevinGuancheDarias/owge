@@ -160,7 +160,7 @@ public abstract class TestCommon {
 
 	protected MissionType prepareValidMissionType() {
 		MissionType missionType = new MissionType();
-		missionType.setCode("SOME_CODE");
+		missionType.setCode("EXPLORE");
 		missionType.setDescription("lolazo");
 		missionType.setIsShared(false);
 		return missionType;

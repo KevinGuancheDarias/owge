@@ -155,7 +155,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	public List<ObtainedUnit> findInMyPlanet(Long planetId) {
 		userStorageBo.checkOwnPlanet(planetId);
-		return repository.findBySourcePlanetId(planetId);
+		return repository.findBySourcePlanetIdAndMissionNull(planetId);
 	}
 
 	/**

@@ -185,7 +185,10 @@ public class UnitMissionBoTest extends TestCommon {
 		userMockitoHelper.fakeLoggedIn(LOGGED_USER);
 		UnitMissionInformation information = prepareValidUnitMissionInformation();
 		information.setUserId(null);
-		UnitRunningMissionDto retVal = new UnitRunningMissionDto(new Mission(), new ArrayList<>());
+		Mission mission = new Mission();
+		mission.setUser(LOGGED_USER);
+		mission.setType(prepareValidMissionType());
+		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, new ArrayList<>());
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
 		doReturn(retVal).when(unitMissionBoSpy).adminRegisterExploreMission(information);
 		assertEquals(retVal, unitMissionBoSpy.myRegisterExploreMission(information));
@@ -251,6 +254,8 @@ public class UnitMissionBoTest extends TestCommon {
 		savedMission.setSourcePlanet(sourcePlanet);
 		savedMission.setTargetPlanet(targetPlanet);
 		savedMission.setTerminationDate(new Date());
+		savedMission.setUser(LOGGED_USER);
+		savedMission.setType(prepareValidMissionType());
 		userMockitoHelper.fakeLoggedIn(LOGGED_USER);
 		userMockitoHelper.fakeUserExists(LOGGED_USER.getId(), LOGGED_USER);
 		planetMockitoHelper.fakePlanetExists(1L, sourcePlanet);

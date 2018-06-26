@@ -377,6 +377,7 @@ public class MissionBoTest extends TestCommon {
 
 	private Mission prepareValidMissionWithInformation(ObjectRelation relation) {
 		Mission retVal = new Mission();
+		retVal.setType(missionType);
 		retVal.setUser(user);
 		MissionInformation fakeMissionInformaton = new MissionInformation();
 		fakeMissionInformaton.setRelation(relation);

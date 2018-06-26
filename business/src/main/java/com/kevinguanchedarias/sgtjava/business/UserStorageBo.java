@@ -218,7 +218,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 			throw new PlanetNotFoundException("No such planet, with id " + planetId);
 		}
 		if (!isYourPlanet(planet, findLoggedIn())) {
-			throw new NotYourPlanetException("Yo do not own that planet");
+			throw new NotYourPlanetException("Yo do not own that planet, buy it in the black market?");
 		}
 	}
 

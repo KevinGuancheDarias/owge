@@ -13,6 +13,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 
 	public List<ObtainedUnit> findBySourcePlanetId(Long planetId);
 
+	public List<ObtainedUnit> findBySourcePlanetIdAndMissionNull(Long planetId);
+
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId);
 
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId);
