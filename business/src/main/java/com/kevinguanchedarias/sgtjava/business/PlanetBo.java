@@ -2,6 +2,9 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -31,9 +34,17 @@ public class PlanetBo implements WithNameBo<Planet> {
 	@Autowired
 	private UserStorageBo userStorageBo;
 
+	@PersistenceContext
+	private transient EntityManager entityManager;
+
 	@Override
 	public JpaRepository<Planet, Number> getRepository() {
 		return planetRepository;
+	}
+
+	@Override
+	public EntityManager getEntityManager() {
+		return entityManager;
 	}
 
 	/**
@@ -101,6 +112,15 @@ public class PlanetBo implements WithNameBo<Planet> {
 		return myIsExplored(planet.getId());
 	}
 
+	public boolean isHomePlanet(Planet planet) {
+		checkPersisted(planet);
+		return planet.getHome();
+	}
+
+	public boolean isHomePlanet(Long planetId) {
+		return planetRepository.findOneByIdAndHomeTrue(planetId) != null;
+	}
+
 	public boolean myIsOfUserProperty(Long planetId) {
 		return isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
 	}
@@ -141,9 +161,14 @@ public class PlanetBo implements WithNameBo<Planet> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public boolean hasMaxPlanets(UserStorage user) {
+		checkPersisted(user);
 		int factionMax = user.getFaction().getMaxPlanets();
 		int userPlanets = planetRepository.countByOwnerId(user.getId());
 		return userPlanets >= factionMax;
+	}
+
+	public boolean hasMaxPlanets(Integer userId) {
+		return hasMaxPlanets(userStorageBo.findById(userId));
 	}
 
 }

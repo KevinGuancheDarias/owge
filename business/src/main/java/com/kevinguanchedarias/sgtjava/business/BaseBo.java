@@ -3,10 +3,13 @@ package com.kevinguanchedarias.sgtjava.business;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.sgtjava.entity.SpecialLocation;
+import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendEntityNotFoundException;
 
 @FunctionalInterface
@@ -71,5 +74,23 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	 */
 	public default E refresh(E entity) {
 		return getRepository().findOne(entity.getId());
+	}
+
+	public default EntityManager getEntityManager() {
+		throw new ProgrammingException("Looks like this class needs the entity manager " + this.getClass().getName());
+	}
+
+	/**
+	 * Checks if the passed entity is persisted or not, would else throw an
+	 * exception
+	 * 
+	 * @param entity
+	 * @throws ProgrammingException
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default void checkPersisted(Object entity) {
+		if (!getEntityManager().contains(entity)) {
+			throw new ProgrammingException("Method requires a persisted entity, transient passed");
+		}
 	}
 }

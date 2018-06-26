@@ -130,6 +130,16 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
+	public UnitMissionReportBuilder withConquestInformation(Boolean status) {
+		return withConquestInformation(status, "");
+	}
+
+	public UnitMissionReportBuilder withConquestInformation(Boolean status, String statusStr) {
+		createdMap.put("conquestStatus", status);
+		createdMap.put("conquestStatusStr", statusStr);
+		return this;
+	}
+
 	/**
 	 * A builder class can't be instantiate
 	 * 

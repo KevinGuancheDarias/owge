@@ -41,6 +41,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
 	private static final String JOB_GROUP_NAME = "UnitMissions";
+	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
 
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is
@@ -440,9 +441,32 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public UnitRunningMissionDto adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
 		if (!planetBo.isOfUserProperty(missionInformation.getUserId(), missionInformation.getTargetPlanetId())) {
-			throw new SgtBackendInvalidInputException("TargetPlanet doesn't belong to sender user");
+			throw new SgtBackendInvalidInputException(
+					"TargetPlanet doesn't belong to sender user, try again dear Hacker, maybe next time you have some luck");
 		}
 		return commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto myRegisterConquestMission(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterConquestMission(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterConquestMission(UnitMissionInformation missionInformation) {
+		if (planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
+			throw new SgtBackendInvalidInputException(
+					"Doesn't make sense to conquest your own planet... unless your population hates you, and are going to organize a rebelion");
+		}
+		if (planetBo.isHomePlanet(missionInformation.getTargetPlanetId())) {
+			throw new SgtBackendInvalidInputException(
+					"Can't steal a home planet to a user, would you like a bandit to steal in your own home??!");
+		}
+		if (planetBo.hasMaxPlanets(missionInformation.getUserId())) {
+			throw new SgtBackendInvalidInputException(MAX_PLANETS_MESSAGE);
+		}
+		return commonMissionRegister(missionInformation, MissionType.CONQUEST);
 	}
 
 	/**
@@ -512,16 +536,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 			if (planetOwner != null) {
 				builder.withEstablishBaseInformation(false, "The planet already belongs to a user");
 			} else {
-				builder.withEstablishBaseInformation(false, "You already have the max planets, you can have");
+				builder.withEstablishBaseInformation(false, MAX_PLANETS_MESSAGE);
 			}
 		} else {
 			builder.withEstablishBaseInformation(true);
-			targetPlanet.setOwner(user);
-			involvedUnits.forEach(current -> {
-				current.setSourcePlanet(targetPlanet);
-				current.setTargetPlanet(null);
-				current.setMission(null);
-			});
+			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 		}
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
@@ -604,6 +623,33 @@ public class UnitMissionBo extends AbstractMissionBo {
 		});
 		resolveMission(mission);
 		emitLocalMissionChange(mission, mission.getUser());
+	}
+
+	@Transactional
+	public void processConquest(Long missionId) {
+		Mission mission = findById(missionId);
+		UserStorage user = mission.getUser();
+		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		Planet targetPlanet = mission.getTargetPlanet();
+		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+				targetPlanet, involvedUnits);
+		boolean maxPlanets = planetBo.hasMaxPlanets(user);
+		if (maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
+			adminRegisterReturnMission(mission);
+			if (maxPlanets) {
+				builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
+			} else {
+				builder.withConquestInformation(false, "This is a home planet now, can't conquest it");
+			}
+		} else {
+			obtainedUnitBo.deleteBySourcePlanetIdAndMissionIdNull(targetPlanet);
+			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
+			builder.withConquestInformation(true);
+		}
+		hanleMissionReportSave(mission, builder);
+		resolveMission(mission);
+		socketIoService.sendMessage(user, "conquest_report", builder.build());
+		emitLocalMissionChange(mission, user);
 	}
 
 	/**
@@ -817,5 +863,24 @@ public class UnitMissionBo extends AbstractMissionBo {
 		AttackInformation retVal = new AttackInformation(attackMission);
 		obtainedUnitBo.findInvolvedInAttack(targetPlanet, attackMission).forEach(retVal::addUnitToUser);
 		return retVal;
+	}
+
+	/**
+	 * Defines the new owner for the targetPlanet
+	 * 
+	 * @param owner
+	 *            The new owner
+	 * @param involvedUnits
+	 *            The units used by the owner to conquest the planet
+	 * @param targetPlanet
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void definePlanetAsOwnedBy(UserStorage owner, List<ObtainedUnit> involvedUnits, Planet targetPlanet) {
+		targetPlanet.setOwner(owner);
+		involvedUnits.forEach(current -> {
+			current.setSourcePlanet(targetPlanet);
+			current.setTargetPlanet(null);
+			current.setMission(null);
+		});
 	}
 }

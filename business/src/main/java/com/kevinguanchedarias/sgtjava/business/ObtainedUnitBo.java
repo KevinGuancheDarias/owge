@@ -176,6 +176,10 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return retVal;
 	}
 
+	public Long deleteBySourcePlanetIdAndMissionIdNull(Planet sourcePlanet) {
+		return repository.deleteBySourcePlanetIdAndMissionIdNull(sourcePlanet.getId());
+	}
+
 	public boolean existsByMission(Mission mission) {
 		return repository.findOneByMission(mission) != null;
 	}

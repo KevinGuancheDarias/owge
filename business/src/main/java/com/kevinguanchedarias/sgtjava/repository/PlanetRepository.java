@@ -21,4 +21,6 @@ public interface PlanetRepository extends WithNameRepository<Planet, Number>, Se
 	public int countByOwnerId(Integer ownerId);
 
 	public List<Planet> findByGalaxyIdAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant);
+
+	public Planet findOneByIdAndHomeTrue(Long planetId);
 }

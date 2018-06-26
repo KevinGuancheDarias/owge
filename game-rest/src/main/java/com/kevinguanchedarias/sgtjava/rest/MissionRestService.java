@@ -44,4 +44,9 @@ public class MissionRestService {
 	public UnitRunningMissionDto counterattack(@RequestBody UnitMissionInformation missionInformation) {
 		return unitMissionBo.myRegisterCounterattackMission(missionInformation);
 	}
+
+	@RequestMapping(value = "conquest", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public UnitRunningMissionDto conquest(@RequestBody UnitMissionInformation missionInformation) {
+		return unitMissionBo.myRegisterConquestMission(missionInformation);
+	}
 }

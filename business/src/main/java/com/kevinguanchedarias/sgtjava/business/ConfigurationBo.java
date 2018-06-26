@@ -148,6 +148,9 @@ public class ConfigurationBo implements Serializable {
 		case COUNTERATTACK:
 			retVal = findMissionCounterattackBaseTime();
 			break;
+		case CONQUEST:
+			retVal = findMissionConquestBaseTime();
+			break;
 		default:
 			throw new SgtBackendInvalidInputException("Unsupported mission base time type, specified: " + type.name());
 		}
