@@ -7,6 +7,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome';
 import { Injector } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { ServiceLocator } from './service-locator/service-locator';
 import { LoginService } from './login/login.service';
@@ -52,6 +53,7 @@ import { LoadingService } from './services/loading.service';
 import { ReportsListComponent } from './components/reports-list/reports-list.component';
 import { ReportService } from './services/report.service';
 import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
+import { ListRunningMissionsComponent } from './components/list-running-missions/list-running-missions.component';
 
 
 export const APP_ROUTES: Routes = [
@@ -97,7 +99,8 @@ export const APP_ROUTES: Routes = [
     ModalComponent,
     DeployedUnitsListComponent,
     ReportsListComponent,
-    UnitsAliveDeathListComponent
+    UnitsAliveDeathListComponent,
+    ListRunningMissionsComponent
   ],
   imports: [
     BrowserModule,
@@ -107,7 +110,8 @@ export const APP_ROUTES: Routes = [
     RouterModule.forRoot(APP_ROUTES),
     SidebarModule,
     KgdNg2WidgetsModule,
-    HttpClientModule
+    HttpClientModule,
+    NgbModule.forRoot()
   ],
   providers: [
     LoginService,

@@ -14,6 +14,8 @@ import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	private List<ObtainedUnitDto> involvedUnits;
 	private Boolean invisible = false;
+	private PlanetDto sourcePlanet;
+	private PlanetDto targetPlanet;
 
 	public UnitRunningMissionDto(Mission mission) {
 		this(mission, mission.getInvolvedUnits());
@@ -22,6 +24,8 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	public UnitRunningMissionDto(Mission mission, List<ObtainedUnit> involvedUnits) {
 		super(mission);
 		this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);
+		sourcePlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getSourcePlanet());
+		targetPlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getTargetPlanet());
 	}
 
 	public List<ObtainedUnitDto> getInvolvedUnits() {
@@ -38,6 +42,22 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 
 	public void setInvisible(Boolean invisible) {
 		this.invisible = invisible;
+	}
+
+	public PlanetDto getSourcePlanet() {
+		return sourcePlanet;
+	}
+
+	public void setSourcePlanet(PlanetDto sourcePlanet) {
+		this.sourcePlanet = sourcePlanet;
+	}
+
+	public PlanetDto getTargetPlanet() {
+		return targetPlanet;
+	}
+
+	public void setTargetPlanet(PlanetDto targetPlanet) {
+		this.targetPlanet = targetPlanet;
 	}
 
 }

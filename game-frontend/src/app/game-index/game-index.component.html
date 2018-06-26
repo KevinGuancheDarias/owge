@@ -1,3 +1,8 @@
 <div *ngIf="userData" class="game-index">
-  Hello World!
+  <app-loading [isReady]="myUnitRunningMissions">
+    <div *ngIf="myUnitRunningMissions" class="sgt-card-list">
+      <h1 class="sgt-title">My missions</h1>
+      <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions"></app-list-running-missions>
+    </div>
+  </app-loading>
 </div>

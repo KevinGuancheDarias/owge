@@ -4,12 +4,20 @@ import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { Observable } from 'rxjs/Observable';
 import { UnitMissionInformation } from '../shared/types/unit-mission-information.type';
+import { AnyRunningMission } from '../shared/types/any-running-mission.type';
+import { fromPromise } from 'rxjs/observable/fromPromise';
+import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
+import { MissionType } from '../shared/types/mission.type';
 
 @Injectable()
 export class MissionService extends GameBaseService {
 
   public constructor() {
     super();
+  }
+
+  public findMyRunningMissions(): Observable<AnyRunningMission[]> {
+    return this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findMy');
   }
 
   public sendExploreMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
@@ -34,6 +42,25 @@ export class MissionService extends GameBaseService {
 
   public sendConquestMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits);
+  }
+
+  public isUnitMission(mission: AnyRunningMission): boolean {
+    switch (mission.type) {
+      case 'RETURN_MISSION':
+      case 'EXPLORE':
+      case 'GATHER':
+      case 'ESTABLISH_BASE':
+      case 'ATTACK':
+      case 'COUNTERATTACK':
+      case 'CONQUEST':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  public isBuildMission(mission: AnyRunningMission): boolean {
+    return mission.type === 'BUILD_UNIT';
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

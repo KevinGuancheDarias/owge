@@ -1,1 +1,3 @@
-export type MissionType = 'EXPLORE' | 'GATHER' | 'ESTABLISH_BASE' | 'ATTACK' | 'COUNTERATTACK' | 'CONQUEST';
+export type MissionType =
+    'BUILD_UNIT' |
+    'RETURN_MISSION' | 'EXPLORE' | 'GATHER' | 'ESTABLISH_BASE' | 'ATTACK' | 'COUNTERATTACK' | 'CONQUEST';

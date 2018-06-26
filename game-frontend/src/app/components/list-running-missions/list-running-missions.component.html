@@ -1,0 +1,27 @@
+<app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
+  <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
+    <div #missionRoot class="card sgt auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
+      <ng-template #tooltipPlanetComponent>
+        <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
+      </ng-template>
+      <div class="card-block">
+        <div class="card-title">
+          <span class="auto-expand">
+            Mission from
+            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
+              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission.sourcePlanet.name }}</a>
+            to
+            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
+              (mouseleave)="toolTipPlanet = null">{{ runningUnitMission.targetPlanet.name }}</a>
+
+          </span>
+        </div>
+        ends at {{ runningUnitMission.terminationDate | date: commonDateFormat}}
+      </div>
+      <div class="card-block">
+        <h5>Involved units</h5>
+        <app-deployed-units-list [obtainedUnits]="runningUnitMission.involvedUnits"></app-deployed-units-list>
+      </div>
+    </div>
+  </ng-container>
+</app-loading>

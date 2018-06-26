@@ -53,6 +53,11 @@ a.selectedMenu{
     box-shadow: @commonBoxShadow;
     text-shadow: @commonTextShadow;
     transition: all 0.3s;
+
+    &.auto-expand {
+        transition: all 0.001s;
+    }
+
     h5{
         font-size: 12pt;
     }
@@ -129,6 +134,12 @@ a.selectedMenu{
     color: @mainColor;
     box-shadow: @commonBoxShadow;
     text-shadow: @commonTextShadow;
+}
+
+.sgt-title {
+    .sgt-base-colors;
+    text-indent: 5px;
+    padding: 3px;
 }
 
 .sgt-scrollable-dialog {

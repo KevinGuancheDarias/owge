@@ -14,7 +14,7 @@ export class ObtainedUnit {
     public unit: UnitPojo;
     public count: number;
     public sourcePlanet?: PlanetPojo;
-    public targetPlnet?: PlanetPojo;
+    public targetPlanet?: PlanetPojo;
     public mission?: any;
     public expiration?: Date;
 }

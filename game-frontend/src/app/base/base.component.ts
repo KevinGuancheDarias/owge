@@ -2,7 +2,7 @@ import { AutoUpdatedResources } from '../class/auto-updated-resources';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Router } from '@angular/router';
-import { Component } from '@angular/core';
+import { Component, QueryList, ElementRef } from '@angular/core';
 
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
@@ -92,4 +92,36 @@ export class BaseComponent {
     this.resources.resourcesAutoUpdate();
   }
 
+
+
+  /**
+   * Autoscales a game card
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @protected
+   * @param {QueryList<ElementRef>} components
+   * @param {string} [titleTarget='.card-title span']
+   * @param {(currentel: HTMLElement) => HTMLElement} findParentFormula
+   * @memberof BaseComponent
+   */
+  protected autoSpanCard(
+    components: QueryList<ElementRef>,
+    titleTarget = '.card-title span',
+    findParentFormula: (currentel: HTMLElement) => HTMLElement
+  ) {
+    setTimeout(() => {
+      components.forEach(current => {
+        const el: HTMLSpanElement = current.nativeElement.querySelector(titleTarget);
+        if (el.offsetHeight > 25) {
+          const parent = findParentFormula(el);
+          const interval = setInterval(() => {
+            parent.style.width = (parent.offsetWidth + 5) + 'px';
+            if (el.offsetHeight < 23) {
+              clearInterval(interval);
+            }
+          });
+        }
+      });
+    }, 1);
+  }
 }

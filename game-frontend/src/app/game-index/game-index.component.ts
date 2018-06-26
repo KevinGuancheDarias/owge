@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
 import { BaseComponent } from '../base/base.component';
+import { AnyRunningMission } from '../shared/types/any-running-mission.type';
+import { MissionService } from '../services/mission.service';
 
 @Component({
   selector: 'app-game-index',
@@ -9,14 +11,19 @@ import { BaseComponent } from '../base/base.component';
 })
 export class GameIndexComponent extends BaseComponent implements OnInit {
 
-  public constructor() {
+  public myUnitRunningMissions: AnyRunningMission[];
+
+  public constructor(private _missionService: MissionService) {
     super();
   }
 
-  /**
-   * Notice
-   */
   public ngOnInit() {
     this.requireUser();
+    this.loginSessionService
+      .findLoggedInUserData()
+      .subscribe(async () => {
+        const myRunningMissions = await this._missionService.findMyRunningMissions().toPromise();
+        this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
+      });
   }
 }
