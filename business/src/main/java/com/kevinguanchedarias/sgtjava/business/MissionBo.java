@@ -1,5 +1,8 @@
 package com.kevinguanchedarias.sgtjava.business;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.log4j.Logger;
 import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
@@ -7,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.sgtjava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.sgtjava.dto.RunningUpgradeDto;
+import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Improvement;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.Mission.MissionIdAndTerminationDateProjection;
@@ -14,6 +18,7 @@ import com.kevinguanchedarias.sgtjava.entity.MissionInformation;
 import com.kevinguanchedarias.sgtjava.entity.ObjectRelation;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.Upgrade;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
@@ -270,6 +275,49 @@ public class MissionBo extends AbstractMissionBo {
 
 	public void cancelBuildUnit(Long missionId) {
 		cancelMission(missionId);
+	}
+
+	/**
+	 * Returns all running missions by the logged in user
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> myFindUserRunningMissions() {
+		return findUserRunningMissions(userStorageBo.findLoggedIn().getId());
+	}
+
+	/**
+	 * Returns all the running missions for the specified user
+	 * 
+	 * @param userId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
+		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
+				.collect(Collectors.toList());
+	}
+
+	@Transactional
+	public List<UnitRunningMissionDto> myFindEnemyRunningMissions() {
+		return findEnemyRunningMissions(userStorageBo.findLoggedIn());
+	}
+
+	@Transactional
+	public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
+		List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
+		return missionRepository.findByTargetPlanetInAndResolvedFalseAndUserNot(myPlanets, user).stream()
+				.map(current -> {
+					UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
+					retVal.nullifyInvolvedUnitsPlanets();
+					if (!planetBo.isExplored(user, current.getSourcePlanet())) {
+						retVal.setSourcePlanet(null);
+					}
+					return retVal;
+				}).collect(Collectors.toList());
 	}
 
 	/**

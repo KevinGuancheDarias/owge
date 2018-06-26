@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.sgtjava.business.MissionBo;
 import com.kevinguanchedarias.sgtjava.business.UnitMissionBo;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
@@ -19,8 +20,12 @@ import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
 public class MissionRestService {
 
 	private static final String TARGET_CONSUMES_MEDIATYPE = "application/json";
+
 	@Autowired
 	private UnitMissionBo unitMissionBo;
+
+	@Autowired
+	private MissionBo missionBo;
 
 	@RequestMapping(value = "explorePlanet", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public UnitRunningMissionDto explorePlanet(@RequestBody UnitMissionInformation missionInformation) {
@@ -54,6 +59,11 @@ public class MissionRestService {
 
 	@RequestMapping(value = "findMy", method = RequestMethod.GET)
 	public List<UnitRunningMissionDto> findMy() {
-		return unitMissionBo.myFindUserRunningMissions();
+		return missionBo.myFindUserRunningMissions();
+	}
+
+	@RequestMapping(value = "findEnemy", method = RequestMethod.GET)
+	public List<UnitRunningMissionDto> findEnemy() {
+		return missionBo.myFindEnemyRunningMissions();
 	}
 }

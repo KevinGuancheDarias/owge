@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.Mission.MissionIdAndTerminationDateProjection;
+import com.kevinguanchedarias.sgtjava.entity.Planet;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 public interface MissionRepository extends JpaRepository<Mission, Number>, Serializable {
 	public Mission findOneByUserIdAndTypeCode(Integer userId, String type);
@@ -20,4 +22,6 @@ public interface MissionRepository extends JpaRepository<Mission, Number>, Seria
 	public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId);
 
 	public List<Mission> findByUserIdAndResolvedFalse(Integer userId);
+
+	public List<Mission> findByTargetPlanetInAndResolvedFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
 }
