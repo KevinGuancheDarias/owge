@@ -11,6 +11,7 @@
       <option value="ESTABLISH_BASE">Establish base</option>
       <option *ngIf="!planetIsMine(selectedPlanet)" value="ATTACK">Attack</option>
       <option *ngIf="planetIsMine(selectedPlanet)" value="COUNTERATTACK">Counterattack</option>
+      <option *ngIf="!planetIsMine(selectedPlanet) && selectedPlanet.ownerId && !selectedPlanet.home" value="CONQUEST">Conquest</option>
     </select>
     <div class="unit-selection">
       <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"></app-deployed-units-list>

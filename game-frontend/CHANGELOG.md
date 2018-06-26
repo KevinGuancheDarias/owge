@@ -3,6 +3,7 @@
 v0.3.0
 ===========
 * __Fix:__ After migrating to Angular 5, upgrades component suddenly stopped working
+* __Feature:__ As a player I would like to conquest an enemy planet
 * __Feature:__ As a player, I would like to counterattack in one of my own planets
 * __Feature:__ As a player, I would like to attack other player
 * __Feature:__ As a player I would like to be able to explore a planet with my units

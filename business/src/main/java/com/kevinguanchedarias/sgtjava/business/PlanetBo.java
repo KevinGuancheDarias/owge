@@ -114,7 +114,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	public boolean isHomePlanet(Planet planet) {
 		checkPersisted(planet);
-		return planet.getHome();
+		return planet.getHome() != null && planet.getHome();
 	}
 
 	public boolean isHomePlanet(Long planetId) {
