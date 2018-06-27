@@ -8,9 +8,9 @@
             <div class="modal-body">
                 <form (ngSubmit)="onFormSubmit()" #localForm="ngForm">
                     <select (change)="onSelect()" class="form-control" required [(ngModel)]="selectedUniverseIndex" name="selectedUniverse" pattern="^[0-9]$">
-                      <option value="NaN">No seleccionado</option>
-                      <option *ngFor="let universe of universes; let i = index;" [value]="i">{{universe.name}}</option>
-                  </select>
+                        <option value="NaN">No seleccionado</option>
+                        <option *ngFor="let universe of universes; let i = index;" [value]="i">{{universe.name}}</option>
+                    </select>
                     <!-- Show universe information on selected -->
                     <app-display-single-universe [universe]="selectedUniverse"></app-display-single-universe>
 
@@ -24,3 +24,4 @@
     </div>
 </div>
 <app-faction-selector *ngIf="showFactionSelector"></app-faction-selector>
+<iframe #credentialsFrame *ngIf="safeFrontendUrl" [src]="safeFrontendUrl"></iframe>

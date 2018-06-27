@@ -6,4 +6,5 @@ export class Universe {
     public isPublic?: boolean;
     public oficial?: boolean;
     public restBaseUrl?: string;
+    public frontendUrl?: string;
 }

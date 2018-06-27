@@ -104,7 +104,9 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
     this._redirectIfNotLoggedIn();
     const loadingRoute = route.url[0].path;
-    if (loadingRoute !== 'universe-selection' && loadingRoute !== 'faction-selection' && !this.alreadyNotified) {
+    if (loadingRoute !== 'universe-selection' && loadingRoute !== 'faction-selection' && loadingRoute !== 'synchronice-credentials'
+      && !this.alreadyNotified
+    ) {
       this._notifyGameFrontendCore();
       this._websocketService.authenticate(this.getRawToken());
       this.alreadyNotified = true;

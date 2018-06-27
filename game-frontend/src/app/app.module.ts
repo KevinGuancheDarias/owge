@@ -56,10 +56,13 @@ import { UnitsAliveDeathListComponent } from './components/units-alive-death-lis
 import { ListRunningMissionsComponent } from './components/list-running-missions/list-running-missions.component';
 import { DisplayUsernamePipe } from './pipes/display-username.pipe';
 import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
+import { SynchronizeCredentialsComponent } from './components/synchronize-credentials/synchronize-credentials.component';
+import { SanitizeService } from './services/sanitize.service';
 
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'synchronice-credentials', component: SynchronizeCredentialsComponent },
   { path: 'universe-selection', component: UniverseSelectionComponent, canActivate: [LoginSessionService] },
   { path: 'home', component: GameIndexComponent, canActivate: [LoginSessionService] },
   { path: 'upgrades', component: UpgradesComponent, canActivate: [LoginSessionService] },
@@ -104,7 +107,8 @@ export const APP_ROUTES: Routes = [
     UnitsAliveDeathListComponent,
     ListRunningMissionsComponent,
     DisplayUsernamePipe,
-    DisplayMissionTypePipe
+    DisplayMissionTypePipe,
+    SynchronizeCredentialsComponent
   ],
   imports: [
     BrowserModule,
@@ -128,7 +132,8 @@ export const APP_ROUTES: Routes = [
     WebsocketService,
     MissionService,
     LoadingService,
-    ReportService
+    ReportService,
+    SanitizeService
   ],
   bootstrap: [AppComponent]
 })

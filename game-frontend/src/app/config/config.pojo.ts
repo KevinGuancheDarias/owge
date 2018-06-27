@@ -11,6 +11,7 @@ export const MEDIA_ROUTES = {
 export const ROUTES = {
     LOGIN: '/login',
     UNIVERSE_SELECTION: '/universe-selection',
+    SYNCHRONIZE_CREDENTIALS: 'synchronice-credentials',
     GAME_INDEX: '/home',
     UPGRADES: '/upgrades',
     UNITS: '/units',

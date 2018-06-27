@@ -1,11 +1,14 @@
 import { Router } from '@angular/router';
 import { UserService } from './../service/user.service';
 import { BaseComponent } from '../base/base.component';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, SecurityContext } from '@angular/core';
 
 import { ROUTES } from '../config/config.pojo';
 import { Universe } from '../shared-pojo/universe.pojo';
 import { UniverseService } from '../universe/universe.service';
+import { Credentials } from '../shared/types/credentials.type';
+import { SafeUrl } from '@angular/platform-browser';
+import { SanitizeService } from '../services/sanitize.service';
 
 @Component({
   selector: 'app-universe-selection',
@@ -15,12 +18,16 @@ import { UniverseService } from '../universe/universe.service';
 })
 export class UniverseSelectionComponent extends BaseComponent implements OnInit {
 
-  private universes: Universe[];
-  private selectedUniverseIndex: number;
-  private selectedUniverse: Universe;
-  private showFactionSelector = false;
+  public universes: Universe[];
+  public selectedUniverseIndex: number;
+  public selectedUniverse: Universe;
+  public showFactionSelector = false;
+  public safeFrontendUrl: SafeUrl | string;
 
-  constructor(private universeService: UniverseService, private _router: Router) {
+  @ViewChild('credentialsFrame')
+  private _credentialsFrame: ElementRef;
+
+  constructor(private universeService: UniverseService, private _router: Router, private _sanitizeService: SanitizeService) {
     super();
   }
 
@@ -33,6 +40,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
    */
   public onSelect() {
     this.selectedUniverse = this.universes[this.selectedUniverseIndex];
+    this.safeFrontendUrl = this._sanitizeService.sanitizeUrl(this._findFrontendUrl());
   }
 
   /**
@@ -54,7 +62,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
    */
   private checkUniverseUserExists(isUserSubscribed: boolean) {
     if (isUserSubscribed) {
-      this.redirectToGameIndex();
+      this._redirectToGameIndex();
     } else {
       if (confirm('Nunca has jugado en este universo, \n ¿deseas empezas?')) {
         this.showFactionSelector = true;
@@ -73,7 +81,27 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
     );
   }
 
-  private redirectToGameIndex() {
-    this._router.navigate([ROUTES.GAME_INDEX]);
+  private _redirectToGameIndex() {
+    if (!this.selectedUniverse.frontendUrl) {
+      this._router.navigate([ROUTES.GAME_INDEX]);
+    } else {
+      const iframe: HTMLIFrameElement = this._credentialsFrame.nativeElement;
+      const credentials: Credentials = {
+        rawToken: this.loginSessionService.getRawToken(),
+        selectedUniverse: this.selectedUniverse
+      };
+      const sendingData = JSON.stringify(credentials);
+      console.log('sending', sendingData);
+      iframe.contentWindow.postMessage(sendingData, '*');
+      window.addEventListener('message', (e: MessageEvent) => {
+        if (e.data === 'OK' && this._sanitizeService.isSafe(this._findFrontendUrl())) {
+          window.location.href = this._findFrontendUrl();
+        }
+      });
+    }
+  }
+
+  private _findFrontendUrl(): string {
+    return `${this.selectedUniverse.frontendUrl}/${ROUTES.SYNCHRONIZE_CREDENTIALS}`;
   }
 }

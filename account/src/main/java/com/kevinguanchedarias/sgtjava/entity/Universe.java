@@ -51,6 +51,9 @@ public class Universe implements Serializable {
 	@Column(name = "rest_base_url", length = 200, nullable = false)
 	private String restBaseUrl;
 
+	@Column(name = "frontend_url", length = 200, nullable = true)
+	private String frontendUrl;
+
 	public Integer getId() {
 		return id;
 	}
@@ -122,4 +125,13 @@ public class Universe implements Serializable {
 	public void setRestBaseUrl(String restBaseUrl) {
 		this.restBaseUrl = restBaseUrl;
 	}
+
+	public String getFrontendUrl() {
+		return frontendUrl;
+	}
+
+	public void setFrontendUrl(String frontendUrl) {
+		this.frontendUrl = frontendUrl;
+	}
+
 }
