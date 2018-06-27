@@ -26,4 +26,4 @@ cp "$globalCompiledMavenProject" target/
 SGT_ACCOUNT_WAR_FILENAME="$globalMavenFilename" ./build.sh "$imageName";
 cd -;
 docker rm -f "$containerName";
-docker run  -it --name  "$containerName" --restart always -p $port:8080 "$imageName";
+docker run  -d --name  "$containerName" --restart always -p $port:8080 "$imageName";
