@@ -5,7 +5,7 @@
 #
 # @author Kevin Guanche Darias
 ##
-
+source ./lib.sh
 
 ##
 # Will check if given env-var is defined
@@ -60,6 +60,7 @@ checkExists 3 d "$gameFrontendNgDir";
 # END check env
 
 # START ask or set parameters
+sgtPort=`getPort $sgtVersion`;
 if [ -z "$1" ]; then
 	while [ -z "$staticImgDir" ]; do
 		echo -n "Please insert static images server directory: "; read staticImgDir;
@@ -85,6 +86,9 @@ if [ ! -d "$dynamicImgDir" ]; then
 	echo "Directory $dynamicImgDir doesn't exists";
 	exit 1;
 fi
+SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose stop;
+sleep 2;
+sgtPort=`getPort $sgtVersion`;
 # END ask or set parameters
 
 # START program itself
@@ -99,6 +103,6 @@ test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target"
 cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
 
 cd $localPath;
-STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose -p "sgt-ci-docker-v$sgtVersion" up -d --build
+SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose  up -d --build
 cd -;
 # END program itself
