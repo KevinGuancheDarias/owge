@@ -32,6 +32,6 @@ export class PlanetPojo {
      * @memberof PlanetPojo
      */
     public static isExplored(planet: PlanetPojo): boolean {
-        return planet.richness !== null;
+        return planet && typeof planet.richness !== 'undefined';
     }
 }
