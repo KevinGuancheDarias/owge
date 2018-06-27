@@ -11,29 +11,31 @@ if [ -z "$1" ]; then
 fi
 
 frontend="$1";
-if [ ! -f "$frontend/angular-cli.json" ]; then
+if [ ! -f "$frontend/.angular-cli.json" ]; then
 	echo "No parece un proyecto válido debe haber angular cli";
 	exit 1;
 fi
 
-if ! ng -v ; then
-	echo "No se encontró Angular cli en el sistema operativo, lo que significa que no está instalado";
-	exit 1;
-fi
-
-echo "Compilando proyecto angular";
 launcherPath=$PWD;
 compiledDestination="$frontend/dist";
 
-cd $frontend;
-test -d $compiledDestination && rm -r $compiledDestination;
-ng build  --prod
-if [ ! -d "$compiledDestination" ];then
-	echo "Parece que la compilación no salió bien, ya que nose creo ./dist";
-	exit 1;
+if [ ! -d "$compiledDestination" ]; then
+	if ! ng -v ; then
+		echo "No se encontró Angular cli en el sistema operativo, lo que significa que no está instalado";
+		exit 1;
+	fi
+	echo "Compilando proyecto angular";
+	cd $frontend;
+	test -d $compiledDestination && rm -r $compiledDestination;
+	ng build  --prod
+	if [ ! -d "$compiledDestination" ];then
+		echo "Parece que la compilación no salió bien, ya que nose creo ./dist";
+		exit 1;
+	fi
+else
+	echo "Not recompiling frontend, as ithas already been compiled by other script";
 fi
-
-echo "Moviendo el código compilado al directorio correcto, previo a la copia al contenedor";
+echo "Copying compiled files to target, so is available to docker build";
 sourceDestination="$launcherPath/target";
 cd $launcherPath;
 if [  ! -d "$launcherPath/config" ]; then
@@ -43,7 +45,7 @@ fi
 
 test -d $sourceDestination && rm -r $sourceDestination;
 
-mv "$compiledDestination" "$sourceDestination";
+cp -rp "$compiledDestination" "$sourceDestination";
 
 # START docker fun if wanteed to
 if [ ! -z "$2" ]; then
