@@ -134,8 +134,8 @@ if [ -z "$NO_COMPILE" ]; then
 	#mkdir "$targetRoot";
 	OPTIONAL=1 compileMavenProject "$kevinsuiteCommonBackend";
 	OPTIONAL=1 compileMavenProject "$kevinsuiteRestBackend";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
+	##OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
+	##OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
 	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
 	export SGT_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
 	export SGT_ADMIN_WAR_FILENAME="$globalMavenFilename";

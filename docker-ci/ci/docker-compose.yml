@@ -26,4 +26,7 @@ services:
            - ${STATIC_IMAGES_DIR}:/var/sgt_data/static
            - ${DYNAMIC_IMAGES_DIR}:/var/sgt_data/dynamic
         expose:
-           - "8080"
+           - "8081"
+        ports:
+           - "7474:8081"
+
