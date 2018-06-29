@@ -1,7 +1,12 @@
 # SGT changelog
 
+v0.3.1
+===========
+* __Fix:__ Admin panel doesn't allow to define attack, health, and shield values, it should allow, and the value should be mandatory or by default 0, 1 for health, database, should not even allow null for "health" parameter
+
 v0.3.0
 ===========
+* __Merge:__ v0.2.1
 * __Fix:__ Endpoint that returns the units in my planet, is also returning enemy units
 * __Fix:__ After migrating to Angular 5, upgrades component suddenly stopped working
 * __Feature:__ As game admin, I would like to be able to use different frontend versions

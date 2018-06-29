@@ -46,7 +46,9 @@ public class Unit extends EntityWithImage implements EntityWithImprovements {
 	private UnitType type;
 
 	private Integer attack;
-	private Integer health;
+
+	@Column(name = "health", nullable = false)
+	private Integer health = 1;
 	private Integer shield;
 	private Integer charge;
 

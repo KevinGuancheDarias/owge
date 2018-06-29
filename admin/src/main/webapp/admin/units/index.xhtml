@@ -64,8 +64,8 @@
 							rendered="#{unitsController.findImageWithUrlPath() != null}">
 							<p:column>
 								<p:graphicImage
-									value="#{unitsController.findImageWithUrlPath()}"
-									width="200" height="200" />
+									value="#{unitsController.findImageWithUrlPath()}" width="200"
+									height="200" />
 							</p:column>
 						</p:row>
 						<p:row>
@@ -120,11 +120,37 @@
 									value="#{unitsController.selectedObject.time}" />
 							</p:column>
 						</p:row>
-
+						
 						<p:row>
-							<p:column colspan="2">
-								<p:outputLabel for="description" value="Descripción:"
-									style="display:block; text-align: center" />
+							<p:column>
+								<p:outputLabel for="attack" value="Attack:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="attack" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{unitsController.selectedObject.attack}" />
+							</p:column>
+						</p:row>
+						
+						<p:row>
+							<p:column>
+								<p:outputLabel for="health" value="Health:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="health" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{unitsController.selectedObject.health}" />
+							</p:column>
+						</p:row>
+						
+						<p:row>
+							<p:column>
+								<p:outputLabel for="shield" value="Shield:" />
+							</p:column>
+							<p:column>
+								<p:spinner id="shield" required="true"
+									converterMessage="Sólo números" styleClass="numeric-input"
+									value="#{unitsController.selectedObject.shield}" />
 							</p:column>
 						</p:row>
 
@@ -143,6 +169,13 @@
 							</p:column>
 						</p:row>
 
+						<p:row>
+							<p:column colspan="2">
+								<p:outputLabel for="description" value="Descripción:"
+									style="display:block; text-align: center" />
+							</p:column>
+						</p:row>
+						
 						<p:row>
 							<p:column colspan="2">
 								<p:inputTextarea id="description" style="width:100%;"
