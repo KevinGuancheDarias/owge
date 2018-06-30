@@ -46,10 +46,10 @@
 				rendered="#{specialLocationsController.selectedObject != null}">
 				<p:panelGrid cellpadding="5">
 					<p:fragment id="dataFragment">
-						<p:row
-							rendered="#{specialLocationsController.findImageWithUrlPath() != null}">
+						<p:row>
 							<p:column>
 								<p:graphicImage
+									id="objectImage"
 									value="#{specialLocationsController.findImageWithUrlPath()}"
 									width="200" height="200" />
 							</p:column>
@@ -121,7 +121,7 @@
 								value="#{specialLocationsController.imageUploadHandler.uploadedFile}"
 								required="true" id="image">
 								<f:ajax listener="#{specialLocationsController.uploadImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="objectImage" />
 							</h:inputFile>
 						</p:column>
 					</p:row>

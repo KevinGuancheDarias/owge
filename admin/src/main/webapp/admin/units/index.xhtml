@@ -60,10 +60,9 @@
 				rendered="#{unitsController.selectedObject != null}">
 				<p:panelGrid cellpadding="5">
 					<p:fragment id="dataFragment">
-						<p:row
-							rendered="#{unitsController.findImageWithUrlPath() != null}">
-							<p:column>
-								<p:graphicImage
+						<p:row>
+							<p:column >
+								<p:graphicImage id="objectImage"
 									value="#{unitsController.findImageWithUrlPath()}" width="200"
 									height="200" />
 							</p:column>
@@ -120,7 +119,7 @@
 									value="#{unitsController.selectedObject.time}" />
 							</p:column>
 						</p:row>
-						
+
 						<p:row>
 							<p:column>
 								<p:outputLabel for="attack" value="Attack:" />
@@ -131,7 +130,7 @@
 									value="#{unitsController.selectedObject.attack}" />
 							</p:column>
 						</p:row>
-						
+
 						<p:row>
 							<p:column>
 								<p:outputLabel for="health" value="Health:" />
@@ -142,7 +141,7 @@
 									value="#{unitsController.selectedObject.health}" />
 							</p:column>
 						</p:row>
-						
+
 						<p:row>
 							<p:column>
 								<p:outputLabel for="shield" value="Shield:" />
@@ -175,7 +174,7 @@
 									style="display:block; text-align: center" />
 							</p:column>
 						</p:row>
-						
+
 						<p:row>
 							<p:column colspan="2">
 								<p:inputTextarea id="description" style="width:100%;"
@@ -204,7 +203,7 @@
 								value="#{unitsController.imageUploadHandler.uploadedFile}"
 								required="true" id="image">
 								<f:ajax listener="#{unitsController.uploadImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="objectImage" />
 							</h:inputFile>
 						</p:column>
 					</p:row>

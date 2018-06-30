@@ -11,6 +11,7 @@ import javax.faces.bean.ViewScoped;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.kevinguanchedarias.kevinsuite.commons.jsf.controller.FileUploadController;
 import com.kevinguanchedarias.sgtjava.business.FactionBo;
 import com.kevinguanchedarias.sgtjava.entity.Faction;
 import com.kevinguanchedarias.sgtjava.entity.Improvement;
@@ -33,10 +34,19 @@ public class FactionsController extends SgtCommonController<Faction> implements 
 	@ManagedProperty(value = "#{improvementsController}")
 	private ImprovementsController improvementsController;
 
+	private transient FileUploadController prImageUploadController;
+
+	private transient FileUploadController srImageUploadController;
+
+	private transient FileUploadController energyImageUploadController;
+
 	@PostConstruct
 	public void init() {
 		ControllerUtil.enableAutowire(this);
 		initFileUploadForImage();
+		prImageUploadController = createImageUploadController();
+		srImageUploadController = createImageUploadController();
+		energyImageUploadController = createImageUploadController();
 		loadData();
 	}
 
@@ -69,15 +79,18 @@ public class FactionsController extends SgtCommonController<Faction> implements 
 	}
 
 	public void uploadPrimaryResourceImage() {
-		primaryResourceImage = getImageUploadHandler().handleFileUpload();
+		primaryResourceImage = prImageUploadController.handleFileUpload();
 	}
 
 	public void uploadSecondaryResourceImage() {
-		secondaryResourceImage = getImageUploadHandler().handleFileUpload();
+		if (!srImageUploadController.getUploadedFile().getName().isEmpty()) {
+			secondaryResourceImage = srImageUploadController.handleFileUpload();
+			srImageUploadController.setUploadedFile(null);
+		}
 	}
 
 	public void uploadEnergyImage() {
-		energyImage = getImageUploadHandler().handleFileUpload();
+		energyImage = energyImageUploadController.handleFileUpload();
 	}
 
 	public String findPrimaryResourceImage() {
@@ -90,6 +103,13 @@ public class FactionsController extends SgtCommonController<Faction> implements 
 
 	public String findEnergyImage() {
 		return findFullPathOrNull(energyImage);
+	}
+
+	public String findImageComponentsIds() {
+		StringBuilder builder = new StringBuilder();
+		return builder.append("objectImage image").append(" prImage primary_resource_image")
+				.append(" srImage secondary_resource_image").append(" energyImage energy_image").toString();
+
 	}
 
 	public List<Faction> getObjectList() {
@@ -106,6 +126,30 @@ public class FactionsController extends SgtCommonController<Faction> implements 
 
 	public void setImprovementsController(ImprovementsController improvementsController) {
 		this.improvementsController = improvementsController;
+	}
+
+	public FileUploadController getPrImageUploadController() {
+		return prImageUploadController;
+	}
+
+	public void setPrImageUploadController(FileUploadController prImageUploadController) {
+		this.prImageUploadController = prImageUploadController;
+	}
+
+	public FileUploadController getSrImageUploadController() {
+		return srImageUploadController;
+	}
+
+	public void setSrImageUploadController(FileUploadController srImageUploadController) {
+		this.srImageUploadController = srImageUploadController;
+	}
+
+	public FileUploadController getEnergyImageUploadController() {
+		return energyImageUploadController;
+	}
+
+	public void setEnergyImageUploadController(FileUploadController energyImageUploadController) {
+		this.energyImageUploadController = energyImageUploadController;
 	}
 
 	@Override

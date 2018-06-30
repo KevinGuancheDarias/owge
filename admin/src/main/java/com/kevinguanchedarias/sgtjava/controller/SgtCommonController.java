@@ -165,10 +165,15 @@ public abstract class SgtCommonController<E extends SimpleIdEntity> extends Comm
 	 * @author Kevin Guanche Darias
 	 */
 	protected void initFileUploadForImage() {
-		imageUploadHandler = new FileUploadController();
-		imageUploadHandler.setValidMimes(new MimeTypeCollection(MimeType.newCollectionPngJpgGif()));
-		imageUploadHandler
+		imageUploadHandler = createImageUploadController();
+	}
+
+	protected FileUploadController createImageUploadController() {
+		FileUploadController fileUploadController = new FileUploadController();
+		fileUploadController.setValidMimes(new MimeTypeCollection(MimeType.newCollectionPngJpgGif()));
+		fileUploadController
 				.setPropertiesFile(getClass().getClassLoader().getResourceAsStream("fileuploadcontroller.properties"));
+		return fileUploadController;
 	}
 
 	/**

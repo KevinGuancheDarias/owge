@@ -61,10 +61,10 @@
 				rendered="#{upgradesController.selectedObject != null}">
 				<p:panelGrid cellpadding="5">
 					<p:fragment id="dataFragment">
-						<p:row
-							rendered="#{upgradesController.findImageWithUrlPath() != null}">
+						<p:row>
 							<p:column>
 								<p:graphicImage
+									id="objectImage"
 									value="#{upgradesController.findImageWithUrlPath()}"
 									width="200" height="200" />
 							</p:column>
@@ -185,7 +185,7 @@
 								value="#{upgradesController.imageUploadHandler.uploadedFile}"
 								required="true" id="image">
 								<f:ajax listener="#{upgradesController.uploadImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="objectImage" />
 							</h:inputFile>
 						</p:column>
 					</p:row>

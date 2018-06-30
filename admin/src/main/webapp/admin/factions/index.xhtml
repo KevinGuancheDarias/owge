@@ -56,10 +56,9 @@
 				rendered="#{factionsController.selectedObject != null}">
 				<p:panelGrid cellpadding="5">
 					<p:fragment id="dataFragment">
-						<p:row
-							rendered="#{factionsController.findImageWithUrlPath() != null}">
+						<p:row>
 							<p:column>
-								<p:graphicImage
+								<p:graphicImage id="objectImage"
 									value="#{factionsController.findImageWithUrlPath()}"
 									width="200" height="200" />
 							</p:column>
@@ -90,7 +89,7 @@
 							</p:column>
 							<p:column>
 								<p:graphicImage
-									rendered="#{factionsController.findPrimaryResourceImage() != null}"
+									id="prImage"
 									value="#{factionsController.findPrimaryResourceImage()}"
 									width="40" height="40" />
 								<p:inputText required="true" id="primaryResourceName"
@@ -105,7 +104,7 @@
 							</p:column>
 							<p:column>
 								<p:graphicImage
-									rendered="#{factionsController.findSecundaryResourceImage() != null}"
+									id="srImage"
 									value="#{factionsController.findSecundaryResourceImage()}"
 									width="40" height="40" />
 								<p:inputText required="true" id="secondaryResourcenName"
@@ -119,7 +118,7 @@
 							</p:column>
 							<p:column>
 								<p:graphicImage
-									rendered="#{factionsController.findEnergyImage() != null}"
+									id="energyImage"
 									value="#{factionsController.findEnergyImage()}" width="40"
 									height="40" />
 								<p:inputText required="true" id="energyName" maxlength="20"
@@ -217,7 +216,7 @@
 								value="#{factionsController.imageUploadHandler.uploadedFile}"
 								required="true" id="image">
 								<f:ajax listener="#{factionsController.uploadImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="#{factionsController.findImageComponentsIds()}" />
 							</h:inputFile>
 						</p:column>
 					</p:row>
@@ -228,11 +227,11 @@
 						</p:column>
 						<p:column>
 							<h:inputFile
-								value="#{factionsController.imageUploadHandler.uploadedFile}"
+								value="#{factionsController.prImageUploadController.uploadedFile}"
 								required="true" id="primary_resource_image">
 								<f:ajax
 									listener="#{factionsController.uploadPrimaryResourceImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="#{factionsController.findImageComponentsIds()}" />
 							</h:inputFile>
 						</p:column>
 					</p:row>
@@ -243,11 +242,11 @@
 						</p:column>
 						<p:column>
 							<h:inputFile
-								value="#{factionsController.imageUploadHandler.uploadedFile}"
+								value="#{factionsController.srImageUploadController.uploadedFile}"
 								required="true" id="secondary_resource_image">
 								<f:ajax
 									listener="#{factionsController.uploadSecondaryResourceImage}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="#{factionsController.findImageComponentsIds()}" />
 							</h:inputFile>
 						</p:column>
 					</p:row>
@@ -258,11 +257,11 @@
 						</p:column>
 						<p:column>
 							<h:inputFile
-								value="#{factionsController.imageUploadHandler.uploadedFile}"
+								value="#{factionsController.energyImageUploadController.uploadedFile}"
 								required="true" id="energy_image">
 								<f:ajax
 									listener="#{factionsController.uploadEnergyImage()}"
-									onevent="fixFileUpload" render="@form" />
+									onevent="fixFileUpload" render="#{factionsController.findImageComponentsIds()}" />
 							</h:inputFile>
 						</p:column>
 					</p:row>

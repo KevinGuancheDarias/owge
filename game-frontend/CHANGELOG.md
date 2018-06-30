@@ -3,6 +3,8 @@
 v0.3.1
 ===========
 * __Fix:__ Admin panel doesn't allow to define attack, health, and shield values, it should allow, and the value should be mandatory or by default 0, 1 for health, database, should not even allow null for "health" parameter
+* __Fix:__ When adding an image to an unsaved Upgrade, Unit, Faction or special location all the information is removed
+* __Known issue:__ NTuL3pTw: When uploading all faction images, can't do it all at once, bogus upload functionality in JSF framework =/
 
 v0.3.0
 ===========
