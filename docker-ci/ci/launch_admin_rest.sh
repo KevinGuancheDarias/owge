@@ -116,10 +116,6 @@ function compileAngularProject () {
 
 }
 
-kevinsuiteRoot="/public/kevinsuite-java";
-kevinsuiteCommonBackend="$kevinsuiteRoot/common-backend";
-kevinsuiteRestBackend="$kevinsuiteRoot/backend-rest-commons";
-
 if [ ! -d "$kevinsuiteCommonBackend" ] || [ ! -d "$kevinsuiteRestBackend" ] ; then
 	echo "Fatal: Missing kevinsuite lib, download it please, looking into $kevinsuiteRoot";
 	exit 1;
@@ -130,19 +126,19 @@ if [ -z "$sgtOptional" ]; then
 fi
 targetRoot="/tmp/shit";
 if [ -z "$NO_COMPILE" ]; then
-	#test -d "$targetRoot" && rm -r "$targetRoot";
-	#mkdir "$targetRoot";
-	OPTIONAL=1 compileMavenProject "$kevinsuiteCommonBackend";
-	OPTIONAL=1 compileMavenProject "$kevinsuiteRestBackend";
-	##OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
-	##OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
+	test -d "$targetRoot" && rm -r "$targetRoot";
+	mkdir "$targetRoot";
+	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
+	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
+	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
+	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
 	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
 	export SGT_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
 	export SGT_ADMIN_WAR_FILENAME="$globalMavenFilename";
 	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";
 	export SGT_CI_INSTALL_GAME_REST_FILE="$globalCompiledMavenFile";
 	export SGT_REST_WAR_FILENAME="$globalMavenFilename";
-	#OPTIONAL="$sgtOptional" compileAngularProject "$PWD/../../game-frontend" "$targetRoot/frontend";
+	OPTIONAL="$sgtOptional" compileAngularProject "$PWD/../../game-frontend" "$targetRoot/frontend";
 	export SGT_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
 else
 	echo "Currently NO_COMPILE is buggy, and is work in progress :(  ...... aborting :/";

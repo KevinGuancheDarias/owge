@@ -1,3 +1,7 @@
+kevinsuiteRoot="/public/kevinsuite-java";
+kevinsuiteCommonBackend="$kevinsuiteRoot/common-backend";
+kevinsuiteRestBackend="$kevinsuiteRoot/backend-rest-commons";
+
 function mavenRun () {
         _targetDirectory="$1";
         shift;
@@ -21,6 +25,7 @@ function nodeRun() {
 # @param $1 string Target maven project directory
 # @param [$2] string directory to copy the generated war
 # @env [OPTIONAL] boolean If specified, will only compile if compile file doesn't exists
+# @env [SKIP_TESTS] If should skip test, if not specified, will run all the tests (as we should always do)
 #
 # @author Kevin Guanche Darias
 ##
@@ -38,9 +43,13 @@ function compileMavenProject () {
                         _doCompile="0";
                 fi
         fi
+	_skipTests=""
+	if [ ! -z "$SKIP_TESTS" ]; then
+		_skipTests="-DskipTests";
+	fi
         if [ $_doCompile -eq 1 ]; then
                 echo "Compiling $_projectName:$_projectVersion";
-                mavenRun "$1" clean install &> /dev/null;
+                mavenRun "$1" clean install "$_skipTests"  &> /dev/null;
                 _compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
                 if [ -z "$_compiledFilePath" ]; then
                         echo "FATAL, compilation, when trying to compile $_project , aborting script execution";

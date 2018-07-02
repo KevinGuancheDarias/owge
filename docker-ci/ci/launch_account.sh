@@ -16,6 +16,9 @@ if [ -z "$1" ]; then
 fi
 sgtVersion="$1";
 source ./lib.sh;
+OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
+OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
+compileMavenProject "$PWD"/../../business "$targetRoot";
 compileMavenProject "$PWD"/../../account "account/target/";
 containerName="sgt-ci-docker-account-$sgtVersion";
 imageName="sgt_account:$sgtVersion";
@@ -27,4 +30,4 @@ cd -;
 docker rm -f "$containerName";
 sleep 2;
 port=`getPort $sgtVersion`;
-docker run  -it --name  "$containerName" --restart always -p $port:8081 "$imageName";
+docker run  -d --name  "$containerName" --restart always -p $port:8081 "$imageName";
