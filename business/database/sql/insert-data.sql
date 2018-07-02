@@ -1,5 +1,5 @@
 -- START TEMPORARY Default admin
-INSERT INTO admin_users (id,username,password,mail,enabled) VALUES(1,'KevinGuancheDarias','Secret74OfLife','kevin@kevinguanchedarias.com',1);
+INSERT INTO admin_users (id,username,password,mail,enabled) VALUES(1,'KevinGuancheDarias','StrongestPaul','kevin@kevinguanchedarias.com',1);
 -- END TEMPORARY Default admin
 
 -- START Prepare  objects

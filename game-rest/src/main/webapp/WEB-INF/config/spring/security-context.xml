@@ -27,6 +27,11 @@
 				<value>http://192.168.99.100</value>
 			</list>
 		</property>
+		<property name="rootOriginList">
+			<list>
+				<value>kevinguanchedarias.com</value>
+			</list>
+		</property>
 	</bean>
 	<bean id="corsFilter" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.cors.CorsFilter">
 		<property name="corsConfigurator" ref="corsConfiguration"></property>
