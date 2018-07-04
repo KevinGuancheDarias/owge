@@ -2,6 +2,7 @@
 
 v0.3.1
 ===========
+* __Fix:__ Safe domain detection not working in the frontend
 * __Improvement:__ Allow all subdomains from kevinguanchedarias.com to login into account system
 * __Fix:__ Admin panel doesn't allow to define attack, health, and shield values, it should allow, and the value should be mandatory or by default 0, 1 for health, database, should not even allow null for "health" parameter
 * __Fix:__ When adding an image to an unsaved Upgrade, Unit, Faction or special location all the information is removed
