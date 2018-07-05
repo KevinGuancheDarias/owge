@@ -29,6 +29,8 @@ if [ -z "$3" ] || [ ! -d "$3" ]; then
 	echo "Directory for sgt-data/dynamic not specified, aborting";
 	exit 1;
 fi
+
+. ./lib.sh;
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
 ##
