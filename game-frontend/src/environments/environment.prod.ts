@@ -1,3 +1,4 @@
 export const environment = {
-  production: true
+  production: true,
+  accountUrl: 'https://account.sgt.kevinguanchedarias.com/'
 };

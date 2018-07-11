@@ -1,15 +1,19 @@
 {
   "name": "game-frontend",
-  "version": "0.0.0",
+  "version": "0.3.2",
   "license": "MIT",
   "angular-cli": {},
   "scripts": {
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "npm run compileChangelog && ng serve",
+    "build": "npm run compileChangelog && ng build --env publicAccount",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",
+    "compileChangelog": "node scripts/compile-changelog.js",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor"
+  },
+  "sgt": {
+    "versionDate": "now"
   },
   "private": true,
   "dependencies": {
@@ -58,6 +62,7 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "karma-less-preprocessor": "^0.3.3",
     "protractor": "~5.1.2",
+    "showdown": "^1.8.6",
     "ts-node": "~4.1.0",
     "tslint": "~5.9.1",
     "typescript": "~2.5.3"

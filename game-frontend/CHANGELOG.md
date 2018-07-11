@@ -1,6 +1,9 @@
 # SGT changelog
+v0.3.2 (latest)
+===========
+* __Improvement:__ Get frontend version from package.json and display it, also notify user when a new version has been upload 
 
-v0.3.1
+v0.3.1 (2018-07-05 10:06)
 ===========
 * __Fix:__ Safe domain detection not working in the frontend
 * __Improvement:__ Allow all subdomains from kevinguanchedarias.com to login into account system

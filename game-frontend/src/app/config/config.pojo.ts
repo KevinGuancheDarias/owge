@@ -1,4 +1,5 @@
 import { Headers } from '@angular/http';
+import { environment } from '../../environments/environment';
 
 export const MEDIA_ROUTES = {
     'IMAGES_ROOT': '/dynamic/',
@@ -16,11 +17,12 @@ export const ROUTES = {
     UPGRADES: '/upgrades',
     UNITS: '/units',
     NAVIGATE: '/navigate',
-    REPORTS: '/reports'
+    REPORTS: '/reports',
+    VERSION: '/version'
 };
 
 export class Config {
-    public static readonly ACCOUNT_SERVER_URL = 'https://account.sgt.kevinguanchedarias.com/';
+    public static readonly ACCOUNT_SERVER_URL = environment.accountUrl;
     public static readonly URL_ENCODE_UTF8 = 'application/x-www-form-urlencoded; charset=UTF-8';
     public static readonly PLANET_RICHNESS_IMAGE_EXTENSION = '.gif';
     public static readonly PLANET_NOT_EXPLORED_IMAGE = 'unexplored.jpg';
