@@ -2,6 +2,7 @@
 
 v0.3.3 (latest)
 ===========
+* __Fix:__ Bad repository for unit in default data for table "objects
 * __Fix:__ The background image doesn't take all the screen in some devices
 * __Improvement:__ Limit number of decimals in numbers 
 * __Fix:__ Unit build cancellation is not working, was working in 2.1
