@@ -1,6 +1,8 @@
 # SGT changelog
 v0.3.2 (latest)
 ===========
+* __Fix:__ After building a unit the Cancel button doesn't get back to build button unless you refresh the webpage
+* __Fix:__ Energy should not be displayed in 0.3.x, as it is not really supported
 * __Fix:__ Upgrades are not getting cancelled
 * __Fix:__ When running in a mobile phone the user can't scroll in the faction selection menu
 * __Fix:__ Unit Missions are not working, they are getting stuck
