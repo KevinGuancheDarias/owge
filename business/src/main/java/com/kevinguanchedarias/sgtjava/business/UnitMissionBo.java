@@ -670,9 +670,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private UnitRunningMissionDto commonMissionRegister(UnitMissionInformation missionInformation,
 			MissionType missionType) {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
-		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
 		UserStorage user = userStorageBo.findLoggedIn();
+		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
 		targetMissionInformation.setUserId(user.getId());
+		if (missionType != MissionType.EXPLORE
+				&& !planetBo.isExplored(user.getId(), missionInformation.getTargetPlanetId())) {
+			throw new SgtBackendInvalidInputException(
+					"Can't send this mission, because target planet is not explored ");
+		}
 		checkAndLoadObtainedUnits(missionInformation);
 		Mission mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
 		targetMissionInformation.getInvolvedUnits().forEach(current -> {
