@@ -2,6 +2,7 @@
 
 v0.3.3 (latest)
 ===========
+* __Fix__ Game displays missions other than "Explore" when the planet is not explored, ONLY explore should be available
 * __Security:__ Backend server allows to send missions to unexplored planets
 * __Fix:__ Bad repository for unit in default data for table "objects
 * __Fix:__ The background image doesn't take all the screen in some devices

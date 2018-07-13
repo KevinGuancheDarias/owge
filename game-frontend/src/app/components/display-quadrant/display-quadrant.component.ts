@@ -98,6 +98,10 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
     this._missionModal.hide();
   }
 
+  public isExplored(planet: PlanetPojo): boolean {
+    return PlanetPojo.isExplored(planet);
+  }
+
   public planetIsMine(planet: PlanetPojo): boolean {
     return this._planetService.isMine(planet);
   }
