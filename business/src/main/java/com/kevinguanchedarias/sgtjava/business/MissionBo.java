@@ -219,7 +219,7 @@ public class MissionBo extends AbstractMissionBo {
 		if (mission == null) {
 			throw new MissionNotFoundException("The mission was not found, or was not passed to cancelMission()");
 		}
-		UserStorage missionUser = mission.getUser();
+		UserStorage missionUser = userStorageBo.findOneByMission(mission);
 		UserStorage loggedInUser = userStorageBo.findLoggedIn();
 		MissionType type = MissionType.valueOf(mission.getType().getCode());
 		if (missionUser == null) {

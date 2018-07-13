@@ -71,6 +71,9 @@ public class UserStorage implements SimpleIdEntity {
 	@Fetch(FetchMode.JOIN)
 	private UserImprovement improvements;
 
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Mission> missions;
+
 	@Transient
 	private Double computedPrimaryResourceGenerationPerSecond;
 
@@ -245,6 +248,14 @@ public class UserStorage implements SimpleIdEntity {
 
 	public void setImprovements(UserImprovement improvements) {
 		this.improvements = improvements;
+	}
+
+	public List<Mission> getMissions() {
+		return missions;
+	}
+
+	public void setMissions(List<Mission> missions) {
+		this.missions = missions;
 	}
 
 	public Double getComputedPrimaryResourceGenerationPerSecond() {

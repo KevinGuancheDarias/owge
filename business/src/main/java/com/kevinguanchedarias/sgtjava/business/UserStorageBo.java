@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.sgtjava.entity.Faction;
+import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.NotYourPlanetException;
@@ -128,6 +129,10 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 			dbFullUser.fillTransientValues();
 		}
 		return dbFullUser;
+	}
+
+	public UserStorage findOneByMission(Mission mission) {
+		return userStorageRepository.findOneByMissions(mission);
 	}
 
 	/**

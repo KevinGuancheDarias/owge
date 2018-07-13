@@ -245,7 +245,7 @@ public class MissionBoTest extends TestCommon {
 		SchedulerFactoryBean schedulerFactoryMock = mockScheduler();
 		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(fakeSavedMission);
 		Whitebox.setInternalState(missionBo, "schedulerFactory", schedulerFactoryMock);
-
+		Mockito.when(userStorageBoMock.findOneByMission(fakeSavedMission)).thenReturn(user);
 		missionBo.cancelMission(1L);
 
 		assertEquals((currentUserPrimaryResource + fakeSavedMission.getPrimaryResource()),
@@ -365,7 +365,7 @@ public class MissionBoTest extends TestCommon {
 	public void shouldProperlyCancelBuildUnitMission() {
 		Mission mission = prepareMissionForCommonCancelMission(
 				com.kevinguanchedarias.sgtjava.enumerations.MissionType.BUILD_UNIT);
-
+		Mockito.when(userStorageBoMock.findOneByMission(mission)).thenReturn(user);
 		missionBo.cancelMission(mission);
 		Mockito.verify(obtainedUnitBo).deleteByMissionId(mission.getId());
 		assertEquals((currentUserPrimaryResource + mission.getPrimaryResource()),

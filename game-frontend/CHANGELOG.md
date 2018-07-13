@@ -1,6 +1,9 @@
 # SGT changelog
 v0.3.2 (latest)
 ===========
+* __Fix:__ Upgrades are not getting cancelled
+* __Fix:__ When running in a mobile phone the user can't scroll in the faction selection menu
+* __Fix:__ Unit Missions are not working, they are getting stuck
 * __Improvement:__ Get frontend version from package.json and display it, also notify user when a new version has been upload 
 
 v0.3.1 (2018-07-05 10:06)
