@@ -2,12 +2,15 @@
 @import 'common_include.less';
 
 @selectedMenuColor: #66F;
-/* You can add global styles to this file, and also import other style files */
+
+html, body {
+    min-height: 100%;
+}
 body{
     background-color: silver;
     background-repeat: no-repeat;
-    background-size: cover;
     background-image:url('/assets/img/bg.jpg');
+    background-size: cover;
 }
 
 /* NOTICE: Temporary addon, .resourceImage should be in CSS of display-single-resource , but CSS isolation doesn't allow parent-child CSS inherit for now! */
