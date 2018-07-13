@@ -273,6 +273,7 @@ public class MissionBo extends AbstractMissionBo {
 		}
 	}
 
+	@Transactional
 	public void cancelBuildUnit(Long missionId) {
 		cancelMission(missionId);
 	}

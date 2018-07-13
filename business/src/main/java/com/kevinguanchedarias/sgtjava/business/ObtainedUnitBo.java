@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
@@ -149,6 +151,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 				.findFirst().orElse(null);
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	public Long deleteByMissionId(Long missionId) {
 		return repository.deleteByMissionId(missionId);
 	}
