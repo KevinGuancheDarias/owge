@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input } from '@angular/core';
+import { Component, ElementRef, Input, OnInit } from '@angular/core';
 
 /**
  * Displays a modal with custom content
@@ -12,10 +12,16 @@ import { Component, ElementRef, Input } from '@angular/core';
     templateUrl: './modal.component.html',
     styleUrls: ['./modal.component.less']
 })
-export class ModalComponent {
+export class ModalComponent implements OnInit {
 
     @Input()
     public closeOnOverlayClick = true;
+
+    @Input()
+    public isOpenOnLoad = false;
+
+    @Input()
+    public hasCloseButton = false;
 
     public visible = false;
     public visibleAnimate = false;
@@ -33,6 +39,12 @@ export class ModalComponent {
     public constructor(
         private _ref: ElementRef
     ) { }
+
+    public ngOnInit(): void {
+        if (this.isOpenOnLoad) {
+            this.show();
+        }
+    }
 
     public show(): void {
         this.visible = true;

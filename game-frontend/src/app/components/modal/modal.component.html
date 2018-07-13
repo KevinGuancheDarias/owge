@@ -3,6 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <ng-content select=".header"></ng-content>
+                <i *ngIf="hasCloseButton" class="fa fa-close" (click)="hide()"></i>
             </div>
             <div class="modal-body">
                 <ng-content select=".body"></ng-content>
