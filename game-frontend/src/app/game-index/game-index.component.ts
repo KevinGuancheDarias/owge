@@ -24,10 +24,18 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
     this.loginSessionService
       .findLoggedInUserData()
       .subscribe(async () => {
-        this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
-          this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
-        });
-        this.enemyRunningMissions = await this._missionService.findEnemyRunningMissions().toPromise();
+        this.findMyMissions();
+        this.findEnemyMissions();
       });
+  }
+
+  public findMyMissions(): void {
+    this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
+      this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
+    });
+  }
+
+  public async findEnemyMissions(): Promise<void> {
+    this.enemyRunningMissions = await this._missionService.findEnemyRunningMissions().toPromise();
   }
 }

@@ -1,5 +1,4 @@
-import { Component, Input, ElementRef, ViewChild, ViewChildren, QueryList } from '@angular/core';
-import { AnyRunningMission } from '../../shared/types/any-running-mission.type';
+import { Component, Input, ElementRef, ViewChild, ViewChildren, QueryList, Output, EventEmitter } from '@angular/core';
 import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { BaseComponent } from '../../base/base.component';
 import { UnitRunningMission } from '../../shared/types/unit-running-mission.type';
@@ -18,6 +17,9 @@ export class ListRunningMissionsComponent extends BaseComponent {
   @Input()
   public displayUser: boolean;
 
+  @Output()
+  public missionDone: EventEmitter<void> = new EventEmitter();
+
   @ViewChild('tooltipPlanet', { read: ElementRef })
   public tooltipPlanetComponent: ElementRef;
 
@@ -33,5 +35,9 @@ export class ListRunningMissionsComponent extends BaseComponent {
   public onMouseEnter(planet: PlanetPojo): void {
     this.tooltipPlanet = planet;
     $(this.tooltipPlanetComponent.nativeElement).detach().appendTo('.tooltip');
+  }
+
+  public convertToDate(unixTimestamp: number): Date {
+    return new Date(unixTimestamp);
   }
 }

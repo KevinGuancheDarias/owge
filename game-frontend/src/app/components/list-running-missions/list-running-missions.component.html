@@ -3,6 +3,10 @@
     <div #missionRoot class="card sgt auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
+      <span class="display-time">
+        <kgd-countdown *ngIf="runningUnitMission.terminationDate" [targetDate]="convertToDate(runningUnitMission.terminationDate)"
+          (onDone)="missionDone.emit()"></kgd-countdown>
+      </span>
       <ng-template #tooltipPlanetComponent>
         <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
       </ng-template>
@@ -18,7 +22,6 @@
 
           </span>
         </div>
-        ends at {{ runningUnitMission.terminationDate | date: commonDateFormat}}
       </div>
       <div class="card-block">
         <h5>Involved units</h5>

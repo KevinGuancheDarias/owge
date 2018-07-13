@@ -1,6 +1,7 @@
 # SGT changelog
 v0.3.2 (latest)
 ===========
+* __Improvement:__ Display a countdown in the missions, instead of termination date
 * __Fix:__ After building a unit the Cancel button doesn't get back to build button unless you refresh the webpage
 * __Fix:__ Energy should not be displayed in 0.3.x, as it is not really supported
 * __Fix:__ Upgrades are not getting cancelled
