@@ -1,9 +1,10 @@
-import { BehaviorSubject } from 'rxjs';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+
 import { MEDIA_ROUTES } from './../config/config.pojo';
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
-import { Component, OnInit, Input } from '@angular/core';
 
 @Component({
   selector: 'app-display-single-unit',
@@ -24,6 +25,9 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   @Input()
   public withInPlanetMode = false;
 
+  @Output()
+  public buildDone: EventEmitter<void> = new EventEmitter();
+
   /**
    * In planet count
    *
@@ -40,7 +44,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
 
   public set count(value: any) {
     let targetValue;
-    if (isNaN(parseInt(value))) {
+    if (isNaN(parseInt(value, 10))) {
       targetValue = '';
     } else if (value < 1) {
       targetValue = 1;
