@@ -8,10 +8,10 @@ import { URLSearchParams } from '@angular/http';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { PlanetService } from './planet.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
-import { Observable } from 'rxjs/Rx';
 import { ResourceManagerService } from './resource-manager.service';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/filter';
 
 export class PlanetsNotReadyError extends Error { }
@@ -45,6 +45,11 @@ export class UnitService extends GameBaseService {
     return this._planetsLoaded;
   }
   private _planetsLoaded: BehaviorSubject<boolean> = new BehaviorSubject(false);
+
+  public get ready(): Observable<boolean> {
+    return this._ready.asObservable();
+  }
+  private _ready: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   constructor(
     private _resourceManagerService: ResourceManagerService, private _planetService: PlanetService
@@ -113,7 +118,7 @@ export class UnitService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public registerUnitBuild(unit: UnitPojo, count: number): void {
-    let params: URLSearchParams = new URLSearchParams();
+    const params: URLSearchParams = new URLSearchParams();
     unit = this._doComputeRequiredResources(unit, false, count);
     params.append('planetId', this._selectedPlanet.id.toString());
     params.append('unitId', unit.id.toString());
@@ -131,14 +136,14 @@ export class UnitService extends GameBaseService {
 
   /**
    * Cancels a unit build mission
-   * 
+   *
    * @todo https://trello.com/c/WPx0qaXR/23-unitservicecancel-should-not-call-thissubscribetoplanetchanges
-   * @param {RunningUnitPojo} missionData 
+   * @param {RunningUnitPojo} missionData
    * @memberof UnitService
    * @author Kevin Guanche Darias
    */
   public cancel(missionData: RunningUnitPojo) {
-    let params: URLSearchParams = new URLSearchParams();
+    const params: URLSearchParams = new URLSearchParams();
     params.append('missionId', missionData.missionId);
     this.doGetWithAuthorizationToGame('unit/cancel', params).subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, missionData.requiredPrimary);
@@ -170,11 +175,11 @@ export class UnitService extends GameBaseService {
    */
   private _subscribeToPlanetChanges(): void {
     this.planetsLoaded.next(false);
-    this._planetService.myPlanets.filter(myPlanets => !!myPlanets).subscribe(myPlanets => {
+    this._planetService.myPlanets.filter(myPlanets => !!myPlanets).subscribe(async myPlanets => {
       this._clearIntervals();
       this._planetList = myPlanets;
-      this._registerIntervals(myPlanets);
-      this.planetsLoaded.next(true);
+      await this._registerIntervals(myPlanets);
+      this._planetsLoaded.next(true);
     });
   }
 
@@ -189,13 +194,29 @@ export class UnitService extends GameBaseService {
       runningMission
     );
   }
-  private _registerIntervals(planets: PlanetPojo[]): void {
-    planets.forEach(currentPlanet => {
-      this._findRunningBuild(currentPlanet).filter(runningMission => !!runningMission).subscribe(runningMission => {
-        runningMission.terminationDate = new Date(runningMission.terminationDate);
-        this._registerInterval(currentPlanet, runningMission);
+
+  /**
+   * This method will resolve when all planets has been queried
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @private
+   * @todo In the future refactor this method, NOT TO BE SO COMPREX
+   * @param {PlanetPojo[]} planets
+   * @returns {Promise<any>}
+   * @memberof UnitService
+   */
+  private _registerIntervals(planets: PlanetPojo[]): Promise<any> {
+    return Promise.all(planets.map<Promise<void>>(currentPlanet => {
+      return new Promise(resolve => {
+        this._findRunningBuild(currentPlanet).subscribe(runningMission => {
+          if (runningMission) {
+            runningMission.terminationDate = new Date(runningMission.terminationDate);
+            this._registerInterval(currentPlanet, runningMission);
+          }
+          resolve();
+        });
       });
-    });
+    }));
   }
 
   /**
@@ -214,7 +235,7 @@ export class UnitService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
-    let params: URLSearchParams = new URLSearchParams();
+    const params: URLSearchParams = new URLSearchParams();
     params.append('planetId', planet.id.toString());
     return this.doGetWithAuthorizationToGame('unit/findRunning', params);
   }
@@ -227,7 +248,7 @@ export class UnitService extends GameBaseService {
       throw new PlanetsNotReadyError('Can\'t invoke this method when planets has not been loaded!');
     }
 
-    for (let currentPlanetId in this._intervals) {
+    for (const currentPlanetId in this._intervals) {
       if (currentPlanetId === planetId.toString()) {
         return this._intervals[currentPlanetId];
       }
@@ -236,7 +257,7 @@ export class UnitService extends GameBaseService {
   }
 
   private _doComputeRequiredResources(unit: UnitPojo, subscribeToResources: boolean, count = 1): UnitPojo {
-    let requirements: RequirementPojo = new RequirementPojo();
+    const requirements: RequirementPojo = new RequirementPojo();
     requirements.requiredPrimary = unit.primaryResource * count;
     requirements.requiredSecondary = unit.secondaryResource * count;
     requirements.requiredTime = unit.time * count;
@@ -256,7 +277,7 @@ export class UnitService extends GameBaseService {
 
   /**
    * When a planet change his conditions, for example because it's now recluiting, this will force BehaviorSubject to fire again
-   * 
+   *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @private
    * @memberof UnitService

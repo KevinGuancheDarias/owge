@@ -1,6 +1,7 @@
 # SGT changelog
-v0.3.2 (latest)
+v0.3.2 (2018-07-13 15:35)
 ===========
+* __Fix:__ The first time the build unit. build tab is open, the unit been build won't show, have to go to tab "In planet" and back to "Build"
 * __Improvement:__ Display a countdown in the missions, instead of termination date
 * __Fix:__ After building a unit the Cancel button doesn't get back to build button unless you refresh the webpage
 * __Fix:__ Energy should not be displayed in 0.3.x, as it is not really supported

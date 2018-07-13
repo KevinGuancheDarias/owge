@@ -25,9 +25,10 @@ export class BuildUnitsComponent extends BaseComponent implements OnInit {
     this.requireUser();
     this.findUnlocked();
 
-    this._unitService.planetsLoaded.filter(value => value === true)
-      .subscribe(() => this.buildingUnit = this._unitService.findIsRunningInSelectedPlanet());
-
+    this.loginSessionService.findSelectedPlanet.filter(planet => !!planet).subscribe(() => {
+      this._unitService.planetsLoaded.filter(value => !!value)
+        .subscribe(() => this.buildingUnit = this._unitService.findIsRunningInSelectedPlanet());
+    });
   }
 
   private findUnlocked(): void {
