@@ -1,4 +1,10 @@
 # SGT changelog
+
+v0.3.3 (latest)
+===========
+* __Improvement:__ Limit number of decimals in numbers 
+* __Fix:__ Unit build cancellation is not working, was working in 2.1
+
 v0.3.2 (2018-07-13 15:35)
 ===========
 * __Fix:__ The first time the build unit. build tab is open, the unit been build won't show, have to go to tab "In planet" and back to "Build"
