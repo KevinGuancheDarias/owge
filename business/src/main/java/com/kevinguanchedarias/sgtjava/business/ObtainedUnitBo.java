@@ -127,7 +127,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		} else if (obtainedUnit.getCount() > substractionCount) {
 			obtainedUnit.setCount(obtainedUnit.getCount() - substractionCount);
 			return save(obtainedUnit);
-		} else if (obtainedUnit.getCount() == substractionCount) {
+		} else if (obtainedUnit.getCount().equals(substractionCount)) {
 			delete(obtainedUnit);
 			return null;
 		} else {
