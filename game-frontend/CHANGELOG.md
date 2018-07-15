@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.3.3 (latest)
+v0.3.3 (2018-07-15 11:39)
 ===========
 * __Fix:__ When you send all amount you have of one unit, and the units number is above 127, the mission registration would crash...
 * __Fix:__ Game displays missions other than "Explore" when the planet is not explored, ONLY explore should be available
