@@ -2,12 +2,16 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.sgtjava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.sgtjava.dto.UnitDto;
+import com.kevinguanchedarias.sgtjava.dto.UpgradeDto;
+import com.kevinguanchedarias.sgtjava.entity.Faction;
 import com.kevinguanchedarias.sgtjava.entity.ObjectRelation;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.sgtjava.entity.Requirement;
@@ -16,9 +20,12 @@ import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UnlockedRelation;
 import com.kevinguanchedarias.sgtjava.entity.Upgrade;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.enumerations.ObjectType;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementType;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
+import com.kevinguanchedarias.sgtjava.pojo.UnitUpgradeRequirements;
+import com.kevinguanchedarias.sgtjava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.sgtjava.repository.RequirementRepository;
 import com.kevinguanchedarias.sgtjava.repository.UnlockedRelationRepository;
 
@@ -67,6 +74,15 @@ public class RequirementBo implements Serializable {
 	 */
 	public List<RequirementInformation> getRequirements(RequirementTargetObject targetObject, Integer referenceId) {
 		return requirementDao.getRequirements(targetObject, referenceId);
+	}
+
+	public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
+		return requirementDao
+				.findByRequirementTypeAndSecondValue(RequirementType.BEEN_RACE, faction.getId().longValue()).stream()
+				.filter(current -> current.getObject().getDescription().equals(ObjectType.UNIT.name()))
+				.map(current -> createUnitUpgradeRequiements(objectRelationBo.unboxObjectRelation(current),
+						current.getRequirements()))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -150,6 +166,28 @@ public class RequirementBo implements Serializable {
 		for (UserStorage user : users) {
 			processRelation(withSessionRelation, user);
 		}
+	}
+
+	/**
+	 * Checks if the input user has reached the level of the upgrades, and fills
+	 * the property <i>reached</i>, which is false by default
+	 * 
+	 * @param user
+	 * @param listToFill
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<UnitWithRequirementInformation> computeReachedLevel(UserStorage user,
+			List<UnitWithRequirementInformation> listToFill) {
+		return listToFill.stream().map(currentUnit -> {
+			currentUnit.getRequirements().forEach(currentRequirement -> {
+				ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(user.getId(),
+						currentRequirement.getUpgrade().getId());
+				currentRequirement.setReached(
+						obtainedUpgrade != null && obtainedUpgrade.getLevel() >= currentRequirement.getLevel());
+			});
+			return currentUnit;
+		}).collect(Collectors.toList());
 	}
 
 	/**
@@ -306,5 +344,23 @@ public class RequirementBo implements Serializable {
 	private void alterObtainedUpgradeAvailability(ObtainedUpgrade obtainedUpgrade, Boolean available) {
 		obtainedUpgrade.setAvailable(available);
 		obtainedUpgradeBo.save(obtainedUpgrade);
+	}
+
+	private UnitWithRequirementInformation createUnitUpgradeRequiements(Unit unit,
+			List<RequirementInformation> requirementInformations) {
+		UnitWithRequirementInformation retVal = new UnitWithRequirementInformation();
+		retVal.setUnit(new UnitDto());
+		retVal.getUnit().dtoFromEntity(unit);
+		retVal.setRequirements(requirementInformations.stream()
+				.filter(current -> current.getRequirement().getCode().equals(RequirementType.UPGRADE_LEVEL.name()))
+				.map(current -> {
+					UnitUpgradeRequirements unitUpgradeRequirements = new UnitUpgradeRequirements();
+					unitUpgradeRequirements.setLevel(current.getThirdValue().intValue());
+					UpgradeDto upgradeDto = new UpgradeDto();
+					upgradeDto.dtoFromEntity(upgradeBo.findById(current.getSecondValue().intValue()));
+					unitUpgradeRequirements.setUpgrade(upgradeDto);
+					return unitUpgradeRequirements;
+				}).collect(Collectors.toList()));
+		return retVal;
 	}
 }

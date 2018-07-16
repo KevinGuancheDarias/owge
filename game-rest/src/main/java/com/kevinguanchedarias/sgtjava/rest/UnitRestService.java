@@ -11,6 +11,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.sgtjava.business.MissionBo;
 import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
+import com.kevinguanchedarias.sgtjava.business.RequirementBo;
 import com.kevinguanchedarias.sgtjava.business.UnlockedRelationBo;
 import com.kevinguanchedarias.sgtjava.business.UserStorageBo;
 import com.kevinguanchedarias.sgtjava.dto.ObtainedUnitDto;
@@ -19,6 +20,7 @@ import com.kevinguanchedarias.sgtjava.dto.UnitDto;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.sgtjava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 @RestController
@@ -37,6 +39,9 @@ public class UnitRestService {
 
 	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
+	private RequirementBo requirementBo;
 
 	@Autowired
 	private DtoUtilService dtoUtilService;
@@ -69,6 +74,12 @@ public class UnitRestService {
 		}
 
 		return retVal;
+	}
+
+	@RequestMapping(value = "requirements", method = RequestMethod.GET)
+	public List<UnitWithRequirementInformation> requirements() {
+		return requirementBo.computeReachedLevel(findLoggedInUser(), requirementBo
+				.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails(false).getFaction()));
 	}
 
 	@RequestMapping(value = "cancel", method = RequestMethod.GET)

@@ -16,6 +16,7 @@ import com.kevinguanchedarias.sgtjava.business.UpgradeBo;
 import com.kevinguanchedarias.sgtjava.entity.ObjectEntity;
 import com.kevinguanchedarias.sgtjava.entity.ObjectRelation;
 import com.kevinguanchedarias.sgtjava.entity.RequirementInformation;
+import com.kevinguanchedarias.sgtjava.enumerations.ObjectType;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementType;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendRequirementException;
@@ -66,6 +67,12 @@ public class RequirementInformationDao implements Serializable {
 
 	public List<ObjectRelation> findObjectRelationsHavingRequirementType(RequirementType type) {
 		return objectRelationsRepository.findByRequirementsRequirementCode(type.name());
+	}
+
+	public List<ObjectRelation> findObjectRelationsOfTypeHavingRequirementType(ObjectType type,
+			RequirementType requirementType) {
+		return objectRelationsRepository.findByObjectDescriptionAndRequirementsRequirementCode(type.name(),
+				requirementType.name());
 	}
 
 	public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementType type, Long secondValue) {
