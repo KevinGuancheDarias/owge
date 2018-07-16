@@ -13,6 +13,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/filter';
+import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -165,6 +166,18 @@ export class UnitService extends GameBaseService {
     const params: URLSearchParams = new URLSearchParams();
     params.append('planetId', planetId.toString());
     return this.doGetWithAuthorizationToGame('unit/findInMyPlanet', params);
+  }
+
+
+  /**
+   * Find unit upgrade requirements for given logged user faction
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @returns {Observable<UnitUpgradeRequirements[]>}
+   * @memberof UnitService
+   */
+  public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
+    return this.doGetWithAuthorizationToGame('unit/requirements');
   }
 
   /**

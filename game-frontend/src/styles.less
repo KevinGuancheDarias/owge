@@ -57,6 +57,14 @@ a.selectedMenu{
     text-shadow: @commonTextShadow;
     transition: all 0.3s;
 
+    .sgt-green-shadow {
+        box-shadow: @commonBoxShadowWithoutColor green;
+    }
+    
+    .sgt-red-shadow {
+        box-shadow: @commonBoxShadowWithoutColor red;
+    }
+    
     &.auto-expand {
         transition: all 0.001s;
     }

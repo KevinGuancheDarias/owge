@@ -1,5 +1,10 @@
 # SGT changelog
 
+v0.4.0 (latest)
+==========
+* __Feature:__ As a player I would like to see the requirements for the units of my race
+* __Merge:__ v0.3.3
+
 v0.3.3 (2018-07-15 11:39)
 ===========
 * __Fix:__ When you send all amount you have of one unit, and the units number is above 127, the mission registration would crash...

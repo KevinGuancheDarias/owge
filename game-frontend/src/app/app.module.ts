@@ -59,6 +59,7 @@ import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
 import { SynchronizeCredentialsComponent } from './components/synchronize-credentials/synchronize-credentials.component';
 import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
+import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
 
 
 export const APP_ROUTES: Routes = [
@@ -70,6 +71,7 @@ export const APP_ROUTES: Routes = [
   { path: 'units', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'units/build', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'units/deployed', component: UnitsComponent, canActivate: [LoginSessionService] },
+  { path: 'units/requirements', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'navigate', component: NavigationComponent, canActivate: [LoginSessionService] },
   { path: 'reports', component: ReportsListComponent, canActivate: [LoginSessionService] },
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
@@ -111,7 +113,8 @@ export const APP_ROUTES: Routes = [
     DisplayUsernamePipe,
     DisplayMissionTypePipe,
     SynchronizeCredentialsComponent,
-    VersionInformationComponent
+    VersionInformationComponent,
+    UnitRequirementsComponent
   ],
   imports: [
     BrowserModule,
