@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.sgtjava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
@@ -106,6 +107,19 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 			}
 		} else {
 			throw new SgtBackendNotImplementedException("This type of action is not actually implemented");
+		}
+		return retVal;
+	}
+
+	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto) {
+		ObtainedUnitDto retVal;
+		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),
+				obtainedUnitDto.getCount());
+		if (obtainedUnit != null) {
+			retVal = new ObtainedUnitDto();
+			retVal.dtoFromEntity(obtainedUnit);
+		} else {
+			retVal = null;
 		}
 		return retVal;
 	}

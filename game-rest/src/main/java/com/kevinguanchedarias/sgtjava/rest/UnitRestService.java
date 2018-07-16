@@ -3,6 +3,7 @@ package com.kevinguanchedarias.sgtjava.rest;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,6 +92,12 @@ public class UnitRestService {
 	@RequestMapping(value = "findInMyPlanet", method = RequestMethod.GET)
 	public List<ObtainedUnitDto> findInMyPlanet(@RequestParam("planetId") Long planetId) {
 		return dtoUtilService.convertEntireArray(ObtainedUnitDto.class, obtainedUnitBo.findInMyPlanet(planetId));
+	}
+
+	@RequestMapping(value = "delete", method = RequestMethod.POST)
+	public String delete(@RequestBody ObtainedUnitDto obtainedUnitDto) {
+		obtainedUnitBo.saveWithSubtraction(obtainedUnitDto);
+		return "OK";
 	}
 
 	private UserStorage findLoggedInUser() {
