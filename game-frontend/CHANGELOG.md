@@ -2,6 +2,7 @@
 
 v0.4.0 (latest)
 ==========
+* __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
 * __Merge:__ v0.3.3
 

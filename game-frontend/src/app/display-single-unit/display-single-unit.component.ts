@@ -5,6 +5,7 @@ import { MEDIA_ROUTES } from './../config/config.pojo';
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
+import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 
 @Component({
   selector: 'app-display-single-unit',
@@ -25,8 +26,14 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   @Input()
   public withInPlanetMode = false;
 
-  @Output()
-  public buildDone: EventEmitter<void> = new EventEmitter();
+
+  /**
+   * If specified, allows deleting the specified obtained unit
+   *
+   * @memberof DisplaySingleUnitComponent
+   */
+  @Input()
+  public isDeletable = false;
 
   /**
    * In planet count
@@ -36,6 +43,17 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    */
   @Input()
   public inPlanetCount: number;
+
+  @Input()
+  public obtainedUnit: ObtainedUnit;
+
+  @Output()
+  public buildDone: EventEmitter<void> = new EventEmitter();
+
+  @Output()
+  public delete: EventEmitter<void> = new EventEmitter();
+
+  public numberToDelete: number;
 
   public image: string;
   public get count(): any {
@@ -76,11 +94,23 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
     this._unitService.cancel(this.building.missionData);
   }
 
+  public async deleteUnits(): Promise<void> {
+    if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
+      this.obtainedUnit.count = this.numberToDelete;
+      await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit).toPromise());
+      this.delete.emit();
+    }
+  }
+
   public buildSelectedUnit(): void {
     this._unitService.registerUnitBuild(this.unit, this.count);
   }
 
   public noResources(): void {
     this.displayError('No se poseen los recursos necesarios');
+  }
+
+  public isValidDeletion(): boolean {
+    return this.numberToDelete && this.numberToDelete <= this.inPlanetCount;
   }
 }

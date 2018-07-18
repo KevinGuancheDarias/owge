@@ -14,6 +14,7 @@ import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/filter';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
+import { ProgrammingError } from '../../error/programming.error';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -178,6 +179,24 @@ export class UnitService extends GameBaseService {
    */
   public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
     return this.doGetWithAuthorizationToGame('unit/requirements');
+  }
+
+
+  /**
+   * Deletes specified obtainedUnit, if count is exactly the totally available, will completely remove the obtainedUnit
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {ObtainedUnit} unit Should contain at least the id, and the count to delete
+   * @returns {Observable<void>}
+   * @throws {ProgrammingError} Invalid unit was passed
+   * @memberof UnitService
+   */
+  public deleteObtainedUnit(unit: ObtainedUnit): Observable<void> {
+    if (!unit.id || !unit.count) {
+      throw new ProgrammingError('ObtainedUnit MUST have an id, and the count MUST be specified');
+    }
+    const { id, count } = unit;
+    return this._doPostWithAuthorizationToGame('unit/delete', { id, count });
   }
 
   /**

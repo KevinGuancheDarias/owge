@@ -42,6 +42,10 @@ export class BaseComponent {
     alert(message);
   }
 
+  public async displayConfirm(message: string): Promise<boolean> {
+    return confirm(message);
+  }
+
   /**
    * Executes a promise or promises displaying the loading icon globally, until the promise is resolved
    *
