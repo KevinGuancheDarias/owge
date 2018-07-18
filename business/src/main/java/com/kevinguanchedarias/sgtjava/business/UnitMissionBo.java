@@ -671,10 +671,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	@Transactional
-	public void cancelMission(Long missionId) {
+	public void myCancelMission(Long missionId) {
 		Mission mission = findById(missionId);
 		if (mission == null) {
 			throw new NotFoundException("No mission with id " + missionId + " was found");
+		} else if (!mission.getUser().getId().equals(userStorageBo.findLoggedIn().getId())) {
+			throw new SgtBackendInvalidInputException("You can't cancel other player missions");
+		} else if (isOfType(mission, MissionType.RETURN_MISSION)) {
+			throw new SgtBackendInvalidInputException("can't cancel return missions");
 		} else {
 			mission.setResolved(true);
 			save(mission);

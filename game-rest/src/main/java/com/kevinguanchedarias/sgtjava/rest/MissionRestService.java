@@ -60,7 +60,7 @@ public class MissionRestService {
 
 	@RequestMapping(value = "cancel", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public String cancel(@RequestParam("id") Long id) {
-		unitMissionBo.cancelMission(id);
+		unitMissionBo.myCancelMission(id);
 		return "OK";
 	}
 

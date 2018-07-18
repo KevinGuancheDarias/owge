@@ -187,4 +187,18 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 		mission.setResolved(true);
 		return missionRepository.saveAndFlush(mission);
 	}
+
+	/**
+	 * Returns true if the input mission is of the expected type
+	 * 
+	 * @param mission
+	 *            input mission
+	 * @param type
+	 *            expected type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	protected boolean isOfType(Mission mission, MissionType type) {
+		return MissionType.valueOf(mission.getType().getCode()).equals(type);
+	}
 }
