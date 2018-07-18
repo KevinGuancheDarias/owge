@@ -47,6 +47,10 @@ export class MissionService extends GameBaseService {
     return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits);
   }
 
+  public cancelMission(missionId: number): Observable<void> {
+    return this._doPostWithAuthorizationToGame(`mission/cancel?id=${missionId}`, {});
+  }
+
   public isUnitMission(mission: AnyRunningMission): boolean {
     switch (mission.type) {
       case 'RETURN_MISSION':

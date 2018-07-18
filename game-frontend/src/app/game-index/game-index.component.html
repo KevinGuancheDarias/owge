@@ -2,7 +2,7 @@
   <app-loading [isReady]="myUnitRunningMissions">
     <div *ngIf="myUnitRunningMissions" class="sgt-card-list">
       <h1 class="sgt-title">My missions</h1>
-      <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" (missionDone)="findMyMissions()"></app-list-running-missions>
+      <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isCancellable]="true" (missionDone)="findMyMissions()"></app-list-running-missions>
       <p *ngIf="!myUnitRunningMissions.length" class="sgt-base-colors">
         You are not running any mission
       </p>

@@ -3,6 +3,8 @@
     <div #missionRoot class="card sgt auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
+      <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'" (click)="cancelMission(runningUnitMission.missionId)"
+        class="fa fa-close"></i>
       <span class="display-time">
         <kgd-countdown *ngIf="runningUnitMission.terminationDate" [targetDate]="convertToDate(runningUnitMission.terminationDate)"
           (onDone)="missionDone.emit()"></kgd-countdown>
