@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
+import org.joda.time.Interval;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -589,10 +591,26 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public void adminRegisterReturnMission(Mission mission) {
+		adminRegisterReturnMission(mission, null);
+	}
+
+	/**
+	 * Creates a return mission from an existing mission
+	 * 
+	 * @param mission
+	 *            Existing mission that will be returned
+	 * @param customRequiredTime
+	 *            If not null will be used as the time for the return mission,
+	 *            else will use source mission time
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void adminRegisterReturnMission(Mission mission, Double customRequiredTime) {
 		Mission returnMission = new Mission();
 		returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
 		returnMission.setRequiredTime(mission.getRequiredTime());
-		returnMission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+		Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
+		returnMission.setTerminationDate(computeTerminationDate(requiredTime));
 		returnMission.setSourcePlanet(mission.getTargetPlanet());
 		returnMission.setTargetPlanet(mission.getSourcePlanet());
 		returnMission.setUser(mission.getUser());
@@ -650,6 +668,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "conquest_report", builder.build());
 		emitLocalMissionChange(mission, user);
+	}
+
+	@Transactional
+	public void cancelMission(Long missionId) {
+		Mission mission = findById(missionId);
+		if (mission == null) {
+			throw new NotFoundException("No mission with id " + missionId + " was found");
+		} else {
+			mission.setResolved(true);
+			save(mission);
+			Interval interval = new Interval(new Instant().getMillis(), mission.getTerminationDate().getTime());
+			adminRegisterReturnMission(mission,
+					Double.valueOf(mission.getRequiredTime() - (interval.toDurationMillis() / 1000D)));
+		}
 	}
 
 	/**

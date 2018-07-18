@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
@@ -55,6 +56,12 @@ public class MissionRestService {
 	@RequestMapping(value = "conquest", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public UnitRunningMissionDto conquest(@RequestBody UnitMissionInformation missionInformation) {
 		return unitMissionBo.myRegisterConquestMission(missionInformation);
+	}
+
+	@RequestMapping(value = "cancel", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public String cancel(@RequestParam("id") Long id) {
+		unitMissionBo.cancelMission(id);
+		return "OK";
 	}
 
 	@RequestMapping(value = "findMy", method = RequestMethod.GET)
