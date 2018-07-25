@@ -184,7 +184,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	public boolean existsByMission(Mission mission) {
-		return repository.findOneByMission(mission) != null;
+		return repository.countByMission(mission) > 0;
 	}
 
 	private boolean isDeployedInUserPlanet(ObtainedUnit obtainedUnit) {

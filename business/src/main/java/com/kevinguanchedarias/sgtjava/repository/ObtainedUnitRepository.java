@@ -38,4 +38,6 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 	public ObtainedUnit findOneByMission(Mission mission);
 
 	public Long deleteBySourcePlanetIdAndMissionIdNull(Long sourcePlanetId);
+
+	public Long countByMission(Mission mission);
 }
