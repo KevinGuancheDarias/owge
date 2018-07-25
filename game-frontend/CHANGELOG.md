@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.3.4 (latest)
+v0.3.4 (2018-07-25 13:06)
 ==========
 * __Improvement:__ Notify user when he doesn't have units in the selected planet
 * __Improvement:__ Notify user, that he can't build units, when he/she doesn't meet minimum requirements
