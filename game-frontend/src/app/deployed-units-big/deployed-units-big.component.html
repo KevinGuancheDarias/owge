@@ -1,3 +1,6 @@
 <app-loading [isReady]="obtainedUnits">
-  <app-display-single-unit *ngFor="let unit of obtainedUnits" [unit]="unit.unit" [withInPlanetMode]="true" [inPlanetCount]="unit.count"></app-display-single-unit>
+  <ng-container *ngIf="obtainedUnits">
+    <div *ngIf="!obtainedUnits.length" class="sgt-base-colors">There are no units in this planet</div>
+    <app-display-single-unit *ngFor="let unit of obtainedUnits" [unit]="unit.unit" [withInPlanetMode]="true" [inPlanetCount]="unit.count"></app-display-single-unit>
+  </ng-container>
 </app-loading>
