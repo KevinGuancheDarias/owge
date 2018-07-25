@@ -24,4 +24,8 @@ public interface MissionRepository extends JpaRepository<Mission, Number>, Seria
 	public List<Mission> findByUserIdAndResolvedFalse(Integer userId);
 
 	public List<Mission> findByTargetPlanetInAndResolvedFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
+
+	public Long countByTargetPlanetIdAndTypeCodeAndResolvedFalse(Long planetId, String type);
+
+	public Long countByTargetPlanetIdAndResolvedFalse(Long planetId);
 }

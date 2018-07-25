@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.kevinguanchedarias.sgtjava.entity.ExploredPlanet;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.sgtjava.repository.ExploredPlanetRepository;
@@ -34,6 +35,12 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
+	private MissionBo missionBo;
 
 	@PersistenceContext
 	private transient EntityManager entityManager;
@@ -126,11 +133,15 @@ public class PlanetBo implements WithNameBo<Planet> {
 		return isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
 	}
 
-	public void myCheckIsOfUserProperty(Long planetId) {
-		if (!myIsOfUserProperty(planetId)) {
+	public void checkIsOfUserProperty(UserStorage user, Long planetId) {
+		if (!isOfUserProperty(user.getId(), planetId)) {
 			throw new SgtBackendInvalidInputException(
 					"Specified planet with id " + planetId + " does NOT belong to the user");
 		}
+	}
+
+	public void myCheckIsOfUserProperty(Long planetId) {
+		checkIsOfUserProperty(userStorageBo.findLoggedIn(), planetId);
 	}
 
 	public boolean isExplored(UserStorage user, Planet planet) {
@@ -179,4 +190,24 @@ public class PlanetBo implements WithNameBo<Planet> {
 		return hasMaxPlanets(userStorageBo.findById(userId));
 	}
 
+	public void doLeavePlanet(Integer invokerId, Long planetId) {
+		if (!canLeavePlanet(invokerId, planetId)) {
+			throw new SgtBackendInvalidInputException(
+					"Can't leave planet, make sure, it is NOT your home planet and you don't have runnings missions, nor running unit constructions");
+		}
+		Planet planet = findById(planetId);
+		planet.setOwner(null);
+		save(planet);
+	}
+
+	public boolean canLeavePlanet(UserStorage invoker, Planet planet) {
+		return canLeavePlanet(invoker.getId(), planet.getId());
+	}
+
+	public boolean canLeavePlanet(Integer invokerId, Long planetId) {
+		return !isHomePlanet(planetId) && isOfUserProperty(invokerId, planetId)
+				&& !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
+				&& missionBo.findByUserIdAndTypeCode(invokerId, MissionType.BUILD_UNIT) == null
+				&& !missionBo.existsByTargetPlanetAndType(planetId, MissionType.RETURN_MISSION);
+	}
 }

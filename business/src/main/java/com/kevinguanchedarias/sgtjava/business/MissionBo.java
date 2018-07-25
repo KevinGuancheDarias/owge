@@ -198,6 +198,14 @@ public class MissionBo extends AbstractMissionBo {
 		return missionRepository.findOneByReportId(reportId);
 	}
 
+	public boolean existsByTargetPlanet(Long planetId) {
+		return missionRepository.countByTargetPlanetIdAndResolvedFalse(planetId) > 0;
+	}
+
+	public boolean existsByTargetPlanetAndType(Long planetId, MissionType type) {
+		return missionRepository.countByTargetPlanetIdAndTypeCodeAndResolvedFalse(planetId, type.name()) > 0;
+	}
+
 	/**
 	 * Should be invoked from the context
 	 * 

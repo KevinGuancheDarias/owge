@@ -204,7 +204,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	public boolean isYourPlanet(Planet planet, UserStorage user) {
-		return planet.getOwner().getId() == user.getId();
+		return planet.getOwner() != null && planet.getOwner().getId() == user.getId();
 	}
 
 	/**

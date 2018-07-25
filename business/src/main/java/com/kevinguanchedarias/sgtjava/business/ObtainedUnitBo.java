@@ -34,6 +34,14 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository;
 	}
 
+	public boolean hasUnitsInPlanet(UserStorage user, Planet planet) {
+		return hasUnitsInPlanet(user.getId(), planet.getId());
+	}
+
+	public boolean hasUnitsInPlanet(Integer userId, Long planetId) {
+		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
+	}
+
 	public List<ObtainedUnit> findByMissionId(Long missionId) {
 		return repository.findByMissionId(missionId);
 	}
