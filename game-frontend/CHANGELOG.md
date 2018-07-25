@@ -1,4 +1,7 @@
 # SGT changelog
+v0.3.4 (latest)
+==========
+* __Fix:__ On some mobile devices the user can't change the selected planet, because he/she can't close the dialog
 
 v0.3.3 (2018-07-15 11:39)
 ===========
