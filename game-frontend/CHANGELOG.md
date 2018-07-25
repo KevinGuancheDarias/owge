@@ -5,7 +5,17 @@ v0.4.0 (latest)
 * __Feature:__ As a player I would like to cancel my running unit missions
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
-* __Merge:__ v0.3.3
+* __Merge:__ v0.3.4
+
+v0.3.4 (2018-07-25 13:06)
+==========
+* __Improvement:__ Notify user when he doesn't have units in the selected planet
+* __Improvement:__ Notify user, that he can't build units, when he/she doesn't meet minimum requirements
+* __Fix:__ When the list of "buildable" units is empty, the system is throwing a 500 error, instead of returning a 200, with an empty array
+* __Security:__ Backend allows to use a planet that doesn't exists as target for UNIT_BUILD mision
+* __Security:__ An user can build units targetting any planet, by sending the planetId
+* __Fix:__ Attacks are crashing when multiple units are involved, and in some custom circumstance
+* __Fix:__ On some mobile devices the user can't change the selected planet, because he/she can't close the dialog
 
 v0.3.3 (2018-07-15 11:39)
 ===========

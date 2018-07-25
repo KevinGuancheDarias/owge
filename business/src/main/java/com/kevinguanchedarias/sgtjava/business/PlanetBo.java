@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.kevinguanchedarias.sgtjava.entity.ExploredPlanet;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.sgtjava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.sgtjava.repository.PlanetRepository;
@@ -123,6 +124,13 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	public boolean myIsOfUserProperty(Long planetId) {
 		return isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
+	}
+
+	public void myCheckIsOfUserProperty(Long planetId) {
+		if (!myIsOfUserProperty(planetId)) {
+			throw new SgtBackendInvalidInputException(
+					"Specified planet with id " + planetId + " does NOT belong to the user");
+		}
 	}
 
 	public boolean isExplored(UserStorage user, Planet planet) {

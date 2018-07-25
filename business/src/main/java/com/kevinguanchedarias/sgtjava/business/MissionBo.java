@@ -131,6 +131,7 @@ public class MissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
+		planetBo.myCheckIsOfUserProperty(planetId);
 		checkUnitBuildMissionDoesNotExists(userId, planetId);
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UNIT,
 				unitId);
