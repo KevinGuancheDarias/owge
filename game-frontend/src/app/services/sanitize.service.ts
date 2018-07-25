@@ -8,9 +8,24 @@ export class SanitizeService {
   constructor(private _domSanitizer: DomSanitizer) { }
 
 
+
+  /**
+   * Checks if the URL is valid <br>
+   * <b>NOTICE:</b> Non string inputs such as null, are always considered NOT safe
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {string} url
+   * @returns {boolean} true if valid
+   * @since 0.3.1
+   * @memberof SanitizeService
+   */
   public isSafe(url: string): boolean {
-    const urlObject: URL = new URL(url);
-    return TRUSTED_DOMAINS.some(current => urlObject.hostname.endsWith(current));
+    if (typeof url === 'string') {
+      const urlObject: URL = new URL(url);
+      return TRUSTED_DOMAINS.some(current => urlObject.hostname.endsWith(current));
+    } else {
+      return false;
+    }
   }
 
   /**

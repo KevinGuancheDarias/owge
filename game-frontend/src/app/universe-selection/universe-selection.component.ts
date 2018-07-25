@@ -102,6 +102,10 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   }
 
   private _findFrontendUrl(): string {
-    return `${this.selectedUniverse.frontendUrl}/${ROUTES.SYNCHRONIZE_CREDENTIALS}`;
+    if (this.selectedUniverse.frontendUrl) {
+      return `${this.selectedUniverse.frontendUrl}/${ROUTES.SYNCHRONIZE_CREDENTIALS}`;
+    } else {
+      return null;
+    }
   }
 }
