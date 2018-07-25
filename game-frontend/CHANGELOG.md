@@ -2,6 +2,7 @@
 
 v0.3.4 (latest)
 ==========
+* __Improvement:__ Notify user, that he can't build units, when he/she doesn't meet minimum requirements
 * __Fix:__ When the list of "buildable" units is empty, the system is throwing a 500 error, instead of returning a 200, with an empty array
 * __Security:__ Backend allows to use a planet that doesn't exists as target for UNIT_BUILD mision
 * __Security:__ An user can build units targetting any planet, by sending the planetId

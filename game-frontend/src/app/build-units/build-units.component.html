@@ -1,4 +1,7 @@
 <app-loading [isReady]="buildingUnit !== undefined">
-  <app-display-single-unit *ngFor="let unit of unlockedUnits" [unit]="unit" [withBuildMode]="true" [building]="buildingUnit"
-    (buildDone)="buildingUnit = null"></app-display-single-unit>
+  <ng-container *ngIf="unlockedUnits !== undefined">
+    <div *ngIf="!unlockedUnits.length" class="sgt-base-colors">You can't build any unit for now, please check the requirements tab</div>
+    <app-display-single-unit *ngFor="let unit of unlockedUnits" [unit]="unit" [withBuildMode]="true" [building]="buildingUnit"
+      (buildDone)="buildingUnit = null"></app-display-single-unit>
+  </ng-container>
 </app-loading>
