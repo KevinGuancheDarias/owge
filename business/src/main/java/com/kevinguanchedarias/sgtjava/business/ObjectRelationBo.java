@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import com.kevinguanchedarias.sgtjava.entity.ObjectRelation;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
-import com.kevinguanchedarias.sgtjava.exception.SgtBackendEmptyList;
 import com.kevinguanchedarias.sgtjava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.sgtjava.repository.WithNameRepository;
 
@@ -45,11 +45,10 @@ public class ObjectRelationBo implements BaseBo<ObjectRelation> {
 	@SuppressWarnings("unchecked")
 	public <E> List<E> unboxObjectRelation(List<ObjectRelation> relations) {
 		List<E> retVal = new ArrayList<>();
-		if (relations == null || relations.isEmpty()) {
-			throw new SgtBackendEmptyList("List of relations can't be empty");
+		if (!CollectionUtils.isEmpty(relations)) {
+			WithNameRepository<E, Number> repository = objectEntityBo.findRepository(relations.get(0).getObject());
+			relations.stream().forEach(current -> retVal.add(repository.findOne(current.getReferenceId())));
 		}
-		WithNameRepository<E, Number> repository = objectEntityBo.findRepository(relations.get(0).getObject());
-		relations.stream().forEach(current -> retVal.add(repository.findOne(current.getReferenceId())));
 		return retVal;
 	}
 

@@ -2,6 +2,7 @@
 
 v0.3.4 (latest)
 ==========
+* __Fix:__ When the list of "buildable" units is empty, the system is throwing a 500 error, instead of returning a 200, with an empty array
 * __Security:__ Backend allows to use a planet that doesn't exists as target for UNIT_BUILD mision
 * __Security:__ An user can build units targetting any planet, by sending the planetId
 * __Fix:__ Attacks are crashing when multiple units are involved, and in some custom circumstance
