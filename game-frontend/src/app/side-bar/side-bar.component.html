@@ -8,6 +8,9 @@
                   <div class="card-block">
                         <a class="btn btn-block" (click)="selectPlanet(planet)">Select</a>
                   </div>
+                  <div class="card-block">
+                        <a *ngIf="!planet.home" class="btn btn-block" (click)="leavePlanet(planet)">Leave</a>
+                  </div>
             </div>
       </div>
 </app-modal>

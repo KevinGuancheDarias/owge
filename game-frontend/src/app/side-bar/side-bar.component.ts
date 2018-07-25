@@ -59,6 +59,22 @@ export class SideBarComponent extends BaseComponent implements OnInit {
     this.loginSessionService.defineSelectedPlanet(planet);
   }
 
+  public async leavePlanet(planet: PlanetPojo): Promise<void> {
+    if (await this.displayConfirm('Leave the planet ' + planet.name + '?')) {
+      this._planetService.leavePlanet(planet).subscribe(
+        async () => {
+          const selectedPlanet: PlanetPojo = this.loginSessionService.getSelectedPlanet();
+          await this._planetService.findMyPlanets();
+          if (selectedPlanet.id === planet.id) {
+            console.log('great!');
+            this.loginSessionService.defineSelectedPlanet(this.myPlanets.find(current => current.home));
+          }
+        },
+        error => this.displayError(error)
+      );
+    }
+  }
+
   public logout(): void {
     this.loginSessionService.logout();
   }

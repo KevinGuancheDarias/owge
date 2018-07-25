@@ -1,15 +1,16 @@
+import { HttpClient } from '@angular/common/http';
+import { Http, Response, RequestOptions, URLSearchParams } from '@angular/http';
+import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/throw';
+
 import { LoginSessionService } from './../login-session/login-session.service';
 import { Config } from './../config/config.pojo';
 import { RequestObject } from '../../pojo/request-object.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { AutoUpdatedResources } from './../class/auto-updated-resources';
-import { Http, Response, RequestOptions, URLSearchParams } from '@angular/http';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-
 import { ServiceLocator } from '../service-locator/service-locator';
-import { Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 
 export abstract class BaseHttpService {
 
@@ -73,6 +74,8 @@ export abstract class BaseHttpService {
       } else {
         errMsg = this.translateServerError(error);
       }
+    } else if (error.error && error.error.exceptionType) {
+      errMsg = this.translateServerError(error.error);
     } else {
       errMsg = error.message ? error.message : error.toString();
     }
@@ -89,9 +92,14 @@ export abstract class BaseHttpService {
    * @return {string} Translated message
    * @memberOf BaseHttpService
    */
-  protected translateServerError(error: Response): string {
+  protected translateServerError(error: Response | any): string {
     try {
-      const body = error.json() || ''; // Should have a default server exception pojo
+      let body: any = {};
+      if (error instanceof Response) {
+        body = error.json() || ''; // Should have a default server exception pojo
+      } else if (error.exceptionType && error.message) {
+        body = error;
+      }
       return body.message ? body.message : 'El servidor no respondió correctamente';
     } catch (e) {
       return 'El servidor no devolvió un JSON válido';
@@ -130,6 +138,7 @@ export abstract class BaseHttpService {
     url: string,
     body: any
   ): Observable<any> {
-    return this._http.post(url, body, { headers: loginSessionService.genHttpClientHeaders() });
+    return this._http.post(url, body, { headers: loginSessionService.genHttpClientHeaders() })
+      .catch((error: Response) => this.handleError(error));
   }
 }

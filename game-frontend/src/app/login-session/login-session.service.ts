@@ -163,6 +163,10 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_FACTION, JSON.stringify(faction));
   }
 
+  public getSelectedPlanet(): PlanetPojo {
+    return this._findSelectedPlanet.value;
+  }
+
   public defineSelectedPlanet(planet: PlanetPojo): void {
     this._findSelectedPlanet.next(planet);
   }

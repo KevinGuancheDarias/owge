@@ -38,7 +38,7 @@ export class BaseComponent {
    * @param {string} message Message to display
    * @author Kevin Guanche Darias
    */
-  public displayError(message: string) {
+  public async displayError(message: string): Promise<void> {
     alert(message);
   }
 

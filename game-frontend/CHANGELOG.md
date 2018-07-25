@@ -2,6 +2,7 @@
 
 v0.4.0 (latest)
 ==========
+* __Feature:__ As a player I want to be able to voluntary leave a planet
 * __Fix:__ Universe without custom frontend URL is not working in 0.4.x
 * __Feature:__ As a player I would like to cancel my running unit missions
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
