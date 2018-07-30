@@ -13,8 +13,13 @@ public class UnitDto implements DtoFromEntity<Unit> {
 	private Integer time = 60;
 	private Integer primaryResource = 100;
 	private Integer secondaryResource = 100;
+	private Integer energy;
 	private Integer typeId;
 	private String typeName;
+	private Integer attack;
+	private Integer health = 1;
+	private Integer shield;
+	private Integer charge;
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
 
@@ -95,6 +100,14 @@ public class UnitDto implements DtoFromEntity<Unit> {
 		this.secondaryResource = secondaryResource;
 	}
 
+	public Integer getEnergy() {
+		return energy;
+	}
+
+	public void setEnergy(Integer energy) {
+		this.energy = energy;
+	}
+
 	public Integer getTypeId() {
 		return typeId;
 	}
@@ -109,6 +122,38 @@ public class UnitDto implements DtoFromEntity<Unit> {
 
 	public void setTypeName(String typeName) {
 		this.typeName = typeName;
+	}
+
+	public Integer getAttack() {
+		return attack;
+	}
+
+	public void setAttack(Integer attack) {
+		this.attack = attack;
+	}
+
+	public Integer getHealth() {
+		return health;
+	}
+
+	public void setHealth(Integer health) {
+		this.health = health;
+	}
+
+	public Integer getShield() {
+		return shield;
+	}
+
+	public void setShield(Integer shield) {
+		this.shield = shield;
+	}
+
+	public Integer getCharge() {
+		return charge;
+	}
+
+	public void setCharge(Integer charge) {
+		this.charge = charge;
 	}
 
 	public ImprovementDto getImprovement() {
