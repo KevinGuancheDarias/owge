@@ -28,6 +28,7 @@ export class ReportsListComponent extends BaseComponent implements OnInit {
   }
 
   public async ngOnInit() {
+    this.requireUser();
     this.reports = await this._reportService.findReports(this._page).toPromise();
   }
 

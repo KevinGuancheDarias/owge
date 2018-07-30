@@ -1,6 +1,10 @@
 # SGT changelog
 
-v0.4.0 (latest)
+v0.5.0 (latest)
+==========
+* __Feature:__ As a player I want to see the gather report
+
+v0.4.0 (2018-07-29 21:40)
 ==========
 * __Feature:__ As a player I want to be able to voluntary leave a planet
 * __Fix:__ Universe without custom frontend URL is not working in 0.4.x

@@ -35,6 +35,18 @@
             </div>
           </div>
         </ng-container>
+        <ng-container *ngIf="selectedReport.parsedJson.gatheredPrimary !== undefined && selectedReport.parsedJson.gatheredSecondary !== undefined">
+          <h1>Gathered resources</h1>
+          <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
+            [resourceValue]="selectedReport.parsedJson.gatheredPrimary">
+
+          </app-display-single-resource>
+
+          <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName" [resourceImage]="userData.factionDto.secondaryResourceImage"
+            [resourceValue]="selectedReport.parsedJson.gatheredSecondary">
+
+          </app-display-single-resource>
+        </ng-container>
       </ng-container>
     </div>
   </div>

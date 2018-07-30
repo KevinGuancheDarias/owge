@@ -20,7 +20,7 @@ export class DisplaySingleResourceComponent {
   public resourceMaxValue: number;
 
   @Input()
-  public staticImage: boolean = false;
+  public staticImage = false;
 
   constructor() { }
 
