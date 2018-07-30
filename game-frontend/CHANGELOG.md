@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.3.5 (latest)
+==========
+* __Fix:__ Multiverse doesn't work as expected, the user can't be logged in two different universes
+
 v0.3.4 (2018-07-25 13:06)
 ==========
 * __Improvement:__ Notify user when he doesn't have units in the selected planet

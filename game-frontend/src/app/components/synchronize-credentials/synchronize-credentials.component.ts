@@ -16,7 +16,8 @@ export class SynchronizeCredentialsComponent implements OnInit {
   public ngOnInit() {
     if (this._isIframe()) {
       const parentUrl: URL = new URL(document.referrer);
-      if (parentUrl.hostname !== '192.168.99.100' && !parentUrl.hostname.endsWith('kevinguanchedarias.com')) {
+      if (parentUrl.hostname !== '192.168.99.100' && !parentUrl.hostname.endsWith('kevinguanchedarias.com')
+        && !parentUrl.hostname.endsWith('kevinguanchedarias.local')) {
         alert('Security vulnerability attemp, try next time with a lammer trick!!');
       } else {
         window.addEventListener('message', (e: MessageEvent) => {

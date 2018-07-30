@@ -13,6 +13,8 @@ import { Faction } from '../shared-pojo/faction.pojo';
 import { BaseHttpService } from '../base-http/base-http.service';
 import { HttpHeaders } from '@angular/common/http';
 import { WebsocketService } from '../service/websocket.service';
+import { environment } from '../../environments/environment';
+import { ProgrammingError } from '../../error/programming.error';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -102,14 +104,25 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
    * @author Kevin Guanche Darias
    */
   public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
-    this._redirectIfNotLoggedIn();
     const loadingRoute = route.url[0].path;
-    if (loadingRoute !== 'universe-selection' && loadingRoute !== 'faction-selection' && loadingRoute !== 'synchronice-credentials'
-      && !this.alreadyNotified
-    ) {
-      this._notifyGameFrontendCore();
-      this._websocketService.authenticate(this.getRawToken());
-      this.alreadyNotified = true;
+    if (this.hasLoginDomain()) {
+      if ((this.isLoginDomain() && this.isLoggedIn() && !this._isLoginRoute(loadingRoute))
+        || (!this.isLoginDomain() && !this.isLoggedIn())) {
+        this.logout();
+        window.location.href = `//${environment.loginDomain}`;
+        return false;
+      } else if ((!this.isLoginDomain() && this.isLoggedIn())
+        || (this.isLoginDomain() && this.isLoggedIn() && this._isLoginRoute(loadingRoute))) {
+        this._handleLoginLogic(loadingRoute);
+        return true;
+      } else if (this.isLoginDomain() && !this._isLoginRoute(loadingRoute)) {
+        this.logout();
+      } else {
+        throw new ProgrammingError('Situation not expected');
+      }
+    } else {
+      this._redirectIfNotLoggedIn();
+      this._handleLoginLogic(loadingRoute);
     }
     return this.isLoggedIn();
   }
@@ -173,6 +186,17 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     this._redirectIfNotLoggedIn();
   }
 
+  public hasLoginDomain(): boolean {
+    return !!environment.loginDomain;
+  }
+
+  public isLoginDomain(): boolean {
+    if (!this.hasLoginDomain) {
+      throw new ProgrammingError('Can NOT invoke this method when the env has no login route');
+    }
+    return environment.loginDomain === window.document.domain;
+  }
+
   /**
    * Will return the parsed Token
    *
@@ -209,12 +233,15 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     return retVal;
   }
 
-  private _redirectIfNotLoggedIn() {
+  private _redirectTo(route: string): void {
+    const router = this._injector.get(Router);
+    router.navigate([route]);
+  }
+  private _redirectIfNotLoggedIn(): void {
     if (!this.isLoggedIn()) {
       console.log('LoginSessionService: Redirecting to ' + LoginSessionService.LOGIN_ROUTE);
       this._isInGame.next(false);
-      const router = this._injector.get(Router);
-      router.navigate([LoginSessionService.LOGIN_ROUTE]);
+      this._redirectTo(LoginSessionService.LOGIN_ROUTE);
     }
   }
   private _removeSessionStorageDataIfSessionExpired() {
@@ -256,5 +283,17 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     sessionStorage.removeItem(LoginSessionService.LOCAL_STORAGE_TOKEN_PARAM);
     sessionStorage.removeItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE);
     sessionStorage.removeItem(LoginSessionService.LOCAL_STORAGE_SELECTED_FACTION);
+  }
+
+  private _isLoginRoute(route: string): boolean {
+    return route === 'universe-selection' || route === 'faction-selection' || route === 'synchronice-credentials';
+  }
+
+  private _handleLoginLogic(loadingRoute: string): void {
+    if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
+      this._notifyGameFrontendCore();
+      this._websocketService.authenticate(this.getRawToken());
+      this.alreadyNotified = true;
+    }
   }
 }
