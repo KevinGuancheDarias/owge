@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Number>, Serializable {
 	public List<ObtainedUnit> findByMissionId(Long missionId);
@@ -42,4 +44,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 	public Long countByMission(Mission mission);
 
 	public Long countByUserIdAndSourcePlanetId(Integer userId, Long planetId);
+
+	@Query("SELECT SUM(ou.count * ou.unit.energy) FROM ObtainedUnit ou WHERE user = ?1")
+	public Double computeConsumedEnergyByUser(UserStorage user);
 }

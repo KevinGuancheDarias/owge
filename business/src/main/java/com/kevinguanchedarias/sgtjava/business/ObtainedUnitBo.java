@@ -213,8 +213,8 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		saveWithAdding(userId, unit);
 	}
 
-	private boolean isDeployedInUserPlanet(ObtainedUnit obtainedUnit) {
-		return obtainedUnit.getSourcePlanet() != null && obtainedUnit.getTargetPlanet() == null;
+	public Double findConsumeEnergyByUser(UserStorage user) {
+		return repository.computeConsumedEnergyByUser(user);
 	}
 
 }

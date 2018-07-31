@@ -73,6 +73,5 @@ public class UserStorageTest extends TestCommon {
 		user.fillTransientValues();
 		assertEquals(2.2F, user.getComputedPrimaryResourceGenerationPerSecond(), 0.1F);
 		assertEquals(4.8F, user.getComputedSecondaryResourceGenerationPerSecond(), 0.1F);
-		assertEquals(130F, user.getComputedMaxEnergy(), 0.1F);
 	}
 }

@@ -139,7 +139,6 @@ public class UserStorageBoTest extends TestCommon {
 
 		assertNull(user.getComputedPrimaryResourceGenerationPerSecond());
 		assertNull(user.getComputedSecondaryResourceGenerationPerSecond());
-		assertNull(user.getComputedMaxEnergy());
 	}
 
 	@Test
@@ -158,7 +157,6 @@ public class UserStorageBoTest extends TestCommon {
 
 		assertNotNull(user.getComputedPrimaryResourceGenerationPerSecond());
 		assertNotNull(user.getComputedSecondaryResourceGenerationPerSecond());
-		assertNotNull(user.getComputedMaxEnergy());
 	}
 
 	@Test

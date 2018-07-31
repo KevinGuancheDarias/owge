@@ -41,15 +41,17 @@ public class UserRestService {
 
 	@RequestMapping(value = "findData", method = RequestMethod.GET)
 	public Object findData() {
-		UserStorage entityResult = userStorageBo.findLoggedInWithDetails(true);
-		UserStorageDto data = new UserStorageDto();
-		data.dtoFromEntity(entityResult);
-		data.setFactionDto(EntityPojoConverterUtil.convertFromTo(FactionDto.class, entityResult.getFaction()));
-		data.setHomePlanetDto(EntityPojoConverterUtil.convertFromTo(PlanetDto.class, entityResult.getHomePlanet()));
+		UserStorage user = userStorageBo.findLoggedInWithDetails(true);
+		UserStorageDto userDto = new UserStorageDto();
+		userDto.dtoFromEntity(user);
+		userDto.setFactionDto(EntityPojoConverterUtil.convertFromTo(FactionDto.class, user.getFaction()));
+		userDto.setHomePlanetDto(EntityPojoConverterUtil.convertFromTo(PlanetDto.class, user.getHomePlanet()));
 
-		Galaxy galaxyData = entityResult.getHomePlanet().getGalaxy();
-		data.getHomePlanetDto().setGalaxyId(galaxyData.getId());
-		data.getHomePlanetDto().setGalaxyName(galaxyData.getName());
-		return data;
+		Galaxy galaxyData = user.getHomePlanet().getGalaxy();
+		userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
+		userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
+		userDto.setConsumedEnergy(userStorageBo.findConsumedEnergy(user));
+		userDto.setMaxEnergy(userStorageBo.findMaxEnergy(user));
+		return userDto;
 	}
 }

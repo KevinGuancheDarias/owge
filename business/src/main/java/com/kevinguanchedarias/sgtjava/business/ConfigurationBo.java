@@ -215,6 +215,16 @@ public class ConfigurationBo implements Serializable {
 		return password.equals(findConfigurationParam(SYSTEM_SECRET_KEY).getValue());
 	}
 
+	public Configuration findOrSetDefault(String name, String defaultValue) {
+		try {
+			return findConfigurationParam(name);
+		} catch (SgtBackendConfigurationNotFoundException e) {
+			LOCAL_LOGGER.warn("Warning, configuration not found, using default " + defaultValue
+					+ ", nested message is: " + e.getMessage());
+			return new Configuration(name, defaultValue);
+		}
+	}
+
 	private Configuration saveMissionExploreBaseTime(Long value) {
 		return doSaveMissionBaseTime(MISSION_TIME_EXPLORE_KEY, value, MISSION_TIME_EXPLORE_DISPLAY_NAME);
 	}
@@ -237,16 +247,6 @@ public class ConfigurationBo implements Serializable {
 
 	private Configuration saveMissionCounterattackBaseTime(Long value) {
 		return doSaveMissionBaseTime(MISSION_TIME_COUNTERATTACK_KEY, value, MISSION_TIME_COUNTERATTACK_DISPLAY_NAME);
-	}
-
-	private Configuration findOrSetDefault(String name, String defaultValue) {
-		try {
-			return findConfigurationParam(name);
-		} catch (SgtBackendConfigurationNotFoundException e) {
-			LOCAL_LOGGER.warn("Warning, configuration not found, using default " + defaultValue
-					+ ", nested message is: " + e.getMessage());
-			return new Configuration(name, defaultValue);
-		}
 	}
 
 	private Long findMissionBaseTime(String key, String defaultValue) {

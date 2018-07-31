@@ -22,13 +22,17 @@ public class ImprovementBo implements Serializable {
 	private static final long serialVersionUID = -3323254005323573001L;
 
 	private static final Logger LOGGER = Logger.getLogger(ImprovementBo.class);
-	
+
+	private static final Double DEFAULT_STEP = 10D;
 	@Autowired
 	private UnitTypeRepository unitTypeRepository;
 
 	@Autowired
-	private ImprovementRepository improvementRepository; 
-	
+	private ImprovementRepository improvementRepository;
+
+	@Autowired
+	private ConfigurationBo configurationBo;
+
 	/**
 	 * Will remove invalid improvements from Source List, Notice negative values
 	 * are considered valid EXPENSIVE method!
@@ -49,8 +53,8 @@ public class ImprovementBo implements Serializable {
 
 	/**
 	 * Will check if improvement is duplicated, known because, it has the same
-	 * type,the same target unit_type, and the same value
-	 * NOTICE: Will not check the object instance itself
+	 * type,the same target unit_type, and the same value NOTICE: Will not check
+	 * the object instance itself
 	 * 
 	 * @param source
 	 * @param compared
@@ -60,8 +64,7 @@ public class ImprovementBo implements Serializable {
 	 */
 	public Boolean isDuplicated(List<ImprovementUnitType> source, ImprovementUnitType compared) {
 		for (ImprovementUnitType currentImprovement : source) {
-			if (currentImprovement != compared &&
-					currentImprovement.getType().equals(compared.getType())
+			if (currentImprovement != compared && currentImprovement.getType().equals(compared.getType())
 					&& currentImprovement.getUnitType().equals(compared.getUnitType())) {
 
 				return true;
@@ -82,36 +85,52 @@ public class ImprovementBo implements Serializable {
 	}
 
 	/**
-	 * Will load the list of improvement of unit types for selected improvement, used to avoid LazyException
+	 * Will load the list of improvement of unit types for selected improvement,
+	 * used to avoid LazyException
+	 * 
 	 * @param improvement
 	 * @author Kevin Guanche Darias
 	 */
-	public void loadImprovementUnitTypes(Improvement improvement){
+	public void loadImprovementUnitTypes(Improvement improvement) {
 		improvement.setUnitTypesUpgrades(improvementRepository.findByImprovementIdId(improvement.getId()));
 	}
-	
+
 	/**
 	 * Will delete an improvement by id
+	 * 
 	 * @param improvement
 	 * @author Kevin Guanche Darias
 	 */
-	public void removeImprovementUnitType(Integer improvement){
-		try{
+	public void removeImprovementUnitType(Integer improvement) {
+		try {
 			improvementRepository.delete(improvement);
-		}catch(EmptyResultDataAccessException e){
-			LOGGER.log(Level.INFO,e);
+		} catch (EmptyResultDataAccessException e) {
+			LOGGER.log(Level.INFO, e);
 		}
 	}
-	
+
 	/**
 	 * Will delete an improvement
+	 * 
 	 * @param improvement
 	 * @author Kevin Guanche Darias
 	 */
-	public void removeImprovementUnitType(ImprovementUnitType improvement){
+	public void removeImprovementUnitType(ImprovementUnitType improvement) {
 		removeImprovementUnitType(improvement.getId());
-	} 
-	
+	}
+
+	public Double computeImprovementValue(double value, double inputPercentage) {
+		double retVal = value;
+		double step = Double
+				.parseDouble(configurationBo.findOrSetDefault("IMPROVEMENT_STEP", DEFAULT_STEP.toString()).getValue());
+		double pendingPercentage = inputPercentage;
+		while (pendingPercentage > 0) {
+			retVal += retVal * (step / 100);
+			pendingPercentage -= step;
+		}
+		return retVal;
+	}
+
 	private boolean validType(ImprovementUnitType input) {
 		return !(input.getType() == null || input.getType().isEmpty()
 				|| !EnumUtils.isValidEnum(ImprovementType.class, input.getType()));

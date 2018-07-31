@@ -53,6 +53,12 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	@Autowired
 	private UserImprovementBo userImprovementBo;
 
+	@Autowired
+	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
+	private ImprovementBo improvementBo;
+
 	@PostConstruct
 	public void init() {
 		if (securityContextService == null) {
@@ -163,7 +169,6 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 		user.setPrimaryResource(selectedFaction.getInitialPrimaryResource().doubleValue());
 		user.setSecondaryResource(selectedFaction.getInitialSecondaryResource().doubleValue());
 		user.setEnergy(selectedFaction.getInitialEnergy().doubleValue());
-		user.setMaxEnergy(selectedFaction.getInitialEnergy().doubleValue());
 		user.setPrimaryResourceGenerationPerSecond(selectedFaction.getPrimaryResourceProduction().doubleValue());
 		user.setSecondaryResourceGenerationPerSecond(selectedFaction.getSecondaryResourceProduction().doubleValue());
 		user.setLastAction(new Date());
@@ -229,6 +234,15 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 
 	public void addPointsToUser(UserStorage user, Double points) {
 		userStorageRepository.addPointsToUser(user, points);
+	}
+
+	public Double findConsumedEnergy(UserStorage user) {
+		return obtainedUnitBo.findConsumeEnergyByUser(user);
+	}
+
+	public Double findMaxEnergy(UserStorage user) {
+		return improvementBo.computeImprovementValue(user.getEnergy(),
+				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction());
 	}
 
 	private TokenUser findTokenUser() {

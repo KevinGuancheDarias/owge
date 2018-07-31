@@ -10,7 +10,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	private String email;
 	private Double primaryResource;
 	private Double secondaryResource;
-	private Double energy;
+	private Double consumedEnergy;
 	private Double primaryResourceGenerationPerSecond;
 	private Double secondaryResourceGenerationPerSecond;
 	private Double maxEnergy;
@@ -25,6 +25,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	@Override
 	public void dtoFromEntity(UserStorage entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
+		maxEnergy = null;
 		if (entity.getImprovements() != null) {
 			improvements = new ImprovementDto();
 			improvements.dtoFromEntity(entity.getImprovements());
@@ -71,12 +72,12 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 		this.secondaryResource = secondaryResource;
 	}
 
-	public Double getEnergy() {
-		return energy;
+	public Double getConsumedEnergy() {
+		return consumedEnergy;
 	}
 
-	public void setEnergy(Double energy) {
-		this.energy = energy;
+	public void setConsumedEnergy(Double consumedEnergy) {
+		this.consumedEnergy = consumedEnergy;
 	}
 
 	public Double getPrimaryResourceGenerationPerSecond() {

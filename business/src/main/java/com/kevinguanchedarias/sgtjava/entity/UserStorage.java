@@ -58,6 +58,10 @@ public class UserStorage implements SimpleIdEntity {
 	@Column(name = "secondary_resource_generation_per_second")
 	private Double secondaryResourceGenerationPerSecond;
 
+	/**
+	 * @deprecated Max Energy is now a computed value
+	 */
+	@Deprecated
 	@Column(name = "max_energy")
 	private Double maxEnergy;
 
@@ -79,9 +83,6 @@ public class UserStorage implements SimpleIdEntity {
 
 	@Transient
 	private Double computedSecondaryResourceGenerationPerSecond;
-
-	@Transient
-	private Double computedMaxEnergy;
 
 	public void addtoPrimary(Double value) {
 		primaryResource += value;
@@ -105,12 +106,9 @@ public class UserStorage implements SimpleIdEntity {
 			computedSecondaryResourceGenerationPerSecond = (double) (faction.getSecondaryResourceProduction()
 					+ (faction.getSecondaryResourceProduction()
 							* (improvements.getMoreSecondaryResourceProduction() / 100)));
-			computedMaxEnergy = (double) (faction.getInitialEnergy()
-					+ (faction.getInitialEnergy() * (improvements.getMoreEnergyProduction() / 100)));
 		} else {
 			computedPrimaryResourceGenerationPerSecond = 0D;
 			computedSecondaryResourceGenerationPerSecond = 0D;
-			computedMaxEnergy = 0D;
 		}
 	}
 
@@ -218,10 +216,18 @@ public class UserStorage implements SimpleIdEntity {
 		this.secondaryResourceGenerationPerSecond = secondaryResourceGenerationPerSecond;
 	}
 
+	/**
+	 * @deprecated Max Energy is now a computed value
+	 */
+	@Deprecated
 	public Double getMaxEnergy() {
 		return maxEnergy;
 	}
 
+	/**
+	 * @deprecated Max Energy is now a computed value
+	 */
+	@Deprecated
 	public void setMaxEnergy(Double maxEnergy) {
 		this.maxEnergy = maxEnergy;
 	}
@@ -264,10 +270,6 @@ public class UserStorage implements SimpleIdEntity {
 
 	public Double getComputedSecondaryResourceGenerationPerSecond() {
 		return computedSecondaryResourceGenerationPerSecond;
-	}
-
-	public Double getComputedMaxEnergy() {
-		return computedMaxEnergy;
 	}
 
 }
