@@ -3,6 +3,7 @@
 v0.5.0 (latest)
 ==========
 * __Fix:__ Backend not sending correct number of "count" of the running unit build mission
+* __Feature:__ As a player I want energy to work like expected
 * __Feature:__ As a player I want to be able to deploy units in other of my planets
 * __Feature:__ As a player, I want to see the unit base attributes
 * __Feature:__ As a player I want to see the gather report

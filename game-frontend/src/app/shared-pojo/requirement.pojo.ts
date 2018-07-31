@@ -9,6 +9,7 @@ export class RequirementPojo {
     public requiredPrimary: number;
     public requiredSecondary: number;
     public requiredTime: number;
+    public requiredEnergy?: number;
     public runnable: boolean;
 
     /**
@@ -18,7 +19,8 @@ export class RequirementPojo {
      */
     public checkRunnable(resources: AutoUpdatedResources): void {
         this.runnable = resources.currentPrimaryResource >= this.requiredPrimary
-            && resources.currentSecondaryResource >= this.requiredSecondary;
+            && resources.currentSecondaryResource >= this.requiredSecondary
+            && resources.availableEnergy() >= this.requiredEnergy;
     }
 
     public startDynamicRunnable(resourceManagerService: ResourceManagerService) {

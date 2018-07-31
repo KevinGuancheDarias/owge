@@ -1,4 +1,5 @@
 export const enum ResourcesEnum {
     PRIMARY,
-    SECONDARY
+    SECONDARY,
+    CONSUMED_ENERGY
 }

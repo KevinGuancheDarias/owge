@@ -49,4 +49,8 @@ export class AutoUpdatedResources {
         this._resourceManagerService.currentMaxEnergy.subscribe(currentMaxEnergy => this._currentMaxEnergy = currentMaxEnergy);
         return changeEmmiter;
     }
+
+    public availableEnergy(): number {
+        return this._currentMaxEnergy - this._currentEnergy;
+    }
 }

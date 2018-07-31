@@ -1,11 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-display-single-resource',
   templateUrl: './display-single-resource.component.html',
   styleUrls: ['./display-single-resource.component.less']
 })
-export class DisplaySingleResourceComponent {
+export class DisplaySingleResourceComponent implements AfterViewInit {
 
   @Input()
   public resourceName: string;
@@ -25,6 +25,23 @@ export class DisplaySingleResourceComponent {
   @Input()
   public assetsImage = false;
 
-  constructor() { }
+  @ViewChild('textElement')
+  private _textElement: ElementRef;
+  private _maxTextWidth = 120;
 
+  public ngAfterViewInit(): void {
+    this._textElement.nativeElement.style.visibility = 'hidden';
+    const intervalId = setInterval(() => {
+      if (this._textElement.nativeElement.offsetWidth > this._maxTextWidth) {
+        this._textElement.nativeElement.style.fontSize = `${this._findTextSize(this._textElement.nativeElement) - 1}pt`;
+      } else if (this.resourceValue) {
+        this._textElement.nativeElement.style.visibility = 'visible';
+        clearInterval(intervalId);
+      }
+    }, 100);
+  }
+
+  private _findTextSize(el: HTMLParagraphElement): number {
+    return parseInt(el.style.fontSize, 10) || 12;
+  }
 }

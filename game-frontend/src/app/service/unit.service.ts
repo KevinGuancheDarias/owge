@@ -104,6 +104,7 @@ export class UnitService extends GameBaseService {
         unit.requirements.requiredPrimary = unit.primaryResource * newCount;
         unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
         unit.requirements.requiredTime = unit.time * newCount;
+        unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
         this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
       });
     }
@@ -128,6 +129,7 @@ export class UnitService extends GameBaseService {
     this.doGetWithAuthorizationToGame('unit/build', params).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
+      this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
       if (res) {
         res.terminationDate = new Date(res.terminationDate);
         this._registerInterval(this._selectedPlanet, res);
@@ -150,6 +152,7 @@ export class UnitService extends GameBaseService {
     this.doGetWithAuthorizationToGame('unit/cancel', params).subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, missionData.requiredPrimary);
       this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, missionData.requiredSecondary);
+      this._resourceManagerService.minusResources(ResourcesEnum.CONSUMED_ENERGY, missionData.unit.energy * missionData.count);
       this._subscribeToPlanetChanges();
     });
   }
@@ -293,6 +296,7 @@ export class UnitService extends GameBaseService {
     requirements.requiredPrimary = unit.primaryResource * count;
     requirements.requiredSecondary = unit.secondaryResource * count;
     requirements.requiredTime = unit.time * count;
+    requirements.requiredEnergy = (unit.energy || 0) * count;
 
     this._doCheckResourcesSubscriptionForRequirements(requirements, subscribeToResources);
     unit.requirements = requirements;

@@ -36,5 +36,10 @@
                   [resourceValue]="resources.currentSecondaryResource">
 
             </app-display-single-resource>
+
+            <app-display-single-resource [resourceName]="userData.factionDto.energyName" [resourceImage]="userData.factionDto.energyImage"
+                  [resourceValue]="resources.currentEnergy" [resourceMaxValue]="resources.currentMaxEnergy">
+            </app-display-single-resource>
+
       </div>
 </div>

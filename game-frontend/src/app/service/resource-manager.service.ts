@@ -1,7 +1,9 @@
-import { ResourcesEnum } from '../shared-enum/resources-enum';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { UserPojo } from '../shared-pojo/user.pojo';
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
+
+import { ResourcesEnum } from '../shared-enum/resources-enum';
+import { UserPojo } from '../shared-pojo/user.pojo';
 
 /**
  * Thi service contains the logged in user resources <br />
@@ -20,8 +22,8 @@ export class ResourceManagerService {
     return this._currentSecondaryResourceFloor;
   }
 
-  public get currentEnergy(): BehaviorSubject<number> {
-    return this._currentEnergyFloor;
+  public get currentEnergy(): Observable<number> {
+    return this._currentEnergyFloor.asObservable();
   }
 
   public get currentMaxEnergy(): BehaviorSubject<number> {
@@ -104,6 +106,10 @@ export class ResourceManagerService {
         this._currentSecondaryResource += value;
         this._currentSecondaryResource = this._currentSecondaryResource < 0 ? 0 : this._currentSecondaryResource;
         break;
+      case ResourcesEnum.CONSUMED_ENERGY:
+        this._currentEnergy += value;
+        this._currentEnergyFloor.next(Math.floor(this._currentEnergy));
+        break;
       default:
         throw new Error('Unexpected type ' + resourceType);
     }
@@ -127,8 +133,8 @@ export class ResourceManagerService {
 
     this._currentPrimaryResourcePerSecond = userPojo.computedPrimaryResourceGenerationPerSecond;
     this._currentSecondaryResourcePerSecond = userPojo.computedSecondaryResourceGenerationPerSecond;
-    this._currentEnergy = userPojo.energy;
-    this._currentMaxEnergy = userPojo.computedMaxEnergy;
+    this._currentEnergy = userPojo.consumedEnergy;
+    this._currentMaxEnergy = userPojo.maxEnergy;
 
     this._currentEnergyFloor.next(Math.floor(this._currentEnergy));
     this._currentMaxEnergyFloor.next(Math.floor(this._currentMaxEnergy));

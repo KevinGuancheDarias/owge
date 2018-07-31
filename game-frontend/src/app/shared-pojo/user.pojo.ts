@@ -16,7 +16,8 @@ export class UserPojo {
     public factionDto: Faction;
     public homePlanetDto: PlanetPojo;
 
-    public energy: number;
+    public consumedEnergy: number;
+    public maxEnergy: number;
     public primaryResource: number;
     public primaryResourceGenerationPerSecond: number;
     public secondaryResource: number;
@@ -24,5 +25,4 @@ export class UserPojo {
 
     public computedPrimaryResourceGenerationPerSecond: number;
     public computedSecondaryResourceGenerationPerSecond: number;
-    public computedMaxEnergy: number;
 }
