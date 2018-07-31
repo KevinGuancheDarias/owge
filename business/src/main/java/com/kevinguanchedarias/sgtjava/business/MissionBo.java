@@ -169,7 +169,7 @@ public class MissionBo extends AbstractMissionBo {
 
 		scheduleMission(mission);
 
-		return new RunningUnitBuildDto(unit, mission);
+		return new RunningUnitBuildDto(unit, mission, count);
 	}
 
 	public RunningUpgradeDto findRunningLevelUpMission(Integer userId) {
@@ -188,7 +188,8 @@ public class MissionBo extends AbstractMissionBo {
 		if (mission != null) {
 			MissionInformation missionInformation = mission.getMissionInformation();
 			Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
-			return new RunningUnitBuildDto(unit, mission);
+			return new RunningUnitBuildDto(unit, mission,
+					obtainedUnitBo.findByMissionId(mission.getId()).get(0).getCount());
 		} else {
 			return null;
 		}

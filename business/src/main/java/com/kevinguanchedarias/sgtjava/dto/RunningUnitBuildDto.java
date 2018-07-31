@@ -8,11 +8,11 @@ public class RunningUnitBuildDto extends AbstractRunningMissionDto {
 	private UnitDto unit;
 	private Long count;
 
-	public RunningUnitBuildDto(Unit unit, Mission mission) {
+	public RunningUnitBuildDto(Unit unit, Mission mission, Long count) {
 		super(mission);
-		count = mission.getMissionInformation().getValue().longValue();
 		this.unit = new UnitDto();
 		this.unit.dtoFromEntity(unit);
+		this.count = count;
 	}
 
 	public UnitDto getUnit() {
@@ -25,10 +25,6 @@ public class RunningUnitBuildDto extends AbstractRunningMissionDto {
 
 	public Long getCount() {
 		return count;
-	}
-
-	public void setCount(Long count) {
-		this.count = count;
 	}
 
 }
