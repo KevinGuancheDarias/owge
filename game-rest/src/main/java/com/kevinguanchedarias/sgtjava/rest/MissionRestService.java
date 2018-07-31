@@ -58,6 +58,11 @@ public class MissionRestService {
 		return unitMissionBo.myRegisterConquestMission(missionInformation);
 	}
 
+	@RequestMapping(value = "deploy", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
+	public UnitRunningMissionDto deploy(@RequestBody UnitMissionInformation missionInformation) {
+		return unitMissionBo.myRegisterDeploy(missionInformation);
+	}
+
 	@RequestMapping(value = "cancel", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public String cancel(@RequestParam("id") Long id) {
 		unitMissionBo.myCancelMission(id);

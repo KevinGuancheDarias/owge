@@ -271,9 +271,8 @@ public class MissionBo extends AbstractMissionBo {
 
 		if (mission != null) {
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
-				current.setSourcePlanet(planetBo.findByIdOrDie(mission.getMissionInformation().getValue().longValue()));
-				current.setMission(null);
-				obtainedUnitBo.saveWithAdding(mission.getUser().getId(), current);
+				obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
+						mission.getMissionInformation().getValue().longValue());
 				requirementBo.triggerUnitBuildCompleted(mission.getUser(), current.getUnit());
 			});
 			delete(mission);

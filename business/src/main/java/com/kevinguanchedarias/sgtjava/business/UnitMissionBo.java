@@ -471,6 +471,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return commonMissionRegister(missionInformation, MissionType.CONQUEST);
 	}
 
+	@Transactional
+	public UnitRunningMissionDto myRegisterDeploy(UnitMissionInformation missionInformation) {
+		myRegister(missionInformation);
+		return adminRegisterDeploy(missionInformation);
+	}
+
+	@Transactional
+	public UnitRunningMissionDto adminRegisterDeploy(UnitMissionInformation missionInformation) {
+		if (!planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
+			throw new SgtBackendInvalidInputException(
+					"You can't deploy to a planet that is not of your property, try again??? ... maybe next time!!!");
+		}
+		return commonMissionRegister(missionInformation, MissionType.DEPLOY);
+	}
+
 	/**
 	 * Parses the exploration of a planet
 	 * 
@@ -668,6 +683,17 @@ public class UnitMissionBo extends AbstractMissionBo {
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "conquest_report", builder.build());
 		emitLocalMissionChange(mission, user);
+	}
+
+	@Transactional
+	public void proccessDeploy(Long missionId) {
+		Mission mission = findById(missionId);
+		if (mission != null) {
+			obtainedUnitBo.findByMissionId(missionId).forEach(current -> obtainedUnitBo.moveUnit(current,
+					mission.getUser().getId(), mission.getTargetPlanet().getId()));
+			resolveMission(mission);
+			emitLocalMissionChange(mission, mission.getUser());
+		}
 	}
 
 	@Transactional

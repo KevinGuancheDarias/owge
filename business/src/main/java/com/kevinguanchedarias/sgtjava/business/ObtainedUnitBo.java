@@ -16,7 +16,6 @@ import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUnitRepository;
 
 @Service
@@ -28,6 +27,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private PlanetBo planetBo;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Number> getRepository() {
@@ -101,20 +103,16 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 */
 	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit) {
 		ObtainedUnit retVal;
-		if (isDeployedInUserPlanet(obtainedUnit)) {
-			ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetIdAndItNot(userId,
-					obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId(), obtainedUnit.getId());
-			if (existingOne == null) {
-				retVal = save(obtainedUnit);
-			} else {
-				existingOne.setCount(existingOne.getCount() + obtainedUnit.getCount());
-				retVal = save(existingOne);
-				if (obtainedUnit.getId() != null) {
-					delete(obtainedUnit);
-				}
-			}
+		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetIdAndItNot(userId,
+				obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId(), obtainedUnit.getId());
+		if (existingOne == null) {
+			retVal = save(obtainedUnit);
 		} else {
-			throw new SgtBackendNotImplementedException("This type of action is not actually implemented");
+			existingOne.setCount(existingOne.getCount() + obtainedUnit.getCount());
+			retVal = save(existingOne);
+			if (obtainedUnit.getId() != null) {
+				delete(obtainedUnit);
+			}
 		}
 		return retVal;
 	}
@@ -207,6 +205,12 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	public boolean existsByMission(Mission mission) {
 		return repository.countByMission(mission) > 0;
+	}
+
+	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
+		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
+		unit.setMission(null);
+		saveWithAdding(userId, unit);
 	}
 
 	private boolean isDeployedInUserPlanet(ObtainedUnit obtainedUnit) {

@@ -56,6 +56,10 @@ public class ConfigurationBo implements Serializable {
 	public static final String MISSION_TIME_COUNTERATTACK_KEY = "MISSION_TIME_COUNTERATTACK";
 	public static final String MISSION_TIME_COUNTERATTACK_DISPLAY_NAME = "Tiempo base contratacar";
 
+	public static final String MISSION_DEFAULT_TIME_DEPLOY = "60";
+	public static final String MISSION_TIME_DEPLOY_KEY = "MISSION_TIME_DEPLOY";
+	public static final String MISSION_TIME_DEPLOY_DISPLAY_NAME = "Base time deploy";
+
 	public static final Integer MISSION_NUMBER_OF_MISSIONS = 6;
 
 	private HashMap<String, Configuration> cache = new HashMap<>();
@@ -117,6 +121,7 @@ public class ConfigurationBo implements Serializable {
 		missionKeys.add(MISSION_TIME_ATTACK_KEY);
 		missionKeys.add(MISSION_TIME_CONQUEST_KEY);
 		missionKeys.add(MISSION_TIME_COUNTERATTACK_KEY);
+		missionKeys.add(MISSION_TIME_DEPLOY_KEY);
 		return configurationRepository.findByNameIn(missionKeys);
 	}
 
@@ -151,6 +156,9 @@ public class ConfigurationBo implements Serializable {
 		case CONQUEST:
 			retVal = findMissionConquestBaseTime();
 			break;
+		case DEPLOY:
+			retVal = findMissionDeployBaseTime();
+			break;
 		default:
 			throw new SgtBackendInvalidInputException("Unsupported mission base time type, specified: " + type.name());
 		}
@@ -179,6 +187,10 @@ public class ConfigurationBo implements Serializable {
 
 	public Long findMissionCounterattackBaseTime() {
 		return findMissionBaseTime(MISSION_TIME_COUNTERATTACK_KEY, MISSION_DEFAULT_TIME_COUNTERATTACK);
+	}
+
+	public Long findMissionDeployBaseTime() {
+		return findMissionBaseTime(MISSION_TIME_DEPLOY_KEY, MISSION_DEFAULT_TIME_DEPLOY);
 	}
 
 	/**
