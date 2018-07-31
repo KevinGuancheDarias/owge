@@ -11,6 +11,7 @@
       <option *ngIf="isExplored(selectedPlanet)" value="ESTABLISH_BASE">Establish base</option>
       <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet)" value="ATTACK">Attack</option>
       <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="COUNTERATTACK">Counterattack</option>
+      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="DEPLOY">Deploy</option>
       <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet) && selectedPlanet.ownerId && !selectedPlanet.home"
         value="CONQUEST">Conquest</option>
     </select>

@@ -78,20 +78,30 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   public async sendMission(): Promise<void> {
     await this._runWithLoading(async () => {
-      if (this.missionType === 'EXPLORE') {
-        await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else if (this.missionType === 'GATHER') {
-        await this._missionService.sendGatherMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else if (this.missionType === 'ESTABLISH_BASE') {
-        await this._missionService.sendEstablishBaseMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else if (this.missionType === 'ATTACK') {
-        await this._missionService.sendAttackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else if (this.missionType === 'COUNTERATTACK') {
-        await this._missionService.sendCounterattackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else if (this.missionType === 'CONQUEST') {
-        await this._missionService.sendConquestMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
-      } else {
-        throw new ProgrammingError(`Unexpected mission type ${this.missionType}`);
+      switch (this.missionType) {
+        case 'EXPLORE':
+          await this._missionService.sendExploreMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'GATHER':
+          await this._missionService.sendGatherMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'ESTABLISH_BASE':
+          await this._missionService.sendEstablishBaseMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'ATTACK':
+          await this._missionService.sendAttackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'COUNTERATTACK':
+          await this._missionService.sendCounterattackMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'CONQUEST':
+          await this._missionService.sendConquestMission(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        case 'DEPLOY':
+          await this._missionService.sendDeploy(this.myPlanet, this.selectedPlanet, this.selectedUnits).toPromise();
+          break;
+        default:
+          throw new ProgrammingError(`Unexpected mission type ${this.missionType}`);
       }
       await this._findObtainedUnits();
     });

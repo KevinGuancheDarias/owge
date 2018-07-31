@@ -47,6 +47,10 @@ export class MissionService extends GameBaseService {
     return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits);
   }
 
+  public sendDeploy(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+    return this._sendMission('mission/deploy', sourcePlanet, targetPlanet, involvedUnits);
+  }
+
   public cancelMission(missionId: number): Observable<void> {
     return this._doPostWithAuthorizationToGame(`mission/cancel?id=${missionId}`, {});
   }
@@ -60,6 +64,7 @@ export class MissionService extends GameBaseService {
       case 'ATTACK':
       case 'COUNTERATTACK':
       case 'CONQUEST':
+      case 'DEPLOY':
         return true;
       default:
         return false;
