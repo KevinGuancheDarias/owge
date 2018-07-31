@@ -57,6 +57,14 @@ a.selectedMenu{
     text-shadow: @commonTextShadow;
     transition: all 0.3s;
 
+    a.selectedMenu{
+        box-shadow: 2px 2px 2px @selectedMenuColor;
+        color: @mainColor;
+        &:hover{
+            box-shadow: 1px 1px 1px @selectedMenuColor;
+            color: @mainColor;
+        }
+    }
     .sgt-green-shadow {
         box-shadow: @commonBoxShadowWithoutColor green;
     }
@@ -89,15 +97,6 @@ a.selectedMenu{
 
         &:hover {
             width: 148px;
-        }
-    }
-
-    &:hover{
-        width: 308px;
-        box-shadow: @commonHoverBoxShadow;
-
-        img.card-img-top{
-            width: 304px;
         }
     }
 

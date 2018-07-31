@@ -2,6 +2,7 @@
 
 v0.5.0 (latest)
 ==========
+* __Feature:__ As a player, I want to see the unit base attributes
 * __Feature:__ As a player I want to see the gather report
 
 v0.4.0 (2018-07-29 21:40)

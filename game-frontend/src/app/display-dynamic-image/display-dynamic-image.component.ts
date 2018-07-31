@@ -10,10 +10,10 @@ export class DisplayDynamicImageComponent {
 
   /**
    * Returns the full path to the image
-   * 
+   *
    * @author Kevin Guanche Darias
    */
-  public get parsedImage(): string{
+  public get parsedImage(): string {
     return this._findFullPath(this.image);
   }
 
@@ -24,7 +24,10 @@ export class DisplayDynamicImageComponent {
   public title: string;
 
   @Input()
-  public staticImage: boolean = false;
+  public staticImage = false;
+
+  @Input()
+  public assetsImage = false;
 
   /**
    * @var {string} Can be one or multiple CSS classes, delimited by space
@@ -35,6 +38,8 @@ export class DisplayDynamicImageComponent {
   private _findFullPath(image: string) {
     if (this.staticImage) {
       return MEDIA_ROUTES.STATIC_IMAGES_ROOT + image;
+    } else if (this.assetsImage) {
+      return `/assets/img/${image}`;
     } else {
       return MEDIA_ROUTES.IMAGES_ROOT + image;
     }

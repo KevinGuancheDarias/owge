@@ -22,6 +22,9 @@ export class DisplaySingleResourceComponent {
   @Input()
   public staticImage = false;
 
+  @Input()
+  public assetsImage = false;
+
   constructor() { }
 
 }

@@ -7,6 +7,8 @@ import { RunningUnitIntervalInformation, UnitService } from './../service/unit.s
 import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 
+export type validViews = 'requirements' | 'attributes';
+
 @Component({
   selector: 'app-display-single-unit',
   templateUrl: './display-single-unit.component.html',
@@ -47,15 +49,28 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   @Input()
   public obtainedUnit: ObtainedUnit;
 
+
+  /**
+   * What to display by default?, requirements?, or attributes? <br>
+   * Defaults to <b>attributes</b>
+   *
+   * @type {validViews}
+   * @memberof DisplaySingleUnitComponent
+   */
+  @Input()
+  public defaultView: validViews = 'attributes';
+
   @Output()
   public buildDone: EventEmitter<void> = new EventEmitter();
 
   @Output()
   public delete: EventEmitter<void> = new EventEmitter();
 
+  public selectedView: validViews;
   public numberToDelete: number;
-
   public image: string;
+  public isDescriptionDisplayed = false;
+
   public get count(): any {
     return this._count.value;
   }
@@ -83,7 +98,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
     this.requireUser();
     this.image = MEDIA_ROUTES.IMAGES_ROOT + this.unit.image;
     this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
-    (<any>window).myGlobal = this._count;
+    this.selectedView = this.defaultView;
   }
 
   public otherUnitAlreadyRunning(): void {

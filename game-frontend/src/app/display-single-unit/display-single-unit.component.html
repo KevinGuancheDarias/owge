@@ -6,9 +6,20 @@
   <div class="card-block">
     <p class="card-text">{{ unit.description }}</p>
   </div>
-  <div *ngIf="unit.requirements" class="card-block">
-    <h5 class="card-title">Requisitos</h5>
-    <app-display-requirements [requirements]="unit.requirements"></app-display-requirements>
+  <div class="card-block requirements-attributes">
+    <a class="btn" (click)="selectedView = 'requirements'" [ngClass]="{ 'selectedMenu': selectedView === 'requirements'}">Requirements</a>
+    <a class="btn" (click)="selectedView = 'attributes'" [ngClass]="{ 'selectedMenu': selectedView === 'attributes'}">Attributes</a>
+    <app-display-requirements *ngIf="selectedView === 'requirements'" [requirements]="unit.requirements"></app-display-requirements>
+    <ng-container *ngIf="selectedView === 'attributes'">
+      <app-display-single-resource *ngIf="unit.health" [resourceName]="'Health'" [resourceValue]="unit.health" [assetsImage]="true"
+        [resourceImage]="'health.jpg'"></app-display-single-resource>
+      <app-display-single-resource *ngIf="unit.shield" [resourceName]="'Shield'" [resourceValue]="unit.shield" [assetsImage]="true"
+        [resourceImage]="'shield.jpg'"></app-display-single-resource>
+      <app-display-single-resource *ngIf="unit.attack" [resourceName]="'Attack'" [resourceValue]="unit.attack" [assetsImage]="true"
+        [resourceImage]="'attack.jpg'"></app-display-single-resource>
+      <app-display-single-resource *ngIf="unit.charge" [resourceName]="'Charge'" [resourceValue]="unit.charge" [assetsImage]="true"
+        [resourceImage]="'charge.jpg'"></app-display-single-resource>
+    </ng-container>
   </div>
 
   <ng-container *ngIf="withBuildMode">
