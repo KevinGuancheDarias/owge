@@ -20,15 +20,23 @@ public class UnitTypesController extends SgtCommonController<UnitType> {
 
 	private static final Logger LOGGER = Logger.getLogger(UpgradesController.class);
 
-	private List<UnitType> unitTypes;
-
 	@Autowired
 	private UnitTypeBo unitTypeBo;
+
+	private List<UnitType> unitTypes;
+	private boolean isUnlimited = true;
 
 	@PostConstruct
 	public void init() {
 		ControllerUtil.enableAutowire(this);
+		initFileUploadForImage();
 		loadData();
+	}
+
+	@Override
+	public void setSelectedObject(UnitType type) {
+		isUnlimited = type.getMaxCount() == null;
+		super.setSelectedObject(type);
 	}
 
 	public void newObject() {
@@ -36,6 +44,7 @@ public class UnitTypesController extends SgtCommonController<UnitType> {
 	}
 
 	public void save() {
+		updateSelectedObjectImageIfRequired();
 		saveWithName(unitTypeBo, getSelectedObject().getName());
 	}
 
@@ -49,12 +58,29 @@ public class UnitTypesController extends SgtCommonController<UnitType> {
 		loadData();
 	}
 
+	public String displayMaxCount(UnitType type) {
+		return type.getMaxCount() == null ? "unlimited" : type.getMaxCount().toString();
+	}
+
+	public void prepareForUpdate() {
+		clearImageFileName();
+		setupImageFromString(getSelectedObject().getImage());
+	}
+
 	public List<UnitType> getUnitTypes() {
 		return unitTypes;
 	}
 
 	public void setUnitTypes(List<UnitType> unitTypes) {
 		this.unitTypes = unitTypes;
+	}
+
+	public boolean isUnlimited() {
+		return isUnlimited;
+	}
+
+	public void setUnlimited(boolean isUnlimited) {
+		this.isUnlimited = isUnlimited;
 	}
 
 	/**

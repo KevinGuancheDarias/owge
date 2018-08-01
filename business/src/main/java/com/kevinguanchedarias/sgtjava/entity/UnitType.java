@@ -22,7 +22,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "unit_types")
-public class UnitType implements SimpleIdEntity {
+public class UnitType extends EntityWithImage implements SimpleIdEntity {
 	private static final long serialVersionUID = 6571633664776386521L;
 
 	@Id
