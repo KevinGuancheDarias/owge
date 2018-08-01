@@ -2,6 +2,7 @@ package com.kevinguanchedarias.sgtjava.entity;
 
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -29,6 +30,9 @@ public class UnitType implements SimpleIdEntity {
 	private Integer id;
 
 	private String name;
+
+	@Column(name = "max_count", nullable = true)
+	private Long maxCount;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_type")
@@ -65,6 +69,21 @@ public class UnitType implements SimpleIdEntity {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	/**
+	 * Specifies the maximum units of this type that a user can have <br>
+	 * <b>NOTICE: Null value means unlimited</b>
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long getMaxCount() {
+		return maxCount;
+	}
+
+	public void setMaxCount(Long maxCount) {
+		this.maxCount = maxCount;
 	}
 
 	public UnitType getParent() {
