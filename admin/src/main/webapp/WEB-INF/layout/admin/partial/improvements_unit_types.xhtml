@@ -1,91 +1,94 @@
 <!--  Notice this file is required by the improvements.xtml -->
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:ui="http://java.sun.com/jsf/facelets"
-      xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:p="http://primefaces.org/ui">
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
 
-	<ui:composition>
-		<h:form id="unitTypeImprovementsForm">
-			<input type="hidden" name="#{_csrf.parameterName}"
-				value="#{_csrf.token}" />
-			<p:dialog id="unitTypeImprovementsDialog" style="z-index: 400"
-				header="Mejoras para tipo de unidad" modal="true" resizable="false"
-				widgetVar="unitTypeImprovementsDialog">
+<ui:composition>
+	<h:form id="unitTypeImprovementsForm">
+		<input type="hidden" name="#{_csrf.parameterName}"
+			value="#{_csrf.token}" />
+		<p:dialog id="unitTypeImprovementsDialog" style="z-index: 400"
+			header="Mejoras para tipo de unidad" modal="true" resizable="false"
+			widgetVar="unitTypeImprovementsDialog">
 
-				<p:dataTable id="unitTypeImprovementsDatatable"
-					value="#{improvementsController.selectedObject.improvement.unitTypesUpgrades}"
-					selection="#{improvementsController.newImprovementUnitType}"
-					selectionMode="single" styleClass="uTIDTable"
-					oncomplete="PF('newUnitImprovementsDialog').show()"
-					var="currentObject" rowKey="#{currentObject.id}">
-					<p:column headerText="Tipo mejora">
-						<h:outputText value="#{currentObject.type}" />
-					</p:column>
+			<p:dataTable id="unitTypeImprovementsDatatable"
+				value="#{improvementsController.selectedObject.improvement.unitTypesUpgrades}"
+				selection="#{improvementsController.newImprovementUnitType}"
+				selectionMode="single" styleClass="uTIDTable"
+				oncomplete="PF('newUnitImprovementsDialog').show()"
+				var="currentObject" rowKey="#{currentObject.id}">
+				<p:column headerText="Tipo mejora">
+					<h:outputText value="#{currentObject.type}" />
+				</p:column>
 
-					<p:column headerText="Tipo de unidad">
-						<h:outputText value="#{currentObject.unitType.name}" />
-					</p:column>
+				<p:column headerText="Tipo de unidad">
+					<h:outputText value="#{currentObject.unitType.name}" />
+				</p:column>
 
-					<p:column headerText="Valor">
-						<h:outputText value="#{currentObject.value}" />
-					</p:column>
+				<p:column headerText="Valor">
+					<h:outputText value="#{currentObject.value}" />
+				</p:column>
 
-					<p:column headerText="Acciones">
-						<p:commandButton id="delete" icon="fa fa-times"
-							action="#{improvementsController.deleteUnitTypeImprovement(currentObject)}"
-							update="@(.uTIDTable)" />
-					</p:column>
-					<p:ajax event="rowSelect" update=":newUnitTypeImprovementsForm"
-						listener="#{improvementsController.prepareForAddUnitTypeImprovement(false)}"
-						oncomplete="PF('newUnitImprovementsDialog').show()" />
-				</p:dataTable>
+				<p:column headerText="Acciones">
+					<p:commandButton id="delete" icon="fa fa-times"
+						action="#{improvementsController.deleteUnitTypeImprovement(currentObject)}"
+						update="@(.uTIDTable)" />
+				</p:column>
+				<p:ajax event="rowSelect" update=":newUnitTypeImprovementsForm"
+					listener="#{improvementsController.prepareForAddUnitTypeImprovement(false)}"
+					oncomplete="PF('newUnitImprovementsDialog').show()" />
+			</p:dataTable>
 
-				<p:commandButton process="@this" value="Añadir nuevo"
-					update=":newUnitTypeImprovementsForm"
-					oncomplete="PF('newUnitImprovementsDialog').show()"
-					action="#{improvementsController.prepareForAddUnitTypeImprovement(true)}" />
+			<p:commandButton process="@this" value="Añadir nuevo"
+				update=":newUnitTypeImprovementsForm"
+				oncomplete="PF('newUnitImprovementsDialog').show()"
+				action="#{improvementsController.prepareForAddUnitTypeImprovement(true)}" />
 
-				<p:commandButton process="@this" immediate="true" value="Cerrar"
-					style="float: right"
-					oncomplete="PF('unitTypeImprovementsDialog').hide()" />
-			</p:dialog>
-		</h:form>
-		<h:form id="newUnitTypeImprovementsForm">
-			<input type="hidden" name="#{_csrf.parameterName}"
-				value="#{_csrf.token}" />
-			<p:dialog header="Añadir nuevo" modal="true"
-				widgetVar="newUnitImprovementsDialog" width="600">
-				<p:panelGrid columns="2" layout="grid">
-					<p:outputLabel for="newImprovementType" value="Tipo:" />
-					<p:selectOneMenu id="newImprovementType"
-						value="#{improvementsController.newImprovementUnitType.type}">
-						<f:selectItem itemLabel="Seleccionar..." itemValue="" />
-						<f:selectItem itemLabel="Más Ataque" itemValue="ATTACK" />
-						<f:selectItem itemLabel="Más Defensa" itemValue="DEFENSE" />
-						<f:selectItem itemLabel="Más Escudo" itemValue="SHIELD" />
-					</p:selectOneMenu>
+			<p:commandButton process="@this" immediate="true" value="Cerrar"
+				style="float: right"
+				oncomplete="PF('unitTypeImprovementsDialog').hide()" />
+		</p:dialog>
+	</h:form>
+	<h:form id="newUnitTypeImprovementsForm">
+		<input type="hidden" name="#{_csrf.parameterName}"
+			value="#{_csrf.token}" />
+		<p:dialog header="Añadir nuevo" modal="true"
+			widgetVar="newUnitImprovementsDialog" width="600">
+			<p:panelGrid columns="2" layout="grid">
+				<p:outputLabel for="newImprovementTargetUnitType"
+					value="Tipo de unidad:" />
+				<p:selectOneMenu id="newImprovementTargetUnitType"
+					value="#{improvementsController.newImprovementUnitType.unitType}"
+					converter="entityConverter">
+					<f:selectItem itemLabel="Seleccionar..." itemValue="" />
+					<f:selectItems value="#{improvementsController.unitTypes}"
+						var="currentUnitType" itemLabel="#{currentUnitType.name}"
+						itemValue="#{currentUnitType}" />
+					<p:ajax update="newImprovementType" process="@this newImprovementValue"
+						oncomplete="PF('newUnitImprovementsDialog').show()"></p:ajax>
+				</p:selectOneMenu>
+				<p:outputLabel for="newImprovementType" value="Tipo:" />
+				<p:selectOneMenu id="newImprovementType" disabled="#{improvementsController.newImprovementUnitType.unitType == null}"
+					value="#{improvementsController.newImprovementUnitType.type}">
+					<f:selectItem itemLabel="Seleccionar..." itemValue="" />
+					<f:selectItem itemLabel="Más Ataque" itemValue="ATTACK" />
+					<f:selectItem itemLabel="Más Defensa" itemValue="DEFENSE" />
+					<f:selectItem itemLabel="Más Escudo" itemValue="SHIELD" />
+					<f:selectItem
+						itemDisabled="#{!improvementsController.hasAmountLimit()}"
+						itemLabel="Más cantidad" itemValue="AMOUNT"></f:selectItem>
+				</p:selectOneMenu>
+				<p:outputLabel for="newImprovementValue" value="Valor:" />
+				<p:spinner id="newImprovementValue"
+					value="#{improvementsController.newImprovementUnitType.value}" />
 
-					<p:outputLabel for="newImprovementTargetUnitType"
-						value="Tipo de unidad:" />
-					<p:selectOneMenu id="newImprovementTargetUnitType"
-						value="#{improvementsController.newImprovementUnitType.unitType}"
-						converter="entityConverter">
-						<f:selectItem itemLabel="Seleccionar..." itemValue="" />
-						<f:selectItems value="#{improvementsController.unitTypes}"
-							var="currentUnitType" itemLabel="#{currentUnitType.name}"
-							itemValue="#{currentUnitType}" />
-					</p:selectOneMenu>
-
-					<p:outputLabel for="newImprovementValue" value="Valor:" />
-					<p:spinner id="newImprovementValue"
-						value="#{improvementsController.newImprovementUnitType.value}" />
-
-					<p:commandButton value="Guardar"
-						update=":unitTypeImprovementsForm:unitTypeImprovementsDatatable"
-						action="#{improvementsController.saveUnitTypeImprovement()}" />
-				</p:panelGrid>
-			</p:dialog>
-		</h:form>
-	</ui:composition>
+				<p:commandButton value="Guardar"
+					update=":unitTypeImprovementsForm:unitTypeImprovementsDatatable"
+					action="#{improvementsController.saveUnitTypeImprovement()}" />
+			</p:panelGrid>
+		</p:dialog>
+	</h:form>
+</ui:composition>
 </html>

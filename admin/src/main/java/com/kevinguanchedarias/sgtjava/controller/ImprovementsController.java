@@ -106,6 +106,12 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 		}
 	}
 
+	public boolean hasAmountLimit() {
+		return newImprovementUnitType != null && newImprovementUnitType.getUnitType() != null
+				&& newImprovementUnitType.getUnitType().getMaxCount() != null
+				&& newImprovementUnitType.getUnitType().getMaxCount() >= 0;
+	}
+
 	public List<ImprovementUnitType> getSelectedObjectImprovementsUnitType() {
 		return selectedObjectImprovementsUnitType;
 	}

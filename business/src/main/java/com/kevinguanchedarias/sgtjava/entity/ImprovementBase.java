@@ -16,6 +16,11 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
+	/**
+	 * @deprecated Unused property, the system uses now an UnitType requirement
+	 *             of type AMOUNT
+	 */
+	@Deprecated
 	@Column(name = "more_soldiers_production")
 	private Float moreSoldiersProduction = 0.0F;
 
@@ -43,6 +48,14 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 		this.id = id;
 	}
 
+	/**
+	 * @deprecated Unused property, the system uses now an UnitType requirement
+	 *             of type AMOUNT
+	 * 
+	 * @param value
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated
 	public void addMoreSoldiersProduction(Float value) {
 		moreSoldiersProduction += value;
 	}
@@ -71,10 +84,24 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 		return moreChargeCapacity / (double) 100;
 	}
 
+	/**
+	 * @deprecated Unused property, the system uses now an UnitType requirement
+	 *             of type AMOUNT
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated
 	public Float getMoreSoldiersProduction() {
 		return moreSoldiersProduction;
 	}
 
+	/**
+	 * @deprecated Unused property, the system uses now an UnitType requirement
+	 *             of type AMOUNT
+	 * @param moreSoldiersProduction
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated
 	public void setMoreSoldiersProduction(Float moreSoldiersProduction) {
 		this.moreSoldiersProduction = moreSoldiersProduction;
 	}
