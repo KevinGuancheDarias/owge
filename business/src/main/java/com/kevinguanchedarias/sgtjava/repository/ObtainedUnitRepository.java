@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
+import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Number>, Serializable {
@@ -47,4 +48,10 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 
 	@Query("SELECT SUM(ou.count * ou.unit.energy) FROM ObtainedUnit ou WHERE user = ?1")
 	public Double computeConsumedEnergyByUser(UserStorage user);
+
+	@Query("SELECT SUM(ou.count) FROM ObtainedUnit ou WHERE user = ?1 AND ou.unit.type = ?2")
+	public Long countByUserAndUnitType(UserStorage user, UnitType type);
+
+	@Query("SELECT SUM(utg.value * ou.count) FROM ObtainedUnit ou INNER JOIN ou.unit.improvement.unitTypesUpgrades utg WHERE ou.user = ?1 AND utg.type = ?2")
+	public Long sumByUserAndImprovementUnitTypeImprovementType(UserStorage user, String name);
 }

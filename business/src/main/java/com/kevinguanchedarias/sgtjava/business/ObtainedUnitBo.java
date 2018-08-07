@@ -3,6 +3,7 @@ package com.kevinguanchedarias.sgtjava.business;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,9 @@ import com.kevinguanchedarias.sgtjava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
+import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUnitRepository;
@@ -30,6 +33,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	@Autowired
 	private PlanetBo planetBo;
+
+	@Autowired
+	private UnitTypeBo unitTypeBo;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Number> getRepository() {
@@ -184,8 +190,6 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	/**
 	 * Finds the involved units in an attack
 	 * 
-	 * @todo In the future find too the deployed units, and discard the ones in
-	 *       return missions (we don't want to kill people in return state)
 	 * @param attackedPlanet
 	 * @param attackMission
 	 * @return
@@ -217,4 +221,24 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository.computeConsumedEnergyByUser(user);
 	}
 
+	/**
+	 * Returns the total sum of the value for the specified improvement type for
+	 * user obtained unit
+	 * 
+	 * @param user
+	 * @param type
+	 *            The expected type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+		return ObjectUtils.firstNonNull(repository.sumByUserAndImprovementUnitTypeImprovementType(user, type.name()),
+				0L);
+	}
+
+	public boolean hasReachedUnitTypeLimit(UserStorage user, Integer typeId) {
+		UnitType type = unitTypeBo.findById(typeId);
+		return type.hasMaxCount()
+				&& repository.countByUserAndUnitType(user, type) >= unitTypeBo.findUniTypeLimitByUser(user, typeId);
+	}
 }

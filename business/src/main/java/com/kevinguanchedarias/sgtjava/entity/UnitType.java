@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 
@@ -34,6 +35,9 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 	@Column(name = "max_count", nullable = true)
 	private Long maxCount;
 
+	@Transient
+	private Long computedMaxCount;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_type")
 	private UnitType parent;
@@ -52,6 +56,10 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 		this.id = id;
 		this.name = name;
 		this.parent = parent;
+	}
+
+	public boolean hasMaxCount() {
+		return maxCount != null && maxCount > 0;
 	}
 
 	@Override
@@ -84,6 +92,21 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 
 	public void setMaxCount(Long maxCount) {
 		this.maxCount = maxCount;
+	}
+
+	/**
+	 * Transient property, when defined, represents the maxCount with all user
+	 * improvements applied
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long getComputedMaxCount() {
+		return computedMaxCount;
+	}
+
+	public void setComputedMaxCount(Long computedMaxCount) {
+		this.computedMaxCount = computedMaxCount;
 	}
 
 	public UnitType getParent() {

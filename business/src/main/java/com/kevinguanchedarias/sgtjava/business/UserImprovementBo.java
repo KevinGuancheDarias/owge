@@ -109,7 +109,6 @@ public class UserImprovementBo implements Serializable {
 			sign = -1;
 		}
 
-		userImprovement.addMoreSoldiersProduction(source.getMoreSoldiersProduction() * sign);
 		userImprovement.addMorePrimaryResourceProduction(source.getMorePrimaryResourceProduction() * sign);
 		userImprovement.addMoreSecondaryResourceProduction(source.getMoreSecondaryResourceProduction() * sign);
 		userImprovement.addMoreEnergyProduction(source.getMoreEnergyProduction() * sign);

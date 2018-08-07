@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.sgtjava.entity.Improvement;
 import com.kevinguanchedarias.sgtjava.entity.ImprovementUnitType;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.repository.ImprovementRepository;
 import com.kevinguanchedarias.sgtjava.repository.UnitTypeRepository;
@@ -29,6 +30,12 @@ public class ImprovementBo implements Serializable {
 
 	@Autowired
 	private ImprovementRepository improvementRepository;
+
+	@Autowired
+	private ObtainedUpradeBo obtainedUpgradeBo;
+
+	@Autowired
+	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
 	private ConfigurationBo configurationBo;
@@ -129,6 +136,21 @@ public class ImprovementBo implements Serializable {
 			pendingPercentage -= step;
 		}
 		return retVal;
+	}
+
+	/**
+	 * Returns the total sum of the value for the specified improvement type for
+	 * the given user
+	 * 
+	 * @param user
+	 * @param type
+	 *            The expected type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+		return obtainedUnitBo.sumUnitTypeImprovementByUserAndImprovementType(user, type)
+				+ obtainedUpgradeBo.sumUnitTypeImprovementByUserAndImprovementType(user, type);
 	}
 
 	private boolean validType(ImprovementUnitType input) {

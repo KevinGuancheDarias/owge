@@ -2,11 +2,14 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUpgradeRepository;
 
 @Component
@@ -60,5 +63,20 @@ public class ObtainedUpradeBo implements BaseBo<ObtainedUpgrade> {
 	 */
 	public ObtainedUpgrade findUserObtainedUpgrade(Integer userId, Integer upgradeId) {
 		return obtainedUpgradeRepository.findOneByUserIdIdAndUpgradeId(userId, upgradeId);
+	}
+
+	/**
+	 * Returns the total sum of the value for the specified improvement type for
+	 * user obtained upgrades
+	 * 
+	 * @param user
+	 * @param type
+	 *            The expected type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+		return ObjectUtils.firstNonNull(
+				obtainedUpgradeRepository.sumByUserAndImprovementUnitTypeImprovementType(user, type.name()), 0L);
 	}
 }

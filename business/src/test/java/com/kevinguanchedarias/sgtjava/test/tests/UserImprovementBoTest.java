@@ -40,7 +40,6 @@ public class UserImprovementBoTest {
 		userImprovement = new UserImprovement();
 		userImprovement.setId(1);
 		userImprovement.setUser(user);
-		userImprovement.setMoreSoldiersProduction(10.0F);
 		userImprovement.setMorePrimaryResourceProduction(20.0F);
 		userImprovement.setMoreSecondaryResourceProduction(30.0F);
 		userImprovement.setMoreEnergyProduction(40.0F);
@@ -49,7 +48,6 @@ public class UserImprovementBoTest {
 		Mockito.when(userImprovementRepositoryMock.findOneByUserId(1)).thenReturn(userImprovement);
 
 		improvement = new Improvement();
-		improvement.setMoreSoldiersProduction(1.0F);
 		improvement.setMorePrimaryResourceProduction(2.0F);
 		improvement.setMoreSecondaryResourceProduction(3.0F);
 		improvement.setMoreEnergyProduction(4.0F);
@@ -75,7 +73,6 @@ public class UserImprovementBoTest {
 	@Test
 	public void shouldAddMoreSoldiers() {
 		userImprovementBo.addImprovements(improvement, user);
-		assertEquals(11F, userImprovement.getMoreSoldiersProduction(), 1);
 		Mockito.verify(userImprovementRepositoryMock).save(userImprovement);
 	}
 
@@ -117,7 +114,6 @@ public class UserImprovementBoTest {
 	@Test
 	public void shouldSubtractMoreSoldiers() {
 		userImprovementBo.subtractImprovements(improvement, user);
-		assertEquals(9F, userImprovement.getMoreSoldiersProduction(), 1);
 		Mockito.verify(userImprovementRepositoryMock).save(userImprovement);
 	}
 
