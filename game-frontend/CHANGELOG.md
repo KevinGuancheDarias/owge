@@ -4,6 +4,8 @@ v0.5.0 (latest)
 ==========
 * __Merge:__ v0.4.1
 * __Fix:__ Backend not sending correct number of "count" of the running unit build mission
+* __Feature:__ As an admin I want to be able to define an unit as unique  
+![As an admin I want to be able to define an unit as unique](assets/changelog/features/McD3CIuL.gif)
 * __Feature:__ As a player I want to have a limit on determinated types of units, for example in troops
 * __Feature:__ As an admin i want to add  unit type amount limit
 * __Feature:__ As a player I want energy to work like expected
@@ -28,7 +30,7 @@ v0.3.5 (2018-08-09 17:36)
 ==========
 * __DevOps:__ Add support for publishing multiple universes of the same SGT minor version to the public server
 * __DevOps:__ Add feature to deploy a game more easily to the public server
-* __Fix:__ If user tries to send more units, than the one he have, game will crash with a loading img
+* __Fix:__ If user tries to send more units, than the one he have, game will crash with a loading img  
 ![If user tries to send more units, than the one he have, game will crash with a loading img](assets/changelog/bugs/wLpFm1fg.gif)
 * __Fix:__ The user can't close the report from a mobile device
 * __Fix:__ Attacks are failing sometimes, as game is trying to remove the units more than one time
