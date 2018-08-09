@@ -2,6 +2,7 @@
 
 v0.3.5 (latest)
 ==========
+* __Fix:__ The user can't close the report from a mobile device
 * __Fix:__ Attacks are failing sometimes, as game is trying to remove the units more than one time
 * __Fix:__ Multiverse doesn't work as expected, the user can't be logged in two different universes
 
