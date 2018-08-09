@@ -30,6 +30,7 @@
 		<property name="rootOriginList">
 			<list>
 				<value>kevinguanchedarias.com</value>
+				<value>kevinguanchedarias.local</value>
 			</list>
 		</property>
 	</bean>

@@ -5,5 +5,6 @@
 
 export const environment = {
   production: false,
-  accountUrl: 'http://localhost:8080/sgtjava-account/'
+  accountUrl: 'http://localhost:8080/sgtjava-account/',
+  loginDomain: null
 };

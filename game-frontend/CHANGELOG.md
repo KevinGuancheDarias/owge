@@ -1,13 +1,23 @@
 # SGT changelog
 
 v0.4.0 (latest)
-==========
+=======
 * __Feature:__ As a player I want to be able to voluntary leave a planet
 * __Fix:__ Universe without custom frontend URL is not working in 0.4.x
 * __Feature:__ As a player I would like to cancel my running unit missions
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
 * __Merge:__ v0.3.4
+
+v0.3.5 (2018-08-09 17:36)
+==========
+* __DevOps:__ Add support for publishing multiple universes of the same SGT minor version to the public server
+* __DevOps:__ Add feature to deploy a game more easily to the public server
+* __Fix:__ If user tries to send more units, than the one he have, game will crash with a loading img
+![If user tries to send more units, than the one he have, game will crash with a loading img](assets/changelog/bugs/wLpFm1fg.gif)
+* __Fix:__ The user can't close the report from a mobile device
+* __Fix:__ Attacks are failing sometimes, as game is trying to remove the units more than one time
+* __Fix:__ Multiverse doesn't work as expected, the user can't be logged in two different universes
 
 v0.3.4 (2018-07-25 13:06)
 ==========
