@@ -6,6 +6,7 @@ import { ROUTES } from './../config/config.pojo';
 import { LoginService } from './login.service';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { WebsocketService } from '../service/websocket.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -25,9 +26,21 @@ export class LoginComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this._loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
-      this._router.navigate([ROUTES.GAME_INDEX]);
-    });
+    if (this._loginSessionService.hasLoginDomain() && this._loginSessionService.isLoginDomain() && this._loginSessionService.isLoggedIn()) {
+      this._loginSessionService.logout();
+    } else if (this._loginSessionService.hasLoginDomain() && !this._loginSessionService.isLoginDomain()) {
+      if (!this._loginSessionService.isLoggedIn()) {
+        window.location.href = `//${environment.loginDomain}`;
+      } else {
+        this._loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
+          this._router.navigate([ROUTES.GAME_INDEX]);
+        });
+      }
+    } else {
+      this._loginSessionService.findLoggedInUserData().filter(status => !!status).subscribe(() => {
+        this._router.navigate([ROUTES.GAME_INDEX]);
+      });
+    }
   }
 
   onLoginFormSubmit() {

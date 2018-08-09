@@ -5,11 +5,13 @@
 # @param $1 string Project version, for example 0.3.0 (should match a SGT version tag)
 # @param $2 string Directory where the static files will be located
 # @param $3 string Directory where the dynamic files will be located
+# @param $4 int UniverseId number of the universeId
 # @env [NO_COMPILE] boolean If should not compile the modules again
 # @env [SGT_NOT_OPTIONAL] If specified, will compile SGT projects, even if they have been already compiled for specified version
 # @todo In the future, create a folder for the specified version, and git clone
 # @author Kevin Guanche Darias
 ##
+echo -e "\e[34m\e[42mKevin Guanche Darias :: Modern SGT DevOps & CI/CD :: Universe launching tool\e[39m\e[49m";
 sgtOptional="1";
 if [ ! -z "$SGT_NOT_OPTIONAL" ]; then
 	sgtOptional=""
@@ -30,7 +32,24 @@ if [ -z "$3" ] || [ ! -d "$3" ]; then
 	exit 1;
 fi
 
+if [ -z "$4" ]; then
+        echo "Universe id was NOT specified";
+        exit 1;
+fi
+if ! [ "$4" -eq "$4" ]; then
+	echo "FATAL: Universe id MUST be a number";
+	exit 1;
+fi
 . ./lib.sh;
+if ! gitVersionExists "$1"; then
+	exit 1;
+fi
+echo "git checkingout tag v$1";
+oldBranch=`gitGetCurrentBranch`;
+oldDetachedHeadValue=`git config advice.detachedHead`;
+git config advice.detachedHead false;
+git checkout "v$1";
+git config advice.detachedHead "$oldDetachedHeadValue";
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
 ##
@@ -52,7 +71,7 @@ function nodeRun() {
 	_targetDirectory="$1";
 	if [ ! -d "$_targetDirectory" ]; then
 		echo "FATAL, nodeRun failed, no such directory $_targetDirectory, aborting script execution";
-		exit 1;
+		rollback;
 	fi
 	shift;
 	docker run -it --rm --volume "$_targetDirectory"://home/node -w=/home/node node:8-alpine $@
@@ -87,7 +106,7 @@ function compileMavenProject () {
 		_compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
 		if [ -z "$_compiledFilePath" ]; then
 			echo "FATAL, compilation, when trying to compile $_project , aborting script execution";
-			exit 1;
+			rollback;
 		fi
 	fi
 	globalMavenFilename="$_projectFile";
@@ -106,21 +125,21 @@ function compileAngularProject () {
 	test -d "$1" && echo "Compiling Angular project in $1 to $2";
 	if [ -d "$2" ]; then
 		echo "FATAL, target directory for angular project alreadt exists, used $2, aborting...";
-		exit 1;
+		rollback;
 	fi
 	cp -rp "$1" "$2";
 	nodeRun "$2" npm install &> /dev/null;
 	nodeRun "$2" npm run build -- --env publicAccount &> /dev/null;
 	if [ ! -d "$2/dist" ]; then
 		echo "FATAL, Angular compilation failed, aborting script execution";
-		exit 1;
+		rollback;
 	fi
 
 }
 
 if [ ! -d "$kevinsuiteCommonBackend" ] || [ ! -d "$kevinsuiteRestBackend" ] ; then
 	echo "Fatal: Missing kevinsuite lib, download it please, looking into $kevinsuiteRoot";
-	exit 1;
+	rollback;
 fi
 
 if [ -z "$sgtOptional" ]; then
@@ -144,7 +163,7 @@ if [ -z "$NO_COMPILE" ]; then
 	export SGT_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
 else
 	echo "Currently NO_COMPILE is buggy, and is work in progress :(  ...... aborting :/";
-	exit 1;
+	rollback;
 fi
 export SGT_CI_VERSION="$1";
 # START Dockerzation things
@@ -155,4 +174,6 @@ chmod +x install.sh;
 cd "$launcherPath";
 echo "Executing jenkins install";
 chmod +x jenkins_install.sh
-./jenkins_install.sh "$2" "$3";
+SGT_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
+echo "git checkingout again the previously branch: $oldBranch";
+git checkout "$oldBranch";

@@ -22,11 +22,10 @@ services:
              - warHolderDirectory=target
              - SGT_ADMIN_WAR_FILENAME
              - SGT_REST_WAR_FILENAME
+             - SGT_UNIVERSE_ID
         volumes:
            - ${STATIC_IMAGES_DIR}:/var/sgt_data/static
            - ${DYNAMIC_IMAGES_DIR}:/var/sgt_data/dynamic
         expose:
            - "8081"
-        ports:
-           - "7474:8081"
 

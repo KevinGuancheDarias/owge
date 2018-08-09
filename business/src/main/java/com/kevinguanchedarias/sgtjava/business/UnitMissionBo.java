@@ -157,7 +157,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		public List<AttackObtainedUnit> findUnitsWithLife() {
-			return findAllUnits().stream().filter(current -> current.availableHealth >= 0.0D)
+			return findAllUnits().stream().filter(current -> current.availableHealth >= 0D)
 					.collect(Collectors.toList());
 		}
 
