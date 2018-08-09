@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  mer. 01 août 2018 à 07:30
+-- Généré le :  jeu. 09 août 2018 à 19:40
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -201,7 +201,7 @@ CREATE TABLE `improvements` (
 CREATE TABLE `improvements_unit_types` (
   `id` smallint(5) UNSIGNED NOT NULL,
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
-  `type` enum('ATTACK','DEFENSE','SHIELD') NOT NULL,
+  `type` enum('ATTACK','DEFENSE','SHIELD','AMOUNT') NOT NULL,
   `unit_type_id` smallint(6) UNSIGNED NOT NULL,
   `value` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='upgrades_unit_types';
@@ -656,6 +656,7 @@ CREATE TABLE `units` (
   `health` smallint(6) UNSIGNED DEFAULT NULL,
   `shield` smallint(6) UNSIGNED DEFAULT NULL,
   `charge` smallint(6) UNSIGNED DEFAULT NULL,
+  `is_unique` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
   `cloned_improvements` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -670,6 +671,7 @@ CREATE TABLE `unit_types` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `name` varchar(20) NOT NULL,
   `max_count` bigint(20) DEFAULT NULL,
+  `image` char(36) DEFAULT NULL,
   `parent_type` smallint(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1167,7 +1169,7 @@ ALTER TABLE `improvements`
 -- AUTO_INCREMENT pour la table `improvements_unit_types`
 --
 ALTER TABLE `improvements_unit_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=158;
 
 --
 -- AUTO_INCREMENT pour la table `mensajes`
@@ -1179,19 +1181,19 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6546;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6555;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
 --
 ALTER TABLE `mission_information`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=920;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=923;
 
 --
 -- AUTO_INCREMENT pour la table `mission_reports`
 --
 ALTER TABLE `mission_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2820;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2823;
 
 --
 -- AUTO_INCREMENT pour la table `mission_types`
@@ -1209,7 +1211,7 @@ ALTER TABLE `object_relations`
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3433;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3439;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
@@ -1287,7 +1289,7 @@ ALTER TABLE `user_improvements`
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8389;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8398;
 
 --
 -- Contraintes pour les tables déchargées

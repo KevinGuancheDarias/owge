@@ -52,6 +52,9 @@ public class Unit extends EntityWithImage implements EntityWithImprovements {
 	private Integer shield;
 	private Integer charge;
 
+	@Column(name = "is_unique", nullable = false)
+	private Boolean isUnique = false;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "improvement_id")
@@ -176,6 +179,14 @@ public class Unit extends EntityWithImage implements EntityWithImprovements {
 
 	public void setCharge(Integer charge) {
 		this.charge = charge;
+	}
+
+	public Boolean getIsUnique() {
+		return isUnique;
+	}
+
+	public void setIsUnique(Boolean isUnique) {
+		this.isUnique = isUnique;
 	}
 
 	@Override
