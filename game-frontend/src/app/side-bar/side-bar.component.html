@@ -41,5 +41,9 @@
                   [resourceValue]="resources.currentEnergy" [resourceMaxValue]="resources.currentMaxEnergy">
             </app-display-single-resource>
 
+            <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes" [resourceName]="unitType.name" [resourceImage]="unitType.image"
+                  [resourceValue]="unitType.userBuilt" [resourceMaxValue]="unitType.computedMaxCount">
+
+            </app-display-single-resource>
       </div>
 </div>

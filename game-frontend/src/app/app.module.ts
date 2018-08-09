@@ -60,6 +60,7 @@ import { SynchronizeCredentialsComponent } from './components/synchronize-creden
 import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
 import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
+import { UnitTypeService } from './services/unit-type.service';
 
 
 export const APP_ROUTES: Routes = [
@@ -139,7 +140,8 @@ export const APP_ROUTES: Routes = [
     MissionService,
     LoadingService,
     ReportService,
-    SanitizeService
+    SanitizeService,
+    UnitTypeService
   ],
   bootstrap: [AppComponent]
 })

@@ -8,6 +8,8 @@ import { PlanetService } from '../service/planet.service';
 import { ModalComponent } from '../components/modal/modal.component';
 import { UniverseService } from '../universe/universe.service';
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
+import { UnitTypeService } from '../services/unit-type.service';
+import { UnitType } from '../shared/types/unit-type.type';
 
 const { version, sgt: { versionDate } } = require('../../../package.json');
 
@@ -27,11 +29,17 @@ export class SideBarComponent extends BaseComponent implements OnInit {
   public menuRoutes = ROUTES;
   public myPlanets: PlanetPojo[];
   public versionInformation: { version: string, versionDate: string };
+  public withLimitUnitTypes: UnitType[];
 
   @ViewChild('planetSelectionModal')
   private _modalComponent: ModalComponent;
 
-  constructor(private _planetService: PlanetService, private _universeService: UniverseService, private _router: Router) {
+  constructor(
+    private _planetService: PlanetService,
+    private _universeService: UniverseService,
+    private _router: Router,
+    private _unitTypeService: UnitTypeService
+  ) {
     super();
     this.requireUser();
     this.versionInformation = { version, versionDate };
@@ -41,6 +49,7 @@ export class SideBarComponent extends BaseComponent implements OnInit {
     this.requireUser();
     this.resourcesAutoUpdate();
     this._planetService.myPlanets.subscribe(planets => this.myPlanets = planets);
+    this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
     if (this._universeService.isUpdatedVersion(version)) {
       alert(`El juego se ha actualizado a ${version}`);
       const currentConfig: UniverseLocalConfig = this._universeService.findUniverseUserLocalConfig();
