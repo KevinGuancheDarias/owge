@@ -139,7 +139,13 @@ function gitVersionExists () {
                 echo "FATAL, malformed version passed to gitVersionExists(), exit()ing script";
                 return 1;
         fi
-	if git tag | grep v$1 &> /dev/null; then
+	major=`echo $1 | cut -d . -f 1`;
+        minor=`echo $1 | cut -d . -f 2`;
+        patch=`echo $1 | cut -d . -f 3`;
+	if [[ $major -eq 0 && $minor -eq 3 && $patch -lt 5 ]] || [[ $major -eq 0 && $minor -eq 4 && $patch -lt 1 ]] || [[ $major -eq 0 && $minor -lt 3 ]]; then
+		echo "Unsupported version v$1, only versions equal or grater than 0.3.5, 0.4.1, or, having minor equal or greater to 5 can be used";
+		return 1;
+	elif git tag | grep v$1 &> /dev/null; then
 		return 0;
 	else
 		echo "NO SUCH version exists, v$1 is not a git tag";
