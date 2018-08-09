@@ -70,6 +70,21 @@ export class UnitTypeService extends GameBaseService {
     this.addToType(id, -count);
   }
 
+
+  /**
+   * Returns true, if user has enough avaiable for the given unit type
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {number} typeId
+   * @param {number} requiredCount Count wanted to be added by the user
+   * @returns {boolean}
+   * @memberof UnitTypeService
+   */
+  public hasAvailable(typeId: number, requiredCount: number): boolean {
+    const type: UnitType = this._findTypeById(typeId);
+    return !type.maxCount || this.findAvailableByType(typeId) >= requiredCount;
+  }
+
   private _findTypeById(id: number): UnitType {
     const retVal: UnitType = this._unitTypes.value.find(current => current.id === id);
     if (!retVal) {

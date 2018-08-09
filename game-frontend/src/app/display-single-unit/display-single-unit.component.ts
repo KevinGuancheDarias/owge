@@ -6,6 +6,7 @@ import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
+import { UnitTypeService } from '../services/unit-type.service';
 
 export type validViews = 'requirements' | 'attributes';
 
@@ -90,7 +91,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   }
   private _count: BehaviorSubject<number> = new BehaviorSubject(1);
 
-  constructor(private _unitService: UnitService) {
+  constructor(private _unitService: UnitService, private _unitTypeService: UnitTypeService) {
     super();
   }
 
@@ -128,5 +129,9 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
 
   public isValidDeletion(): boolean {
     return this.numberToDelete && this.numberToDelete <= this.inPlanetCount;
+  }
+
+  public canBuild(): boolean {
+    return this.unit.requirements.runnable && this._unitTypeService.hasAvailable(this.unit.typeId, this.count);
   }
 }
