@@ -143,7 +143,7 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-
+		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), count);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
 		missionInformation.setValue(planetId.doubleValue());

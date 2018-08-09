@@ -246,4 +246,36 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return type.hasMaxCount()
 				&& repository.countByUserAndUnitType(user, type) >= unitTypeBo.findUniTypeLimitByUser(user, typeId);
 	}
+
+	/**
+	 * 
+	 * @param user
+	 * @param typeId
+	 * @param count
+	 *            Count to test if would exceed the unit type limit
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean wouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
+		UnitType type = unitTypeBo.findById(typeId);
+		Long userCount = repository.countByUserAndUnitType(user, type) + count;
+		return type.hasMaxCount() && userCount > unitTypeBo.findUniTypeLimitByUser(user, typeId);
+	}
+
+	/**
+	 * Checks if the specified count would be over the expected count
+	 * 
+	 * @param user
+	 * @param typeId
+	 * @param count
+	 * @throws SgtBackendInvalidInputException
+	 *             When reached
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void checkWouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
+		if (wouldReachUnitTypeLimit(user, typeId, count)) {
+			throw new SgtBackendInvalidInputException(
+					"Nice try to buy over your possibilities!!!, try outside of Spain!");
+		}
+	}
 }
