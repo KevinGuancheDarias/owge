@@ -5,11 +5,13 @@
 # @param $1 string Project version, for example 0.3.0 (should match a SGT version tag)
 # @param $2 string Directory where the static files will be located
 # @param $3 string Directory where the dynamic files will be located
+# @param $4 int UniverseId number of the universeId
 # @env [NO_COMPILE] boolean If should not compile the modules again
 # @env [SGT_NOT_OPTIONAL] If specified, will compile SGT projects, even if they have been already compiled for specified version
 # @todo In the future, create a folder for the specified version, and git clone
 # @author Kevin Guanche Darias
 ##
+echo -e "\e[34m\e[42mKevin Guanche Darias :: Modern SGT DevOps & CI/CD :: Universe launching tool\e[39m\e[49m";
 sgtOptional="1";
 if [ ! -z "$SGT_NOT_OPTIONAL" ]; then
 	sgtOptional=""
@@ -30,6 +32,10 @@ if [ -z "$3" ] || [ ! -d "$3" ]; then
 	exit 1;
 fi
 
+if [ -z "$4" ]; then
+        echo "Universe id was NOT specified";
+        exit 1;
+fi
 . ./lib.sh;
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
@@ -155,4 +161,4 @@ chmod +x install.sh;
 cd "$launcherPath";
 echo "Executing jenkins install";
 chmod +x jenkins_install.sh
-./jenkins_install.sh "$2" "$3";
+SGT_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";

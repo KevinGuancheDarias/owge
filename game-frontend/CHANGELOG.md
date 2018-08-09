@@ -1,7 +1,8 @@
 # SGT changelog
 
-v0.3.5 (latest)
+v0.3.5 (2018-08-09 17:36)
 ==========
+* __DevOps:__ Add feature to deploy a game more easily to the public server
 * __Fix:__ If user tries to send more units, than the one he have, game will crash with a loading img
 ![If user tries to send more units, than the one he have, game will crash with a loading img](assets/changelog/bugs/wLpFm1fg.gif)
 * __Fix:__ The user can't close the report from a mobile device

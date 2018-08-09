@@ -43,6 +43,7 @@ gameFrontendNgDir="$SGT_CI_INSTALL_FRONTEND_DIR";
 sgtVersion="$SGT_CI_VERSION";
 gameRestFilename="$SGT_REST_WAR_FILENAME";
 gameAdminFilename="$SGT_ADMIN_WAR_FILENAME";
+universeId="$SGT_UNIVERSE_ID";
 # END env aliasing
 
 # START check env
@@ -52,6 +53,7 @@ envFailureCheck 3 "$gameFrontendNgDir";
 envFailureCheck 4 "$sgtVersion";
 envFailureCheck 5 "$gameRestFilename";
 envFailureCheck 6 "$gameAdminFilename";
+envFailureCheck 7 "$universeId";
 
 
 checkExists 1 f "$adminWarFile";
@@ -86,7 +88,7 @@ if [ ! -d "$dynamicImgDir" ]; then
 	echo "Directory $dynamicImgDir doesn't exists";
 	exit 1;
 fi
-SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
+COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
 sleep 2;
 sgtPort=`getPort $sgtVersion`;
 # END ask or set parameters
@@ -103,6 +105,6 @@ test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target"
 cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
 
 cd $localPath;
-SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose  up  -d  --build
+COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" SGT_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
 cd -;
 # END program itself

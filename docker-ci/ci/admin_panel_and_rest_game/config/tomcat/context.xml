@@ -7,5 +7,5 @@
                 testWhileIdle="true"
                 logValidationErrors="true"
                 password="StrongestOneill" driverClassName="com.mysql.jdbc.Driver"
-                url="jdbc:mysql://10.74.32.252:3306/sgalactica_java" />
+                url="jdbc:mysql://10.74.32.252:3306/€database" />
 </Context>
