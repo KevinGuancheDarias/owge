@@ -15,6 +15,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import 'rxjs/add/operator/filter';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { ProgrammingError } from '../../error/programming.error';
+import { UnitTypeService } from '../services/unit-type.service';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -54,7 +55,9 @@ export class UnitService extends GameBaseService {
   private _ready: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   constructor(
-    private _resourceManagerService: ResourceManagerService, private _planetService: PlanetService
+    private _resourceManagerService: ResourceManagerService,
+    private _planetService: PlanetService,
+    private _unitTypeService: UnitTypeService
   ) {
     super();
     this.resourcesAutoUpdate();
@@ -130,6 +133,7 @@ export class UnitService extends GameBaseService {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
+      this._unitTypeService.addToType(unit.typeId, count);
       if (res) {
         res.terminationDate = new Date(res.terminationDate);
         this._registerInterval(this._selectedPlanet, res);
@@ -190,16 +194,17 @@ export class UnitService extends GameBaseService {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {ObtainedUnit} unit Should contain at least the id, and the count to delete
-   * @returns {Observable<void>}
+   * @returns {Promise<void>}
    * @throws {ProgrammingError} Invalid unit was passed
    * @memberof UnitService
    */
-  public deleteObtainedUnit(unit: ObtainedUnit): Observable<void> {
+  public async deleteObtainedUnit(unit: ObtainedUnit): Promise<void> {
     if (!unit.id || !unit.count) {
       throw new ProgrammingError('ObtainedUnit MUST have an id, and the count MUST be specified');
     }
     const { id, count } = unit;
-    return this._doPostWithAuthorizationToGame('unit/delete', { id, count });
+    await this._doPostWithAuthorizationToGame('unit/delete', { id, count }).toPromise();
+    this._unitTypeService.sustractToType(unit.unit.typeId, count);
   }
 
   /**

@@ -1,7 +1,8 @@
 import { RequirementPojo } from './requirement.pojo';
 import { MEDIA_ROUTES } from '../config/config.pojo';
+
 /**
- * Represents a Unit
+ * Represents a Unit as sent by backend
  *
  * @todo Complete the missing params, after making the backend DTO
  * @author Kevin Guanche Darias
@@ -22,6 +23,8 @@ export class UnitPojo {
     public health?: number;
     public shield?: number;
     public charge?: number;
+    public typeId?: number;
+    public typeName?: string;
     public requirements?: RequirementPojo;
 
     /**

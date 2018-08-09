@@ -112,7 +112,8 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   public async deleteUnits(): Promise<void> {
     if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
       this.obtainedUnit.count = this.numberToDelete;
-      await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit).toPromise());
+      await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit));
+
       this.delete.emit();
     }
   }
