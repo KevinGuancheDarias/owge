@@ -62,7 +62,6 @@ checkExists 3 d "$gameFrontendNgDir";
 # END check env
 
 # START ask or set parameters
-sgtPort=`getPort $sgtVersion`;
 if [ -z "$1" ]; then
 	while [ -z "$staticImgDir" ]; do
 		echo -n "Please insert static images server directory: "; read staticImgDir;
@@ -88,9 +87,13 @@ if [ ! -d "$dynamicImgDir" ]; then
 	echo "Directory $dynamicImgDir doesn't exists";
 	exit 1;
 fi
-COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
+COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
 sleep 2;
-sgtPort=`getPort $sgtVersion`;
+if ! sgtPort=`getPortByUniverseId $universeId`; then
+        echo "Error getting port: $sgtPort";
+        exit 1;
+fi
+
 # END ask or set parameters
 
 # START program itself

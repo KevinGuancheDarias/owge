@@ -71,11 +71,13 @@ function compileMavenProject () {
 # Returns the HTTP port for the specified SGT version
 # Notice: It ensures only a free port is returned
 #
+# @deprecated It's better to determine the port by giving universeId, use getPortByUniverseId instead
 # @param $1 string Version, should look like x.x.x
 # @author Kevin Guanche Darias
 # @returns stdout<int> Port number
 ##
 function getPort () {
+	echo -e "\[33mWarning: getPort function is deprecated\e[39m";
 	if ! echo "$1" | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]$" &> /dev/null; then
 		echo "FATAL, malformed version passed to getPort(), exit()ing script";
 		return 1;
@@ -88,6 +90,27 @@ function getPort () {
 		port=$(( $port + 1 ));
 	done
 	echo "$port";
+}
+
+##
+# Returns the HTTP port for the specified SGT universe
+#
+# @param $1 int Unirverse id
+# @returns stdout<int> Port number
+# @author Kevin Guanche Darias
+##
+function getPortByUniverseId () {
+	if ! [ "$1" -eq "$1" ] 2> /dev/null; then
+		echo "FATAL, param passed to getPortByUniverseId is not a number, passed: $1";
+		return 1;
+	fi;
+	_basePort=8110;
+	_port=$(( $_basePort + $1 ));
+	if nc -z 127.0.0.1 $_port; then
+		echo "FATAL, port $_port is already in use";
+		return 1;
+	fi
+	echo "$_port";
 }
 
 function compileAngularProject () {

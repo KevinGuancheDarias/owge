@@ -36,6 +36,10 @@ if [ -z "$4" ]; then
         echo "Universe id was NOT specified";
         exit 1;
 fi
+if ! [ "$4" -eq "$4" ]; then
+	echo "FATAL: Universe id MUST be a number";
+	exit 1;
+fi
 . ./lib.sh;
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
