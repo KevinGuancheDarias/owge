@@ -1,6 +1,6 @@
 {
   "name": "game-frontend",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "license": "MIT",
   "angular-cli": {},
   "scripts": {

@@ -19,7 +19,7 @@
     </div>
   </div>
   <div class="footer">
-    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType" class="btn-primary btn-send-mission">Send mission</button>
+    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()" class="btn-primary btn-send-mission">Send mission</button>
   </div>
 </app-modal>
 <ng-container *ngIf="navigationData">

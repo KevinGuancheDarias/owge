@@ -106,6 +106,13 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
     return this._planetService.isMine(planet);
   }
 
+  public hasSelectedMoreThanPossible(): boolean {
+    return this.selectedUnits.some(current => {
+      const obtainedUnit = this.obtainedUnits.find(currentObtainedUnit => currentObtainedUnit.unit.id === current.id);
+      return !current || !obtainedUnit || current.count > obtainedUnit.count;
+    });
+  }
+
   private async _findObtainedUnits(): Promise<void> {
     this.obtainedUnits = await this._unitService.findInMyPlanet(this.myPlanet.id).toPromise();
   }
