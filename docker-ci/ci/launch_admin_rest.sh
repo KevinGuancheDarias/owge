@@ -41,6 +41,12 @@ if ! [ "$4" -eq "$4" ]; then
 	exit 1;
 fi
 . ./lib.sh;
+if ! gitVersionExists "$1"; then
+	exit 1;
+fi
+echo "git checkingout tag v$1";
+oldBranch=`gitGetCurrentBranch`;
+git checkout "v$1";
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
 ##
@@ -62,7 +68,7 @@ function nodeRun() {
 	_targetDirectory="$1";
 	if [ ! -d "$_targetDirectory" ]; then
 		echo "FATAL, nodeRun failed, no such directory $_targetDirectory, aborting script execution";
-		exit 1;
+		rollback;
 	fi
 	shift;
 	docker run -it --rm --volume "$_targetDirectory"://home/node -w=/home/node node:8-alpine $@
@@ -97,7 +103,7 @@ function compileMavenProject () {
 		_compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
 		if [ -z "$_compiledFilePath" ]; then
 			echo "FATAL, compilation, when trying to compile $_project , aborting script execution";
-			exit 1;
+			rollback;
 		fi
 	fi
 	globalMavenFilename="$_projectFile";
@@ -116,21 +122,21 @@ function compileAngularProject () {
 	test -d "$1" && echo "Compiling Angular project in $1 to $2";
 	if [ -d "$2" ]; then
 		echo "FATAL, target directory for angular project alreadt exists, used $2, aborting...";
-		exit 1;
+		rollback;
 	fi
 	cp -rp "$1" "$2";
 	nodeRun "$2" npm install &> /dev/null;
 	nodeRun "$2" npm run build -- --env publicAccount &> /dev/null;
 	if [ ! -d "$2/dist" ]; then
 		echo "FATAL, Angular compilation failed, aborting script execution";
-		exit 1;
+		rollback;
 	fi
 
 }
 
 if [ ! -d "$kevinsuiteCommonBackend" ] || [ ! -d "$kevinsuiteRestBackend" ] ; then
 	echo "Fatal: Missing kevinsuite lib, download it please, looking into $kevinsuiteRoot";
-	exit 1;
+	rollback;
 fi
 
 if [ -z "$sgtOptional" ]; then
@@ -154,7 +160,7 @@ if [ -z "$NO_COMPILE" ]; then
 	export SGT_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
 else
 	echo "Currently NO_COMPILE is buggy, and is work in progress :(  ...... aborting :/";
-	exit 1;
+	rollback;
 fi
 export SGT_CI_VERSION="$1";
 # START Dockerzation things
@@ -166,3 +172,5 @@ cd "$launcherPath";
 echo "Executing jenkins install";
 chmod +x jenkins_install.sh
 SGT_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
+echo "git checkingout again the previously branch: $oldBranch";
+git checkout "$oldBranch";

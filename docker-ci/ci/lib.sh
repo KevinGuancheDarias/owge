@@ -129,3 +129,26 @@ function compileAngularProject () {
         fi
 
 }
+
+function gitGetCurrentBranch () {
+	git branch | grep '^*' | cut -c 3-;
+}
+
+function gitVersionExists () {
+	if ! echo "$1" | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]$" &> /dev/null; then
+                echo "FATAL, malformed version passed to gitVersionExists(), exit()ing script";
+                return 1;
+        fi
+	if git tag | grep v$1 &> /dev/null; then
+		return 0;
+	else
+		echo "NO SUCH version exists, v$1 is not a git tag";
+		return 1;
+	fi
+
+}
+
+function rollback () {
+	git checkout "$oldBranch";
+	exit 1;
+}
