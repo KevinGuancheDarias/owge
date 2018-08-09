@@ -1,7 +1,11 @@
 # SGT changelog
 
-v0.4.0 (latest)
-=======
+v0.4.1 (2018-08-09 19:15)
+==========
+* __Merge:__ v0.3.5
+
+v0.4.0 (2018-07-29 22:20)
+==========
 * __Feature:__ As a player I want to be able to voluntary leave a planet
 * __Fix:__ Universe without custom frontend URL is not working in 0.4.x
 * __Feature:__ As a player I would like to cancel my running unit missions
