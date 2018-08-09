@@ -84,6 +84,11 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository.countByUserIdAndUnitId(user.getId(), unitId);
 	}
 
+	public Long countByUserAndUnitType(UserStorage user, Integer typeId) {
+		UnitType type = unitTypeBo.findById(typeId);
+		return repository.countByUserAndUnitType(user, type);
+	}
+
 	/**
 	 * Returns the units in the <i>targetPlanet</i> that are not in mission <br>
 	 * Ideally used to explore a planet

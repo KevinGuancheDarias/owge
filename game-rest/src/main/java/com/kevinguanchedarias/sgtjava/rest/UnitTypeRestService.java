@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.sgtjava.business.UnitTypeBo;
 import com.kevinguanchedarias.sgtjava.business.UserStorageBo;
-import com.kevinguanchedarias.sgtjava.entity.UnitType;
+import com.kevinguanchedarias.sgtjava.dto.UnitTypeDto;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 @RestController
 @RequestMapping("unitType")
@@ -22,16 +24,20 @@ public class UnitTypeRestService {
 	private UserStorageBo userStorageBo;
 
 	@Autowired
+	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
 	private UnitTypeBo unitTypeBo;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public List<UnitType> findAll() {
+	public List<UnitTypeDto> findAll() {
 		return unitTypeBo.findAll().stream().map(current -> {
-			current.setChildren(null);
-			current.setUpgradeEnhancements(null);
-			current.setComputedMaxCount(
-					unitTypeBo.findUniTypeLimitByUser(userStorageBo.findLoggedInWithDetails(false), current.getId()));
-			return current;
+			UnitTypeDto currentDto = new UnitTypeDto();
+			currentDto.dtoFromEntity(current);
+			UserStorage user = userStorageBo.findLoggedInWithDetails(false);
+			currentDto.setComputedMaxCount(unitTypeBo.findUniTypeLimitByUser(user, current.getId()));
+			currentDto.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current.getId()));
+			return currentDto;
 		}).collect(Collectors.toList());
 	}
 }
