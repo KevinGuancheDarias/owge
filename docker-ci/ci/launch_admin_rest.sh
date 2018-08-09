@@ -46,7 +46,10 @@ if ! gitVersionExists "$1"; then
 fi
 echo "git checkingout tag v$1";
 oldBranch=`gitGetCurrentBranch`;
+oldDetachedHeadValue=`git config advice.detachedHead`;
+git config advice.detachedHead false;
 git checkout "v$1";
+git config advice.detachedHead "$oldDetachedHeadValue";
 ##
 # After the execution of compileMavenProject() contains where the compile file is located
 ##
