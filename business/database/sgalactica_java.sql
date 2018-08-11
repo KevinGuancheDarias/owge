@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  jeu. 09 août 2018 à 19:40
+-- Généré le :  sam. 11 août 2018 à 14:21
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -189,7 +189,8 @@ CREATE TABLE `improvements` (
   `more_secondary_resource_production` smallint(6) DEFAULT NULL,
   `more_energy_production` smallint(6) DEFAULT NULL,
   `more_charge_capacity` smallint(6) DEFAULT NULL,
-  `more_missions_value` tinyint(4) DEFAULT NULL
+  `more_missions_value` tinyint(4) DEFAULT NULL,
+  `more_upgrade_research_speed` float UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

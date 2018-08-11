@@ -39,6 +39,9 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	@Column(name = "more_missions_value")
 	private Float moreMisions = 0.0F;
 
+	@Column(name = "more_upgrade_research_speed")
+	private Float moreUpgradeResearchSpeed = 0F;
+
 	@Override
 	public Integer getId() {
 		return id;
@@ -145,4 +148,13 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	public void setMoreMisions(Float moreMisions) {
 		this.moreMisions = moreMisions;
 	}
+
+	public Float getMoreUpgradeResearchSpeed() {
+		return moreUpgradeResearchSpeed;
+	}
+
+	public void setMoreUpgradeResearchSpeed(Float moreUpgradeResearchSpeed) {
+		this.moreUpgradeResearchSpeed = moreUpgradeResearchSpeed;
+	}
+
 }
