@@ -64,6 +64,17 @@
 				styleClass="NumericInput" stepFactor="0.5" />
 		</p:column>
 	</p:row>
+	
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreUpgradeResearchSpeed" value="More research speed:" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreUpgradeResearchSpeed"
+				value="#{improvementsController.selectedObject.improvement.moreUpgradeResearchSpeed}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
 
 	<p:row rendered="#{improvementsController.selectedObject.id != null}">
 		<p:column colspan="2">

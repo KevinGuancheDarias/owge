@@ -4,8 +4,10 @@ v0.5.0 (latest)
 ==========
 * __Merge:__ v0.4.1
 * __Fix:__ Backend not sending correct number of "count" of the running unit build mission
+* __Feature:__ As an admin I wan to be able to add an improvement to upgrade research speed  
+![As an admin I wan to be able to add an improvement to upgrade research speed](assets/changelog/features/fTtxVUv4.png)  
 * __Feature:__ As an admin I want to be able to define an unit as unique  
-![As an admin I want to be able to define an unit as unique](assets/changelog/features/McD3CIuL.gif)
+![As an admin I want to be able to define an unit as unique](assets/changelog/features/McD3CIuL.gif)  
 * __Feature:__ As a player I want to have a limit on determinated types of units, for example in troops
 * __Feature:__ As an admin i want to add  unit type amount limit
 * __Feature:__ As a player I want energy to work like expected
