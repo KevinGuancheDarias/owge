@@ -75,6 +75,17 @@
 				styleClass="NumericInput" stepFactor="0.5" />
 		</p:column>
 	</p:row>
+	
+	<p:row>
+		<p:column>
+			<p:outputLabel for="moreUnitBuildSpeed" value="More unit build speed:" />
+		</p:column>
+		<p:column>
+			<p:spinner id="moreUnitBuildSpeed"
+				value="#{improvementsController.selectedObject.improvement.moreUnitBuildSpeed}"
+				styleClass="NumericInput" stepFactor="0.5" />
+		</p:column>
+	</p:row>
 
 	<p:row rendered="#{improvementsController.selectedObject.id != null}">
 		<p:column colspan="2">
