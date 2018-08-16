@@ -34,7 +34,12 @@
     </ng-container>
     <ng-container *ngIf="!building">
       <input type="number" id="count" name="count" [(ngModel)]="count" placeholder="Cantidad" />
-      <a *ngIf="canBuild()" class="btn btn-block" role="button" (click)="buildSelectedUnit()">Construir</a>
+      <a *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block" role="button" (click)="buildSelectedUnit()">Construir</a>
+      <a *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (click)="count = 1">Máximo 1
+        =/
+      </a>
+      <a *ngIf="!count" class="btn btn-block" role="button" (click)="count = 1">Mínimo 1
+      </a>
       <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">Sin recursos</a>
     </ng-container>
   </ng-container>

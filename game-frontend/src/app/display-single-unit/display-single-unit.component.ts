@@ -134,4 +134,16 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   public canBuild(): boolean {
     return this.unit.requirements.runnable && this._unitTypeService.hasAvailable(this.unit.typeId, this.count);
   }
+
+
+  /**
+   * If unit is unique should not allow more than one as <i>count</i> value
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @returns {boolean}
+   * @memberof DisplaySingleUnitComponent
+   */
+  public isValidCount(): boolean {
+    return (this.unit.isUnique && this.count === 1) || !this.unit.isUnique;
+  }
 }

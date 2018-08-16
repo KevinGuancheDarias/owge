@@ -23,6 +23,7 @@ export class UnitPojo {
     public health?: number;
     public shield?: number;
     public charge?: number;
+    public isUnique?: boolean;
     public typeId?: number;
     public typeName?: string;
     public requirements?: RequirementPojo;

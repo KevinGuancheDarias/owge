@@ -20,6 +20,7 @@ public class UnitDto implements DtoFromEntity<Unit> {
 	private Integer health = 1;
 	private Integer shield;
 	private Integer charge;
+	private Boolean isUnique = false;
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
 
@@ -154,6 +155,14 @@ public class UnitDto implements DtoFromEntity<Unit> {
 
 	public void setCharge(Integer charge) {
 		this.charge = charge;
+	}
+
+	public Boolean getIsUnique() {
+		return isUnique;
+	}
+
+	public void setIsUnique(Boolean isUnique) {
+		this.isUnique = isUnique;
 	}
 
 	public ImprovementDto getImprovement() {
