@@ -126,7 +126,7 @@ public class MissionBo extends AbstractMissionBo {
 	 * @param userId
 	 * @param planetId
 	 * @param unitId
-	 * @param count
+	 * @param finalCount
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
@@ -137,13 +137,14 @@ public class MissionBo extends AbstractMissionBo {
 				unitId);
 		checkUnlockedUnit(userId, relation);
 		UserStorage user = userStorageBo.findById(userId);
-
 		Unit unit = unitBo.findByIdOrDie(unitId);
-		ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, count);
+		Long finalCount = unit.getIsUnique() ? 1 : count;
+		unitBo.checkIsUniqueBuilt(user, unit);
+		ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
 		if (!resourceRequirements.canRun(user)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), count);
+		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
 		missionInformation.setValue(planetId.doubleValue());
@@ -162,14 +163,14 @@ public class MissionBo extends AbstractMissionBo {
 
 		ObtainedUnit obtainedUnit = new ObtainedUnit();
 		obtainedUnit.setMission(mission);
-		obtainedUnit.setCount(count);
+		obtainedUnit.setCount(finalCount);
 		obtainedUnit.setUnit(unit);
 		obtainedUnit.setUser(user);
 		obtainedUnitBo.save(obtainedUnit);
 
 		scheduleMission(mission);
 
-		return new RunningUnitBuildDto(unit, mission, count);
+		return new RunningUnitBuildDto(unit, mission, finalCount);
 	}
 
 	public RunningUpgradeDto findRunningLevelUpMission(Integer userId) {
@@ -461,5 +462,4 @@ public class MissionBo extends AbstractMissionBo {
 		user.setPrimaryResource(user.getPrimaryResource() - mission.getPrimaryResource());
 		user.setSecondaryResource(user.getSecondaryResource() - mission.getSecondaryResource());
 	}
-
 }

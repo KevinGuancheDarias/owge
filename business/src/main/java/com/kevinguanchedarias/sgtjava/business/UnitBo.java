@@ -23,6 +23,9 @@ public class UnitBo implements WithNameBo<Unit> {
 	@Autowired
 	private UnlockedRelationBo unlockedRelationBo;
 
+	@Autowired
+	private ObtainedUnitBo obtainedUnitBo;
+
 	@Override
 	public JpaRepository<Unit, Number> getRepository() {
 		return unitRepository;
@@ -63,5 +66,24 @@ public class UnitBo implements WithNameBo<Unit> {
 		retVal.setRequiredSecondary((double) (unit.getSecondaryResource() * count));
 		retVal.setRequiredTime((double) (unit.getTime() * count));
 		return retVal;
+	}
+
+	public boolean isUnique(Unit unit) {
+		return unit.getIsUnique();
+	}
+
+	/**
+	 * Checks if the unique unit has been build by the user
+	 * 
+	 * @param user
+	 * @param unit
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void checkIsUniqueBuilt(UserStorage user, Unit unit) {
+		if (isUnique(unit) && obtainedUnitBo.countByUserAndUnitId(user, unit.getId()) > 0) {
+			throw new SgtBackendInvalidInputException(
+					"Unit with id " + unit.getId() + " has been already build by user " + user.getId());
+		}
+
 	}
 }
