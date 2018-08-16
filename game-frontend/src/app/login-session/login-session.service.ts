@@ -157,7 +157,12 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
     return target.append('Authorization', `Bearer ${this.getRawToken()}`);
   }
   public findLoggedInUserData(): Observable<UserPojo> {
-    return this.httpDoGetWithAuthorization(this, this.getSelectedUniverse().restBaseUrl + '/user/findData');
+    return this.httpDoGetWithAuthorization(this, this.getSelectedUniverse().restBaseUrl + '/user/findData').map((current: UserPojo) => {
+      if (!current.consumedEnergy) {
+        current.consumedEnergy = 0;
+      }
+      return current;
+    });
   }
 
   public getSelectedUniverse(): Universe {

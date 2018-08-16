@@ -258,7 +258,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 */
 	public boolean wouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
 		UnitType type = unitTypeBo.findById(typeId);
-		Long userCount = repository.countByUserAndUnitType(user, type) + count;
+		Long userCount = ObjectUtils.firstNonNull(repository.countByUserAndUnitType(user, type), 0L) + count;
 		return type.hasMaxCount() && userCount > unitTypeBo.findUniTypeLimitByUser(user, typeId);
 	}
 

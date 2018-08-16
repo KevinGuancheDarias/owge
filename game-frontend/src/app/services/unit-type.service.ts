@@ -21,7 +21,14 @@ export class UnitTypeService extends GameBaseService {
   }
 
   public loadTypes() {
-    this.doGetWithAuthorizationToGame<UnitType[]>('unitType/').subscribe(result => this._unitTypes.next(result));
+    this.doGetWithAuthorizationToGame<UnitType[]>('unitType/').subscribe(result => {
+      this._unitTypes.next(result.map(current => {
+        if (!current.userBuilt) {
+          current.userBuilt = 0;
+        }
+        return current;
+      }));
+    });
   }
 
 

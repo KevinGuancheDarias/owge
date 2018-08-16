@@ -273,6 +273,7 @@ public class MissionBo extends AbstractMissionBo {
 
 		if (mission != null) {
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
+				addImprovementsIfPossible(mission.getUser(), current.getUnit().getImprovement(), current.getCount());
 				obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
 						mission.getMissionInformation().getValue().longValue());
 				requirementBo.triggerUnitBuildCompleted(mission.getUser(), current.getUnit());

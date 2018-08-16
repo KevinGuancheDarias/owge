@@ -34,7 +34,7 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
     const intervalId = setInterval(() => {
       if (this._textElement.nativeElement.offsetWidth > this._maxTextWidth) {
         this._textElement.nativeElement.style.fontSize = `${this._findTextSize(this._textElement.nativeElement) - 1}pt`;
-      } else if (this.resourceValue) {
+      } else if (typeof this.resourceValue === 'number') {
         this._textElement.nativeElement.style.visibility = 'visible';
         clearInterval(intervalId);
       }
