@@ -182,6 +182,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 						} else {
 							current.pendingAttack = myAttack - victimHealth;
 							victimUnit.availableHealth = 0D;
+							userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
+									victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
 							obtainedUnitBo.delete(victimUnit.obtainedUnit);
 							deleteMissionIfRequired(victimUnit.obtainedUnit);
 							count.decrementAndGet();
@@ -795,7 +797,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNull(
 					missionInformation.getUserId(), current.getId(), missionInformation.getSourcePlanetId());
-			retVal.add(obtainedUnitBo.saveWithSubtraction(currentObtainedUnit, current.getCount()));
+			retVal.add(obtainedUnitBo.saveWithSubtraction(currentObtainedUnit, current.getCount(), false));
 		});
 		return retVal;
 	}

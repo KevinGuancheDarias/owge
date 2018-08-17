@@ -105,13 +105,13 @@ public class ObtainedUnitBoTest {
 	@Test(expected = SgtBackendInvalidInputException.class)
 	public void shouldNotSaveWithSubstractionBecauseCountIsInvalid() {
 		obtainedUnit.setCount(2L);
-		obtainedUnitBo.saveWithSubtraction(obtainedUnit, 4L);
+		obtainedUnitBo.saveWithSubtraction(obtainedUnit, 4L, false);
 	}
 
 	@Test
 	public void shouldProperlySubtractFromObtainedUnitUpdatingDbsCount() {
 		obtainedUnit.setCount(6L);
-		obtainedUnitBo.saveWithSubtraction(obtainedUnit, 4L);
+		obtainedUnitBo.saveWithSubtraction(obtainedUnit, 4L, false);
 		assertEquals(2L, (long) obtainedUnit.getCount());
 		Mockito.verify(repositoryMock, Mockito.times(1)).save(obtainedUnit);
 
@@ -121,7 +121,7 @@ public class ObtainedUnitBoTest {
 	public void shouldRemoveFromDatabaseWhenCountIsEqual() {
 		long count = 2L;
 		obtainedUnit.setCount(count);
-		obtainedUnitBo.saveWithSubtraction(obtainedUnit, count);
+		obtainedUnitBo.saveWithSubtraction(obtainedUnit, count, false);
 		Mockito.verify(repositoryMock, Mockito.never()).save(Mockito.any(ObtainedUnit.class));
 		Mockito.verify(repositoryMock, Mockito.times(1)).delete(obtainedUnit);
 

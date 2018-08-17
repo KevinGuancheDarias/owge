@@ -2,6 +2,7 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,11 +53,7 @@ public class UserImprovementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	public void addImprovements(Improvement improvement, UserStorage user, Long count) {
-		UserImprovement currentImprovements = findOrNew(user);
-		for (long i = 0; i < count; i++) {
-			operateImprovements(currentImprovements, improvement, true);
-		}
-		userImprovementRepository.save(currentImprovements);
+		iterateImprovementsAndSave(improvement, user, count, true);
 	}
 
 	/**
@@ -70,6 +67,10 @@ public class UserImprovementBo implements Serializable {
 		UserImprovement currentImprovements = findOrNew(user);
 		operateImprovements(currentImprovements, improvement, false);
 		userImprovementRepository.save(currentImprovements);
+	}
+
+	public void subtractImprovements(Improvement improvement, UserStorage user, Long count) {
+		iterateImprovementsAndSave(improvement, user, count, false);
 	}
 
 	/**
@@ -109,10 +110,20 @@ public class UserImprovementBo implements Serializable {
 			sign = -1;
 		}
 
-		userImprovement.addMorePrimaryResourceProduction(source.getMorePrimaryResourceProduction() * sign);
-		userImprovement.addMoreSecondaryResourceProduction(source.getMoreSecondaryResourceProduction() * sign);
-		userImprovement.addMoreEnergyProduction(source.getMoreEnergyProduction() * sign);
-		userImprovement.addMoreChargeCapacity(source.getMoreChargeCapacity() * sign);
-		userImprovement.addMoreMissions(source.getMoreMisions() * sign);
+		userImprovement.addMorePrimaryResourceProduction(
+				ObjectUtils.firstNonNull(source.getMorePrimaryResourceProduction(), 0F) * sign);
+		userImprovement.addMoreSecondaryResourceProduction(
+				ObjectUtils.firstNonNull(source.getMoreSecondaryResourceProduction(), 0F) * sign);
+		userImprovement.addMoreEnergyProduction(ObjectUtils.firstNonNull(source.getMoreEnergyProduction(), 0F) * sign);
+		userImprovement.addMoreChargeCapacity(ObjectUtils.firstNonNull(source.getMoreChargeCapacity(), 0F) * sign);
+		userImprovement.addMoreMissions(ObjectUtils.firstNonNull(source.getMoreMisions(), 0F) * sign);
+	}
+
+	private void iterateImprovementsAndSave(Improvement improvement, UserStorage user, Long count, boolean sum) {
+		UserImprovement currentImprovements = findOrNew(user);
+		for (long i = 0; i < count; i++) {
+			operateImprovements(currentImprovements, improvement, sum);
+		}
+		userImprovementRepository.save(currentImprovements);
 	}
 }

@@ -2,6 +2,7 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	@Autowired
 	private UnitTypeBo unitTypeBo;
+
+	@Autowired
+	private UserImprovementBo userImprovementBo;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Number> getRepository() {
@@ -128,10 +132,10 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return retVal;
 	}
 
-	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto) {
+	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnitDto retVal;
 		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),
-				obtainedUnitDto.getCount());
+				obtainedUnitDto.getCount(), handleImprovements);
 		if (obtainedUnit != null) {
 			retVal = new ObtainedUnitDto();
 			retVal.dtoFromEntity(obtainedUnit);
@@ -148,10 +152,18 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 *            Target obtained unit
 	 * @param substractionCount
 	 *            Count to subtract
+	 * @param handleImprovements
+	 *            If specified will sustract the improvements too
 	 * @return saved obtained unit, null if the count is the same
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount) {
+	@Transactional(propagation = Propagation.REQUIRED)
+	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount,
+			boolean handleImprovements) {
+		if (handleImprovements) {
+			userImprovementBo.subtractImprovements(obtainedUnit.getUnit().getImprovement(), obtainedUnit.getUser(),
+					substractionCount);
+		}
 		if (substractionCount > obtainedUnit.getCount()) {
 			throw new SgtBackendInvalidInputException(
 					"Can't not subtract because, obtainedUnit count is less than the amount to subtract");
@@ -183,8 +195,13 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	@Transactional(propagation = Propagation.MANDATORY)
-	public Long deleteByMissionId(Long missionId) {
-		return repository.deleteByMissionId(missionId);
+	public int deleteByMissionId(Long missionId) {
+		return repository.findByMissionId(missionId).stream().map(current -> {
+			userImprovementBo.subtractImprovements(current.getUnit().getImprovement(), current.getUser(),
+					current.getCount());
+			delete(current);
+			return current;
+		}).collect(Collectors.toList()).size();
 	}
 
 	public List<ObtainedUnit> findInMyPlanet(Long planetId) {

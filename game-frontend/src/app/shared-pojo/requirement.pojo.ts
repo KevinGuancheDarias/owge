@@ -18,9 +18,12 @@ export class RequirementPojo {
      * @author Kevin Guanche Darias
      */
     public checkRunnable(resources: AutoUpdatedResources): void {
+        const requiredEnergy: number = this.requiredEnergy
+            ? this.requiredEnergy
+            : 0;
         this.runnable = resources.currentPrimaryResource >= this.requiredPrimary
             && resources.currentSecondaryResource >= this.requiredSecondary
-            && resources.availableEnergy() >= this.requiredEnergy;
+            && resources.availableEnergy() >= requiredEnergy;
     }
 
     public startDynamicRunnable(resourceManagerService: ResourceManagerService) {

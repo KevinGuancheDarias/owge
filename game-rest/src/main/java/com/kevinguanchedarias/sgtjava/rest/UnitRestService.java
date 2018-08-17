@@ -96,7 +96,7 @@ public class UnitRestService {
 
 	@RequestMapping(value = "delete", method = RequestMethod.POST)
 	public String delete(@RequestBody ObtainedUnitDto obtainedUnitDto) {
-		obtainedUnitBo.saveWithSubtraction(obtainedUnitDto);
+		obtainedUnitBo.saveWithSubtraction(obtainedUnitDto, true);
 		return "OK";
 	}
 
