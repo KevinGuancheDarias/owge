@@ -146,6 +146,8 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
+		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime()
+				- (user.getImprovements().getMoreUnitBuildSpeed() / 100 * resourceRequirements.getRequiredTime()));
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
