@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,8 +150,9 @@ public class ImprovementBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
-		return obtainedUnitBo.sumUnitTypeImprovementByUserAndImprovementType(user, type)
-				+ obtainedUpgradeBo.sumUnitTypeImprovementByUserAndImprovementType(user, type);
+		return ObjectUtils.firstNonNull(obtainedUnitBo.sumUnitTypeImprovementByUserAndImprovementType(user, type), 0L)
+				+ ObjectUtils.firstNonNull(obtainedUpgradeBo.sumUnitTypeImprovementByUserAndImprovementType(user, type),
+						0L);
 	}
 
 	private boolean validType(ImprovementUnitType input) {

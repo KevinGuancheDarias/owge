@@ -27,6 +27,7 @@ import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.NotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
@@ -35,6 +36,7 @@ import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
 import com.kevinguanchedarias.sgtjava.pojo.DeliveryQueueEntry;
 import com.kevinguanchedarias.sgtjava.pojo.UnitMissionInformation;
+import com.kevinguanchedarias.sgtjava.pojo.UserUnitTypeImprovement;
 import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 @Service
@@ -44,6 +46,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
 	private static final String JOB_GROUP_NAME = "UnitMissions";
 	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
+
+	@Autowired
+	private ImprovementBo improvementBo;
 
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is
@@ -62,6 +67,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private Long initialCount;
 		private Double totalShield;
 		private Double totalHealth;
+
+		private Double initialHealth;
 
 		public Double getTotalAttack() {
 			return totalAttack;
@@ -109,32 +116,47 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * @param obtainedUnit
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
-		public void setObtainedUnit(ObtainedUnit obtainedUnit) {
+		public void setObtainedUnit(ObtainedUnit obtainedUnit, UserUnitTypeImprovement userUnitTypeImprovement) {
 			Unit unit = obtainedUnit.getUnit();
 			initialCount = obtainedUnit.getCount();
 			finalCount = initialCount;
 			totalAttack = initialCount.doubleValue() * unit.getAttack();
+			totalAttack += (totalAttack * userUnitTypeImprovement.findValueRational(ImprovementType.ATTACK));
 			pendingAttack = totalAttack;
 			totalShield = initialCount.doubleValue() * unit.getShield();
+			totalShield += (totalShield * userUnitTypeImprovement.findValueRational(ImprovementType.SHIELD));
 			availableShield = totalShield;
 			totalHealth = initialCount.doubleValue() * unit.getHealth();
+			initialHealth = totalHealth;
+			totalHealth += (totalHealth * userUnitTypeImprovement.findValueRational(ImprovementType.DEFENSE));
 			availableHealth = totalHealth;
 			this.obtainedUnit = obtainedUnit;
+		}
+
+		public Double getInitialHealth() {
+			return initialHealth;
+		}
+
+		public void setInitialHealth(Double initialHealth) {
+			this.initialHealth = initialHealth;
 		}
 
 	}
 
 	public class AttackUserInformation {
 		AttackInformation attackInformationRef;
-		private UserStorage user;
 		Double earnedPoints = 0D;
 		List<AttackObtainedUnit> unitsWithAvailableAttack = new ArrayList<>();
 		List<AttackObtainedUnit> unitsWithoutAttack = new ArrayList<>();
 		boolean isDefeated = false;
 		boolean canAttack = true;
 
-		public AttackUserInformation(UserStorage user) {
+		private UserStorage user;
+		private UserUnitTypeImprovement userUnitTypeImprovement;
+
+		public AttackUserInformation(UserStorage user, ImprovementBo improvementBo) {
 			this.setUser(user);
+			userUnitTypeImprovement = new UserUnitTypeImprovement(user, improvementBo);
 		}
 
 		/**
@@ -215,6 +237,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 			return earnedPoints;
 		}
 
+		public UserUnitTypeImprovement getUserUnitTypeImprovement() {
+			return userUnitTypeImprovement;
+		}
+
 		/**
 		 * Deletes the mission from the system, when all units involved ade
 		 * death
@@ -293,12 +319,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.filter(current -> current.getUser().getId().equals(unitToAdd.getUser().getId())).findFirst()
 					.orElse(null);
 			if (attackUserInformation == null) {
-				attackUserInformation = new AttackUserInformation(unitToAdd.getUser());
+				attackUserInformation = new AttackUserInformation(unitToAdd.getUser(), improvementBo);
 				attackUserInformation.attackInformationRef = this;
 				users.add(attackUserInformation);
 			}
 			AttackObtainedUnit attackObtainedUnit = new AttackObtainedUnit();
-			attackObtainedUnit.setObtainedUnit(unitToAdd);
+			attackObtainedUnit.setObtainedUnit(unitToAdd, attackUserInformation.getUserUnitTypeImprovement());
 			attackUserInformation.unitsWithAvailableAttack.add(attackObtainedUnit);
 		}
 
