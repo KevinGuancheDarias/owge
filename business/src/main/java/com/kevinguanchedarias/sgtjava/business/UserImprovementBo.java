@@ -110,13 +110,16 @@ public class UserImprovementBo implements Serializable {
 			sign = -1;
 		}
 
-		userImprovement.addMorePrimaryResourceProduction(
-				ObjectUtils.firstNonNull(source.getMorePrimaryResourceProduction(), 0F) * sign);
-		userImprovement.addMoreSecondaryResourceProduction(
-				ObjectUtils.firstNonNull(source.getMoreSecondaryResourceProduction(), 0F) * sign);
-		userImprovement.addMoreEnergyProduction(ObjectUtils.firstNonNull(source.getMoreEnergyProduction(), 0F) * sign);
-		userImprovement.addMoreChargeCapacity(ObjectUtils.firstNonNull(source.getMoreChargeCapacity(), 0F) * sign);
-		userImprovement.addMoreMissions(ObjectUtils.firstNonNull(source.getMoreMisions(), 0F) * sign);
+		userImprovement
+				.addMorePrimaryResourceProduction(
+						ObjectUtils.firstNonNull(source.getMorePrimaryResourceProduction(), 0F) * sign)
+				.addMoreSecondaryResourceProduction(
+						ObjectUtils.firstNonNull(source.getMoreSecondaryResourceProduction(), 0F) * sign)
+				.addMoreEnergyProduction(ObjectUtils.firstNonNull(source.getMoreEnergyProduction(), 0F) * sign)
+				.addMoreChargeCapacity(ObjectUtils.firstNonNull(source.getMoreChargeCapacity(), 0F) * sign)
+				.addMoreMissions(ObjectUtils.firstNonNull(source.getMoreMisions(), 0F) * sign)
+				.addMoreUpgradeResearchSpeed(ObjectUtils.firstNonNull(source.getMoreUpgradeResearchSpeed(), 0F) * sign)
+				.addMoreUnitBuildSpeed(ObjectUtils.firstNonNull(source.getMoreUnitBuildSpeed(), 0F) * sign);
 	}
 
 	private void iterateImprovementsAndSave(Improvement improvement, UserStorage user, Long count, boolean sum) {

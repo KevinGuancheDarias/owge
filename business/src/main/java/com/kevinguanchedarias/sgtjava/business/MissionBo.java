@@ -73,7 +73,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-
+		resourceRequirements.setRequiredTime(
+				resourceRequirements.getRequiredTime() - (user.getImprovements().getMoreUpgradeResearchSpeed() / 100
+						* resourceRequirements.getRequiredTime()));
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
 

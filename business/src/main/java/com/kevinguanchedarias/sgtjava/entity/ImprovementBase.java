@@ -6,6 +6,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 
 @MappedSuperclass
@@ -66,24 +68,39 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 		moreSoldiersProduction += value;
 	}
 
-	public void addMorePrimaryResourceProduction(Float value) {
+	public ImprovementBase addMorePrimaryResourceProduction(Float value) {
 		morePrimaryResourceProduction += value;
+		return this;
 	}
 
-	public void addMoreSecondaryResourceProduction(Float value) {
+	public ImprovementBase addMoreSecondaryResourceProduction(Float value) {
 		moreSecondaryResourceProduction += value;
+		return this;
 	}
 
-	public void addMoreEnergyProduction(Float value) {
+	public ImprovementBase addMoreEnergyProduction(Float value) {
 		moreEnergyProduction += value;
+		return this;
 	}
 
-	public void addMoreChargeCapacity(Float value) {
+	public ImprovementBase addMoreChargeCapacity(Float value) {
 		moreChargeCapacity += value;
+		return this;
 	}
 
-	public void addMoreMissions(Float value) {
+	public ImprovementBase addMoreMissions(Float value) {
 		moreMisions += value;
+		return this;
+	}
+
+	public ImprovementBase addMoreUpgradeResearchSpeed(Float value) {
+		moreUpgradeResearchSpeed += value;
+		return this;
+	}
+
+	public ImprovementBase addMoreUnitBuildSpeed(Float value) {
+		moreUnitBuildSpeed += value;
+		return this;
 	}
 
 	public Double findRationalChargeCapacity() {
@@ -153,7 +170,7 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	}
 
 	public Float getMoreUpgradeResearchSpeed() {
-		return moreUpgradeResearchSpeed;
+		return ObjectUtils.firstNonNull(moreUpgradeResearchSpeed, 0F);
 	}
 
 	public void setMoreUpgradeResearchSpeed(Float moreUpgradeResearchSpeed) {
@@ -161,7 +178,7 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	}
 
 	public Float getMoreUnitBuildSpeed() {
-		return moreUnitBuildSpeed;
+		return ObjectUtils.firstNonNull(moreUnitBuildSpeed, 0F);
 	}
 
 	public void setMoreUnitBuildSpeed(Float moreUnitBuildSpeed) {
