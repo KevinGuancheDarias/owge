@@ -4,6 +4,7 @@ v0.5.0 (latest)
 ==========
 * __Merge:__ v0.4.1
 * __Fix:__ Backend not sending correct number of "count" of the running unit build mission
+* __Feature:__ As a player I want to have heroes
 * __Feature:__ As an admin I want to be able to add an improvement to increase unit build speed  
 ![As an admin I want to be able to add an improvement to increase unit build speed](assets/changelog/features/kemyo8Ao.png)  
 * __Feature:__ As an admin I wan to be able to add an improvement to upgrade research speed  

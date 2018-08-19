@@ -15,11 +15,20 @@ define('NG_HAVE_UPGRADE_LEVEL_REQUIREMENT_CODE', 'UPGRADE_LEVEL');
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
+echo 'Kevin Guanche Darias :: SGT Classic Import tool' . PHP_EOL;
+
 if($argc < 5) {
     echo 'Missing parameters, usage: ' . basename(__FILE__) . ' dbuser dbpassword sourcedatabase targetdatabase' . PHP_EOL;
     echo 'Env: DUMP_TARGET_SQL to display the queries to the target database';
     exit(1);
 }
+if(file_exists(TARGET_CLASSIC_IMAGES_STORAGE)) {
+    echo 'FATAL: please, remove the directory ' . TARGET_CLASSIC_IMAGES_STORAGE;
+    exit(1);
+} else {
+    mkdir(TARGET_CLASSIC_IMAGES_STORAGE);
+}
+
 list($_, $user, $password, $sourceDb, $targetDb) = $argv;
 class MysqliProxy extends mysqli {
     private $connection;
@@ -132,11 +141,10 @@ class CommonUsableObject extends CommonObject {
     public $sr;
     public $type;
     public $ngObjectRelation;
-    public $improvementId;
 }
 
-class Upgrade extends CommonUsableObject {
-    public $lvlEffect = 0;
+class WithImprovementsObject extends CommonUsableObject{
+    public $improvementId;
     public $moreSoldiersProduction = 0;
     public $morePrProduction = 0;
     public $moreSrProduction = 0;
@@ -152,6 +160,12 @@ class Upgrade extends CommonUsableObject {
     public $moreAttackDefenses = 0;
     public $moreShieldDefendes = 0;
     public $moreHealthDefendes = 0;
+    public $moreResearchSpeed = 0;
+    public $moreUnitBuildSpeed = 0;
+}
+
+class Upgrade extends WithImprovementsObject {
+    public $lvlEffect = 0;
     
     public static function findUpgradeInstanceByClassicId(array $upgrades, int $classicId) {
         foreach($upgrades as $upgrade) {
@@ -172,7 +186,8 @@ class RequiredUpgrade {
     }
 }
 
-class Unit extends CommonUsableObject {
+class Unit extends WithImprovementsObject {
+    public $isUnique = false;
     public $energy = 0;
     public $attack = 0;
     public $health = 0;
@@ -182,20 +197,18 @@ class Unit extends CommonUsableObject {
     
     /**
      * @param array $upgrades An array of instances of Upgrade, (already populated)
-     * @param string $upgradesIds String of delimited upgrade ids (as stored in classic SGT)
-     * @param string $upgradeLevels String of delimited upgrade levels (as stored in classic SGT)
+     * @param mysqli $connection Input connection
      * @author Kevin Guanche Darias
     */
-    public function addRequiredUpgrade(array $upgrades, string $upgradesIds, string $upgradeLevels) {
-        $ids = explode(CLASSIC_SGT_DB_DELIMITER, $upgradesIds);
-        $levels = explode(CLASSIC_SGT_DB_DELIMITER, $upgradeLevels);
-        foreach($ids as $key=>$value) {
-            if(isset($levels[$key]) && $levels[$key]) {
-                
-                $upgrade = Upgrade::findUpgradeInstanceByClassicId($upgrades, +$value);
-                if($upgrade) {
-                    $this->requiredUpgrades[] = new RequiredUpgrade(+$levels[$key], $upgrade);
-                }
+    public function addRequiredUpgrade(array $upgrades, mysqli $connection) {
+        $cdType = $this->type === 'Tropas'
+            ? 'Unidades'
+            : $this->type;
+        $result = $connection->query("SELECT * FROM `Requisitos$this->type` WHERE `cd$cdType`=$this->classicId AND `Nivel` > 0");
+        while($row = $result->fetch_assoc()) {
+            $upgrade = Upgrade::findUpgradeInstanceByClassicId($upgrades, $row["mcd"]);
+            if($upgrade) {
+                $this->requiredUpgrades[] = new RequiredUpgrade(+$row['Nivel'], $upgrade);
             }
         }
     }
@@ -277,51 +290,7 @@ class ClassicExtractor {
             $this->doCommonUsableObjectFill($currentUpgrade, $row);
             $currentUpgrade->lvlEffect = $row->EfectoNivel;
             $currentUpgrade->type = $row->Tipo;
-            if($row->mpdsb) {
-                $currentUpgrade->moreSoldiersProduction = $row->mpdsp;
-            }
-            if($row->mpdrpb) {
-                $currentUpgrade->morePrProduction = $row->mpdrpp;
-            }
-            if($row->mpdrsb) {
-                $currentUpgrade->moreSrProduction = $row->mpdrsp;
-            }
-            if($row->mpdeb) {
-                $currentUpgrade->moreEnergyProducction = $row->mpdep;
-            }
-            if($row->mccb) {
-                $currentUpgrade->moreCharge = $row->mccp;
-            }
-            if($row->mmb) {
-                $currentUpgrade->moreMissions = $row->mmp;
-            }
-            if($row->matb) {
-                $currentUpgrade->moreAttackTroops = $row->matp;
-            }
-            if($row->metb) {
-                $currentUpgrade->moreShieldTroops = $row->metp;
-            }
-            if($row->mrtb) {
-                $currentUpgrade->moreHealthTroops = $row->mrtp;
-            }
-            if($row->manb) {
-                $currentUpgrade->moreAttackShips = $row->manp;
-            }
-            if($row->menb) {
-                $currentUpgrade->moreShieldShips = $row->menp;
-            }
-            if($row->mrnb) {
-                $currentUpgrade->moreHealthShips = $row->mrnp;
-            }
-            if($row->madb) {
-                $currentUpgrade->moreAttackDefenses = $row->madp;
-            }
-            if($row->medb) {
-                $currentUpgrade->moreShieldDefendes = $row->medp;
-            }
-            if($row->mrdp) {
-                $currentUpgrade->moreHealthDefendes = $row->mrdp;
-            }
+            $this->handleImprovements($row, $currentUpgrade);
             $i++;
             $upgrades[] = $currentUpgrade;
         }
@@ -332,9 +301,9 @@ class ClassicExtractor {
         $classicId = $faction->classicId;
         return array_merge(
             [],
-            $this->iterateUnitRows($this->source->query("SELECT * FROM unidades WHERE rcd=$classicId"), $faction, TROOPS_TYPE_ID),
-            $this->iterateUnitRows($this->source->query("SELECT * FROM naves WHERE rcd=$classicId"), $faction, SHIPS_TYPE_ID),
-            $this->iterateUnitRows($this->source->query("SELECT * FROM defensas WHERE rcd=$classicId"), $faction, DEFENSES_TYPE_ID)
+            $this->iterateUnitRows($this->source->query("SELECT u.*, hu.* FROM unidades u LEFT JOIN heroesunidades hu ON hu.cd_heroe = u.cdHeroe WHERE rcd=$classicId"), $faction, TROOPS_TYPE_ID),
+            $this->iterateUnitRows($this->source->query("SELECT n.*, hn.* FROM naves n LEFT JOIN heroesnaves hn ON hn.cd_heroe = n.cdHeroe WHERE rcd=$classicId"), $faction, SHIPS_TYPE_ID),
+            $this->iterateUnitRows($this->source->query("SELECT d.*, hd.* FROM defensas d LEFT JOIN heroesdefensas hd ON hd.cd_heroe = d.cdHeroe WHERE rcd=$classicId"), $faction, DEFENSES_TYPE_ID)
         );
         
     }
@@ -343,36 +312,37 @@ class ClassicExtractor {
         $units = [];
         $i = 1;
         while($row = $result->fetch_object()) {    
-            if($row->cdHeroe) {
-                echo 'Ignoring unit with id ' . $row->cd . ' as it is an hero, and are currently NOT supported' . PHP_EOL;
-            } else {
-                $currentUnit = new Unit();
-                $this->doCommonFill($currentUnit, $row);
-                $this->doCommonUsableObjectFill($currentUnit, $row);
-                $currentUnit->energy = $row->Energia;
-                switch($type) {
-                    case TROOPS_TYPE_ID:
-                        $indexIndicator = 'u';
-                        $currentUnit->type = 'Tropas';
-                        break;
-                    case SHIPS_TYPE_ID:
-                        $indexIndicator = 'n';
-                        $currentUnit->type = 'Naves';
-                        break;
-                    case DEFENSES_TYPE_ID:
-                        $indexIndicator = 'd';
-                        $currentUnit->type = 'Defensas';
-                        break;
-                    default:
-                        throw new Exception('Bad parameter passed to type, value ' . $type);
-                }
-                $currentUnit->order = $i + $type;
-                $this->fillUnitAttributes($currentUnit, $row, $indexIndicator);
-                $currentUnit->addRequiredUpgrade($faction->upgrades, $row->RequisitosMejorasmcd, $row->RequisitosMejoraslvl);
-                $units[] = $currentUnit;
+            $currentUnit = new Unit();
+            $this->doCommonFill($currentUnit, $row);
+            $this->doCommonUsableObjectFill($currentUnit, $row);
+            $currentUnit->energy = $row->Energia;
+            switch($type) {
+                case TROOPS_TYPE_ID:
+                    $indexIndicator = 'u';
+                    $currentUnit->type = 'Tropas';
+                    break;
+                case SHIPS_TYPE_ID:
+                    $indexIndicator = 'n';
+                    $currentUnit->type = 'Naves';
+                    break;
+                case DEFENSES_TYPE_ID:
+                    $indexIndicator = 'd';
+                    $currentUnit->type = 'Defensas';
+                    break;
+                default:
+                    throw new Exception('Bad parameter passed to type, value ' . $type);
             }
+            $currentUnit->order = $i + $type;
+            $this->fillUnitAttributes($currentUnit, $row, $indexIndicator);
+            if($row->cdHeroe) {
+                $currentUnit->isUnique = true;
+                $this->handleImprovements($row, $currentUnit);
+            }
+            $currentUnit->addRequiredUpgrade($faction->upgrades, $this->source);
+            $units[] = $currentUnit;
             $i++;
         }
+        
         return $units;
     }
     private function fillUnitAttributes(Unit $unit, $row, string $indexIndicator) {
@@ -394,6 +364,60 @@ class ClassicExtractor {
         $target->time = $row->Tiempo;
         $target->pr = $row->RecursoPrimario;
         $target->sr = $row->RecursoSecundario;
+    }
+    
+    private function handleImprovements($row, WithImprovementsObject $objectWithImprovements) {
+        if(@$row->mpdsb) {
+            $objectWithImprovements->moreSoldiersProduction = $row->mpdsp;
+        }
+        if(@$row->mpdrpb) {
+            $objectWithImprovements->morePrProduction = $row->mpdrpp;
+        }
+        if(@$row->mpdrsb) {
+            $objectWithImprovements->moreSrProduction = $row->mpdrsp;
+        }
+        if(@$row->mpdeb) {
+            $objectWithImprovements->moreEnergyProducction = $row->mpdep;
+        }
+        if(@$row->mccb) {
+            $objectWithImprovements->moreCharge = $row->mccp;
+        }
+        if(@$row->mmb) {
+            $objectWithImprovements->moreMissions = $row->mmp;
+        }
+        if(@$row->matb) {
+            $objectWithImprovements->moreAttackTroops = $row->matp;
+        }
+        if(@$row->metb) {
+            $objectWithImprovements->moreShieldTroops = $row->metp;
+        }
+        if(@$row->mrtb) {
+            $objectWithImprovements->moreHealthTroops = $row->mrtp;
+        }
+        if(@$row->manb) {
+            $objectWithImprovements->moreAttackShips = $row->manp;
+        }
+        if(@$row->menb) {
+            $objectWithImprovements->moreShieldShips = $row->menp;
+        }
+        if(@$row->mrnb) {
+            $objectWithImprovements->moreHealthShips = $row->mrnp;
+        }
+        if(@$row->madb) {
+            $objectWithImprovements->moreAttackDefenses = $row->madp;
+        }
+        if(@$row->medb) {
+            $objectWithImprovements->moreShieldDefendes = $row->medp;
+        }
+        if(@$row->mrdp) {
+            $objectWithImprovements->moreHealthDefendes = $row->mrdp;
+        }
+        if(@$row->mvib) {
+            $objectWithImprovements->moreResearchSpeed = $row->mvip;
+        }
+        if(@$row->mvcb) {
+            $objectWithImprovements->moreUnitBuildSpeed = $row->mvcp;
+        }
     }
 }
 
@@ -458,13 +482,7 @@ class ImportHandler {
     
     private function importFactionUpgrade(Faction $ownerFaction, Upgrade $upgrade) {
         $this->insertUpgrade($upgrade);
-        $upgrade->ngId = $this->connection->insert_id;
-        $this->connection->query(
-            'INSERT INTO improvements ' .
-            '( `more_soldiers_production`, `more_primary_resource_production`, `more_secondary_resource_production`, `more_energy_production`, `more_charge_capacity`, `more_missions_value`) VALUES ' .
-            "($upgrade->moreSoldiersProduction, $upgrade->morePrProduction, $upgrade->moreSrProduction, $upgrade->moreEnergyProducction, $upgrade->moreCharge, $upgrade->moreMissions)"
-        );
-        $upgrade->improvementId = $this->connection->insert_id;
+        $this->importImprovements($upgrade);
         $this->connection->query("UPDATE upgrades SET improvement_id = $upgrade->improvementId WHERE id = $upgrade->ngId");
         $this->importUnitTypeImprovements($upgrade);
         $upgrade->ngObjectRelation = new NgObjectRelation('UPGRADE', $upgrade->ngId);
@@ -474,6 +492,15 @@ class ImportHandler {
             '(relation_id, requirement_id, second_value) VALUES ' .
             '(' . $upgrade->ngObjectRelation->id . ", $this->beenRaceRequirementId, $ownerFaction->ngId)"
         );
+    }
+    
+    private function importImprovements(WithImprovementsObject $withImprovementsObject) {
+        $this->connection->query(
+            'INSERT INTO improvements ' .
+            '( `more_soldiers_production`, `more_primary_resource_production`, `more_secondary_resource_production`, `more_energy_production`, `more_charge_capacity`, `more_missions_value`, `more_upgrade_research_speed`, `more_unit_build_speed`) VALUES ' .
+            "($withImprovementsObject->moreSoldiersProduction, $withImprovementsObject->morePrProduction, $withImprovementsObject->moreSrProduction, $withImprovementsObject->moreEnergyProducction, $withImprovementsObject->moreCharge, $withImprovementsObject->moreMissions, $withImprovementsObject->moreResearchSpeed, $withImprovementsObject->moreUnitBuildSpeed)"
+        );
+        $withImprovementsObject->improvementId = $this->connection->insert_id;
     }
     
     private function insertUpgrade(Upgrade $upgrade) {
@@ -487,6 +514,7 @@ class ImportHandler {
                 '(' . self::COMMON_FIELDS . ', type, level_effect, cloned_improvements) VALUES ' .
                 "('$name',$upgrade->points, '$image','$description', $upgrade->time, $upgrade->pr, $upgrade->sr, $ngType, $upgrade->lvlEffect, 0)"
             );
+            $upgrade->ngId = $this->connection->insert_id;
         } catch (mysqli_sql_exception $e) {
             if(strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 $upgrade->name .= ' DUPLICATED';
@@ -496,7 +524,7 @@ class ImportHandler {
             }
         }
     }
-    private function importUnitTypeImprovements(Upgrade $upgrade) {
+    private function importUnitTypeImprovements(WithImprovementsObject $withImprovementsObject) {
         $indexMap = [
             [
                 'properties' => 'Troops',
@@ -515,19 +543,19 @@ class ImportHandler {
             $attack = "moreAttack$currentTarget[properties]";
             $defense = "moreHealth$currentTarget[properties]";
             $shield = "moreShield$currentTarget[properties]";
-            if(isset($upgrade->{$attack})) {
-                $this->insertUnitTypeImprovement($upgrade, $currentTarget, 'ATTACK', $upgrade->{$attack});
+            if(isset($withImprovementsObject->{$attack})) {
+                $this->insertUnitTypeImprovement($withImprovementsObject, $currentTarget, 'ATTACK', $withImprovementsObject->{$attack});
             }
-            if(isset($upgrade->{$defense})) {
-                $this->insertUnitTypeImprovement($upgrade, $currentTarget, 'DEFENSE', $upgrade->{$defense});
+            if(isset($withImprovementsObject->{$defense})) {
+                $this->insertUnitTypeImprovement($withImprovementsObject, $currentTarget, 'DEFENSE', $withImprovementsObject->{$defense});
             }
-            if(isset($upgrade->{$shield})) {
-                $this->insertUnitTypeImprovement($upgrade, $currentTarget, 'SHIELD', $upgrade->{$shield});
+            if(isset($withImprovementsObject->{$shield})) {
+                $this->insertUnitTypeImprovement($withImprovementsObject, $currentTarget, 'SHIELD', $withImprovementsObject->{$shield});
             }
         }
     }
     
-    private function insertUnitTypeImprovement(Upgrade $upgrade, array $target, string $dbType, int $value) {
+    private function insertUnitTypeImprovement(WithImprovementsObject $objectWithImprovements, array $target, string $dbType, int $value) {
         if(!in_array($dbType, [ 'ATTACK', 'DEFENSE', 'SHIELD'])) {
             throw new Exception('Bad unitType improvement, improvement type, specified ' . $dbType);
         }
@@ -535,16 +563,20 @@ class ImportHandler {
             $this->connection->query(
                 'INSERT INTO improvements_unit_types ' .
                 '( improvement_id, type, unit_type_id, value) VALUES ' .
-                "($upgrade->improvementId, '$dbType', $target[unit_type_id], $value)"
+                "($objectWithImprovements->improvementId, '$dbType', $target[unit_type_id], $value)"
             );
         }
     }
     
     private function importFactionUnit(Faction $ownerFaction, Unit $unit) {
-        $this->connection->query('INSERT INTO improvements () VALUES ()');
-        $unit->improvementId = $this->connection->insert_id;
+        if($unit->isUnique) {
+            $this->importImprovements($unit);
+            $this->importUnitTypeImprovements($unit);
+        } else {
+            $this->connection->query('INSERT INTO improvements () VALUES ()');
+            $unit->improvementId = $this->connection->insert_id;
+        }
         $this->insertUnit($unit);
-        $unit->ngId = $this->connection->insert_id;
         $this->connection->query("UPDATE units SET improvement_id = $unit->improvementId WHERE id = $unit->ngId");
         $unit->ngObjectRelation = new NgObjectRelation('UNIT', $unit->ngId);
         $unit->ngObjectRelation->save($this->connection);
@@ -567,12 +599,14 @@ class ImportHandler {
         $description = escapeString($this->connection, $unit->description);
         $image = $unit->image->download();
         $ngType = $this->findTypeId('unit_types', $unit->type);
+        $unique = $unit->isUnique ? 1 : 0;
         try {
             $this->connection->query(
                 'INSERT INTO units ' .
-                '(' . self::COMMON_FIELDS . ', type, energy, attack, health, shield, charge, improvement_id, cloned_improvements) VALUES ' .
-                "('$name',$unit->points, '$image','$description', $unit->time, $unit->pr, $unit->sr, $ngType, $unit->energy, $unit->attack, $unit->health, $unit->shield, $unit->charge, $unit->improvementId, 0)"
+                '(' . self::COMMON_FIELDS . ', type, energy, attack, health, shield, charge, is_unique, improvement_id, cloned_improvements) VALUES ' .
+                "('$name',$unit->points, '$image','$description', $unit->time, $unit->pr, $unit->sr, $ngType, $unit->energy, $unit->attack, $unit->health, $unit->shield, $unit->charge, $unique, $unit->improvementId, 0)"
             );
+            $unit->ngId = $this->connection->insert_id;
         } catch (mysqli_sql_exception $e) {
             if(strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 $unit->name .= ' DUPLICATED';
@@ -582,11 +616,14 @@ class ImportHandler {
             }
         }
     }
+    
     private function findTypeId(string $ngTypeTable, string $classicType): string {
         $escapedType = escapeString($this->connection, $classicType);
         $id = $this->connection->query("SELECT id FROM $ngTypeTable WHERE LOWER(name) = LOWER('$escapedType') LIMIT 1")->fetch_object();
         if(!$id) {
-            return 'NULL';
+            echo "Notice: $ngTypeTable of name $classicType doesn't exists, will create it, also if unit type has a count limit or an image, will have to be manually added, as u1 has it hardcoded in the source :/" . PHP_EOL;
+            $this->connection->query("INSERT INTO $ngTypeTable ( name ) VALUES ('$escapedType')");
+            return $this->connection->insert_id;
         } else {
             return $id->id;
         }
