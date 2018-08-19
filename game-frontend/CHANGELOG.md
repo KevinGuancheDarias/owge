@@ -1,5 +1,10 @@
 # SGT changelog
 
+v0.3.6 (latest)
+==========
+* __Fix:__ Attacks do not remove units, unless all the unit count is death  
+![Attacks do not remove units, unless all the unit count is death](assets/changelog/bugs/ID3x4EeA.gif)  
+
 v0.3.5 (2018-08-09 17:36)
 ==========
 * __DevOps:__ Add support for publishing multiple universes of the same SGT minor version to the public server
