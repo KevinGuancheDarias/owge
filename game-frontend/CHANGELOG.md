@@ -1,7 +1,7 @@
 # SGT changelog
 
 v0.4.1 (2018-08-09 19:15)
-==========
+=======
 * __Merge:__ v0.3.5
 
 v0.4.0 (2018-07-29 22:20)
@@ -12,6 +12,13 @@ v0.4.0 (2018-07-29 22:20)
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
 * __Merge:__ v0.3.4
+
+v0.3.6 (2018-08-19 16:07)
+==========
+* __Fix:__ Attacks do not remove units, unless all the unit count is death  
+![Attacks do not remove units, unless all the unit count is death](assets/changelog/bugs/ID3x4EeA.gif)  
+* __Fix:__ Send mission dialog can't be closed in mobile devices  
+![Send mission dialog can't be closed in mobile devices](assets/changelog/bugs/2wBzKBba.png)  
 
 v0.3.5 (2018-08-09 17:36)
 ==========
