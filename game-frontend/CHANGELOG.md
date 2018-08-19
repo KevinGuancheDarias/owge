@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.3.6 (latest)
+v0.3.6 (2018-08-19 16:07)
 ==========
 * __Fix:__ Attacks do not remove units, unless all the unit count is death  
 ![Attacks do not remove units, unless all the unit count is death](assets/changelog/bugs/ID3x4EeA.gif)  
