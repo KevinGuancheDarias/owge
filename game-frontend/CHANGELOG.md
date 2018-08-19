@@ -4,6 +4,8 @@ v0.3.6 (latest)
 ==========
 * __Fix:__ Attacks do not remove units, unless all the unit count is death  
 ![Attacks do not remove units, unless all the unit count is death](assets/changelog/bugs/ID3x4EeA.gif)  
+* __Fix:__ Send mission dialog can't be closed in mobile devices  
+![Send mission dialog can't be closed in mobile devices](assets/changelog/bugs/2wBzKBba.png)  
 
 v0.3.5 (2018-08-09 17:36)
 ==========
