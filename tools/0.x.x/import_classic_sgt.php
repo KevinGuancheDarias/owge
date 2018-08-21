@@ -12,6 +12,8 @@ define('CLASSIC_SGT_DB_DELIMITER', ';');
 define('DEFAULT_EXTENSION', '.jpg');
 define('NG_BEEN_RACE_REQUIREMENT_CODE', 'BEEN_RACE');
 define('NG_HAVE_UPGRADE_LEVEL_REQUIREMENT_CODE', 'UPGRADE_LEVEL');
+define('NG_SOLDIERS_UNIT_TYPE_NAME', 'Tropas');
+define('NG_SOLDIERS_LIMIT', 10);
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -497,10 +499,18 @@ class ImportHandler {
     private function importImprovements(WithImprovementsObject $withImprovementsObject) {
         $this->connection->query(
             'INSERT INTO improvements ' .
-            '( `more_soldiers_production`, `more_primary_resource_production`, `more_secondary_resource_production`, `more_energy_production`, `more_charge_capacity`, `more_missions_value`, `more_upgrade_research_speed`, `more_unit_build_speed`) VALUES ' .
-            "($withImprovementsObject->moreSoldiersProduction, $withImprovementsObject->morePrProduction, $withImprovementsObject->moreSrProduction, $withImprovementsObject->moreEnergyProducction, $withImprovementsObject->moreCharge, $withImprovementsObject->moreMissions, $withImprovementsObject->moreResearchSpeed, $withImprovementsObject->moreUnitBuildSpeed)"
+            '( `more_primary_resource_production`, `more_secondary_resource_production`, `more_energy_production`, `more_charge_capacity`, `more_missions_value`, `more_upgrade_research_speed`, `more_unit_build_speed`) VALUES ' .
+            "($withImprovementsObject->morePrProduction, $withImprovementsObject->moreSrProduction, $withImprovementsObject->moreEnergyProducction, $withImprovementsObject->moreCharge, $withImprovementsObject->moreMissions, $withImprovementsObject->moreResearchSpeed, $withImprovementsObject->moreUnitBuildSpeed)"
         );
         $withImprovementsObject->improvementId = $this->connection->insert_id;
+        if($withImprovementsObject->moreSoldiersProduction) {
+            $typeId = $this->findTypeId('unit_types', NG_SOLDIERS_UNIT_TYPE_NAME);
+            $this->connection->query(
+                'INSERT INTO improvements_unit_types ' .
+                '(improvement_id, type, unit_type_id, value)VALUES' .
+                "($withImprovementsObject->improvementId, 'AMOUNT', $typeId, $withImprovementsObject->moreSoldiersProduction)"
+            );
+        }
     }
     
     private function insertUpgrade(Upgrade $upgrade) {
@@ -622,7 +632,12 @@ class ImportHandler {
         $id = $this->connection->query("SELECT id FROM $ngTypeTable WHERE LOWER(name) = LOWER('$escapedType') LIMIT 1")->fetch_object();
         if(!$id) {
             echo "Notice: $ngTypeTable of name $classicType doesn't exists, will create it, also if unit type has a count limit or an image, will have to be manually added, as u1 has it hardcoded in the source :/" . PHP_EOL;
-            $this->connection->query("INSERT INTO $ngTypeTable ( name ) VALUES ('$escapedType')");
+            if($ngTypeTable === 'unit_types') {
+                $limit = strtolower($classicType) === strtolower(NG_SOLDIERS_UNIT_TYPE_NAME) ? NG_SOLDIERS_LIMIT : 'NULL';
+                $this->connection->query("INSERT INTO $ngTypeTable ( name, max_count ) VALUES ('$escapedType', $limit)");
+            } else {
+                $this->connection->query("INSERT INTO $ngTypeTable ( name ) VALUES ('$escapedType')");
+            }
             return $this->connection->insert_id;
         } else {
             return $id->id;
