@@ -1,6 +1,10 @@
 # SGT changelog
 
-v0.5.0 (latest)
+v0.5.1 (2018-08-21 13:55)
+==========
+* __Fix:__ u1 Import script not importing More Units improvement
+
+v0.5.0 (2018-08-19 18:41)
 ==========
 * __Merge:__ v0.4.1
 * __Fix:__ Backend not sending correct number of "count" of the running unit build mission
