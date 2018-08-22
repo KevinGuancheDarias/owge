@@ -4,7 +4,7 @@
 	<groupId>com.kevinguanchedarias.sgt</groupId>
 	<artifactId>sgtjava-admin</artifactId>
 	<packaging>war</packaging>
-	<version>0.5.1-SNAPSHOT</version>
+	<version>0.5.2-SNAPSHOT</version>
 	<name>SGT Universe Admin panel</name>
 	<url>http://sgtjava.kevinguanchedarias.com</url>
 
@@ -13,7 +13,7 @@
 		<spring.version>4.3.2.RELEASE</spring.version>
 		<hibernate.version>5.1.1.Final</hibernate.version>
 		<springSecurity.version>4.1.3.RELEASE</springSecurity.version>
-		<sgt.version>0.5.1-SNAPSHOT</sgt.version>
+		<sgt.version>0.5.2-SNAPSHOT</sgt.version>
 	</properties>
 
 	<repositories>
