@@ -20,6 +20,7 @@ import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUnitRepository;
 
 @Service
@@ -62,9 +63,10 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository.findOneByUserIdAndUnitIdAndSourcePlanetId(userId, unitId, sourcePlanetId);
 	}
 
-	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndItNot(Integer userId, Integer unitId,
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndIddNoAndMissionNull(Integer userId, Integer unitId,
 			Long sourcePlanetId, Long id) {
-		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(userId, unitId, sourcePlanetId, id);
+		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(userId, unitId,
+				sourcePlanetId, id);
 	}
 
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetAndMissionIdIsNull(UserStorage user, Planet targetPlanet) {
@@ -118,7 +120,10 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 */
 	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit) {
 		ObtainedUnit retVal;
-		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetIdAndItNot(userId,
+		if (!planetBo.isOfUserProperty(userId, obtainedUnit.getSourcePlanet().getId())) {
+			throw new SgtBackendNotImplementedException("Planet is not of user property");
+		}
+		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetIdAndIddNoAndMissionNull(userId,
 				obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId(), obtainedUnit.getId());
 		if (existingOne == null) {
 			retVal = save(obtainedUnit);

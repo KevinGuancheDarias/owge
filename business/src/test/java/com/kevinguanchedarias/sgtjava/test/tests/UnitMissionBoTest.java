@@ -27,10 +27,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import com.kevinguanchedarias.sgtjava.business.ConfigurationBo;
+import com.kevinguanchedarias.sgtjava.business.ImprovementBo;
 import com.kevinguanchedarias.sgtjava.business.MissionReportBo;
 import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.sgtjava.business.SocketIoService;
 import com.kevinguanchedarias.sgtjava.business.UnitMissionBo;
+import com.kevinguanchedarias.sgtjava.business.UserImprovementBo;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
@@ -94,6 +96,12 @@ public class UnitMissionBoTest extends TestCommon {
 
 	@Mock
 	private MissionTypeMockitoHelper missionTypeMockitoHelper;
+
+	@Mock
+	private ImprovementBo improvementBo;
+
+	@Mock
+	private UserImprovementBo userImprovementBo;
 
 	@InjectMocks
 	private UnitMissionBo unitMissionBo;

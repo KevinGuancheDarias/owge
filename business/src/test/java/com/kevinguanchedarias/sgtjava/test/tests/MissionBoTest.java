@@ -45,6 +45,7 @@ import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
 import com.kevinguanchedarias.sgtjava.entity.UnlockedRelation;
 import com.kevinguanchedarias.sgtjava.entity.Upgrade;
+import com.kevinguanchedarias.sgtjava.entity.UserImprovement;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendTargetNotUnlocked;
@@ -126,6 +127,8 @@ public class MissionBoTest extends TestCommon {
 		user.setId(USER_ID);
 		user.setPrimaryResource(300D);
 		user.setSecondaryResource(300D);
+		user.setImprovements(new UserImprovement());
+		user.getImprovements().setMoreUpgradeResearchSpeed(10F);
 
 		Upgrade upgrade = new Upgrade();
 		upgrade.setId(UPGRADE_ID);
@@ -221,7 +224,7 @@ public class MissionBoTest extends TestCommon {
 
 	@Test
 	public void shouldProcessMissionWhenItExists() {
-		Mission fakeSavedMission = prepareValidMissionWithInformation(relationUpgrade);
+		Mission fakeSavedMission = prepareValidMissionWithInformation(relationUpgrade, 1L);
 		Upgrade fakeRelatedUpgrade = new Upgrade();
 		fakeRelatedUpgrade.setId(1);
 		Improvement improvement = new Improvement();
@@ -259,9 +262,15 @@ public class MissionBoTest extends TestCommon {
 
 	@Test(expected = SgtBackendUnitBuildAlreadyRunningException.class)
 	public void registerUnitBuildShouldThrowWhenOneMissionAlreadyRunningOnThatPlanet() {
+		ObtainedUnit obtainedUnit = new ObtainedUnit();
+		obtainedUnit.setCount(2L);
+		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
+		obtainedUnits.add(obtainedUnit);
+		Mission mission = prepareValidMissionWithInformation(relationUnit, 1L);
 		Mockito.when(missionRepositoryMock.findByUserIdAndTypeCodeAndMissionInformationValue(USER_ID, "BUILD_UNIT", 1D))
-				.thenReturn(prepareValidMissionWithInformation(relationUnit));
+				.thenReturn(mission);
 		Mockito.when(objectRelationBoMock.unboxObjectRelation(relationUnit)).thenReturn(prepareValidUnit(1, 1));
+		Mockito.when(obtainedUnitBo.findByMissionId(mission.getId())).thenReturn(obtainedUnits);
 		missionBo.registerBuildUnit(USER_ID, 1L, 1, 1L);
 	}
 
@@ -333,7 +342,6 @@ public class MissionBoTest extends TestCommon {
 
 		Unit unit = new Unit();
 		unit.setId(UNIT_ID);
-		;
 
 		ObtainedUnit oUnit1 = new ObtainedUnit();
 		oUnit1.setId(1L);
@@ -349,13 +357,12 @@ public class MissionBoTest extends TestCommon {
 		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(mission);
 		Mockito.when(obtainedUnitBo.findByMissionId(1L)).thenReturn(obtainedUnitList);
 		Mockito.when(planetBo.findByIdOrDie(planet.getId())).thenReturn(planet);
-
 		missionBo.processBuildUnit(1L);
 
 		obtainedUnitList.forEach(current -> {
-			assertEquals(planet, current.getSourcePlanet());
 			assertNull(current.getMission());
-			Mockito.verify(obtainedUnitBo).saveWithAdding(USER_ID, current);
+			Mockito.verify(obtainedUnitBo, Mockito.times(obtainedUnitList.size())).moveUnit(Mockito.any(),
+					Mockito.anyInt(), Mockito.anyLong());
 		});
 		Mockito.verify(requirementBoMock, Mockito.times(obtainedUnitList.size())).triggerUnitBuildCompleted(user, unit);
 		Mockito.verify(missionRepositoryMock).delete(mission);
@@ -375,8 +382,9 @@ public class MissionBoTest extends TestCommon {
 		Mockito.verify(userStorageBoMock).save(user);
 	}
 
-	private Mission prepareValidMissionWithInformation(ObjectRelation relation) {
+	private Mission prepareValidMissionWithInformation(ObjectRelation relation, Long id) {
 		Mission retVal = new Mission();
+		retVal.setId(id);
 		retVal.setType(missionType);
 		retVal.setUser(user);
 		MissionInformation fakeMissionInformaton = new MissionInformation();

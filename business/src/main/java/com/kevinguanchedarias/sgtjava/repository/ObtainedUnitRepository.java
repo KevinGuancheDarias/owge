@@ -22,7 +22,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId);
 
-	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(Integer userId, Integer unitId,
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(Integer userId, Integer unitId,
 			Long sourcePlanetId, Long id);
 
 	public Long countByUserIdAndUnitId(Integer userId, Integer unitId);
@@ -54,4 +54,5 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Numb
 
 	@Query("SELECT SUM(utg.value * ou.count) FROM ObtainedUnit ou INNER JOIN ou.unit.improvement.unitTypesUpgrades utg WHERE ou.user = ?1 AND utg.type = ?2")
 	public Long sumByUserAndImprovementUnitTypeImprovementType(UserStorage user, String name);
+
 }

@@ -15,6 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
+import com.kevinguanchedarias.sgtjava.business.PlanetBo;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
@@ -34,12 +35,15 @@ public class ObtainedUnitBoTest {
 	@Mock
 	private ObtainedUnitRepository repositoryMock;
 
+	@Mock
+	private PlanetBo planetBoMock;
+
 	@InjectMocks
 	private ObtainedUnitBo obtainedUnitBo;
 
 	private UserStorage user;
 	private ObtainedUnit obtainedUnit;
-	private Planet planet;
+	private Planet sourcePlanet;
 
 	@Before
 	public void init() {
@@ -54,18 +58,22 @@ public class ObtainedUnitBoTest {
 		obtainedUnit.setId(OBTAINED_UNIT_ID);
 		obtainedUnit.setCount(1L);
 
-		planet = new Planet();
-		planet.setId(SOURCE_PLANET_ID);
+		sourcePlanet = new Planet();
+		sourcePlanet.setId(SOURCE_PLANET_ID);
+		Mockito.when(planetBoMock.isOfUserProperty(USER_ID, SOURCE_PLANET_ID)).thenReturn(true);
 	}
 
 	@Test(expected = SgtBackendNotImplementedException.class)
 	public void shouldThrowBecauseNonDeployedInLocalPlanetSavingIsNotSupported() {
+		Planet otherPlanet = new Planet();
+		otherPlanet.setId(2L);
+		obtainedUnit.setSourcePlanet(otherPlanet);
 		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
 	}
 
 	@Test
 	public void shouldSaveAddedOneWhenUnitDoesNotExistsInDatabase() {
-		obtainedUnit.setSourcePlanet(new Planet());
+		obtainedUnit.setSourcePlanet(sourcePlanet);
 
 		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
 		Mockito.verify(repositoryMock).save(obtainedUnit);
@@ -74,12 +82,12 @@ public class ObtainedUnitBoTest {
 
 	@Test
 	public void shouldSaveExistingOneWhenUnitExistsInDatabaseDeletingAddedIfHasId() {
-		obtainedUnit.setSourcePlanet(planet);
+		obtainedUnit.setSourcePlanet(sourcePlanet);
 
 		ObtainedUnit existingOne = new ObtainedUnit();
 		existingOne.setId(2L);
 		existingOne.setCount(1L);
-		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(USER_ID, UNIT_ID,
+		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(USER_ID, UNIT_ID,
 				SOURCE_PLANET_ID, obtainedUnit.getId())).thenReturn(existingOne);
 		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
 		Mockito.verify(repositoryMock).save(existingOne);
@@ -89,13 +97,13 @@ public class ObtainedUnitBoTest {
 
 	@Test
 	public void shouldSaveExistingOneWhenUnitExistsInDatabaseNotDeletingIfHasNotId() {
-		obtainedUnit.setSourcePlanet(planet);
+		obtainedUnit.setSourcePlanet(sourcePlanet);
 		obtainedUnit.setId(null);
 
 		ObtainedUnit existingOne = new ObtainedUnit();
 		existingOne.setId(2L);
 		existingOne.setCount(1L);
-		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNot(USER_ID, UNIT_ID,
+		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(USER_ID, UNIT_ID,
 				SOURCE_PLANET_ID, obtainedUnit.getId())).thenReturn(existingOne);
 		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
 		Mockito.verify(repositoryMock).save(existingOne);

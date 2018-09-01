@@ -3,6 +3,8 @@
 v0.5.2 (latest)
 =========
 * __Merge:__ v0.4.2
+* __Fix:__ Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit  
+![Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit](assets/changelog/bugs/UkfqMsJB.png)
 
 v0.5.1 (2018-08-21 13:55)
 =========
