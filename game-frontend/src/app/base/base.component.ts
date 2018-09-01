@@ -46,6 +46,12 @@ export class BaseComponent {
     return confirm(message);
   }
 
+  public isEqualByIdOrIsNull(firstElement: { id: number }, secondElement: { id: number }): boolean {
+    const firstId: number = firstElement && firstElement.id;
+    const secondId: number = secondElement && secondElement.id;
+    return firstId === secondId;
+  }
+
   /**
    * Executes a promise or promises displaying the loading icon globally, until the promise is resolved
    *

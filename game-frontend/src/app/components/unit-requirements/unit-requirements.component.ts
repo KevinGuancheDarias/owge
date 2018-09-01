@@ -3,16 +3,16 @@ import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit }
 import { UnitService } from '../../service/unit.service';
 import { UnitUpgradeRequirements } from '../../shared/types/unit-upgrade-requirements.type';
 import { UnitPojo } from '../../shared-pojo/unit.pojo';
-import { BaseComponent } from '../../base/base.component';
 import { Upgrade } from '../../shared-pojo/upgrade.pojo';
 import { MEDIA_ROUTES } from '../../config/config.pojo';
+import { BaseUnitComponent } from '../../shared/base-unit.component';
 
 @Component({
   selector: 'app-unit-requirements',
   templateUrl: './unit-requirements.component.html',
   styleUrls: ['./unit-requirements.component.less']
 })
-export class UnitRequirementsComponent extends BaseComponent implements OnInit, AfterViewInit {
+export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit, AfterViewInit {
   private static readonly UPGRADE_CARD_SIZE = 58;
   public unitRequirements: UnitUpgradeRequirements[];
 

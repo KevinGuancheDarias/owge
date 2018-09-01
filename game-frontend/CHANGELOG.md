@@ -5,7 +5,9 @@ v0.5.2 (latest)
 * __Merge:__ v0.4.2
 * __Security:__ Backend allows the user to build over his energy, backend is not checking that the required energy is met
 * __Fix:__ Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit  
-![Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit](assets/changelog/bugs/UkfqMsJB.png)
+![Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit](assets/changelog/bugs/UkfqMsJB.png)  
+* __Improvement:__ Display a filter by type in units  
+![Display a filter by type in units](assets/changelog/improvements/SC8fU3lW.png)
 
 v0.5.1 (2018-08-21 13:55)
 =========

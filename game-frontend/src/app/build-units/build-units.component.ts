@@ -1,14 +1,14 @@
 import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
-import { Component, OnInit } from '@angular/core';
-import { BaseComponent } from './../base/base.component';
+import { Component, OnInit, Input } from '@angular/core';
+import { BaseUnitComponent } from '../shared/base-unit.component';
 
 @Component({
   selector: 'app-build-units',
   templateUrl: './build-units.component.html',
   styleUrls: ['./build-units.component.less']
 })
-export class BuildUnitsComponent extends BaseComponent implements OnInit {
+export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
 
   public get unlockedUnits(): UnitPojo {
     return this._unlockedUnits;
