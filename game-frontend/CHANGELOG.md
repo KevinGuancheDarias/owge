@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.5.2 (latest)
+v0.5.2 (2018-09-01 17:58)
 =========
 * __Merge:__ v0.4.2
 * __Security:__ Backend allows the user to build over his energy, backend is not checking that the required energy is met
