@@ -35,6 +35,7 @@ public class UnitBoTest {
 	private Integer primary = 20;
 	private Integer secondary = 30;
 	private Integer time = 40;
+	private Integer energy = 20;
 
 	@Before
 	public void init() {
@@ -43,6 +44,7 @@ public class UnitBoTest {
 		unit.setPrimaryResource(primary);
 		unit.setSecondaryResource(secondary);
 		unit.setTime(time);
+		unit.setEnergy(energy);
 	}
 
 	@Test
@@ -68,6 +70,7 @@ public class UnitBoTest {
 		assertEquals(primary, resourceRequirements.getRequiredPrimary(), 0.1);
 		assertEquals(secondary, resourceRequirements.getRequiredSecondary(), 0.1);
 		assertEquals(time, resourceRequirements.getRequiredTime(), 0.1);
+		assertEquals(energy, resourceRequirements.getRequiredEnergy(), 0.1);
 	}
 
 	@Test
@@ -76,5 +79,6 @@ public class UnitBoTest {
 		assertEquals(primary * 2, resourceRequirements.getRequiredPrimary(), 0.1);
 		assertEquals(secondary * 2, resourceRequirements.getRequiredSecondary(), 0.1);
 		assertEquals(time * 2, resourceRequirements.getRequiredTime(), 0.1);
+		assertEquals(energy * 2, resourceRequirements.getRequiredEnergy(), 0.1);
 	}
 }

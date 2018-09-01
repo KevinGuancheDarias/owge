@@ -142,7 +142,7 @@ public class MissionBoTest extends TestCommon {
 		Mockito.when(resourceRequirementsMock.getRequiredPrimary()).thenReturn(REQUIRED_PRIMARY);
 		Mockito.when(resourceRequirementsMock.getRequiredSecondary()).thenReturn(REQUIRED_SECONDARY);
 		Mockito.when(resourceRequirementsMock.getRequiredTime()).thenReturn(REQUIRED_TIME);
-		Mockito.when(resourceRequirementsMock.canRun(user)).thenReturn(true);
+		Mockito.when(resourceRequirementsMock.canRun(user, userStorageBoMock)).thenReturn(true);
 
 		relationUpgrade = new ObjectRelation();
 		relationUpgrade.setObject(prepareValidObjectEntity(RequirementTargetObject.UPGRADE));
@@ -185,7 +185,7 @@ public class MissionBoTest extends TestCommon {
 
 	@Test(expected = SgtMissionRegistrationException.class)
 	public void registerLevelUpgradeShouldThrowWhenDoesNotHaveEnoughResources() {
-		Mockito.when(resourceRequirementsMock.canRun(user)).thenReturn(false);
+		Mockito.when(resourceRequirementsMock.canRun(user, userStorageBoMock)).thenReturn(false);
 		missionBo.registerLevelUpAnUpgrade(USER_ID, UPGRADE_ID);
 	}
 

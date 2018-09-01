@@ -245,6 +245,19 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction());
 	}
 
+	/**
+	 * Returns the available energy of the user <br>
+	 * <b>NOTICE: Expensive method </b>
+	 * 
+	 * @param user
+	 * @return
+	 * @todo For god's sake create a cache system
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double findAvailableEnergy(UserStorage user) {
+		return findMaxEnergy(user) - findConsumedEnergy(user);
+	}
+
 	private TokenUser findTokenUser() {
 		return (TokenUser) securityContextService.getAuthentication().getDetails();
 	}

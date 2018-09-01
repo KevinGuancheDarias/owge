@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -211,6 +213,17 @@ public class UserStorageBoTest extends TestCommon {
 		userStorageBo.triggerResourcesUpdate();
 		assertEquals(30, detailsUser.getPrimaryResource().longValue());
 		assertEquals(30, detailsUser.getSecondaryResource().longValue());
+	}
+
+	@Test
+	public void shouldProperlyFindAvailableEnergy() {
+		UserStorage user = prepareValidUserStorage(1);
+		UserStorageBo userStorageBoSpy = Mockito.spy(userStorageBo);
+		doReturn(1000D).when(userStorageBoSpy).findMaxEnergy(user);
+		doReturn(200D).when(userStorageBoSpy).findConsumedEnergy(user);
+		assertEquals(800D, userStorageBoSpy.findAvailableEnergy(user).doubleValue(), 0.1D);
+		verify(userStorageBoSpy).findMaxEnergy(user);
+		verify(userStorageBoSpy).findConsumedEnergy(user);
 	}
 
 	/**

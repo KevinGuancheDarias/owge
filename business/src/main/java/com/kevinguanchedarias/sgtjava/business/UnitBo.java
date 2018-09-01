@@ -2,6 +2,7 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -54,6 +55,8 @@ public class UnitBo implements WithNameBo<Unit> {
 	 * @param unit
 	 * @param count
 	 * @return
+	 * @throws SgtBackendInvalidInputException
+	 *             can't be negative
 	 * @author Kevin Guanche Darias
 	 */
 	public ResourceRequirementsPojo calculateRequirements(Unit unit, Long count) {
@@ -65,6 +68,7 @@ public class UnitBo implements WithNameBo<Unit> {
 		retVal.setRequiredPrimary((double) (unit.getPrimaryResource() * count));
 		retVal.setRequiredSecondary((double) (unit.getSecondaryResource() * count));
 		retVal.setRequiredTime((double) (unit.getTime() * count));
+		retVal.setRequiredEnergy((double) (ObjectUtils.firstNonNull(unit.getEnergy(), 0) * count));
 		return retVal;
 	}
 

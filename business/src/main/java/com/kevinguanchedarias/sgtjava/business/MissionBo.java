@@ -70,7 +70,7 @@ public class MissionBo extends AbstractMissionBo {
 		UserStorage user = userStorageBo.findById(userId);
 
 		ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
-		if (!resourceRequirements.canRun(user)) {
+		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
 		resourceRequirements.setRequiredTime(
@@ -143,7 +143,7 @@ public class MissionBo extends AbstractMissionBo {
 		Long finalCount = unit.getIsUnique() ? 1 : count;
 		unitBo.checkIsUniqueBuilt(user, unit);
 		ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
-		if (!resourceRequirements.canRun(user)) {
+		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
 		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime()
