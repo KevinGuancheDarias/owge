@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -241,8 +242,8 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	public Double findMaxEnergy(UserStorage user) {
-		return improvementBo.computeImprovementValue(user.getEnergy(),
-				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction());
+		return ObjectUtils.firstNonNull(improvementBo.computeImprovementValue(user.getEnergy(),
+				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()));
 	}
 
 	/**

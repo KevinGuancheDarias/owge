@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.5.3 (latest)
+
+* __Fix:__ The user can't build when the user has not consumed any energy, regression of [5jLeBzrv](https://trello.com/c/5jLeBzrv/48-backend-allows-the-user-to-build-over-his-energy-backend-is-not-checking-that-the-required-energy-is-met)
+
 v0.5.2 (2018-09-01 17:58)
 =========
 * __Merge:__ v0.4.2
