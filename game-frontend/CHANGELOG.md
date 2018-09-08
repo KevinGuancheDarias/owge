@@ -1,6 +1,7 @@
 # SGT changelog
 
-v0.5.3 (latest)
+v0.5.3 (2018-09-08 02:18)
+===============
 
 * __Fix:__ The user can't build when the user has not consumed any energy, regression of [5jLeBzrv](https://trello.com/c/5jLeBzrv/48-backend-allows-the-user-to-build-over-his-energy-backend-is-not-checking-that-the-required-energy-is-met)
 * __Fix:__ Changelog is opening the external links in the same page
