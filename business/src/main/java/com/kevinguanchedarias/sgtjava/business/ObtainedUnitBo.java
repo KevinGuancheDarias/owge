@@ -245,7 +245,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	public Double findConsumeEnergyByUser(UserStorage user) {
-		return ObjectUtils.firstNonNull(repository.computeConsumedEnergyByUser(user));
+		return ObjectUtils.firstNonNull(repository.computeConsumedEnergyByUser(user), 0D);
 	}
 
 	/**

@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.5.4 (2018-09-08 13:30)
+===============
+* __Fix:__ Fix again, because the fix ["The user can't build when the user has not consumed any energy, regression of 5jLeBzrv"](https://trello.com/c/AOhmFxTI/50-the-user-cant-build-when-the-user-has-not-consumed-any-energy-regression-of-5jlebzrv) was not working
+
 v0.5.3 (2018-09-08 02:18)
 ===============
 

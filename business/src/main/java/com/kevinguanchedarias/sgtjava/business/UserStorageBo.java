@@ -243,7 +243,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 
 	public Double findMaxEnergy(UserStorage user) {
 		return ObjectUtils.firstNonNull(improvementBo.computeImprovementValue(user.getEnergy(),
-				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()));
+				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()), 0D);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.test.tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
@@ -157,6 +158,11 @@ public class ObtainedUnitBoTest {
 		assertNull(obtainedUnitBo.findHavingSameUnit(storage, searchObtainedUnit));
 		storage.add(expectedObtainedUnit);
 		assertEquals(expectedObtainedUnit, (obtainedUnitBo.findHavingSameUnit(storage, searchObtainedUnit)));
+	}
+
+	@Test
+	public void notNullFindConsumeEnergyByUser() {
+		assertNotNull(obtainedUnitBo.findConsumeEnergyByUser(user));
 	}
 
 }

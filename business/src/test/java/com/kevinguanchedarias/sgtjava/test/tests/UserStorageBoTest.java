@@ -21,6 +21,8 @@ import org.springframework.beans.BeanUtils;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.sgtjava.business.FactionBo;
+import com.kevinguanchedarias.sgtjava.business.ImprovementBo;
+import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.sgtjava.business.PlanetBo;
 import com.kevinguanchedarias.sgtjava.business.RequirementBo;
 import com.kevinguanchedarias.sgtjava.business.UserImprovementBo;
@@ -52,6 +54,12 @@ public class UserStorageBoTest extends TestCommon {
 
 	@Mock
 	private UserImprovementBo userImprovementBoMock;
+
+	@Mock
+	private ImprovementBo improvementBo;
+
+	@Mock
+	private ObtainedUnitBo obtainedUnitBo;
 
 	@InjectMocks
 	private UserStorageBo userStorageBo;
@@ -224,6 +232,17 @@ public class UserStorageBoTest extends TestCommon {
 		assertEquals(800D, userStorageBoSpy.findAvailableEnergy(user).doubleValue(), 0.1D);
 		verify(userStorageBoSpy).findMaxEnergy(user);
 		verify(userStorageBoSpy).findConsumedEnergy(user);
+	}
+
+	@Test
+	public void findAvailableEnergyShouldProperlyHandleNull() {
+		UserStorage user = prepareValidUserStorage(1);
+		user.setEnergy(10D);
+		UserImprovement userImprovement = new UserImprovement();
+		userImprovement.setMoreEnergyProduction(1F);
+		doReturn(userImprovement).when(userImprovementBoMock).findUserImprovements(user);
+		doReturn(0D).when(obtainedUnitBo).findConsumeEnergyByUser(user);
+		assertEquals(0D, userStorageBo.findAvailableEnergy(user), 0D);
 	}
 
 	/**
