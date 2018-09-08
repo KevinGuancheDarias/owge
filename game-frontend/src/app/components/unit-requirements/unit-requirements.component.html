@@ -1,6 +1,6 @@
 <div *ngIf="unitRequirements" class="sgt-card-list units">
   <ng-container *ngFor="let unit of unitRequirements">
-    <div #cardRoot *ngIf="isOfTypeOrNullFilter(unit.unit)" class="card sgt auto-expand">
+    <div #cardRoot *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" class="card sgt auto-expand">
       <div class="card-block">
         <div class="card-title">
           <span class="auto-expand">

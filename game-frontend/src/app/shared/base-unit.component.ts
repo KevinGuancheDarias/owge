@@ -23,8 +23,8 @@ export class BaseUnitComponent extends BaseComponent {
      * @param {UnitPojo} unit
      * @memberof BaseUnitComponent
      */
-    public isOfTypeOrNullFilter(unit: UnitPojo) {
-        return !this.unitType || this.unitType.id === unit.typeId;
+    public isOfUnitTypeOrNullFilter(unit: UnitPojo): boolean {
+        return this.isOfTypeOrNullFilter(unit, 'unitType');
     }
 
 }

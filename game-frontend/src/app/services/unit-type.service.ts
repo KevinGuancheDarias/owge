@@ -1,15 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { GameBaseService } from '../service/game-base.service';
 import { UnitType } from '../shared/types/unit-type.type';
 import { ProgrammingError } from '../../error/programming.error';
 
 @Injectable()
-export class UnitTypeService extends GameBaseService {
-
-  private _unitTypes: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
+export class UnitTypeService extends GameBaseService<UnitType> {
 
   public constructor() {
     super();
@@ -17,18 +14,16 @@ export class UnitTypeService extends GameBaseService {
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
-    return this._unitTypes.asObservable().filter(value => value !== null);
+    return this._subjectToObservable();
   }
 
-  public loadTypes() {
-    this.doGetWithAuthorizationToGame<UnitType[]>('unitType/').subscribe(result => {
-      this._unitTypes.next(result.map(current => {
-        if (!current.userBuilt) {
-          current.userBuilt = 0;
-        }
-        return current;
-      }));
-    });
+  public loadTypes(): void {
+    this._loadSubject('unitType/', async result => result.map(current => {
+      if (!current.userBuilt) {
+        current.userBuilt = 0;
+      }
+      return current;
+    }));
   }
 
 
@@ -60,7 +55,7 @@ export class UnitTypeService extends GameBaseService {
   public addToType(id: number, count: number): void {
     const type: UnitType = this._findTypeById(id);
     type.userBuilt += count;
-    this._unitTypes.next(this._unitTypes.value);
+    this._loadableBehaviorSubject.next(this._loadableBehaviorSubject.value);
   }
 
   /**
@@ -93,7 +88,7 @@ export class UnitTypeService extends GameBaseService {
   }
 
   private _findTypeById(id: number): UnitType {
-    const retVal: UnitType = this._unitTypes.value.find(current => current.id === id);
+    const retVal: UnitType = this._loadableBehaviorSubject.value.find(current => current.id === id);
     if (!retVal) {
       throw new ProgrammingError(`No UnitType with id ${id} was found`);
     }

@@ -1,8 +1,11 @@
+import { Component, OnInit } from '@angular/core';
+
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
-import { Component, OnInit } from '@angular/core';
+import { UpgradeTypeService } from '../services/upgrade-type.service';
+import { UpgradeType } from '../shared/types/upgrade-type.type';
 
 @Component({
   selector: 'app-upgrades',
@@ -10,18 +13,27 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./upgrades.component.less']
 })
 export class UpgradesComponent extends BaseComponent implements OnInit {
+  private static readonly _SESSION_STORAGE_UPGRADE_TYPE_KEY = 'upgrades.component.unitType';
 
   public obtainedUpgrades: ObtainedUpgradePojo[];
   public runningUpgrade: RunningUpgrade;
+  public upgradeTypes: UpgradeType[];
+  public upgradeType: UpgradeType;
 
-  constructor(private _upgradeService: UpgradeService) {
+  constructor(private _upgradeService: UpgradeService, private _upgradeTypeService: UpgradeTypeService) {
     super();
   }
 
   ngOnInit() {
+    this.upgradeType = JSON.parse(sessionStorage.getItem(UpgradesComponent._SESSION_STORAGE_UPGRADE_TYPE_KEY));
     this.findObtained();
     this._upgradeService.backendRunningUpgradeCheck();
     this.isUpgrading();
+    this._upgradeTypeService.getUpgradeTypes().subscribe(upgradeTypes => this.upgradeTypes = upgradeTypes);
+  }
+
+  public onTypeChange(): void {
+    sessionStorage.setItem(UpgradesComponent._SESSION_STORAGE_UPGRADE_TYPE_KEY, JSON.stringify(this.upgradeType));
   }
 
   public isUpgrading(): void {

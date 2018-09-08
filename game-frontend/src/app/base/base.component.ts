@@ -53,6 +53,17 @@ export class BaseComponent {
   }
 
   /**
+     * Returns true if the unit is of the same type, of it's null
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {{ typeId: number}} unit
+     * @memberof BaseUnitComponent
+     */
+  public isOfTypeOrNullFilter(type: { typeId: number }, property: keyof this): boolean {
+    return !this[property] || this[property]['id'] === type.typeId;
+  }
+
+  /**
    * Executes a promise or promises displaying the loading icon globally, until the promise is resolved
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

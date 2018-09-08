@@ -1,5 +1,6 @@
-import { Observable } from 'rxjs/Observable';
 import { URLSearchParams } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { Universe } from './../shared-pojo/universe.pojo';
@@ -17,11 +18,13 @@ import { BaseHttpService } from '../base-http/base-http.service';
  * </ul>
  * @export
  * @class GameBaseService
+ * @template E target Entity object to be "behaviorsubject loadable"
  * @extends BaseHttpService
  */
-export class GameBaseService extends BaseHttpService {
+export class GameBaseService<E = any> extends BaseHttpService {
 
   protected _loginSessionService: LoginSessionService;
+  protected _loadableBehaviorSubject: BehaviorSubject<E[]> = new BehaviorSubject(null);
 
   constructor() {
     super();
@@ -85,6 +88,29 @@ export class GameBaseService extends BaseHttpService {
   protected _findSelectedPlanet(): Promise<PlanetPojo> {
     return new Promise(resolve => {
       this._loginSessionService.findSelectedPlanet.filter(planet => planet !== null).subscribe(planet => resolve(planet));
+    });
+  }
+
+  protected _subjectToObservable(): Observable<E[]> {
+    return this._loadableBehaviorSubject.asObservable().filter(value => value !== null);
+  }
+
+
+  /**
+   * Triggers the action to load the <i>_loadableBehaviorSubject</i>
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @protected
+   * @param {string} url Target string to fetch the entity array (It's a game relative url)
+   * @param {(result: E[]) => Promise<E[]>} [resultsCallback] Action to execute after fetching the results, MUST return the parsed result
+   * @memberof GameBaseService
+   */
+  protected _loadSubject(url: string, resultsCallback?: (result: E[]) => Promise<E[]>): void {
+    this.doGetWithAuthorizationToGame<E[]>(url).subscribe(async result => {
+      const action = typeof resultsCallback === 'function'
+        ? resultsCallback
+        : async () => result;
+      this._loadableBehaviorSubject.next(await action(result));
     });
   }
 }

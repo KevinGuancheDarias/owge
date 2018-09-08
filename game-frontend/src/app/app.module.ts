@@ -61,6 +61,7 @@ import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
 import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
 import { UnitTypeService } from './services/unit-type.service';
+import { UpgradeTypeService } from './services/upgrade-type.service';
 
 
 export const APP_ROUTES: Routes = [
@@ -141,7 +142,8 @@ export const APP_ROUTES: Routes = [
     LoadingService,
     ReportService,
     SanitizeService,
-    UnitTypeService
+    UnitTypeService,
+    UpgradeTypeService
   ],
   bootstrap: [AppComponent]
 })
