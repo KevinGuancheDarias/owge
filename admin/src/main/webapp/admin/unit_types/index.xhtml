@@ -3,7 +3,9 @@
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:p="http://primefaces.org/ui"
+	xmlns:sgt-admin-form="http://java.sun.com/jsf/composite/sgt_admin/1_0/compositions/form"
 	template="/WEB-INF/layout/template.xhtml">
+
 
 	<ui:define name="content">
 
@@ -76,6 +78,13 @@
 									value="#{unitTypesController.selectedObject.maxCount}"></p:inputNumber>
 							</p:column>
 						</p:row>
+						<sgt-admin-form:boolean_row htmlId="canExplore" label="Can Explore" value="#{unitTypesController.selectedObject.canExplore}"/>
+						<sgt-admin-form:boolean_row htmlId="canGather" label="Can Gather" value="#{unitTypesController.selectedObject.canGather}"/>
+						<sgt-admin-form:boolean_row htmlId="canEB" label="Can EstablishBase" value="#{unitTypesController.selectedObject.canEstablishBase}"/>
+						<sgt-admin-form:boolean_row htmlId="canAttack" label="Can Attack" value="#{unitTypesController.selectedObject.canAttack}"/>
+						<sgt-admin-form:boolean_row htmlId="canCounterattack" label="Can Counterattack" value="#{unitTypesController.selectedObject.canCounterattack}"/>
+						<sgt-admin-form:boolean_row htmlId="canConquest" label="Can Conquest" value="#{unitTypesController.selectedObject.canConquest}"/>
+						<sgt-admin-form:boolean_row htmlId="canDeploy" label="Can Deploy" value="#{unitTypesController.selectedObject.canDeploy}"/>
 					</p:fragment>
 					<p:row>
 						<p:column>

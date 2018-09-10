@@ -3,6 +3,8 @@
 v0.6.0 (latest)
 ===============
 * __Merge:__ v0.5.5
+* __Feature:__ As an administrator I want to define what missions each type of unit can do  
+![As an administrator I want to define what missions each type of unit can do](assets/changelog/features/QNGBLo0m.png)  
 
 v0.5.5 (2018-09-10 14:35)
 ===============
