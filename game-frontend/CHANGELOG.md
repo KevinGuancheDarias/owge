@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.3.7 (2018-09-10 14:52)
+===========
+* __Fix:__ Attacks crash sometimes under race circumstances
+
 v0.3.6 (2018-08-19 16:07)
 ==========
 * __Fix:__ Attacks do not remove units, unless all the unit count is death  

@@ -338,8 +338,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 			users.forEach(current -> {
 				List<AttackObtainedUnit> units = current.findAllUnits();
 				userStorageBo.addPointsToUser(current.getUser(), current.earnedPoints);
-				obtainedUnitBo.save(
-						units.stream().filter(currentUnit -> !currentUnit.initialCount.equals(currentUnit.finalCount))
+				obtainedUnitBo
+						.save(units.stream()
+								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
+										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
 								.map(currentUnit -> {
 									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
 									return currentUnit.obtainedUnit;
