@@ -44,6 +44,27 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "unitType")
 	private List<ImprovementUnitType> upgradeEnhancements;
 
+	@Column(name = "can_explore", nullable = false)
+	private boolean canExplore = true;
+
+	@Column(name = "can_gather", nullable = false)
+	private boolean canGather = true;
+
+	@Column(name = "can_establish_base", nullable = false)
+	private boolean canEstablishBase = true;
+
+	@Column(name = "can_attack", nullable = false)
+	private boolean canAttack = true;
+
+	@Column(name = "can_counterattack", nullable = false)
+	private boolean canCounterattack = true;
+
+	@Column(name = "can_conquest", nullable = false)
+	private boolean canConquest = true;
+
+	@Column(name = "can_deploy", nullable = false)
+	private boolean canDeploy = true;
+
 	public UnitType() {
 		super();
 	}
@@ -112,6 +133,62 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 
 	public void setUpgradeEnhancements(List<ImprovementUnitType> upgradeEnhancements) {
 		this.upgradeEnhancements = upgradeEnhancements;
+	}
+
+	public boolean isCanExplore() {
+		return canExplore;
+	}
+
+	public void setCanExplore(boolean canExplore) {
+		this.canExplore = canExplore;
+	}
+
+	public boolean isCanGather() {
+		return canGather;
+	}
+
+	public void setCanGather(boolean canGather) {
+		this.canGather = canGather;
+	}
+
+	public boolean isCanEstablishBase() {
+		return canEstablishBase;
+	}
+
+	public void setCanEstablishBase(boolean canEstablishBase) {
+		this.canEstablishBase = canEstablishBase;
+	}
+
+	public boolean isCanAttack() {
+		return canAttack;
+	}
+
+	public void setCanAttack(boolean canAttack) {
+		this.canAttack = canAttack;
+	}
+
+	public boolean isCanCounterattack() {
+		return canCounterattack;
+	}
+
+	public void setCanCounterattack(boolean canCounterattack) {
+		this.canCounterattack = canCounterattack;
+	}
+
+	public boolean isCanConquest() {
+		return canConquest;
+	}
+
+	public void setCanConquest(boolean canConquest) {
+		this.canConquest = canConquest;
+	}
+
+	public boolean isCanDeploy() {
+		return canDeploy;
+	}
+
+	public void setCanDeploy(boolean canDeploy) {
+		this.canDeploy = canDeploy;
 	}
 
 	@Override
