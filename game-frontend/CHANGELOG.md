@@ -1,7 +1,11 @@
 # SGT changelog
 
+v0.4.3 (2018-09-10 14:58)
+=================
+* __Merge:__ v0.3.7
+
 v0.4.2 (2018-08-19 16:11)
-=======
+====================
 * __Merge:__ v0.3.6
 
 v0.4.1 (2018-08-09 19:15)
@@ -16,6 +20,10 @@ v0.4.0 (2018-07-29 22:20)
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
 * __Merge:__ v0.3.4
+
+v0.3.7 (2018-09-10 14:52)
+===========
+* __Fix:__ Attacks crash sometimes under race circumstances
 
 v0.3.6 (2018-08-19 16:07)
 ==========
