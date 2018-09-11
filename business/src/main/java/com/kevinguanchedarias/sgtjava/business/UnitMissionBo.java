@@ -179,45 +179,47 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		public List<AttackObtainedUnit> findUnitsWithLife() {
-			return findAllUnits().stream().filter(current -> current.availableHealth >= 0D)
-					.collect(Collectors.toList());
+			return findAllUnits().stream().filter(current -> current.availableHealth > 0D).collect(Collectors.toList());
 		}
 
 		public void attackVictim(AttackUserInformation targetVictim, List<AttackUserInformation> allUsers) {
 			unitsWithAvailableAttack.stream().filter(current -> {
 				List<AttackObtainedUnit> victimUnitsWithLife = targetVictim.findUnitsWithLife();
+
 				final AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
-				victimUnitsWithLife.stream().filter(victimUnit -> {
-					Double myAttack = current.pendingAttack;
-					Double victimShield = victimUnit.availableShield;
-					if (victimShield > myAttack) {
-						current.pendingAttack = 0D;
-						victimUnit.availableShield -= myAttack;
-					} else {
-						myAttack -= victimUnit.availableShield;
-						victimUnit.availableShield = 0D;
-						Double victimHealth = victimUnit.availableHealth;
-						addPointsAndUpdateCount(myAttack, victimUnit);
-						if (victimHealth > myAttack) {
-							current.pendingAttack = 0D;
-							victimUnit.availableHealth -= myAttack;
-						} else {
-							current.pendingAttack = myAttack - victimHealth;
-							victimUnit.availableHealth = 0D;
-							userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
-									victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
-							obtainedUnitBo.delete(victimUnit.obtainedUnit);
-							deleteMissionIfRequired(victimUnit.obtainedUnit);
-							count.decrementAndGet();
-						}
-					}
-					if (current.pendingAttack == 0D) {
-						unitsWithoutAttack.add(current);
-					}
-					return current.pendingAttack == 0D;
-				}).findFirst();
 				if (count.get() == 0) {
 					targetVictim.isDefeated = true;
+				} else {
+					victimUnitsWithLife.stream().filter(victimUnit -> {
+						Double myAttack = current.pendingAttack;
+						Double victimShield = victimUnit.availableShield;
+						if (victimShield > myAttack) {
+							current.pendingAttack = 0D;
+							victimUnit.availableShield -= myAttack;
+						} else {
+							myAttack -= victimUnit.availableShield;
+							victimUnit.availableShield = 0D;
+							Double victimHealth = victimUnit.availableHealth;
+							addPointsAndUpdateCount(myAttack, victimUnit);
+							if (victimHealth > myAttack) {
+								current.pendingAttack = 0D;
+								victimUnit.availableHealth -= myAttack;
+							} else {
+								current.pendingAttack = myAttack - victimHealth;
+								victimUnit.availableHealth = 0D;
+								userImprovementBo.subtractImprovements(
+										victimUnit.obtainedUnit.getUnit().getImprovement(),
+										victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
+								obtainedUnitBo.delete(victimUnit.obtainedUnit);
+								deleteMissionIfRequired(victimUnit.obtainedUnit);
+								count.decrementAndGet();
+							}
+						}
+						if (current.pendingAttack == 0D) {
+							unitsWithoutAttack.add(current);
+						}
+						return current.pendingAttack == 0D;
+					}).findFirst();
 				}
 				return count.get() == 0;
 			}).findFirst();
