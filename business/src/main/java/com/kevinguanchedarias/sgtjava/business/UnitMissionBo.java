@@ -185,41 +185,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		public void attackVictim(AttackUserInformation targetVictim, List<AttackUserInformation> allUsers) {
 			unitsWithAvailableAttack.stream().filter(current -> {
 				List<AttackObtainedUnit> victimUnitsWithLife = targetVictim.findUnitsWithLife();
-
-				final AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
+				AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
 				if (count.get() == 0) {
 					targetVictim.isDefeated = true;
 				} else {
-					victimUnitsWithLife.stream().filter(victimUnit -> {
-						Double myAttack = current.pendingAttack;
-						Double victimShield = victimUnit.availableShield;
-						if (victimShield > myAttack) {
-							current.pendingAttack = 0D;
-							victimUnit.availableShield -= myAttack;
-						} else {
-							myAttack -= victimUnit.availableShield;
-							victimUnit.availableShield = 0D;
-							Double victimHealth = victimUnit.availableHealth;
-							addPointsAndUpdateCount(myAttack, victimUnit);
-							if (victimHealth > myAttack) {
-								current.pendingAttack = 0D;
-								victimUnit.availableHealth -= myAttack;
-							} else {
-								current.pendingAttack = myAttack - victimHealth;
-								victimUnit.availableHealth = 0D;
-								userImprovementBo.subtractImprovements(
-										victimUnit.obtainedUnit.getUnit().getImprovement(),
-										victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
-								obtainedUnitBo.delete(victimUnit.obtainedUnit);
-								deleteMissionIfRequired(victimUnit.obtainedUnit);
-								count.decrementAndGet();
-							}
-						}
-						if (current.pendingAttack == 0D) {
-							unitsWithoutAttack.add(current);
-						}
-						return current.pendingAttack == 0D;
-					}).findFirst();
+					count = manageVictimsDamage(current, victimUnitsWithLife, count);
 				}
 				return count.get() == 0;
 			}).findFirst();
@@ -282,6 +252,47 @@ public class UnitMissionBo extends AbstractMissionBo {
 				victimUnit.finalCount -= killedCount;
 			}
 			earnedPoints += killedCount * victimUnit.obtainedUnit.getUnit().getPoints();
+		}
+
+		/**
+		 * @param current
+		 * @param victimUnitsWithLife
+		 * @param count
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 * @return
+		 */
+		private AtomicInteger manageVictimsDamage(AttackObtainedUnit current,
+				List<AttackObtainedUnit> victimUnitsWithLife, final AtomicInteger count) {
+			victimUnitsWithLife.stream().filter(victimUnit -> {
+				Double myAttack = current.pendingAttack;
+				Double victimShield = victimUnit.availableShield;
+				if (victimShield > myAttack) {
+					current.pendingAttack = 0D;
+					victimUnit.availableShield -= myAttack;
+				} else {
+					myAttack -= victimUnit.availableShield;
+					victimUnit.availableShield = 0D;
+					Double victimHealth = victimUnit.availableHealth;
+					addPointsAndUpdateCount(myAttack, victimUnit);
+					if (victimHealth > myAttack) {
+						current.pendingAttack = 0D;
+						victimUnit.availableHealth -= myAttack;
+					} else {
+						current.pendingAttack = myAttack - victimHealth;
+						victimUnit.availableHealth = 0D;
+						userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
+								victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
+						obtainedUnitBo.delete(victimUnit.obtainedUnit);
+						deleteMissionIfRequired(victimUnit.obtainedUnit);
+						count.decrementAndGet();
+					}
+				}
+				if (current.pendingAttack == 0D) {
+					unitsWithoutAttack.add(current);
+				}
+				return current.pendingAttack == 0D;
+			}).findFirst();
+			return count;
 		}
 	}
 

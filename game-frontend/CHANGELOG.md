@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.5.6 (2018-09-11 14:44)
+===============
+* __Fix:__ When attacking an user that has heroes that provide more research speed, the attack hangs  
+
 v0.5.5 (2018-09-10 14:35)
 ===============
 
