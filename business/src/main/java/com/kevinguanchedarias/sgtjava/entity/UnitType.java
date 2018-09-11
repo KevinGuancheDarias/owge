@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,6 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionSupportEnum;
 
 /**
  * 
@@ -44,26 +47,33 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "unitType")
 	private List<ImprovementUnitType> upgradeEnhancements;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_explore", nullable = false)
-	private boolean canExplore = true;
+	private MissionSupportEnum canExplore = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_gather", nullable = false)
-	private boolean canGather = true;
+	private MissionSupportEnum canGather = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_establish_base", nullable = false)
-	private boolean canEstablishBase = true;
+	private MissionSupportEnum canEstablishBase = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_attack", nullable = false)
-	private boolean canAttack = true;
+	private MissionSupportEnum canAttack = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_counterattack", nullable = false)
-	private boolean canCounterattack = true;
+	private MissionSupportEnum canCounterattack = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_conquest", nullable = false)
-	private boolean canConquest = true;
+	private MissionSupportEnum canConquest = MissionSupportEnum.ANY;
 
+	@Enumerated(EnumType.STRING)
 	@Column(name = "can_deploy", nullable = false)
-	private boolean canDeploy = true;
+	private MissionSupportEnum canDeploy = MissionSupportEnum.ANY;
 
 	public UnitType() {
 		super();
@@ -135,62 +145,6 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 		this.upgradeEnhancements = upgradeEnhancements;
 	}
 
-	public boolean isCanExplore() {
-		return canExplore;
-	}
-
-	public void setCanExplore(boolean canExplore) {
-		this.canExplore = canExplore;
-	}
-
-	public boolean isCanGather() {
-		return canGather;
-	}
-
-	public void setCanGather(boolean canGather) {
-		this.canGather = canGather;
-	}
-
-	public boolean isCanEstablishBase() {
-		return canEstablishBase;
-	}
-
-	public void setCanEstablishBase(boolean canEstablishBase) {
-		this.canEstablishBase = canEstablishBase;
-	}
-
-	public boolean isCanAttack() {
-		return canAttack;
-	}
-
-	public void setCanAttack(boolean canAttack) {
-		this.canAttack = canAttack;
-	}
-
-	public boolean isCanCounterattack() {
-		return canCounterattack;
-	}
-
-	public void setCanCounterattack(boolean canCounterattack) {
-		this.canCounterattack = canCounterattack;
-	}
-
-	public boolean isCanConquest() {
-		return canConquest;
-	}
-
-	public void setCanConquest(boolean canConquest) {
-		this.canConquest = canConquest;
-	}
-
-	public boolean isCanDeploy() {
-		return canDeploy;
-	}
-
-	public void setCanDeploy(boolean canDeploy) {
-		this.canDeploy = canDeploy;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -211,8 +165,9 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 		if (id == null) {
 			if (other.id != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		return true;
 	}
 
