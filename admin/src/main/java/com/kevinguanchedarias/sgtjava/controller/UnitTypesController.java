@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.kevinguanchedarias.sgtjava.business.UnitTypeBo;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.sgtjava.util.ControllerUtil;
 
 @ManagedBean
@@ -25,12 +26,14 @@ public class UnitTypesController extends SgtCommonController<UnitType> {
 
 	private List<UnitType> unitTypes;
 	private boolean isUnlimited = true;
+	private MissionSupportEnum[] missionSupportEnumValues = MissionSupportEnum.values();
 
 	@PostConstruct
 	public void init() {
 		ControllerUtil.enableAutowire(this);
 		initFileUploadForImage();
 		loadData();
+		newObject();
 	}
 
 	@Override
@@ -81,6 +84,14 @@ public class UnitTypesController extends SgtCommonController<UnitType> {
 
 	public void setUnlimited(boolean isUnlimited) {
 		this.isUnlimited = isUnlimited;
+	}
+
+	public MissionSupportEnum[] getMissionSupportEnumValues() {
+		return missionSupportEnumValues;
+	}
+
+	public void setMissionSupportEnumValues(MissionSupportEnum[] missionSupportEnumValues) {
+		this.missionSupportEnumValues = missionSupportEnumValues;
 	}
 
 	/**

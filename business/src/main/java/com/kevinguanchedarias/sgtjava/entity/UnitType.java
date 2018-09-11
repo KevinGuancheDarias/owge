@@ -145,6 +145,62 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 		this.upgradeEnhancements = upgradeEnhancements;
 	}
 
+	public MissionSupportEnum getCanExplore() {
+		return canExplore;
+	}
+
+	public void setCanExplore(MissionSupportEnum canExplore) {
+		this.canExplore = canExplore;
+	}
+
+	public MissionSupportEnum getCanGather() {
+		return canGather;
+	}
+
+	public void setCanGather(MissionSupportEnum canGather) {
+		this.canGather = canGather;
+	}
+
+	public MissionSupportEnum getCanEstablishBase() {
+		return canEstablishBase;
+	}
+
+	public void setCanEstablishBase(MissionSupportEnum canEstablishBase) {
+		this.canEstablishBase = canEstablishBase;
+	}
+
+	public MissionSupportEnum getCanAttack() {
+		return canAttack;
+	}
+
+	public void setCanAttack(MissionSupportEnum canAttack) {
+		this.canAttack = canAttack;
+	}
+
+	public MissionSupportEnum getCanCounterattack() {
+		return canCounterattack;
+	}
+
+	public void setCanCounterattack(MissionSupportEnum canCounterattack) {
+		this.canCounterattack = canCounterattack;
+	}
+
+	public MissionSupportEnum getCanConquest() {
+		return canConquest;
+	}
+
+	public void setCanConquest(MissionSupportEnum canConquest) {
+		this.canConquest = canConquest;
+	}
+
+	public MissionSupportEnum getCanDeploy() {
+		return canDeploy;
+	}
+
+	public void setCanDeploy(MissionSupportEnum canDeploy) {
+		this.canDeploy = canDeploy;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

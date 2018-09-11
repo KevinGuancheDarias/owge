@@ -78,13 +78,31 @@
 									value="#{unitTypesController.selectedObject.maxCount}"></p:inputNumber>
 							</p:column>
 						</p:row>
-						<sgt-admin-form:boolean_row htmlId="canExplore" label="Can Explore" value="#{unitTypesController.selectedObject.canExplore}"/>
-						<sgt-admin-form:boolean_row htmlId="canGather" label="Can Gather" value="#{unitTypesController.selectedObject.canGather}"/>
-						<sgt-admin-form:boolean_row htmlId="canEB" label="Can EstablishBase" value="#{unitTypesController.selectedObject.canEstablishBase}"/>
-						<sgt-admin-form:boolean_row htmlId="canAttack" label="Can Attack" value="#{unitTypesController.selectedObject.canAttack}"/>
-						<sgt-admin-form:boolean_row htmlId="canCounterattack" label="Can Counterattack" value="#{unitTypesController.selectedObject.canCounterattack}"/>
-						<sgt-admin-form:boolean_row htmlId="canConquest" label="Can Conquest" value="#{unitTypesController.selectedObject.canConquest}"/>
-						<sgt-admin-form:boolean_row htmlId="canDeploy" label="Can Deploy" value="#{unitTypesController.selectedObject.canDeploy}"/>
+
+						<sgt-admin-form:select_row htmlId="canExplore" label="Can Explore"
+							value="#{unitTypesController.selectedObject.canExplore}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canGather" label="Can Gather"
+							value="#{unitTypesController.selectedObject.canGather}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canEB"
+							label="Can EstablishBase"
+							value="#{unitTypesController.selectedObject.canEstablishBase}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canAttack" label="Can Attack"
+							value="#{unitTypesController.selectedObject.canAttack}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canCounterattack"
+							label="Can Counterattack"
+							value="#{unitTypesController.selectedObject.canCounterattack}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canConquest"
+							label="Can Conquest"
+							value="#{unitTypesController.selectedObject.canConquest}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
+						<sgt-admin-form:select_row htmlId="canDeploy" label="Can Deploy"
+							value="#{unitTypesController.selectedObject.canDeploy}"
+							values="#{unitTypesController.missionSupportEnumValues}" />
 					</p:fragment>
 					<p:row>
 						<p:column>
