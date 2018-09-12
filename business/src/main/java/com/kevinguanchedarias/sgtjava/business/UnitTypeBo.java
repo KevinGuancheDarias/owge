@@ -1,12 +1,21 @@
 package com.kevinguanchedarias.sgtjava.business;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionSupportEnum;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.sgtjava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.sgtjava.repository.UnitTypeRepository;
 
 @Component
@@ -18,6 +27,9 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 
 	@Autowired
 	private ImprovementBo improvementBo;
+
+	@Autowired
+	private PlanetBo planetBo;
 
 	@Override
 	public JpaRepository<UnitType, Number> getRepository() {
@@ -45,5 +57,52 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 					.longValue();
 		}
 		return retVal;
+	}
+
+	/**
+	 * Test if the specified unit type can run the specified mission
+	 * 
+	 * @param user
+	 *            user that is going to run the mission (used to test planet
+	 *            ownership... if required)
+	 * @param targetPlanet
+	 *            Target mission planet (used to test planet ownership... if
+	 *            required)
+	 * @param unitType
+	 *            Unit type to test
+	 * @param type
+	 *            Mission to execute
+	 * @return
+	 * @throws SgtCorruptDatabaseException
+	 *             Value in unit types database table is not an accepted value
+	 * @throws SgtBackendInvalidInputException
+	 *             Mission is not supported
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean canDoMission(UserStorage user, Planet targetPlanet, UnitType unitType, MissionType type) {
+		String targetMethod = "getCan" + WordUtils.capitalizeFully(type.name(), '_').replaceAll("_", "");
+		try {
+			MissionSupportEnum missionSupport = ((MissionSupportEnum) unitType.getClass().getMethod(targetMethod)
+					.invoke(unitType));
+			switch (missionSupport) {
+			case ANY:
+				return true;
+			case OWNED_ONLY:
+				return planetBo.isOfUserProperty(user, targetPlanet);
+			case NONE:
+				return false;
+			default:
+				throw new SgtCorruptDatabaseException(
+						"unsupported mission support was specified: " + missionSupport.name());
+			}
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+				| SecurityException e) {
+			throw new SgtBackendInvalidInputException(
+					"Could not invoke method " + targetMethod + " maybe it is not supported mission", e);
+		}
+	}
+
+	public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {
+		return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
 	}
 }

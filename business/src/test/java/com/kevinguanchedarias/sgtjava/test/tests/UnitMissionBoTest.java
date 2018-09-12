@@ -3,6 +3,7 @@ package com.kevinguanchedarias.sgtjava.test.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
@@ -32,6 +33,7 @@ import com.kevinguanchedarias.sgtjava.business.MissionReportBo;
 import com.kevinguanchedarias.sgtjava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.sgtjava.business.SocketIoService;
 import com.kevinguanchedarias.sgtjava.business.UnitMissionBo;
+import com.kevinguanchedarias.sgtjava.business.UnitTypeBo;
 import com.kevinguanchedarias.sgtjava.business.UserImprovementBo;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
@@ -102,6 +104,9 @@ public class UnitMissionBoTest extends TestCommon {
 
 	@Mock
 	private UserImprovementBo userImprovementBo;
+
+	@Mock
+	private UnitTypeBo unitTypeBoMock;
 
 	@InjectMocks
 	private UnitMissionBo unitMissionBo;
@@ -275,6 +280,8 @@ public class UnitMissionBoTest extends TestCommon {
 		Mockito.when(missionRepositoryMock.saveAndFlush(Mockito.any(Mission.class))).thenReturn(savedMission);
 		Mockito.when(missionRepositoryMock.findOne(1L)).thenReturn(savedMission);
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
+		doReturn(true).when(unitTypeBoMock).canDoMission(eq(LOGGED_USER), eq(targetPlanet), Mockito.anyList(),
+				eq(com.kevinguanchedarias.sgtjava.enumerations.MissionType.EXPLORE));
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(savedMission);
 		ArgumentCaptor<List<ObtainedUnit>> captor = unitMockitoHelper.captureObtainedUnitListSave();
 		unitMissionBoSpy.myRegisterExploreMission(prepareValidUnitMissionInformation());

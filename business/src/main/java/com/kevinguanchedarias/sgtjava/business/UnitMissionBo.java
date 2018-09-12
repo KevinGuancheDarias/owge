@@ -26,6 +26,7 @@ import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
+import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
@@ -49,6 +50,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private ImprovementBo improvementBo;
+
+	@Autowired
+	private UnitTypeBo unitTypeBo;
 
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is
@@ -791,6 +795,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			currentObtainedUnit.setTargetPlanet(mission.getSourcePlanet());
 			obtainedUnits.add(currentObtainedUnit);
 		});
+		List<UnitType> involvedUnitTypes = obtainedUnits.stream().map(current -> current.getUnit().getType())
+				.collect(Collectors.toList());
+		if (!unitTypeBo.canDoMission(user, mission.getTargetPlanet(), involvedUnitTypes, missionType)) {
+			throw new SgtBackendInvalidInputException(
+					"At least one unit type doesn't support the specified mission.... don't try it dear hacker, you can't defeat the system, but don't worry nobody can");
+		}
 		obtainedUnitBo.save(obtainedUnits);
 		scheduleMission(mission);
 		return new UnitRunningMissionDto(mission, obtainedUnits);

@@ -1,7 +1,5 @@
 package com.kevinguanchedarias.sgtjava.exception;
 
-import java.io.IOException;
-
 public class SgtBackendInvalidInputException extends CommonException {
 	private static final long serialVersionUID = 7803777181397697297L;
 
@@ -9,7 +7,7 @@ public class SgtBackendInvalidInputException extends CommonException {
 		super(message);
 	}
 
-	public SgtBackendInvalidInputException(String message, IOException e) {
+	public SgtBackendInvalidInputException(String message, Exception e) {
 		super(message, e);
 	}
 
