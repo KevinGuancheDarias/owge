@@ -4,7 +4,7 @@
 	<groupId>com.kevinguanchedarias.sgtjava</groupId>
 	<artifactId>sgtjava-game-rest</artifactId>
 	<packaging>war</packaging>
-	<version>0.3.7-SNAPSHOT</version>
+	<version>0.3.8-SNAPSHOT</version>
 	<name>SGT Game Rest</name>
 	<url>http://maven.apache.org</url>
 
@@ -160,7 +160,7 @@
 		<dependency>
 			<groupId>com.kevinguanchedarias.sgt</groupId>
 			<artifactId>sgtjava-backend</artifactId>
-			<version>0.3.7-SNAPSHOT</version>
+			<version>0.3.8-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>

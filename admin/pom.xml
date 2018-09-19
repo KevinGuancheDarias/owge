@@ -4,7 +4,7 @@
 	<groupId>com.kevinguanchedarias.sgt</groupId>
 	<artifactId>sgtjava-admin</artifactId>
 	<packaging>war</packaging>
-	<version>0.3.7-SNAPSHOT</version>
+	<version>0.3.8-SNAPSHOT</version>
 	<name>SGT Universe Admin panel</name>
 	<url>http://sgtjava.kevinguanchedarias.com</url>
 
@@ -181,7 +181,7 @@
 		<dependency>
 			<groupId>com.kevinguanchedarias.sgt</groupId>
 			<artifactId>sgtjava-backend</artifactId>
-			<version>0.3.7-SNAPSHOT</version>
+			<version>0.3.8-SNAPSHOT</version>
 		</dependency>
 		<!--  END Local managed dependencies  -->
 	</dependencies>
