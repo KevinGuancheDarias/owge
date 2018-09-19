@@ -54,7 +54,8 @@ describe('DisplayQuadrantComponent', () => {
       unit: {
         id: 74,
         name: 'Fake Guys',
-        image: '00663c30803f8d28c3a8e858650db8d4.png'
+        image: '00663c30803f8d28c3a8e858650db8d4.png',
+        typeId: 1
       }
     },
     {
@@ -63,7 +64,8 @@ describe('DisplayQuadrantComponent', () => {
       unit: {
         id: 32,
         name: 'Fake Cloned Guys',
-        image: '00663c30803f8d28c3a8e858650db8d4.png'
+        image: '00663c30803f8d28c3a8e858650db8d4.png',
+        typeId: 1
       }
     }
   ];

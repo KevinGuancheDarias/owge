@@ -8,7 +8,7 @@ import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { GameCommonTestHelper } from '../../helpers/game-common-test.helper';
 
-fdescribe('MissionService', () => {
+describe('MissionService', () => {
   const helper: CommonServiceTestHelper<MissionService> = new CommonServiceTestHelper(
     MissionService,
     true,

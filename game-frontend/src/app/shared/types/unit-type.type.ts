@@ -1,3 +1,4 @@
+import { MissionSupport } from './mission-support.type';
 
 /**
  * Represents a UnitType as sent by backend
@@ -13,4 +14,10 @@ export interface UnitType {
     maxCount?: number;
     computedMaxCount?: number;
     userBuilt: number;
+    canConquest: MissionSupport;
+    canCounterattack: MissionSupport;
+    canDeploy: MissionSupport;
+    canEstablishBase: MissionSupport;
+    canExplore: MissionSupport;
+    canGather: MissionSupport;
 }

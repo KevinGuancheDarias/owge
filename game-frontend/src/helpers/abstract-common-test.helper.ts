@@ -22,6 +22,8 @@ export abstract class AbstractCommonTestHelper<T> {
 
     protected _targetClass: Type<T> | string;
 
+    protected _usedConfig: TestModuleMetadata;
+
     public constructor(targetClass: Type<T> | string) {
         this._targetClass = targetClass;
     }
@@ -29,14 +31,14 @@ export abstract class AbstractCommonTestHelper<T> {
     /**
      * Apply the settings to TestBed and compile components
      *
-     * @param {TestModuleMetadata} config declarations, providers, etc
+     * @param {TestModuleMetadata} [config] declarations, providers, etc, if not <b>defined will use the passed in the constructor</b>
      * @returns {this}
      * @memberOf AbstractCommonTestHelper
      * @author Kevin Guanche Darias
      */
-    public configureTestingModule(config: TestModuleMetadata): this {
+    public configureTestingModule(config?: TestModuleMetadata): this {
         beforeEach(async(() => {
-            TestBed.configureTestingModule(config).compileComponents();
+            TestBed.configureTestingModule(config || this._usedConfig).compileComponents();
         }));
         return this;
     }

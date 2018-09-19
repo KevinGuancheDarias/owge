@@ -1,10 +1,11 @@
 # SGT changelog
 
-v0.6.0 (latest)
+v0.6.0 (2018-09-19 09:27)
 ===============
 * __Merge:__ v0.5.5
 * __Feature:__ As an administrator I want to define what missions each type of unit can do  
 ![As an administrator I want to define what missions each type of unit can do](assets/changelog/features/QNGBLo0m.png)  
+* __Feature:__ As a player i don't want to be able to use selected types of units for missions, (for example Defenses, should only be allowed to use Deploy missions to owned planets)
 
 v0.5.5 (2018-09-10 14:35)
 ===============

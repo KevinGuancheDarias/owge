@@ -2,6 +2,8 @@ import { Component, ViewEncapsulation, Input, OnChanges, OnInit, Output, EventEm
 import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
 import { UnitPojo } from '../../shared-pojo/unit.pojo';
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
+import { UnitType } from '../../shared/types/unit-type.type';
+import { UnitTypeService } from '../../services/unit-type.service';
 
 @Component({
   selector: 'app-deployed-units-list',
@@ -34,9 +36,13 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   @Output()
   public selection: EventEmitter<SelectedUnit[]> = new EventEmitter();
 
-  public selectedCounts: number[];
+  @Output()
+  public unitTypesOfSelection: EventEmitter<UnitType[]> = new EventEmitter();
 
-  constructor() { }
+  public selectedCounts: number[];
+  public unitTypes: UnitType[] = [];
+
+  constructor(private _unitTypeService: UnitTypeService) { }
 
   public ngOnInit() {
     this.ngOnChanges();
@@ -52,7 +58,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     return UnitPojo.findImagePath(unit);
   }
 
-  public selectionChanged(): void {
+  public async selectionChanged(): Promise<void> {
     this.selection.emit(
       this.selectedCounts.map<SelectedUnit>((current, index) => {
         return {
@@ -61,5 +67,9 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
         };
       }).filter(current => current.count)
     );
+    const ids: number[] = this.selectedCounts.map<number>(
+      (current, index) => current ? this.obtainedUnits[index].unit.typeId : null
+    ).filter(current => current !== null);
+    this.unitTypesOfSelection.emit(await this._unitTypeService.idsToUnitTypes(...ids));
   }
 }

@@ -8,6 +8,9 @@ import { LoginSessionService } from './../app/login-session/login-session.servic
 import { Universe } from '../app/shared-pojo/universe.pojo';
 import { AbstractCommonTestHelper } from './abstract-common-test.helper';
 import { HttpHeaders } from '@angular/common/http';
+import { GameBaseService } from '../app/service/game-base.service';
+import { Observable } from 'rxjs/Observable';
+import { UserPojo } from '../app/shared-pojo/user.pojo';
 
 export class GameCommonTestHelper<T = any> {
 
@@ -61,6 +64,24 @@ export class GameCommonTestHelper<T = any> {
         return this;
     }
 
+
+
+    /**
+     * Fakes the request to doGetWithAuthorization
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {Function} action
+     * @param {GameBaseService} [service]
+     * @since 0.6.0
+     * @memberof GameCommonTestHelper
+     */
+    public fakeDoGetWithAuthorizationToGame(action: Function, service?: GameBaseService) {
+        const spiedService = service
+            ? service
+            : (<any>this._encapsulatedHelper).serviceInstance;
+        spyOn((<any>spiedService), 'doGetWithAuthorizationToGame').and.returnValue((<any>Observable).of(action()));
+    }
+
     public getUniverse(): Universe {
         return this._universe;
     }
@@ -76,6 +97,11 @@ export class GameCommonTestHelper<T = any> {
         const service: LoginSessionService = TestBed.get(LoginSessionService);
         this._encapsulatedHelper.spyOn(service, 'getSelectedUniverse').and.returnValue(this._universe);
         return this;
+    }
+
+    public mockUserTokenData(user: UserPojo): void {
+        const service: LoginSessionService = this._getLogginSessionService();
+        spyOn(service, 'findTokenData').and.returnValue(user);
     }
 
     public mockGetHttpClientHeaders(): this {

@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+const camelCase = require('lodash/camelcase');
+const upperFirst = require('lodash/upperFirst');
 
 import { GameBaseService } from '../service/game-base.service';
 import { UnitType } from '../shared/types/unit-type.type';
 import { ProgrammingError } from '../../error/programming.error';
+import { MissionType } from '../shared/types/mission.type';
+import { PlanetPojo } from '../shared-pojo/planet.pojo';
+import { MissionSupport } from '../shared/types/mission-support.type';
 
 @Injectable()
 export class UnitTypeService extends GameBaseService<UnitType> {
@@ -85,6 +90,49 @@ export class UnitTypeService extends GameBaseService<UnitType> {
   public hasAvailable(typeId: number, requiredCount: number): boolean {
     const type: UnitType = this._findTypeById(typeId);
     return !type.maxCount || this.findAvailableByType(typeId) >= requiredCount;
+  }
+
+  /**
+   * Test if all the unitTypes passed can do the specified mission
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {PlanetPojo} planet
+   * @param {UnitType[]} unitTypes
+   * @param {MissionType} missionType
+   * @returns {boolean}
+   * @memberof UnitTypeService
+   */
+  public canDoMission(planet: PlanetPojo, unitTypes: UnitType[], missionType: MissionType): boolean {
+    return unitTypes.every(current => {
+      const status: MissionSupport = current[`can${upperFirst(camelCase(missionType))}`];
+      switch (status) {
+        case 'ANY':
+          return true;
+        case 'NONE':
+          return false;
+        case 'OWNED_ONLY':
+          return planet.ownerId === this._loginSessionService.findTokenData().id;
+        default:
+          throw new ProgrammingError(`Unsupported MissionSupport ${status}`);
+      }
+    });
+  }
+
+
+  /**
+   * Converts an array of ids to an array of unitTypes
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param {...number[]} ids
+   * @returns {Promise<UnitType[]>}
+   * @memberof UnitTypeService
+   */
+  public idsToUnitTypes(...ids: number[]): Promise<UnitType[]> {
+    return new Promise(resolve => {
+      this.getUnitTypes().subscribe(result => {
+        resolve(ids.map(currentId => result.find(currentUnitType => currentUnitType.id === currentId)));
+      });
+    });
   }
 
   private _findTypeById(id: number): UnitType {

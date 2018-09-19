@@ -6,21 +6,24 @@
     <span>Mission type:</span>
     <select *ngIf="selectedPlanet" [(ngModel)]="missionType">
       <option [ngValue]="null">None</option>
-      <option value="EXPLORE">Explore</option>
-      <option *ngIf="isExplored(selectedPlanet)" value="GATHER">Gather</option>
-      <option *ngIf="isExplored(selectedPlanet)" value="ESTABLISH_BASE">Establish base</option>
-      <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet)" value="ATTACK">Attack</option>
-      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="COUNTERATTACK">Counterattack</option>
-      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="DEPLOY">Deploy</option>
+      <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">Explore</option>
+      <option *ngIf="isExplored(selectedPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">Gather</option>
+      <option *ngIf="isExplored(selectedPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">Establish
+        base</option>
+      <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">Attack</option>
+      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">Counterattack</option>
+      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
       <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet) && selectedPlanet.ownerId && !selectedPlanet.home"
-        value="CONQUEST">Conquest</option>
+        value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">Conquest</option>
     </select>
     <div class="unit-selection">
-      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"></app-deployed-units-list>
+      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"
+        (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
     </div>
   </div>
   <div class="footer">
-    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()" class="btn-primary btn-send-mission">Send
+    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()"
+      class="btn-primary btn-send-mission">Send
       mission</button>
   </div>
 </app-modal>

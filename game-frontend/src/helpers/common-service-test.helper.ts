@@ -45,6 +45,7 @@ export class CommonServiceTestHelper<T> extends AbstractCommonTestHelper<T> {
             };
         }
         super(targetClass);
+        this._usedConfig = targetConfig;
         if (fastSpawn) {
             this.configureTestingModule(targetConfig).configureServiceLocator().createService();
         }

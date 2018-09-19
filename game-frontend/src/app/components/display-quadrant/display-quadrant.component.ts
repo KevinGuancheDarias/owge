@@ -11,6 +11,8 @@ import { MissionService } from '../../services/mission.service';
 import { MissionType } from '../../shared/types/mission.type';
 import { ProgrammingError } from '../../../error/programming.error';
 import { PlanetService } from '../../service/planet.service';
+import { UnitType } from '../../shared/types/unit-type.type';
+import { UnitTypeService } from '../../services/unit-type.service';
 
 @Component({
   selector: 'app-display-quadrant',
@@ -43,16 +45,24 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   public selectedUnits: SelectedUnit[];
 
-  public missionType: MissionType = 'EXPLORE';
+  public selectedUnitsTypes: UnitType[];
+
+  public missionType: MissionType = null;
 
   @ViewChild('missionModal')
   private _missionModal: ModalComponent;
 
-  constructor(private _unitService: UnitService, private _missionService: MissionService, private _planetService: PlanetService) {
+  constructor(
+    private _unitService: UnitService,
+    private _missionService: MissionService,
+    private _planetService: PlanetService,
+    private _unitTypeService: UnitTypeService
+  ) {
     super();
   }
 
   public ngOnInit(): void {
+
     this.loginSessionService.findSelectedPlanet.filter(planet => !!planet).subscribe(planet => {
       this.myPlanet = planet;
     });
@@ -123,6 +133,21 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
     });
   }
 
+  public isMissionRealizableByUnitTypes(missionType: MissionType): boolean {
+    const retVal = this.selectedUnitsTypes
+      ? this._unitTypeService.canDoMission(this.selectedPlanet, this.selectedUnitsTypes, missionType)
+      : false;
+    return retVal;
+  }
+
+  public onSelectedUnitTypes(unitTypes: UnitType[]): void {
+    this.selectedUnitsTypes = unitTypes;
+    if (!this.selectedUnitsTypes.length || !this.isMissionRealizableByUnitTypes(this.missionType)) {
+      this.missionType = null;
+    } else if (this.missionType === null && this.isMissionRealizableByUnitTypes('EXPLORE')) {
+      this.missionType = 'EXPLORE';
+    }
+  }
   private async _findObtainedUnits(): Promise<void> {
     this.obtainedUnits = await this._unitService.findInMyPlanet(this.myPlanet.id).toPromise();
   }
