@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-const camelCase = require('lodash/camelcase');
-const upperFirst = require('lodash/upperFirst');
+const camelCase = require('lodash.camelcase');
+const upperFirst = require('lodash.upperfirst');
 
 import { GameBaseService } from '../service/game-base.service';
 import { UnitType } from '../shared/types/unit-type.type';
