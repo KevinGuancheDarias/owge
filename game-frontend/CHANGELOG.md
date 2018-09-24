@@ -2,6 +2,8 @@
 
 v0.3.8 (latest)
 ============
+* __Improvement:__ Add little mechanism to ensure failing missions do not crash the game  
+![Add little mechanism to ensure failing missions do not crash the game](assets/changelog/improvements/bXXGVwDq.gif) 
 * __Improvement:__ Reduce server RAM usage
 
 v0.3.7 (2018-09-10 14:52)

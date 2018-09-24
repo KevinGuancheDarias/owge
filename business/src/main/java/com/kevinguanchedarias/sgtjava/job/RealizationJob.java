@@ -38,11 +38,12 @@ public class RealizationJob extends QuartzJobBean {
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 		injectSpringBeans(context);
 		Mission mission = missionBo.findById(missionId);
+		MissionType missionType = MissionType.valueOf(mission.getType().getCode());
 		if (mission != null && !mission.getResolved()) {
 			try {
 				LOG.debug("Executing mission id " + mission.getId() + " of type "
 						+ MissionType.valueOf(mission.getType().getCode()));
-				switch (MissionType.valueOf(mission.getType().getCode())) {
+				switch (missionType) {
 				case BUILD_UNIT:
 					missionBo.processBuildUnit(missionId);
 					break;
@@ -74,7 +75,8 @@ public class RealizationJob extends QuartzJobBean {
 					throw new CommonException("Unimplemented mission type " + mission.getType().getCode());
 				}
 			} catch (Exception e) {
-				LOG.error("Unexpected fatal ecxception", e);
+				LOG.error("Unexpected fatal exception when executing mission " + missionId, e);
+				missionBo.retryMissionIfPossible(missionId);
 			}
 		}
 	}
@@ -90,4 +92,5 @@ public class RealizationJob extends QuartzJobBean {
 			throw new CommonException("Could not get application context inside job parser", e);
 		}
 	}
+
 }
