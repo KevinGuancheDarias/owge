@@ -499,7 +499,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "explore_report", builder.build());
 		emitLocalMissionChange(mission, user);
-		throw new RuntimeException("A fucking test");
 	}
 
 	@Transactional
