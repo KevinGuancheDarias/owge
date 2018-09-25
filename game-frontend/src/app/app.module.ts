@@ -1,4 +1,3 @@
-import { SidebarModule } from 'ng-sidebar/lib';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +14,6 @@ import { LoginSessionService } from './login-session/login-session.service';
 import { NavigationService } from './service/navigation.service';
 import { PlanetService } from './service/planet.service';
 import { UnitService } from './service/unit.service';
-import { KgdNg2WidgetsModule } from 'kgd-ng2-widgets';
 import { UpgradeService } from './service/upgrade.service';
 import { ResourceManagerService } from './service/resource-manager.service';
 
@@ -59,6 +57,7 @@ import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
 import { SynchronizeCredentialsComponent } from './components/synchronize-credentials/synchronize-credentials.component';
 import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
+import { CountdownComponent } from './components/countdown/countdown.component';
 
 
 export const APP_ROUTES: Routes = [
@@ -111,7 +110,8 @@ export const APP_ROUTES: Routes = [
     DisplayUsernamePipe,
     DisplayMissionTypePipe,
     SynchronizeCredentialsComponent,
-    VersionInformationComponent
+    VersionInformationComponent,
+    CountdownComponent
   ],
   imports: [
     BrowserModule,
@@ -119,8 +119,6 @@ export const APP_ROUTES: Routes = [
     HttpModule,
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES),
-    SidebarModule,
-    KgdNg2WidgetsModule,
     HttpClientModule,
     NgbModule.forRoot()
   ],

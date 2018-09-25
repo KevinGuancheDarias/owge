@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
 
 import { BaseHttpService } from '../base-http/base-http.service';
 import { UserPojo } from '../shared-pojo/user.pojo';
@@ -9,7 +9,7 @@ import { UserPojo } from '../shared-pojo/user.pojo';
 export class UserService extends BaseHttpService {
   private cachedObservable: Observable<UserPojo>;
 
-  constructor() { 
+  constructor() {
     super();
   }
 }

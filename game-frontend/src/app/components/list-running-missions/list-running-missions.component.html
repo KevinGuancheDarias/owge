@@ -4,8 +4,9 @@
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
       <span class="display-time">
-        <kgd-countdown *ngIf="runningUnitMission.terminationDate" [targetDate]="convertToDate(runningUnitMission.terminationDate)"
-          (onDone)="missionDone.emit()"></kgd-countdown>
+        <app-countdown *ngIf="runningUnitMission.terminationDate" [targetDate]="convertToDate(runningUnitMission.terminationDate)"
+          (timeOver)="missionDone.emit()">
+        </app-countdown>
       </span>
       <ng-template #tooltipPlanetComponent>
         <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
