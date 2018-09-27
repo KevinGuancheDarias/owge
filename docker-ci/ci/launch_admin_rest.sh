@@ -129,7 +129,7 @@ function compileAngularProject () {
 	fi
 	cp -rp "$1" "$2";
 	nodeRun "$2" npm install &> /dev/null;
-	nodeRun "$2" npm run build -- --env publicAccount &> /dev/null;
+	nodeRun "$2" npm run build -- -prod --build-optimizer &> /dev/null;
 	if [ ! -d "$2/dist" ]; then
 		echo "FATAL, Angular compilation failed, aborting script execution";
 		rollback;
