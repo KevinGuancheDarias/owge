@@ -9,11 +9,6 @@ import { ServiceLocator } from '../service-locator/service-locator';
 import { LoadingService } from '../services/loading.service';
 import { promise } from 'protractor';
 
-@Component({
-  selector: 'app-base',
-  templateUrl: './base.component.html',
-  styleUrls: ['./base.component.less']
-})
 export class BaseComponent {
 
   public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';

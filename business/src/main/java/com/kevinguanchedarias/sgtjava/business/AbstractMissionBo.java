@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -14,10 +15,15 @@ import org.quartz.SimpleTrigger;
 import org.quartz.TriggerBuilder;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.sgtjava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
+import com.kevinguanchedarias.sgtjava.entity.MissionReport;
+import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
@@ -34,6 +40,8 @@ import com.kevinguanchedarias.sgtjava.repository.MissionTypeRepository;
  */
 public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	private static final long serialVersionUID = 3252246009672348672L;
+
+	private static final Integer MAX_ATTEMPS = 3;
 
 	@Autowired
 	protected MissionRepository missionRepository;
@@ -74,6 +82,12 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	@Autowired(required = false)
 	protected transient SchedulerFactoryBean schedulerFactory;
 
+	@Autowired
+	private MissionReportBo missionReportBo;
+
+	@Autowired
+	private transient ApplicationContext applicationContext;
+
 	public abstract String getGroupName();
 
 	public abstract Logger getLogger();
@@ -81,6 +95,28 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	@Override
 	public JpaRepository<Mission, Number> getRepository() {
 		return missionRepository;
+	}
+
+	@Transactional
+	public void retryMissionIfPossible(Long missionId) {
+		Mission mission = findById(missionId);
+		MissionType missionType = MissionType.valueOf(mission.getType().getCode());
+		mission.setUser(userStorageBo.findOneByMission(mission));
+		if (mission.getAttemps() >= MAX_ATTEMPS) {
+			if (missionType.isUnitMission() && missionType != MissionType.RETURN_MISSION
+					&& missionType != MissionType.BUILD_UNIT) {
+				findUnitMissionBoInstance().adminRegisterReturnMission(mission);
+			} else if (missionType == MissionType.BUILD_UNIT) {
+				obtainedUnitBo.deleteByMissionId(mission.getId());
+			}
+			resolveMission(mission);
+		} else {
+			mission.setAttemps(mission.getAttemps() + 1);
+			mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+			hanleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
+			scheduleMission(mission);
+			save(mission);
+		}
 	}
 
 	/**
@@ -172,7 +208,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	}
 
 	protected TriggerKey genTriggerKey(Mission mission) {
-		return new TriggerKey("trigger_" + mission.getId().toString(), getGroupName());
+		return new TriggerKey("trigger_" + mission.getId() + "_" + mission.getAttemps(), getGroupName());
 	}
 
 	/**
@@ -200,5 +236,50 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	 */
 	protected boolean isOfType(Mission mission, MissionType type) {
 		return MissionType.valueOf(mission.getType().getCode()).equals(type);
+	}
+
+	/*
+	 * Saves the MissionReport to the database
+	 * 
+	 * @param mission
+	 * 
+	 * @param builder
+	 * 
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
+		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport.setUser(mission.getUser());
+		missionReport = missionReportBo.save(missionReport);
+		missionReport.setReportDate(new Date());
+		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		mission.setReport(missionReport);
+	}
+
+	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
+		users.forEach(currentUser -> {
+			MissionReport missionReport = new MissionReport("{}", mission);
+			missionReport.setUser(currentUser);
+			missionReport = missionReportBo.save(missionReport);
+			missionReport.setReportDate(new Date());
+			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+			mission.setReport(missionReport);
+		});
+	}
+
+	private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {
+		UnitMissionReportBuilder reportBuilder = UnitMissionReportBuilder.create().withSenderUser(mission.getUser())
+				.withId(mission.getId());
+		if (missionType.isUnitMission()) {
+			reportBuilder = reportBuilder.withSourcePlanet(mission.getSourcePlanet())
+					.withTargetPlanet(mission.getTargetPlanet())
+					.withInvolvedUnits(findUnitMissionBoInstance().findInvolvedInMission(mission));
+		}
+		reportBuilder.withErrorInformation("Mission with id " + mission.getId() + " failed, please contact an admin!");
+		return reportBuilder;
+	}
+
+	private UnitMissionBo findUnitMissionBoInstance() {
+		return applicationContext.getBean(UnitMissionBo.class);
 	}
 }

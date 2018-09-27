@@ -83,8 +83,7 @@ public class UserImprovementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	private UserImprovement findOrNew(UserStorage user) {
-		UserImprovement retVal;
-		retVal = userImprovementRepository.findOneByUserId(user.getId());
+		UserImprovement retVal = userImprovementRepository.findOneByUserId(user.getId());
 		if (retVal == null) {
 			retVal = new UserImprovement();
 			retVal.setUser(user);

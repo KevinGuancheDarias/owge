@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { URLSearchParams } from '@angular/http';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 
 import { ProgrammingError } from '../../error/programming.error';
 import { NavigationConfig } from '../shared/types/navigation-config.type';

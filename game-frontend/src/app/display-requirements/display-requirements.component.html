@@ -3,7 +3,15 @@
     [resourceValue]="requirements.requiredPrimary"></app-display-single-resource>
   <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName" [resourceImage]="userData.factionDto.secondaryResourceImage"
     [resourceValue]="requirements.requiredSecondary"></app-display-single-resource>
-  <app-display-single-resource *ngIf="requirements.requiredEnergy" [resourceName]="userData.factionDto.energyName" [resourceImage]="userData.factionDto.energyImage"
-    [resourceValue]="requirements.requiredEnergy"></app-display-single-resource>
-  <app-display-single-resource [resourceName]="'Tiempo'" [resourceImage]="timeImage" [staticImage]="true" [resourceValue]="requirements.requiredTime"></app-display-single-resource>
+  <app-display-single-resource *ngIf="requirements.requiredEnergy" [resourceName]="userData.factionDto.energyName"
+    [resourceImage]="userData.factionDto.energyImage" [resourceValue]="requirements.requiredEnergy"></app-display-single-resource>
+  <div *ngIf="parsedRequiredTime" class="time">
+    <app-display-dynamic-image [image]="timeImage" [title]="'Time'" [customClass]="'resourceImage'" [staticImage]="true"></app-display-dynamic-image>
+    <p>
+      <span *ngIf="parsedRequiredTime.days">{{ parsedRequiredTime.days }}d</span>
+      <span *ngIf="parsedRequiredTime.hours">{{ parsedRequiredTime.hours }}h</span>
+      <span *ngIf="parsedRequiredTime.minutes">{{ parsedRequiredTime.minutes }}m</span>
+      <span *ngIf="parsedRequiredTime.seconds">{{ parsedRequiredTime.seconds }}s</span>
+    </p>
+  </div>
 </div>

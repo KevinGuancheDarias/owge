@@ -2,7 +2,6 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +21,6 @@ import com.kevinguanchedarias.sgtjava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
-import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
@@ -183,45 +181,17 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		public List<AttackObtainedUnit> findUnitsWithLife() {
-			return findAllUnits().stream().filter(current -> current.availableHealth >= 0D)
-					.collect(Collectors.toList());
+			return findAllUnits().stream().filter(current -> current.availableHealth > 0D).collect(Collectors.toList());
 		}
 
 		public void attackVictim(AttackUserInformation targetVictim, List<AttackUserInformation> allUsers) {
 			unitsWithAvailableAttack.stream().filter(current -> {
 				List<AttackObtainedUnit> victimUnitsWithLife = targetVictim.findUnitsWithLife();
-				final AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
-				victimUnitsWithLife.stream().filter(victimUnit -> {
-					Double myAttack = current.pendingAttack;
-					Double victimShield = victimUnit.availableShield;
-					if (victimShield > myAttack) {
-						current.pendingAttack = 0D;
-						victimUnit.availableShield -= myAttack;
-					} else {
-						myAttack -= victimUnit.availableShield;
-						victimUnit.availableShield = 0D;
-						Double victimHealth = victimUnit.availableHealth;
-						addPointsAndUpdateCount(myAttack, victimUnit);
-						if (victimHealth > myAttack) {
-							current.pendingAttack = 0D;
-							victimUnit.availableHealth -= myAttack;
-						} else {
-							current.pendingAttack = myAttack - victimHealth;
-							victimUnit.availableHealth = 0D;
-							userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
-									victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
-							obtainedUnitBo.delete(victimUnit.obtainedUnit);
-							deleteMissionIfRequired(victimUnit.obtainedUnit);
-							count.decrementAndGet();
-						}
-					}
-					if (current.pendingAttack == 0D) {
-						unitsWithoutAttack.add(current);
-					}
-					return current.pendingAttack == 0D;
-				}).findFirst();
+				AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
 				if (count.get() == 0) {
 					targetVictim.isDefeated = true;
+				} else {
+					count = manageVictimsDamage(current, victimUnitsWithLife, count);
 				}
 				return count.get() == 0;
 			}).findFirst();
@@ -284,6 +254,47 @@ public class UnitMissionBo extends AbstractMissionBo {
 				victimUnit.finalCount -= killedCount;
 			}
 			earnedPoints += killedCount * victimUnit.obtainedUnit.getUnit().getPoints();
+		}
+
+		/**
+		 * @param current
+		 * @param victimUnitsWithLife
+		 * @param count
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 * @return
+		 */
+		private AtomicInteger manageVictimsDamage(AttackObtainedUnit current,
+				List<AttackObtainedUnit> victimUnitsWithLife, final AtomicInteger count) {
+			victimUnitsWithLife.stream().filter(victimUnit -> {
+				Double myAttack = current.pendingAttack;
+				Double victimShield = victimUnit.availableShield;
+				if (victimShield > myAttack) {
+					current.pendingAttack = 0D;
+					victimUnit.availableShield -= myAttack;
+				} else {
+					myAttack -= victimUnit.availableShield;
+					victimUnit.availableShield = 0D;
+					Double victimHealth = victimUnit.availableHealth;
+					addPointsAndUpdateCount(myAttack, victimUnit);
+					if (victimHealth > myAttack) {
+						current.pendingAttack = 0D;
+						victimUnit.availableHealth -= myAttack;
+					} else {
+						current.pendingAttack = myAttack - victimHealth;
+						victimUnit.availableHealth = 0D;
+						userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
+								victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
+						obtainedUnitBo.delete(victimUnit.obtainedUnit);
+						deleteMissionIfRequired(victimUnit.obtainedUnit);
+						count.decrementAndGet();
+					}
+				}
+				if (current.pendingAttack == 0D) {
+					unitsWithoutAttack.add(current);
+				}
+				return current.pendingAttack == 0D;
+			}).findFirst();
+			return count;
 		}
 	}
 
@@ -390,9 +401,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private SocketIoService socketIoService;
-
-	@Autowired
-	private MissionReportBo missionReportBo;
 
 	private DtoUtilService dtoUtilService = new DtoUtilService();
 
@@ -757,6 +765,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
+	public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
+		return obtainedUnitBo.findByMissionId(mission.getId());
+	}
+
 	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged
 	 * in user as the sender user
@@ -947,32 +959,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private CompletableFuture<DeliveryQueueEntry> emitLocalMissionChange(Mission mission, UserStorage user) {
 		return socketIoService.sendMessage(user, "local_mission_change",
 				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
-	}
-
-	/**
-	 * Saves the MissionReport to the database
-	 * 
-	 * @param mission
-	 * @param builder
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
-		MissionReport missionReport = new MissionReport("{}", mission);
-		missionReport.setUser(mission.getUser());
-		missionReport = missionReportBo.save(missionReport);
-		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-		mission.setReport(missionReport);
-	}
-
-	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
-		users.forEach(currentUser -> {
-			MissionReport missionReport = new MissionReport("{}", mission);
-			missionReport.setUser(currentUser);
-			missionReport = missionReportBo.save(missionReport);
-			missionReport.setReportDate(new Date());
-			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-			mission.setReport(missionReport);
-		});
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {

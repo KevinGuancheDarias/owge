@@ -16,6 +16,7 @@ services:
         environment:
           - SGT_ADMIN_WAR_FILENAME
           - SGT_REST_WAR_FILENAME
+          - CATALINA_OPTS=-Xmx200m -Xms50m -XX:MaxPermSize=64m
         build:
            context: admin_panel_and_rest_game/.
            args:

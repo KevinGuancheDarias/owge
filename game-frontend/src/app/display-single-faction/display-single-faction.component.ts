@@ -9,12 +9,12 @@ import { Component, Input, OnInit } from '@angular/core';
 export class DisplaySingleFactionComponent implements OnInit {
 
   @Input()
-  private faction: Faction;
+  public faction: Faction;
 
   constructor() { }
 
   ngOnInit() {
-    
+
   }
 
 }

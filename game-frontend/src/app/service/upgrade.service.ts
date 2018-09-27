@@ -1,13 +1,14 @@
+import { Observable } from 'rxjs/Observable';
+import { Injectable } from '@angular/core';
+import { URLSearchParams } from '@angular/http';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+
 import { GameBaseService } from './game-base.service';
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
-import { URLSearchParams } from '@angular/http';
-import { BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { Observable } from 'rxjs/Rx';
-import { Injectable } from '@angular/core';
 
 @Injectable()
 export class UpgradeService extends GameBaseService {
@@ -58,13 +59,13 @@ export class UpgradeService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public computeReqiredResources(obtainedUpgrade: ObtainedUpgradePojo, subscribeToResources = false): ObtainedUpgradePojo {
-    let upgradeRef = obtainedUpgrade.upgrade;
-    let requirements: RequirementPojo = new RequirementPojo();
+    const upgradeRef = obtainedUpgrade.upgrade;
+    const requirements: RequirementPojo = new RequirementPojo();
     requirements.requiredPrimary = upgradeRef.primaryResource;
     requirements.requiredSecondary = upgradeRef.secondaryResource;
     requirements.requiredTime = upgradeRef.time;
 
-    let nextLevel = obtainedUpgrade.level + 1;
+    const nextLevel = obtainedUpgrade.level + 1;
     for (let i = 1; i < nextLevel; i++) {
       requirements.requiredPrimary += (requirements.requiredPrimary * upgradeRef.levelEffect);
       requirements.requiredSecondary += (requirements.requiredSecondary * upgradeRef.levelEffect);
@@ -86,7 +87,7 @@ export class UpgradeService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
-    let params: URLSearchParams = new URLSearchParams();
+    const params: URLSearchParams = new URLSearchParams();
     params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
     this.doGetWithAuthorizationToGame('upgrade/registerLevelUp', params).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
