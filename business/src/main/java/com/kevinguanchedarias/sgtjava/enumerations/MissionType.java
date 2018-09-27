@@ -13,4 +13,14 @@ public enum MissionType {
 	public int getValue() {
 		return value;
 	}
+
+	/**
+	 * Determines if the specified mission is of type unit
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isUnitMission() {
+		return value >= 4 && value <= 11;
+	}
 }

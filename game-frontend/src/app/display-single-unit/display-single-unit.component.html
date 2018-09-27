@@ -26,7 +26,9 @@
     <ng-container *ngIf="building">
       <ng-container *ngIf="building.missionData.unit.id === unit.id ">
         <div class="upgrading-countdown">
-          <kgd-countdown *ngIf="building.missionData.terminationDate" [targetDate]="building.missionData.terminationDate" (onDone)="buildDone.emit()"></kgd-countdown>
+          <app-countdown *ngIf="building.missionData.terminationDate" [targetDate]="building.missionData.terminationDate"
+            (timeOver)="buildDone.emit()">
+          </app-countdown>
         </div>
         <a class="btn btn-block" role="button" (click)="cancelUnit()">Cancelar</a>
       </ng-container>

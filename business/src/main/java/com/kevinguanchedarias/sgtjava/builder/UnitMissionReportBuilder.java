@@ -140,6 +140,11 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
+	public UnitMissionReportBuilder withErrorInformation(String errorText) {
+		createdMap.put("errorText", errorText);
+		return this;
+	}
+
 	/**
 	 * A builder class can't be instantiate
 	 * 

@@ -83,6 +83,9 @@ public class Mission implements SimpleIdEntity {
 	@OneToMany(mappedBy = "mission")
 	private List<ObtainedUnit> involvedUnits;
 
+	@Column(nullable = false)
+	private Integer attemps = 1;
+
 	@Column(nullable = true)
 	private Boolean resolved = false;
 
@@ -197,6 +200,14 @@ public class Mission implements SimpleIdEntity {
 
 	public void setInvolvedUnits(List<ObtainedUnit> involvedUnits) {
 		this.involvedUnits = involvedUnits;
+	}
+
+	public Integer getAttemps() {
+		return attemps;
+	}
+
+	public void setAttemps(Integer attemps) {
+		this.attemps = attemps;
 	}
 
 	/**

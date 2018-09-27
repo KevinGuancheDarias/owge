@@ -1,18 +1,21 @@
 import { BaseComponent } from './../base/base.component';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnChanges } from '@angular/core';
+import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/date-time.util';
 
 @Component({
   selector: 'app-display-requirements',
   templateUrl: './display-requirements.component.html',
   styleUrls: ['./display-requirements.component.less']
 })
-export class DisplayRequirementsComponent extends BaseComponent implements OnInit {
+export class DisplayRequirementsComponent extends BaseComponent implements OnInit, OnChanges {
 
   public timeImage = 'ui_icons/time.png';
+
   @Input()
   public requirements: RequirementPojo;
 
+  public parsedRequiredTime: MilisToDaysHoursMinutesSeconds;
   constructor() {
     super();
   }
@@ -21,4 +24,7 @@ export class DisplayRequirementsComponent extends BaseComponent implements OnIni
     this.requireUser();
   }
 
+  public ngOnChanges(): void {
+    this.parsedRequiredTime = DateTimeUtil.milisToDaysHoursMinutesSeconds(this.requirements.requiredTime * 1000);
+  }
 }
