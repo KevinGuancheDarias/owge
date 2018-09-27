@@ -692,6 +692,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 			adminRegisterReturnMission(mission,
 					Double.valueOf(mission.getRequiredTime() - (interval.toDurationMillis() / 1000D)));
 		}
+	}
+
 	public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
 		return obtainedUnitBo.findByMissionId(mission.getId());
 	}

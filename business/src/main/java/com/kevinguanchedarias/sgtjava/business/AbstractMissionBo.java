@@ -236,10 +236,15 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	 */
 	protected boolean isOfType(Mission mission, MissionType type) {
 		return MissionType.valueOf(mission.getType().getCode()).equals(type);
+	}
+
+	/*
 	 * Saves the MissionReport to the database
 	 * 
 	 * @param mission
+	 * 
 	 * @param builder
+	 * 
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
