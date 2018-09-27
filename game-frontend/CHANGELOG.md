@@ -2,7 +2,9 @@
 
 v0.3.8 (latest)
 ============
-* __Improvement:__ Increase game load speed, decrease data usage and battery consumption
+* __Improvement:__ Display time in days, hours, minutes, and seconds  
+![Display time in days, hours, minutes, and seconds](assets/changelog/improvements/HYldODUu.png)  
+* __Improvement:__ Increase game load speed, decrease data usage and battery consumption  
 * __Improvement:__ Add little mechanism to ensure failing missions do not crash the game  
 ![Add little mechanism to ensure failing missions do not crash the game](assets/changelog/improvements/bXXGVwDq.gif) 
 * __Improvement:__ Reduce server RAM usage

@@ -58,6 +58,7 @@ import { SynchronizeCredentialsComponent } from './components/synchronize-creden
 import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
 import { CountdownComponent } from './components/countdown/countdown.component';
+import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 
 
 export const APP_ROUTES: Routes = [
@@ -111,7 +112,8 @@ export const APP_ROUTES: Routes = [
     DisplayMissionTypePipe,
     SynchronizeCredentialsComponent,
     VersionInformationComponent,
-    CountdownComponent
+    CountdownComponent,
+    MilisToDatePipe
   ],
   imports: [
     BrowserModule,

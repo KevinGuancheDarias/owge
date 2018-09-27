@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../../shared/util/date-time.util';
 
 @Component({
   selector: 'app-countdown',
@@ -26,25 +27,7 @@ export class CountdownComponent implements OnInit {
   }
   private _done = false;
 
-  public get days(): number {
-    return this._days;
-  }
-  private _days: number;
-
-  public get hours(): number {
-    return this._hours;
-  }
-  private _hours: number;
-
-  public get minutes(): number {
-    return this._minutes;
-  }
-  private _minutes: number;
-
-  public get seconds(): number {
-    return this._seconds;
-  }
-  private _seconds: number;
+  public time: MilisToDaysHoursMinutesSeconds;
 
   constructor() { }
 
@@ -94,10 +77,7 @@ export class CountdownComponent implements OnInit {
       this.stopCounter();
       this.timeOver.emit();
     } else {
-      this._days = Math.floor((unixTime.getTime() / 1000) / 86400);
-      this._hours = unixTime.getUTCHours();
-      this._minutes = unixTime.getUTCMinutes();
-      this._seconds = unixTime.getUTCSeconds();
+      this.time = DateTimeUtil.milisToDaysHoursMinutesSeconds(unixTime.getTime());
     }
 
   }
