@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 import { ResourceManagerService } from '../../app/service/resource-manager.service';
 import { RequirementPojo } from '../../app/shared-pojo/requirement.pojo';
 

@@ -1,4 +1,3 @@
-import { SidebarModule } from 'ng-sidebar/lib';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +14,6 @@ import { LoginSessionService } from './login-session/login-session.service';
 import { NavigationService } from './service/navigation.service';
 import { PlanetService } from './service/planet.service';
 import { UnitService } from './service/unit.service';
-import { KgdNg2WidgetsModule } from 'kgd-ng2-widgets';
 import { UpgradeService } from './service/upgrade.service';
 import { ResourceManagerService } from './service/resource-manager.service';
 
@@ -60,6 +58,8 @@ import { SynchronizeCredentialsComponent } from './components/synchronize-creden
 import { SanitizeService } from './services/sanitize.service';
 import { VersionInformationComponent } from './components/version-information/version-information.component';
 import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
+import { CountdownComponent } from './components/countdown/countdown.component';
+import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 
 
 export const APP_ROUTES: Routes = [
@@ -114,7 +114,9 @@ export const APP_ROUTES: Routes = [
     DisplayMissionTypePipe,
     SynchronizeCredentialsComponent,
     VersionInformationComponent,
-    UnitRequirementsComponent
+    UnitRequirementsComponent,
+    CountdownComponent,
+    MilisToDatePipe
   ],
   imports: [
     BrowserModule,
@@ -122,8 +124,6 @@ export const APP_ROUTES: Routes = [
     HttpModule,
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES),
-    SidebarModule,
-    KgdNg2WidgetsModule,
     HttpClientModule,
     NgbModule.forRoot()
   ],

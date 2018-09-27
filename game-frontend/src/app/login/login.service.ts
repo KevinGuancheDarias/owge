@@ -1,11 +1,13 @@
-import { GameBaseService } from './../service/game-base.service';
 import { Injectable } from '@angular/core';
 import { Response, RequestOptions } from '@angular/http';
-import { Config } from '../config/config.pojo';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/observable/throw';
+
+import { GameBaseService } from './../service/game-base.service';
+import { Config } from '../config/config.pojo';
 
 @Injectable()
 export class LoginService extends GameBaseService {

@@ -9,8 +9,6 @@ import { UpgradeService } from './app/service/upgrade.service';
 import { ResourceManagerService } from './app/service/resource-manager.service';
 import { LoginSessionService } from './app/login-session/login-session.service';
 import { LoginService } from './app/login/login.service';
-import { KgdNg2WidgetsModule } from 'kgd-ng2-widgets';
-import { SidebarModule } from 'ng-sidebar/lib';
 import { APP_ROUTES } from './app/app.module';
 import { RouterModule } from '@angular/router';
 import { HttpModule } from '@angular/http';
@@ -67,9 +65,7 @@ export let testingConfig: TestModuleMetadata = {
     FormsModule,
     HttpModule,
     RouterModule.forRoot(APP_ROUTES),
-    SidebarModule,
-    Angular2FontawesomeModule,
-    KgdNg2WidgetsModule
+    Angular2FontawesomeModule
   ],
   providers: [
     [{ provide: APP_BASE_HREF, useValue: '/' }],

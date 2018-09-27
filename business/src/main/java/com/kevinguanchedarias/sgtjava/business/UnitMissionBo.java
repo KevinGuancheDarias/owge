@@ -2,7 +2,6 @@ package com.kevinguanchedarias.sgtjava.business;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,7 +21,6 @@ import com.kevinguanchedarias.sgtjava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.sgtjava.dto.MissionDto;
 import com.kevinguanchedarias.sgtjava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
-import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.ObtainedUnit;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.Unit;
@@ -359,9 +357,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Autowired
 	private SocketIoService socketIoService;
 
-	@Autowired
-	private MissionReportBo missionReportBo;
-
 	private DtoUtilService dtoUtilService = new DtoUtilService();
 
 	@Override
@@ -697,6 +692,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 			adminRegisterReturnMission(mission,
 					Double.valueOf(mission.getRequiredTime() - (interval.toDurationMillis() / 1000D)));
 		}
+	public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
+		return obtainedUnitBo.findByMissionId(mission.getId());
 	}
 
 	/**
@@ -883,32 +880,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private CompletableFuture<DeliveryQueueEntry> emitLocalMissionChange(Mission mission, UserStorage user) {
 		return socketIoService.sendMessage(user, "local_mission_change",
 				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
-	}
-
-	/**
-	 * Saves the MissionReport to the database
-	 * 
-	 * @param mission
-	 * @param builder
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
-		MissionReport missionReport = new MissionReport("{}", mission);
-		missionReport.setUser(mission.getUser());
-		missionReport = missionReportBo.save(missionReport);
-		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-		mission.setReport(missionReport);
-	}
-
-	private void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
-		users.forEach(currentUser -> {
-			MissionReport missionReport = new MissionReport("{}", mission);
-			missionReport.setUser(currentUser);
-			missionReport = missionReportBo.save(missionReport);
-			missionReport.setReportDate(new Date());
-			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-			mission.setReport(missionReport);
-		});
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {

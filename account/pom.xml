@@ -176,8 +176,6 @@
 			<artifactId>sgtjava-backend</artifactId>
 			<version>0.4.3-SNAPSHOT</version>
 		</dependency>
-		
-
 	</dependencies>
 	<build>
 		<finalName>sgtjava-account</finalName>

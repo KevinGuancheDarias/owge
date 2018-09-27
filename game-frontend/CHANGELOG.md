@@ -1,7 +1,7 @@
 # SGT changelog
 
 v0.4.3 (2018-09-10 14:58)
-=================
+=======
 * __Merge:__ v0.3.7
 
 v0.4.2 (2018-08-19 16:11)
@@ -20,6 +20,15 @@ v0.4.0 (2018-07-29 22:20)
 * __Feature:__ As a pleyer, I would like to be able to delete my own units
 * __Feature:__ As a player I would like to see the requirements for the units of my race
 * __Merge:__ v0.3.4
+
+v0.3.8 (2018-09-27 11:55)
+============
+* __Improvement:__ Display time in days, hours, minutes, and seconds  
+![Display time in days, hours, minutes, and seconds](assets/changelog/improvements/HYldODUu.png)  
+* __Improvement:__ Increase game load speed, decrease data usage and battery consumption  
+* __Improvement:__ Add little mechanism to ensure failing missions do not crash the game  
+![Add little mechanism to ensure failing missions do not crash the game](assets/changelog/improvements/bXXGVwDq.gif) 
+* __Improvement:__ Reduce server RAM usage
 
 v0.3.7 (2018-09-10 14:52)
 ===========
