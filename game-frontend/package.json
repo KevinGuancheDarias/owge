@@ -5,7 +5,7 @@
   "angular-cli": {},
   "scripts": {
     "start": "npm run compileChangelog && ng serve",
-    "build": "npm run compileChangelog && ng build --env publicAccount",
+    "build": "npm run compileChangelog && ng build",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",
     "compileChangelog": "node scripts/compile-changelog.js",

@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.3.8 (latest)
+v0.3.8 (2018-09-27 11:55)
 ============
 * __Improvement:__ Display time in days, hours, minutes, and seconds  
 ![Display time in days, hours, minutes, and seconds](assets/changelog/improvements/HYldODUu.png)  
