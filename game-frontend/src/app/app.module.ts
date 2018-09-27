@@ -24,7 +24,6 @@ import { UniverseSelectionComponent } from './universe-selection/universe-select
 import { DisplaySingleUniverseComponent } from './display-single-universe/display-single-universe.component';
 import { GameIndexComponent } from './game-index/game-index.component';
 import { SideBarComponent } from './side-bar/side-bar.component';
-import { BaseComponent } from './base/base.component';
 import { FactionSelectorComponent } from './faction-selector/faction-selector.component';
 import { DisplaySingleFactionComponent } from './display-single-faction/display-single-faction.component';
 import { DisplaySinglePlanetComponent } from './display-single-planet/display-single-planet.component';
@@ -89,7 +88,6 @@ export const APP_ROUTES: Routes = [
     DisplaySingleUniverseComponent,
     GameIndexComponent,
     SideBarComponent,
-    BaseComponent,
     FactionSelectorComponent,
     DisplaySingleFactionComponent,
     DisplaySinglePlanetComponent,

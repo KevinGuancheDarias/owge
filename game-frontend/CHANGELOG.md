@@ -1,5 +1,11 @@
 # SGT changelog
 
+v0.5.7 (2018-09-27 15:28)
+=================
+
+* __Fix:__ Bad format for units inherintance system in Angular
+* __Merge:__ v0.4.4
+
 v0.5.6 (2018-09-11 14:44)
 ==================
 * __Fix:__ When attacking an user that has heroes that provide more research speed, the attack hangs  
