@@ -12,7 +12,7 @@
         base</option>
       <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">Attack</option>
       <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">Counterattack</option>
-      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
+      <option *ngIf="isExplored(selectedPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
       <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet) && selectedPlanet.ownerId && !selectedPlanet.home"
         value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">Conquest</option>
     </select>
