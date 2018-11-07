@@ -530,10 +530,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Transactional
 	public UnitRunningMissionDto adminRegisterDeploy(UnitMissionInformation missionInformation) {
-		if (!planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
-			throw new SgtBackendInvalidInputException(
-					"You can't deploy to a planet that is not of your property, try again??? ... maybe next time!!!");
-		}
 		return commonMissionRegister(missionInformation, MissionType.DEPLOY);
 	}
 
