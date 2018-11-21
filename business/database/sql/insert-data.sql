@@ -32,3 +32,4 @@ INSERT INTO mission_types (id,code,description,is_shared) VALUES (8,'ATTACK','At
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (9,'COUNTERATTACK','Counterattacks a own planet',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (10,'CONQUEST','Conquest the planet owned by other user',0);
 INSERT INTO mission_types (id,code,description,is_shared) VALUES (11,'DEPLOY','Deploys the unit in the target planet',0);
+INSERT INTO mission_types (id,code,description,is_shared) VALUES (12,'DEPLOYED','The unit is deployed',0);

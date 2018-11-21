@@ -18,6 +18,7 @@ import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UnitType;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
+import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
@@ -41,6 +42,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 
 	@Autowired
 	private UserImprovementBo userImprovementBo;
+
+	@Autowired
+	private UnitMissionBo unitMissionBo;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Number> getRepository() {
@@ -239,9 +243,16 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
+		unit.setTargetPlanet(unit.getSourcePlanet());
 		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
-		unit.setMission(null);
-		saveWithAdding(userId, unit);
+		if (planetBo.isOfUserProperty(userId, planetId)) {
+			unit.setMission(null);
+			saveWithAdding(userId, unit);
+		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
+			save(unit);
+		} else {
+			unitMissionBo.createDeployedMission(unit.getTargetPlanet(), unit.getSourcePlanet());
+		}
 	}
 
 	public Double findConsumeEnergyByUser(UserStorage user) {

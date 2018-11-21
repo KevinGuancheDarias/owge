@@ -765,6 +765,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return obtainedUnitBo.findByMissionId(mission.getId());
 	}
 
+	public Mission createDeployedMission(Planet origin, Planet target) {
+		Mission deployedMission = new Mission();
+		deployedMission.setType(findMissionType(MissionType.DEPLOYED));
+		deployedMission.setSourcePlanet(origin);
+		deployedMission.setTargetPlanet(target);
+		return save(deployedMission);
+	}
+
 	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged
 	 * in user as the sender user
