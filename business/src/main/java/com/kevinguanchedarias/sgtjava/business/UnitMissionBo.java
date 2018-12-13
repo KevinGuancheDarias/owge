@@ -765,9 +765,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return obtainedUnitBo.findByMissionId(mission.getId());
 	}
 
-	public Mission createDeployedMission(Planet origin, Planet target) {
+	public Mission createDeployedMission(Planet origin, Planet target, UserStorage user) {
 		Mission deployedMission = new Mission();
 		deployedMission.setType(findMissionType(MissionType.DEPLOYED));
+		deployedMission.setUser(user);
 		deployedMission.setSourcePlanet(origin);
 		deployedMission.setTargetPlanet(target);
 		return save(deployedMission);

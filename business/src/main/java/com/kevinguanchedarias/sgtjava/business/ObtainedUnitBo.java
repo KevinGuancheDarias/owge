@@ -243,6 +243,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
+		Planet originPlanet = unit.getTargetPlanet();
 		unit.setTargetPlanet(unit.getSourcePlanet());
 		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
 		if (planetBo.isOfUserProperty(userId, planetId)) {
@@ -251,7 +252,10 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
 			save(unit);
 		} else {
-			unitMissionBo.createDeployedMission(unit.getTargetPlanet(), unit.getSourcePlanet());
+			unit.setTargetPlanet(originPlanet);
+			unit.setMission(unitMissionBo.createDeployedMission(originPlanet, unit.getSourcePlanet(), unit.getUser()));
+			save(unit);
+
 		}
 	}
 

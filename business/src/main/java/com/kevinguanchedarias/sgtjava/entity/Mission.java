@@ -45,7 +45,7 @@ public class Mission implements SimpleIdEntity {
 	@Fetch(FetchMode.JOIN)
 	private MissionType type;
 
-	@Column(name = "termination_date", nullable = false)
+	@Column(name = "termination_date")
 	private Date terminationDate;
 
 	@Column(name = "required_time")

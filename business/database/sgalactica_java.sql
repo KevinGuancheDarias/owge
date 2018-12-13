@@ -238,7 +238,7 @@ CREATE TABLE `missions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` int(11) UNSIGNED DEFAULT NULL COMMENT 'If null is a core mission!',
   `type` smallint(5) UNSIGNED NOT NULL,
-  `termination_date` datetime NOT NULL,
+  `termination_date` datetime NULL,
   `required_time` double DEFAULT NULL,
   `primary_resource` double DEFAULT NULL,
   `secondary_resource` double DEFAULT NULL,
