@@ -688,18 +688,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessReturnMission(Long missionId) {
 		Mission mission = missionRepository.findOne(missionId);
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
-		List<ObtainedUnit> inPlanet = obtainedUnitBo.findByUserIdAndSourcePlanetAndMissionIdIsNull(mission.getUser(),
-				mission.getTargetPlanet());
 		obtainedUnits.forEach(current -> {
-			ObtainedUnit existingUnit = obtainedUnitBo.findHavingSameUnit(inPlanet, current);
-			if (existingUnit == null) {
-				current.setMission(null);
-				current.setSourcePlanet(mission.getTargetPlanet());
-				current.setTargetPlanet(null);
-			} else {
-				existingUnit.addCount(current.getCount());
-				obtainedUnitBo.delete(current);
-			}
+			obtainedUnitBo.moveUnit(current, mission.getUser().getId(), mission.getTargetPlanet().getId());
 		});
 		resolveMission(mission);
 		emitLocalMissionChange(mission, mission.getUser());

@@ -248,6 +248,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
 		if (planetBo.isOfUserProperty(userId, planetId)) {
 			unit.setMission(null);
+			unit.setTargetPlanet(null);
 			saveWithAdding(userId, unit);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
 			save(unit);
