@@ -81,7 +81,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
    */
   public async sendMission(): Promise<void> {
     await this._missionService.sendMission(this.missionType, this.sourcePlanet, this.targetPlanet, this.selectedUnits);
-    this._missioninformationStore.missionSent.next();
+    this._missioninformationStore.missionSent.next(undefined);
     this._childModal.hide();
   }
 
