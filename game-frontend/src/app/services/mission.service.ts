@@ -7,6 +7,7 @@ import { UnitMissionInformation } from '../shared/types/unit-mission-information
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '../shared/types/mission.type';
+import { ProgrammingError } from '../../error/programming.error';
 
 @Injectable()
 export class MissionService extends GameBaseService {
@@ -21,6 +22,54 @@ export class MissionService extends GameBaseService {
 
   public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
     return this.doGetWithAuthorizationToGame<UnitRunningMission[]>('mission/findEnemy');
+  }
+
+
+  /**
+   * Sends a mission whose type is specified by param
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.7.0
+   * @param {MissionType} missionType
+   * @param {PlanetPojo} sourcePlanet
+   * @param {PlanetPojo} targetPlanet
+   * @param {SelectedUnit[]} selectedUnits
+   * @returns {Promise<void>}
+   * @memberof MissionService
+   */
+  public async sendMission(
+    missionType: MissionType,
+    sourcePlanet: PlanetPojo,
+    targetPlanet: PlanetPojo,
+    selectedUnits: SelectedUnit[]
+  ): Promise<void> {
+    await this._loadingService.runWithLoading(async () => {
+      switch (missionType) {
+        case 'EXPLORE':
+          await this.sendExploreMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'GATHER':
+          await this.sendGatherMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'ESTABLISH_BASE':
+          await this.sendEstablishBaseMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'ATTACK':
+          await this.sendAttackMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'COUNTERATTACK':
+          await this.sendCounterattackMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'CONQUEST':
+          await this.sendConquestMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        case 'DEPLOY':
+          await this.sendDeploy(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          break;
+        default:
+          throw new ProgrammingError(`Unexpected mission type ${missionType}`);
+      }
+    });
   }
 
   public sendExploreMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
@@ -65,6 +114,7 @@ export class MissionService extends GameBaseService {
       case 'COUNTERATTACK':
       case 'CONQUEST':
       case 'DEPLOY':
+      case 'DEPLOYED':
         return true;
       default:
         return false;

@@ -1,43 +1,20 @@
-<app-modal #missionModal [hasCloseButton]="true">
-  <div class="header">
-    Send mission to planet {{ selectedPlanet | planetDisplayName }}
+<app-mission-modal #missionModal></app-mission-modal>
+<app-loading [isReady]="navigationData && navigationConfig">
+  <div class="sgt-base-colors navigation-controls">
+    <app-navigation-controls *ngIf="navigationData" [navigationData]="navigationData" [navigationConfig]="navigationConfig"
+      (onNavigation)="changePosition($event)"></app-navigation-controls>
   </div>
-  <div class="body">
-    <span>Mission type:</span>
-    <select *ngIf="selectedPlanet" [(ngModel)]="missionType">
-      <option [ngValue]="null">None</option>
-      <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">Explore</option>
-      <option *ngIf="isExplored(selectedPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">Gather</option>
-      <option *ngIf="isExplored(selectedPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">Establish
-        base</option>
-      <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">Attack</option>
-      <option *ngIf="isExplored(selectedPlanet) && planetIsMine(selectedPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">Counterattack</option>
-      <option *ngIf="isExplored(selectedPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
-      <option *ngIf="isExplored(selectedPlanet) && !planetIsMine(selectedPlanet) && selectedPlanet.ownerId && !selectedPlanet.home"
-        value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">Conquest</option>
-    </select>
-    <div class="unit-selection">
-      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"
-        (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
-    </div>
+  <div class="sgt-base-colors navigation-controls" *ngIf="navigationConfig && navigationData">
+    Coordenadas actuales Galaxia:
+    <b>{{ findSelectedGalaxyName() }}</b>, Sector:
+    <b>{{ navigationConfig.sector }}</b>, Cuadrante:
+    <b>{{ navigationConfig.quadrant }}</b>
   </div>
-  <div class="footer">
-    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()"
-      class="btn-primary btn-send-mission">Send
-      mission</button>
+  <div *ngIf="navigationData">
+    <app-planet-selector [navigationData]="navigationData">
+      <ng-template let-planet="planet">
+        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="sendMission(planet)" />
+      </ng-template>
+    </app-planet-selector>
   </div>
-</app-modal>
-<ng-container *ngIf="navigationData">
-  <div class="card sgt-quadrant" *ngFor="let planet of navigationData.planets">
-    <div class="card-block">
-      <h5 class="card-title">
-        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet | planetDisplayName }}</h5>
-    </div>
-    <img class="card-img-top planet-image" src="{{ findImage(planet) }}" alt="image of the planet">
-    <div class="card-block">
-      <p class="card-text planet-actions">
-        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="showMissionDialog(planet)" />
-      </p>
-    </div>
-  </div>
-</ng-container>
+</app-loading>

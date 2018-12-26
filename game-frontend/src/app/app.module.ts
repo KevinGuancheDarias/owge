@@ -61,6 +61,8 @@ import { UnitTypeService } from './services/unit-type.service';
 import { UpgradeTypeService } from './services/upgrade-type.service';
 import { CountdownComponent } from './components/countdown/countdown.component';
 import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
+import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
+import { MissionModalComponent } from './mission-modal/mission-modal.component';
 
 
 export const APP_ROUTES: Routes = [
@@ -116,7 +118,9 @@ export const APP_ROUTES: Routes = [
     VersionInformationComponent,
     UnitRequirementsComponent,
     CountdownComponent,
-    MilisToDatePipe
+    MilisToDatePipe,
+    PlanetSelectorComponent,
+    MissionModalComponent
   ],
   imports: [
     BrowserModule,
@@ -136,12 +140,12 @@ export const APP_ROUTES: Routes = [
     PlanetService,
     NavigationService,
     WebsocketService,
-    MissionService,
     LoadingService,
     ReportService,
     SanitizeService,
     UnitTypeService,
-    UpgradeTypeService
+    UpgradeTypeService,
+    MissionService
   ],
   bootstrap: [AppComponent]
 })

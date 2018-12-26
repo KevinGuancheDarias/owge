@@ -8,6 +8,8 @@ import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
 import { LoadingService } from '../services/loading.service';
 import { promise } from 'protractor';
+import { MEDIA_ROUTES } from '../config/config.pojo';
+import { PlanetPojo } from '../shared-pojo/planet.pojo';
 
 export class BaseComponent {
 
@@ -56,6 +58,14 @@ export class BaseComponent {
      */
   public isOfTypeOrNullFilter(type: { typeId: number }, property: keyof this): boolean {
     return !this[property] || this[property]['id'] === type.typeId;
+  }
+
+  public findPlanetImage(planet: PlanetPojo): string {
+    return PlanetPojo.findImage(planet);
+  }
+
+  public findUiIcon(name: string) {
+    return MEDIA_ROUTES.UI_ICONS + name;
   }
 
   /**

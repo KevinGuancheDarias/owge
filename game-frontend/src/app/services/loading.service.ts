@@ -50,6 +50,18 @@ export class LoadingService implements OnDestroy {
     return this._loadingState$;
   }
 
+  /**
+   * Runs a function that returns a promise, and displays a loading while the promise is <b>not</b> resolved
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @template T
+   * @param {() => Promise<T>} action
+   * @returns {Promise<T>}
+   * @memberof LoadingService
+   */
+  public async runWithLoading<T = any>(action: () => Promise<T>): Promise<T> {
+    return await this.addPromise(action());
+  }
 
   /**
    * Registers the interval, resets the time if already define, and checks if the loading status has changed <b>(ASAP!!!)</b>

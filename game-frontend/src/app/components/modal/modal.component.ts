@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AbstractModalComponent } from '../../interfaces/abstract-modal-component';
 
 /**
  * Displays a modal with custom content
@@ -12,20 +13,13 @@ import { Component, ElementRef, Input, OnInit } from '@angular/core';
     templateUrl: './modal.component.html',
     styleUrls: ['./modal.component.less']
 })
-export class ModalComponent implements OnInit {
-
-    @Input()
-    public closeOnOverlayClick = true;
-
-    @Input()
-    public isOpenOnLoad = false;
-
-    @Input()
-    public hasCloseButton = false;
+export class ModalComponent extends AbstractModalComponent implements OnInit {
 
     public visible = false;
     public visibleAnimate = false;
 
+    @ViewChild('modalRoot')
+    private _modalRoot: ElementRef;
 
     /**
      * If true will close the modal when the user clicks outside the modal <br>
@@ -38,7 +32,9 @@ export class ModalComponent implements OnInit {
 
     public constructor(
         private _ref: ElementRef
-    ) { }
+    ) {
+        super();
+    }
 
     public ngOnInit(): void {
         if (this.isOpenOnLoad) {
@@ -47,6 +43,7 @@ export class ModalComponent implements OnInit {
     }
 
     public show(): void {
+        this._moveModalToBody();
         this.visible = true;
         setTimeout(() => this.visibleAnimate = true, 100);
     }
@@ -68,5 +65,17 @@ export class ModalComponent implements OnInit {
 
     public getRef(): ElementRef {
         return this._ref;
+    }
+
+
+    /**
+     * Adds the modal to the body (avoids problems with modal positioning)
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @private
+     * @memberof ModalComponent
+     */
+    private _moveModalToBody(): void {
+        document.body.appendChild(this._modalRoot.nativeElement);
     }
 }

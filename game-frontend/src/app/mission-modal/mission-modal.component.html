@@ -1,0 +1,30 @@
+<app-modal #childModal [hasCloseButton]="true" [closeOnOverlayClick]="closeOnOverlayClick" [isOpenOnLoad]="isOpenOnLoad"
+  [hasCloseButton]="hasCloseButton">
+  <div class="header">
+    Send mission to planet {{ targetPlanet | planetDisplayName }}
+  </div>
+  <div class="body">
+    <span>Mission type:</span>
+    <select *ngIf="targetPlanet" [(ngModel)]="missionType">
+      <option [ngValue]="null">None</option>
+      <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">Explore</option>
+      <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">Gather</option>
+      <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">Establish
+        base</option>
+      <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">Attack</option>
+      <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">Counterattack</option>
+      <option *ngIf="isExplored(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
+      <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home"
+        value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">Conquest</option>
+    </select>
+    <div class="unit-selection">
+      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"
+        (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
+    </div>
+  </div>
+  <div class="footer">
+    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()"
+      class="btn-primary btn-send-mission">Send
+      mission</button>
+  </div>
+</app-modal>

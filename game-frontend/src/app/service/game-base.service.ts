@@ -7,6 +7,7 @@ import { Universe } from './../shared-pojo/universe.pojo';
 import { LoginSessionService } from './../login-session/login-session.service';
 import { ServiceLocator } from './../service-locator/service-locator';
 import { BaseHttpService } from '../base-http/base-http.service';
+import { LoadingService } from '../services/loading.service';
 
 /**
  * This class has the http base, and extends it adding game related contents <br>
@@ -25,10 +26,12 @@ export class GameBaseService<E = any> extends BaseHttpService {
 
   protected _loginSessionService: LoginSessionService;
   protected _loadableBehaviorSubject: BehaviorSubject<E[]> = new BehaviorSubject(null);
+  protected _loadingService: LoadingService;
 
   constructor() {
     super();
     this._loginSessionService = ServiceLocator.injector.get(LoginSessionService);
+    this._loadingService = ServiceLocator.injector.get(LoadingService);
   }
 
   public getLoginSessionService(): LoginSessionService {
