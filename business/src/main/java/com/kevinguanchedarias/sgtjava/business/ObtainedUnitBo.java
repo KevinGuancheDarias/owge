@@ -81,9 +81,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository.findByUserIdAndSourcePlanetIdAndMissionIdIsNull(userId, planetId);
 	}
 
-	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIdIsNull(Integer userId, Integer unitId,
-			Long planetId) {
-		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIdIsNull(userId, unitId, planetId);
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNullOrDeployed(Integer userId,
+			Integer unitId, Long planetId) {
+		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullOrDeployed(userId, unitId, planetId);
 	}
 
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId) {

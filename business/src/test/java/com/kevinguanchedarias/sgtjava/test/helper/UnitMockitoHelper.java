@@ -35,7 +35,7 @@ public class UnitMockitoHelper {
 	public void fakeObtainedUnitExistsForGivenUnitAndPlanet(Integer userId, Integer unitId, Long planetId,
 			ObtainedUnit retVal) {
 		Mockito.when(
-				obtainedUnitBoMock.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIdIsNull(userId, unitId, planetId))
+				obtainedUnitBoMock.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNullOrDeployed(userId, unitId, planetId))
 				.thenReturn(retVal);
 	}
 
