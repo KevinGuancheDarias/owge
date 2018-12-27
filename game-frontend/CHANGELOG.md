@@ -1,9 +1,13 @@
 # SGT changelog
 
 v0.7.0 (latest)
-==========================
+=================
 * __Feature:__ As a player I Want to be able to deploy my units to other planets  
 ![As a player I Want to be able to deploy my units to other planets](assets/changelog/features/4a028iCy.png)  
+
+v0.6.2 (2018-12-27 14:44)
+===========================
+* __Fix:__ Missing fields in database creation script
 
 v0.6.1 (2018-09-27 16:03)
 ===========================
