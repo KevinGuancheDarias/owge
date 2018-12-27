@@ -4,14 +4,15 @@ import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
 /**
- * 
- * @deprecated As of <b>0.7.0</b> is better to use {@link CommonEntityWithImage}
- * @since 0.1.0
+ * Represents a CommonEntity that also has an image
+ *
+ * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-@Deprecated
 @MappedSuperclass
-public abstract class EntityWithImage {
+public class CommonEntityWithImage<K extends Number> extends CommonEntity<K> {
+	private static final long serialVersionUID = -3650030382618207233L;
+
 	private String image;
 
 	@Column(name = "image")
@@ -22,5 +23,4 @@ public abstract class EntityWithImage {
 	public void setImage(String image) {
 		this.image = image;
 	}
-
 }

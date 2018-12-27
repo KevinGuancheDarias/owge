@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  jeu. 27 déc. 2018 à 14:42
+-- Généré le :  jeu. 27 déc. 2018 à 14:58
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -34,6 +34,20 @@ CREATE TABLE `admin_users` (
   `password` varchar(30) NOT NULL,
   `mail` varchar(100) NOT NULL,
   `enabled` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `alliances`
+--
+
+CREATE TABLE `alliances` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `image` char(36) NOT NULL,
+  `owner_id` int(11) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -220,7 +234,7 @@ CREATE TABLE `missions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` int(11) UNSIGNED DEFAULT NULL COMMENT 'If null is a core mission!',
   `type` smallint(5) UNSIGNED NOT NULL,
-  `termination_date` datetime NULL,
+  `termination_date` datetime DEFAULT NULL,
   `required_time` double DEFAULT NULL,
   `primary_resource` double DEFAULT NULL,
   `secondary_resource` double DEFAULT NULL,
@@ -740,6 +754,7 @@ CREATE TABLE `user_storage` (
   `id` int(11) UNSIGNED NOT NULL COMMENT 'The id of the user as defined in the other database, no autoincremental, not even need to check it',
   `username` varchar(32) NOT NULL,
   `email` varchar(254) NOT NULL,
+  `alliance_id` smallint(5) UNSIGNED DEFAULT NULL,
   `faction` smallint(5) UNSIGNED NOT NULL,
   `last_action` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `home_planet` bigint(20) UNSIGNED NOT NULL,
@@ -779,6 +794,13 @@ CREATE TABLE `websocket_messages_status` (
 --
 ALTER TABLE `admin_users`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `alliances`
+--
+ALTER TABLE `alliances`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `owner_id` (`owner_id`);
 
 --
 -- Index pour la table `aranking`
@@ -1091,7 +1113,8 @@ ALTER TABLE `user_improvements`
 ALTER TABLE `user_storage`
   ADD PRIMARY KEY (`id`),
   ADD KEY `faction` (`faction`),
-  ADD KEY `home_planet` (`home_planet`);
+  ADD KEY `home_planet` (`home_planet`),
+  ADD KEY `alliance_id` (`alliance_id`);
 
 --
 -- Index pour la table `websocket_messages_status`
@@ -1109,6 +1132,12 @@ ALTER TABLE `websocket_messages_status`
 --
 ALTER TABLE `admin_users`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT pour la table `alliances`
+--
+ALTER TABLE `alliances`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `carpetas`
@@ -1277,6 +1306,12 @@ ALTER TABLE `websocket_messages_status`
 --
 
 --
+-- Contraintes pour la table `alliances`
+--
+ALTER TABLE `alliances`
+  ADD CONSTRAINT `alliances_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user_storage` (`id`);
+
+--
 -- Contraintes pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
@@ -1410,7 +1445,8 @@ ALTER TABLE `upgrades`
 --
 ALTER TABLE `user_storage`
   ADD CONSTRAINT `user_storage_ibfk_1` FOREIGN KEY (`home_planet`) REFERENCES `planets` (`id`),
-  ADD CONSTRAINT `user_storage_ibfk_2` FOREIGN KEY (`faction`) REFERENCES `factions` (`id`);
+  ADD CONSTRAINT `user_storage_ibfk_2` FOREIGN KEY (`faction`) REFERENCES `factions` (`id`),
+  ADD CONSTRAINT `user_storage_ibfk_3` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`);
 
 --
 -- Contraintes pour la table `websocket_messages_status`

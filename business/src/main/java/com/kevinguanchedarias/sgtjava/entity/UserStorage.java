@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -77,6 +78,11 @@ public class UserStorage implements SimpleIdEntity {
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Mission> missions;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "alliance_id")
+	@Fetch(FetchMode.JOIN)
+	private Alliance alliance;
 
 	@Transient
 	private Double computedPrimaryResourceGenerationPerSecond;
