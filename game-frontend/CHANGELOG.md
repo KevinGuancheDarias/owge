@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.6.2 (2018-12-27 14:44)
+===========================
+* __Fix:__ Missing fields in database creation script
+
 v0.6.1 (2018-09-27 16:03)
 ===========================
 * __Merge:__ v0.5.7
