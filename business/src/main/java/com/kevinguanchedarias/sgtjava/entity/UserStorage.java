@@ -270,6 +270,23 @@ public class UserStorage implements SimpleIdEntity {
 		this.missions = missions;
 	}
 
+	/**
+	 * @since 0.7.0
+	 * @return the alliance
+	 */
+	public Alliance getAlliance() {
+		return alliance;
+	}
+
+	/**
+	 * @since 0.7.0
+	 * @param alliance
+	 *            the alliance to set
+	 */
+	public void setAlliance(Alliance alliance) {
+		this.alliance = alliance;
+	}
+
 	public Double getComputedPrimaryResourceGenerationPerSecond() {
 		return computedPrimaryResourceGenerationPerSecond;
 	}

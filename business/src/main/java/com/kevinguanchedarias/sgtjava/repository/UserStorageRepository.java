@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.kevinguanchedarias.sgtjava.entity.Alliance;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
@@ -18,4 +19,14 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Number
 	public void addPointsToUser(@Param("user") UserStorage user, @Param("points") Double points);
 
 	public UserStorage findOneByMissions(Mission mission);
+
+	/**
+	 * @param oldAlliance
+	 * @param newAlliance
+	 * @return
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("UPDATE UserStorage u SET u.alliance = :new WHERE u.alliance = :old")
+	public Object defineAllianceByAllianceId(@Param("old") Alliance oldAlliance, @Param("new") Alliance newAlliance);
 }

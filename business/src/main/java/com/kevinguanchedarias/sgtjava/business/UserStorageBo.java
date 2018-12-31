@@ -60,6 +60,9 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	private AllianceBo allianceBo;
+
 	@PostConstruct
 	public void init() {
 		if (securityContextService == null) {
@@ -257,6 +260,21 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 */
 	public Double findAvailableEnergy(UserStorage user) {
 		return findMaxEnergy(user) - findConsumedEnergy(user);
+	}
+
+	/**
+	 * Defines the new alliance for all the users having and old alliance <br>
+	 * Usually used to delete an alliance
+	 * 
+	 * @param oldAlliance
+	 * @param newAlliance
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void defineAllianceByAllianceId(Number oldAlliance, Number newAlliance) {
+		userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance),
+				allianceBo.findById(newAlliance));
 	}
 
 	private TokenUser findTokenUser() {
