@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  jeu. 27 déc. 2018 à 14:58
+-- Généré le :  jeu. 10 jan. 2019 à 14:35
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -46,8 +46,21 @@ CREATE TABLE `alliances` (
   `id` smallint(5) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` text,
-  `image` char(36) NOT NULL,
+  `image` char(36) DEFAULT NULL,
   `owner_id` int(11) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `alliance_join_request`
+--
+
+CREATE TABLE `alliance_join_request` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `alliance_id` smallint(5) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `request_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -803,6 +816,14 @@ ALTER TABLE `alliances`
   ADD UNIQUE KEY `owner_id` (`owner_id`);
 
 --
+-- Index pour la table `alliance_join_request`
+--
+ALTER TABLE `alliance_join_request`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `alliance_id` (`alliance_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
 -- Index pour la table `aranking`
 --
 ALTER TABLE `aranking`
@@ -1137,7 +1158,13 @@ ALTER TABLE `admin_users`
 -- AUTO_INCREMENT pour la table `alliances`
 --
 ALTER TABLE `alliances`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT pour la table `alliance_join_request`
+--
+ALTER TABLE `alliance_join_request`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT pour la table `carpetas`
@@ -1310,6 +1337,13 @@ ALTER TABLE `websocket_messages_status`
 --
 ALTER TABLE `alliances`
   ADD CONSTRAINT `alliances_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `user_storage` (`id`);
+
+--
+-- Contraintes pour la table `alliance_join_request`
+--
+ALTER TABLE `alliance_join_request`
+  ADD CONSTRAINT `alliance_join_request_ibfk_1` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`),
+  ADD CONSTRAINT `alliance_join_request_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
 -- Contraintes pour la table `explored_planets`

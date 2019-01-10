@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
+import com.kevinguanchedarias.sgtjava.entity.Alliance;
 import com.kevinguanchedarias.sgtjava.entity.Faction;
 import com.kevinguanchedarias.sgtjava.entity.Mission;
 import com.kevinguanchedarias.sgtjava.entity.Planet;
@@ -273,8 +274,20 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 */
 	@Transactional
 	public void defineAllianceByAllianceId(Number oldAlliance, Number newAlliance) {
-		userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance),
-				allianceBo.findById(newAlliance));
+		Alliance targetNewAlliance = newAlliance == null ? null : allianceBo.findById(newAlliance);
+		userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance), targetNewAlliance);
+	}
+
+	/**
+	 * @param userId
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void leave(Number userId) {
+		UserStorage userRef = getOne(userId);
+		userRef.setAlliance(null);
+		save(userRef);
 	}
 
 	private TokenUser findTokenUser() {
@@ -308,5 +321,4 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 		retVal += (difference * perSecondValue);
 		return retVal;
 	}
-
 }

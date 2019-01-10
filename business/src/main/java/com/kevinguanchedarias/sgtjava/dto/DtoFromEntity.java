@@ -33,5 +33,4 @@ public interface DtoFromEntity<E> {
 		});
 		return retVal;
 	}
-
 }

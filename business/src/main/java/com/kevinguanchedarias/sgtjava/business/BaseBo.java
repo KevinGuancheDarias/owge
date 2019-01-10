@@ -6,6 +6,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.sgtjava.entity.SpecialLocation;
@@ -22,6 +24,19 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 
 	public default Long countAll() {
 		return getRepository().count();
+	}
+
+	/**
+	 * Returns a reference, useful to execute uddate operations
+	 * 
+	 * @param id
+	 * @return
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	public default E getOne(Number id) {
+		return getRepository().getOne(id);
 	}
 
 	public default E findById(Number id) {
@@ -51,6 +66,16 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 
 	public default void delete(E entity) {
 		getRepository().delete(entity);
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default void delete(Number id) {
+		delete(findByIdOrDie(id));
 	}
 
 	public default boolean exists(E entity) {

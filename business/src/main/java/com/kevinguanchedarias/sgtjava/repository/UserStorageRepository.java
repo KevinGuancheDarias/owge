@@ -28,5 +28,6 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Number
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Query("UPDATE UserStorage u SET u.alliance = :new WHERE u.alliance = :old")
-	public Object defineAllianceByAllianceId(@Param("old") Alliance oldAlliance, @Param("new") Alliance newAlliance);
+	@Modifying
+	public void defineAllianceByAllianceId(@Param("old") Alliance oldAlliance, @Param("new") Alliance newAlliance);
 }

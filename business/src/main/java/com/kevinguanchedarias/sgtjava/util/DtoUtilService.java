@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.sgtjava.dto.DtoFromEntity;
@@ -61,5 +62,28 @@ public class DtoUtilService implements Serializable {
 			retVal.add(currentPojo);
 		});
 		return retVal;
+	}
+
+	/**
+	 * Returns the entity created from the dto <br>
+	 * <b>NOTICE:</b> For now only primitive types are copied, in the future
+	 * should be different
+	 * 
+	 * @param targetEntityClass
+	 * @param pojo
+	 * @return
+	 * @todo In the future create a method toEntity() in {@link DtoFromEntity}
+	 *       to allow custom entity creations
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <P extends DtoFromEntity<E>, E> E entityFromDto(Class<E> targetEntityClass, P pojo) {
+		try {
+			E entity = targetEntityClass.newInstance();
+			BeanUtils.copyProperties(pojo, entity);
+			return entity;
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new CommonException(INSTANTIATION_ERROR, e);
+		}
 	}
 }

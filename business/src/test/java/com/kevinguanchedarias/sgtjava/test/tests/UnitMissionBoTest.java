@@ -421,7 +421,7 @@ public class UnitMissionBoTest extends TestCommon {
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(mission);
 		unitMissionBoSpy.processAttack(1L);
 		Mockito.verify(obtainedUnitBoMock, Mockito.never()).existsByMission(Mockito.any());
-		Mockito.verify(obtainedUnitBoMock, Mockito.never()).delete(Mockito.any());
+		Mockito.verify(obtainedUnitBoMock, Mockito.never()).delete(Mockito.any(ObtainedUnit.class));
 		Mockito.verify(unitMissionBoSpy, Mockito.never()).delete(Mockito.any(Mission.class));
 		Mockito.verify(unitMissionBoSpy, Mockito.times(1)).adminRegisterReturnMission(mission);
 	}
@@ -478,7 +478,7 @@ public class UnitMissionBoTest extends TestCommon {
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(mission);
 		unitMissionBoSpy.processAttack(1L);
 		Mockito.verify(obtainedUnitBoMock, Mockito.times(2)).existsByMission(Mockito.any());
-		Mockito.verify(obtainedUnitBoMock, Mockito.times(2)).delete(Mockito.any());
+		Mockito.verify(obtainedUnitBoMock, Mockito.times(2)).delete(Mockito.any(ObtainedUnit.class));
 		Mockito.verify(unitMissionBoSpy, Mockito.times(1)).delete(Mockito.any(Mission.class));
 		Mockito.verify(unitMissionBoSpy, Mockito.never()).adminRegisterReturnMission(mission);
 		Mockito.verify(missionReportBoMock, Mockito.times(2)).save(Mockito.any(MissionReport.class));
