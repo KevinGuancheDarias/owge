@@ -8,6 +8,7 @@ import 'rxjs/add/observable/throw';
 
 import { GameBaseService } from './../service/game-base.service';
 import { Config } from '../config/config.pojo';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class LoginService extends GameBaseService {
@@ -26,11 +27,17 @@ export class LoginService extends GameBaseService {
    * @memberof LoginService
    */
   public login(email: string, password: string): Observable<string> {
-    const urlEncodedParams = 'email=' + encodeURIComponent(email) + '&password=' + password;
     const requestOptions: RequestOptions = new RequestOptions();
     requestOptions.headers = Config.genCommonFormUrlencoded();
+    const params: URLSearchParams = new URLSearchParams(<any>{
+      grant_type: 'password',
+      client_id: environment.loginClientId,
+      client_secret: environment.loginClientSecret,
+      username: email,
+      password
+    });
 
-    return this.http.post(Config.ACCOUNT_SERVER_URL + 'login', urlEncodedParams, requestOptions)
+    return this.http.post(`${Config.ACCOUNT_SERVER_URL}oauth/token`, params.toString(), requestOptions)
       .map((res: Response) => {
         this.getLoginSessionService().setTokenPojo(res.json().token);
         return this.getLoginSessionService().getRawToken();

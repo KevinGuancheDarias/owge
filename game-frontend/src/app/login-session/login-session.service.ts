@@ -214,7 +214,9 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
    * @author Kevin Guanche Darias
    */
   private _parseToken(jwtToken: string): TokenPojo {
-    return JSON.parse(atob(jwtToken.split('.')[1]));
+    const retVal: TokenPojo = JSON.parse(atob(jwtToken.split('.')[1]));
+    retVal.exp *= 1000;
+    return retVal;
   }
 
   /**

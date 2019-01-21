@@ -5,6 +5,8 @@
 
 export const environment = {
   production: false,
-  accountUrl: 'http://localhost:8080/sgtjava-account/',
-  loginDomain: null
+  accountUrl: 'http://localhost/drupal/',
+  loginDomain: null,
+  loginClientId: '26af9a87-f12a-4ac2-b17e-253a3b8c486e',
+  loginClientSecret: '1234'
 };
