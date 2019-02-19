@@ -3,6 +3,8 @@ import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Headers } from '@angular/http';
 
+import 'rxjs/add/operator/skip';
+
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Universe } from '../shared-pojo/universe.pojo';
@@ -15,11 +17,15 @@ import { HttpHeaders } from '@angular/common/http';
 import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
 import { ProgrammingError } from '../../error/programming.error';
+import { UserStorage } from '../modules/user/storages/user.storage';
+import { LoggerHelper } from '../../helpers/logger.helper';
+import { UniverseStorage } from '../modules/universe/storages/universe.storage';
 
 /**
  * Provides token storage and retrieving features<br />
  * Also provide session concept storage
  *
+ * @deprecated This class is intented to be removed, most of its functionality will be marked as deprecated
  * @export
  * @class LoginSessionService
  */
@@ -32,7 +38,15 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
 
   private alreadyNotified = false;
 
-  /** @var {UserPojo} Represents the user data, for logged in user, loaded after method invocation! */
+
+  /**
+   * Represents the user data, for logged in user, loaded after method invocation!
+   *
+   * @deprecated As of 0.7 it's better to use UserModule/UserStorage.currentUser instead
+   * @readonly
+   * @type {BehaviorSubject<UserPojo>}
+   * @memberof LoginSessionService
+   */
   public get userData(): BehaviorSubject<UserPojo> {
     return this._userData;
   }
@@ -48,11 +62,17 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   }
   private _findSelectedPlanet: BehaviorSubject<PlanetPojo> = new BehaviorSubject(null);
 
+  private _lgsLog: LoggerHelper = new LoggerHelper(this.constructor.name);
+
   constructor(private _injector: Injector,
     private _resourceManagerService: ResourceManagerService,
-    private _websocketService: WebsocketService
+    private _websocketService: WebsocketService,
+    private _userStorage: UserStorage,
+    private _universeStorage: UniverseStorage
   ) {
     super();
+    this._workaroundUserStorage();
+    this._workaroundUniverseStorage();
   }
 
   public findTokenData(): UserPojo {
@@ -69,6 +89,7 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
    * @return {TokenPojo} the encoded token
    */
   public setTokenPojo(token): void {
+    this._userStorage.currentToken.next(token);
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_TOKEN_PARAM, token);
   }
 
@@ -145,12 +166,15 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   /**
    * Generates the HTTP headers with the Authorization token included
    *
+   * @deprecated This feature is not in use in modern <i>CoreHttpService</i>
+   *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {HttpHeaders} [headers] If present will append to existing, else will create new
    * @returns {HttpHeaders}
    * @memberof LoginSessionService
    */
   public genHttpClientHeaders(headers?: HttpHeaders): HttpHeaders {
+    this._lgsLog.warnDeprecated('genHttpClientHeaders()', '0.7.0', 'Don\'t use LoginSessionService');
     const target: HttpHeaders = headers
       ? headers
       : new HttpHeaders();
@@ -170,6 +194,7 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   }
 
   public setSelectedUniverse(universe: Universe) {
+    this._universeStorage.currentUniverse.next(universe);
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE, JSON.stringify(universe));
   }
 
@@ -214,9 +239,13 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
    * @author Kevin Guanche Darias
    */
   private _parseToken(jwtToken: string): TokenPojo {
-    const retVal: TokenPojo = JSON.parse(atob(jwtToken.split('.')[1]));
-    retVal.exp *= 1000;
-    return retVal;
+    if (jwtToken) {
+      const retVal: TokenPojo = JSON.parse(atob(jwtToken.split('.')[1]));
+      retVal.exp *= 1000;
+      return retVal;
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -306,5 +335,34 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
       this._websocketService.authenticate(this.getRawToken());
       this.alreadyNotified = true;
     }
+  }
+
+
+  /**
+   * Due to deprecation of this.userData, we have to make the new way be working by default <br>
+   * In a new major version userData will be removed
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @private
+   * @memberof LoginSessionService
+   */
+  private _workaroundUserStorage(): void {
+    this._userData.skip(1).subscribe(value => this._userStorage.currentUser.next(<any>value));
+    const currentToken: string = this.getRawToken();
+    if (currentToken) {
+      this._userStorage.currentToken.next(currentToken);
+    }
+  }
+
+  /**
+   * Due to future deprecation of LoginSessionService, I workaround the universeStorage
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @private
+   * @returns {*}
+   * @memberof LoginSessionService
+   */
+  private _workaroundUniverseStorage(): any {
+    this._universeStorage.currentUniverse.next(this.getSelectedUniverse());
   }
 }

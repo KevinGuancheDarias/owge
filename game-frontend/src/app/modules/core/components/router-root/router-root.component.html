@@ -1,0 +1,9 @@
+<ng-container *ngIf="routerData">
+    <h1>{{ routerData.sectionTitle }}</h1>
+    <div>
+        <ng-container *ngFor="let route of routerData.routes">
+            <a *ngIf="route.isNgIfOk" class="btn btn-block" routerLink="{{ route.path }}">{{ route.text | translate }}</a>
+        </ng-container>
+    </div>
+</ng-container>
+<router-outlet></router-outlet>

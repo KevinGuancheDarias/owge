@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.sgtjava.business;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -155,6 +157,20 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	}
 
 	/**
+	 * 
+	 * @param allianceId
+	 * @return
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UserStorage> findMembers(Integer allianceId) {
+		Alliance alliance = findByIdOrDie(allianceId);
+		alliance.getUsers().size();
+		return alliance.getUsers();
+	}
+
+	/**
 	 * Deletes the alliance associated with the user
 	 * 
 	 * @param transientUser
@@ -201,5 +217,17 @@ public class AllianceBo implements WithNameBo<Alliance> {
 			throw new SgtBackendInvalidInputException(
 					"You are NOT the owner of that alliance, try hacking the owner account");
 		}
+	}
+
+	/**
+	 * Returns true if user has an alliance
+	 * 
+	 * @param userId
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @return
+	 */
+	public boolean isOwnerOfAnAlliance(Number userId) {
+		return repository.findOneByOwnerId(userId) != null;
 	}
 }

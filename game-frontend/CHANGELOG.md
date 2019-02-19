@@ -5,6 +5,7 @@ v0.7.0 (latest)
 * __Feature:__ Change login system to use KGDW (:warning: Breaks old accounts :warning:)
 * __Feature:__ As a player I Want to be able to deploy my units to other planets  
 ![As a player I Want to be able to deploy my units to other planets](assets/changelog/features/4a028iCy.png)  
+* __Fix:__ If closing the modal by clicking outside is disabled, the background fade will not allow the user to click anything
 
 v0.6.2 (2018-12-27 14:44)
 ===========================

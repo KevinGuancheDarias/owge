@@ -28,6 +28,8 @@
     "@angular/platform-browser-dynamic": "^5.2.0",
     "@angular/router": "^5.2.0",
     "@ng-bootstrap/ng-bootstrap": "^1.1.1",
+    "@ngx-translate/core": "^9.1.1",
+    "@ngx-translate/http-loader": "^4.0.0",
     "@types/lodash.camelcase": "^4.3.4",
     "angular2-fontawesome": "~5.2.0",
     "bootstrap": "^4.0.0-alpha.5",

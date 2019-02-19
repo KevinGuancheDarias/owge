@@ -1,0 +1,22 @@
+<table class="sgt-table">
+  <thead>
+    <tr>
+      <th>{{ 'ALLIANCE.USER' | translate }}</th>
+      <th>{{ 'ALLIANCE.REQUEST_ACTIONS' | translate }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngIf="joinRequests && joinRequests.length">
+      <tr *ngFor="let request of joinRequests">
+        <td>{{ request.user.username }}</td>
+        <td>
+          <button class="btn" (click)="acceptRequest(request)">{{ 'ALLIANCE.ACCEPT_REQUEST' | translate}}</button>
+          <button class="btn" (click)="rejectRequest(request)">{{ 'ALLIANCE.REJECT_REQUEST' | translate}}</button>
+        </td>
+      </tr>
+    </ng-container>
+    <tr *ngIf="!joinRequests || !joinRequests.length">
+      <td colspan="2">{{ 'ALLIANCE.NO_PENDING_JOIN_REQUEST' | translate }}</td>
+    </tr>
+  </tbody>
+</table>

@@ -119,7 +119,7 @@ a.selectedMenu{
 
     .card.sgt {
         float: left;
-        width: 70px;
+        width: auto;
         padding: 10px;
         margin: 3px;
 
@@ -157,5 +157,32 @@ a.selectedMenu{
     width: 100%;
     height: 100%;
     overflow: auto;
+
 }
+
+.sgt-card-header {
+    background-color: blue;
+    color: white;
+    text-align: center;
+    padding: 2px;
+}
+
+.sgt-card-body {
+    background-color: #66F;
+    color: white;
+    padding: 3px;
+    margin-top: -7px;
+}
+
+table.sgt-table {
+    th,td {
+        .sgt-base-colors;
+        border: 2px lighten(@bgColor, 20%) solid;
+        padding: 7px;
+    }
+    td {
+        background-color: lighten(@bgColor, 10%);
+    }
+}
+
 // END Common items

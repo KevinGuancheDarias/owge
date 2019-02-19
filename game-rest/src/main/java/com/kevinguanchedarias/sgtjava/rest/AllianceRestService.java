@@ -5,12 +5,14 @@ package com.kevinguanchedarias.sgtjava.rest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,7 @@ import com.kevinguanchedarias.sgtjava.business.AllianceJoinRequestBo;
 import com.kevinguanchedarias.sgtjava.business.UserStorageBo;
 import com.kevinguanchedarias.sgtjava.dto.AllianceDto;
 import com.kevinguanchedarias.sgtjava.dto.AllianceJoinRequestDto;
+import com.kevinguanchedarias.sgtjava.dto.UserStorageDto;
 import com.kevinguanchedarias.sgtjava.entity.Alliance;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
@@ -67,6 +70,23 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	@GetMapping(value = "")
 	public List<AllianceDto> findAll() {
 		return dtoUtilService.convertEntireArray(AllianceDto.class, allianceBo.findAll());
+	}
+
+	/**
+	 * Finds Members for given alliances
+	 * 
+	 * @return
+	 * @since 0.7.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping(value = "{id}/members")
+	public List<UserStorageDto> members(@PathVariable("id") Integer id) {
+		return dtoUtilService.convertEntireArray(UserStorageDto.class, allianceBo.findMembers(id)).stream()
+				.map(current -> {
+					current.setImprovements(null);
+					current.setEmail(null);
+					return current;
+				}).collect(Collectors.toList());
 	}
 
 	/**

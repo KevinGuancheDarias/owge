@@ -9,11 +9,13 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.sgtjava.business.UserStorageBo;
+import com.kevinguanchedarias.sgtjava.dto.AllianceDto;
 import com.kevinguanchedarias.sgtjava.dto.FactionDto;
 import com.kevinguanchedarias.sgtjava.dto.PlanetDto;
 import com.kevinguanchedarias.sgtjava.dto.UserStorageDto;
 import com.kevinguanchedarias.sgtjava.entity.Galaxy;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
+import com.kevinguanchedarias.sgtjava.util.DtoUtilService;
 
 @RestController
 @RequestMapping("user")
@@ -22,6 +24,9 @@ public class UserRestService {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private DtoUtilService dtoUtilService;
 
 	@RequestMapping(value = "exists", method = RequestMethod.GET)
 	public Object exists() {
@@ -46,6 +51,7 @@ public class UserRestService {
 		userDto.dtoFromEntity(user);
 		userDto.setFactionDto(EntityPojoConverterUtil.convertFromTo(FactionDto.class, user.getFaction()));
 		userDto.setHomePlanetDto(EntityPojoConverterUtil.convertFromTo(PlanetDto.class, user.getHomePlanet()));
+		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
 
 		Galaxy galaxyData = user.getHomePlanet().getGalaxy();
 		userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());

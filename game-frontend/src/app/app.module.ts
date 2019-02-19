@@ -5,7 +5,7 @@ import { HttpModule } from '@angular/http';
 import { RouterModule, Routes } from '@angular/router';
 import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome';
 import { Injector } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { ServiceLocator } from './service-locator/service-locator';
@@ -36,12 +36,10 @@ import { UnitsComponent } from './units/units.component';
 import { BuildUnitsComponent } from './build-units/build-units.component';
 import { DeployedUnitsBigComponent } from './deployed-units-big/deployed-units-big.component';
 import { DisplaySingleUnitComponent } from './display-single-unit/display-single-unit.component';
-import { LoadingComponent } from './loading/loading.component';
 import { NavigationComponent } from './components/navigation/navigation.component';
 import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
 import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
 import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
-import { ModalComponent } from './components/modal/modal.component';
 import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
@@ -63,7 +61,15 @@ import { CountdownComponent } from './components/countdown/countdown.component';
 import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
 import { MissionModalComponent } from './mission-modal/mission-modal.component';
-
+import { UserModule } from './modules/user/user.module';
+import { ALLIANCE_ROUTES } from './modules/alliance/alliance.routes';
+import { RouterRootComponent } from './modules/core/components/router-root/router-root.component';
+import { AllianceModule } from './modules/alliance/alliance.module';
+import { CoreModule } from './modules/core/core.module';
+import { UniverseModule } from './modules/universe/universe.module';
+import { WidgetsModule } from './modules/widgets/widgets.module';
+import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -78,8 +84,22 @@ export const APP_ROUTES: Routes = [
   { path: 'navigate', component: NavigationComponent, canActivate: [LoginSessionService] },
   { path: 'reports', component: ReportsListComponent, canActivate: [LoginSessionService] },
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
+  {
+    path: 'alliance', component: RouterRootComponent, canActivate: [LoginSessionService],
+    children: ALLIANCE_ROUTES, data: {
+      sectionTitle: 'Alliance', routes: [
+        { path: 'my', text: 'APP.MY_ALLIANCE' },
+        { path: 'browse', text: 'APP.BROWSE' },
+        { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST' }
+      ]
+    }
+  },
   { path: '**', component: PageNotFoundComponent }
 ];
+
+export function findHttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http);
+}
 
 @NgModule({
   declarations: [
@@ -102,12 +122,10 @@ export const APP_ROUTES: Routes = [
     BuildUnitsComponent,
     DeployedUnitsBigComponent,
     DisplaySingleUnitComponent,
-    LoadingComponent,
     NavigationComponent,
     NavigationControlsComponent,
     DisplayQuadrantComponent,
     PlanetDisplayNamePipe,
-    ModalComponent,
     DeployedUnitsListComponent,
     ReportsListComponent,
     UnitsAliveDeathListComponent,
@@ -129,7 +147,20 @@ export const APP_ROUTES: Routes = [
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES),
     HttpClientModule,
-    NgbModule.forRoot()
+    NgbModule.forRoot(),
+    UserModule.forRoot(),
+    AllianceModule.forRoot(),
+    CoreModule.forRoot(),
+    UniverseModule.forRoot(),
+    WidgetsModule,
+    TranslateModule.forRoot({
+      useDefaultLang: true,
+      loader: {
+        provide: TranslateLoader,
+        useFactory: findHttpLoaderFactory,
+        deps: [HttpClient]
+      }
+    })
   ],
   providers: [
     LoginService,
@@ -150,10 +181,15 @@ export const APP_ROUTES: Routes = [
   bootstrap: [AppComponent]
 })
 export class AppModule {
-  constructor(private injector: Injector, private _websocketService: WebsocketService) {
-    ServiceLocator.injector = this.injector;
+  constructor(
+    private _injector: Injector,
+    private _websocketService: WebsocketService,
+    private _translateService: TranslateService
+  ) {
+    ServiceLocator.injector = this._injector;
     window['globalShit'] = this._websocketService;
     this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
     this._websocketService.initSocket('http://127.0.0.1:3000');
+    this._translateService.setDefaultLang('en');
   }
 }

@@ -21,6 +21,7 @@ import com.kevinguanchedarias.sgtjava.entity.Planet;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.exception.NotYourPlanetException;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
+import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtFactionNotFoundException;
 import com.kevinguanchedarias.sgtjava.repository.UserStorageRepository;
 
@@ -286,6 +287,9 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	@Transactional
 	public void leave(Number userId) {
 		UserStorage userRef = getOne(userId);
+		if (allianceBo.isOwnerOfAnAlliance(userId)) {
+			throw new SgtBackendInvalidInputException("You can't leave your own alliance");
+		}
 		userRef.setAlliance(null);
 		save(userRef);
 	}

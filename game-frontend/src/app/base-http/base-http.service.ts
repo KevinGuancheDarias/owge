@@ -11,7 +11,17 @@ import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { AutoUpdatedResources } from './../class/auto-updated-resources';
 import { ServiceLocator } from '../service-locator/service-locator';
+import { LoggerHelper } from '../../helpers/logger.helper';
 
+
+/**
+ *
+ * @deprecated Please use CoreHttpService
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @export
+ * @abstract
+ * @class BaseHttpService
+ */
 export abstract class BaseHttpService {
 
   /**
@@ -27,6 +37,8 @@ export abstract class BaseHttpService {
   protected resources: AutoUpdatedResources;
   protected _selectedPlanet: PlanetPojo;
 
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
   /**
    * Inits the main base http service
    *
@@ -35,6 +47,7 @@ export abstract class BaseHttpService {
   public constructor() {
     this.http = ServiceLocator.injector.get(Http);
     this._http = ServiceLocator.injector.get(HttpClient);
+    this._log.warnDeprecated('BaseHttpService', '0.7.0', 'CoreHttpService');
   }
 
   protected doGet(url: string, urlSearchParams?: URLSearchParams, requestOptions?: RequestOptions): Observable<any> {

@@ -13,5 +13,5 @@ import com.kevinguanchedarias.sgtjava.entity.Alliance;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public interface AllianceRepository extends WithNameRepository<Alliance, Number>, Serializable {
-
+	Alliance findOneByOwnerId(Number userId);
 }

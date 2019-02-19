@@ -1,4 +1,3 @@
-import { ProgrammingError } from 'error/programming.error';
 import { Log, Level, Logger } from 'ng2-logger';
 
 export class LoggerHelper {
@@ -21,6 +20,27 @@ export class LoggerHelper {
 
     public error(...message: string[]): void {
         this._log.er(this._findCallerMethodName(), ...message);
+    }
+
+
+    /**
+     * Prints a deprecation warning
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
+     * @param {string} item
+     * @param {string} version Version in which the deprecation takes place
+     * @param {string} [elementToUse] If specified, what to use else
+     * @memberof LoggerHelper
+     */
+    public warnDeprecated(item: string, version: string, elementToUse?: string): void {
+        const whatToUse = elementToUse
+            ? `Please use ${elementToUse}`
+            : '';
+        this.warn(`As of ${version} the element ${item} is deprecated. ${whatToUse}`);
+        if (!whatToUse) {
+            this.info('When invoking warnDeprecated(), elementToUse, while not mandatory is STRONGLY recommended');
+        }
     }
 
     private _findCallerMethodName(): string {

@@ -8,6 +8,7 @@ import { LoginSessionService } from './../login-session/login-session.service';
 import { ServiceLocator } from './../service-locator/service-locator';
 import { BaseHttpService } from '../base-http/base-http.service';
 import { LoadingService } from '../services/loading.service';
+import { LoggerHelper } from '../../helpers/logger.helper';
 
 /**
  * This class has the http base, and extends it adding game related contents <br>
@@ -17,6 +18,7 @@ import { LoadingService } from '../services/loading.service';
  * <li>LoginSessionService</li>
  * <li>Auto updated resources Observable</li>
  * </ul>
+ * @deprecated Use CoreGameService
  * @export
  * @class GameBaseService
  * @template E target Entity object to be "behaviorsubject loadable"
@@ -30,6 +32,8 @@ export class GameBaseService<E = any> extends BaseHttpService {
 
   constructor() {
     super();
+    const log = new LoggerHelper(this.constructor.name);
+    log.warnDeprecated('GameBaseService', '0.7.0', 'CoreGameService');
     this._loginSessionService = ServiceLocator.injector.get(LoginSessionService);
     this._loadingService = ServiceLocator.injector.get(LoadingService);
   }

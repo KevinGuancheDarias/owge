@@ -16,6 +16,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	private Double maxEnergy;
 	private FactionDto factionDto;
 	private PlanetDto homePlanetDto;
+	private AllianceDto alliance;
 	private ImprovementDto improvements;
 
 	private Double computedPrimaryResourceGenerationPerSecond;
@@ -118,6 +119,23 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 
 	public void setHomePlanetDto(PlanetDto planetDto) {
 		this.homePlanetDto = planetDto;
+	}
+
+	/**
+	 * @since 0.7.0
+	 * @return the alliance
+	 */
+	public AllianceDto getAlliance() {
+		return alliance;
+	}
+
+	/**
+	 * @since 0.7.0
+	 * @param alliance
+	 *            the alliance to set
+	 */
+	public void setAlliance(AllianceDto alliance) {
+		this.alliance = alliance;
 	}
 
 	public ImprovementDto getImprovements() {

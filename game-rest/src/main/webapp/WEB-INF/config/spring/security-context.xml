@@ -33,6 +33,14 @@
 				<value>kevinguanchedarias.local</value>
 			</list>
 		</property>
+		<property name="methodList">
+			<list>
+				<value>GET</value>
+				<value>POST</value>
+				<value>PUT</value>
+				<value>DELETE</value>
+			</list>
+		</property>
 	</bean>
 	<bean id="corsFilter" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.cors.CorsFilter">
 		<property name="corsConfigurator" ref="corsConfiguration"></property>
