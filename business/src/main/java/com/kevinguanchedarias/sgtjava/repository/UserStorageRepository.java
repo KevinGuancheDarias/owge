@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.sgtjava.repository;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,6 +14,8 @@ import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 
 public interface UserStorageRepository extends JpaRepository<UserStorage, Number>, Serializable {
 	public UserStorage findOneByIdAndFactionId(Integer userId, Integer factionId);
+
+	public List<UserStorage> findAllByOrderByPointsDesc();
 
 	@Modifying
 	@Query("UPDATE UserStorage u SET u.points = u.points + :points WHERE u = :user")
