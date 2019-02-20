@@ -172,7 +172,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		public List<AttackUserInformation> findVictims(List<AttackUserInformation> allUsers) {
 			return allUsers.stream()
 					.filter(current -> !current.isDefeated && !current.getUser().getId().equals(getUser().getId()))
-					.collect(Collectors.toList());
+					.filter(this::filterAlliance).collect(Collectors.toList());
 		}
 
 		public List<AttackObtainedUnit> findAllUnits() {
@@ -297,6 +297,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 				return current.pendingAttack == 0D;
 			}).findFirst();
 			return count;
+		}
+
+		/**
+		 * If the user has an alliance, removes all those users that are not in
+		 * the user alliance
+		 * 
+		 * @param current
+		 * @return
+		 * @since 0.7.0
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		private boolean filterAlliance(AttackUserInformation current) {
+			return getUser().getAlliance() == null
+					|| (!getUser().getAlliance().getId().equals(current.getUser().getAlliance().getId()));
 		}
 	}
 

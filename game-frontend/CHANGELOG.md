@@ -2,6 +2,8 @@
 
 v0.7.0 (latest)
 =================
+* __Feature:__ As a player, I want to be able to create an alliance  
+![As a player, I want to be able to create an alliance](assets/changelog/features/)
 * __Feature:__ Change login system to use KGDW (:warning: Breaks old accounts :warning:)
 * __Feature:__ As a player I Want to be able to deploy my units to other planets  
 ![As a player I Want to be able to deploy my units to other planets](assets/changelog/features/4a028iCy.png)  

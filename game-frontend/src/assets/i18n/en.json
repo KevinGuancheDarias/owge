@@ -2,7 +2,8 @@
     "APP": {
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
-        "LIST_JOIN_REQUEST": "List join request"
+        "LIST_JOIN_REQUEST": "List join request",
+        "MENU_ALLIANCES": "Alliances"
     },
     "WIDGETS": {
         "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
