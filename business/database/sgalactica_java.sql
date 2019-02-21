@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.122.167
--- Généré le :  mer. 19 sep. 2018 à 08:39
+-- Généré le :  jeu. 27 déc. 2018 à 14:42
 -- Version du serveur :  5.7.19-log
 -- Version de PHP :  7.2.2
 
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données :  `test_shit`
+-- Base de données :  `sgalactica_java`
 --
 
 -- --------------------------------------------------------
@@ -35,24 +35,6 @@ CREATE TABLE `admin_users` (
   `mail` varchar(100) NOT NULL,
   `enabled` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `alianzas`
---
-
-CREATE TABLE `alianzas` (
-  `cd` int(5) NOT NULL,
-  `Nombre` char(30) NOT NULL,
-  `Descripcion` char(255) NOT NULL,
-  `Imagen` text NOT NULL,
-  `Lider` int(6) NOT NULL,
-  `PuntosMejoras` int(11) NOT NULL,
-  `PuntosTropas` int(11) NOT NULL,
-  `PuntosNaves` int(11) NOT NULL,
-  `PuntosDefensas` int(11) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -247,6 +229,7 @@ CREATE TABLE `missions` (
   `target_planet` bigint(20) DEFAULT NULL,
   `related_mission` bigint(20) UNSIGNED DEFAULT NULL,
   `report_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `attemps` tinyint(3) UNSIGNED NOT NULL DEFAULT '1',
   `resolved` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -798,13 +781,6 @@ ALTER TABLE `admin_users`
   ADD PRIMARY KEY (`id`);
 
 --
--- Index pour la table `alianzas`
---
-ALTER TABLE `alianzas`
-  ADD PRIMARY KEY (`cd`),
-  ADD UNIQUE KEY `Nombre` (`Nombre`);
-
---
 -- Index pour la table `aranking`
 --
 ALTER TABLE `aranking`
@@ -1135,12 +1111,6 @@ ALTER TABLE `admin_users`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT pour la table `alianzas`
---
-ALTER TABLE `alianzas`
-  MODIFY `cd` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
-
---
 -- AUTO_INCREMENT pour la table `carpetas`
 --
 ALTER TABLE `carpetas`
@@ -1156,7 +1126,7 @@ ALTER TABLE `especialesderaza`
 -- AUTO_INCREMENT pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2157;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2188;
 
 --
 -- AUTO_INCREMENT pour la table `factions`
@@ -1192,25 +1162,25 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6687;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6814;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
 --
 ALTER TABLE `mission_information`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT pour la table `mission_reports`
 --
 ALTER TABLE `mission_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2854;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2914;
 
 --
 -- AUTO_INCREMENT pour la table `mission_types`
 --
 ALTER TABLE `mission_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT pour la table `object_relations`
@@ -1222,7 +1192,7 @@ ALTER TABLE `object_relations`
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3589;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3638;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
@@ -1300,7 +1270,7 @@ ALTER TABLE `user_improvements`
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8444;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8577;
 
 --
 -- Contraintes pour les tables déchargées
