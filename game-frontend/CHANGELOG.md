@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.7.0 (latest)
+v0.7.0 (2019-02-21 15:42)
 =================
 * __Feature:__ As a player I want to have a ranking with at least battle points  
 ![As a player I want to have a ranking with at least battle points](assets/changelog/features/L46uhduW.png)  
