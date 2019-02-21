@@ -19,6 +19,7 @@ export const ROUTES = {
     NAVIGATE: '/navigate',
     REPORTS: '/reports',
     ALLIANCE: '/alliance/my',
+    RANKING: '/ranking',
     VERSION: '/version'
 };
 

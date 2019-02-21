@@ -70,6 +70,8 @@ import { UniverseModule } from './modules/universe/universe.module';
 import { WidgetsModule } from './modules/widgets/widgets.module';
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
+import { RankingModule } from './modules/ranking/ranking.module';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -93,6 +95,10 @@ export const APP_ROUTES: Routes = [
         { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST' }
       ]
     }
+  },
+  {
+    path: 'ranking', component: RouterRootComponent, canActivate: [LoginSessionService],
+    children: RANKING_ROUTES
   },
   { path: '**', component: PageNotFoundComponent }
 ];
@@ -152,6 +158,7 @@ export function findHttpLoaderFactory(http: HttpClient) {
     AllianceModule.forRoot(),
     CoreModule.forRoot(),
     UniverseModule.forRoot(),
+    RankingModule,
     WidgetsModule,
     TranslateModule.forRoot({
       useDefaultLang: true,

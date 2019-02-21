@@ -3,7 +3,8 @@
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
         "LIST_JOIN_REQUEST": "List join request",
-        "MENU_ALLIANCES": "Alliances"
+        "MENU_ALLIANCES": "Alliances",
+        "MENU_RANKING": "Ranking"
     },
     "WIDGETS": {
         "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
@@ -30,5 +31,11 @@
         "ACCEPT_REQUEST": "Accept request",
         "REJECT_REQUEST": "Reject request",
         "NO_PENDING_JOIN_REQUEST": "No pending join requests"
+    },
+    "RANKING": {
+        "POSITION": "Position",
+        "POINTS": "Points",
+        "USER": "User",
+        "ALLIANCE": "Alliance"
     }
 }

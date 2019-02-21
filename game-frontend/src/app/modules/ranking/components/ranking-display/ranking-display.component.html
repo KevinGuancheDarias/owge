@@ -1,0 +1,14 @@
+<table class="sgt-table">
+  <tr>
+    <th>{{ 'RANKING.POSITION' | translate }}</th>
+    <th>{{ 'RANKING.POINTS' | translate }}</th>
+    <th>{{ 'RANKING.USER' | translate }}</th>
+    <th>{{ 'RANKING.ALLIANCE' | translate }}</th>
+  </tr>
+  <tr *ngFor="let entry of entries">
+    <td>{{ entry.position}}</td>
+    <td>{{ entry.points}}</td>
+    <td>{{ entry.username}}</td>
+    <td>{{ entry.allianceName}}</td>
+  </tr>
+</table>

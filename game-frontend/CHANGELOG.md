@@ -2,6 +2,8 @@
 
 v0.7.0 (latest)
 =================
+* __Feature:__ As a player I want to have a ranking with at least battle points  
+![As a player I want to have a ranking with at least battle points](assets/changelog/features/L46uhduW.png)  
 * __Feature:__ As a player, I want to be able to create an alliance  
 ![As a player, I want to be able to create an alliance](assets/changelog/features/)
 * __Feature:__ Change login system to use KGDW (:warning: Breaks old accounts :warning:)
