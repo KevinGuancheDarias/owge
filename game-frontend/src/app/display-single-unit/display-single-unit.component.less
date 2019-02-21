@@ -1,20 +1,40 @@
-.number-to-delete {
-    width: 107px;
-    text-align: right;
-    font-size: 18pt;
+.Units{
+    float: left;
+   
 }
-.requirements-attributes {
-    padding-left: 30px;
-    .btn {
-        width: 122px;
+.Units div.time{
+    width: 100%;
+}
+
+@media (min-width:768px){
+    .Units{
+        float: left;
+        margin-right: 5px;
     }
-}
 
-.btn.delete {
-    width: 190px;
-    margin-top: -2px;
+    .number-to-delete {
+        width: 50%;;
+        text-align: right;
+        font-size: 18pt;
+        float: left;
+    }
+    .requirements-attributes {
+       
+        .btn {
+            width: 50%;
+            float: left;
+            margin:0px;
+        }
+    }
 
-    &:hover {
-        width: 190px;
+    .btn.delete {
+        width: 50%;;
+        margin-top: -2px;
+        float: left;
+
+    }
+    .card-block.requirements-attributes.AttributesContainer{
+        width: 100%;
+        height: 250px;
     }
 }

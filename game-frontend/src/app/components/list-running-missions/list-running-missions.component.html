@@ -1,6 +1,6 @@
 <app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
-    <div #missionRoot class="card sgt auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
+    <div #missionRoot class="card sgt auto-expand Mission" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'" (click)="cancelMission(runningUnitMission.missionId)"

@@ -1,6 +1,6 @@
 <div *ngIf="userData" class="game-index">
   <app-loading [isReady]="myUnitRunningMissions">
-    <div *ngIf="myUnitRunningMissions" class="sgt-card-list">
+    <div *ngIf="myUnitRunningMissions" class="sgt-card-list Missions">
       <h1 class="sgt-title">My missions</h1>
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isCancellable]="true" (missionDone)="findMyMissions()"></app-list-running-missions>
       <p *ngIf="!myUnitRunningMissions.length" class="sgt-base-colors">
@@ -9,7 +9,7 @@
     </div>
   </app-loading>
   <app-loading [isReady]="enemyRunningMissions">
-    <div *ngIf="enemyRunningMissions" class="sgt-card-list">
+    <div *ngIf="enemyRunningMissions" class="sgt-card-list Missions">
       <h1 class="sgt-title">Enemy missions</h1>
       <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true" (missionDone)="findEnemyMissions()"></app-list-running-missions>
       <p *ngIf="!enemyRunningMissions.length" class="sgt-base-colors">

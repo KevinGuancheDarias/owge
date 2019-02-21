@@ -1,8 +1,8 @@
-<div>
+<div class="PageSelector">
   <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selectedMenu' : isDeployedRoute()}">In planet</a>
   <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selectedMenu' : isBuildRoute()}">Build</a>
   <a class="btn btn-block" routerLink="{{ REQUIREMENTS_URL }}" [ngClass]="{'selectedMenu' : isRequirementsRoute()}">Requirements</a>
-  <select *ngIf="unitTypes" class="btn btn-block" [(ngModel)]="unitType" (ngModelChange)="onUnitTypeChange()" [compareWith]="isEqualByIdOrIsNull">
+  <select *ngIf="unitTypes" class="btn btn-block Selector" [(ngModel)]="unitType" (ngModelChange)="onUnitTypeChange()" [compareWith]="isEqualByIdOrIsNull">
     <option [ngValue]="null">All units</option>
     <option *ngFor=" let currentType of unitTypes" [ngValue]="currentType">{{ currentType.name }}</option>
   </select>

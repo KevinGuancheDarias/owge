@@ -28,15 +28,6 @@ export class UnitRequirementsComponent extends BaseUnitComponent implements OnIn
     // this.autoSpanCard(this._components, '.auto-expand', el => el.parentElement.parentElement.parentElement);
   }
 
-  ngAfterViewInit(): void {
-    this._components.changes.subscribe(() => {
-      this._components.toArray().forEach((current, index) => {
-        current.nativeElement.style.width =
-          (UnitRequirementsComponent.UPGRADE_CARD_SIZE * (this.unitRequirements[index].requirements.length + 1)) + 'px';
-      });
-    });
-  }
-
   public findUnitImageUrl(unit: UnitPojo): string {
     return UnitPojo.findImagePath(unit);
   }

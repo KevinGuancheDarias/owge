@@ -1,26 +1,46 @@
-.sgt-card-list.units > .card.sgt  {
-    width: 98px;
-    height: 208px;
-    padding: 2px;
-
-    .card-title {
-        text-align: center;
-    }
-
-    > img {
-        width: 85px;
-        height: 85px;
-    }
+.sgt-card-list.units{
+    width: 100;
 }
-
 .sgt-card-list.upgrades {
     > .card.sgt {
-        position: relative;
+       
         width: 57px;
         height: 74px;
         padding: 2px;
+        float: left;
     }
     .upgrade-level {
         text-align: center;
+    }
+}
+@media (min-width:768px){
+    .sgt-card-list.units{
+        width: auto;
+    }
+
+    .sgt-card-list.units > .card.sgt  {
+        height: 208px;
+        padding: 2px;
+        width: auto;
+        .card-title {
+            text-align: center;
+        }
+
+        > img {
+            width: 85px;
+            height: 85px;
+        }
+    }
+
+    .sgt-card-list.upgrades {
+        > .card.sgt {
+            position: relative;
+            width: 57px;
+            height: 74px;
+            padding: 2px;
+        }
+        .upgrade-level {
+            text-align: center;
+        }
     }
 }

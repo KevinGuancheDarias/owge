@@ -1,10 +1,10 @@
 <app-loading [isReady]="obtainedUnits">
-  <div *ngIf="obtainedUnits" class="sgt-card-list">
+  <div *ngIf="obtainedUnits" class="card-block">
     <div class="card sgt" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block" *ngIf="selectedCounts">
         <div class="card-title">
           <span *ngIf="selectedCounts[i]">
-            {{ selectedCounts[i] }}/{{ obtainedUnit.count }}
+            {{ obtainedUnit.count }}
           </span>
           <span *ngIf="!selectedCounts[i]">
             {{ obtainedUnit.count }}

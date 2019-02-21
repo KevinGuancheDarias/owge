@@ -1,16 +1,40 @@
+.PageSelector{
+    width: 100%;
+}  
+select.btn{
+    width: 98%;
+    float: left;
+    margin-top: 0.5rem;
+    margin-left: 1%;
+}
 div {
     width: 90%;
     min-height: 1px;
 }
 
-a.btn, select.btn {
-    width: 120px;
+a.btn {
+    background-color: RGBA(12,41,49,1);
+    width: 32%;
     float: left;
-    &+a, &+select{
-        margin-left: 4px;
-    }
+    margin-left: 1%;
+    
 }
-
+.btn-block{
+    margin-top: 0.5rem;
+}
 div.clearFloat {
     clear: both;
+}
+@media (min-width:768px){
+    .PageSelector{
+        width: 90%;
+    }
+
+    a.btn, select.btn {
+        width: 120px;
+        float: left;
+        &+a, &+select{
+            margin-left: 4px;
+        }
+    }
 }

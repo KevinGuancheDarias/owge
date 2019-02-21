@@ -1,53 +1,113 @@
-div.well{
-    height: 250px;
-} 
-
-.Absolute-Center {
-    margin: auto;
-    position: absolute;
-    top: 0; left: 0; bottom: 0; right: 0;
+#passkey{
+    float: left;
+    width: 49%;
 }
-
+#regkey{
+    float: right;
+    width: 49%;
+}
 .loginContainer{
-    .input-group{
-        margin-bottom: -2px;
-    }
-    .input-group + .input-group span{
-        padding-right: 14px;
-    }
-    .form-control{
-        min-width: 200px;
-    }
-    button,.loginActions{
-        min-width: 240px;
-    }
-    .loginActions{
-        min-height: 60px;
-        background-color: buttonface;
-        border-radius: 4px;
-        padding: 6px;
-        a:first-child{
-            float: left;
-        }
-        a ~ a{
-            float: right;
-            margin-right: 10px;
-        }
-    }
-}
-
-.Absolute-Center.is-Responsive {
-    width: 50%; 
-    height: 50%;
-    min-width: 200px;
-    max-width: 430px;
-    padding: 50px;
+    width: 100%;
+    margin:0px;
+    padding: 0px;
 }
 
 #logo-container{
-    margin-left: 17px;   
-    margin-bottom: 0px;
-    width:240px;
-    height:80px;
-    background-image:url('/assets/img/logo.jpg');
+
+    width:98%;
+    height:50%;
+    background-image:url('/assets/img/LOGO.png');
+    background-size: 100%;
+    background-position: 50% 15%;
+    margin: 1%;
+}
+input{
+    margin:1%;
+    width: 100%-15px;
+}
+button{
+    margin:1%;
+}
+span{
+    width: 15px;
+    text-align: center;
+    color:silver;margin:10px 1% 1% 1%;
+    text-shadow: 0px 0px 3px gold;
+}
+.Absolute-Center.is-Responsive {
+    width: 100%;
+    min-height: 300px;
+    max-height: 400px;
+}
+.loginActions a{
+    background-color: silver;
+    border:2px inset darkgray;
+    border-radius:5px;
+    width: 100%;
+    padding: 5px;
+}
+.loginActions a:hover{
+    border:2px outset darkgray;
+}
+@media (min-width:541px){
+    span{
+        width: 15px;
+        text-align: center;
+        color:black;margin:10px 1% 1% 1%;
+        text-shadow: 0px 0px 3px gold;
+    }
+
+    div.well{
+        
+    } 
+
+    .Absolute-Center {
+    
+    }
+
+    .loginContainer{
+        width: 50%;
+        height: 450px;
+        
+        .input-group{
+           
+        }
+        .input-group + .input-group span{
+          
+        }
+        .form-control{
+           
+        }
+        button,.loginActions{
+      
+        }
+        .loginActions{
+           
+
+        }
+        .row{
+            height: 450px;
+        }
+    }
+
+    .Absolute-Center.is-Responsive {
+        border-radius: 32% 32% 7% 7%;
+        padding: 10px;
+        -webkit-box-shadow: inset 0px 0px 5px black;
+        box-shadow: 0px 0px 5px black, inset 0px 0px 25px gold;
+        background-color: rgba(240, 240, 240, 0.8);
+        max-height: 450px;
+    }
+
+    #logo-container{
+        width: 88%;
+        height: 150px;
+        background-image: url('/assets/img/LOGO.png');
+        background-size: 100%;
+        background-position: 50% 15%;
+        margin: 2% 6% 2% 6%;
+        border-radius: 50% 50% 15% 15%;
+        box-shadow: inset 0px 0px 5px gold, inset 0px 0px 10px aquamarine, 0px 0px 3px black;
+    }
+
 }

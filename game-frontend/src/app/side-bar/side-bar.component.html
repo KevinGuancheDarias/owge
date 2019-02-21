@@ -15,18 +15,19 @@
       </div>
 </app-modal>
 <div id="sideBarRoot">
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}" routerLinkActive="selectedMenu">Inicio</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UPGRADES }}" routerLinkActive="selectedMenu">Mejoras</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu">Units</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu">Navegación</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.REPORTS }}" routerLinkActive="selectedMenu">Reports</a>
-      <a class="btn btn-block" role="button" (click)="logout()" href="javascript:void">logout</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.VERSION }}" routerLinkActive="selectedMenu">{{ versionInformation.version }}</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}" routerLinkActive="selectedMenu"><span><i class="fa fa-home"></i></span><img src="/assets/img/blanckbotton200x200.png" />Inicio</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.UPGRADES }}" routerLinkActive="selectedMenu"><span><i class="fa fa-flask"></i></span><img src="/assets/img/blanckbotton200x200.png" />Mejoras</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.UNITS }}" routerLinkActive="selectedMenu"><span><i class="fa fa-male"></i></span><img src="/assets/img/blanckbotton200x200.png" />Units</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.NAVIGATE }}" routerLinkActive="selectedMenu"><span><i class="fa fa-map"></i></span><img src="/assets/img/blanckbotton200x200.png" />Navegación</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.REPORTS }}" routerLinkActive="selectedMenu"><span><i class="fa fa-envelope"></i></span><img src="/assets/img/blanckbotton200x200.png" />Reports</a>
+      <a class="AutosizeButton" role="button" (click)="logout()" href="javascript:void"><span><i class="fa fa-times"></i></span><img src="/assets/img/blanckbotton200x200.png" />logout</a>
+      <a class="AutosizeButton" role="button" routerLink="{{ menuRoutes.VERSION }}" routerLinkActive="selectedMenu"><span><i class="fa fa-info"></i></span><img src="/assets/img/blanckbotton200x200.png" />{{ versionInformation.version }}</a>
+      <hr class="Scinder">
       <div class="selected-planet">
             <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()" class="fa fa-globe"></i>
-            <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
+            <app-display-single-planet [planet]="selectedPlanet"> </app-display-single-planet>
       </div>
-      <div *ngIf="userData">
+      <div *ngIf="userData" class="ResourceData">
             <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
                   [resourceValue]="resources.currentPrimaryResource">
 
@@ -38,11 +39,11 @@
             </app-display-single-resource>
 
             <app-display-single-resource [resourceName]="userData.factionDto.energyName" [resourceImage]="userData.factionDto.energyImage"
-                  [resourceValue]="resources.currentEnergy" [resourceMaxValue]="resources.currentMaxEnergy">
+                  [resourceValue]="100-(resources.currentEnergy*100)/resources.currentMaxEnergy" [resourceMaxValue]="resources.currentMaxEnergy">
             </app-display-single-resource>
 
             <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes" [resourceName]="unitType.name" [resourceImage]="unitType.image"
-                  [resourceValue]="unitType.userBuilt" [resourceMaxValue]="unitType.computedMaxCount">
+                  [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount" [resourceMaxValue]="unitType.computedMaxCount">
 
             </app-display-single-resource>
       </div>

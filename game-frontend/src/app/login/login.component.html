@@ -1,8 +1,8 @@
-<div class="container loginContainer">
+<div class="loginContainer">
   <div class="row">
     <div class="Absolute-Center is-Responsive">
       <div id="logo-container"></div>
-      <div class="col-sm-12 col-md-10 col-md-offset-1">
+      <div class="col-sm-12 col-md-offset-1">
         <form (ngSubmit)="onLoginFormSubmit()" #loginForm="ngForm">
           <div class="input-group">
             <span class="input-group-addon"> <i fa [name]="'envelope-open'"></i></span>
@@ -17,8 +17,8 @@
             <button [disabled]="!loginForm.form.valid" type="submit" class="btn btn-def btn-block">Login</button>
           </div>
           <div class="form-group text-center loginActions">
-            <a href="#">Contraseña olvidada</a><br />
-            <a href="#">Registrarse</a>
+            <a href="#" id="passkey" >Contraseña olvidada</a>
+            <a href="#" id="regkey" >Registrarse</a>
           </div>
         </form>
       </div>

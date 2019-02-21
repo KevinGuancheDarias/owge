@@ -61,7 +61,7 @@
     <div *ngIf="!reports.length" class="sgt-empty-collection">
       No mission reports are available for now
     </div>
-    <div class="card sgt" *ngFor="let report of reports">
+    <div class="card sgt Report" *ngFor="let report of reports">
       <div class="card-block">
         <h5 class="card-title">Mission to {{ report.parsedJson?.targetPlanet?.name }}</h5>
       </div>

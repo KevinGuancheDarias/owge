@@ -1,58 +1,141 @@
 @import "../../colors.less";
-#sideBarRoot{
-    position: fixed;
-    z-index: 90;
-    height: 100%;
-    top: 0px;
-    padding: .5em;
-    width: 100%;
-    max-width: 200px;
-    background-color: rgba(190, 190, 250, 0.4);
-    box-shadow:  3px 3px 3px black;
 
-    .selected-planet {
-        margin-top: -26px;
-        i {
-            position: relative;
-            top: 34px;
-            left: 158px;
-            color: lightgray;
 
-            &:hover {
-                color: black;
-                cursor: pointer;
-            }
-        }
-    }
 
-    a ~ div{
-        transition: all 2s;
-        padding: 2px;
-        a{
-            box-shadow:  1px 1px 1px black;
-            width: 80%;
-            margin-left: 10%;
-            margin-top: 2px;
-            margin-bottom: 2px;
-            transition: opacity 0.4s height 0.8s;
-        }
+.AutosizeButton{
+    width: 13%;
+    margin-left: 1%;
+    height: 50px;
+    background-image: url('/assets/img/oldmetalnew.jpg');
+    float: left;
+    border-radius: 5%;
+    margin-top: 1px;
+   
+    /*text-indent:-9999px; */
+    overflow:hidden;
+   
+    font-size: 35px;
+    text-align: center;
+    vertical-align: middle;
+    text-shadow: 0px 0px 1px black;
+    background-position: top;
+    background-size: 100% 100%;
+    
+    border: outset 2px black;
+    box-shadow: 0px 0px 3px black, 0px 0px 6px black inset;
+    font-size: bold;
+    font-weight: bold;
+    font-size: 180%;
+    color: silver;
 
-        a:hover{
-            box-shadow:  0px 0px 0px black;
-        }
-    }
+}
+.AutosizeButton img{
+    display:inline;
+}
+.AutosizeButton span{
+    display: inline;
+}
+.AutosizeButton span i{
+    float: left;
+    margin-top:5px;
 
+    width: 40px;
+    height: 40px;
+}
+.AutosizeButton.selectedMenu{
+    border:inset;
+    color: gold;
+}
+.ResourceData{
+    width: 50%;
+    float: left;
     
 }
-app-modal .planet-card {
+
+.selected-planet i{
+       
+        position: absolute;
+        top: 55px;
+        right: 55%;
+        color: silver;
+} 
+.Scinder{
+    width: 100%;
     float: left;
+    height: 0px;
+    margin: 0px;
+    color:rgba(0,0,0,0);
 }
 
-.anterior{
-    height: 0px;
+@media (min-width:768px){
+    .ResourceData{
+        width: 100%;
+        
+    }
+    .AutosizeButton img{
+        display: none;
+    }
+    .AutosizeButton{
+        width: 100%;
+        text-indent: 0px;
+        border-radius: 10px;
+        margin:1%;
+    }
+    .AutosizeButton span{
+        display: none;
+    }
+   
+    .selected-planet i{
+        float: left;
+        position: relative;
+        top: 30px;
+        right: -160px;
+    }  
+   .Scinder{
+       display: hidden;
+   }
+    #sideBarRoot{
+        position: fixed;
+        z-index: 90;
+        height: 100%;
+        top: 0px;
+        padding: .5em;
+        width: 100%;
+        max-width: 200px;
+        background-color: rgba(190, 190, 250, 0.4);
+        box-shadow:  3px 3px 3px black;
 
-    a{
-        opacity: 0;
+
+
+        a ~ div{
+            transition: all 2s;
+            padding: 2px;
+            a{
+                box-shadow:  1px 1px 1px black;
+                width: 80%;
+                margin-left: 10%;
+                margin-top: 2px;
+                margin-bottom: 2px;
+                transition: opacity 0.4s height 0.8s;
+            }
+
+            a:hover{
+                box-shadow:  0px 0px 0px black;
+            }
+        }
+
+        
+    }
+    app-modal .planet-card {
+        float: left;
+    }
+
+    .anterior{
         height: 0px;
+
+        a{
+            opacity: 0;
+            height: 0px;
+        }
     }
 }
