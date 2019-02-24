@@ -6,10 +6,10 @@
             <div *ngFor="let planet of myPlanets" class="card sgt planet-card">
                   <app-display-single-planet [planet]="planet"></app-display-single-planet>
                   <div class="card-block">
-                        <a class="btn btn-block" (click)="selectPlanet(planet)">Select</a>
+                        <a class="sgt-sidebar-btn-menu" (click)="selectPlanet(planet)">Select</a>
                   </div>
                   <div class="card-block">
-                        <a *ngIf="!planet.home" class="btn btn-block" (click)="leavePlanet(planet)">Leave</a>
+                        <a *ngIf="!planet.home" class="sgt-sidebar-btn-menu" (click)="leavePlanet(planet)">Leave</a>
                   </div>
             </div>
       </div>
@@ -30,10 +30,12 @@
       <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.REPORTS }}"
             routerLinkActive="selectedMenu"><span><i class="fa fa-envelope"></i></span><img
                   src="/assets/img/blanckbotton200x200.png" />Reports</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.ALLIANCE }}"
-            routerLinkActive="selectedMenu">{{ 'APP.MENU_ALLIANCES' | translate }}</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.RANKING }}"
-            routerLinkActive="selectedMenu">{{ 'APP.MENU_RANKING' | translate }}</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.ALLIANCE }}"
+            routerLinkActive="selectedMenu"><span><i class="fas fa-user-friends"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />{{ 'APP.MENU_ALLIANCES' | translate }}</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.RANKING }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-trophy"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />{{ 'APP.MENU_RANKING' | translate }}</a>
       <a class="sgt-sidebar-btn-menu" role="button" (click)="logout()" href="javascript:void"><span><i
                         class="fa fa-times"></i></span><img src="/assets/img/blanckbotton200x200.png" />logout</a>
       <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.VERSION }}"

@@ -12,12 +12,12 @@ body{
     min-height: 100%;
 }
 
-
 *{
     margin:0px;
     padding: 0px;
   
 }
+
 .row{
     margin:0px;
     padding: 0px;
@@ -54,6 +54,20 @@ body{
     color: white;
     padding: 3px;
 	margin-top: -7px;
+}
+
+// START Common items
+.sgt-base-colors {
+	background-color: @bgColor;
+	color: @mainColor;
+	box-shadow: @commonBoxShadow;
+	text-shadow: @commonTextShadow;
+}
+
+.sgt-title {
+	.sgt-base-colors;
+	text-indent: 5px;
+	padding: 3px;
 }
 
 @media (min-width:768px){
@@ -205,26 +219,6 @@ body{
 	}
 
 	// END Common game card
-
-	// START Common items
-	.sgt-base-colors {
-		background-color: @bgColor;
-		color: @mainColor;
-		box-shadow: @commonBoxShadow;
-		text-shadow: @commonTextShadow;
-	}
-
-	.sgt-title {
-		.sgt-base-colors;
-		text-indent: 5px;
-		padding: 3px;
-	}
-
-	.sgt-scrollable-dialog {
-		width: 100%;
-		height: 100%;
-		overflow: auto;
-	}
 }
 
 table.sgt-table {

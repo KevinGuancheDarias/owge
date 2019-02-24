@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.7.1 (latest)
+==================
+* __Fix:__ Fix missing icons for mobile menu
+
 v0.7.0 (2019-02-21 15:42)
 ===========================
 * __Feature:__ As a player I want to have a ranking with at least battle points  
