@@ -48,8 +48,8 @@ class MysqliProxy extends mysqli {
 
 $sourceDbConnection = @new MysqliProxy('127.0.0.1', $user, $password, $sourceDb);
 $targetDbConnection = @new MysqliProxy('127.0.0.1', $user, $password, $targetDb);
-$sourceDbConnection->set_charset('utf-8');
-$targetDbConnection->set_charset('utf-8');
+$sourceDbConnection->set_charset('utf8');
+$targetDbConnection->set_charset('utf8');
 
 function escapeString(MysqliProxy $connection, string $input): string {
         return $connection->real_escape_string(html_entity_decode($input, ENT_QUOTES, 'UTF-8'));
