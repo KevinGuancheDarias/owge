@@ -36,7 +36,7 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	 */
 	@Override
 	public String getPrivateKey() {
-		return "C:\\xampp\\htdocs\\drupal\\private.key";
+		return "/var/sgt_data/keys/private.key";
 	}
 
 	/*
@@ -48,7 +48,7 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	 */
 	@Override
 	public String getPublicKey() {
-		return "C:\\xampp\\htdocs\\drupal\\public.key";
+		return "/var/sgt_data/keys/public.key";
 	}
 
 }
