@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 import { UnitService } from '../../service/unit.service';
 import { UnitUpgradeRequirements } from '../../shared/types/unit-upgrade-requirements.type';
@@ -12,7 +12,7 @@ import { BaseUnitComponent } from '../../shared/base-unit.component';
   templateUrl: './unit-requirements.component.html',
   styleUrls: ['./unit-requirements.component.less']
 })
-export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit, AfterViewInit {
+export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit {
   private static readonly UPGRADE_CARD_SIZE = 58;
   public unitRequirements: UnitUpgradeRequirements[];
 
@@ -26,15 +26,6 @@ export class UnitRequirementsComponent extends BaseUnitComponent implements OnIn
   async ngOnInit(): Promise<void> {
     this.unitRequirements = await this._unitService.findUnitUpgradeRequirements().toPromise();
     // this.autoSpanCard(this._components, '.auto-expand', el => el.parentElement.parentElement.parentElement);
-  }
-
-  ngAfterViewInit(): void {
-    this._components.changes.subscribe(() => {
-      this._components.toArray().forEach((current, index) => {
-        current.nativeElement.style.width =
-          (UnitRequirementsComponent.UPGRADE_CARD_SIZE * (this.unitRequirements[index].requirements.length + 1)) + 'px';
-      });
-    });
   }
 
   public findUnitImageUrl(unit: UnitPojo): string {

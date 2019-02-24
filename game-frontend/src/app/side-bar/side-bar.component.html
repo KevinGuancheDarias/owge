@@ -14,30 +14,38 @@
             </div>
       </div>
 </app-modal>
-<div id="sideBarRoot">
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}"
-            routerLinkActive="selectedMenu">Inicio</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UPGRADES }}"
-            routerLinkActive="selectedMenu">Mejoras</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.UNITS }}"
-            routerLinkActive="selectedMenu">Units</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.NAVIGATE }}"
-            routerLinkActive="selectedMenu">Navegación</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.REPORTS }}"
-            routerLinkActive="selectedMenu">Reports</a>
+<div id="sgt-side-bar-root">
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-home"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />Inicio</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UPGRADES }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-flask"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />Mejoras</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UNITS }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-male"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />Units</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.NAVIGATE }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-map"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />Navegación</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.REPORTS }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-envelope"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />Reports</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.ALLIANCE }}"
             routerLinkActive="selectedMenu">{{ 'APP.MENU_ALLIANCES' | translate }}</a>
       <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.RANKING }}"
             routerLinkActive="selectedMenu">{{ 'APP.MENU_RANKING' | translate }}</a>
-      <a class="btn btn-block" role="button" (click)="logout()" href="javascript:void">logout</a>
-      <a class="btn btn-block" role="button" routerLink="{{ menuRoutes.VERSION }}"
-            routerLinkActive="selectedMenu">{{ versionInformation.version }}</a>
+      <a class="sgt-sidebar-btn-menu" role="button" (click)="logout()" href="javascript:void"><span><i
+                        class="fa fa-times"></i></span><img src="/assets/img/blanckbotton200x200.png" />logout</a>
+      <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.VERSION }}"
+            routerLinkActive="selectedMenu"><span><i class="fa fa-info"></i></span><img
+                  src="/assets/img/blanckbotton200x200.png" />{{ versionInformation.version }}</a>
+      <hr>
       <div class="selected-planet">
             <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()"
                   class="fa fa-globe"></i>
-            <app-display-single-planet [planet]="selectedPlanet"></app-display-single-planet>
+            <app-display-single-planet [planet]="selectedPlanet"> </app-display-single-planet>
       </div>
-      <div *ngIf="userData">
+      <div *ngIf="userData" class="resource-data">
             <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
                   [resourceImage]="userData.factionDto.primaryResourceImage"
                   [resourceValue]="resources.currentPrimaryResource">
@@ -51,12 +59,14 @@
             </app-display-single-resource>
 
             <app-display-single-resource [resourceName]="userData.factionDto.energyName"
-                  [resourceImage]="userData.factionDto.energyImage" [resourceValue]="resources.currentEnergy"
+                  [resourceImage]="userData.factionDto.energyImage"
+                  [resourceValue]="100-(resources.currentEnergy*100)/resources.currentMaxEnergy"
                   [resourceMaxValue]="resources.currentMaxEnergy">
             </app-display-single-resource>
 
             <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes" [resourceName]="unitType.name"
-                  [resourceImage]="unitType.image" [resourceValue]="unitType.userBuilt"
+                  [resourceImage]="unitType.image"
+                  [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount"
                   [resourceMaxValue]="unitType.computedMaxCount">
 
             </app-display-single-resource>

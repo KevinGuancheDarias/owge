@@ -2,17 +2,31 @@
 @import "../../common_include.less";
 
 .container{
-    margin-top: 10px;
+    width: 50%;
+    float: left;
+    background-color: @bgColor;
     text-align: center;
-    color: @mainColor;
-    letter-spacing: 2px;
-    text-shadow: @commonTextShadow;
+    height: 160px;
+    color: silver;
+    
 
-    i {
-        color: lightgray;
-    }
 }
 
-img{
-    filter: drop-shadow(2px 0px 4px blue);
+@media (min-width:768px){
+
+    .container{
+        width: 100%;
+        margin-top: 10px;
+        color: @mainColor;
+        letter-spacing: 2px;
+        text-shadow: @commonTextShadow;
+
+        i {
+            color: lightgray;
+        }
+    }
+
+    img{
+        filter: drop-shadow(2px 0px 4px @bgColorOther);
+    }
 }

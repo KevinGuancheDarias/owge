@@ -40,14 +40,17 @@
             </div>
           </div>
         </ng-container>
-        <ng-container *ngIf="selectedReport.parsedJson.gatheredPrimary !== undefined && selectedReport.parsedJson.gatheredSecondary !== undefined">
+        <ng-container
+          *ngIf="selectedReport.parsedJson.gatheredPrimary !== undefined && selectedReport.parsedJson.gatheredSecondary !== undefined">
           <h1>Gathered resources</h1>
-          <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName" [resourceImage]="userData.factionDto.primaryResourceImage"
+          <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
+            [resourceImage]="userData.factionDto.primaryResourceImage"
             [resourceValue]="selectedReport.parsedJson.gatheredPrimary">
 
           </app-display-single-resource>
 
-          <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName" [resourceImage]="userData.factionDto.secondaryResourceImage"
+          <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName"
+            [resourceImage]="userData.factionDto.secondaryResourceImage"
             [resourceValue]="selectedReport.parsedJson.gatheredSecondary">
 
           </app-display-single-resource>
@@ -61,7 +64,7 @@
     <div *ngIf="!reports.length" class="sgt-empty-collection">
       No mission reports are available for now
     </div>
-    <div class="card sgt" *ngFor="let report of reports">
+    <div class="card sgt report-card" *ngFor="let report of reports">
       <div class="card-block">
         <h5 class="card-title">Mission to {{ report.parsedJson?.targetPlanet?.name }}</h5>
       </div>

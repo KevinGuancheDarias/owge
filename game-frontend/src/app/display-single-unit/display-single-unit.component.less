@@ -1,20 +1,100 @@
-.number-to-delete {
-    width: 107px;
-    text-align: right;
-    font-size: 18pt;
-}
-.requirements-attributes {
-    padding-left: 30px;
-    .btn {
-        width: 122px;
+@import "../../colors.less";
+
+.card.sgt{
+    float: left;
+    width: 100%;
+    float: left;
+    margin-top: 5px;
+    text-align: justify;
+    background-color: @bgColor;
+    color: silver;
+    padding: 10px;
+
+    .time{
+        width: 100%;
+        float: left;
+        margin-top: 0px;
+        background-color: @bgColor;
+        max-width: 768px;
+        border-radius: 0px;
+        box-shadow: 0px 0px 0px black;
+    }
+    .card-text{
+        padding: 10px;
+    }
+    .card-img-top{
+        border-radius:70% 70% 30% 30%;
+        width: 80%;
+        margin-left: 10%;
+        box-shadow: inset 0px 0px 10px gold, inset 0px 0px 2px black, 0px 0px 10px silver;
+        padding: 5%;
+        background-color: @bgColorOther;
     }
 }
 
-.btn.delete {
-    width: 190px;
-    margin-top: -2px;
+@media (min-width:620px){
+    .sgt.card{
+		float: left;
+		width: calc(48%);
+		margin-left: 1%;
+        margin-right: 1%;
 
-    &:hover {
-        width: 190px;
+        .unit-text{
+            overflow: hidden;
+            width: 100%;
+            height: 200px;
+        }
     }
 }
+@media (min-width:768px){
+    .card.sgt{
+        float: left;
+        width: 250px;
+		margin-right: 5px;
+        margin-left: 0px;
+
+        .time {
+            margin-top: 2px;
+            width: 100%;
+            height: 50px;
+            background-color: @bgColor;
+            border-radius: 6px;
+            color: #f1e4e8;
+            clear: both;
+            -webkit-box-shadow: 3px 3px 3px black;
+            box-shadow: 3px 3px 3px black;
+        }
+        .unit-text {
+            overflow: hidden;
+            width: 100%;
+            height: 200px;
+        }
+    }
+
+    .number-to-delete {
+        width: 50%;;
+        text-align: right;
+        font-size: 18pt;
+        float: left;
+    }
+    .requirements-attributes {
+       
+        .btn {
+            width: 50%;
+            float: left;
+            margin:0px;
+        }
+    }
+
+    .btn.delete {
+        width: 50%;;
+        margin-top: -2px;
+        float: left;
+
+    }
+    .card-block.requirements-attributes.AttributesContainer{
+        width: 100%;
+        height: 250px;
+    }
+}
+

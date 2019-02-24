@@ -12,7 +12,8 @@
   <app-loading [isReady]="enemyRunningMissions">
     <div *ngIf="enemyRunningMissions" class="sgt-card-list">
       <h1 class="sgt-title">Enemy missions</h1>
-      <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true" (missionDone)="findEnemyMissions()"></app-list-running-missions>
+      <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"
+        (missionDone)="findEnemyMissions()"></app-list-running-missions>
       <p *ngIf="!enemyRunningMissions.length" class="sgt-base-colors">
         No enemy mission are running to any of your planets
       </p>

@@ -2,6 +2,7 @@
   <app-display-dynamic-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'" [staticImage]="staticImage"
     [assetsImage]="assetsImage"></app-display-dynamic-image>
   <p #textElement>{{ resourceValue | number: '0.0-2' }}
-    <span *ngIf="resourceMaxValue"> / {{ resourceMaxValue }}</span>
+
+    <span [title]="resourceMaxValue" *ngIf="resourceMaxValue"> % </span>
   </p>
 </div>

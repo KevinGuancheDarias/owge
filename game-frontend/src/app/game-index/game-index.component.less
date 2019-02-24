@@ -1,8 +1,20 @@
-.sgt-card-list {
-    width: 95%;
-    clear: both;
+@import '../../colors.less';
 
-    p.sgt-base-colors {
-        margin-top: -7px;
+.sgt-card-list {
+    width: 100%;
+    clear: both;
+    background-color: @bgColor;
+    color: silver;
+    Margin-top:3px;
+}
+
+@media (min-width:768px){
+    .sgt-card-list {
+        width: 95%;
+        clear: both;
+
+        p.sgt-base-colors {
+            margin-top: -7px;
+        }
     }
 }

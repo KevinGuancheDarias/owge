@@ -1,7 +1,7 @@
 # SGT changelog
 
 v0.7.0 (2019-02-21 15:42)
-=================
+===========================
 * __Feature:__ As a player I want to have a ranking with at least battle points  
 ![As a player I want to have a ranking with at least battle points](assets/changelog/features/L46uhduW.png)  
 * __Feature:__ As a player, I want to be able to create an alliance  
@@ -10,6 +10,11 @@ v0.7.0 (2019-02-21 15:42)
 * __Feature:__ As a player I Want to be able to deploy my units to other planets  
 ![As a player I Want to be able to deploy my units to other planets](assets/changelog/features/4a028iCy.png)  
 * __Fix:__ If closing the modal by clicking outside is disabled, the background fade will not allow the user to click anything
+
+v0.6.3 (2019-02-23 18:05)
+===========================
+* __Improvement:__ Apply Kc style  
+![Apply Kc style](assets/changelog/improvements/CeUi35X0.png)  
 
 v0.6.2 (2018-12-27 14:44)
 ===========================
