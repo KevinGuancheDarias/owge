@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.7.2 (2019-02-24 23:18)
+===========================
+* __Fix:__ Register and forgot password links are inverted
+
 v0.7.1 (2019-02-24 23:01)
 ==================
 * __Fix:__ "Register" and "forgot password" buttons not pointing to KGDW links
