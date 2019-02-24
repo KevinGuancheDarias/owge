@@ -1,13 +1,14 @@
 <app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
-    <div #missionRoot class="card sgt auto-expand Mission" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
+    <div #missionRoot class="card sgt auto-expand"
+      *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
-      <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'" (click)="cancelMission(runningUnitMission.missionId)"
-        class="fa fa-close"></i>
+      <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
+        (click)="cancelMission(runningUnitMission.missionId)" class="fa fa-close"></i>
       <span class="display-time">
-        <app-countdown *ngIf="runningUnitMission.terminationDate" [targetDate]="convertToDate(runningUnitMission.terminationDate)"
-          (timeOver)="missionDone.emit()">
+        <app-countdown *ngIf="runningUnitMission.terminationDate"
+          [targetDate]="convertToDate(runningUnitMission.terminationDate)" (timeOver)="missionDone.emit()">
         </app-countdown>
       </span>
       <ng-template #tooltipPlanetComponent>
@@ -17,10 +18,12 @@
         <div class="card-title">
           <span class="auto-expand">
             Mission from
-            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
+            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
+              (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
               (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
             to
-            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
+            <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
+              (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
               (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
 
           </span>

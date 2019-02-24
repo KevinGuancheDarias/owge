@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChildren, QueryList, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 
 import { UnitService } from '../../service/unit.service';
 import { UnitUpgradeRequirements } from '../../shared/types/unit-upgrade-requirements.type';
@@ -12,7 +12,7 @@ import { BaseUnitComponent } from '../../shared/base-unit.component';
   templateUrl: './unit-requirements.component.html',
   styleUrls: ['./unit-requirements.component.less']
 })
-export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit, AfterViewInit {
+export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit {
   private static readonly UPGRADE_CARD_SIZE = 58;
   public unitRequirements: UnitUpgradeRequirements[];
 

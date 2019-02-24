@@ -1,5 +1,10 @@
 # SGT changelog
 
+v0.6.3 (2019-02-23 18:05)
+===========================
+* __Improvement:__ Apply Kc style  
+![Apply Kc style](assets/changelog/improvements/CeUi35X0.png)  
+
 v0.6.2 (2018-12-27 14:44)
 ===========================
 * __Fix:__ Missing fields in database creation script

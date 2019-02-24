@@ -1,11 +1,11 @@
-<div class="card sgt Science" *ngIf="userData">
+<div class="card sgt" *ngIf="userData">
   <div class="card-block">
     <h5 class="card-title">{{ upgrade.name }}</h5>
     <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">Nivel {{ obtainedUpgrade.level }}
       <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
   </div>
   <img class="card-img-top" src="{{ image }}" alt="image of the upgrade">
-  <div class="card-block Upgradetext">
+  <div class="card-block upgrade-text">
     <p class="card-text">{{ upgrade.description }}</p>
   </div>
   <ng-container *ngIf="obtainedUpgrade.requirements">
@@ -18,14 +18,17 @@
   <ng-container *ngIf="runningUpgrade">
     <ng-container *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
       <div class="upgrading-countdown">
-        <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate" (timeOver)="notifyCaller()">
+        <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate"
+          (timeOver)="notifyCaller()">
         </app-countdown>
       </div>
-      <a class="btn btn-block Upgradebutton" role="button" (click)="cancelUpgrade()">Cancelar</a>
+      <a class="btn btn-block" role="button" (click)="cancelUpgrade()">Cancelar</a>
     </ng-container>
-    <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block Upgradebutton" role="button" (click)="otherUpgradeAlreadyRunning()">---</a>
+    <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
+      (click)="otherUpgradeAlreadyRunning()">---</a>
   </ng-container>
   <ng-container *ngIf="!runningUpgrade">
-    <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block Upgradebutton" role="button" (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+    <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
+      (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
   </ng-container>
 </div>

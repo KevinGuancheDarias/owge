@@ -1,4 +1,6 @@
-.PageSelector{
+@import '../../colors.less';
+
+.page-selector{
     width: 100%;
 }  
 select.btn{
@@ -13,7 +15,7 @@ div {
 }
 
 a.btn {
-    background-color: RGBA(12,41,49,1);
+    background-color: @bgColor;
     width: 32%;
     float: left;
     margin-left: 1%;
@@ -26,7 +28,7 @@ div.clearFloat {
     clear: both;
 }
 @media (min-width:768px){
-    .PageSelector{
+    .page-selector{
         width: 90%;
     }
 

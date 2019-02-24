@@ -2,7 +2,7 @@
 
 
 
-.AutosizeButton{
+.sgt-sidebar-btn-menu{
     width: 13%;
     margin-left: 1%;
     height: 50px;
@@ -29,37 +29,36 @@
     color: silver;
 
 }
-.AutosizeButton img{
+.sgt-sidebar-btn-menu img{
     display:inline;
 }
-.AutosizeButton span{
+.sgt-sidebar-btn-menu span{
     display: inline;
 }
-.AutosizeButton span i{
+.sgt-sidebar-btn-menu span i{
     float: left;
     margin-top:5px;
 
     width: 40px;
     height: 40px;
 }
-.AutosizeButton.selectedMenu{
+.sgt-sidebar-btn-menu.selectedMenu{
     border:inset;
     color: gold;
 }
-.ResourceData{
+.resource-data{
     width: 50%;
     float: left;
     
 }
 
-.selected-planet i{
-       
-        position: absolute;
-        top: 55px;
-        right: 55%;
-        color: silver;
+.selected-planet i{    
+    position: absolute;
+    top: 55px;
+    right: 55%;
+    color: silver;
 } 
-.Scinder{
+hr {
     width: 100%;
     float: left;
     height: 0px;
@@ -68,20 +67,20 @@
 }
 
 @media (min-width:768px){
-    .ResourceData{
+    .resource-data{
         width: 100%;
         
     }
-    .AutosizeButton img{
+    .sgt-sidebar-btn-menu img{
         display: none;
     }
-    .AutosizeButton{
+    .sgt-sidebar-btn-menu{
         width: 100%;
         text-indent: 0px;
         border-radius: 10px;
         margin:1%;
     }
-    .AutosizeButton span{
+    .sgt-sidebar-btn-menu span{
         display: none;
     }
    
@@ -91,10 +90,10 @@
         top: 30px;
         right: -160px;
     }  
-   .Scinder{
+    hr{
        display: hidden;
-   }
-    #sideBarRoot{
+    }
+    #sgt-side-bar-root{
         position: fixed;
         z-index: 90;
         height: 100%;
@@ -104,8 +103,6 @@
         max-width: 200px;
         background-color: rgba(190, 190, 250, 0.4);
         box-shadow:  3px 3px 3px black;
-
-
 
         a ~ div{
             transition: all 2s;
@@ -122,20 +119,9 @@
             a:hover{
                 box-shadow:  0px 0px 0px black;
             }
-        }
-
-        
+        }        
     }
     app-modal .planet-card {
         float: left;
-    }
-
-    .anterior{
-        height: 0px;
-
-        a{
-            opacity: 0;
-            height: 0px;
-        }
     }
 }

@@ -1,9 +1,10 @@
 @import "../../colors.less";
 @import "../../common_include.less";
+
 .container{
     width: 50%;
     float: left;
-    background-color: RGBA(12,41,49,1);
+    background-color: @bgColor;
     text-align: center;
     height: 160px;
     color: silver;
@@ -26,6 +27,6 @@
     }
 
     img{
-        filter: drop-shadow(2px 0px 4px RGBA(15,86,120,1));
+        filter: drop-shadow(2px 0px 4px @bgColorOther);
     }
 }
