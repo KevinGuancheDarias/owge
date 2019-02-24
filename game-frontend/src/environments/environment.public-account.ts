@@ -1,7 +1,7 @@
 export const environment = {
     production: false,
     accountUrl: 'https://worlds.kevinguanchedarias.com/',
-    loginDomain: 'universe.sgt.kevinguanchedarias.com',
-    loginClientId: '26af9a87-f12a-4ac2-b17e-253a3b8c486e',
+    loginDomain: null,
+    loginClientId: '1e39e154-8ec1-4c72-81ed-48b47a2a7dd2',
     loginClientSecret: '1234'
 };

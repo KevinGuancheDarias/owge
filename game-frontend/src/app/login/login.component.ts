@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit {
 
   public email: string;
   public password: string;
+  public accountUrl: string = environment.accountUrl;
 
   constructor(
     private _loginService: LoginService,

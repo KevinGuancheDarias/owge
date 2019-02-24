@@ -2,6 +2,7 @@
 
 v0.7.1 (latest)
 ==================
+* __Fix:__ "Register" and "forgot password" buttons not pointing to KGDW links
 * __Fix:__ Fix missing icons for mobile menu
 * __Fix:__ Fix missing Ranking title
 * __Fix:__ Fix spanish accents not displaying properly  
