@@ -98,7 +98,9 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'ranking', component: RouterRootComponent, canActivate: [LoginSessionService],
-    children: RANKING_ROUTES
+    children: RANKING_ROUTES, data: {
+      sectionTitle: 'Ranking'
+    }
   },
   { path: '**', component: PageNotFoundComponent }
 ];

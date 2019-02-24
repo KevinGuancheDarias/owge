@@ -33,13 +33,15 @@ export class RouterRootComponent implements OnInit {
         throw new ProgrammingError(`Invalid input for ${this.constructor.name}`);
       }
       this.routerData = <any>data;
-      this.routerData.routes.forEach(current => {
-        if (typeof current.ngIf === 'function') {
-          current.ngIf().then(result => current.isNgIfOk = result);
-        } else {
-          current.isNgIfOk = true;
-        }
-      });
+      if (this.routerData.routes) {
+        this.routerData.routes.forEach(current => {
+          if (typeof current.ngIf === 'function') {
+            current.ngIf().then(result => current.isNgIfOk = result);
+          } else {
+            current.isNgIfOk = true;
+          }
+        });
+      }
     });
   }
 
