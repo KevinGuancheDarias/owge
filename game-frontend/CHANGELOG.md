@@ -2,6 +2,7 @@
 
 v0.7.2 (latest)
 ===========================
+* __Fix:__ Close icon not displaying in modals
 * __Fix:__ Sometimes units don't appear, but, it's counting the number of soldiers
 * __Fix:__ Register and forgot password links are inverted
 
