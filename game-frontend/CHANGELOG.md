@@ -1,7 +1,8 @@
 # SGT changelog
 
-v0.7.2 (2019-02-24 23:18)
+v0.7.2 (latest)
 ===========================
+* __Fix:__ Sometimes units don't appear, but, it's counting the number of soldiers
 * __Fix:__ Register and forgot password links are inverted
 
 v0.7.1 (2019-02-24 23:01)
