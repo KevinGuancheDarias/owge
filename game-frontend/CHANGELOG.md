@@ -1,6 +1,6 @@
 # SGT changelog
 
-v0.7.2 (latest)
+v0.7.2 (2019-02-25 14:54)
 ===========================
 * __Improvement:__ Display a cancel confirmation in upgrades  
 ![Display a cancel confirmation in upgrades](assets/changelog/improvements/kBMYJtvv.png)  
