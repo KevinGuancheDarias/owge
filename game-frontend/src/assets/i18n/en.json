@@ -6,6 +6,9 @@
         "MENU_ALLIANCES": "Alliances",
         "MENU_RANKING": "Ranking"
     },
+    "UPGRADE": {
+        "CANCEL_TEXT": "You are going to cancel, {{upgradeName}}, are you sure?"
+    },
     "WIDGETS": {
         "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
         "CONFIRMATION_DIALOG_CANCEL": "Cancel",
