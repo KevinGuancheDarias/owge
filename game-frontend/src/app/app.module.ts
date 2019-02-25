@@ -199,6 +199,9 @@ export class AppModule {
     window['globalShit'] = this._websocketService;
     this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
     this._websocketService.initSocket('http://127.0.0.1:3000');
-    this._translateService.setDefaultLang('en');
+    const supportedLanguages = ['en', 'es'];
+    const browserLang = this._translateService.getBrowserLang();
+    const targetLang = supportedLanguages.some(current => current === browserLang) ? browserLang : 'en';
+    this._translateService.setDefaultLang(targetLang);
   }
 }
