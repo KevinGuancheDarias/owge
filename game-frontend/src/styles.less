@@ -78,6 +78,21 @@ body{
 		background-size: cover;
 	}
 
+	/* Allows using scroll in position fixed elements */
+	.magic-overflow{
+		overflow:auto;
+		margin-right: -100px;
+		padding-right: 100px;
+		max-height:100%;
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none;  /* IE 10+ */
+		
+		&::-webkit-scrollbar {
+			width: 0px;
+			height: 0px;
+		}
+	}
+
 	/* NOTICE: Temporary addon, .resourceImage should be in CSS of display-single-resource , but CSS isolation doesn't allow parent-child CSS inherit for now! */
 	.resourceImage, .sgt.card .resourceImage{
 		margin-top: 6px;    
@@ -231,5 +246,4 @@ table.sgt-table {
         background-color: lighten(@bgColor, 10%);
     }
 }
-
 // END Common items
