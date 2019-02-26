@@ -1,4 +1,5 @@
-import { Component, Input, ViewChild, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { first } from 'rxjs/operators/first';
 
 import { MissionInformationStore } from '../../store/mission-information.store';
 import { PlanetPojo } from '../../shared-pojo/planet.pojo';
@@ -22,6 +23,9 @@ export class NavigationComponent extends GameBaseService implements OnInit {
     this._loginSessionService.findSelectedPlanet.filter(current => !!current).subscribe(async selectedPlanet => {
       this._missioninformationStore.originPlanet.next(selectedPlanet);
       this._missioninformationStore.availableUnits.next(await this._findObtainedUnits(selectedPlanet));
+      this._missioninformationStore.missionSent.pipe(first()).subscribe(async () => {
+        this._missioninformationStore.availableUnits.next(await this._findObtainedUnits(selectedPlanet));
+      });
     });
   }
 

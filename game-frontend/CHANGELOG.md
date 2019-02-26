@@ -1,5 +1,9 @@
 # SGT changelog
 
+v0.7.3 (latest)
+==================
+* __Fix:__ When the user sends a mission, the available units count is not updating unless full window refresh is issued `(see video evidence` [here](assets/changelog/bugs/pwY76NOb.mp4)`)`
+
 v0.7.2 (2019-02-25 14:54)
 ===========================
 * __Improvement:__ Display a cancel confirmation in upgrades  
