@@ -2,6 +2,7 @@
 
 v0.7.3 (latest)
 ==================
+* __Fix:__ Attacks are not working when one user with an alliance attacks a user that doesn't have an alliance
 * __Fix:__ When the user sends a mission, the available units count is not updating unless full window refresh is issued `(see video evidence` [here](assets/changelog/bugs/pwY76NOb.mp4)`)`
 
 v0.7.2 (2019-02-25 14:54)

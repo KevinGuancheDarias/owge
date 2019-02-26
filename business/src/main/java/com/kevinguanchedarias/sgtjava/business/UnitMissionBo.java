@@ -309,8 +309,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
 		private boolean filterAlliance(AttackUserInformation current) {
-			return getUser().getAlliance() == null
-					|| (!getUser().getAlliance().getId().equals(current.getUser().getAlliance().getId()));
+			return getUser().getAlliance() == null || current.getUser().getAlliance() == null
+					|| !getUser().getAlliance().getId().equals(current.getUser().getAlliance().getId());
 		}
 	}
 
