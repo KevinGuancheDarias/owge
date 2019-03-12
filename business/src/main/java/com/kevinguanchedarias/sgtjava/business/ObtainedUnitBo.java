@@ -21,7 +21,6 @@ import com.kevinguanchedarias.sgtjava.enumerations.ImprovementType;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.sgtjava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.sgtjava.repository.ObtainedUnitRepository;
 
 @Service
@@ -124,11 +123,8 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 */
 	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit) {
 		ObtainedUnit retVal;
-		if (!planetBo.isOfUserProperty(userId, obtainedUnit.getSourcePlanet().getId())) {
-			throw new SgtBackendNotImplementedException("Planet is not of user property");
-		}
-		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetIdAndIddNoAndMissionNull(userId,
-				obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId(), obtainedUnit.getId());
+		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNullOrDeployed(userId,
+				obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId());
 		if (existingOne == null) {
 			retVal = save(obtainedUnit);
 		} else {
@@ -242,21 +238,25 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return repository.countByMission(mission) > 0;
 	}
 
+	@Transactional(propagation = Propagation.MANDATORY)
 	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
 		Planet originPlanet = unit.getTargetPlanet();
 		unit.setTargetPlanet(unit.getSourcePlanet());
 		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
 		if (planetBo.isOfUserProperty(userId, planetId)) {
+			saveWithAdding(userId, unit);
 			unit.setMission(null);
 			unit.setTargetPlanet(null);
-			saveWithAdding(userId, unit);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
 			save(unit);
 		} else {
 			unit.setTargetPlanet(originPlanet);
-			unit.setMission(unitMissionBo.createDeployedMission(originPlanet, unit.getSourcePlanet(), unit.getUser()));
-			save(unit);
-
+			unit = saveWithAdding(userId, unit);
+			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
+				unit.setMission(
+						unitMissionBo.createDeployedMission(originPlanet, unit.getSourcePlanet(), unit.getUser()));
+				save(unit);
+			}
 		}
 	}
 

@@ -4,6 +4,8 @@ v0.7.3 (latest)
 ==================
 * __Fix:__ In some resolutions the player can't see the entire sidebar
 * __Fix:__ Attacks are not working when one user with an alliance attacks a user that doesn't have an alliance
+* __Fix:__ When deploying multiple units of the same type, is not merging the count of the types, this causes errors, as the system doesn't expect to have two separate counts of the same unit type in the same planet  
+![When deploying multiple units of the same type, is not merging the count of the types, this causes errors, as the system doesn't expect to have two separate counts of the same unit type in the same planet](assets/changelog/bugs/scPd4AQN.png)  
 * __Fix:__ When the user sends a mission, the available units count is not updating unless full window refresh is issued `(see video evidence` [here](assets/changelog/bugs/pwY76NOb.mp4)`)`
 
 v0.7.2 (2019-02-25 14:54)
