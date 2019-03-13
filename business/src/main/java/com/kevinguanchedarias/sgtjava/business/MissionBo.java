@@ -246,7 +246,7 @@ public class MissionBo extends AbstractMissionBo {
 		} else if (missionUser.getId().equals(loggedInUser.getId())) {
 			switch (type) {
 			case BUILD_UNIT:
-				obtainedUnitBo.deleteByMissionId(mission.getId());
+				obtainedUnitBo.deleteByMissionId(mission.getId(), false);
 				missionUser.addtoPrimary(mission.getPrimaryResource());
 				missionUser.addToSecondary(mission.getSecondaryResource());
 				userStorageBo.save(missionUser);

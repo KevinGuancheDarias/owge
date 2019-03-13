@@ -199,11 +199,39 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 				.findFirst().orElse(null);
 	}
 
+	/**
+	 * Deletes obtained units involved in passed mission <br>
+	 * <b>NOTICE: </b> By default will subtract improvements
+	 * 
+	 * @param missionId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	public int deleteByMissionId(Long missionId) {
+		return deleteByMissionId(missionId, true);
+	}
+
+	/**
+	 * Deletes obtained units involved in passed mission <br>
+	 * <b>NOTICE: </b> As of 0.7.3, the param <i>subtractImprovements</i> can be
+	 * specified, for example to avoid removing improvements of a unit that has
+	 * not been even built
+	 * 
+	 * @param missionId
+	 * @param subtractImprovements
+	 *            If true will too subtract improvements
+	 * @return
+	 * @since 0.7.3
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	public int deleteByMissionId(Long missionId, boolean subtractImprovements) {
 		return repository.findByMissionId(missionId).stream().map(current -> {
-			userImprovementBo.subtractImprovements(current.getUnit().getImprovement(), current.getUser(),
-					current.getCount());
+			if (subtractImprovements) {
+				userImprovementBo.subtractImprovements(current.getUnit().getImprovement(), current.getUser(),
+						current.getCount());
+			}
 			delete(current);
 			return current;
 		}).collect(Collectors.toList()).size();
