@@ -26,6 +26,7 @@ import com.kevinguanchedarias.sgtjava.entity.MissionReport;
 import com.kevinguanchedarias.sgtjava.entity.UserStorage;
 import com.kevinguanchedarias.sgtjava.enumerations.MissionType;
 import com.kevinguanchedarias.sgtjava.exception.PlanetNotFoundException;
+import com.kevinguanchedarias.sgtjava.exception.ProgrammingException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.sgtjava.exception.SgtBackendSchedulerException;
 import com.kevinguanchedarias.sgtjava.exception.UserNotFoundException;
@@ -106,10 +107,15 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 			if (missionType.isUnitMission() && missionType != MissionType.RETURN_MISSION
 					&& missionType != MissionType.BUILD_UNIT) {
 				findUnitMissionBoInstance().adminRegisterReturnMission(mission);
+				resolveMission(mission);
 			} else if (missionType == MissionType.BUILD_UNIT) {
-				obtainedUnitBo.deleteByMissionId(mission.getId());
+				obtainedUnitBo.deleteByMissionId(mission.getId(), false);
+				delete(mission);
+			} else if (missionType == MissionType.LEVEL_UP) {
+				delete(mission);
+			} else {
+				throw new ProgrammingException("Should never ever happend");
 			}
-			resolveMission(mission);
 		} else {
 			mission.setAttemps(mission.getAttemps() + 1);
 			mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
