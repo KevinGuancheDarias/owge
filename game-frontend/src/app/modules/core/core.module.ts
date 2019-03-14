@@ -8,6 +8,8 @@ import { CoreHttpService } from './services/core-http.service';
 import { UniverseModule } from '../universe/universe.module';
 import { ModalComponent } from '../../components/modal/modal.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { ClockSyncService } from './services/clock-sync.service';
+import { ClockInitializer } from './initializers/clock.initializer';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -32,7 +34,7 @@ export class CoreModule {
   public static forRoot(): ModuleWithProviders {
     return {
       ngModule: CoreModule,
-      providers: [CoreGameService, CoreHttpService]
+      providers: [CoreGameService, CoreHttpService, ClockSyncService, ClockInitializer]
     };
   }
 }

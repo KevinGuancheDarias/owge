@@ -1,29 +1,31 @@
 import { Injectable } from '@angular/core';
+import { tap } from 'rxjs/operators/tap';
+import { Observable } from 'rxjs/Observable';
+
 import { GameBaseService } from '../service/game-base.service';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { Observable } from 'rxjs/Observable';
 import { UnitMissionInformation } from '../shared/types/unit-mission-information.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '../shared/types/mission.type';
 import { ProgrammingError } from '../../error/programming.error';
+import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 
 @Injectable()
 export class MissionService extends GameBaseService {
 
-  public constructor() {
+  public constructor(private _clockSyncService: ClockSyncService) {
     super();
   }
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
-    return this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findMy');
+    return this._syncDate(this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findMy'));
   }
 
   public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
-    return this.doGetWithAuthorizationToGame<UnitRunningMission[]>('mission/findEnemy');
+    return this._syncDate(this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findEnemy'));
   }
-
 
   /**
    * Sends a mission whose type is specified by param
@@ -132,6 +134,17 @@ export class MissionService extends GameBaseService {
         targetPlanetId: targetPlanet.id,
         involvedUnits
       }
+    );
+  }
+
+  private _syncDate(input: Observable<AnyRunningMission[]>): Observable<AnyRunningMission[]> {
+    return input.pipe(
+      tap(current =>
+        current.forEach(
+          runningMission =>
+            runningMission.terminationDate = this._clockSyncService.computeSyncedTerminationDate(runningMission.terminationDate)
+        )
+      )
     );
   }
 }

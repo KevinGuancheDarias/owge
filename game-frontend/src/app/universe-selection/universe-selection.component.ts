@@ -9,6 +9,7 @@ import { UniverseService } from '../universe/universe.service';
 import { Credentials } from '../shared/types/credentials.type';
 import { SafeUrl } from '@angular/platform-browser';
 import { SanitizeService } from '../services/sanitize.service';
+import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 
 @Component({
   selector: 'app-universe-selection',
@@ -27,7 +28,12 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   @ViewChild('credentialsFrame')
   private _credentialsFrame: ElementRef;
 
-  constructor(private universeService: UniverseService, private _router: Router, private _sanitizeService: SanitizeService) {
+  constructor(
+    private universeService: UniverseService,
+    private _router: Router,
+    private _sanitizeService: SanitizeService,
+    private _clockSyncService: ClockSyncService
+  ) {
     super();
   }
 
@@ -60,8 +66,9 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
    * @param {boolean} isUserSubscribed The server response, is a simple boolean
    * @author Kevin Guanche Darias
    */
-  private checkUniverseUserExists(isUserSubscribed: boolean) {
+  private async checkUniverseUserExists(isUserSubscribed: boolean) {
     if (isUserSubscribed) {
+      await this._clockSyncService.init();
       this._redirectToGameIndex();
     } else {
       if (confirm('Nunca has jugado en este universo, \n ¿deseas empezas?')) {

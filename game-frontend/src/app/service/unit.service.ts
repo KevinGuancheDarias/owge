@@ -16,6 +16,7 @@ import 'rxjs/add/operator/filter';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { ProgrammingError } from '../../error/programming.error';
 import { UnitTypeService } from '../services/unit-type.service';
+import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -57,7 +58,8 @@ export class UnitService extends GameBaseService {
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _planetService: PlanetService,
-    private _unitTypeService: UnitTypeService
+    private _unitTypeService: UnitTypeService,
+    private _clockSyncService: ClockSyncService
   ) {
     super();
     this.resourcesAutoUpdate();
@@ -135,7 +137,7 @@ export class UnitService extends GameBaseService {
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
       this._unitTypeService.addToType(unit.typeId, count);
       if (res) {
-        res.terminationDate = new Date(res.terminationDate);
+        res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
         this._registerInterval(this._selectedPlanet, res);
         this._refreshPlanetsLoaded();
       }

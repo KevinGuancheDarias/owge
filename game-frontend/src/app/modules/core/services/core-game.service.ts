@@ -27,6 +27,27 @@ export class CoreGameService {
 
   }
 
+
+  /**
+   * Executes a GET query to the universe <b>WITHOUT</b> authentication
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.7.3
+   * @template T
+   * @param {string} url
+   * @param {HttpOptions} [options]
+   * @returns {Observable<T>}
+   * @memberof CoreGameService
+   */
+  public getToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
+    return this._universeStorage.currentUniverse.pipe(
+      first(),
+      switchMap(
+        currentUniverse => this._coreHttpService.get(`${currentUniverse.restBaseUrl}/${url}`, options)
+      )
+    );
+  }
+
   /**
    * Sends a GET request to current universe
    *

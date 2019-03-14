@@ -9,6 +9,7 @@ import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
+import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 
 @Injectable()
 export class UpgradeService extends GameBaseService {
@@ -21,7 +22,7 @@ export class UpgradeService extends GameBaseService {
   private _isUpgradingInternalData: RunningUpgrade;
   private _runningUpgradeCheckIntervalId: number;
 
-  constructor(private _resourceManagerService: ResourceManagerService) {
+  constructor(private _resourceManagerService: ResourceManagerService, private _clockSyncService: ClockSyncService) {
     super();
     this.resourcesAutoUpdate();
   }
@@ -41,7 +42,7 @@ export class UpgradeService extends GameBaseService {
     this.doGetWithAuthorizationToGame('upgrade/findRunningUpgrade').subscribe(res => {
       this._isUpgradingInternalData = res;
       if (res) {
-        res.terminationDate = new Date(res.terminationDate);
+        res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
         this._registerInterval();
       }
       this._isUpgrading.next(res);

@@ -2,6 +2,7 @@
 
 v0.7.3 (latest)
 ==================
+* __Fix:__ Upgrade timer is not synchronized with the user machine
 * __Fix:__ The attemps system of missions, is not automatically deleting BUILD_UNIT mission after 3 attemps
 * __Fix:__ Deleting heroes doesn't work when you have cancelled the build of one hero
 * __Fix:__ In some resolutions the player can't see the entire sidebar

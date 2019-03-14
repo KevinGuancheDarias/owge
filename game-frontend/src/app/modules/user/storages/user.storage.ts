@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 
 import { User } from '../types/user.type';
-import { TokenPojo } from '../../../login-session/token.pojo';
-
 
 /**
  * Stores logged in user information

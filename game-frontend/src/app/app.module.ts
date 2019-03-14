@@ -158,8 +158,8 @@ export function findHttpLoaderFactory(http: HttpClient) {
     NgbModule.forRoot(),
     UserModule.forRoot(),
     AllianceModule.forRoot(),
-    CoreModule.forRoot(),
     UniverseModule.forRoot(),
+    CoreModule.forRoot(),
     RankingModule,
     WidgetsModule,
     TranslateModule.forRoot({
