@@ -1,5 +1,8 @@
 # SGT changelog
 
+v0.7.4 (latest)
+==================
+
 v0.7.3 (2019-03-14 14:17)
 ===========================
 * __Fix:__ Upgrade timer is not synchronized with the user machine
