@@ -253,8 +253,12 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet, Mission attackMission) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
 		retVal.addAll(repository.findBySourcePlanetId(attackedPlanet.getId()));
-		retVal.addAll(repository.findByTargetPlanetIdAndMissionIdNotNullAndMissionIdNot(attackedPlanet.getId(),
-				attackMission.getId()));
+		retVal.addAll(repository
+				.findByTargetPlanetIdAndMissionIdNotNullAndMissionIdNot(attackedPlanet.getId(), attackMission.getId())
+				.stream()
+				.filter(current -> MissionType
+						.valueOf(current.getMission().getType().getCode()) != MissionType.DEPLOYED)
+				.collect(Collectors.toList()));
 		return retVal;
 	}
 

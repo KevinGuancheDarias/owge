@@ -2,6 +2,7 @@
 
 v0.7.4 (latest)
 ==================
+* __Fix:__ When you attack source planet of deploy mission, the attack would affect units deployed in other planets
 
 v0.7.3 (2019-03-14 14:17)
 ===========================
