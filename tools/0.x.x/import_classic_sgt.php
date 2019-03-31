@@ -1,14 +1,14 @@
 #!/usr/bin/env php
 <?php
-define('TARGET_CLASSIC_IMAGES_STORAGE', 'sgt_classic_media');
+define('TARGET_CLASSIC_IMAGES_STORAGE', 'owge_classic_media');
 define('FACTION_INITIAL_ENERGY', 4200);
-define('FACTION_ENERGY_ICON','sgt_classic.png');
+define('FACTION_ENERGY_ICON','owge_classic.png');
 define('FACTION_ENERGY_NAME', 'Energy');
 define('FACTION_MAX_PLANETS', 4);
 define('TROOPS_TYPE_ID', 0);
 define('SHIPS_TYPE_ID', 100);
 define('DEFENSES_TYPE_ID', 1000);
-define('CLASSIC_SGT_DB_DELIMITER', ';');
+define('CLASSIC_OWGE_DB_DELIMITER', ';');
 define('DEFAULT_EXTENSION', '.jpg');
 define('NG_BEEN_RACE_REQUIREMENT_CODE', 'BEEN_RACE');
 define('NG_HAVE_UPGRADE_LEVEL_REQUIREMENT_CODE', 'UPGRADE_LEVEL');
@@ -17,7 +17,7 @@ define('NG_SOLDIERS_LIMIT', 10);
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-echo 'Kevin Guanche Darias :: SGT Classic Import tool' . PHP_EOL;
+echo 'Kevin Guanche Darias :: OWGE Classic Import tool' . PHP_EOL;
 
 if($argc < 5) {
     echo 'Missing parameters, usage: ' . basename(__FILE__) . ' dbuser dbpassword sourcedatabase targetdatabase' . PHP_EOL;
@@ -236,7 +236,7 @@ class Faction extends CommonObject {
 }
 
 /**
- * Extracts the information from SGT Classic
+ * Extracts the information from OWGE Classic
  *
  * @author Kevin Guanche Darias
 */

@@ -6,7 +6,7 @@ import { WidgetConfirmationDialogComponent } from './components/widget-confirmat
 import { CoreModule } from '../core/core.module';
 
 /**
- * Has UI widgets for SGT
+ * Has UI widgets for OWGE
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0

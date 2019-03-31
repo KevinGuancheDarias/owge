@@ -68,7 +68,7 @@ function compileMavenProject () {
 }
 
 ##
-# Returns the HTTP port for the specified SGT version
+# Returns the HTTP port for the specified OWGE version
 # Notice: It ensures only a free port is returned
 #
 # @deprecated It's better to determine the port by giving universeId, use getPortByUniverseId instead
@@ -93,7 +93,7 @@ function getPort () {
 }
 
 ##
-# Returns the HTTP port for the specified SGT universe
+# Returns the HTTP port for the specified OWGE universe
 #
 # @param $1 int Unirverse id
 # @returns stdout<int> Port number

@@ -3,7 +3,7 @@
 # @var $1 - Absoltute path to  angular 2 project
 # @var $2 - if specified, will mean should do docker install (Not useful when using docker compose)
 
-dockerImageName="kevinguanchedarias/sgtjava_main_proxy";
+dockerImageName="kevinguanchedarias/owgejava_main_proxy";
 
 if [ -z "$1" ]; then
         echo "No se ha especificado el directorio donde se encuentra el cdigo del frontend";

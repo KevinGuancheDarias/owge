@@ -7,7 +7,7 @@
 	<beans profile="production">
 		<security:authentication-manager>
 			<security:authentication-provider>
-				<!--  In the future replace this by a webservice requesting logon to the "sgt accounts server" -->
+				<!--  In the future replace this by a webservice requesting logon to the "owge accounts server" -->
 				<security:jdbc-user-service
 					users-by-username-query="SELECT username,password,enabled FROM `admin_users` WHERE `username` = ?"
 					authorities-by-username-query="SELECT ? AS `username`,'dummy' AS `authority`"

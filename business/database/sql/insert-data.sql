@@ -4,8 +4,8 @@ INSERT INTO admin_users (id,username,password,mail,enabled) VALUES(1,'KevinGuanc
 
 -- START Prepare  objects
 INSERT INTO objects (description, repository) VALUES ('RACE_SPECIAL', 'invalid.RaceSpecial');
-INSERT INTO objects (description, repository) VALUES ('UNIT', 'com.kevinguanchedarias.sgtjava.repository.UnitRepository');
-INSERT INTO objects (description, repository) VALUES ('UPGRADE', 'com.kevinguanchedarias.sgtjava.repository.UpgradeRepository');
+INSERT INTO objects (description, repository) VALUES ('UNIT', 'com.kevinguanchedarias.owgejava.repository.UnitRepository');
+INSERT INTO objects (description, repository) VALUES ('UPGRADE', 'com.kevinguanchedarias.owgejava.repository.UpgradeRepository');
 -- END Prepare objects
 
 -- START Prepare requirements

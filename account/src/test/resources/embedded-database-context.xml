@@ -20,7 +20,7 @@
 			value="org.hibernate.jpa.HibernatePersistenceProvider"></property>
 		<property name="packagesToScan">
 			<list>
-				<value>com.kevinguanchedarias.sgtjava.entity</value>
+				<value>com.kevinguanchedarias.owgejava.entity</value>
 			</list>
 		</property>
 		<property name="dataSource" ref="dataSource" />

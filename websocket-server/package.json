@@ -1,7 +1,7 @@
 {
-  "name": "sgtu1.5_websocket",
+  "name": "owgeu1.5_websocket",
   "version": "0.0.1",
-  "description": "Websocket subsystem for SGT",
+  "description": "Websocket subsystem for OWGE",
   "main": "main.js",
   "scripts": {
     "tsc": "tsc",

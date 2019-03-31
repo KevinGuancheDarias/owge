@@ -1,19 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.kevinguanchedarias.sgt</groupId>
-	<artifactId>sgtjava-admin</artifactId>
+	<groupId>com.kevinguanchedarias.owge</groupId>
+	<artifactId>owgejava-admin</artifactId>
 	<packaging>war</packaging>
 	<version>0.7.4-SNAPSHOT</version>
-	<name>SGT Universe Admin panel</name>
-	<url>http://sgtjava.kevinguanchedarias.com</url>
+	<name>OWGE Universe Admin panel</name>
+	<url>http://owgejava.kevinguanchedarias.com</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.3.2.RELEASE</spring.version>
 		<hibernate.version>5.1.1.Final</hibernate.version>
 		<springSecurity.version>4.1.3.RELEASE</springSecurity.version>
-		<sgt.version>0.7.4-SNAPSHOT</sgt.version>
+		<owge.version>0.7.4-SNAPSHOT</owge.version>
 	</properties>
 
 	<repositories>
@@ -180,14 +180,14 @@
 		<!-- END Kevinsuite dependencies -->
 		
 		<dependency>
-			<groupId>com.kevinguanchedarias.sgt</groupId>
-			<artifactId>sgtjava-backend</artifactId>
-			<version>${sgt.version}</version>
+			<groupId>com.kevinguanchedarias.owge</groupId>
+			<artifactId>owgejava-backend</artifactId>
+			<version>${owge.version}</version>
 		</dependency>
 		<!--  END Local managed dependencies  -->
 	</dependencies>
 	<build>
-		<finalName>sgtjava-admin</finalName>
+		<finalName>owgejava-admin</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

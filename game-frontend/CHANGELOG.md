@@ -1,4 +1,4 @@
-# SGT changelog
+# OWGE changelog
 
 v0.7.4 (latest)
 ==================
@@ -170,7 +170,7 @@ v0.3.6 (2018-08-19 16:07)
 
 v0.3.5 (2018-08-09 17:36)
 ==========
-* __DevOps:__ Add support for publishing multiple universes of the same SGT minor version to the public server
+* __DevOps:__ Add support for publishing multiple universes of the same OWGE minor version to the public server
 * __DevOps:__ Add feature to deploy a game more easily to the public server
 * __Fix:__ If user tries to send more units, than the one he have, game will crash with a loading img  
 ![If user tries to send more units, than the one he have, game will crash with a loading img](assets/changelog/bugs/wLpFm1fg.gif)

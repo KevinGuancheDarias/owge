@@ -18,13 +18,13 @@
 
 
 	<context:annotation-config></context:annotation-config>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.dao">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.dao">
 	</context:component-scan>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.business">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.business">
 	</context:component-scan>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.controller">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.controller">
 	</context:component-scan>
 
-	<jpa:repositories base-package="com.kevinguanchedarias.sgtjava.repository"></jpa:repositories>
+	<jpa:repositories base-package="com.kevinguanchedarias.owgejava.repository"></jpa:repositories>
 
 </beans>

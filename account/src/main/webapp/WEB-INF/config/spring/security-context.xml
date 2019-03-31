@@ -6,7 +6,7 @@
 	<bean id="restAuthenticationEntryPoint"
 		class="com.kevinguanchedarias.kevinsuite.commons.rest.security.RestAuthenticationEntryPoint"></bean>
 	<bean id="authenticationProviderFake"
-		class="com.kevinguanchedarias.sgtjava.fake.AuthenticationProviderFake"></bean>
+		class="com.kevinguanchedarias.owgejava.fake.AuthenticationProviderFake"></bean>
 	<security:global-method-security
 		pre-post-annotations="enabled" />
 

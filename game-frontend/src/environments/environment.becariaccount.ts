@@ -5,6 +5,6 @@
 
 export const environment = {
   production: false,
-  accountUrl: 'https://becariaccount.sgt.kevinguanchedarias.com/',
+  accountUrl: 'https://becariaccount.owge.kevinguanchedarias.com/',
   loginDomain: null
 };

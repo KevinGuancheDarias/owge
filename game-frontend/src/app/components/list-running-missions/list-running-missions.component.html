@@ -8,7 +8,7 @@
 </app-modal>
 <app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
-    <div #missionRoot class="card sgt auto-expand"
+    <div #missionRoot class="card owge auto-expand"
       *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>

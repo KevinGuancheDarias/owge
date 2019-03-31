@@ -3,7 +3,7 @@
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:p="http://primefaces.org/ui"
-	xmlns:sgt-admin-form="http://java.sun.com/jsf/composite/sgt_admin/1_0/compositions/form"
+	xmlns:owge-admin-form="http://java.sun.com/jsf/composite/owge_admin/1_0/compositions/form"
 	template="/WEB-INF/layout/template.xhtml">
 
 
@@ -79,28 +79,28 @@
 							</p:column>
 						</p:row>
 
-						<sgt-admin-form:select_row htmlId="canExplore" label="Can Explore"
+						<owge-admin-form:select_row htmlId="canExplore" label="Can Explore"
 							value="#{unitTypesController.selectedObject.canExplore}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canGather" label="Can Gather"
+						<owge-admin-form:select_row htmlId="canGather" label="Can Gather"
 							value="#{unitTypesController.selectedObject.canGather}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canEB"
+						<owge-admin-form:select_row htmlId="canEB"
 							label="Can EstablishBase"
 							value="#{unitTypesController.selectedObject.canEstablishBase}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canAttack" label="Can Attack"
+						<owge-admin-form:select_row htmlId="canAttack" label="Can Attack"
 							value="#{unitTypesController.selectedObject.canAttack}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canCounterattack"
+						<owge-admin-form:select_row htmlId="canCounterattack"
 							label="Can Counterattack"
 							value="#{unitTypesController.selectedObject.canCounterattack}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canConquest"
+						<owge-admin-form:select_row htmlId="canConquest"
 							label="Can Conquest"
 							value="#{unitTypesController.selectedObject.canConquest}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
-						<sgt-admin-form:select_row htmlId="canDeploy" label="Can Deploy"
+						<owge-admin-form:select_row htmlId="canDeploy" label="Can Deploy"
 							value="#{unitTypesController.selectedObject.canDeploy}"
 							values="#{unitTypesController.missionSupportEnumValues}" />
 					</p:fragment>

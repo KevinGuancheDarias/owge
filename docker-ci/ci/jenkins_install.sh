@@ -37,20 +37,20 @@ function checkExists(){
 }
 
 # START env aliasing
-adminWarFile="$SGT_CI_INSTALL_ADMIN_FILE";
-gameRestWarFile="$SGT_CI_INSTALL_GAME_REST_FILE";
-gameFrontendNgDir="$SGT_CI_INSTALL_FRONTEND_DIR";
-sgtVersion="$SGT_CI_VERSION";
-gameRestFilename="$SGT_REST_WAR_FILENAME";
-gameAdminFilename="$SGT_ADMIN_WAR_FILENAME";
-universeId="$SGT_UNIVERSE_ID";
+adminWarFile="$OWGE_CI_INSTALL_ADMIN_FILE";
+gameRestWarFile="$OWGE_CI_INSTALL_GAME_REST_FILE";
+gameFrontendNgDir="$OWGE_CI_INSTALL_FRONTEND_DIR";
+owgeVersion="$OWGE_CI_VERSION";
+gameRestFilename="$OWGE_REST_WAR_FILENAME";
+gameAdminFilename="$OWGE_ADMIN_WAR_FILENAME";
+universeId="$OWGE_UNIVERSE_ID";
 # END env aliasing
 
 # START check env
 envFailureCheck 1 "$adminWarFile";
 envFailureCheck 2 "$gameRestWarFile";
 envFailureCheck 3 "$gameFrontendNgDir";
-envFailureCheck 4 "$sgtVersion";
+envFailureCheck 4 "$owgeVersion";
 envFailureCheck 5 "$gameRestFilename";
 envFailureCheck 6 "$gameAdminFilename";
 envFailureCheck 7 "$universeId";
@@ -87,10 +87,10 @@ if [ ! -d "$dynamicImgDir" ]; then
 	echo "Directory $dynamicImgDir doesn't exists";
 	exit 1;
 fi
-COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
+COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
 sleep 2;
-if ! sgtPort=`getPortByUniverseId $universeId`; then
-        echo "Error getting port: $sgtPort";
+if ! owgePort=`getPortByUniverseId $universeId`; then
+        echo "Error getting port: $owgePort";
         exit 1;
 fi
 
@@ -108,6 +108,6 @@ test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target"
 cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
 
 cd $localPath;
-COMPOSE_PROJECT_NAME="dc$universeId" SGT_PORT="$sgtPort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" SGT_CI_VERSION="$sgtVersion" SGT_REST_WAR_FILENAME="$gameRestFilename" SGT_ADMIN_WAR_FILENAME="$gameAdminFilename" SGT_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
+COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="$owgePort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_ADMIN_WAR_FILENAME="$gameAdminFilename" OWGE_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
 cd -;
 # END program itself

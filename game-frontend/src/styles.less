@@ -24,7 +24,7 @@ body{
     background-color: rgba(0,0,0,0);
 }
 
-.resourceImage, .sgt.card .resourceImage{
+.resourceImage, .owge.card .resourceImage{
 	margin-top: 6px;    
 	width: 32px;
 	height: 32px;
@@ -35,21 +35,21 @@ body{
 	margin-left: 5px;
 }
 
-.sgt-scrollable-dialog {
+.owge-scrollable-dialog {
     width: 100%;
     height: 100%;
     overflow: auto;
 
 }
 
-.sgt-card-header {
+.owge-card-header {
     background-color: blue;
     color: white;
     text-align: center;
     padding: 2px;
 }
 
-.sgt-card-body {
+.owge-card-body {
     background-color: #66F;
     color: white;
     padding: 3px;
@@ -57,15 +57,15 @@ body{
 }
 
 // START Common items
-.sgt-base-colors {
+.owge-base-colors {
 	background-color: @bgColor;
 	color: @mainColor;
 	box-shadow: @commonBoxShadow;
 	text-shadow: @commonTextShadow;
 }
 
-.sgt-title {
-	.sgt-base-colors;
+.owge-title {
+	.owge-base-colors;
 	text-indent: 5px;
 	padding: 3px;
 }
@@ -94,7 +94,7 @@ body{
 	}
 
 	/* NOTICE: Temporary addon, .resourceImage should be in CSS of display-single-resource , but CSS isolation doesn't allow parent-child CSS inherit for now! */
-	.resourceImage, .sgt.card .resourceImage{
+	.resourceImage, .owge.card .resourceImage{
 		margin-top: 6px;    
 		width: 32px;
 		height: 32px;
@@ -135,13 +135,13 @@ body{
 	}
 
 	// START common game card
-	.sgt.card .card-text.auto-overflow{
+	.owge.card .card-text.auto-overflow{
 		overflow:auto;
 		margin-right: -100px;
 		padding-right: 100px;
 		max-height:100%;
 	}
-	.sgt.card{
+	.owge.card{
 		width: 316px;
 		background-color:@bgColor;/*background-color: @bgColor;*/
 		color: @mainColor;
@@ -158,11 +158,11 @@ body{
 				color: @mainColor;
 			}
 		}
-		.sgt-green-shadow {
+		.owge-green-shadow {
 			box-shadow: @commonBoxShadowWithoutColor green;
 		}
 		
-		.sgt-red-shadow {
+		.owge-red-shadow {
 			box-shadow: @commonBoxShadowWithoutColor red;
 		}
 		
@@ -211,9 +211,9 @@ body{
 		}
 	}
 
-	.sgt-card-list {
+	.owge-card-list {
 
-		.card.sgt {
+		.card.owge {
 			float: left;
 			width: 70px;
 			padding: 10px;
@@ -236,9 +236,9 @@ body{
 	// END Common game card
 }
 
-table.sgt-table {
+table.owge-table {
     th,td {
-        .sgt-base-colors;
+        .owge-base-colors;
         border: 2px lighten(@bgColor, 20%) solid;
         padding: 7px;
     }

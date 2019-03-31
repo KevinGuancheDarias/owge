@@ -5,7 +5,7 @@ import { AuthenticationService } from './service/authenticatio.service';
 
 const configurationService: ConfigurationService = new ConfigurationService({
     host: '127.0.0.1',
-    database: 'sgtjava_account',
+    database: 'owgejava_account',
     user: 'root',
     password: '1234',
     charset: 'utf8'

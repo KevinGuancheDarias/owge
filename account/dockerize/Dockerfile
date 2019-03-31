@@ -8,4 +8,4 @@ COPY $warLocationFolder /tmp/war_location_folder
 
 RUN mv /tmp/config/tomcat/context.xml /usr/local/tomcat/conf/context.xml
 RUN rm -r /usr/local/tomcat/webapps/ROOT
-RUN mv /tmp/war_location_folder/sgtjava-account.war /usr/local/tomcat/webapps/ROOT.war
+RUN mv /tmp/war_location_folder/owgejava-account.war /usr/local/tomcat/webapps/ROOT.war

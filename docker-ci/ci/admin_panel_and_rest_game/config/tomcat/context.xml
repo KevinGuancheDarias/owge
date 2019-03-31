@@ -1,6 +1,6 @@
 <Context>
-	<Resource name="jdbc/sgtjava" auth="Container" type="javax.sql.DataSource"
-                maxActive="10" maxIdle="3" maxWait="10" username="SGTu4"
+	<Resource name="jdbc/owgejava" auth="Container" type="javax.sql.DataSource"
+                maxActive="10" maxIdle="3" maxWait="10" username="OWGEu4"
                 validationQuery="SELECT 1"
                 testOnBorrow="true"
                 testOnConnect="true"

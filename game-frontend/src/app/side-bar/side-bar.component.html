@@ -3,43 +3,43 @@
             Select the planet
       </div>
       <div class="body">
-            <div *ngFor="let planet of myPlanets" class="card sgt planet-card">
+            <div *ngFor="let planet of myPlanets" class="card owge planet-card">
                   <app-display-single-planet [planet]="planet"></app-display-single-planet>
                   <div class="card-block">
-                        <a class="sgt-sidebar-btn-menu" (click)="selectPlanet(planet)">Select</a>
+                        <a class="owge-sidebar-btn-menu" (click)="selectPlanet(planet)">Select</a>
                   </div>
                   <div class="card-block">
-                        <a *ngIf="!planet.home" class="sgt-sidebar-btn-menu" (click)="leavePlanet(planet)">Leave</a>
+                        <a *ngIf="!planet.home" class="owge-sidebar-btn-menu" (click)="leavePlanet(planet)">Leave</a>
                   </div>
             </div>
       </div>
 </app-modal>
-<div id="sgt-side-bar-root">
+<div id="owge-side-bar-root">
       <div class="magic-overflow">
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.GAME_INDEX }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-home"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />Inicio</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UPGRADES }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UPGRADES }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-flask"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />Mejoras</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UNITS }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.UNITS }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-male"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />Units</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.NAVIGATE }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.NAVIGATE }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-map"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />Navegación</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.REPORTS }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.REPORTS }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-envelope"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />Reports</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.ALLIANCE }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.ALLIANCE }}"
                   routerLinkActive="selectedMenu"><span><i class="fas fa-user-friends"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />{{ 'APP.MENU_ALLIANCES' | translate }}</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.RANKING }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.RANKING }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-trophy"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />{{ 'APP.MENU_RANKING' | translate }}</a>
-            <a class="sgt-sidebar-btn-menu" role="button" (click)="logout()" href="javascript:void"><span><i
+            <a class="owge-sidebar-btn-menu" role="button" (click)="logout()" href="javascript:void"><span><i
                               class="fa fa-times"></i></span><img src="/assets/img/blanckbotton200x200.png" />logout</a>
-            <a class="sgt-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.VERSION }}"
+            <a class="owge-sidebar-btn-menu" role="button" routerLink="{{ menuRoutes.VERSION }}"
                   routerLinkActive="selectedMenu"><span><i class="fa fa-info"></i></span><img
                         src="/assets/img/blanckbotton200x200.png" />{{ versionInformation.version }}</a>
             <hr>

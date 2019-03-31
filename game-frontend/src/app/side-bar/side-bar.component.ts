@@ -11,7 +11,7 @@ import { UniverseLocalConfig } from '../shared/types/universe-local-config.type'
 import { UnitTypeService } from '../services/unit-type.service';
 import { UnitType } from '../shared/types/unit-type.type';
 
-const { version, sgt: { versionDate } } = require('../../../package.json');
+const { version, owge: { versionDate } } = require('../../../package.json');
 
 @Component({
   selector: 'app-side-bar',

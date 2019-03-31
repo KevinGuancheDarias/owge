@@ -6,22 +6,22 @@
 	<bean id="jwtAuthenticationSuccessHandler" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationSuccessHandler"></bean>
 	<bean id="jwtAuthenticationProvider" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationProvider"></bean>
 	
-	<bean id="sgtTokenConfigLoader" class="com.kevinguanchedarias.sgtjava.business.SgtTokenConfigLoader"></bean>
-	<bean id="sgtResourceAutoUpdateEventHandler" class="com.kevinguanchedarias.sgtjava.event.ResourceAutoUpdateEventHandler"></bean>
+	<bean id="owgeTokenConfigLoader" class="com.kevinguanchedarias.owgejava.business.SgtTokenConfigLoader"></bean>
+	<bean id="owgeResourceAutoUpdateEventHandler" class="com.kevinguanchedarias.owgejava.event.ResourceAutoUpdateEventHandler"></bean>
 	
 	<bean id="jwtAuthenticationFilter" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationFilter">
 		<property name="authenticationManager" ref="authenticationManager"></property>
 		<property name="authenticationSuccessHandler" ref="jwtAuthenticationSuccessHandler"></property>
-		<property name="tokenConfigLoader" ref="sgtTokenConfigLoader"></property>
+		<property name="tokenConfigLoader" ref="owgeTokenConfigLoader"></property>
 		<property name="convertExceptionToJson" value="true"></property>
-		<property name="filterEventHandler" ref="sgtResourceAutoUpdateEventHandler"></property>
+		<property name="filterEventHandler" ref="owgeResourceAutoUpdateEventHandler"></property>
 	</bean>
 	
 	<!--  START Allow using CORS inside a Spring security application  -->
 	<bean id="corsConfiguration" class="com.kevinguanchedarias.kevinsuite.commons.rest.security.cors.SimpleCorsConfigurator">
 		<property name="originList">
 			<list>
-				<value>http://sgtjava_ci.kevinguanchedarias.com</value>
+				<value>http://owgejava_ci.kevinguanchedarias.com</value>
 				<value>http://localhost:4200</value>
 				<value>http://localhost</value>
 				<value>http://192.168.99.100</value>

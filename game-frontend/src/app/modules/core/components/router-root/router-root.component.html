@@ -1,8 +1,8 @@
 <ng-container *ngIf="routerData">
-    <h1 class="sgt-base-colors">{{ routerData.sectionTitle }}</h1>
+    <h1 class="owge-base-colors">{{ routerData.sectionTitle }}</h1>
     <div *ngIf="routerData.routes">
         <ng-container *ngFor="let route of routerData.routes">
-            <a *ngIf="route.isNgIfOk" class="btn btn-block sgt-base-colors"
+            <a *ngIf="route.isNgIfOk" class="btn btn-block owge-base-colors"
                 routerLink="{{ route.path }}">{{ route.text | translate }}</a>
         </ng-container>
     </div>

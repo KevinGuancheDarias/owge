@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.kevinguanchedarias.sgtjava</groupId>
-	<artifactId>sgtjava-game-rest</artifactId>
+	<groupId>com.kevinguanchedarias.owgejava</groupId>
+	<artifactId>owgejava-game-rest</artifactId>
 	<packaging>war</packaging>
 	<version>0.7.4-SNAPSHOT</version>
-	<name>SGT Game Rest</name>
+	<name>OWGE Game Rest</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -14,7 +14,7 @@
 		<springData.version>1.11.13.RELEASE</springData.version>
 		<hibernate.version>5.2.17.Final</hibernate.version>
 		<springSecurity.version>4.1.3.RELEASE</springSecurity.version>
-		<sgt.version>0.7.4-SNAPSHOT</sgt.version>
+		<owge.version>0.7.4-SNAPSHOT</owge.version>
 	</properties>
 
 	<dependencies>
@@ -159,14 +159,14 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.kevinguanchedarias.sgt</groupId>
-			<artifactId>sgtjava-backend</artifactId>
-			<version>${sgt.version}</version>
+			<groupId>com.kevinguanchedarias.owge</groupId>
+			<artifactId>owgejava-backend</artifactId>
+			<version>${owge.version}</version>
 		</dependency>
 
 	</dependencies>
 	<build>
-		<finalName>sgtjava-game-rest</finalName>
+		<finalName>owgejava-game-rest</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

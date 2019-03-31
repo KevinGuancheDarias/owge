@@ -31,9 +31,9 @@ import { UniverseStorage } from '../modules/universe/storages/universe.storage';
  */
 @Injectable()
 export class LoginSessionService extends BaseHttpService implements CanActivate {
-  public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'sgt_authentication';
-  public static readonly LOCAL_STORAGE_SELECTED_UNIVERSE = 'sgt_universe';
-  public static readonly LOCAL_STORAGE_SELECTED_FACTION = 'sgt_faction';
+  public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
+  public static readonly LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
+  public static readonly LOCAL_STORAGE_SELECTED_FACTION = 'owge_faction';
   public static readonly LOGIN_ROUTE = '/login';
 
   private alreadyNotified = false;

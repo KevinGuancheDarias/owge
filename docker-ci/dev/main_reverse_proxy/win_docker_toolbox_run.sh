@@ -1,4 +1,4 @@
 #!/bin/bash
-docker stop sgt_dev
-docker rm sgt_dev
-docker run -d -t -p 80:80 --restart always --name sgt_dev -v  ~/var/sgt_data:/var/sgt_data kevinguanchedarias/sgtjava_dev_nginx
+docker stop owge_dev
+docker rm owge_dev
+docker run -d -t -p 80:80 --restart always --name owge_dev -v  ~/var/owge_data:/var/owge_data kevinguanchedarias/owgejava_dev_nginx

@@ -4,16 +4,16 @@
     commonDateFormat}}
   </div>
   <div class="body">
-    <div class="sgt-scrollable-dialog">
+    <div class="owge-scrollable-dialog">
       <ng-container *ngIf="selectedReport">
         <h1>Coordinates</h1>
-        <div class="card sgt planet-card">
+        <div class="card owge planet-card">
           <div class="card-block">
             <div class="card-title">Source planet</div>
           </div>
           <app-display-single-planet [planet]="selectedReport.parsedJson.sourcePlanet"></app-display-single-planet>
         </div>
-        <div class="card sgt planet-card">
+        <div class="card owge planet-card">
           <div class="card-block">
             <div class="card-title">Target planet</div>
           </div>
@@ -27,11 +27,11 @@
         </ng-container>
         <ng-container *ngIf="selectedReport.parsedJson.errorText">
           <h1>Error report =/</h1>
-          <p class="sgt-base-colors">{{ selectedReport.parsedJson.errorText }}</p>
+          <p class="owge-base-colors">{{ selectedReport.parsedJson.errorText }}</p>
         </ng-container>
         <ng-container *ngIf="selectedReport.parsedJson.attackInformation">
           <h1>Attack result</h1>
-          <div class="card sgt" *ngFor="let currentUser of selectedReport.parsedJson.attackInformation">
+          <div class="card owge" *ngFor="let currentUser of selectedReport.parsedJson.attackInformation">
             <div class="card-block">
               Username: {{ currentUser.userInfo.username }}
               <br /> Earned points: {{ currentUser.earnedPoints }}
@@ -61,10 +61,10 @@
 </app-modal>
 <app-loading [isReady]="reports">
   <ng-container *ngIf="reports">
-    <div *ngIf="!reports.length" class="sgt-empty-collection">
+    <div *ngIf="!reports.length" class="owge-empty-collection">
       No mission reports are available for now
     </div>
-    <div class="card sgt report-card" *ngFor="let report of reports">
+    <div class="card owge report-card" *ngFor="let report of reports">
       <div class="card-block">
         <h5 class="card-title">Mission to {{ report.parsedJson?.targetPlanet?.name }}</h5>
       </div>

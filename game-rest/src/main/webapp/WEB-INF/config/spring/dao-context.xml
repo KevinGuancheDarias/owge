@@ -13,12 +13,12 @@
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
 
 	<context:annotation-config></context:annotation-config>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.dao" />
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.business" />
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.rest" />
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.dao" />
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.business" />
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest" />
 
 	<!-- This is like a bean. but insteat, it uses a jndi value -->
-	<jee:jndi-lookup jndi-name="jdbc/sgtjava" id="dataSource"
+	<jee:jndi-lookup jndi-name="jdbc/owgejava" id="dataSource"
 		expected-type="javax.sql.DataSource">
 	</jee:jndi-lookup>
 
@@ -33,7 +33,7 @@
 			value="org.hibernate.jpa.HibernatePersistenceProvider"></property>
 		<property name="packagesToScan">
 			<list>
-				<value>com.kevinguanchedarias.sgtjava.entity</value>
+				<value>com.kevinguanchedarias.owgejava.entity</value>
 			</list>
 		</property>
 		<property name="dataSource" ref="dataSource" />
@@ -49,5 +49,5 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<jpa:repositories base-package="com.kevinguanchedarias.sgtjava.repository"></jpa:repositories>
+	<jpa:repositories base-package="com.kevinguanchedarias.owgejava.repository"></jpa:repositories>
 </beans>

@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.kevinguanchedarias.sgt</groupId>
-	<artifactId>sgtjava-backend</artifactId>
+	<groupId>com.kevinguanchedarias.owge</groupId>
+	<artifactId>owgejava-backend</artifactId>
 	<version>0.7.4-SNAPSHOT</version>
-	<name>SGT Business</name>
-	<url>http://sgtjava.kevinguanchedarias.com</url>
+	<name>OWGE Business</name>
+	<url>http://owgejava.kevinguanchedarias.com</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -175,7 +175,7 @@
 	</dependencies>
 	<build>
 
-		<finalName>sgtjava-backend</finalName>
+		<finalName>owgejava-backend</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

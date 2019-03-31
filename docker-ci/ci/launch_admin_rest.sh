@@ -2,19 +2,19 @@
 ##
 # This script is used to compile and mount the project into docker images
 #
-# @param $1 string Project version, for example 0.3.0 (should match a SGT version tag)
+# @param $1 string Project version, for example 0.3.0 (should match a OWGE version tag)
 # @param $2 string Directory where the static files will be located
 # @param $3 string Directory where the dynamic files will be located
 # @param $4 int UniverseId number of the universeId
 # @env [NO_COMPILE] boolean If should not compile the modules again
-# @env [SGT_NOT_OPTIONAL] If specified, will compile SGT projects, even if they have been already compiled for specified version
+# @env [OWGE_NOT_OPTIONAL] If specified, will compile OWGE projects, even if they have been already compiled for specified version
 # @todo In the future, create a folder for the specified version, and git clone
 # @author Kevin Guanche Darias
 ##
-echo -e "\e[34m\e[42mKevin Guanche Darias :: Modern SGT DevOps & CI/CD :: Universe launching tool\e[39m\e[49m";
-sgtOptional="1";
-if [ ! -z "$SGT_NOT_OPTIONAL" ]; then
-	sgtOptional=""
+echo -e "\e[34m\e[42mKevin Guanche Darias :: Modern OWGE DevOps & CI/CD :: Universe launching tool\e[39m\e[49m";
+owgeOptional="1";
+if [ ! -z "$OWGE_NOT_OPTIONAL" ]; then
+	owgeOptional=""
 fi
 
 if [ -z "$1" ]; then
@@ -23,12 +23,12 @@ if [ -z "$1" ]; then
 fi
 
 if [ -z "$2" ] ||[ ! -d "$2" ]; then
-	echo "Directory for sgt-data/static not specified, aborting";
+	echo "Directory for owge-data/static not specified, aborting";
 	exit 1;
 fi
 
 if [ -z "$3" ] || [ ! -d "$3" ]; then
-	echo "Directory for sgt-data/dynamic not specified, aborting";
+	echo "Directory for owge-data/dynamic not specified, aborting";
 	exit 1;
 fi
 
@@ -142,7 +142,7 @@ if [ ! -d "$kevinsuiteCommonBackend" ] || [ ! -d "$kevinsuiteRestBackend" ] ; th
 	rollback;
 fi
 
-if [ -z "$sgtOptional" ]; then
+if [ -z "$owgeOptional" ]; then
 	echo "Remember, ideally, when using this script, all maven builds should have the OPTIONAL flag, study the correct versioning of the maven artifacts!";
 fi
 targetRoot="/tmp/shit";
@@ -151,21 +151,21 @@ if [ -z "$NO_COMPILE" ]; then
 	mkdir "$targetRoot";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
-	export SGT_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
-	export SGT_ADMIN_WAR_FILENAME="$globalMavenFilename";
-	OPTIONAL="$sgtOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";
-	export SGT_CI_INSTALL_GAME_REST_FILE="$globalCompiledMavenFile";
-	export SGT_REST_WAR_FILENAME="$globalMavenFilename";
-	OPTIONAL="$sgtOptional" compileAngularProject "$PWD/../../game-frontend" "$targetRoot/frontend";
-	export SGT_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
+	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
+	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
+	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
+	export OWGE_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
+	export OWGE_ADMIN_WAR_FILENAME="$globalMavenFilename";
+	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";
+	export OWGE_CI_INSTALL_GAME_REST_FILE="$globalCompiledMavenFile";
+	export OWGE_REST_WAR_FILENAME="$globalMavenFilename";
+	OPTIONAL="$owgeOptional" compileAngularProject "$PWD/../../game-frontend" "$targetRoot/frontend";
+	export OWGE_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
 else
 	echo "Currently NO_COMPILE is buggy, and is work in progress :(  ...... aborting :/";
 	rollback;
 fi
-export SGT_CI_VERSION="$1";
+export OWGE_CI_VERSION="$1";
 # START Dockerzation things
 launcherPath="$PWD";
 cd main_reverse_proxy;
@@ -174,6 +174,6 @@ chmod +x install.sh;
 cd "$launcherPath";
 echo "Executing jenkins install";
 chmod +x jenkins_install.sh
-SGT_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
+OWGE_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
 echo "git checkingout again the previously branch: $oldBranch";
 git checkout "$oldBranch";

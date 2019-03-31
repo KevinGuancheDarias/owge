@@ -116,7 +116,7 @@
 	</servlet-mapping>
 	<context-param>
 		<param-name>FileSystemDirectory</param-name>
-		<param-value>/var/sgt_data/dynamic</param-value>
+		<param-value>/var/owge_data/dynamic</param-value>
 	</context-param>
 	
 	<mime-mapping>

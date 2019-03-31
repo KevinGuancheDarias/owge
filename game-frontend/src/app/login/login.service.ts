@@ -18,7 +18,7 @@ export class LoginService extends GameBaseService {
 
 
   /**
-   * Executes the game action agains the SGT Authentication server
+   * Executes the game action agains the OWGE Authentication server
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {string} email

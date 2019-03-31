@@ -2,30 +2,30 @@
 
 </app-widget-confirmation-dialog>
 
-<div *ngIf="alliance && currentUser" class="sgt card">
+<div *ngIf="alliance && currentUser" class="owge card">
   <div class="card-block">
-    <h5 class="card-title sgt-title">{{ alliance.name }}</h5>
+    <h5 class="card-title owge-title">{{ alliance.name }}</h5>
   </div>
   <div class="card-block">
     <div class="card-text">
-      <h5 class="sgt-card-header">{{ 'DESCRIPTION' | translate }}</h5>
-      <div class="sgt-card-body">
+      <h5 class="owge-card-header">{{ 'DESCRIPTION' | translate }}</h5>
+      <div class="owge-card-body">
         {{ alliance.description }}
       </div>
     </div>
   </div>
   <div class="card-block" *ngIf="members">
     <div class="card-text">
-      <h5 class="sgt-card-header">{{ 'ALLIANCE.MEMBER_LIST' | translate }}</h5>
-      <div class="sgt-card-body">
+      <h5 class="owge-card-header">{{ 'ALLIANCE.MEMBER_LIST' | translate }}</h5>
+      <div class="owge-card-body">
         <span *ngFor="let member of members"> {{ member.username }} </span>
       </div>
     </div>
   </div>
   <div class="card-block">
     <div class="card-text">
-      <h5 class="sgt-card-header">{{ 'ALLIANCE.ACTIONS' | translate }}</h5>
-      <div class="sgt-card-body">
+      <h5 class="owge-card-header">{{ 'ALLIANCE.ACTIONS' | translate }}</h5>
+      <div class="owge-card-body">
         <div class="btn-group">
           <button (click)="clickLeave()" class="btn"
             *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner !== currentUser.id">{{

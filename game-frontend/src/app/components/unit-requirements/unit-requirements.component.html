@@ -1,6 +1,6 @@
-<div *ngIf="unitRequirements" class="sgt-card-list units">
+<div *ngIf="unitRequirements" class="owge-card-list units">
   <ng-container *ngFor="let unit of unitRequirements">
-    <div #cardRoot *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" class="card sgt auto-expand">
+    <div #cardRoot *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" class="card owge auto-expand">
       <div class="card-block">
         <div class="card-title">
           <span class="auto-expand">
@@ -10,8 +10,8 @@
       </div>
       <img class="card-img-top" [src]="findUnitImageUrl(unit.unit)" />
       <div class="card-block">
-        <div class="sgt-card-list upgrades">
-          <div class="sgt card" *ngFor="let upgradeRequirement of unit.requirements" [ngClass]="{ 'sgt-green-shadow' : upgradeRequirement.reached, 'sgt-red-shadow' : !upgradeRequirement.reached}">
+        <div class="owge-card-list upgrades">
+          <div class="owge card" *ngFor="let upgradeRequirement of unit.requirements" [ngClass]="{ 'owge-green-shadow' : upgradeRequirement.reached, 'owge-red-shadow' : !upgradeRequirement.reached}">
             <img class="" [src]="findUpgradeImageUrl(upgradeRequirement.upgrade)" />
             <div class="upgrade-level">Lvl {{ upgradeRequirement.level }}</div>
           </div>

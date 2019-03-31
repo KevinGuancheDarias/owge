@@ -32,7 +32,7 @@
 			value="org.hibernate.jpa.HibernatePersistenceProvider"></property>
 		<property name="packagesToScan">
 			<list>
-				<value>com.kevinguanchedarias.sgtjava.entity</value>
+				<value>com.kevinguanchedarias.owgejava.entity</value>
 			</list>
 		</property>
 		<property name="dataSource" ref="dataSource" />
@@ -52,13 +52,13 @@
 	</bean>
 	
 	<context:annotation-config></context:annotation-config>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.dao">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.dao">
 	</context:component-scan>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.business">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.business">
 	</context:component-scan>
-	<context:component-scan base-package="com.kevinguanchedarias.sgtjava.rest">
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest">
 	</context:component-scan>
 
-	<jpa:repositories base-package="com.kevinguanchedarias.sgtjava.repository"></jpa:repositories>
+	<jpa:repositories base-package="com.kevinguanchedarias.owgejava.repository"></jpa:repositories>
 
 </beans>
