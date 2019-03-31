@@ -1,4 +1,4 @@
-Open Game Web Engine
+Open Web Game Engine
 ======================
 
 ## Introduction
@@ -14,3 +14,5 @@ This project is open source, and the only income comes from the donators, If you
 
 ### Code contribution
 First of all thank you for contributing code. Please read [CONTRIBUTING.MD](CONTRIBUTING.md)
+yo soy el que soy
+y los osy mas aun
