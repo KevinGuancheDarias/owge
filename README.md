@@ -1,4 +1,4 @@
-Open Game Web Engine
+Open Web Game Engine
 ======================
 
 ## Introduction
