@@ -13,4 +13,4 @@ This project is open source, and the only income comes from the donators, If you
 [Donate Using Patreon](https://www.patreon.com/bePatron?u=13416760) | [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XYSG7NDRN5HM6&source=url)
 
 ### Code contribution
-First of all thank you for contributing code. Please read [CONTRIBUTING.MD](CONTRIBUTING.MD)
+First of all thank you for contributing code. Please read [CONTRIBUTING.MD](CONTRIBUTING.md)
