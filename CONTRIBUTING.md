@@ -60,6 +60,69 @@ public host must point to your docker machine IP, that will be the url you are g
 &nbsp;</details>
 
 &nbsp;<details>
+&nbsp;<summary>__Working with branches and understanding versioning__</summary>
+
+# Introduction
+The OWGE project uses **semver** versioning, meaning 1.2.3 is (1 major version, 2 minor version and 3 patch version ).
+* __Major:__ Typically means changes that break the code, in libraries would be removing or changing public elements, in entire projects, usually means a rewrite
+* __Minor:__ Adds new features/user stories
+* __Patch:__ Fixes bugs, or applies little improvements for an **existing** feature
+
+Typically OWGE has development support for two branches, `master` and the last stable version. For example as of this writing, the stable version is **0.7.x**.
+* __master:__ Will have the new features, and at this point will be **0.8.0**, will merge patches from older versions, for example if a new patch version is published to **0.7.x** will merge it into **master**, when the minor version has enoughs features, **v0.8.x** branch will be created, and a tag with **v0.8.0** will be created, so **master** will now point to **0.9.0**
+* __0.7.x:__ Will have the new fixes or non-feature improvements, after some of them a patch version will be created by tagging it, for example **v0.7.1**
+
+# Pull Request
+:warning: You should `never` push to **master** or to a **version branch**, instead, create a pull request from your working branch :warning:
+You can organize your fork like you prefer (**if you use the OWGE repository because you have been granted to do so, you MUST follow the branch naming**), But take in consideration that if you wish to continue working while you wait for your pull request to be accepted, you should use different branches, as a recomendation, use namings like: 
+* __feature/4__ Where 4 would be the issue id of the user story,
+* __bug/18__ Where 18 would be the issue id of the bug,
+* __improvement/44__ Where 44 would be the issue id of the non-feature improvement
+
+:warning: It's **absolutely MANDATORY** to **ALWAYS** put the given issue reference in ALL commit messages, if a feature is small enough and can be completed without subtasks, use the feature id in the commit. :warning:
+
+Working examples:
+* Feature with issue id 4, which has two task with id 11 and 12:
+```bash
+$ git branch
+    * master
+    v0.7.x
+    v0.6.x
+    feature/1234
+    bug/2
+$ git pull origin master # Before branching make sure I'm up to date
+$ git branch feature/4
+# After implementing some thigns
+$ git add .
+$ git commit -m "#11"
+# You didn't properly finish #11
+$ git add .
+$ git commit -m "#11 (2nd commit reason text) I know it's a good practice to do a little explaning when an issue gets more than one commit"
+# Do things to implement #12
+$ git add .
+$ git commit -m "#12"
+$ git push origin feature/4
+# Then you create a pull request to owge/master it's mandatory to specify the #4 in the pull request description
+```
+* Bug with id 18:
+```bash
+$ git branch
+    master
+    * v0.7.x
+    v0.6.x
+    feature/1234
+    bug/2
+$ $ git pull origin v0.7.x # Before branching make sure I'm up to date
+$ git branch bug/18
+# Do the fix
+$ git add.
+$ git commit -m "#18"
+$ git push origin bug/18
+# Then you create a pull request to owge/v0.7.x 
+```
+
+&nbsp;</details>
+&nbsp;<details>
 &nbsp;<summary>__Coding rules__</summary>
 * __NOTICE:__ Before you start reading the rules, don't trust in the current code in the `game-frontend folder`, as it has old code, and not all code in that folder is compliant with this rules, migration is work in progress when old code is required to be modified.
 * :warning: :warning:  It's absolutely __mandatory__ to fully respect **tslint** and **sonarlint** rules, not doing so will mean to completely ignore the pull request till the SonarLint and tslint issues has been fixed by the contributor :warning: :warning:.
