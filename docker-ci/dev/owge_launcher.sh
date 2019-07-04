@@ -6,14 +6,13 @@ fi
 
 source '../ci/lib.sh';
 
-defaultStaticDirectory="/var/owge_data/static";
-defaultDynamicDirectory="/var/owge_data/dynamic";
-
-staticDirectory="${1:-/var/owge_data/static}";
-dynamicDirectory="${2:-/var/owge_data/static}";
+staticDirectory="${1:-~/var/owge_data/static}";
+dynamicDirectory="${2:-~/var/owge_data/static}";
 
 if ! (echo "$EXTRA_COMPOSE_OPTIONS" |  grep -wE "(\-it)|(\-i)|(\-t)" &> /dev/null); then
     EXTRA_COMPOSE_OPTIONS="$EXTRA_COMPOSE_OPTIONS -d";
+else 
+    EXTRA_COMPOSE_OPTIONS="`echo $EXTRA_COMPOSE_OPTIONS | sed s/-it//`"
 fi
 function _menu () {
     [ -z "$1" ] || echo;
@@ -41,6 +40,8 @@ function _menu () {
         1)
             __promptPort;
             echo "Port $_port";
+            echo "Static directory: $staticDirectory";
+            echo "Dynamic directory: $dynamicDirectory";
             OWGE_PORT="$_port"\
             STATIC_IMAGES_DIR="$staticDirectory"\
             DYNAMIC_IMAGES_DIR="$dynamicDirectory"\

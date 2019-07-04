@@ -19,7 +19,7 @@ COPY admin/src /build/admin/src
 RUN mvn install -DskipTests
 
 # Tomcat base
-FROM tomcat:8-jdk8 as tomcat-base
+FROM tomcat:7-jdk8 as tomcat-base
 COPY docker-ci/dev/images_creation/tomcat_config/* /usr/local/tomcat/conf/
 
 # Game REST Image
