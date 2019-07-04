@@ -1,33 +1,26 @@
-package com.kevinguanchedarias.owgejava.business;
+/**
+ * 
+ */
+package com.kevinguanchedarias.owgejava.security;
 
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenConfigLoader;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.enumerations.TokenVerificationMethod;
+import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
+import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 
 /**
- * Configures the backend to work in the KGDW server
- *
- * @deprecated As of 0.8.0 This class has been moved to
- *             <b>com.kevinguanchedarias.owgejava.security</b>
- * @since 0.3.0
+ * This token config is intended for usage on development machine, where
+ * programmer doesn't use RSA keys
+ * 
+ * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-@Deprecated
-public class SgtTokenConfigLoader implements TokenConfigLoader {
+public class DevelopmentSgtTokenConfigLoader implements TokenConfigLoader {
 
 	@Autowired
 	private ConfigurationBo configurationBo;
-
-	/**
-	 * 
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public SgtTokenConfigLoader() {
-		Logger.getLogger(getClass())
-				.warn("Using this class from com.kevinguanchedarias.owgejava.business is deprecated");
-	}
 
 	@Override
 	public String getTokenSecret() {
@@ -43,7 +36,7 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	 */
 	@Override
 	public TokenVerificationMethod getVerificationMethod() {
-		return TokenVerificationMethod.RSA_KEY;
+		return TokenVerificationMethod.SECRET;
 	}
 
 	/*
@@ -55,7 +48,7 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	 */
 	@Override
 	public String getPrivateKey() {
-		return "/var/owge_data/keys/private.key";
+		return null;
 	}
 
 	/*
@@ -67,7 +60,7 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	 */
 	@Override
 	public String getPublicKey() {
-		return "/var/owge_data/keys/public.key";
+		return null;
 	}
 
 }

@@ -20,6 +20,20 @@ function nodeRun() {
 }
 
 ##
+# Will check if given env-var is defined
+#
+# @param $1 env var number
+# @param $2 current value of the env var
+# @author Kevin Guanche Darias
+##
+function envFailureCheck(){
+	if [ -z "$2" ]; then
+		echo "Environment is not properly configured, missing $1";
+		exit 1;
+	fi
+}
+
+##
 # Compiles the specified maven project
 #
 # @param $1 string Target maven project directory
@@ -157,4 +171,48 @@ function gitVersionExists () {
 function rollback () {
 	git checkout "$oldBranch";
 	exit 1;
+}
+
+function checkDirectoryExists () {
+        if [ ! -d "$1" ]; then
+	        echo "Directory $1 doesn't exists!";
+	        exit 1;
+        fi
+}
+
+##
+# Exits with 1 if specified script has less arguments than expected
+#
+# @param $1 int Number of passed arguments (usually is $#)
+# @param $2 int Number of expected arguments
+# @param $3 string Additional error information
+# @author Kevin Guanche Darias
+##
+function checkRequiredArguments () {
+        if [ "$1" -lt "$2" ]; then
+                echo "Err, the script requires $2 params, but specified $1. $3";
+                exit 1;
+        fi
+}
+
+##
+# Exits with 1 if specified docker image doesn't exists
+#
+# @param $1 string Docker image name
+# @author Kevin Guanche Darias
+##
+function checkDockerImageExists () {
+        if [[ "$(docker images -q  "$1" 2> /dev/null)" == "" ]]; then
+                echo "Image not found, must first compile it, please invoke build.sh";
+                exit 1;
+        fi
+}
+
+function promptParam () {
+        param=
+	while [ -z "$param" ]; do
+		echo -n "Please insert $1: "; read param;
+	done
+        echo;
+        echo "$param" | tr -d ' ';
 }

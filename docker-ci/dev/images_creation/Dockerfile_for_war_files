@@ -1,0 +1,39 @@
+# Step Compile business, rest & admin
+FROM maven:3-jdk-8-alpine as game-war-files
+WORKDIR /build/business
+COPY business/pom.xml .
+RUN mvn dependency:go-offline
+COPY business/src /build/business/src
+RUN mvn install -DskipTests
+
+WORKDIR /build/rest
+COPY game-rest/pom.xml .
+RUN mvn dependency:go-offline
+COPY game-rest/src /build/rest/src
+RUN mvn install -DskipTests
+
+WORKDIR /build/admin
+COPY admin/pom.xml .
+RUN mvn dependency:go-offline
+COPY admin/src /build/admin/src
+RUN mvn install -DskipTests
+
+# Tomcat base
+FROM tomcat:8-jdk8 as tomcat-base
+COPY docker-ci/dev/images_creation/tomcat_config/* /usr/local/tomcat/conf/
+
+# Game REST Image
+FROM tomcat-base as game-rest
+LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
+COPY --from=game-war-files /build/rest/target/*.war /usr/local/tomcat/webapps/game_api.war
+
+# Primefaces admin panel
+FROM tomcat-base as game-admin
+LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
+COPY --from=game-war-files /build/admin/target/*.war /usr/local/tomcat/webapps/admin.war
+
+# Game REST & Game admin
+FROM tomcat-base as game-rest-and-admin
+LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
+COPY --from=game-war-files /build/admin/target/*.war /usr/local/tomcat/webapps/admin.war
+COPY --from=game-war-files /build/rest/target/*.war /usr/local/tomcat/webapps/game_api.war
