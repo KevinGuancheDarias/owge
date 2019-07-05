@@ -20,6 +20,10 @@ services:
     ports:
       - "${OWGE_PORT}:8080"
     environment:
+      - MYSQL_HOST=db
+      - MYSQL_DB=owge
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
       - CATALINA_OPTS=-Dowge.databaseUrl=mysql://db:3306/owge -Dowge.databaseUser=root -Dowge.databasePassword=1234
     depends_on:
       - db

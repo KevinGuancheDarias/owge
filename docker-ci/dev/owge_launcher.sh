@@ -17,7 +17,8 @@ fi
 function _menu () {
     [ -z "$1" ] || echo;
     echo -e "OWGE launcher :: By Kevin Guanche Darias & contributors\n"
-    echo -e "Passed compose options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
+    echo -e "Passed compose up options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
+    echo -e "Passed compose build options:\e[32m${EXTRA_COMPOSE_BUILD_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_BUILD_OPTIONS=--no-cache -it ./owge_launcher.sh\e[39m"
     echo -e "     \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
      \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
      \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
@@ -42,10 +43,16 @@ function _menu () {
             echo "Port $_port";
             echo "Static directory: $staticDirectory";
             echo "Dynamic directory: $dynamicDirectory";
-            OWGE_PORT="$_port"\
-            STATIC_IMAGES_DIR="$staticDirectory"\
-            DYNAMIC_IMAGES_DIR="$dynamicDirectory"\
-             docker-compose --file ./profiles/all_dockerized.docker-compose.yml -p owge_all_dockerized up $EXTRA_COMPOSE_OPTIONS
+
+            (
+                export OWGE_PORT="$_port";
+                export STATIC_IMAGES_DIR="$staticDirectory";
+                export DYNAMIC_IMAGES_DIR="$dynamicDirectory";
+                line="--file ./profiles/all_dockerized.docker-compose.yml -p owge_all_dockerized";
+                docker-compose $line build $EXTRA_COMPOSE_BUILD_OPTIONS
+                docker-compose  $line up $EXTRA_COMPOSE_OPTIONS
+
+            )
             ;;
         2)
             ;;

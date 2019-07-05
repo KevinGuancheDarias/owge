@@ -21,6 +21,9 @@ RUN mvn install -DskipTests
 # Tomcat base
 FROM tomcat:7-jdk8 as tomcat-base
 COPY docker-ci/dev/images_creation/tomcat_config/* /usr/local/tomcat/conf/
+COPY docker-ci/dev/images_creation/scripts/* /
+RUN apt-get update && apt-get install -y mysql-client
+CMD ["/wait_mysql.sh","catalina.sh", "run"]
 
 # Game REST Image
 FROM tomcat-base as game-rest
