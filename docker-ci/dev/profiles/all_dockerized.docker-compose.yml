@@ -9,6 +9,14 @@ services:
       - MYSQL_ROOT_PASSWORD=1234
     expose:
       - "3306"
+  db_mock_account:
+    build:
+      context: ../../../mock_account/database
+      dockerfile: ../../docker-ci/dev/images_creation/mock_account_database/Dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    expose:
+      - "3306"
   rest_and_admin:
     build:
       context: ../../..
@@ -27,3 +35,14 @@ services:
       - CATALINA_OPTS=-Dowge.databaseUrl=mysql://db:3306/owge -Dowge.databaseUser=root -Dowge.databasePassword=1234
     depends_on:
       - db
+  mock_account:
+    build:
+      context: ../../../mock_account
+      dockerfile: ../docker-ci/dev/images_creation/mock_account/Dockerfile
+    environment:
+      - MYSQL_HOST=db_mock_account
+      - MYSQL_DB=owge_account
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
+    ports: 
+      - "${OWGE_MOCK_ACCOUNT_PORT}:8080"

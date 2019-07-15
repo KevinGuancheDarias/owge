@@ -1,0 +1,26 @@
+{
+    "name": "owge/mock_account",
+    "description": "Mock Account system for development purpose",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kevin Guanche Darias",
+            "email": "kevin@kevinguanchedarias.com"
+        }
+    ],
+    "require": {
+        "web-token/jwt-signature-algorithm-hmac": "^2.0",
+        "web-token/jwt-key-mgmt": "^2.0",
+        "league/route": "^4.3",
+        "zendframework/zend-diactoros": "^2.1",
+        "zendframework/zend-httphandlerrunner": "^1.1",
+        "php-di/php-di": "^6.0",
+        "symfony/console": "^4.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "OwgeAccount\\": "src/"
+        }
+    }
+}

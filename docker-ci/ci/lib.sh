@@ -216,3 +216,21 @@ function promptParam () {
         echo;
         echo "$param" | tr -d ' ';
 }
+
+##
+# Checks if a command exists
+#
+# @param $1 string The command name
+# @see https://github.com/thetrompf/yarn/blob/8b9c5f3c7238d63bce3b347472f3205cee01ddcf/bin/yarn#L10
+##
+function commandExists () {
+        command -v "$1" >/dev/null 2>&1;
+}
+
+function isWinPty () {
+        commandExists "winpty" && test -t 1;
+}
+
+function winPtyPrefix () {
+        commandExists "winpty" && echo "winpty";
+}
