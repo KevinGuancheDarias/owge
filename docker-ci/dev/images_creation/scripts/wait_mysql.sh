@@ -1,5 +1,5 @@
 #!/bin/sh
-retries=45
+retries=120
 while (test -z "`mysql -h "$MYSQL_HOST" -u $MYSQL_USER -p"$MYSQL_PASSWORD" $MYSQL_DB -e "SELECT 1 FROM configuration;" 2> /dev/null`"); do
     sleep 1
     counter=`expr $counter + 1`

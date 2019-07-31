@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    ports:
+      - "${OWGE_DB_PORT}:3306"

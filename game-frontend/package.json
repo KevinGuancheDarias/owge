@@ -5,6 +5,7 @@
   "angular-cli": {},
   "scripts": {
     "start": "npm run compileChangelog && ng serve",
+    "ngServeDocker": "npm run compileChangelog && ng serve --host 0.0.0.0 --disable-host-check",
     "build": "npm run compileChangelog && ng build -prod --build-optimizer && npm run addVersionSuffixWebpackBundles",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",

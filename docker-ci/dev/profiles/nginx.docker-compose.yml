@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  nginx:
+    build:
+      context: ../images_creation/nginx
+      
+    volumes:
+      - ${OWGE_FRONTEND_ROOT}:/app
+    environment: 
+      - OWGE_BACKEND_SERVER
+      - OWGE_FRONTEND_SERVER
+      - OWGE_ACCOUNT_SERVER
+      - OWGE_NGINX_PHPMYADMIN_SERVER
+      - OWGE_REST_CONTEXT_PATH
+      - OWGE_ADMIN_CONTEXT_PATH
+    ports: 
+      - "${OWGE_PORT}:80"
+    volumes:
+      - ${STATIC_IMAGES_DIR}:/var/owge_data/static
+      - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic

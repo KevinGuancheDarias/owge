@@ -39,7 +39,7 @@ class UserService {
         $password = $connection->real_escape_string($password);
         $result = $connection->query("SELECT id, username, email, password FROM users WHERE email = '$email' AND password = '$password'");
         if(!$result->num_rows) {
-            throw new AccessDeniedHttpException('Invalid credentials');
+            throw new AccessDeniedHttpException('invalid_credentials','Invalid credentials');
         }
         $user = $result->fetch_object(LoggedUser::class);
         $user->token = $this->createToken(+$user->id, $user->email, $user->username);;

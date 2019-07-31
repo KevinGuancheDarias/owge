@@ -1,16 +1,38 @@
 <?php namespace OwgeAccount\Exception;
 
+use Psr\Http\Message\ResponseInterface;
+
 /**
+ * Also ensures the HTTP Exception errors are displayed like in KGDW accounts system
  * 
  * @since 0.8.0
  * @author Kevin Guanche Darias
  */
-class HttpException extends \Exception {
-    public function __construct(int $code = 500, string $message = '') {
+class HttpException extends \League\Route\Http\Exception {
+    /** @var string  */
+    protected $errorType;
+
+    public function __construct(string $errorType = '', int $code = 500, string $message = '') {
+        $this->errorType = $errorType;
         if(!$message) {
             $message = $this->createErrorMessage($code);
         }
-        parent::__construct($message, $code);
+        parent::__construct($code, $message);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildJsonResponse(ResponseInterface $response): ResponseInterface {
+        $response = parent::buildJsonResponse($response);
+        if ($response->getBody()->isWritable()) {
+            $response->getBody()->seek(0);
+            $response->getBody()->write(json_encode([
+                'error'   => $this->errorType,
+                'message' => $this->message
+            ]));
+        }
+        return $response;
     }
 
     protected function createErrorMessage(int $code): string {

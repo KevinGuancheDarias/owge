@@ -1,0 +1,9 @@
+version: '3.4'
+
+services:
+  frontend:
+    build:
+      context: ../../../game-frontend
+      dockerfile: ../docker-ci/dev/images_creation/frontend_ng_serve/Dockerfile
+    expose: 
+      - "4200"
