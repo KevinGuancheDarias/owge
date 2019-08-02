@@ -1,0 +1,26 @@
+version: '3.4'
+
+services:
+  db_mock_account:
+    build:
+      context: ../../../mock_account/database
+      dockerfile: ../../docker-ci/dev/images_creation/mock_account_database/Dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    expose:
+      - "3306"
+    volumes:
+      - ${OWGE_MOCK_ACCOUNT_DATABASE_DIR}:/var/lib/mysql
+  mock_account:
+    build:
+      context: ../../../mock_account
+      dockerfile: ../docker-ci/dev/images_creation/mock_account/Dockerfile
+    environment:
+      - MYSQL_HOST=db_mock_account
+      - MYSQL_DB=owge_account
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
+    expose:
+      - "8080"
+    ports: 
+      - "${OWGE_MOCK_ACCOUNT_PORT}:8080"

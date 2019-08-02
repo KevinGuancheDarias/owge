@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  db:
+    build:
+      context: ../../../business/database
+      dockerfile: ../../docker-ci/dev/images_creation/backend_database/Dockerfile
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+    expose:
+      - "3306"
+    volumes:
+      - ${OWGE_DATABASE_DIR}:/var/lib/mysql

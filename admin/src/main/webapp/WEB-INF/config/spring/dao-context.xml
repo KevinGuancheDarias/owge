@@ -53,6 +53,7 @@
 			<property name="dataSource" ref="dataSource" />
 			<property name="jpaProperties">
 			<props>
+				<prop key="hibernate.dialec">org.hibernate.dialect.MySQLInnoDBDialect</prop>
 				<prop key="hibernate.show_sql">false</prop>
 			</props>
 		</property>

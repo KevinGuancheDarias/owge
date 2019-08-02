@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  phpmyadmin:
+    build:
+      context: ../images_creation/phpmyadmin
+    environment:
+      - DATABASE_SERVERS=${OWGE_PHPMYADMIN_SERVERS}

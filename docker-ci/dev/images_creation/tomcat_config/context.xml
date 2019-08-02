@@ -1,0 +1,11 @@
+<Context>
+	<Resource name="jdbc/owgejava" auth="Container" type="javax.sql.DataSource"
+                maxActive="10" maxIdle="3" maxWait="10" username="${owge.databaseUser}"
+                validationQuery="SELECT 1"
+                testOnBorrow="true"
+                testOnConnect="true"
+                testWhileIdle="true"
+                logValidationErrors="true"
+                password="${owge.databasePassword}" driverClassName="com.mysql.jdbc.Driver"
+                url="jdbc:${owge.databaseUrl}" />
+</Context>

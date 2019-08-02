@@ -8,20 +8,6 @@
 source ./lib.sh
 
 ##
-# Will check if given env-var is defined
-#
-# @param $1 env var number
-# @param $2 current value of the env var
-# @author Kevin Guanche Darias
-##
-function envFailureCheck(){
-	if [ -z "$2" ]; then
-		echo "Environment is not properly configured, missing $1";
-		exit 1;
-	fi
-}
-
-##
 # Will check that the file (or directory) exists
 #
 # @param $1 check number
@@ -70,10 +56,8 @@ else
 	staticImgDir="$1";
 fi
 
-if [ ! -d "$staticImgDir" ]; then
-	echo "Directory $staticImgDir doesn't exists!";
-	exit 1;
-fi
+checkDirectoryExists "$staticImgDir";
+
 # END check param 1
 if [ -z "$2" ]; then
 	while [ -z "$dynamicImgDir" ]; do
@@ -83,10 +67,8 @@ else
 	dynamicImgDir="$2";
 fi
 
-if [ ! -d "$dynamicImgDir" ]; then
-	echo "Directory $dynamicImgDir doesn't exists";
-	exit 1;
-fi
+checkDirectoryExists "$dynamicImgDir";
+
 COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
 sleep 2;
 if ! owgePort=`getPortByUniverseId $universeId`; then

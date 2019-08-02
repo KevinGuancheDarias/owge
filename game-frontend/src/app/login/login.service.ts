@@ -37,7 +37,7 @@ export class LoginService extends GameBaseService {
       password
     });
 
-    return this.http.post(`${Config.ACCOUNT_SERVER_URL}oauth/token`, params.toString(), requestOptions)
+    return this.http.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params.toString(), requestOptions)
       .map((res: Response) => {
         this.getLoginSessionService().setTokenPojo(res.json().token);
         return this.getLoginSessionService().getRawToken();

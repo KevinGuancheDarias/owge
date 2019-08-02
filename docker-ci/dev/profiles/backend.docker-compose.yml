@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  rest_and_admin:
+    build:
+      context: ../../..
+      dockerfile: ./docker-ci/dev/images_creation/Dockerfile_for_war_files
+      target: game-rest-and-admin
+    volumes:
+      - ${STATIC_IMAGES_DIR}:/var/owge_data/static
+      - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+    expose:
+      - "8080"
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DB=owge
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234
+      - CATALINA_OPTS=-Dowge.databaseUrl=mysql://db:3306/owge?useSSL=false -Dowge.databaseUser=root -Dowge.databasePassword=1234

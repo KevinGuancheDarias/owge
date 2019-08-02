@@ -20,6 +20,34 @@ function nodeRun() {
 }
 
 ##
+# Will check if given env-var is defined
+#
+# @param $1 string env var name
+# @param $2 string current value of the env var
+# @param $3 string Additional optional hint
+# @author Kevin Guanche Darias
+##
+function envFailureCheck(){
+	if [ -z "$2" ]; then
+                _hint="";
+                test -n "$3" && _hint="Hint: $3";
+		>&2 echo  ne "\e[31mError: \e[39m";
+                >&2 echo "Environment is not properly configured, missing $1, $3";
+		exit 1;
+	fi
+}
+
+function envInfoCheck() {
+        if [ -z "$2"]; then
+                _hint="";
+                test -n "$3" && _hint="Hint: $3";
+		echo -ne "\e[32mInfo: \e[39m";
+                echo "Optional $1 not specified, $3";
+		exit 1;
+        fi
+}
+
+##
 # Compiles the specified maven project
 #
 # @param $1 string Target maven project directory
@@ -157,4 +185,277 @@ function gitVersionExists () {
 function rollback () {
 	git checkout "$oldBranch";
 	exit 1;
+}
+
+function checkDirectoryExists () {
+        if [ ! -d "$1" ]; then
+	        echo "Directory $1 doesn't exists!";
+	        exit 1;
+        fi
+}
+
+##
+# Exits with 1 if specified script has less arguments than expected
+#
+# @param $1 int Number of passed arguments (usually is $#)
+# @param $2 int Number of expected arguments
+# @param $3 string Additional error information
+# @author Kevin Guanche Darias
+##
+function checkRequiredArguments () {
+        if [ "$1" -lt "$2" ]; then
+                echo "Err, the script requires $2 params, but specified $1. $3";
+                exit 1;
+        fi
+}
+
+##
+# Exits with 1 if specified docker image doesn't exists
+#
+# @param $1 string Docker image name
+# @author Kevin Guanche Darias
+##
+function checkDockerImageExists () {
+        if [[ "$(docker images -q  "$1" 2> /dev/null)" == "" ]]; then
+                echo "Image not found, must first compile it, please invoke build.sh";
+                exit 1;
+        fi
+}
+
+##
+# Displays a deprecated log warning
+#
+# @param string $1 
+# @author Kevin Guanche Darias
+##
+function deprecated () {
+        if [ -n "$1" ]; then
+                _useInstead=", use: $1 instead";
+        fi
+        log warning "$0 is deprecated";
+}
+
+##
+# Prompts for a param, 
+#
+# @param $1 string Optional value, for use as grep expression, for example ^[0-9]{3,4}$
+# @deprecated
+# @author Kevin Guanche Darias
+##
+function promptParam () {
+        deprecated $0 promptValue;
+        param=
+	while [ -z "$param" ]; do
+		read param;
+                if [ -n "$1" ] && [ -n "$param" ] && ! (echo "$param" | grep -E "$1"); then
+                        echo -e "\e[31mInvalid value, retry\e[39m";
+                        param="";
+                fi
+	done
+        echo;
+        echo "$param" | tr -d ' ';
+}
+
+##
+# User Prompt
+#
+# @param $1 Display message;
+# @param $2 string Optional value, for use as grep expression, for example ^[0-9]{3,4}$
+# @return variable _output
+# @author Kevin Guanche Darias
+##
+function promptValue () {
+        if [ -z "$1" ]; then
+                >&2 echo -e "\e[31mProgramming error.. noob programmer";
+                exit 1;
+        fi
+        param=
+	while [ -z "$param" ]; do
+                echo -ne "$1: ";
+		read param;
+                if [ -n "$2" ] && [ -n "$param" ] && ! (echo "$param" | grep -E "$2"); then
+                        echo -e "\e[31mInvalid value, retry\e[39m";
+                        param="";
+                fi
+	done
+        export _output="`echo $param`";
+}
+
+##
+# Prompts for a port, if it is in use, will prompt again
+#
+# @param $1 string Name of the service
+# @paramm $2 bool If not empty will test the Docker machine port, and not the host port (relevant for Docker Toolbox)
+# @return variable _output
+# @author Kevin Guanche Darias
+##
+function promptPort () {
+        dockerFindHostIp "$2";
+        _ip="$output";
+        _port="";
+        while [ -z "$_port" ]; do
+                promptValue "Insert $1 port" "^[0-9]{2,5}$";
+                if isPortOpen "$_ip" "$_output" ; then
+                        echo -e "\e[31mPort $_output already in use\e[39m";
+                else
+                        _port="$_output";
+                fi
+        done
+        export _output="`echo $_port`";
+}
+
+##
+# Prompts once, if no response, will return the default
+#
+# @param $1 string Prompt message
+# @param $2 string Default value
+# @param $3 string (Optional) Test command, if invalid will ask again, notice "€" will be replaced by the user input value
+# @param $4 string (Optional) When specified, represents a "hint" to show when the test command fails
+# @return variable _output
+# @author Kevin Guanche Darias
+##
+function promptWithDefault () {
+        export _output="";
+        echo -ne "$1 [\e[33m$2\e[39m]: ";
+        read _value;
+        while [ -z "$_output" ]; do
+                if [ -n "$3" ] && [ -n "$_value" ] && ! (echo "$_value" | xargs -I€ bash -c "$3"); then
+                        _command="`echo "$_value" | xargs -I€ echo "$3"`";
+                        log debug "promptWithDefault test command has been specified ($_command) and input has an INVALID string";
+                        >&2 echo -ne "\e[31mInvalid input \e[39m";
+                        >&2 test -n "$4" && echo -ne "Hint: \e[35m$4\e[39m";
+                        export _output="";
+                        echo
+                        echo -ne "$1 [\e[33m$2\e[39m]: ";
+                        read _value;
+                elif [ -z "$_value" ]; then
+                        log debug "promptWithDefault empty value";
+                        export _output="$2";
+                else
+                        log debug "promptWithDefault value defined";
+                        export _output="$_value";
+                fi
+        done
+        log debug "Returning value $_output";
+}
+
+##
+# Checks if a command exists
+#
+# @param $1 string The command name
+# @see https://github.com/thetrompf/yarn/blob/8b9c5f3c7238d63bce3b347472f3205cee01ddcf/bin/yarn#L10
+##
+function commandExists () {
+        command -v "$1" >/dev/null 2>&1;
+}
+
+function isWinPty () {
+        commandExists "winpty" && test -t 1;
+}
+
+function winPtyPrefix () {
+        commandExists "winpty" && echo "winpty";
+}
+
+##
+# Finds the absolute dir for given relative dir
+# 
+# @param $1 string relative dir
+# @see https://stackoverflow.com/a/31605674
+##
+function findAbsoluteDir () {
+        echo "$(cd "$(dirname "$1")"; pwd)/$(basename "$1")"
+}
+
+##
+# Logs a message 
+#
+# @param string $1 log level, for example  "debug"
+# @param string $2 log message
+# @param string $3 color, for example: 1 = red, 2 = green
+#
+# @env DEBUG_LEVELS specified levels, separated by spaces. Ex: DEBUG_LEVELS="warning error", usually valid values are debug, info, warning, error
+#
+# @author Kevin Guanche Darias
+##
+function log () {
+        if [ -n "$DEBUG_LEVELS" ]; then
+                if echo "$DEBUG_LEVELS" | grep "$1" &> /dev/null; then
+                        if [ "$1" == "warning" ]; then
+                                _defaultColor="3";
+                        elif [ "$1" == "error" ]; then
+                                _defaultColor="1";
+                        else 
+                                _defaultColor="2";
+                        fi
+                        echo -e "\e[3${3-$_defaultColor}m$1: \e[39m$2";
+                fi
+        fi
+}
+
+function  dockerNetTools() {
+        docker run --rm -i amouat/network-utils $@;
+}
+
+##
+# Finds the IP of the system running docker (recommended when wanting to support Docker toolbox)
+#
+# @param $1 bool If non-empty will return docker machine IP when running in Docker toolbox 
+# @return variable output
+#
+# @author Kevin Guanche Darias
+##
+function dockerFindHostIp () {
+        log info "While the default Host or IP may look \"strange\", it's the internal IP used by Docker";
+        if [ -z "$DOCKER_HOST" ]; then
+                if docker run --rm -i alpine ping -c 2 host.docker.internal &> /dev/null; then
+                        log debug "The user is using Windows 10/Mac docker";
+                        export output="host.docker.internal";
+
+                else
+                        log debug "The user is using Linux native docker";
+                        export output="`dockerNetTools bash -c 'ip route show | grep ^default' | cut -d ' ' -f 3;`";
+                fi
+        else
+                log debug "The user is using docker toolbox";
+                if [ -z "$1" ]; then
+                        export output=`echo $DOCKER_HOST | cut -d ':' -f 2 | cut -c 3- | sed -e 's/\.[0-9]*$/.1/g'`;
+                else 
+                        export output=`echo $DOCKER_HOST | cut -d ':' -f 2 | cut -c 3-`;
+                        log debug "Docker-Machine IP is $output";
+                fi
+        fi
+}
+
+function isPortOpen () {
+        dockerNetTools nmap $1 -p $2 | grep "tcp open " &> /dev/null
+}
+
+##
+# Waits till an specified command returns true
+#
+# @param $1 string $Waiting message
+# @param ...$2 string Command
+#
+# @env attemps Number of attemps, defaults to 5
+# @env delay Delay in second, defaults to 1 
+#
+# @author Kevin Guanche Darias
+##
+function waitFor () {
+        _waitingMessage="$1";
+        shift;
+        _attemps=${attemps-5};
+        _i=0;
+        log debug "Running waitFor command: $@";
+        while ! bash -c "$@" &> /dev/null; do
+                echo -e "$_waitingMessage";
+                sleep ${delay-1};
+                _i=`expr $_i + 1`;
+                if [ "$_i" -eq "$_attemps" ]; then
+                        bash -c "$@";
+                        >&2 echo -e "\e[31mAborting due to error";
+                        exit 1;
+                fi
+        done
 }

@@ -1,0 +1,8 @@
+*.war
+*.png
+*.gif
+*.jpg
+*.bmp
+*.jar
+**/.git
+**/node_modules
