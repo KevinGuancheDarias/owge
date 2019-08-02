@@ -309,17 +309,33 @@ function promptPort () {
 #
 # @param $1 string Prompt message
 # @param $2 string Default value
+# @param $3 string (Optional) Test command, if invalid will ask again, notice "€" will be replaced by the user input value
+# @param $4 string (Optional) When specified, represents a "hint" to show when the test command fails
 # @return variable _output
 # @author Kevin Guanche Darias
 ##
 function promptWithDefault () {
+        export _output="";
         echo -ne "$1 [\e[33m$2\e[39m]: ";
         read _value;
-        if [ -z "$_value"]; then
-                export _output="$2";
-        else
-                export _output="$_value";
-        fi
+        while [ -z "$_output" ]; do
+                if [ -n "$3" ] && [ -n "$_value" ] && ! (echo "$_value" | xargs -I€ bash -c "$3"); then
+                        _command="`echo "$_value" | xargs -I€ echo "$3"`";
+                        log debug "promptWithDefault test command has been specified ($_command) and input has an INVALID string";
+                        >&2 echo -ne "\e[31mInvalid input \e[39m";
+                        >&2 test -n "$4" && echo -ne "Hint: \e[35m$4\e[39m";
+                        export _output="";
+                        echo
+                        echo -ne "$1 [\e[33m$2\e[39m]: ";
+                        read _value;
+                elif [ -z "$_value" ]; then
+                        log debug "promptWithDefault empty value";
+                        export _output="$2";
+                else
+                        log debug "promptWithDefault value defined";
+                        export _output="$_value";
+                fi
+        done
         log debug "Returning value $_output";
 }
 
