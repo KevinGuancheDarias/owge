@@ -237,7 +237,6 @@ function _doLaunch() {
         _availableWorlds="`ls ./test_worlds | xargs -I€ echo -e "\e[32m  * \e[36m€\e[39m"`";
         echo "$_availableWorlds" | cat;
         promptWithDefault "Select testworld from above list" "spanish_politics" "test -d ./test_worlds/€" "The specified test_world profile doesn't exists, insert one of the following: \n$_availableWorlds";
-        exit 0;
          _testWorld="$_output";
         (
             shift;
