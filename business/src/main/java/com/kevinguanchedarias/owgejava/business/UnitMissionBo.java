@@ -480,6 +480,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return commonMissionRegister(missionInformation, MissionType.GATHER);
 	}
 
+	@Transactional
 	public UnitRunningMissionDto myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
 		return adminRegisterEstablishBase(missionInformation);

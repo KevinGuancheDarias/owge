@@ -107,7 +107,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> explorePlanetUnits(Planet targetPlanet) {
-		return repository.findBySourcePlanetIdAndMissionIsNull(targetPlanet.getId());
+		return repository.findBySourcePlanetIdAndMissionIsNullOrDeployed(targetPlanet.getId());
 	}
 
 	/**
@@ -137,6 +137,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return retVal;
 	}
 
+	@Transactional
 	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnitDto retVal;
 		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),

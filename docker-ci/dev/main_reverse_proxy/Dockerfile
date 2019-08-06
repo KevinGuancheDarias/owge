@@ -1,7 +1,7 @@
 FROM nginx
 MAINTAINER Kevin Guanche Darias
 
-ARG host_machine=10.74.32.252
+ARG host_machine=192.168.99.1
 
 EXPOSE 80
 

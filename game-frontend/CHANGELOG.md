@@ -2,6 +2,7 @@
 
 v0.7.4 (latest)
 ==================
+* __Fix:__ [Deployed units don't appear in the exploration report](https://github.com/KevinGuancheDarias/owge/issues/98)  
 * __Fix:__ When you attack source planet of deploy mission, the attack would affect units deployed in other planets
 * __Fix:__ Return button doesn't display properly
 
