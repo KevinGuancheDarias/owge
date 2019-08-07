@@ -28,6 +28,7 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
@@ -798,6 +799,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private UnitRunningMissionDto commonMissionRegister(UnitMissionInformation missionInformation,
 			MissionType missionType) {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
+		missionInformation.setMissionType(missionType);
 		UserStorage user = userStorageBo.findLoggedIn();
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
 		targetMissionInformation.setUserId(user.getId());
@@ -859,6 +861,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		checkUserExists(missionInformation.getUserId());
 		checkPlanetExists(missionInformation.getSourcePlanetId());
 		checkPlanetExists(missionInformation.getTargetPlanetId());
+		checkDeployedAllowed(missionInformation.getMissionType());
 		Set<Mission> deletedMissions = new HashSet<>();
 		if (CollectionUtils.isEmpty(missionInformation.getInvolvedUnits())) {
 			throw new SgtBackendInvalidInputException("involvedUnits can't be empty");
@@ -869,7 +872,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNullOrDeployed(
 					missionInformation.getUserId(), current.getId(), missionInformation.getSourcePlanetId());
-
+			checkUnitCanDeploy(currentObtainedUnit, missionInformation);
 			ObtainedUnit unitAfterSubstraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
 					current.getCount(), false);
 			if (unitAfterSubstraction == null && currentObtainedUnit.getMission() != null
@@ -880,6 +883,48 @@ public class UnitMissionBo extends AbstractMissionBo {
 		});
 		deletedMissions.forEach(this::resolveMission);
 		return retVal;
+	}
+
+	/**
+	 * Checks if the current obtained unit can do deploy (if already deployed in
+	 * some cases, cannot)
+	 * 
+	 * @param currentObtainedUnit
+	 * @param missionType
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void checkUnitCanDeploy(ObtainedUnit currentObtainedUnit, UnitMissionInformation missionInformation) {
+		MissionType unitMissionType = obtainedUnitBo.resolveMissionType(currentObtainedUnit);
+		boolean isOfUserProperty = planetBo.isOfUserProperty(missionInformation.getUserId(),
+				missionInformation.getTargetPlanetId());
+		switch (configurationBo.findDeployMissionConfiguration()) {
+		case ONLY_ONCE_RETURN_SOURCE:
+		case ONLY_ONCE_RETURN_DEPLOYED:
+			if (!isOfUserProperty && unitMissionType == MissionType.DEPLOYED
+					&& missionInformation.getMissionType() == MissionType.DEPLOY) {
+				throw new SgtBackendInvalidInputException("You can't do a deploy mission after a deploy mission");
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * Checks if the DEPLOY mission is allowed
+	 * 
+	 * @param missionType
+	 * @throws SgtBackendInvalidInputException
+	 *             If the deployment mission is <b>globally</b> disabled
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void checkDeployedAllowed(MissionType missionType) {
+		if (missionType == MissionType.DEPLOY
+				&& configurationBo.findDeployMissionConfiguration().equals(DeployMissionConfigurationEnum.DISALLOWED)) {
+			throw new SgtBackendInvalidInputException("The deployment mission is globally disabñed");
+		}
 	}
 
 	/**

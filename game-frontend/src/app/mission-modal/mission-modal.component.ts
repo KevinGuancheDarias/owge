@@ -6,11 +6,13 @@ import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { UnitType } from '../shared/types/unit-type.type';
 import { MissionType } from '../shared/types/mission.type';
-import { UnitService } from '../service/unit.service';
 import { MissionService } from '../services/mission.service';
 import { PlanetService } from '../service/planet.service';
 import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';
+import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
+import { ConfigurationService } from '../modules/configuration/services/configuration.service';
+import { LoggerHelper } from '../../helpers/logger.helper';
 
 /**
  * Modal to send a mission to a planet
@@ -52,12 +54,14 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
 
   public missionType: MissionType = null;
 
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
   constructor(
-    private _unitService: UnitService,
     private _missionService: MissionService,
     private _planetService: PlanetService,
     private _unitTypeService: UnitTypeService,
-    private _missioninformationStore: MissionInformationStore
+    private _missioninformationStore: MissionInformationStore,
+    private _configurationService: ConfigurationService
   ) {
     super();
   }
@@ -117,6 +121,31 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
       this.missionType = null;
     } else if (this.missionType === null && this.isMissionRealizableByUnitTypes('EXPLORE')) {
       this.missionType = 'EXPLORE';
+    }
+  }
+
+  /**
+   *
+   *
+   * @param {PlanetPojo} targetPlanet
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.7.4
+   * @returns {boolean}
+   * @memberof MissionModalComponent
+   */
+  public isDeploymentAllowed(targetPlanet: PlanetPojo): boolean {
+    const deployMentConfig: validDeploymentValue = this._configurationService.findDeploymentConfiguration();
+    switch (deployMentConfig) {
+      case 'DISALLOWED':
+        return false;
+      case 'FREEDOM':
+        return true;
+      case 'ONLY_ONCE_RETURN_SOURCE':
+      case 'ONLY_ONCE_RETURN_DEPLOYED':
+        return !this.obtainedUnits.length || !this.obtainedUnits[0].mission || this.planetIsMine(targetPlanet);
+      default:
+        this._log.warn(`Invalid value for deployment config in the server: ${deployMentConfig}, defaulting to FREEDOM`);
+        return true;
     }
   }
 }

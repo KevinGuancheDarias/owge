@@ -72,6 +72,7 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
 import { RankingModule } from './modules/ranking/ranking.module';
+import { ConfigurationModule } from './modules/configuration/configuration.module';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -159,6 +160,7 @@ export function findHttpLoaderFactory(http: HttpClient) {
     UserModule.forRoot(),
     AllianceModule.forRoot(),
     UniverseModule.forRoot(),
+    ConfigurationModule.forRoot(),
     CoreModule.forRoot(),
     RankingModule,
     WidgetsModule,

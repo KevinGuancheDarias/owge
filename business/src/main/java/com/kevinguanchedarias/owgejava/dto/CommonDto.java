@@ -8,7 +8,7 @@ package com.kevinguanchedarias.owgejava.dto;
  * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public abstract class CommonDto<K extends Number> {
+public abstract class CommonDto<K> {
 	private K id;
 	private String name;
 	private String description;

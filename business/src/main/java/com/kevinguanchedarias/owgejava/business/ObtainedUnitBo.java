@@ -349,4 +349,20 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 					"Nice try to buy over your possibilities!!!, try outside of Spain!");
 		}
 	}
+
+	/**
+	 * Gets the ENUM value of the unit mission type (or null )
+	 * 
+	 * @param unit
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public MissionType resolveMissionType(ObtainedUnit unit) {
+		if (unit.getMission() != null) {
+			return MissionType.valueOf(unit.getMission().getType().getCode());
+		} else {
+			return null;
+		}
+	}
 }

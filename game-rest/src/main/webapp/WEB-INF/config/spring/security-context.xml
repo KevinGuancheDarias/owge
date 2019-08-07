@@ -53,6 +53,7 @@
 	<security:http pattern="/login" security="none" />
 	<security:http pattern="/universe/findOfficials" security="none" />
 	<security:http pattern="/clock" security="none" />
+	<security:http pattern="/configuration" security="none" />
 	<security:http pattern="/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
 		<security:csrf disabled="true"/>
 		<security:custom-filter before="FORM_LOGIN_FILTER" ref="jwtAuthenticationFilter"/>

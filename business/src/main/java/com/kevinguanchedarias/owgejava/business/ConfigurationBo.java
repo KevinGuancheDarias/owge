@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.owgejava.entity.Configuration;
+import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -223,6 +224,26 @@ public class ConfigurationBo implements Serializable {
 					+ ", nested message is: " + e.getMessage());
 			return new Configuration(name, defaultValue);
 		}
+	}
+
+	/**
+	 * Finds the current value for DEPLOYMENT_CONFIG
+	 * 
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public DeployMissionConfigurationEnum findDeployMissionConfiguration() {
+		DeployMissionConfigurationEnum value;
+		try {
+			value = DeployMissionConfigurationEnum.valueOf(
+					findOrSetDefault("DEPLOYMENT_CONFIG", DeployMissionConfigurationEnum.FREEDOM.name()).getValue());
+		} catch (Exception e) {
+			LOCAL_LOGGER.warn(
+					"Invalid value for DEPLOYMENT_CONFIG, please check DeployMissionConfigurationEnum for valid values, Defaulting to FREEDOM");
+			value = DeployMissionConfigurationEnum.FREEDOM;
+		}
+		return value;
 	}
 
 	private Configuration saveMissionExploreBaseTime(Long value) {
