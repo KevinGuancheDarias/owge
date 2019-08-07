@@ -17,6 +17,7 @@ import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requiremen
 import { ProgrammingError } from '../../error/programming.error';
 import { UnitTypeService } from '../services/unit-type.service';
 import { ClockSyncService } from '../modules/core/services/clock-sync.service';
+import { SelectedUnit } from '../shared/types/selected-unit.type';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -207,6 +208,15 @@ export class UnitService extends GameBaseService {
     const { id, count } = unit;
     await this._doPostWithAuthorizationToGame('unit/delete', { id, count }).toPromise();
     this._unitTypeService.sustractToType(unit.unit.typeId, count);
+  }
+
+  public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
+    return obtainedUnits.map(current => {
+      return {
+        id: current.unit.id,
+        count: current.count
+      };
+    });
   }
 
   /**

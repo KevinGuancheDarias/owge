@@ -5,6 +5,7 @@ import { UnitRunningMission } from '../../shared/types/unit-running-mission.type
 import { MissionService } from '../../services/mission.service';
 import { ModalComponent } from '../modal/modal.component';
 import { MissionInformationStore } from '../../store/mission-information.store';
+import { UnitService } from '../../service/unit.service';
 
 declare const $;
 @Component({
@@ -46,7 +47,11 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   @ViewChildren('missionRoot')
   private _components: QueryList<ElementRef>;
 
-  public constructor(private _missionService: MissionService, private _missionInformationStore: MissionInformationStore) {
+  public constructor(
+    private _missionService: MissionService,
+    private _missionInformationStore: MissionInformationStore,
+    private _unitService: UnitService
+  ) {
     super();
   }
 
@@ -70,9 +75,19 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
     return new Date(unixTimestamp);
   }
 
-  public async cancelMission(missionId: number): Promise<void> {
+  public async cancelMission(runningUnitMissions: UnitRunningMission): Promise<void> {
     if (await this.displayConfirm('Are you sure you want to cancel the mission?')) {
-      await this._doWithLoading(this._missionService.cancelMission(missionId).toPromise());
+      if (runningUnitMissions.type === 'DEPLOYED') {
+        await this._doWithLoading(this._missionService.sendMission(
+          'DEPLOY',
+          runningUnitMissions.targetPlanet,
+          runningUnitMissions.sourcePlanet,
+          this._unitService.obtainedUnitToSelectedUnits(runningUnitMissions.involvedUnits)
+        ));
+      } else {
+        await this._doWithLoading(this._missionService.cancelMission(runningUnitMissions.missionId).toPromise());
+      }
+
       setTimeout(() => {
         this.missionDone.emit();
       }, 500);
