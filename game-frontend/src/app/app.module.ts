@@ -62,7 +62,7 @@ import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
 import { MissionModalComponent } from './mission-modal/mission-modal.component';
 import { UserModule } from './modules/user/user.module';
-import { ALLIANCE_ROUTES } from './modules/alliance/alliance.routes';
+import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from './modules/alliance/alliance.routes';
 import { RouterRootComponent } from './modules/core/components/router-root/router-root.component';
 import { AllianceModule } from './modules/alliance/alliance.module';
 import { CoreModule } from './modules/core/core.module';
@@ -89,13 +89,7 @@ export const APP_ROUTES: Routes = [
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
   {
     path: 'alliance', component: RouterRootComponent, canActivate: [LoginSessionService],
-    children: ALLIANCE_ROUTES, data: {
-      sectionTitle: 'Alliance', routes: [
-        { path: 'my', text: 'APP.MY_ALLIANCE' },
-        { path: 'browse', text: 'APP.BROWSE' },
-        { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST' }
-      ]
-    }
+    children: ALLIANCE_ROUTES, data: ALLIANCE_ROUTES_DATA
   },
   {
     path: 'ranking', component: RouterRootComponent, canActivate: [LoginSessionService],
@@ -154,7 +148,7 @@ export function findHttpLoaderFactory(http: HttpClient) {
     FormsModule,
     HttpModule,
     Angular2FontawesomeModule,
-    RouterModule.forRoot(APP_ROUTES),
+    RouterModule.forRoot(APP_ROUTES, {onSameUrlNavigation: 'reload'}),
     HttpClientModule,
     NgbModule.forRoot(),
     UserModule.forRoot(),

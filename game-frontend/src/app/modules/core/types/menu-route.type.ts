@@ -1,3 +1,4 @@
+import { Injector } from '@angular/core';
 
 /**
  * Represents a "Menu button"
@@ -43,7 +44,7 @@ export interface MenuRoute {
      * @since 0.7.0
      * @memberof MenuRoute
      */
-    ngIf?: () => Promise<boolean>;
+    ngIf?: (injector: Injector) => Promise<boolean>;
 
     /**
      *

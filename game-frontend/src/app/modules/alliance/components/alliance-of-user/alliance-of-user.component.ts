@@ -6,6 +6,7 @@ import { Alliance } from '../../types/alliance.type';
 import { ModalComponent } from '../../../../components/modal/modal.component';
 import { LoadingService } from '../../../../services/loading.service';
 import { AllianceService } from '../../services/alliance.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-alliance-of-user',
@@ -25,7 +26,8 @@ export class AllianceOfUserComponent implements OnInit {
   constructor(
     private _allianceStorage: AllianceStorage,
     private _loadingService: LoadingService,
-    private _allianceService: AllianceService
+    private _allianceService: AllianceService,
+    private _router: Router
   ) { }
 
   public ngOnInit() {
@@ -42,5 +44,6 @@ export class AllianceOfUserComponent implements OnInit {
   public async save(): Promise<void> {
     await this._loadingService.addPromise(this._allianceService.save(this.editingalliance).toPromise());
     this.modal.hide();
+    this._router.navigate(['/alliance/my']);
   }
 }

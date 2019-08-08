@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, Injector } from '@angular/core';
+import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { RouterData } from '../../types/router-data.type';
 import { ProgrammingError } from '../../../../../error/programming.error';
-import { MenuRoute } from '../../types/menu-route.type';
-import { getCurrentDebugContext } from '@angular/core/src/view/services';
+import { filter } from 'rxjs/operators';
 
 /**
  *
@@ -23,7 +22,7 @@ export class RouterRootComponent implements OnInit {
 
   public routerData: RouterData;
 
-  public constructor(private _route: ActivatedRoute) {
+  public constructor(private _route: ActivatedRoute, private _router: Router, private _injector: Injector) {
 
   }
 
@@ -33,16 +32,23 @@ export class RouterRootComponent implements OnInit {
         throw new ProgrammingError(`Invalid input for ${this.constructor.name}`);
       }
       this.routerData = <any>data;
-      if (this.routerData.routes) {
-        this.routerData.routes.forEach(current => {
-          if (typeof current.ngIf === 'function') {
-            current.ngIf().then(result => current.isNgIfOk = result);
-          } else {
-            current.isNgIfOk = true;
-          }
-        });
-      }
+      this._handleNgIfs();
     });
+    this._router.events.pipe(
+      filter(current => current instanceof NavigationEnd)
+    ).subscribe(event => this._handleNgIfs());
+  }
+
+  private _handleNgIfs(): void {
+    if (this.routerData.routes) {
+      this.routerData.routes.forEach(current => {
+        if (typeof current.ngIf === 'function') {
+          current.ngIf(this._injector).then(result => current.isNgIfOk = result);
+        } else {
+          current.isNgIfOk = true;
+        }
+      });
+    }
   }
 
 }
