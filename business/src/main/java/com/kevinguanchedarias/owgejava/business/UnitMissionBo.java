@@ -772,13 +772,30 @@ public class UnitMissionBo extends AbstractMissionBo {
 		return obtainedUnitBo.findByMissionId(mission.getId());
 	}
 
-	public Mission createDeployedMission(Planet origin, Planet target, UserStorage user) {
-		Mission deployedMission = new Mission();
-		deployedMission.setType(findMissionType(MissionType.DEPLOYED));
-		deployedMission.setUser(user);
-		deployedMission.setSourcePlanet(origin);
-		deployedMission.setTargetPlanet(target);
-		return save(deployedMission);
+	/**
+	 * finds user <b>not resolved</b> deployed mission, if none exists creates
+	 * one
+	 * 
+	 * @param origin
+	 * @param target
+	 * @param user
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Mission findDeployedMissionOrCreate(Planet origin, Planet target, UserStorage user) {
+		Mission existingMission = findOneByUserIdAndTypeAndTargetPlanet(user.getId(), MissionType.DEPLOYED,
+				target.getId());
+		if (existingMission != null) {
+			return existingMission;
+		} else {
+			Mission deployedMission = new Mission();
+			deployedMission.setType(findMissionType(MissionType.DEPLOYED));
+			deployedMission.setUser(user);
+			deployedMission.setSourcePlanet(origin);
+			deployedMission.setTargetPlanet(target);
+			return save(deployedMission);
+		}
 	}
 
 	/**

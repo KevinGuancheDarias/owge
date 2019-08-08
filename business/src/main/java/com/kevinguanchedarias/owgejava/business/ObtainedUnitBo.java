@@ -286,8 +286,8 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 			unit.setTargetPlanet(originPlanet);
 			unit = saveWithAdding(userId, unit);
 			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
-				unit.setMission(
-						unitMissionBo.createDeployedMission(originPlanet, unit.getSourcePlanet(), unit.getUser()));
+				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(originPlanet, unit.getSourcePlanet(),
+						unit.getUser()));
 				save(unit);
 			}
 		}
@@ -364,5 +364,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		} else {
 			return null;
 		}
+	}
+
+	public Mission findPlanetDeployedMission(Integer userId, Planet planet) {
+		return unitMissionBo.findOneByUserIdAndTypeAndTargetPlanet(userId, MissionType.DEPLOYED, planet.getId());
 	}
 }

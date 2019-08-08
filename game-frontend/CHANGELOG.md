@@ -2,6 +2,7 @@
 
 v0.7.4 (latest)
 ==================
+* __Fix:__ [When sending a deployment mission with multiple unit, would create one separated "deployed" mission for each type](https://github.com/KevinGuancheDarias/owge/issues/100)  
 * __Fix:__ [Loading image not displaying in mobile devices](https://github.com/KevinGuancheDarias/owge/issues/50)
 * __Fix:__ [When the user is not the owner of the alliance, should not display the "join request list"](https://github.com/KevinGuancheDarias/owge/issues/49)  
 * __Fix:__ [ClockService is not working properly, looks like it is adding time always](https://github.com/KevinGuancheDarias/owge/issues/99)  
