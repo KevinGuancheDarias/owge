@@ -2,6 +2,7 @@
 
 v0.7.4 (latest)
 ==================
+* __Fix:__ [Loading image not displaying in mobile devices](https://github.com/KevinGuancheDarias/owge/issues/50)
 * __Fix:__ [When the user is not the owner of the alliance, should not display the "join request list"](https://github.com/KevinGuancheDarias/owge/issues/49)  
 * __Fix:__ [ClockService is not working properly, looks like it is adding time always](https://github.com/KevinGuancheDarias/owge/issues/99)  
 * __Fix:__ [Return button is not working in deployed missions](https://github.com/KevinGuancheDarias/owge/issues/51)  
