@@ -151,9 +151,9 @@ if [ -z "$NO_COMPILE" ]; then
 	mkdir "$targetRoot";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../business "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../account "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../admin "$targetRoot";
 	export OWGE_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
 	export OWGE_ADMIN_WAR_FILENAME="$globalMavenFilename";
 	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";
