@@ -2,8 +2,10 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -774,27 +776,43 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * finds user <b>not resolved</b> deployed mission, if none exists creates
-	 * one
+	 * one <br>
+	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has
+	 * to remove the firstDeploymentMission
 	 * 
 	 * @param origin
-	 * @param target
-	 * @param user
+	 * @param unit
 	 * @return
 	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Mission findDeployedMissionOrCreate(Planet origin, Planet target, UserStorage user) {
+	@Transactional
+	public Mission findDeployedMissionOrCreate(Planet origin, ObtainedUnit unit) {
+		UserStorage user = unit.getUser();
+		Planet target = unit.getSourcePlanet();
 		Mission existingMission = findOneByUserIdAndTypeAndTargetPlanet(user.getId(), MissionType.DEPLOYED,
 				target.getId());
 		if (existingMission != null) {
+			unit.setFirstDeploymentMission(null);
+			obtainedUnitBo.save(unit);
 			return existingMission;
 		} else {
 			Mission deployedMission = new Mission();
 			deployedMission.setType(findMissionType(MissionType.DEPLOYED));
 			deployedMission.setUser(user);
-			deployedMission.setSourcePlanet(origin);
-			deployedMission.setTargetPlanet(target);
-			return save(deployedMission);
+			if (unit.getFirstDeploymentMission() == null) {
+				deployedMission.setSourcePlanet(origin);
+				deployedMission.setTargetPlanet(target);
+				deployedMission = save(deployedMission);
+				unit.setFirstDeploymentMission(deployedMission);
+				obtainedUnitBo.save(unit);
+			} else {
+				Mission firstDeploymentMission = findById(unit.getFirstDeploymentMission().getId());
+				deployedMission.setSourcePlanet(firstDeploymentMission.getSourcePlanet());
+				deployedMission.setTargetPlanet(firstDeploymentMission.getTargetPlanet());
+				deployedMission = save(deployedMission);
+			}
+			return deployedMission;
 		}
 	}
 
@@ -825,11 +843,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			throw new SgtBackendInvalidInputException(
 					"Can't send this mission, because target planet is not explored ");
 		}
-		checkAndLoadObtainedUnits(missionInformation);
+		Map<Integer, ObtainedUnit> dbUnits = checkAndLoadObtainedUnits(missionInformation);
 		Mission mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
 		targetMissionInformation.getInvolvedUnits().forEach(current -> {
 			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
 			currentObtainedUnit.setMission(mission);
+			currentObtainedUnit.setFirstDeploymentMission(dbUnits.get(current.getId()).getFirstDeploymentMission());
 			currentObtainedUnit.setCount(current.getCount());
 			currentObtainedUnit.setUser(user);
 			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
@@ -864,7 +883,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * 
 	 * @param missionInformation
 	 * @return Database list of <i>ObtainedUnit</i> with the subtraction
-	 *         <b>already applied</b>
+	 *         <b>already applied</b>, whose key is the "unit" id (don't confuse
+	 *         with obtained unit id)
+	 * 
 	 * @throws SgtBackendInvalidInputException
 	 *             when validation was not passed
 	 * @throws UserNotFoundException
@@ -873,8 +894,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 *             When the planet doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private List<ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
-		List<ObtainedUnit> retVal = new ArrayList<>();
+	private Map<Integer, ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
+		Map<Integer, ObtainedUnit> retVal = new HashMap<>();
 		checkUserExists(missionInformation.getUserId());
 		checkPlanetExists(missionInformation.getSourcePlanetId());
 		checkPlanetExists(missionInformation.getTargetPlanetId());
@@ -896,7 +917,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 					&& currentObtainedUnit.getMission().getType().getCode().equals(MissionType.DEPLOYED.toString())) {
 				deletedMissions.add(currentObtainedUnit.getMission());
 			}
-			retVal.add(unitAfterSubstraction);
+			retVal.put(current.getId(), currentObtainedUnit);
 		});
 		deletedMissions.forEach(this::resolveMission);
 		return retVal;

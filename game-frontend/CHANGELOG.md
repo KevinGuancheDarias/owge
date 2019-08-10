@@ -2,6 +2,7 @@
 
 v0.7.4 (latest)
 ==================
+* __Fix:__ [System is not keeping the source & target planet of depoyed missions, when another mission is run](https://github.com/KevinGuancheDarias/owge/issues/101)  
 * __Fix:__ [When sending a deployment mission with multiple unit, would create one separated "deployed" mission for each type](https://github.com/KevinGuancheDarias/owge/issues/100)  
 * __Fix:__ [Loading image not displaying in mobile devices](https://github.com/KevinGuancheDarias/owge/issues/50)
 * __Fix:__ [When the user is not the owner of the alliance, should not display the "join request list"](https://github.com/KevinGuancheDarias/owge/issues/49)  
