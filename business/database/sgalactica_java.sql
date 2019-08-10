@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.9
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Hôte : 192.168.122.167
--- Généré le :  jeu. 10 jan. 2019 à 14:35
+-- Hôte : 192.168.99.1
+-- Généré le :  sam. 10 août 2019 à 12:54
 -- Version du serveur :  5.7.19-log
--- Version de PHP :  7.2.2
+-- Version de PHP :  7.2.19
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -338,6 +338,7 @@ CREATE TABLE `obtained_units` (
   `source_planet` bigint(20) UNSIGNED DEFAULT NULL,
   `target_planet` bigint(20) UNSIGNED DEFAULT NULL,
   `mission_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `first_deployment_mission` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Has the id of the first deployment executed mission',
   `expiration` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -939,7 +940,8 @@ ALTER TABLE `object_relations`
 --
 ALTER TABLE `obtained_units`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `first_deployment_mission` (`first_deployment_mission`);
 
 --
 -- Index pour la table `obtained_upgrades`
@@ -1152,25 +1154,25 @@ ALTER TABLE `websocket_messages_status`
 -- AUTO_INCREMENT pour la table `admin_users`
 --
 ALTER TABLE `admin_users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `alliances`
 --
 ALTER TABLE `alliances`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `alliance_join_request`
 --
 ALTER TABLE `alliance_join_request`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `carpetas`
 --
 ALTER TABLE `carpetas`
-  MODIFY `cd` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `cd` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `especialesderaza`
@@ -1182,31 +1184,31 @@ ALTER TABLE `especialesderaza`
 -- AUTO_INCREMENT pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2188;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `factions`
 --
 ALTER TABLE `factions`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `galaxies`
 --
 ALTER TABLE `galaxies`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `improvements`
 --
 ALTER TABLE `improvements`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=734;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `improvements_unit_types`
 --
 ALTER TABLE `improvements_unit_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=431;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `mensajes`
@@ -1218,61 +1220,61 @@ ALTER TABLE `mensajes`
 -- AUTO_INCREMENT pour la table `missions`
 --
 ALTER TABLE `missions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6814;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `mission_information`
 --
 ALTER TABLE `mission_information`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `mission_reports`
 --
 ALTER TABLE `mission_reports`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2914;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `mission_types`
 --
 ALTER TABLE `mission_types`
-  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `object_relations`
 --
 ALTER TABLE `object_relations`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=733;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3638;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
 --
 ALTER TABLE `obtained_upgrades`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=181;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `planets`
 --
 ALTER TABLE `planets`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3381;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `requirements`
 --
 ALTER TABLE `requirements`
-  MODIFY `id` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` smallint(6) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `requirements_information`
 --
 ALTER TABLE `requirements_information`
-  MODIFY `id` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2352;
+  MODIFY `id` smallint(6) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `special_locations`
@@ -1290,43 +1292,43 @@ ALTER TABLE `speed_impact_groups`
 -- AUTO_INCREMENT pour la table `units`
 --
 ALTER TABLE `units`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=374;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `unit_types`
 --
 ALTER TABLE `unit_types`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `unlocked_relation`
 --
 ALTER TABLE `unlocked_relation`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=237;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `upgrades`
 --
 ALTER TABLE `upgrades`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=412;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `upgrade_types`
 --
 ALTER TABLE `upgrade_types`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `user_improvements`
 --
 ALTER TABLE `user_improvements`
-  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
 --
 ALTER TABLE `websocket_messages_status`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8577;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- Contraintes pour les tables déchargées
@@ -1392,6 +1394,12 @@ ALTER TABLE `mission_reports`
 --
 ALTER TABLE `object_relations`
   ADD CONSTRAINT `object_relations_ibfk_1` FOREIGN KEY (`object_description`) REFERENCES `objects` (`description`);
+
+--
+-- Contraintes pour la table `obtained_units`
+--
+ALTER TABLE `obtained_units`
+  ADD CONSTRAINT `obtained_units_ibfk_1` FOREIGN KEY (`first_deployment_mission`) REFERENCES `missions` (`id`);
 
 --
 -- Contraintes pour la table `obtained_upgrades`
