@@ -4,7 +4,7 @@
 	<groupId>com.kevinguanchedarias.owgejava</groupId>
 	<artifactId>owgejava-account</artifactId>
 	<packaging>war</packaging>
-	<version>0.7.4-SNAPSHOT</version>
+	<version>0.7.5-SNAPSHOT</version>
 	<name>OWGE Account</name>
 	<url>http://maven.apache.org</url>
 
@@ -15,7 +15,7 @@
 		<hibernate.version>5.1.1.Final</hibernate.version>
 		<springSecurity.version>4.1.3.RELEASE</springSecurity.version>
 		<dbh2.version>1.4.187</dbh2.version>
-		<owge.version>0.7.4-SNAPSHOT</owge.version>
+		<owge.version>0.7.5-SNAPSHOT</owge.version>
 	</properties>
 
 	<dependencies>
