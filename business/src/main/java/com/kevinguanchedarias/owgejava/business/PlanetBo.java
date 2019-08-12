@@ -207,7 +207,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 	public boolean canLeavePlanet(Integer invokerId, Long planetId) {
 		return !isHomePlanet(planetId) && isOfUserProperty(invokerId, planetId)
 				&& !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
-				&& missionBo.findByUserIdAndTypeCode(invokerId, MissionType.BUILD_UNIT) == null
+				&& missionBo.findRunningUnitBuild(invokerId, Double.valueOf(planetId)) == null
 				&& !missionBo.existsByTargetPlanetAndType(planetId, MissionType.RETURN_MISSION);
 	}
 }
