@@ -1,5 +1,10 @@
 # OWGE changelog
 
+v0.7.5 (latest)
+=================
+* __Fix:__  [Fix "delete unit" button is moving to the next line when mouse is over](https://github.com/KevinGuancheDarias/owge/issues/104) ![Fix "delete unit" button is moving to the next line when mouse is over](assets/changelog/bugs/104.png)  
+* __Fix:__ [Leaving planet is not working when you have BUILD_UNIT mission in any  of your planets](https://github.com/KevinGuancheDarias/owge/issues/103)  
+
 v0.7.4 (2019-08-10 12:32)
 ==========================
 * __Fix:__ [System is not keeping the source & target planet of depoyed missions, when another mission is run](https://github.com/KevinGuancheDarias/owge/issues/101)  
