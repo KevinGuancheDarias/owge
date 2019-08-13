@@ -102,7 +102,9 @@ function compileMavenProject () {
 	fi
 	if [ $_doCompile -eq 1 ]; then
 		echo "Compiling $_projectName:$_projectVersion";
-		mavenRun "$1" clean install &> /dev/null;
+		_skipTests="";
+		test -n "$SKIP_TESTS" && _skipTests="-DskipTests";
+		mavenRun "$1" clean install "$_skipTests" # &> /dev/null;
 		_compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
 		if [ -z "$_compiledFilePath" ]; then
 			echo "FATAL, compilation, when trying to compile $_project , aborting script execution";
@@ -151,9 +153,9 @@ if [ -z "$NO_COMPILE" ]; then
 	mkdir "$targetRoot";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../business "$targetRoot";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../account "$targetRoot";
-	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../admin "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../business "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../account "$targetRoot";
+	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../admin "$targetRoot";
 	export OWGE_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
 	export OWGE_ADMIN_WAR_FILENAME="$globalMavenFilename";
 	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";

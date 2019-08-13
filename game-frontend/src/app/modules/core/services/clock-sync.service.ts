@@ -63,7 +63,6 @@ export class ClockSyncService {
     return this._timeDifference;
   }
 
-
   /**
    * Returns a new date with a synced termination date
    *
@@ -77,6 +76,6 @@ export class ClockSyncService {
     const time: number = serverTerminationDate instanceof Date
       ? serverTerminationDate.getTime()
       : serverTerminationDate;
-    return new Date(time + this.getTimeDifference());
+    return new Date(time + (this.getTimeDifference() * -1));
   }
 }

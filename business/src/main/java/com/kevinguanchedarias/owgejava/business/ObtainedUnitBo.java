@@ -107,7 +107,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> explorePlanetUnits(Planet targetPlanet) {
-		return repository.findBySourcePlanetIdAndMissionIsNull(targetPlanet.getId());
+		return repository.findBySourcePlanetIdAndMissionIsNullOrDeployed(targetPlanet.getId());
 	}
 
 	/**
@@ -137,6 +137,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 		return retVal;
 	}
 
+	@Transactional
 	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnitDto retVal;
 		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),
@@ -279,14 +280,14 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 			saveWithAdding(userId, unit);
 			unit.setMission(null);
 			unit.setTargetPlanet(null);
+			unit.setFirstDeploymentMission(null);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
 			save(unit);
 		} else {
 			unit.setTargetPlanet(originPlanet);
 			unit = saveWithAdding(userId, unit);
 			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
-				unit.setMission(
-						unitMissionBo.createDeployedMission(originPlanet, unit.getSourcePlanet(), unit.getUser()));
+				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(originPlanet, unit));
 				save(unit);
 			}
 		}
@@ -347,5 +348,25 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 			throw new SgtBackendInvalidInputException(
 					"Nice try to buy over your possibilities!!!, try outside of Spain!");
 		}
+	}
+
+	/**
+	 * Gets the ENUM value of the unit mission type (or null )
+	 * 
+	 * @param unit
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public MissionType resolveMissionType(ObtainedUnit unit) {
+		if (unit.getMission() != null) {
+			return MissionType.valueOf(unit.getMission().getType().getCode());
+		} else {
+			return null;
+		}
+	}
+
+	public Mission findPlanetDeployedMission(Integer userId, Planet planet) {
+		return unitMissionBo.findOneByUserIdAndTypeAndTargetPlanet(userId, MissionType.DEPLOYED, planet.getId());
 	}
 }

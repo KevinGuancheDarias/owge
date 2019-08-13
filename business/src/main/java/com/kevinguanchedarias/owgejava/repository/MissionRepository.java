@@ -28,4 +28,15 @@ public interface MissionRepository extends JpaRepository<Mission, Number>, Seria
 	public Long countByTargetPlanetIdAndTypeCodeAndResolvedFalse(Long planetId, String type);
 
 	public Long countByTargetPlanetIdAndResolvedFalse(Long planetId);
+
+	/**
+	 * @param userId
+	 * @param name
+	 * @param targetPlanet
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Mission> findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(Integer userId, String name,
+			Long targetPlanet);
 }

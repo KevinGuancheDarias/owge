@@ -53,6 +53,11 @@ public class ObtainedUnit implements SimpleIdEntity {
 	@Fetch(FetchMode.JOIN)
 	private Mission mission;
 
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "first_deployment_mission", nullable = true)
+	@Fetch(FetchMode.JOIN)
+	private Mission firstDeploymentMission;
+
 	private Date expiration;
 
 	public void addCount(Long count) {
@@ -117,6 +122,23 @@ public class ObtainedUnit implements SimpleIdEntity {
 
 	public void setMission(Mission mission) {
 		this.mission = mission;
+	}
+
+	/**
+	 * @since 0.7.4
+	 * @return the firstDeploymentMission
+	 */
+	public Mission getFirstDeploymentMission() {
+		return firstDeploymentMission;
+	}
+
+	/**
+	 * @since 0.7.4
+	 * @param firstDeploymentMission
+	 *            the firstDeploymentMission to set
+	 */
+	public void setFirstDeploymentMission(Mission firstDeploymentMission) {
+		this.firstDeploymentMission = firstDeploymentMission;
 	}
 
 	public Date getExpiration() {

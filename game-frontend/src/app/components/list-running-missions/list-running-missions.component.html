@@ -13,7 +13,7 @@
       <span *ngIf="displayUser" class="display-user">{{ runningUnitMission.user | displayUsername }} </span>
       <span class="display-type">{{ runningUnitMission.type | displayMissionType }} </span>
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
-        (click)="cancelMission(runningUnitMission.missionId)" class="fas fa-times"></i>
+        (click)="cancelMission(runningUnitMission)" class="fas fa-times"></i>
       <span class="display-time">
         <app-countdown *ngIf="runningUnitMission.terminationDate"
           [targetDate]="convertToDate(runningUnitMission.terminationDate)" (timeOver)="missionDone.emit()">

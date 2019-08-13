@@ -8,6 +8,7 @@ import { WidgetConfirmationDialogComponent } from '../../../widgets/components/w
 import { TranslateService } from '@ngx-translate/core';
 import { LoadingService } from '../../../../services/loading.service';
 import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
+import { Router } from '@angular/router';
 
 /**
  *
@@ -43,7 +44,8 @@ export class AllianceDetailsComponent implements OnInit {
     private _allianceService: AllianceService,
     private _userStorage: UserStorage,
     private _translateService: TranslateService,
-    private _loadingService: LoadingService
+    private _loadingService: LoadingService,
+    private _router: Router
   ) { }
 
   async ngOnInit() {
@@ -102,8 +104,8 @@ export class AllianceDetailsComponent implements OnInit {
   public async onDeleteConfirm(result: boolean): Promise<void> {
     if (result) {
       await this._loadingService.addPromise(this._allianceService.delete(this.alliance.id).toPromise());
-      (<any>window).exposedShit = this.confirmDialog;
       this.confirmDialog.hide();
+      this._router.navigate(['/alliance/browse']);
     }
   }
 }

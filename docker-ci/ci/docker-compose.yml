@@ -27,6 +27,7 @@ services:
         volumes:
            - ${STATIC_IMAGES_DIR}:/var/owge_data/static
            - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+           - /public/owge-data/keys:/var/owge_data/keys
         expose:
            - "8081"
 

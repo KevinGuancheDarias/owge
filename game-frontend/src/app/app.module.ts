@@ -62,7 +62,7 @@ import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
 import { MissionModalComponent } from './mission-modal/mission-modal.component';
 import { UserModule } from './modules/user/user.module';
-import { ALLIANCE_ROUTES } from './modules/alliance/alliance.routes';
+import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from './modules/alliance/alliance.routes';
 import { RouterRootComponent } from './modules/core/components/router-root/router-root.component';
 import { AllianceModule } from './modules/alliance/alliance.module';
 import { CoreModule } from './modules/core/core.module';
@@ -72,6 +72,10 @@ import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
 import { RankingModule } from './modules/ranking/ranking.module';
+import { ConfigurationModule } from './modules/configuration/configuration.module';
+import { ConfigurationService } from './modules/configuration/services/configuration.service';
+import { Subscription } from 'rxjs/Subscription';
+import { UserStorage } from './modules/user/storages/user.storage';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -88,13 +92,7 @@ export const APP_ROUTES: Routes = [
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
   {
     path: 'alliance', component: RouterRootComponent, canActivate: [LoginSessionService],
-    children: ALLIANCE_ROUTES, data: {
-      sectionTitle: 'Alliance', routes: [
-        { path: 'my', text: 'APP.MY_ALLIANCE' },
-        { path: 'browse', text: 'APP.BROWSE' },
-        { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST' }
-      ]
-    }
+    children: ALLIANCE_ROUTES, data: ALLIANCE_ROUTES_DATA
   },
   {
     path: 'ranking', component: RouterRootComponent, canActivate: [LoginSessionService],
@@ -153,12 +151,13 @@ export function findHttpLoaderFactory(http: HttpClient) {
     FormsModule,
     HttpModule,
     Angular2FontawesomeModule,
-    RouterModule.forRoot(APP_ROUTES),
+    RouterModule.forRoot(APP_ROUTES, {onSameUrlNavigation: 'reload'}),
     HttpClientModule,
     NgbModule.forRoot(),
     UserModule.forRoot(),
     AllianceModule.forRoot(),
     UniverseModule.forRoot(),
+    ConfigurationModule.forRoot(),
     CoreModule.forRoot(),
     RankingModule,
     WidgetsModule,
@@ -193,15 +192,30 @@ export class AppModule {
   constructor(
     private _injector: Injector,
     private _websocketService: WebsocketService,
-    private _translateService: TranslateService
+    private _translateService: TranslateService,
+    private _configurationService: ConfigurationService,
+    private _userStorage: UserStorage
   ) {
     ServiceLocator.injector = this._injector;
-    window['globalShit'] = this._websocketService;
-    this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-    this._websocketService.initSocket('http://127.0.0.1:3000');
+    this._initWebsocket();
     const supportedLanguages = ['en', 'es'];
     const browserLang = this._translateService.getBrowserLang();
     const targetLang = supportedLanguages.some(current => current === browserLang) ? browserLang : 'en';
     this._translateService.setDefaultLang(targetLang);
+  }
+
+  private _initWebsocket(): void {
+    let _oldSuscription: Subscription;
+    this._configurationService.observeParam('WEBSOCKET_ENDPOINT').filter(configurationEntry => !!configurationEntry).subscribe(conf => {
+      if (_oldSuscription) {
+        _oldSuscription.unsubscribe();
+        _oldSuscription = null;
+      }
+      this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
+      this._websocketService.initSocket(conf.value);
+      _oldSuscription = this._userStorage.currentToken
+        .filter(token => !!token)
+        .subscribe(token => this._websocketService.authenticate(token));
+    });
   }
 }

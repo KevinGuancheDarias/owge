@@ -332,7 +332,6 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
   private _handleLoginLogic(loadingRoute: string): void {
     if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
       this._notifyGameFrontendCore();
-      this._websocketService.authenticate(this.getRawToken());
       this.alreadyNotified = true;
     }
   }

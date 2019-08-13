@@ -1,7 +1,26 @@
 # OWGE changelog
 
-v0.7.4 (latest)
-==================
+v0.8.0 (latest)
+=================
+* __Merge:__ v0.7.5
+
+v0.7.5 (2019-08-13 16:58)
+====================
+* __Improvement:__ [Disable websocket when not configured](https://github.com/KevinGuancheDarias/owge/issues/105)  
+* __Fix:__  [Fix "delete unit" button is moving to the next line when mouse is over](https://github.com/KevinGuancheDarias/owge/issues/104) ![Fix "delete unit" button is moving to the next line when mouse is over](assets/changelog/bugs/104.png)  
+* __Fix:__ [Leaving planet is not working when you have BUILD_UNIT mission in any  of your planets](https://github.com/KevinGuancheDarias/owge/issues/103)  
+
+v0.7.4 (2019-08-10 12:32)
+==========================
+* __Fix:__ [System is not keeping the source & target planet of depoyed missions, when another mission is run](https://github.com/KevinGuancheDarias/owge/issues/101)  
+* __Fix:__ [When sending a deployment mission with multiple unit, would create one separated "deployed" mission for each type](https://github.com/KevinGuancheDarias/owge/issues/100)  
+* __Fix:__ [Loading image not displaying in mobile devices](https://github.com/KevinGuancheDarias/owge/issues/50)
+* __Fix:__ [When the user is not the owner of the alliance, should not display the "join request list"](https://github.com/KevinGuancheDarias/owge/issues/49)  
+* __Fix:__ [ClockService is not working properly, looks like it is adding time always](https://github.com/KevinGuancheDarias/owge/issues/99)  
+* __Fix:__ [Return button is not working in deployed missions](https://github.com/KevinGuancheDarias/owge/issues/51)  
+* __Fix:__ [Button near the sidebard is not working, as sidebar is using more space than visible](https://github.com/KevinGuancheDarias/owge/issues/97)  
+* __Fix:__ [Do not allow to send deployments from a deployment mission (multi-deployment)](https://github.com/KevinGuancheDarias/owge/issues/96)  
+* __Fix:__ [Deployed units don't appear in the exploration report](https://github.com/KevinGuancheDarias/owge/issues/98)  
 * __Fix:__ When you attack source planet of deploy mission, the attack would affect units deployed in other planets
 * __Fix:__ Return button doesn't display properly
 

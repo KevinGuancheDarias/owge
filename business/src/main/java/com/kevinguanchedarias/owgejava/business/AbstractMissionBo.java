@@ -126,6 +126,27 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	}
 
 	/**
+	 * Finds a <b>not resolved </b>mission by userId, mission type and target
+	 * planet
+	 * 
+	 * @param userId
+	 * @param type
+	 * @param targetPlanet
+	 * @return
+	 * @since 0.7.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Mission findOneByUserIdAndTypeAndTargetPlanet(Integer userId, MissionType type, Long targetPlanet) {
+		List<Mission> missions = missionRepository.findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(userId,
+				type.name(), targetPlanet);
+		if (missions.isEmpty()) {
+			return null;
+		} else {
+			return missions.get(0);
+		}
+	}
+
+	/**
 	 * Finds a mission by user id and mission type
 	 * 
 	 * @param userId
