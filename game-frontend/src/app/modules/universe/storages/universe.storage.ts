@@ -11,7 +11,6 @@ import { Universe } from '../../../shared-pojo/universe.pojo';
  */
 export class UniverseStorage {
 
-
     /**
      * Current selected universe
      *

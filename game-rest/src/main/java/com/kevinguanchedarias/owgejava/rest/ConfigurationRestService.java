@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
 import com.kevinguanchedarias.owgejava.dto.ConfigurationDto;
+import com.kevinguanchedarias.owgejava.entity.Configuration;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
@@ -29,6 +31,9 @@ public class ConfigurationRestService {
 
 	@GetMapping
 	public List<ConfigurationDto> findUnprivilege() {
-		return dtoUtilService.convertEntireArray(ConfigurationDto.class, configurationBo.findAllNonPrivileged());
+		List<Configuration> configurations = new ArrayList<>();
+		configurations.addAll(configurationBo.findAllNonPrivileged());
+		configurations.addAll(configurationBo.findPrivilegedReadOnly());
+		return dtoUtilService.convertEntireArray(ConfigurationDto.class, configurations);
 	}
 }

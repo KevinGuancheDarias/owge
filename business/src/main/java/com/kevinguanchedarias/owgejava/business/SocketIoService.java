@@ -114,25 +114,30 @@ public class SocketIoService implements Serializable {
 	public CompletableFuture<DeliveryQueueEntry> sendMessage(UserStorage sourceUser, UserStorage targetUser,
 			String eventName, Object messageContent) {
 		CompletableFuture<DeliveryQueueEntry> retVal = new CompletableFuture<>();
-		Map<String, Object> jsonRoot = new HashMap<>();
-		if (sourceUser != null) {
-			jsonRoot.put("sourceUser", mapper
-					.convertValue(dtoUtilService.dtoFromEntity(UserStorageDto.class, sourceUser), JSONObject.class));
-		}
-		if (targetUser != null) {
-			jsonRoot.put("targetUser", mapper
-					.convertValue(dtoUtilService.dtoFromEntity(UserStorageDto.class, targetUser), JSONObject.class));
-		}
-		Object parsedContent;
-		if (messageContent instanceof String || messageContent instanceof Number) {
-			parsedContent = messageContent;
-		} else {
-			parsedContent = mapper.convertValue(messageContent, JSONObject.class);
-		}
+		if (configurationBo.findOrSetDefault(ConfigurationBo.WEBSOCKET_ENDPOINT_KEY, null).getValue() != null) {
+			Map<String, Object> jsonRoot = new HashMap<>();
+			if (sourceUser != null) {
+				jsonRoot.put("sourceUser", mapper.convertValue(
+						dtoUtilService.dtoFromEntity(UserStorageDto.class, sourceUser), JSONObject.class));
+			}
+			if (targetUser != null) {
+				jsonRoot.put("targetUser", mapper.convertValue(
+						dtoUtilService.dtoFromEntity(UserStorageDto.class, targetUser), JSONObject.class));
+			}
+			Object parsedContent;
+			if (messageContent instanceof String || messageContent instanceof Number) {
+				parsedContent = messageContent;
+			} else {
+				parsedContent = mapper.convertValue(messageContent, JSONObject.class);
+			}
 
-		jsonRoot.put("content", parsedContent);
-		deliverMessage(eventName, targetUser, jsonRoot)
-				.thenAccept(websocketMessageStatus -> retVal.complete(findCompletedAndRemove(websocketMessageStatus)));
+			jsonRoot.put("content", parsedContent);
+			deliverMessage(eventName, targetUser, jsonRoot).thenAccept(
+					websocketMessageStatus -> retVal.complete(findCompletedAndRemove(websocketMessageStatus)));
+		} else {
+			LOCAL_LOGGER.info("Websocket is disabled");
+			retVal.complete(null);
+		}
 		return retVal;
 	}
 

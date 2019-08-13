@@ -78,6 +78,20 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
+	 * Returns privileged properties that may be read from outside systems, ex:
+	 * WEBSOCKET_ENDPOINT
+	 * 
+	 * @return
+	 * @since 0.7.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Configuration> findPrivilegedReadOnly() {
+		List<String> readOnlyPrivileged = new ArrayList<>();
+		readOnlyPrivileged.add(WEBSOCKET_ENDPOINT_KEY);
+		return configurationRepository.findByNameIn(readOnlyPrivileged);
+	}
+
+	/**
 	 * Will find the configuration param from cache, else from database
 	 * 
 	 * @param name

@@ -3,6 +3,8 @@ import { Configuration } from '../types/configuration.type';
 import { CoreGameService } from '../../core/services/core-game.service';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
 import { LoggerHelper } from '../../../../helpers/logger.helper';
+import { Observable } from 'rxjs/Observable';
+import { ConfigurationStore } from '../store/configuration.store';
 
 
 /**
@@ -18,7 +20,7 @@ export class ConfigurationService {
   private _configuration: Configuration<any>[];
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  constructor(private _coreGameService: CoreGameService) { }
+  constructor(private _coreGameService: CoreGameService, private _configurationStore: ConfigurationStore) { }
 
   /**
    *
@@ -30,6 +32,7 @@ export class ConfigurationService {
    */
   public async init(): Promise<void> {
     this._configuration = await this._coreGameService.getToUniverse('configuration').toPromise();
+    this._configurationStore.currentConfiguration.next(this._configuration);
   }
 
   /**
@@ -43,6 +46,20 @@ export class ConfigurationService {
    */
   public findParam<T = any>(name: string): Configuration<T> {
     return this._configuration.find(current => current.name === name);
+  }
+
+  /**
+   * Observes a param and returns its value
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.7.5
+   * @template T
+   * @param {string} name
+   * @returns {Observable<Configuration<T>>}
+   * @memberof ConfigurationService
+   */
+  public observeParam<T = any>(name: string): Observable<Configuration<T>> {
+    return this._configurationStore.currentConfiguration.map(configuration => configuration.find(current => current.name === name));
   }
 
   /**

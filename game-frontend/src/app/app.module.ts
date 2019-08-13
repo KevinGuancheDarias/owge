@@ -73,6 +73,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
 import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
+import { ConfigurationService } from './modules/configuration/services/configuration.service';
+import { Subscription } from 'rxjs/Subscription';
+import { UserStorage } from './modules/user/storages/user.storage';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -189,15 +192,30 @@ export class AppModule {
   constructor(
     private _injector: Injector,
     private _websocketService: WebsocketService,
-    private _translateService: TranslateService
+    private _translateService: TranslateService,
+    private _configurationService: ConfigurationService,
+    private _userStorage: UserStorage
   ) {
     ServiceLocator.injector = this._injector;
-    window['globalShit'] = this._websocketService;
-    this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-    this._websocketService.initSocket('http://127.0.0.1:3000');
+    this._initWebsocket();
     const supportedLanguages = ['en', 'es'];
     const browserLang = this._translateService.getBrowserLang();
     const targetLang = supportedLanguages.some(current => current === browserLang) ? browserLang : 'en';
     this._translateService.setDefaultLang(targetLang);
+  }
+
+  private _initWebsocket(): void {
+    let _oldSuscription: Subscription;
+    this._configurationService.observeParam('WEBSOCKET_ENDPOINT').filter(configurationEntry => !!configurationEntry).subscribe(conf => {
+      if (_oldSuscription) {
+        _oldSuscription.unsubscribe();
+        _oldSuscription = null;
+      }
+      this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
+      this._websocketService.initSocket(conf.value);
+      _oldSuscription = this._userStorage.currentToken
+        .filter(token => !!token)
+        .subscribe(token => this._websocketService.authenticate(token));
+    });
   }
 }
