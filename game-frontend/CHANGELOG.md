@@ -2,6 +2,7 @@
 
 v0.7.5 (latest)
 =================
+* __Improvement:__ [Disable websocket when not configured](https://github.com/KevinGuancheDarias/owge/issues/105)  
 * __Fix:__  [Fix "delete unit" button is moving to the next line when mouse is over](https://github.com/KevinGuancheDarias/owge/issues/104) ![Fix "delete unit" button is moving to the next line when mouse is over](assets/changelog/bugs/104.png)  
 * __Fix:__ [Leaving planet is not working when you have BUILD_UNIT mission in any  of your planets](https://github.com/KevinGuancheDarias/owge/issues/103)  
 
