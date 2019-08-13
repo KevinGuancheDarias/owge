@@ -1,5 +1,3 @@
-import { Headers, XHRBackend, Response, ResponseOptions } from '@angular/http';
-import { MockBackend } from '@angular/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { UnitTypeService } from './unit-type.service';
@@ -27,7 +25,6 @@ fdescribe('UnitTypeService', () => {
           }
         }
       ])
-      .withAppendProviders([{ provide: XHRBackend, useClass: MockBackend }])
       .getTestModuleMetadata()
   );
   helper.configureTestingModule().configureServiceLocator();
@@ -51,17 +48,13 @@ fdescribe('UnitTypeService', () => {
     { ...unitTypes[0], id: 3, name: 'Defenses', canDeploy: 'OWNED_ONLY' },
     { ...unitTypes[0], id: 4, name: 'NoneGuys', canConquest: 'NONE' }
   );
-  let mockBackend: MockBackend;
   let behaviorLoaded: Promise<void>;
   beforeEach(() => {
     gameHelper.mockUniverse();
     const loginSessionService = TestBed.get(LoginSessionService);
-    mockBackend = TestBed.get(XHRBackend);
     behaviorLoaded = new Promise(resolve => {
-      mockBackend.connections.subscribe(connection => {
-        connection.mockRespond(new Response(new ResponseOptions({ body: JSON.stringify(unitTypes) })));
+      // Please review git repository history for this file
         resolve();
-      });
     });
   });
   helper.createService();

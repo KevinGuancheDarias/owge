@@ -1,20 +1,25 @@
 import { Injectable } from '@angular/core';
-import { URLSearchParams } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 
 import { ProgrammingError } from '../../error/programming.error';
 import { NavigationConfig } from '../shared/types/navigation-config.type';
-import { GameBaseService } from './game-base.service';
 import { NavigationData } from '../shared/types/navigation-data.type';
+import { LoginSessionService } from '../login-session/login-session.service';
+import { PlanetPojo } from '../shared-pojo/planet.pojo';
+import { CoreGameService } from '../modules/core/services/core-game.service';
+import { HttpParams } from '@angular/common/http';
+import { PlanetService } from './planet.service';
 
 @Injectable()
-export class NavigationService extends GameBaseService {
+export class NavigationService {
 
   private _lastNavigationPosition: NavigationConfig;
+  private _selectedPlanet: PlanetPojo;
 
-  constructor() {
-    super();
-    this._requireSelectedPlanet();
+  constructor(
+    private _loginSessionService: LoginSessionService,
+    private _coreGameService: CoreGameService,
+    private planetService: PlanetService) {
+    this._loginSessionService.findSelectedPlanet.subscribe(selectedPlanet => this._selectedPlanet = selectedPlanet);
   }
 
   /**
@@ -37,7 +42,9 @@ export class NavigationService extends GameBaseService {
   }
 
   public async navigate(targetPosition: NavigationConfig): Promise<NavigationData> {
-    const navigationData = await this.doGetWithAuthorizationToGame('galaxy/navigate', this._genUrlParams(targetPosition)).toPromise();
+    const navigationData = await this._coreGameService.getWithAuthorizationToUniverse('galaxy/navigate', {
+      params: this._genUrlParams(targetPosition)
+    }).toPromise();
     this._lastNavigationPosition = targetPosition;
     return navigationData;
   }
@@ -52,7 +59,7 @@ export class NavigationService extends GameBaseService {
    */
   private async _checkSelectedPlanet(): Promise<void> {
     if (!this._selectedPlanet) {
-      await this._findSelectedPlanet();
+      await this.planetService.findSelectedPlanet();
       if (!this._selectedPlanet) {
         throw new ProgrammingError('Selected planet is undefined, SHOULD NEVER, NEVER happend');
       }
@@ -60,11 +67,11 @@ export class NavigationService extends GameBaseService {
 
   }
 
-  private _genUrlParams(targetPosition: NavigationConfig): URLSearchParams {
-    const retVal: URLSearchParams = new URLSearchParams();
-    retVal.append('galaxyId', targetPosition.galaxy.toString());
-    retVal.append('sector', targetPosition.sector.toString());
-    retVal.append('quadrant', targetPosition.quadrant.toString());
+  private _genUrlParams(targetPosition: NavigationConfig): HttpParams {
+    let retVal: HttpParams = new HttpParams();
+    retVal = retVal.append('galaxyId', targetPosition.galaxy.toString());
+    retVal = retVal.append('sector', targetPosition.sector.toString());
+    retVal =  retVal.append('quadrant', targetPosition.quadrant.toString());
     return retVal;
   }
 }

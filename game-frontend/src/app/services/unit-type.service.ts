@@ -1,34 +1,39 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 const camelCase = require('lodash.camelcase');
 const upperFirst = require('lodash.upperfirst');
 
-import { GameBaseService } from '../service/game-base.service';
 import { UnitType } from '../shared/types/unit-type.type';
 import { ProgrammingError } from '../../error/programming.error';
 import { MissionType } from '../shared/types/mission.type';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { MissionSupport } from '../shared/types/mission-support.type';
+import { LoginSessionService } from '../login-session/login-session.service';
+import { CoreGameService } from '../modules/core/services/core-game.service';
 
 @Injectable()
-export class UnitTypeService extends GameBaseService<UnitType> {
+export class UnitTypeService {
 
-  public constructor() {
-    super();
-    this.loadTypes();
+  private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
+
+  public constructor(private _loginSessionService: LoginSessionService, private _coreGameService: CoreGameService) {
+    this._loadTypes();
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
-    return this._subjectToObservable();
+    return this._loadableBehaviorSubject.asObservable().filter(value => value !== null);
   }
 
-  public loadTypes(): void {
-    this._loadSubject('unitType/', async result => result.map(current => {
-      if (!current.userBuilt) {
-        current.userBuilt = 0;
-      }
-      return current;
-    }));
+  private _loadTypes(): void {
+    this._coreGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
+      this._loadableBehaviorSubject.next(result.map(current => {
+        if (!current.userBuilt) {
+          current.userBuilt = 0;
+        }
+        return current;
+      }));
+    });
   }
 
 

@@ -1,21 +1,19 @@
 import { Injectable } from '@angular/core';
-import { Response, RequestOptions } from '@angular/http';
+import {  HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 
-import { GameBaseService } from './../service/game-base.service';
 import { Config } from '../config/config.pojo';
 import { environment } from '../../environments/environment';
+import { LoginSessionService } from '../login-session/login-session.service';
+import { CoreHttpService } from '../modules/core/services/core-http.service';
 
 @Injectable()
-export class LoginService extends GameBaseService {
-  constructor() {
-    super();
-  }
-
+export class LoginService {
+  constructor(private _coreHttpService: CoreHttpService, private _loginSessionService: LoginSessionService) { }
 
   /**
    * Executes the game action agains the OWGE Authentication server
@@ -27,23 +25,22 @@ export class LoginService extends GameBaseService {
    * @memberof LoginService
    */
   public login(email: string, password: string): Observable<string> {
-    const requestOptions: RequestOptions = new RequestOptions();
-    requestOptions.headers = Config.genCommonFormUrlencoded();
-    const params: URLSearchParams = new URLSearchParams(<any>{
-      grant_type: 'password',
-      client_id: environment.loginClientId,
-      client_secret: environment.loginClientSecret,
-      username: email,
-      password
-    });
+    const params: HttpParams = new HttpParams(
+      { fromObject :
+        {
+          grant_type: 'password',
+          client_id: environment.loginClientId,
+          client_secret: environment.loginClientSecret,
+          username: email,
+          password
+        }
+      }
+    );
 
-    return this.http.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params.toString(), requestOptions)
-      .map((res: Response) => {
-        this.getLoginSessionService().setTokenPojo(res.json().token);
-        return this.getLoginSessionService().getRawToken();
-      })
-      .catch((error: Response) => {
-        return this.handleError(error);
+    return this._coreHttpService.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params)
+      .map(res => {
+        this._loginSessionService.setTokenPojo(res.token);
+        return this._loginSessionService.getRawToken();
       });
   }
 

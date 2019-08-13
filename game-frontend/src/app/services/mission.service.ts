@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators/tap';
 import { Observable } from 'rxjs/Observable';
 
-import { GameBaseService } from '../service/game-base.service';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { UnitMissionInformation } from '../shared/types/unit-mission-information.type';
@@ -11,20 +10,24 @@ import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '../shared/types/mission.type';
 import { ProgrammingError } from '../../error/programming.error';
 import { ClockSyncService } from '../modules/core/services/clock-sync.service';
+import { CoreGameService } from '../modules/core/services/core-game.service';
+import { LoadingService } from './loading.service';
 
 @Injectable()
-export class MissionService extends GameBaseService {
+export class MissionService {
 
-  public constructor(private _clockSyncService: ClockSyncService) {
-    super();
-  }
+  public constructor(
+    private _clockSyncService: ClockSyncService,
+    private _coreGameService: CoreGameService,
+    private _loadingService: LoadingService
+  ) { }
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
-    return this._syncDate(this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findMy'));
+    return this._syncDate(this._coreGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy'));
   }
 
   public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
-    return this._syncDate(this.doGetWithAuthorizationToGame<AnyRunningMission[]>('mission/findEnemy'));
+    return this._syncDate(this._coreGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy'));
   }
 
   /**
@@ -103,7 +106,7 @@ export class MissionService extends GameBaseService {
   }
 
   public cancelMission(missionId: number): Observable<void> {
-    return this._doPostWithAuthorizationToGame(`mission/cancel?id=${missionId}`, {});
+    return this._coreGameService.postwithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
   }
 
   public isUnitMission(mission: AnyRunningMission): boolean {
@@ -128,7 +131,7 @@ export class MissionService extends GameBaseService {
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._doPostWithAuthorizationToGame<UnitMissionInformation>(
+    return this._coreGameService.postwithAuthorizationToUniverse<void>(
       url, {
         sourcePlanetId: sourcePlanet.id,
         targetPlanetId: targetPlanet.id,

@@ -1,22 +1,26 @@
-import { GameBaseService } from './../service/game-base.service';
 import { Injectable } from '@angular/core';
 import { Config } from '../config/config.pojo';
 import { Observable } from 'rxjs/Observable';
-import { URLSearchParams } from '@angular/http';
 
 import { Universe } from '../shared-pojo/universe.pojo';
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
 import { ProgrammingError } from '../../error/programming.error';
+import { CoreHttpService } from '../modules/core/services/core-http.service';
+import { CoreGameService } from '../modules/core/services/core-game.service';
+import { HttpParams } from '@angular/common/http';
+import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()
-export class UniverseService extends GameBaseService {
+export class UniverseService {
 
-  constructor() {
-    super();
-  }
+  constructor(
+    private _coreHttpService: CoreHttpService,
+    private _coreGameService: CoreGameService,
+    private _loginSessionService: LoginSessionService
+  ) { }
 
   public findOfficials(): Observable<Universe[]> {
-    return this.doGet(Config.ACCOUNT_SERVER_URL + 'universe/findOfficials');
+    return this._coreHttpService.get(Config.ACCOUNT_SERVER_URL + 'universe/findOfficials');
   }
 
   /**
@@ -26,9 +30,7 @@ export class UniverseService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public userExists(): Observable<boolean> {
-    return this.doGetWithAuthorization(
-      this.getLoginSessionService().getSelectedUniverse().restBaseUrl + '/user/exists'
-    );
+    return this._coreGameService.getWithAuthorizationToUniverse('user/exists');
   }
 
   /**
@@ -39,11 +41,9 @@ export class UniverseService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public subscribe(factionId: number): Observable<boolean> {
-    const params: URLSearchParams = new URLSearchParams();
-    params.append('factionId', factionId.toString());
-    return this.doGetWithAuthorization(
-      this.getLoginSessionService().getSelectedUniverse().restBaseUrl + '/user/subscribe', params
-    );
+    let params: HttpParams = new HttpParams();
+    params = params.append('factionId', factionId.toString());
+    return this._coreGameService.getWithAuthorizationToUniverse('user/subscribe', {params});
   }
 
   public findUniverseUserLocalConfig(): UniverseLocalConfig {

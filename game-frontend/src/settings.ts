@@ -11,7 +11,6 @@ import { LoginSessionService } from './app/login-session/login-session.service';
 import { LoginService } from './app/login/login.service';
 import { APP_ROUTES } from './app/app.module';
 import { RouterModule } from '@angular/router';
-import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { DeployedUnitsBigComponent } from './app/deployed-units-big/deployed-units-big.component';
@@ -63,7 +62,6 @@ export let testingConfig: TestModuleMetadata = {
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule,
     RouterModule.forRoot(APP_ROUTES),
     Angular2FontawesomeModule
   ],

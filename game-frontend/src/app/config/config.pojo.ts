@@ -1,4 +1,4 @@
-import { Headers } from '@angular/http';
+import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 export const MEDIA_ROUTES = {
@@ -30,9 +30,9 @@ export class Config {
     public static readonly PLANET_RICHNESS_IMAGE_EXTENSION = '.gif';
     public static readonly PLANET_NOT_EXPLORED_IMAGE = 'unexplored.jpg';
 
-    public static genCommonFormUrlencoded(): Headers {
-        const headers = new Headers();
-        headers.append('Content-Type', this.URL_ENCODE_UTF8);
+    public static genCommonFormUrlencoded(): HttpHeaders {
+        let headers = new HttpHeaders();
+        headers = headers.append('Content-Type', this.URL_ENCODE_UTF8);
         return headers;
     }
 }

@@ -34,6 +34,7 @@
       "environments": {
         "dev": "environments/environment.ts",
         "publicAccount": "environments/environment.public-account.ts",
+        "localDrupal": "environments/local-drupal-account.environment.ts",
         "becariaccount": "environments/environment.becariaccount.ts",
         "prod": "environments/environment.prod.ts"
       }
