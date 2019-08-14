@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Config } from '../config/config.pojo';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { Universe } from '../shared-pojo/universe.pojo';
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';

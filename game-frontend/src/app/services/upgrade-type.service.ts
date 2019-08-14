@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { UpgradeType } from '../shared/types/upgrade-type.type';
 import { CoreGameService } from '../modules/core/services/core-game.service';
@@ -17,7 +17,7 @@ export class UpgradeTypeService {
   }
 
   public getUpgradeTypes(): Observable<UpgradeType[]> {
-    return this._loadableBehaviorSubject.asObservable().filter(value => value !== null);
+    return this._loadableBehaviorSubject.asObservable().pipe(filter(value => value !== null));
   }
 
   private _loadTypes(): void {

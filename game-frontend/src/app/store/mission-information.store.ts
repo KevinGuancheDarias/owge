@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { ReplaySubject } from 'rxjs';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';

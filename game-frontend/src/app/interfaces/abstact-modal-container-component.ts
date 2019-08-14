@@ -15,7 +15,7 @@ import { AbstractModalComponent } from './abstract-modal-component';
  * @extends {AbstractModalComponent}
  */
 export abstract class AbstractModalContainerComponent extends AbstractModalComponent {
-    @ViewChild('childModal')
+    @ViewChild('childModal', { static: true })
     public _childModal: ModalComponent;
 
     public show(): void {

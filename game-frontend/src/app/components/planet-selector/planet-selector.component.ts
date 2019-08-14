@@ -12,7 +12,7 @@ export class PlanetSelectorComponent extends BaseComponent implements OnInit {
   @Input()
   public navigationData: NavigationData;
 
-  @ContentChild(TemplateRef)
+  @ContentChild(TemplateRef, { static: true})
   templateRef: TemplateRef<any>;
 
   ngOnInit() {

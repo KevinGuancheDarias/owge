@@ -25,7 +25,7 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
   @Input()
   public assetsImage = false;
 
-  @ViewChild('textElement')
+  @ViewChild('textElement', { static: true })
   private _textElement: ElementRef;
   private _maxTextWidth = 120;
 

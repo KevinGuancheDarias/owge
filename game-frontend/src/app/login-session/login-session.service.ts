@@ -1,14 +1,15 @@
+
+import {skip, map} from 'rxjs/operators';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 
-import 'rxjs/add/operator/skip';
+
 
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Universe } from '../shared-pojo/universe.pojo';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
@@ -180,13 +181,13 @@ export class LoginSessionService implements CanActivate {
   }
 
   public findLoggedInUserData(): Observable<UserPojo> {
-    return this._coreHttpService.getWithAuthorization<UserPojo>(this.getSelectedUniverse().restBaseUrl + '/user/findData')
-    .map(current => {
+    return this._coreHttpService.getWithAuthorization<UserPojo>(this.getSelectedUniverse().restBaseUrl + '/user/findData').pipe(
+    map(current => {
       if (!current.consumedEnergy) {
         current.consumedEnergy = 0;
       }
       return current;
-    });
+    }));
   }
 
   public getSelectedUniverse(): Universe {
@@ -346,7 +347,7 @@ export class LoginSessionService implements CanActivate {
    * @memberof LoginSessionService
    */
   private _workaroundUserStorage(): void {
-    this._userData.skip(1).subscribe(value => this._userStorage.currentUser.next(<any>value));
+    this._userData.pipe(skip(1)).subscribe(value => this._userStorage.currentUser.next(<any>value));
     const currentToken: string = this.getRawToken();
     if (currentToken) {
       this._userStorage.currentToken.next(currentToken);

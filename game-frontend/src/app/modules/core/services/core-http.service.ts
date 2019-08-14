@@ -1,11 +1,8 @@
+
+import {throwError as observableThrowError,  Observable ,  EMPTY as empty } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
-import { switchMap } from 'rxjs/operators/switchMap';
-import { first } from 'rxjs/operators/first';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { empty } from 'rxjs/observable/empty';
-import { catchError } from 'rxjs/operators/catchError';
+import { switchMap ,  first ,  catchError } from 'rxjs/operators';
 
 import { HttpOptions } from '../types/http-options.type';
 import { UserStorage } from '../../user/storages/user.storage';
@@ -41,7 +38,7 @@ export class CoreHttpService {
    * @memberof CoreHttpService
    */
   public get<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._httpClient.get(url, options).catch(error => this._handleError(error));
+    return this._httpClient.get<any>(url, options).pipe(catchError(error => this._handleError(error)));
   }
 
 
@@ -92,7 +89,7 @@ export class CoreHttpService {
    * @memberof CoreHttpService
    */
   public delete<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._httpClient.delete(url, options).catch(error => this._handleError(error));
+    return this._httpClient.delete<any>(url, options).pipe(catchError(error => this._handleError(error)));
   }
 
   /**
@@ -165,7 +162,7 @@ export class CoreHttpService {
    * @param {Response|any} error Error object coming from request
    * @author Kevin Guanche Darias
    */
-  private _handleError(error: Response | any): ErrorObservable {
+  private _handleError(error: Response | any): Observable<any> {
     let errMsg: string;
     if (error instanceof Response) {
       if (error.status === 0 && !error.ok) {
@@ -178,7 +175,7 @@ export class CoreHttpService {
     } else {
       errMsg = error.message ? error.message : error.toString();
     }
-    return Observable.throw(errMsg);
+    return observableThrowError(errMsg);
   }
 
   /**
@@ -223,7 +220,7 @@ export class CoreHttpService {
   }
 
   private _doPostOrPut<T = any>(method: validWriteMethod, url: string, body: any, options: HttpOptions): Observable<T> {
-    return this._httpClient[method](url, body, options).catch(error => this._handleError(error));
+    return this._httpClient[method](url, body, options).pipe(catchError(error => this._handleError(error)));
   }
 
   private _doGetOrDeleteWithAuthorization<T = any>(method: validNonDataMethod, url: string, options: HttpOptions): Observable<T> {
@@ -262,7 +259,7 @@ export class CoreHttpService {
       }
     } else {
       alert(`Error!\n ${err}`);
-      return empty();
+      return empty;
     }
   }
 }

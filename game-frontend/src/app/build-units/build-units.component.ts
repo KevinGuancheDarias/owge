@@ -1,7 +1,8 @@
-import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
-import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { Component, OnInit, Input } from '@angular/core';
-import { BaseUnitComponent } from '../shared/base-unit.component';
+import {filter} from 'rxjs/operators';
+
+import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
+import { UnitPojo } from './../shared-pojo/unit.pojo'; import { BaseUnitComponent } from '../shared/base-unit.component';
 
 @Component({
   selector: 'app-build-units',
@@ -25,8 +26,8 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
     this.requireUser();
     this.findUnlocked();
 
-    this.loginSessionService.findSelectedPlanet.filter(planet => !!planet).subscribe(() => {
-      this._unitService.planetsLoaded.filter(value => !!value)
+    this.loginSessionService.findSelectedPlanet.pipe(filter(planet => !!planet)).subscribe(() => {
+      this._unitService.planetsLoaded.pipe(filter(value => !!value))
         .subscribe(() => this.buildingUnit = this._unitService.findIsRunningInSelectedPlanet());
     });
   }

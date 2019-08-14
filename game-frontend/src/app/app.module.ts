@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import {filter} from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
@@ -73,7 +74,7 @@ import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
 import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { UserStorage } from './modules/user/storages/user.storage';
 
 export const APP_ROUTES: Routes = [
@@ -101,10 +102,6 @@ export const APP_ROUTES: Routes = [
   },
   { path: '**', component: PageNotFoundComponent }
 ];
-
-export function findHttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http);
-}
 
 @NgModule({
   declarations: [
@@ -151,7 +148,7 @@ export function findHttpLoaderFactory(http: HttpClient) {
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES, {onSameUrlNavigation: 'reload'}),
     HttpClientModule,
-    NgbModule.forRoot(),
+    NgbModule,
     UserModule.forRoot(),
     AllianceModule.forRoot(),
     UniverseModule.forRoot(),
@@ -204,16 +201,22 @@ export class AppModule {
 
   private _initWebsocket(): void {
     let _oldSuscription: Subscription;
-    this._configurationService.observeParam('WEBSOCKET_ENDPOINT').filter(configurationEntry => !!configurationEntry).subscribe(conf => {
-      if (_oldSuscription) {
-        _oldSuscription.unsubscribe();
-        _oldSuscription = null;
-      }
-      this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-      this._websocketService.initSocket(conf.value);
-      _oldSuscription = this._userStorage.currentToken
-        .filter(token => !!token)
-        .subscribe(token => this._websocketService.authenticate(token));
-    });
+    this._configurationService.observeParam('WEBSOCKET_ENDPOINT')
+      .pipe(filter(configurationEntry => !!configurationEntry))
+      .subscribe(conf => {
+        if (_oldSuscription) {
+          _oldSuscription.unsubscribe();
+          _oldSuscription = null;
+        }
+        this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
+        this._websocketService.initSocket(conf.value);
+        _oldSuscription = this._userStorage.currentToken
+          .pipe(filter(token => !!token))
+          .subscribe(token => this._websocketService.authenticate(token));
+      });
   }
+}
+
+export function findHttpLoaderFactory(http: HttpClient) {
+  return new TranslateHttpLoader(http);
 }

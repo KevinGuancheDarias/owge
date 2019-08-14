@@ -31,7 +31,7 @@ export class SideBarComponent extends BaseComponent implements OnInit {
   public versionInformation: { version: string, versionDate: string };
   public withLimitUnitTypes: UnitType[];
 
-  @ViewChild('planetSelectionModal')
+  @ViewChild('planetSelectionModal', { static: true })
   private _modalComponent: ModalComponent;
 
   constructor(

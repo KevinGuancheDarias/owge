@@ -1,10 +1,12 @@
+
+import {map} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import {  HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/observable/throw';
+
+
+
 
 import { Config } from '../config/config.pojo';
 import { environment } from '../../environments/environment';
@@ -37,11 +39,11 @@ export class LoginService {
       }
     );
 
-    return this._coreHttpService.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params)
-      .map(res => {
+    return this._coreHttpService.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params).pipe(
+      map(res => {
         this._loginSessionService.setTokenPojo(res.token);
         return this._loginSessionService.getRawToken();
-      });
+      }));
   }
 
 }

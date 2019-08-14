@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject ,  Observable } from 'rxjs';
 
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { UserPojo } from '../shared-pojo/user.pojo';
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
 
 /**
  * Thi service contains the logged in user resources <br />
@@ -126,25 +124,6 @@ export class ResourceManagerService {
    */
   public minusResources(resourceType: ResourcesEnum, value: number): void {
     this.addResources(resourceType, value * -1);
-  }
-
-
-  /**
-   * Creates an AutoUpdatedResources instance <br>
-   * Replaces the functionality of BaseHttpService.resourcesAutoUpdate()
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.8.0
-   * @param {boolean} [startAutoUpdate=true] If specified the instance will be synced with the user resources
-   * @returns {AutoUpdatedResources}
-   * @memberof ResourceManagerService
-   */
-  public createAutoUpdateResources(startAutoUpdate = true): AutoUpdatedResources {
-    const retVal: AutoUpdatedResources = new AutoUpdatedResources(this);
-    if (startAutoUpdate) {
-      retVal.resourcesAutoUpdate();
-    }
-    return retVal;
   }
 
   private _setResources(userPojo: UserPojo) {

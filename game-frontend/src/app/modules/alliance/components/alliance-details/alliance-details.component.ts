@@ -34,7 +34,7 @@ export class AllianceDetailsComponent implements OnInit {
    * @memberof AllianceDetailsComponent
    */
   @Input() public alliance: Alliance;
-  @ViewChild('confirmDialog') public confirmDialog: WidgetConfirmationDialogComponent;
+  @ViewChild('confirmDialog', { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public members: User[];
   public currentUser: User;

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { Faction } from '../shared-pojo/faction.pojo';
 import { CoreGameService } from '../modules/core/services/core-game.service';

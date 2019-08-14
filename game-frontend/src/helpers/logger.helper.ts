@@ -1,4 +1,4 @@
-import { Log, Level, Logger } from 'ng2-logger';
+import { Log, Level, Logger } from 'ng2-logger/browser';
 
 export class LoggerHelper {
     private _log: Logger<any>;

@@ -1,3 +1,5 @@
+
+import {filter} from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
 
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
@@ -10,9 +12,8 @@ import { PlanetService } from './planet.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ResourceManagerService } from './resource-manager.service';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import 'rxjs/add/operator/filter';
+import { Observable ,  BehaviorSubject } from 'rxjs';
+
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { ProgrammingError } from '../../error/programming.error';
 import { UnitTypeService } from '../services/unit-type.service';
@@ -70,7 +71,7 @@ export class UnitService {
     private _loginSessionService: LoginSessionService,
     private _coreGameService: CoreGameService
   ) {
-    this._resources = _resourceManagerService.createAutoUpdateResources();
+    this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._subscribeToPlanetChanges();
     this._loginSessionService.findSelectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
   }
@@ -234,7 +235,7 @@ export class UnitService {
    */
   private _subscribeToPlanetChanges(): void {
     this.planetsLoaded.next(false);
-    this._planetService.myPlanets.filter(myPlanets => !!myPlanets).subscribe(async myPlanets => {
+    this._planetService.myPlanets.pipe(filter(myPlanets => !!myPlanets)).subscribe(async myPlanets => {
       this._clearIntervals();
       this._planetList = myPlanets;
       await this._registerIntervals(myPlanets);

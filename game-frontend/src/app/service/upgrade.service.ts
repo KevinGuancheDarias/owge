@@ -1,6 +1,5 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
@@ -30,7 +29,7 @@ export class UpgradeService {
     private _clockSyncService: ClockSyncService,
     private _coreGameService: CoreGameService
   ) {
-    this._resources = _resourceManagerService.createAutoUpdateResources();
+    this._resources = new AutoUpdatedResources(_resourceManagerService);
   }
 
   public findObtained(): Observable<ObtainedUpgradePojo[]> {

@@ -1,6 +1,7 @@
+
+import {filter} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 const camelCase = require('lodash.camelcase');
 const upperFirst = require('lodash.upperfirst');
 
@@ -22,7 +23,7 @@ export class UnitTypeService {
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
-    return this._loadableBehaviorSubject.asObservable().filter(value => value !== null);
+    return this._loadableBehaviorSubject.asObservable().pipe(filter(value => value !== null));
   }
 
   private _loadTypes(): void {

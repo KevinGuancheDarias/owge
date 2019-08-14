@@ -1,7 +1,8 @@
+
+import {filter} from 'rxjs/operators';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 import { CoreGameService } from '../modules/core/services/core-game.service';
 import { LoginSessionService } from '../login-session/login-session.service';
 
@@ -41,7 +42,7 @@ export class PlanetService {
 
   public findSelectedPlanet(): Promise<PlanetPojo> {
     return new Promise(resolve => {
-      this._loginSessionService.findSelectedPlanet.filter(planet => planet !== null).subscribe(planet => resolve(planet));
+      this._loginSessionService.findSelectedPlanet.pipe(filter(planet => planet !== null)).subscribe(planet => resolve(planet));
     });
   }
 }

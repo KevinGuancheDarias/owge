@@ -25,7 +25,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   public showFactionSelector = false;
   public safeFrontendUrl: SafeUrl | string;
 
-  @ViewChild('credentialsFrame')
+  @ViewChild('credentialsFrame', { static: false })
   private _credentialsFrame: ElementRef;
 
   constructor(

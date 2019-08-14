@@ -25,7 +25,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   @Output()
   public onRunningUpgradeDone: EventEmitter<{}> = new EventEmitter();
 
-  @ViewChild('confirmDialog') public confirmDialog: WidgetConfirmationDialogComponent;
+  @ViewChild('confirmDialog', { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public image: string;
   public runningUpgrade: RunningUpgrade;

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { tap } from 'rxjs/operators/tap';
-import { Observable } from 'rxjs/Observable';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';

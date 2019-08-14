@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
+import {map} from 'rxjs/operators';
 import { Configuration } from '../types/configuration.type';
 import { CoreGameService } from '../../core/services/core-game.service';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
 import { LoggerHelper } from '../../../../helpers/logger.helper';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { ConfigurationStore } from '../store/configuration.store';
 
 
@@ -59,7 +60,7 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public observeParam<T = any>(name: string): Observable<Configuration<T>> {
-    return this._configurationStore.currentConfiguration.map(configuration => configuration.find(current => current.name === name));
+    return this._configurationStore.currentConfiguration.pipe(map(configuration => configuration.find(current => current.name === name)));
   }
 
   /**
