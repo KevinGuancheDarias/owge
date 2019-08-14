@@ -1,18 +1,18 @@
-import { Observable } from 'rxjs/Observable';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { URLSearchParams } from '@angular/http';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { GameBaseService } from './game-base.service';
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { ClockSyncService } from '../modules/core/services/clock-sync.service';
+import { AutoUpdatedResources } from '../class/auto-updated-resources';
+import { CoreGameService } from '../modules/core/services/core-game.service';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable()
-export class UpgradeService extends GameBaseService {
+export class UpgradeService {
 
   public get isUpgrading(): BehaviorSubject<RunningUpgrade> {
     return this._isUpgrading;
@@ -22,13 +22,18 @@ export class UpgradeService extends GameBaseService {
   private _isUpgradingInternalData: RunningUpgrade;
   private _runningUpgradeCheckIntervalId: number;
 
-  constructor(private _resourceManagerService: ResourceManagerService, private _clockSyncService: ClockSyncService) {
-    super();
-    this.resourcesAutoUpdate();
+  private _resources: AutoUpdatedResources;
+
+  constructor(
+    private _resourceManagerService: ResourceManagerService,
+    private _clockSyncService: ClockSyncService,
+    private _coreGameService: CoreGameService
+  ) {
+    this._resources = new AutoUpdatedResources(_resourceManagerService);
   }
 
   public findObtained(): Observable<ObtainedUpgradePojo[]> {
-    return this.doGetWithAuthorizationToGame('upgrade/findObtained');
+    return this._coreGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
   }
 
   /**
@@ -39,7 +44,7 @@ export class UpgradeService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public backendRunningUpgradeCheck(): void {
-    this.doGetWithAuthorizationToGame('upgrade/findRunningUpgrade').subscribe(res => {
+    this._coreGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
       this._isUpgradingInternalData = res;
       if (res) {
         res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
@@ -75,7 +80,7 @@ export class UpgradeService extends GameBaseService {
     if (subscribeToResources) {
       requirements.startDynamicRunnable(this._resourceManagerService);
     } else {
-      requirements.checkRunnable(this.resources);
+      requirements.checkRunnable(this._resources);
     }
 
     obtainedUpgrade.requirements = requirements;
@@ -88,9 +93,9 @@ export class UpgradeService extends GameBaseService {
    * @author Kevin Guanche Darias
    */
   public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
-    const params: URLSearchParams = new URLSearchParams();
-    params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
-    this.doGetWithAuthorizationToGame('upgrade/registerLevelUp', params).subscribe(res => {
+    let params: HttpParams = new HttpParams();
+    params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
+    this._coreGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', {params}).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, obtainedUpgrade.requirements.requiredSecondary);
       if (res) {
@@ -103,7 +108,7 @@ export class UpgradeService extends GameBaseService {
   }
 
   public cancelUpgrade(): void {
-    this.doGetWithAuthorizationToGame('upgrade/cancelUpgrade').subscribe(() => {
+    this._coreGameService.getWithAuthorizationToUniverse('upgrade/cancelUpgrade').subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, this._isUpgradingInternalData.requiredPrimary);
       this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, this._isUpgradingInternalData.requiredSecondary);
       this._isUpgradingInternalData = null;

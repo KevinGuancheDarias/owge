@@ -19,7 +19,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   public navigationData: NavigationData;
   public navigationConfig: NavigationConfig;
 
-  @ViewChild('missionModal')
+  @ViewChild('missionModal', { static: true })
   private _missionModal: MissionModalComponent;
 
   constructor(private _navigationService: NavigationService, private _missioninformationStore: MissionInformationStore) {

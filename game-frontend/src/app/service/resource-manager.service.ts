@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { BehaviorSubject ,  Observable } from 'rxjs';
 
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { UserPojo } from '../shared-pojo/user.pojo';

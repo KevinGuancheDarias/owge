@@ -1,17 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
-import { GameBaseService } from './../service/game-base.service';
 import { Faction } from '../shared-pojo/faction.pojo';
+import { CoreGameService } from '../modules/core/services/core-game.service';
 
 @Injectable()
-export class FactionService extends GameBaseService {
+export class FactionService {
 
-  constructor() {
-    super();
-  }
+  constructor(private _coreGameService: CoreGameService) { }
 
   public findVisible(): Observable<Faction[]> {
-    return this.doGetWithAuthorization(this.getUniverseUrl() + '/faction/findVisible');
+    return this._coreGameService.getWithAuthorizationToUniverse('faction/findVisible');
   }
 }

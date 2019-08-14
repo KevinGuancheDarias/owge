@@ -1,18 +1,17 @@
+
+import {skip, map} from 'rxjs/operators';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { Headers } from '@angular/http';
 
-import 'rxjs/add/operator/skip';
+
 
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Universe } from '../shared-pojo/universe.pojo';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
-import { BaseHttpService } from '../base-http/base-http.service';
 import { HttpHeaders } from '@angular/common/http';
 import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
@@ -20,6 +19,7 @@ import { ProgrammingError } from '../../error/programming.error';
 import { UserStorage } from '../modules/user/storages/user.storage';
 import { LoggerHelper } from '../../helpers/logger.helper';
 import { UniverseStorage } from '../modules/universe/storages/universe.storage';
+import { CoreHttpService } from '../modules/core/services/core-http.service';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -30,7 +30,7 @@ import { UniverseStorage } from '../modules/universe/storages/universe.storage';
  * @class LoginSessionService
  */
 @Injectable()
-export class LoginSessionService extends BaseHttpService implements CanActivate {
+export class LoginSessionService implements CanActivate {
   public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
   public static readonly LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
   public static readonly LOCAL_STORAGE_SELECTED_FACTION = 'owge_faction';
@@ -66,11 +66,10 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
 
   constructor(private _injector: Injector,
     private _resourceManagerService: ResourceManagerService,
-    private _websocketService: WebsocketService,
     private _userStorage: UserStorage,
-    private _universeStorage: UniverseStorage
+    private _universeStorage: UniverseStorage,
+    private _coreHttpService: CoreHttpService
   ) {
-    super();
     this._workaroundUserStorage();
     this._workaroundUniverseStorage();
   }
@@ -180,13 +179,15 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
       : new HttpHeaders();
     return target.append('Authorization', `Bearer ${this.getRawToken()}`);
   }
+
   public findLoggedInUserData(): Observable<UserPojo> {
-    return this.httpDoGetWithAuthorization(this, this.getSelectedUniverse().restBaseUrl + '/user/findData').map((current: UserPojo) => {
+    return this._coreHttpService.getWithAuthorization<UserPojo>(this.getSelectedUniverse().restBaseUrl + '/user/findData').pipe(
+    map(current => {
       if (!current.consumedEnergy) {
         current.consumedEnergy = 0;
       }
       return current;
-    });
+    }));
   }
 
   public getSelectedUniverse(): Universe {
@@ -346,7 +347,7 @@ export class LoginSessionService extends BaseHttpService implements CanActivate 
    * @memberof LoginSessionService
    */
   private _workaroundUserStorage(): void {
-    this._userData.skip(1).subscribe(value => this._userStorage.currentUser.next(<any>value));
+    this._userData.pipe(skip(1)).subscribe(value => this._userStorage.currentUser.next(<any>value));
     const currentToken: string = this.getRawToken();
     if (currentToken) {
       this._userStorage.currentToken.next(currentToken);

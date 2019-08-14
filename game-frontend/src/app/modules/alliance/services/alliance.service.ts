@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { switchMap } from 'rxjs/operators/switchMap';
-import { first } from 'rxjs/operators/first';
-import { map } from 'rxjs/operators/map';
+import { Observable } from 'rxjs';
+import { switchMap ,  first ,  map } from 'rxjs/operators';
 
 import { AllianceStorage } from '../storages/alliance.storage';
 import { UserStorage } from '../../user/storages/user.storage';

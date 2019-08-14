@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
 
 export class AutoUpdatedResources {
@@ -22,8 +22,19 @@ export class AutoUpdatedResources {
     }
     private _currentMaxEnergy: number;
 
-    constructor(private _resourceManagerService: ResourceManagerService) {
 
+    /**
+     * Creates an instance of AutoUpdatedResources.
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param {ResourceManagerService} _resourceManagerService
+     * @param {boolean} [startAutoUpdate=true] (as of 0.8.0) Autostart resource sync
+     * @memberof AutoUpdatedResources
+     */
+    constructor(private _resourceManagerService: ResourceManagerService, startAutoUpdate = true) {
+        if (startAutoUpdate) {
+            this.resourcesAutoUpdate();
+        }
     }
 
     /**

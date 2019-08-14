@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 
-import { Observable } from 'rxjs/Observable';
-import { first } from 'rxjs/operators/first';
+import { Observable } from 'rxjs';
+import { first ,  switchMap } from 'rxjs/operators';
 
 import { CoreHttpService } from './core-http.service';
 import { HttpOptions } from '../types/http-options.type';
 import { UniverseStorage } from '../../universe/storages/universe.storage';
-import { switchMap } from 'rxjs/operators/switchMap';
+import { Universe } from '../../../shared-pojo/universe.pojo';
 
 type validNonDataMethod = 'get' | 'delete';
 type validWriteMethod = 'post' | 'put';
@@ -111,7 +111,7 @@ export class CoreGameService {
   }
 
   private _getDeleteWithAuthorizationToUuniverse<T = any>(method: validNonDataMethod, url: string, options: HttpOptions): Observable<T> {
-    return this._universeStorage.currentUniverse.pipe(
+    return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
         currentUniverse => this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${url}`, options)
@@ -125,7 +125,7 @@ export class CoreGameService {
     body: any,
     options?: HttpOptions
   ): Observable<T> {
-    return this._universeStorage.currentUniverse.pipe(
+    return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
         currentUniverse => this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${url}`, body, options)

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
+import {map} from 'rxjs/operators';
 import { CoreGameService } from './core-game.service';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { ProgrammingError } from '../../../../error/programming.error';
 import { LoggerHelper } from '../../../../helpers/logger.helper';
 
@@ -44,7 +45,7 @@ export class ClockSyncService {
    * @memberof ClockSyncService
    */
   public findServerClockTime(): Observable<Date> {
-    return this._coreGameService.getToUniverse('clock').map(clock => new Date(clock));
+    return this._coreGameService.getToUniverse('clock').pipe(map(clock => new Date(clock)));
   }
 
   /**

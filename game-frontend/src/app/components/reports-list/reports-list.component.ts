@@ -16,7 +16,7 @@ export class ReportsListComponent extends BaseComponent implements OnInit {
   public reports: MissionReport[];
   public selectedReport: MissionReport;
 
-  @ViewChild('reportDetailsModal')
+  @ViewChild('reportDetailsModal', { static: true })
   private _modal: ModalComponent;
 
   private _page = 1;

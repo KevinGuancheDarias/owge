@@ -15,9 +15,9 @@ import { Router } from '@angular/router';
 })
 export class AllianceOfUserComponent implements OnInit {
 
-  @ViewChild(ModalComponent) public modal: ModalComponent;
+  @ViewChild(ModalComponent, { static: true }) public modal: ModalComponent;
 
-  @ViewChild('form') public form: NgForm;
+  @ViewChild('form', { static: false }) public form: NgForm;
 
   public userAlliance: Alliance;
 

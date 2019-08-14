@@ -1,4 +1,3 @@
-import { HttpModule } from '@angular/http';
 import { ResourceManagerService } from './app/service/resource-manager.service';
 import { LoginSessionService } from './app/login-session/login-session.service';
 import { TestMetadataBuilder } from './helpers/test-metadata.builder';
@@ -18,7 +17,6 @@ import {
 import { MEDIA_ROUTES } from './app/config/config.pojo';
 import { FakeClass } from './helpers/fake-class';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { MockBackend } from '@angular/http/testing';
 
 // Unfortunately there's no typing for the `__karma__` variable. Just declare it as any.
 declare var __karma__: any;
@@ -39,15 +37,13 @@ for (const key in MEDIA_ROUTES) {
 TestMetadataBuilder.registerDependencyGroup('BaseComponent', {
   declarations: [],
   providers: [LoginSessionService, ResourceManagerService],
-  imports: [HttpModule]
+  imports: []
 });
 TestMetadataBuilder.registerDependencyGroup('BaseHttpService', {
   providers: [
     { provide: LoginSessionService, useValue: FakeClass.getInstance(LoginSessionService) },
-    MockBackend
   ],
   imports: [
-    HttpModule,
     HttpClientTestingModule
   ]
 });

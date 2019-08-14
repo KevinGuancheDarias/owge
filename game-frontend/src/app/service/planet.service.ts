@@ -1,11 +1,13 @@
-import { GameBaseService } from './game-base.service';
+
+import {filter} from 'rxjs/operators';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable ,  BehaviorSubject } from 'rxjs';
+import { CoreGameService } from '../modules/core/services/core-game.service';
+import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()
-export class PlanetService extends GameBaseService {
+export class PlanetService {
 
   /**
    * Planet list from the User
@@ -17,14 +19,13 @@ export class PlanetService extends GameBaseService {
   }
   private _myPlanets: BehaviorSubject<PlanetPojo[]> = new BehaviorSubject(null);
 
-  constructor() {
-    super();
+  constructor(private _coreGameService: CoreGameService, private _loginSessionService: LoginSessionService) {
     this.findMyPlanets();
   }
 
   public findMyPlanets(): Promise<void> {
     return new Promise(resolve => {
-      this.doGetWithAuthorizationToGame('planet/findMyPlanets').subscribe(result => {
+      this._coreGameService.getWithAuthorizationToUniverse('planet/findMyPlanets').subscribe(result => {
         this._myPlanets.next(result);
         resolve();
       });
@@ -36,6 +37,12 @@ export class PlanetService extends GameBaseService {
   }
 
   public leavePlanet(planet: PlanetPojo): Observable<void> {
-    return this._doPostWithAuthorizationToGame('planet/leave?planetId=' + planet.id, {});
+    return this._coreGameService.postwithAuthorizationToUniverse('planet/leave?planetId=' + planet.id);
+  }
+
+  public findSelectedPlanet(): Promise<PlanetPojo> {
+    return new Promise(resolve => {
+      this._loginSessionService.findSelectedPlanet.pipe(filter(planet => planet !== null)).subscribe(planet => resolve(planet));
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
+import { ReplaySubject } from 'rxjs';
 import { last, switchMap, merge, first } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 

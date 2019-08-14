@@ -1,6 +1,5 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { ReplaySubject } from 'rxjs/ReplaySubject';
-import { Observable } from 'rxjs/Observable';
+import { ReplaySubject ,  Observable } from 'rxjs';
 
 import { AbstractModalComponent } from '../../interfaces/abstract-modal-component';
 
@@ -33,7 +32,7 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
         return this._status.asObservable();
     }
 
-    @ViewChild('modalRoot') private _modalRoot: ElementRef;
+    @ViewChild('modalRoot', { static: true }) private _modalRoot: ElementRef;
     private _status: ReplaySubject<boolean> = new ReplaySubject(1);
 
     /**

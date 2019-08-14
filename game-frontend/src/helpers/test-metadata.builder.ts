@@ -1,12 +1,11 @@
 import { ProgrammingError } from '../error/programming.error';
 import { testingConfig } from '../settings';
 import { Type } from '@angular/core';
-import { Provider } from '@angular/core';
 import { APP_BASE_HREF } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
-import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
 import { TestModuleMetadata } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
 
 interface ProviderPojo {
 
@@ -188,7 +187,7 @@ export class TestMetadataBuilder {
     }
 
     public withHttp(): TestMetadataBuilder {
-        this._testModuleMetadata.imports = this._testModuleMetadata.imports.concat(HttpModule);
+        this._testModuleMetadata.imports = this._testModuleMetadata.imports.concat(HttpClientModule);
         return this;
     }
 
