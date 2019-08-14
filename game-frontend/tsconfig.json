@@ -18,6 +18,26 @@
       "dom"
     ],
     "module": "esnext",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "paths": {
+      "owge-core": [
+        "dist/owge-core"
+      ],
+      "owge-core/*": [
+        "dist/owge-core/*"
+      ],
+      "owge-universe": [
+        "dist/owge-universe"
+      ],
+      "owge-universe/*": [
+        "dist/owge-universe/*"
+      ],
+      "owge-user": [
+        "dist/owge-user"
+      ],
+      "owge-user/*": [
+        "dist/owge-user/*"
+      ]
+    }
   }
 }

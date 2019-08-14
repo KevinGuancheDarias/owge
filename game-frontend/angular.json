@@ -162,6 +162,235 @@
           }
         }
       }
+    },
+    "game-admin": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "projects/game-admin",
+      "sourceRoot": "projects/game-admin/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/game-admin",
+            "index": "projects/game-admin/src/index.html",
+            "main": "projects/game-admin/src/main.ts",
+            "polyfills": "projects/game-admin/src/polyfills.ts",
+            "tsConfig": "projects/game-admin/tsconfig.app.json",
+            "aot": false,
+            "assets": [
+              "projects/game-admin/src/favicon.ico",
+              "projects/game-admin/src/assets"
+            ],
+            "styles": [
+              "projects/game-admin/src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "libs": {
+              "tsConfig": "projects/game-admin/tsconfig.libs.json"
+            },
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/game-admin/src/environments/environment.ts",
+                  "with": "projects/game-admin/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "game-admin:build"
+          },
+          "configurations": {
+            "libs": {
+              "browserTarget": "game-admin:build:libs"
+            },
+            "production": {
+              "browserTarget": "game-admin:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "game-admin:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/game-admin/src/test.ts",
+            "polyfills": "projects/game-admin/src/polyfills.ts",
+            "tsConfig": "projects/game-admin/tsconfig.spec.json",
+            "karmaConfig": "projects/game-admin/karma.conf.js",
+            "assets": [
+              "projects/game-admin/src/favicon.ico",
+              "projects/game-admin/src/assets"
+            ],
+            "styles": [
+              "projects/game-admin/src/styles.css"
+            ],
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/game-admin/tsconfig.app.json",
+              "projects/game-admin/tsconfig.spec.json",
+              "projects/game-admin/e2e/tsconfig.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        },
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "projects/game-admin/e2e/protractor.conf.js",
+            "devServerTarget": "game-admin:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "game-admin:serve:production"
+            }
+          }
+        }
+      }
+    },
+    "owge-core": {
+      "projectType": "library",
+      "root": "projects/owge-core",
+      "sourceRoot": "projects/owge-core/src",
+      "prefix": "owge-core",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-core/tsconfig.lib.json",
+            "project": "projects/owge-core/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-core/src/test.ts",
+            "tsConfig": "projects/owge-core/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-core/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-core/tsconfig.lib.json",
+              "projects/owge-core/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "owge-universe": {
+      "projectType": "library",
+      "root": "projects/owge-universe",
+      "sourceRoot": "projects/owge-universe/src",
+      "prefix": "owge-universe",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-universe/tsconfig.lib.json",
+            "project": "projects/owge-universe/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-universe/src/test.ts",
+            "tsConfig": "projects/owge-universe/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-universe/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-universe/tsconfig.lib.json",
+              "projects/owge-universe/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "owge-user": {
+      "projectType": "library",
+      "root": "projects/owge-user",
+      "sourceRoot": "projects/owge-user/src",
+      "prefix": "owge-user",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-user/tsconfig.lib.json",
+            "project": "projects/owge-user/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-user/src/test.ts",
+            "tsConfig": "projects/owge-user/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-user/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-user/tsconfig.lib.json",
+              "projects/owge-user/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "game-frontend",

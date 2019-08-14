@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        "paths": {
+            "owge-core": [
+                "projects/owge-core/src/public-api"
+              ],
+              "owge-core/*": [
+                "projects/owge-core/src/*"
+              ]
+        }
+    }
+}
