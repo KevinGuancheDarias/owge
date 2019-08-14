@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.sgtjava.entity;
+package com.kevinguanchedarias.owgejava.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
