@@ -1,14 +1,12 @@
+import { QueryList, ElementRef } from '@angular/core';
+
+import { LoadingService, MEDIA_ROUTES } from '@owge/core';
+
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { UserPojo } from '../shared-pojo/user.pojo';
-import { Router } from '@angular/router';
-import { Component, QueryList, ElementRef } from '@angular/core';
-
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
-import { LoadingService } from '../services/loading.service';
-import { promise } from 'protractor';
-import { MEDIA_ROUTES } from '../config/config.pojo';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 
 export class BaseComponent {

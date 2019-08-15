@@ -8,6 +8,12 @@ import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
+import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
+import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
+import { OwgeUniverseModule } from '@owge/universe';
+import { OwgeWidgetsModule } from '@owge/widgets';
+
+import { environment } from '../environments/environment';
 import { ServiceLocator } from './service-locator/service-locator';
 import { LoginService } from './login/login.service';
 import { LoginSessionService } from './login-session/login-session.service';
@@ -44,7 +50,6 @@ import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
 import { MissionService } from './services/mission.service';
-import { LoadingService } from './services/loading.service';
 import { ReportsListComponent } from './components/reports-list/reports-list.component';
 import { ReportService } from './services/report.service';
 import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
@@ -61,13 +66,6 @@ import { CountdownComponent } from './components/countdown/countdown.component';
 import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
 import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
 import { MissionModalComponent } from './mission-modal/mission-modal.component';
-import { UserModule } from './modules/user/user.module';
-import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from './modules/alliance/alliance.routes';
-import { RouterRootComponent } from './modules/core/components/router-root/router-root.component';
-import { AllianceModule } from './modules/alliance/alliance.module';
-import { CoreModule } from './modules/core/core.module';
-import { UniverseModule } from './modules/universe/universe.module';
-import { WidgetsModule } from './modules/widgets/widgets.module';
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
@@ -75,7 +73,6 @@ import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
 import { Subscription } from 'rxjs';
-import { UserStorage } from './modules/user/storages/user.storage';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -149,13 +146,16 @@ export const APP_ROUTES: Routes = [
     RouterModule.forRoot(APP_ROUTES, {onSameUrlNavigation: 'reload'}),
     HttpClientModule,
     NgbModule,
-    UserModule.forRoot(),
+    OwgeUserModule,
     AllianceModule.forRoot(),
-    UniverseModule.forRoot(),
+    OwgeUniverseModule.forRoot(),
     ConfigurationModule.forRoot(),
-    CoreModule.forRoot(),
+    CoreModule.forRoot({
+      url: environment.accountUrl,
+      loginEndpoint: environment.loginEndpoint
+    }),
     RankingModule,
-    WidgetsModule,
+    OwgeWidgetsModule,
     TranslateModule.forRoot({
       useDefaultLang: true,
       loader: {
@@ -189,7 +189,7 @@ export class AppModule {
     private _websocketService: WebsocketService,
     private _translateService: TranslateService,
     private _configurationService: ConfigurationService,
-    private _userStorage: UserStorage
+    private _userStorage: UserStorage<User>
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();

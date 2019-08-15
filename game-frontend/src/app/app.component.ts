@@ -1,7 +1,9 @@
+import { Component, OnInit } from '@angular/core';
+
+import { LoadingService } from '@owge/core';
+
 import { PlanetPojo } from './shared-pojo/planet.pojo';
 import { LoginSessionService } from './login-session/login-session.service';
-import { Component, OnInit } from '@angular/core';
-import { LoadingService } from './services/loading.service';
 
 @Component({
   selector: 'app-root',

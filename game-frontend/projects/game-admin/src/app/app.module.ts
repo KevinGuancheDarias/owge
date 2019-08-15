@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { OwgeCoreModule } from 'owge-core';
+import { CoreModule } from '@owge/core';
 
 @NgModule({
   declarations: [
@@ -12,7 +12,7 @@ import { OwgeCoreModule } from 'owge-core';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    OwgeCoreModule
+    CoreModule
   ],
   providers: [],
   bootstrap: [AppComponent]
