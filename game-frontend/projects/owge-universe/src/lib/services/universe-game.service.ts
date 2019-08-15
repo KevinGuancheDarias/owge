@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
-
 import { Observable } from 'rxjs';
 import { first ,  switchMap } from 'rxjs/operators';
 
-import { CoreHttpService } from './core-http.service';
-import { HttpOptions } from '../types/http-options.type';
-import { UniverseStorage, Universe } from 'owge-universe';
+import { CoreHttpService, HttpOptions } from '@owge/core';
+import { UniverseStorage } from '../storages/universe.storage';
+import { Universe } from '../types/universe.type';
 
 type validNonDataMethod = 'get' | 'delete';
 type validWriteMethod = 'post' | 'put';
@@ -15,11 +14,11 @@ type validWriteMethod = 'post' | 'put';
  * This replaces the good' old <i>GameBaseService</i>
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- * @since 0.7.0
+ * @since 0.8.0
  * @export
  */
 @Injectable()
-export class CoreGameService {
+export class UniverseGameService {
 
   constructor(private _coreHttpService: CoreHttpService, private _universeStorage: UniverseStorage) {
 

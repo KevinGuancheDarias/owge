@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef,  OnInit, ViewChild } from '@angular/core';
 import { ReplaySubject ,  Observable } from 'rxjs';
 
 import { AbstractModalComponent } from '../../interfaces/abstract-modal-component';
@@ -8,10 +8,9 @@ import { AbstractModalComponent } from '../../interfaces/abstract-modal-componen
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @class ModalComponent
  */
 @Component({
-    selector: 'app-modal',
+    selector: 'owge-core-modal',
     templateUrl: './modal.component.html',
     styleUrls: ['./modal.component.less']
 })
@@ -24,9 +23,6 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      * Returns if the modal is visible or not, true for visible
      *
      * @since 0.7.0
-     * @readonly
-     * @type {Observable<boolean>}
-     * @memberof ModalComponent
      */
     public get status(): Observable<boolean> {
         return this._status.asObservable();
@@ -39,7 +35,6 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      * If true will close the modal when the user clicks outside the modal <br>
      * Defaults to <b>true</b>
      *
-     * @memberof ModalComponent
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private _closeOnContainerClicked = true;
@@ -91,8 +86,6 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      * Adds the modal to the body (avoids problems with modal positioning)
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @private
-     * @memberof ModalComponent
      */
     private _moveModalToBody(): void {
         document.body.appendChild(this._modalRoot.nativeElement);
@@ -102,8 +95,6 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      * For unknown reasons, databinding to display property is not working in some cases
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @private
-     * @memberof ModalComponent
      * @see https://trello.com/c/u2yS6yGH
      */
     private _applyHotfix(): void {

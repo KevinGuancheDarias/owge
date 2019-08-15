@@ -1,4 +1,4 @@
-<app-modal #creationModification>
+<owge-core-modal #creationModification>
   <div class="header">
     <span *ngIf="userAlliance === null">{{ 'ALLIANCE.CREATE_AN_ALLIANCE' | translate }}</span>
     <span *ngIf="userAlliance !== null">{{ 'ALLIANCE.EDIT_ALLIANCE' | translate }}</span>
@@ -22,12 +22,12 @@
       <button (click)="modal.hide()" class="btn btn-secondary">{{ 'ALLIANCE.CANCEL' | translate }}</button>
     </div>
   </div>
-</app-modal>
-<app-loading [isReady]="userAlliance === null || userAlliance">
-  <app-alliance-details *ngIf="userAlliance" [alliance]="userAlliance">
-  </app-alliance-details>
+</owge-core-modal>
+<owge-core-loading [isReady]="userAlliance === null || userAlliance">
+  <owge-alliance-details *ngIf="userAlliance" [alliance]="userAlliance">
+  </owge-alliance-details>
   <ng-container *ngIf="userAlliance === null">
     <h1>{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
     <button (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.CREATE' | translate }}</button>
   </ng-container>
-</app-loading>
+</owge-core-loading>

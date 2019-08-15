@@ -6,7 +6,6 @@ import { MenuRoute } from './menu-route.type';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class RouterData
  */
 export interface RouterData {
     sectionTitle: string;

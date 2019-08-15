@@ -391,6 +391,76 @@
           }
         }
       }
+    },
+    "owge-alliance": {
+      "projectType": "library",
+      "root": "projects/owge-alliance",
+      "sourceRoot": "projects/owge-alliance/src",
+      "prefix": "owge-alliance",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-alliance/tsconfig.lib.json",
+            "project": "projects/owge-alliance/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-alliance/src/test.ts",
+            "tsConfig": "projects/owge-alliance/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-alliance/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-alliance/tsconfig.lib.json",
+              "projects/owge-alliance/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "owge-widgets": {
+      "projectType": "library",
+      "root": "projects/owge-widgets",
+      "sourceRoot": "projects/owge-widgets/src",
+      "prefix": "owge-widgets",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-widgets/tsconfig.lib.json",
+            "project": "projects/owge-widgets/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-widgets/src/test.ts",
+            "tsConfig": "projects/owge-widgets/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-widgets/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-widgets/tsconfig.lib.json",
+              "projects/owge-widgets/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }
   },
   "defaultProject": "game-frontend",

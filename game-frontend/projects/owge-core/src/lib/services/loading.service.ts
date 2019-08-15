@@ -30,8 +30,7 @@ export class LoadingService implements OnDestroy {
    *
    * @example const result = await addPromise(myService.findResult().toPromise());
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {Promise<any>} promise promise to register
-   * @returns {Promise<any>} the passed promise
+   * @param promise promise to register
    * @memberof LoadingService
    */
   public addPromise(promise: Promise<any>): Promise<any> {
@@ -54,9 +53,8 @@ export class LoadingService implements OnDestroy {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @template T
-   * @param {() => Promise<T>} action
-   * @returns {Promise<T>}
-   * @memberof LoadingService
+   * @param action
+   * @returns
    */
   public async runWithLoading<T = any>(action: () => Promise<T>): Promise<T> {
     return await this.addPromise(action());
@@ -66,7 +64,6 @@ export class LoadingService implements OnDestroy {
    * Registers the interval, resets the time if already define, and checks if the loading status has changed <b>(ASAP!!!)</b>
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @private
    * @memberof LoadingService
    */
   private _startInterval(): void {

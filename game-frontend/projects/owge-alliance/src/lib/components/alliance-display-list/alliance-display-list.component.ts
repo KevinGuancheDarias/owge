@@ -4,7 +4,7 @@ import { AllianceService } from '../../services/alliance.service';
 import { Alliance } from '../../types/alliance.type';
 
 @Component({
-  selector: 'app-alliance-display-list',
+  selector: 'owge-alliance-display-list',
   templateUrl: './alliance-display-list.component.html',
   styleUrls: ['./alliance-display-list.component.less']
 })

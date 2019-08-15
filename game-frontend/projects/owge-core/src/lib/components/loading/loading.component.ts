@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
 @Component({
-  selector: 'app-loading',
+  selector: 'owge-core-loading',
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.less']
 })

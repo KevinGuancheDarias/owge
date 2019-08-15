@@ -6,16 +6,12 @@ import { Injector } from '@angular/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @interface MenuRoute
  */
 export interface MenuRoute {
-
 
     /**
      *
      * @since 0.7.0
-     * @type {string}
-     * @memberof MenuRoute
      */
     path: string;
 
@@ -23,8 +19,6 @@ export interface MenuRoute {
     /**
      *
      * @since 0.7.0
-     * @type {string}
-     * @memberof MenuRoute
      */
     text: string;
 
@@ -32,9 +26,7 @@ export interface MenuRoute {
     /**
      *
      *
-     * @type {string}
      * @since 0.7.0
-     * @memberof MenuRoute
      */
     icon?: string;
 
@@ -42,13 +34,11 @@ export interface MenuRoute {
      * Action to run to check if should display the route or not
      *
      * @since 0.7.0
-     * @memberof MenuRoute
      */
     ngIf?: (injector: Injector) => Promise<boolean>;
 
     /**
      *
-     * @type {boolean}
      * @since 0.7.0
      */
     isNgIfOk?: boolean;

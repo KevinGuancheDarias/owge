@@ -20,23 +20,29 @@
     "module": "esnext",
     "baseUrl": "./",
     "paths": {
-      "owge-core": [
+      "@owge/core": [
         "dist/owge-core"
       ],
-      "owge-core/*": [
+      "@owge/core/*": [
         "dist/owge-core/*"
       ],
-      "owge-universe": [
+      "@owge/universe": [
         "dist/owge-universe"
       ],
-      "owge-universe/*": [
+      "@owge/universe/*": [
         "dist/owge-universe/*"
       ],
-      "owge-user": [
-        "dist/owge-user"
+      "@owge/alliance": [
+        "dist/owge-alliance"
       ],
-      "owge-user/*": [
-        "dist/owge-user/*"
+      "@owge/alliance/*": [
+        "dist/owge-alliance/*"
+      ],
+      "@owge/widgets": [
+        "dist/owge-widgets"
+      ],
+      "@owge/widgets/*": [
+        "dist/owge-widgets/*"
       ]
     }
   }

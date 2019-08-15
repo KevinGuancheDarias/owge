@@ -5,7 +5,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { switchMap ,  first ,  catchError } from 'rxjs/operators';
 
 import { HttpOptions } from '../types/http-options.type';
-import { UserStorage } from '../../user/storages/user.storage';
+import { UserStorage } from '../storages/user.storage';
+import { User } from '../types/user.type';
 
 type validNonDataMethod = 'get' | 'delete';
 type validWriteMethod = 'post' | 'put';
@@ -16,12 +17,11 @@ type validWriteMethod = 'post' | 'put';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class CoreHttpService
  */
 @Injectable()
 export class CoreHttpService {
 
-  constructor(private _httpClient: HttpClient, private _userStorage: UserStorage) {
+  constructor(private _httpClient: HttpClient, private _userStorage: UserStorage<User>) {
 
   }
 
@@ -32,10 +32,9 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {HttpOptions} [options] Options to use in the request
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param [options] Options to use in the request
+   * @returns
    */
   public get<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._httpClient.get<any>(url, options).pipe(catchError(error => this._handleError(error)));
@@ -49,11 +48,10 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} body
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param body
+   * @param [options]
+   * @returns
    */
   public post<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
     return this._doPostOrPut<T>('post', url, body, options);
@@ -66,11 +64,10 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} body
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param body
+   * @param [options]
+   * @returns
    */
   public put<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
     return this._doPostOrPut<T>('put', url, body, options);
@@ -83,10 +80,9 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {HttpOptions} [options] Options to use in the request
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param [options] Options to use in the request
+   * @returns
    */
   public delete<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._httpClient.delete<any>(url, options).pipe(catchError(error => this._handleError(error)));
@@ -98,10 +94,9 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T type to return
-   * @param {string} url
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param [options]
+   * @returns
    */
   public getWithAuthorization<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._doGetOrDeleteWithAuthorization('get', url, options);
@@ -113,11 +108,10 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} body
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param body
+   * @param [options]
+   * @returns
    */
   public postWithAuthorization<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
     return this._doPostOrPutWithAuthorization('post', url, body, options);
@@ -129,11 +123,10 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} body
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param body
+   * @param [options]
+   * @returns
    */
   public putWithAuthorization<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
     return this._doPostOrPutWithAuthorization('put', url, body, options);
@@ -145,10 +138,9 @@ export class CoreHttpService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T type to return
-   * @param {string} url
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreHttpService
+   * @param url
+   * @param [options]
+   * @returns
    */
   public deleteWithAuthorization<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._doGetOrDeleteWithAuthorization('delete', url, options);
@@ -157,9 +149,8 @@ export class CoreHttpService {
   /**
    * Will handle errors coming from http client
    *
-   * @private
    * @todo Add default server pojo
-   * @param {Response|any} error Error object coming from request
+   * @param error Error object coming from request
    * @author Kevin Guanche Darias
    */
   private _handleError(error: Response | any): Observable<any> {
@@ -182,10 +173,9 @@ export class CoreHttpService {
    * Invoked when it's confirmed connection with server was success<br />
    * Will translate the server error message to a single string
    *
-   * @private
-   * @param {Response} error The object from the http client
+   * @param error The object from the http client
    *
-   * @return {string} Translated message
+   * @return Translated message
    * @memberOf BaseHttpService
    */
   private _translateServerError(error: Response | any): string {
@@ -206,10 +196,8 @@ export class CoreHttpService {
    * Ensures a correct options object is returned even in null <i>options</i> input
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @private
-   * @param {HttpOptions} [options]
-   * @returns {HttpOptions} A clone of the input options, or new if null
-   * @memberof CoreHttpService
+   * @param [options]
+   * @returns A clone of the input options, or new if null
    */
   private _createParsedOptions(options?: HttpOptions): HttpOptions {
     const parsedOptions: HttpOptions = { ...options } || {};

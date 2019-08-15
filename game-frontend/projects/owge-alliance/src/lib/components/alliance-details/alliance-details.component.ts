@@ -1,14 +1,14 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
-import { Alliance } from '../../types/alliance.type';
-import { User } from '../../../user/types/user.type';
-import { AllianceService } from '../../services/alliance.service';
-import { UserStorage } from '../../../user/storages/user.storage';
-// tslint:disable-next-line:max-line-length
-import { WidgetConfirmationDialogComponent } from '../../../widgets/components/widget-confirmation-dialog/widget-confirmation-dialog.component';
-import { TranslateService } from '@ngx-translate/core';
-import { LoadingService } from '../../../../services/loading.service';
-import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+
+import { UserStorage, LoadingService } from '@owge/core';
+import { WidgetConfirmationDialogComponent } from '@owge/widgets';
+
+import { Alliance } from '../../types/alliance.type';
+import { AllianceService } from '../../services/alliance.service';
+import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
+import { UserWithAlliance } from '../../types/user-with-alliance.type';
 
 /**
  *
@@ -16,11 +16,9 @@ import { Router } from '@angular/router';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class AllianceDetailsComponent
- * @implements {OnInit}
  */
 @Component({
-  selector: 'app-alliance-details',
+  selector: 'owge-alliance-details',
   templateUrl: './alliance-details.component.html',
   styleUrls: ['./alliance-details.component.less']
 })
@@ -30,19 +28,17 @@ export class AllianceDetailsComponent implements OnInit {
    * Alliance to display info from
    *
    * @since 0.7.0
-   * @type {Alliance}
-   * @memberof AllianceDetailsComponent
    */
   @Input() public alliance: Alliance;
   @ViewChild('confirmDialog', { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
-  public members: User[];
-  public currentUser: User;
+  public members: UserWithAlliance[];
+  public currentUser: UserWithAlliance;
   public vConfirmDeleteText: string;
 
   public constructor(
     private _allianceService: AllianceService,
-    private _userStorage: UserStorage,
+    private _userStorage: UserStorage<UserWithAlliance>,
     private _translateService: TranslateService,
     private _loadingService: LoadingService,
     private _router: Router
@@ -58,8 +54,7 @@ export class AllianceDetailsComponent implements OnInit {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
-   * @returns {Promise<void>}
-   * @memberof AllianceDetailsComponent
+   * @returns
    */
   public async clickDelete(): Promise<void> {
     this.vConfirmDeleteText = await this._translateService.get(
@@ -75,8 +70,7 @@ export class AllianceDetailsComponent implements OnInit {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
-   * @returns {Promise<AllianceJoinRequest>}
-   * @memberof AllianceDetailsComponent
+   * @returns
    */
   public clickRequestJoin(): Promise<AllianceJoinRequest> {
     return this._allianceService.requestJoin(this.alliance.id).toPromise();
@@ -87,7 +81,6 @@ export class AllianceDetailsComponent implements OnInit {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
-   * @memberof AllianceDetailsComponent
    */
   public clickLeave(): void {
     this._loadingService.addPromise(this._allianceService.leave().toPromise());
@@ -98,8 +91,7 @@ export class AllianceDetailsComponent implements OnInit {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
-   * @param {boolean} result
-   * @memberof AllianceDetailsComponent
+   * @param result
    */
   public async onDeleteConfirm(result: boolean): Promise<void> {
     if (result) {

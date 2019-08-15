@@ -4,15 +4,15 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { AllianceDetailsComponent } from './components/alliance-details/alliance-details.component';
 import { AllianceOfUserComponent } from './components/alliance-of-user/alliance-of-user.component';
-import { CoreModule } from '../core/core.module';
-import { UserModule } from '../user/user.module';
 import { AllianceStorage } from './storages/alliance.storage';
 import { RouterModule } from '@angular/router';
 import { AllianceService } from './services/alliance.service';
 import { AllianceDisplayListComponent } from './components/alliance-display-list/alliance-display-list.component';
 import { FormsModule } from '@angular/forms';
-import { WidgetsModule } from '../widgets/widgets.module';
 import { ListJoinRequestComponent } from './components/list-join-request/list-join-request.component';
+import { CoreModule, OwgeUserModule } from '@owge/core';
+import { OwgeWidgetsModule } from '@owge/widgets';
+
 
 /**
  * Module containing all alliance related operations
@@ -20,16 +20,15 @@ import { ListJoinRequestComponent } from './components/list-join-request/list-jo
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class AllianceModule
  */
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
-    CoreModule,
-    UserModule,
     RouterModule,
-    WidgetsModule,
+    CoreModule,
+    OwgeUserModule,
+    OwgeWidgetsModule,
     TranslateModule.forChild()
   ],
   declarations: [

@@ -1,3 +1,11 @@
+
+/**
+ *
+ * @deprecated As of 0.8.0 it's better to use FactionModule/Faction
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
+ * @export
+ */
 export class Faction {
     public id: number;
     public hidden: boolean;

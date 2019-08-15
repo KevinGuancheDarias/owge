@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import {map} from 'rxjs/operators';
-import { CoreGameService } from './core-game.service';
 import { Observable } from 'rxjs';
-import { LoggerHelper } from '../helpers/logger.helper';
-import { ProgrammingError } from '../errors/programming.error';
+import {map} from 'rxjs/operators';
+
+import { UniverseGameService } from './universe-game.service';
+import { LoggerHelper, ProgrammingError } from '@owge/core';
 
 /**
  * Service used to synchronize server and browser time
@@ -18,7 +18,7 @@ export class ClockSyncService {
   private _timeDifference: number;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  public constructor(private _coreGameService: CoreGameService) { }
+  public constructor(private _universeGameService: UniverseGameService) { }
 
   /**
    * Defines the timeDifference property, ideally this method would be invoked in an APP_INITIALIZER
@@ -42,7 +42,7 @@ export class ClockSyncService {
    * @returns
    */
   public findServerClockTime(): Observable<Date> {
-    return this._coreGameService.getToUniverse('clock').pipe(map(clock => new Date(clock)));
+    return this._universeGameService.getToUniverse('clock').pipe(map(clock => new Date(clock)));
   }
 
   /**

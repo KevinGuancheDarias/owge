@@ -1,13 +1,14 @@
 import { Route } from '@angular/router';
+import { take } from 'rxjs/operators';
+
+import { RouterData, UserStorage } from '@owge/core';
+
 import { AllianceOfUserComponent } from './components/alliance-of-user/alliance-of-user.component';
 import { AllianceDisplayListComponent } from './components/alliance-display-list/alliance-display-list.component';
 import { ListJoinRequestComponent } from './components/list-join-request/list-join-request.component';
-import { RouterData } from '../core/types/router-data.type';
 import { AllianceStorage } from './storages/alliance.storage';
 import { Alliance } from './types/alliance.type';
-import { UserStorage } from '../user/storages/user.storage';
-import { take } from 'rxjs/operators';
-
+import { UserWithAlliance } from './types/user-with-alliance.type';
 
 export const ALLIANCE_ROUTES: Route[] = [
     {
@@ -27,7 +28,7 @@ export const ALLIANCE_ROUTES_DATA: RouterData = {
       { path: 'browse', text: 'APP.BROWSE' },
       { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST', ngIf: async injector => {
         const allianceStorage: AllianceStorage = injector.get(AllianceStorage);
-        const userStorage: UserStorage = injector.get(UserStorage);
+        const userStorage: UserStorage<UserWithAlliance> = injector.get<UserStorage<UserWithAlliance>>(UserStorage);
         const alliance: Alliance = await allianceStorage.userAlliance.pipe(
             take(1)
         ).toPromise();

@@ -8,7 +8,6 @@ import { Observable } from 'rxjs';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @interface HttpOptions
  */
 export interface HttpOptions {
     headers?: HttpHeaders;

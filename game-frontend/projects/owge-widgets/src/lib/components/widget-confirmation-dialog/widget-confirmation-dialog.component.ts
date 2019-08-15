@@ -1,9 +1,8 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
-import { last, switchMap, merge, first } from 'rxjs/operators';
+import {first} from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
-import { AbstractModalContainerComponent } from '../../../../interfaces/abstact-modal-container-component';
+import { AbstractModalContainerComponent } from '@owge/core';
 
 /**
  * Displays a simple modal for confirming an operation <br>
@@ -12,12 +11,9 @@ import { AbstractModalContainerComponent } from '../../../../interfaces/abstact-
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class WidgetConfirmationDialogComponent
- * @extends {AbstractModalContainerComponent}
- * @implements {OnInit}
  */
 @Component({
-  selector: 'app-widget-confirmation-dialog',
+  selector: 'owge-widgets-confirmation-dialog',
   templateUrl: './widget-confirmation-dialog.component.html',
   styleUrls: ['./widget-confirmation-dialog.component.less']
 })
@@ -30,8 +26,6 @@ export class WidgetConfirmationDialogComponent extends AbstractModalContainerCom
    * Represents if the confirmation has been accepted or rejected
    *
    * @since 0.7.0
-   * @type {EventEmitter<boolean>}
-   * @memberof WidgetConfirmationDialogComponent
    */
   @Output() public confirmResult: EventEmitter<boolean> = new EventEmitter();
 

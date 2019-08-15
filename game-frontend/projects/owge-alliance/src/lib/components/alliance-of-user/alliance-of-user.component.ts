@@ -3,13 +3,12 @@ import { NgForm } from '@angular/forms';
 
 import { AllianceStorage } from '../../storages/alliance.storage';
 import { Alliance } from '../../types/alliance.type';
-import { ModalComponent } from '../../../../components/modal/modal.component';
-import { LoadingService } from '../../../../services/loading.service';
+import { ModalComponent, LoadingService } from '@owge/core';
 import { AllianceService } from '../../services/alliance.service';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-alliance-of-user',
+  selector: 'owge-alliance-of-user',
   templateUrl: './alliance-of-user.component.html',
   styleUrls: ['./alliance-of-user.component.less']
 })

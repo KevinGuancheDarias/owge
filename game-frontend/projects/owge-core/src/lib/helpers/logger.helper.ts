@@ -28,10 +28,9 @@ export class LoggerHelper {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
-     * @param {string} item
-     * @param {string} version Version in which the deprecation takes place
-     * @param {string} [elementToUse] If specified, what to use else
-     * @memberof LoggerHelper
+     * @param item
+     * @param version Version in which the deprecation takes place
+     * @param [elementToUse] If specified, what to use else
      */
     public warnDeprecated(item: string, version: string, elementToUse?: string): void {
         const whatToUse = elementToUse

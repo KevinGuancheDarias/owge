@@ -10,9 +10,6 @@ import { AbstractModalComponent } from './abstract-modal-component';
  * @example MissionModalComponent
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @abstract
- * @class AbstractModalContainerComponent
- * @extends {AbstractModalComponent}
  */
 export abstract class AbstractModalContainerComponent extends AbstractModalComponent {
     @ViewChild('childModal', { static: true })

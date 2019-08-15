@@ -1,7 +1,7 @@
 import { Provider, APP_INITIALIZER } from '@angular/core';
 
 import { ClockSyncService } from '../services/clock-sync.service';
-import { UniverseService } from 'owge-universe';
+import { UniverseService } from '../services/universe.service';
 
 /**
  * Initializes the clockSyncservice

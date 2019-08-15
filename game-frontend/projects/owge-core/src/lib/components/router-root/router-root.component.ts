@@ -1,7 +1,7 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { RouterData } from '../../types/router-data.type';
-import { ProgrammingError } from '../../../../../error/programming.error';
+import { ProgrammingError } from '../../errors/programming.error';
 import { filter } from 'rxjs/operators';
 
 /**
@@ -10,11 +10,9 @@ import { filter } from 'rxjs/operators';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class RouterRootComponent
- * @implements {OnInit}
  */
 @Component({
-  selector: 'app-router-root',
+  selector: 'owge-core-router-root',
   templateUrl: './router-root.component.html',
   styleUrls: ['./router-root.component.less']
 })
