@@ -10,7 +10,6 @@ import { UniverseService } from './services/universe.service';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class UniverseModule
  */
 @NgModule({
   imports: [
@@ -18,10 +17,10 @@ import { UniverseService } from './services/universe.service';
   ],
   declarations: []
 })
-export class UniverseModule {
+export class OwgeUniverseModule {
   public static forRoot(): ModuleWithProviders {
     return {
-      ngModule: UniverseModule,
+      ngModule: OwgeUniverseModule,
       providers: [UniverseStorage, UniverseService, UniverseInitializer]
     };
   }

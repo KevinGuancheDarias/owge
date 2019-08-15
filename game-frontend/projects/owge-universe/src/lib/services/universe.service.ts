@@ -1,6 +1,5 @@
 import { UniverseStorage } from '../storages/universe.storage';
-import { LoginSessionService } from '../../../login-session/login-session.service';
-import { Universe } from '../../../shared-pojo/universe.pojo';
+import { Universe } from '../types/universe.type';
 import { Injectable } from '@angular/core';
 
 /**
@@ -9,10 +8,10 @@ import { Injectable } from '@angular/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.3
  * @export
- * @class UniverseService
  */
 @Injectable()
 export class UniverseService {
+    public static readonly LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
     public constructor(private _universeStorage: UniverseStorage) { }
 
     /**
@@ -20,7 +19,6 @@ export class UniverseService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.3
-     * @memberof UniverseService
      */
     public init(): void {
         const universe: Universe = this.getSelectedUniverse();
@@ -34,10 +32,8 @@ export class UniverseService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.3
-     * @returns {Universe}
-     * @memberof UniverseService
      */
     public getSelectedUniverse(): Universe {
-        return JSON.parse(sessionStorage.getItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE));
+        return JSON.parse(sessionStorage.getItem(UniverseService.LOCAL_STORAGE_SELECTED_UNIVERSE));
     }
 }

@@ -5,8 +5,7 @@ import { first ,  switchMap } from 'rxjs/operators';
 
 import { CoreHttpService } from './core-http.service';
 import { HttpOptions } from '../types/http-options.type';
-import { UniverseStorage } from '../../universe/storages/universe.storage';
-import { Universe } from '../../../shared-pojo/universe.pojo';
+import { UniverseStorage, Universe } from 'owge-universe';
 
 type validNonDataMethod = 'get' | 'delete';
 type validWriteMethod = 'post' | 'put';
@@ -18,7 +17,6 @@ type validWriteMethod = 'post' | 'put';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.7.0
  * @export
- * @class CoreGameService
  */
 @Injectable()
 export class CoreGameService {
@@ -27,17 +25,15 @@ export class CoreGameService {
 
   }
 
-
   /**
    * Executes a GET query to the universe <b>WITHOUT</b> authentication
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.3
    * @template T
-   * @param {string} url
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreGameService
+   * @param  url
+   * @param  [options]
+   * @returns
    */
   public getToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._universeStorage.currentUniverse.pipe(
@@ -54,10 +50,9 @@ export class CoreGameService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreGameService
+   * @param url
+   * @param [options]
+   * @returns
    */
   public getWithAuthorizationToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._getDeleteWithAuthorizationToUuniverse<T>('get', url, options);
@@ -69,11 +64,10 @@ export class CoreGameService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} [body]
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreGameService
+   * @param url
+   * @param [body]
+   * @param [options]
+   * @returns
    */
   public postwithAuthorizationToUniverse<T = any>(url: string, body?: any, options?: HttpOptions): Observable<T> {
     return this._postPutWithAuthorizationToUniverse<T>('post', url, body, options);
@@ -85,11 +79,9 @@ export class CoreGameService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {*} body
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreGameService
+   * @param url
+   * @param body
+   * @param [options]
    */
   public putwithAuthorizationToUniverse<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
     return this._postPutWithAuthorizationToUniverse<T>('put', url, body, options);
@@ -101,10 +93,9 @@ export class CoreGameService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
-   * @param {string} url
-   * @param {HttpOptions} [options]
-   * @returns {Observable<T>}
-   * @memberof CoreGameService
+   * @param url
+   * @param [options]
+   * @returns
    */
   public deleteWithAuthorizationToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._getDeleteWithAuthorizationToUuniverse<T>('delete', url, options);

@@ -1,5 +1,4 @@
 import { HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
 
 export const MEDIA_ROUTES = {
     'IMAGES_ROOT': '/dynamic/',
@@ -24,11 +23,11 @@ export const ROUTES = {
 };
 
 export class Config {
-    public static readonly ACCOUNT_SERVER_URL = environment.accountUrl;
-    public static readonly ACCOUNT_LOGIN_ENDPOINT = environment.loginEndpoint;
     public static readonly URL_ENCODE_UTF8 = 'application/x-www-form-urlencoded; charset=UTF-8';
     public static readonly PLANET_RICHNESS_IMAGE_EXTENSION = '.gif';
     public static readonly PLANET_NOT_EXPLORED_IMAGE = 'unexplored.jpg';
+    public static accountServerUrl = 'undefined';
+    public static accountLoginendpoint = 'undefined';
 
     public static genCommonFormUrlencoded(): HttpHeaders {
         let headers = new HttpHeaders();
