@@ -1,0 +1,277 @@
+<h1 id="owgechangelog">OWGE changelog</h1>
+<h1 id="v080latest">v0.8.0 (latest)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.7.5</li>
+</ul>
+<h1 id="v075201908131658">v0.7.5 (2019-08-13 16:58)</h1>
+<ul>
+<li><strong>Improvement:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/105">Disable websocket when not configured</a>  </li>
+<li><strong>Fix:</strong>  <a href="https://github.com/KevinGuancheDarias/owge/issues/104">Fix "delete unit" button is moving to the next line when mouse is over</a> <img src="assets/changelog/bugs/104.png" alt="Fix &quot;delete unit&quot; button is moving to the next line when mouse is over" />  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/103">Leaving planet is not working when you have BUILD_UNIT mission in any  of your planets</a>  </li>
+</ul>
+<h1 id="v074201908101232">v0.7.4 (2019-08-10 12:32)</h1>
+<ul>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/101">System is not keeping the source & target planet of depoyed missions, when another mission is run</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/100">When sending a deployment mission with multiple unit, would create one separated "deployed" mission for each type</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/50">Loading image not displaying in mobile devices</a></li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/49">When the user is not the owner of the alliance, should not display the "join request list"</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/99">ClockService is not working properly, looks like it is adding time always</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/51">Return button is not working in deployed missions</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/97">Button near the sidebard is not working, as sidebar is using more space than visible</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/96">Do not allow to send deployments from a deployment mission (multi-deployment)</a>  </li>
+<li><strong>Fix:</strong> <a href="https://github.com/KevinGuancheDarias/owge/issues/98">Deployed units don't appear in the exploration report</a>  </li>
+<li><strong>Fix:</strong> When you attack source planet of deploy mission, the attack would affect units deployed in other planets</li>
+<li><strong>Fix:</strong> Return button doesn't display properly</li>
+</ul>
+<h1 id="v073201903141417">v0.7.3 (2019-03-14 14:17)</h1>
+<ul>
+<li><strong>Fix:</strong> Upgrade timer is not synchronized with the user machine</li>
+<li><strong>Fix:</strong> The attemps system of missions, is not automatically deleting BUILD_UNIT mission after 3 attemps</li>
+<li><strong>Fix:</strong> Deleting heroes doesn't work when you have cancelled the build of one hero</li>
+<li><strong>Fix:</strong> In some resolutions the player can't see the entire sidebar</li>
+<li><strong>Fix:</strong> Attacks are not working when one user with an alliance attacks a user that doesn't have an alliance</li>
+<li><strong>Fix:</strong> When deploying multiple units of the same type, is not merging the count of the types, this causes errors, as the system doesn't expect to have two separate counts of the same unit type in the same planet<br />
+<img src="assets/changelog/bugs/scPd4AQN.png" alt="When deploying multiple units of the same type, is not merging the count of the types, this causes errors, as the system doesn't expect to have two separate counts of the same unit type in the same planet" />  </li>
+<li><strong>Fix:</strong> When the user sends a mission, the available units count is not updating unless full window refresh is issued <code>(see video evidence</code> <a href="assets/changelog/bugs/pwY76NOb.mp4">here</a><code>)</code></li>
+</ul>
+<h1 id="v072201902251454">v0.7.2 (2019-02-25 14:54)</h1>
+<ul>
+<li><strong>Improvement:</strong> Display a cancel confirmation in upgrades<br />
+<img src="assets/changelog/improvements/kBMYJtvv.png" alt="Display a cancel confirmation in upgrades" />  </li>
+<li><strong>Fix:</strong> Close icon not displaying in modals</li>
+<li><strong>Fix:</strong> Sometimes units don't appear, but, it's counting the number of soldiers</li>
+<li><strong>Fix:</strong> Register and forgot password links are inverted</li>
+</ul>
+<h1 id="v071201902242301">v0.7.1 (2019-02-24 23:01)</h1>
+<ul>
+<li><strong>Fix:</strong> "Register" and "forgot password" buttons not pointing to KGDW links</li>
+<li><strong>Fix:</strong> Fix missing icons for mobile menu</li>
+<li><strong>Fix:</strong> Fix missing Ranking title</li>
+<li><strong>Fix:</strong> Fix spanish accents not displaying properly<br />
+<img src="assets/changelog/bugs/NTd6k5uD.png" alt="Fix spanish accents not displaying properly" />  </li>
+</ul>
+<h1 id="v070201902211542">v0.7.0 (2019-02-21 15:42)</h1>
+<ul>
+<li><strong>Feature:</strong> As a player I want to have a ranking with at least battle points<br />
+<img src="assets/changelog/features/L46uhduW.png" alt="As a player I want to have a ranking with at least battle points" />  </li>
+<li><strong>Feature:</strong> As a player, I want to be able to create an alliance<br />
+<img src="assets/changelog/features/O4xthVje.png" alt="As a player, I want to be able to create an alliance" />  </li>
+<li><strong>Feature:</strong> Change login system to use KGDW (:warning: Breaks old accounts :warning:)</li>
+<li><strong>Feature:</strong> As a player I Want to be able to deploy my units to other planets<br />
+<img src="assets/changelog/features/4a028iCy.png" alt="As a player I Want to be able to deploy my units to other planets" />  </li>
+<li><strong>Fix:</strong> If closing the modal by clicking outside is disabled, the background fade will not allow the user to click anything</li>
+</ul>
+<h1 id="v063201902231805">v0.6.3 (2019-02-23 18:05)</h1>
+<ul>
+<li><strong>Improvement:</strong> Apply Kc style<br />
+<img src="assets/changelog/improvements/CeUi35X0.png" alt="Apply Kc style" />  </li>
+</ul>
+<h1 id="v062201812271444">v0.6.2 (2018-12-27 14:44)</h1>
+<ul>
+<li><strong>Fix:</strong> Missing fields in database creation script</li>
+</ul>
+<h1 id="v061201809271603">v0.6.1 (2018-09-27 16:03)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.5.7</li>
+<li><strong>Merge:</strong> v0.5.6</li>
+</ul>
+<h1 id="v060201809190927">v0.6.0 (2018-09-19 09:27)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.5.5</li>
+<li><strong>Feature:</strong> As an administrator I want to define what missions each type of unit can do<br />
+<img src="assets/changelog/features/QNGBLo0m.png" alt="As an administrator I want to define what missions each type of unit can do" />  </li>
+<li><strong>Feature:</strong> As a player i don't want to be able to use selected types of units for missions, (for example Defenses, should only be allowed to use Deploy missions to owned planets)</li>
+</ul>
+<h1 id="v057201809271528">v0.5.7 (2018-09-27 15:28)</h1>
+<ul>
+<li><strong>Fix:</strong> Bad format for units inherintance system in Angular</li>
+<li><strong>Merge:</strong> v0.4.4</li>
+</ul>
+<h1 id="v056201809111444">v0.5.6 (2018-09-11 14:44)</h1>
+<ul>
+<li><strong>Fix:</strong> When attacking an user that has heroes that provide more research speed, the attack hangs  </li>
+</ul>
+<h1 id="v055201809101435">v0.5.5 (2018-09-10 14:35)</h1>
+<ul>
+<li><strong>Fix:</strong> Attacks crash sometimes under race circumstances</li>
+</ul>
+<h1 id="v054201809081330">v0.5.4 (2018-09-08 13:30)</h1>
+<ul>
+<li><strong>Fix:</strong> Fix again, because the fix <a href="https://trello.com/c/AOhmFxTI/50-the-user-cant-build-when-the-user-has-not-consumed-any-energy-regression-of-5jlebzrv">"The user can't build when the user has not consumed any energy, regression of 5jLeBzrv"</a> was not working</li>
+</ul>
+<h1 id="v053201809080218">v0.5.3 (2018-09-08 02:18)</h1>
+<ul>
+<li><strong>Fix:</strong> The user can't build when the user has not consumed any energy, regression of <a href="https://trello.com/c/5jLeBzrv/48-backend-allows-the-user-to-build-over-his-energy-backend-is-not-checking-that-the-required-energy-is-met">5jLeBzrv</a></li>
+<li><strong>Fix:</strong> Changelog is opening the external links in the same page</li>
+<li><strong>Improvement:</strong> Display a filter by type in upgrades<br />
+<img src="assets/changelog/improvements/DZWLdNLi.png" alt="Display a filter by type in upgrades" />  </li>
+</ul>
+<h1 id="v052201809011758">v0.5.2 (2018-09-01 17:58)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.4.2</li>
+<li><strong>Security:</strong> Backend allows the user to build over his energy, backend is not checking that the required energy is met</li>
+<li><strong>Fix:</strong> Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit<br />
+<img src="assets/changelog/bugs/UkfqMsJB.png" alt="Deploys are failing, when multiple deploys to the same target planet are using the same kind of unit" />  </li>
+<li><strong>Improvement:</strong> Display a filter by type in units<br />
+<img src="assets/changelog/improvements/SC8fU3lW.png" alt="Display a filter by type in units" /></li>
+</ul>
+<h1 id="v051201808211355">v0.5.1 (2018-08-21 13:55)</h1>
+<ul>
+<li><strong>Fix:</strong> u1 Import script not importing More Units improvement</li>
+</ul>
+<h1 id="v050201808191841">v0.5.0 (2018-08-19 18:41)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.4.1</li>
+<li><strong>Fix:</strong> Backend not sending correct number of "count" of the running unit build mission</li>
+<li><strong>Feature:</strong> As a player I want to have heroes</li>
+<li><strong>Feature:</strong> As an admin I want to be able to add an improvement to increase unit build speed<br />
+<img src="assets/changelog/features/kemyo8Ao.png" alt="As an admin I want to be able to add an improvement to increase unit build speed" />  </li>
+<li><strong>Feature:</strong> As an admin I wan to be able to add an improvement to upgrade research speed<br />
+<img src="assets/changelog/features/fTtxVUv4.png" alt="As an admin I wan to be able to add an improvement to upgrade research speed" />  </li>
+<li><strong>Feature:</strong> As an admin I want to be able to define an unit as unique<br />
+<img src="assets/changelog/features/McD3CIuL.gif" alt="As an admin I want to be able to define an unit as unique" />  </li>
+<li><strong>Feature:</strong> As a player I want to have a limit on determinated types of units, for example in troops</li>
+<li><strong>Feature:</strong> As an admin i want to add  unit type amount limit</li>
+<li><strong>Feature:</strong> As a player I want energy to work like expected</li>
+<li><strong>Feature:</strong> As a player I want to be able to deploy units in other of my planets</li>
+<li><strong>Feature:</strong> As a player, I want to see the unit base attributes</li>
+<li><strong>Feature:</strong> As a player I want to see the gather report</li>
+</ul>
+<h1 id="v044201809271438">v0.4.4 (2018-09-27 14:38)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.3.8</li>
+</ul>
+<h1 id="v043201809101458">v0.4.3 (2018-09-10 14:58)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.3.7</li>
+</ul>
+<h1 id="v042201808191611">v0.4.2 (2018-08-19 16:11)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.3.6</li>
+</ul>
+<h1 id="v041201808091915">v0.4.1 (2018-08-09 19:15)</h1>
+<ul>
+<li><strong>Merge:</strong> v0.3.5</li>
+</ul>
+<h1 id="v040201807292220">v0.4.0 (2018-07-29 22:20)</h1>
+<ul>
+<li><strong>Feature:</strong> As a player I want to be able to voluntary leave a planet</li>
+<li><strong>Fix:</strong> Universe without custom frontend URL is not working in 0.4.x</li>
+<li><strong>Feature:</strong> As a player I would like to cancel my running unit missions</li>
+<li><strong>Feature:</strong> As a pleyer, I would like to be able to delete my own units</li>
+<li><strong>Feature:</strong> As a player I would like to see the requirements for the units of my race</li>
+<li><strong>Merge:</strong> v0.3.4</li>
+</ul>
+<h1 id="v038201809271155">v0.3.8 (2018-09-27 11:55)</h1>
+<ul>
+<li><strong>Improvement:</strong> Display time in days, hours, minutes, and seconds<br />
+<img src="assets/changelog/improvements/HYldODUu.png" alt="Display time in days, hours, minutes, and seconds" />  </li>
+<li><strong>Improvement:</strong> Increase game load speed, decrease data usage and battery consumption  </li>
+<li><strong>Improvement:</strong> Add little mechanism to ensure failing missions do not crash the game<br />
+<img src="assets/changelog/improvements/bXXGVwDq.gif" alt="Add little mechanism to ensure failing missions do not crash the game" /> </li>
+<li><strong>Improvement:</strong> Reduce server RAM usage</li>
+</ul>
+<h1 id="v037201809101452">v0.3.7 (2018-09-10 14:52)</h1>
+<ul>
+<li><strong>Fix:</strong> Attacks crash sometimes under race circumstances</li>
+</ul>
+<h1 id="v036201808191607">v0.3.6 (2018-08-19 16:07)</h1>
+<ul>
+<li><strong>Fix:</strong> Attacks do not remove units, unless all the unit count is death<br />
+<img src="assets/changelog/bugs/ID3x4EeA.gif" alt="Attacks do not remove units, unless all the unit count is death" />  </li>
+<li><strong>Fix:</strong> Send mission dialog can't be closed in mobile devices<br />
+<img src="assets/changelog/bugs/2wBzKBba.png" alt="Send mission dialog can't be closed in mobile devices" />  </li>
+</ul>
+<h1 id="v035201808091736">v0.3.5 (2018-08-09 17:36)</h1>
+<ul>
+<li><strong>DevOps:</strong> Add support for publishing multiple universes of the same OWGE minor version to the public server</li>
+<li><strong>DevOps:</strong> Add feature to deploy a game more easily to the public server</li>
+<li><strong>Fix:</strong> If user tries to send more units, than the one he have, game will crash with a loading img<br />
+<img src="assets/changelog/bugs/wLpFm1fg.gif" alt="If user tries to send more units, than the one he have, game will crash with a loading img" /></li>
+<li><strong>Fix:</strong> The user can't close the report from a mobile device</li>
+<li><strong>Fix:</strong> Attacks are failing sometimes, as game is trying to remove the units more than one time</li>
+<li><strong>Fix:</strong> Multiverse doesn't work as expected, the user can't be logged in two different universes</li>
+</ul>
+<h1 id="v034201807251306">v0.3.4 (2018-07-25 13:06)</h1>
+<ul>
+<li><strong>Improvement:</strong> Notify user when he doesn't have units in the selected planet</li>
+<li><strong>Improvement:</strong> Notify user, that he can't build units, when he/she doesn't meet minimum requirements</li>
+<li><strong>Fix:</strong> When the list of "buildable" units is empty, the system is throwing a 500 error, instead of returning a 200, with an empty array</li>
+<li><strong>Security:</strong> Backend allows to use a planet that doesn't exists as target for UNIT_BUILD mision</li>
+<li><strong>Security:</strong> An user can build units targetting any planet, by sending the planetId</li>
+<li><strong>Fix:</strong> Attacks are crashing when multiple units are involved, and in some custom circumstance</li>
+<li><strong>Fix:</strong> On some mobile devices the user can't change the selected planet, because he/she can't close the dialog</li>
+</ul>
+<h1 id="v033201807151139">v0.3.3 (2018-07-15 11:39)</h1>
+<ul>
+<li><strong>Fix:</strong> When you send all amount you have of one unit, and the units number is above 127, the mission registration would crash…</li>
+<li><strong>Fix:</strong> Game displays missions other than "Explore" when the planet is not explored, ONLY explore should be available</li>
+<li><strong>Security:</strong> Backend server allows to send missions to unexplored planets</li>
+<li><strong>Fix:</strong> Bad repository for unit in default data for table "objects</li>
+<li><strong>Fix:</strong> The background image doesn't take all the screen in some devices</li>
+<li><strong>Improvement:</strong> Limit number of decimals in numbers </li>
+<li><strong>Fix:</strong> Unit build cancellation is not working, was working in 2.1</li>
+</ul>
+<h1 id="v032201807131535">v0.3.2 (2018-07-13 15:35)</h1>
+<ul>
+<li><strong>Fix:</strong> The first time the build unit. build tab is open, the unit been build won't show, have to go to tab "In planet" and back to "Build"</li>
+<li><strong>Improvement:</strong> Display a countdown in the missions, instead of termination date</li>
+<li><strong>Fix:</strong> After building a unit the Cancel button doesn't get back to build button unless you refresh the webpage</li>
+<li><strong>Fix:</strong> Energy should not be displayed in 0.3.x, as it is not really supported</li>
+<li><strong>Fix:</strong> Upgrades are not getting cancelled</li>
+<li><strong>Fix:</strong> When running in a mobile phone the user can't scroll in the faction selection menu</li>
+<li><strong>Fix:</strong> Unit Missions are not working, they are getting stuck</li>
+<li><strong>Improvement:</strong> Get frontend version from package.json and display it, also notify user when a new version has been upload </li>
+</ul>
+<h1 id="v031201807051006">v0.3.1 (2018-07-05 10:06)</h1>
+<ul>
+<li><strong>Fix:</strong> Safe domain detection not working in the frontend</li>
+<li><strong>Improvement:</strong> Allow all subdomains from kevinguanchedarias.com to login into account system</li>
+<li><strong>Fix:</strong> Admin panel doesn't allow to define attack, health, and shield values, it should allow, and the value should be mandatory or by default 0, 1 for health, database, should not even allow null for "health" parameter</li>
+<li><strong>Fix:</strong> When adding an image to an unsaved Upgrade, Unit, Faction or special location all the information is removed</li>
+<li><strong>Known issue:</strong> NTuL3pTw: When uploading all faction images, can't do it all at once, bogus upload functionality in JSF framework =/</li>
+</ul>
+<h1 id="v030">v0.3.0</h1>
+<ul>
+<li><strong>Merge:</strong> v0.2.1</li>
+<li><strong>Fix:</strong> Endpoint that returns the units in my planet, is also returning enemy units</li>
+<li><strong>Fix:</strong> After migrating to Angular 5, upgrades component suddenly stopped working</li>
+<li><strong>Feature:</strong> As game admin, I would like to be able to use different frontend versions</li>
+<li><strong>Feature:</strong> As a user, I would like to logout</li>
+<li><strong>Feature:</strong> As a user I would like to see missions been realized to my planets, by other users</li>
+<li><strong>Feature:</strong> As a user I would like to see my running missions</li>
+<li><strong>Feature:</strong> As a player I would like to conquest an enemy planet</li>
+<li><strong>Feature:</strong> As a player, I would like to counterattack in one of my own planets</li>
+<li><strong>Feature:</strong> As a player, I would like to attack other player</li>
+<li><strong>Feature:</strong> As a player I would like to be able to explore a planet with my units</li>
+<li><strong>Feature:</strong> As a player, I would like to gather resources from a planet</li>
+<li><strong>Feature:</strong> As a admin, I would like to establish the max number of planets for given faction</li>
+<li><strong>Feature:</strong> As a player, I would like to establish a base in a new planet</li>
+</ul>
+<h1 id="v021">v0.2.1</h1>
+<ul>
+<li><strong>Fix:</strong> Fix Websocket not authenticating automatically</li>
+<li><strong>Fix:</strong> Global loading functionality not working as expected</li>
+<li><strong>Fix:</strong> Fix a strange error that occurs when the sendMessage() is invoked too quickly after another sendMessage</li>
+<li><strong>Fix:</strong> Login webpage doesn't redirect to Game index if already logged in</li>
+<li><strong>Fix:</strong> When a user clicks navigate, the Galaxy dissapears from the selection, while it still works as selected</li>
+<li><strong>Fix:</strong> When the navigation page is loaded the first, won't work</li>
+<li><strong>Improvement:</strong> Show the current navigation somewhere</li>
+</ul>
+<h1 id="v020">v0.2.0</h1>
+<ul>
+<li><strong>Feature:</strong> As a player I would like to navigate</li>
+<li><strong>Feature:</strong> As a player I don't want to see planets that are not explored</li>
+</ul>
+<h1 id="v010">v0.1.0</h1>
+<ul>
+<li><strong>Feature:</strong> A as player I would like to login</li>
+<li><strong>Feature:</strong> As As a player i would like to select a public universe and subscribe if required</li>
+<li><strong>Feature:</strong> As a player I would like to see unlocked upgrades</li>
+<li><strong>Feature:</strong> As a player I would like to be able to do upgrades</li>
+<li><strong>Feature:</strong> A a player I would like to see unlocked units</li>
+<li><strong>Feature:</strong> As a player I would like to unlock units when upgrade reach the required level</li>
+<li><strong>Feature:</strong> As a player I would like to build a unit</li>
+<li><strong>Feature:</strong> As a player I would like to cancel the build unit mission</li>
+<li><strong>Feature:</strong> A as player I would like to see the units I have in my selected planet</li>
+</ul>

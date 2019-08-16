@@ -1,6 +1,5 @@
 import { ProgrammingError } from './../error/programming.error';
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { Router } from '@angular/router';
 import { ServiceLocator } from './../app/service-locator/service-locator';
 import { TestBed, async, TestModuleMetadata } from '@angular/core/testing';

@@ -2,14 +2,13 @@ import { ProgrammingError } from './../error/programming.error';
 import { CommonServiceTestHelper } from './common-service-test.helper';
 import { CommonComponentTestHelper } from './common-component-test.helper';
 import { PlanetPojo } from './../app/shared-pojo/planet.pojo';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { LoginSessionService } from './../app/login-session/login-session.service';
 import { Universe } from '../app/shared-pojo/universe.pojo';
 import { AbstractCommonTestHelper } from './abstract-common-test.helper';
 import { HttpHeaders } from '@angular/common/http';
 import { GameBaseService } from '../app/service/game-base.service';
-import { Observable } from 'rxjs/Observable';
 import { UserPojo } from '../app/shared-pojo/user.pojo';
 
 export class GameCommonTestHelper<T = any> {
