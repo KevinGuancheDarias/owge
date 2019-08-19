@@ -1,4 +1,4 @@
-<app-loading [isReady]="obtainedUnits">
+<owge-core-loading [isReady]="obtainedUnits">
   <div *ngIf="obtainedUnits" class="card-block">
     <div class="card owge" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block" *ngIf="selectedCounts">
@@ -21,4 +21,4 @@
   <div *ngIf="!obtainedUnits || !obtainedUnits.length" class="owge-empty-collection">
     There are no units in the planet
   </div>
-</app-loading>
+</owge-core-loading>

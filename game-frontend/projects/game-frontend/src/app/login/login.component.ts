@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {filter} from 'rxjs/operators';
 
-import { ROUTES } from './../config/config.pojo';
+import { ROUTES } from '@owge/core';
+
 import { LoginService } from './login.service';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { WebsocketService } from '../service/websocket.service';

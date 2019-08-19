@@ -1,6 +1,7 @@
-import { Component, OnInit, Input, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import { AbstractModalContainerComponent } from '../interfaces/abstact-modal-container-component';
+import { AbstractModalContainerComponent, LoggerHelper } from '@owge/core';
+
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
@@ -12,7 +13,6 @@ import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
-import { LoggerHelper } from '../../helpers/logger.helper';
 
 /**
  * Modal to send a mission to a planet

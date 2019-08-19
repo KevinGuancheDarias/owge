@@ -1,8 +1,8 @@
 import { Provider, APP_INITIALIZER } from '@angular/core';
+
+import { UniverseService } from '@owge/universe';
+
 import { ConfigurationService } from '../services/configuration.service';
-import { UniverseService } from '../../universe/services/universe.service';
-
-
 
 /**
  * Initializes the ConfigurationService

@@ -1,9 +1,11 @@
 
-import {filter} from 'rxjs/operators';
-import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable } from '@angular/core';
+import {filter} from 'rxjs/operators';
 import { Observable ,  BehaviorSubject } from 'rxjs';
-import { CoreGameService } from '../modules/core/services/core-game.service';
+
+import { UniverseGameService } from '@owge/universe';
+
+import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()
@@ -19,13 +21,13 @@ export class PlanetService {
   }
   private _myPlanets: BehaviorSubject<PlanetPojo[]> = new BehaviorSubject(null);
 
-  constructor(private _coreGameService: CoreGameService, private _loginSessionService: LoginSessionService) {
+  constructor(private _universeGameService: UniverseGameService, private _loginSessionService: LoginSessionService) {
     this.findMyPlanets();
   }
 
   public findMyPlanets(): Promise<void> {
     return new Promise(resolve => {
-      this._coreGameService.getWithAuthorizationToUniverse('planet/findMyPlanets').subscribe(result => {
+      this._universeGameService.getWithAuthorizationToUniverse('planet/findMyPlanets').subscribe(result => {
         this._myPlanets.next(result);
         resolve();
       });
@@ -37,7 +39,7 @@ export class PlanetService {
   }
 
   public leavePlanet(planet: PlanetPojo): Observable<void> {
-    return this._coreGameService.postwithAuthorizationToUniverse('planet/leave?planetId=' + planet.id);
+    return this._universeGameService.postwithAuthorizationToUniverse('planet/leave?planetId=' + planet.id);
   }
 
   public findSelectedPlanet(): Promise<PlanetPojo> {

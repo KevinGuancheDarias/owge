@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, ViewEncapsulation, Output } from '@angular/core';
-import { NavigationData } from 'app/shared/types/navigation-data.type';
-import { ProgrammingError } from 'error/programming.error';
-import { Galaxy } from 'app/shared/pojos/galaxy.pojo';
-import { NavigationConfig } from 'app/shared/types/navigation-config.type';
+import { NavigationData } from '../../shared/types/navigation-data.type';
+import { NavigationConfig } from '../../shared/types/navigation-config.type';
+import { Galaxy } from '../../shared/pojos/galaxy.pojo';
+import { ProgrammingError } from '@owge/core';
 
 @Component({
   selector: 'app-navigation-controls',

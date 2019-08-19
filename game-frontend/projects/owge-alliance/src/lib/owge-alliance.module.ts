@@ -1,6 +1,7 @@
 import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { OwgeUniverseModule } from '@owge/universe';
 
 import { AllianceDetailsComponent } from './components/alliance-details/alliance-details.component';
 import { AllianceOfUserComponent } from './components/alliance-of-user/alliance-of-user.component';
@@ -29,6 +30,7 @@ import { OwgeWidgetsModule } from '@owge/widgets';
     CoreModule,
     OwgeUserModule,
     OwgeWidgetsModule,
+    OwgeUniverseModule,
     TranslateModule.forChild()
   ],
   declarations: [

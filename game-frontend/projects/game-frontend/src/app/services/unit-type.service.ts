@@ -2,23 +2,23 @@
 import {filter} from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Observable ,  BehaviorSubject } from 'rxjs';
-const camelCase = require('lodash.camelcase');
-const upperFirst = require('lodash.upperfirst');
+import { camelCase, upperFirst } from 'lodash-es';
+
+import { ProgrammingError } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
 
 import { UnitType } from '../shared/types/unit-type.type';
-import { ProgrammingError } from '../../error/programming.error';
 import { MissionType } from '../shared/types/mission.type';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { MissionSupport } from '../shared/types/mission-support.type';
 import { LoginSessionService } from '../login-session/login-session.service';
-import { CoreGameService } from '../modules/core/services/core-game.service';
 
 @Injectable()
 export class UnitTypeService {
 
   private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
 
-  public constructor(private _loginSessionService: LoginSessionService, private _coreGameService: CoreGameService) {
+  public constructor(private _loginSessionService: LoginSessionService, private _universeGameService: UniverseGameService) {
     this._loadTypes();
   }
 
@@ -27,7 +27,7 @@ export class UnitTypeService {
   }
 
   private _loadTypes(): void {
-    this._coreGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
+    this._universeGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
       this._loadableBehaviorSubject.next(result.map(current => {
         if (!current.userBuilt) {
           current.userBuilt = 0;

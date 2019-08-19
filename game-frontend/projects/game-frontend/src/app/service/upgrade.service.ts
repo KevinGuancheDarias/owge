@@ -1,15 +1,15 @@
-import { Observable ,  BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { HttpParams } from '@angular/common/http';
+import { Observable ,  BehaviorSubject } from 'rxjs';
+
+import { ClockSyncService, UniverseGameService } from '@owge/universe';
 
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { CoreGameService } from '../modules/core/services/core-game.service';
-import { HttpParams } from '@angular/common/http';
 
 @Injectable()
 export class UpgradeService {
@@ -27,13 +27,13 @@ export class UpgradeService {
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _clockSyncService: ClockSyncService,
-    private _coreGameService: CoreGameService
+    private _universeGameService: UniverseGameService
   ) {
     this._resources = new AutoUpdatedResources(_resourceManagerService);
   }
 
   public findObtained(): Observable<ObtainedUpgradePojo[]> {
-    return this._coreGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
+    return this._universeGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
   }
 
   /**
@@ -44,7 +44,7 @@ export class UpgradeService {
    * @author Kevin Guanche Darias
    */
   public backendRunningUpgradeCheck(): void {
-    this._coreGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
       this._isUpgradingInternalData = res;
       if (res) {
         res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
@@ -95,7 +95,7 @@ export class UpgradeService {
   public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
     let params: HttpParams = new HttpParams();
     params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
-    this._coreGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', {params}).subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', {params}).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, obtainedUpgrade.requirements.requiredSecondary);
       if (res) {
@@ -108,7 +108,7 @@ export class UpgradeService {
   }
 
   public cancelUpgrade(): void {
-    this._coreGameService.getWithAuthorizationToUniverse('upgrade/cancelUpgrade').subscribe(() => {
+    this._universeGameService.getWithAuthorizationToUniverse('upgrade/cancelUpgrade').subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, this._isUpgradingInternalData.requiredPrimary);
       this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, this._isUpgradingInternalData.requiredSecondary);
       this._isUpgradingInternalData = null;

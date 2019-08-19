@@ -1,25 +1,18 @@
-
-import {skip, map} from 'rxjs/operators';
-import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import {skip, map} from 'rxjs/operators';
 
+import { UserStorage, LoggerHelper, CoreHttpService, ProgrammingError, User } from '@owge/core';
+import { UniverseStorage, Universe } from '@owge/universe';
 
-
+import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
-import { Universe } from '../shared-pojo/universe.pojo';
 import { Observable ,  BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
-import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
-import { ProgrammingError } from '../../error/programming.error';
-import { UserStorage } from '../modules/user/storages/user.storage';
-import { LoggerHelper } from '../../helpers/logger.helper';
-import { UniverseStorage } from '../modules/universe/storages/universe.storage';
-import { CoreHttpService } from '../modules/core/services/core-http.service';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -66,7 +59,7 @@ export class LoginSessionService implements CanActivate {
 
   constructor(private _injector: Injector,
     private _resourceManagerService: ResourceManagerService,
-    private _userStorage: UserStorage,
+    private _userStorage: UserStorage<User>,
     private _universeStorage: UniverseStorage,
     private _coreHttpService: CoreHttpService
   ) {

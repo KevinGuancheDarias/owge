@@ -1,13 +1,16 @@
+import { TranslateService } from '@ngx-translate/core';
+
+import { MEDIA_ROUTES } from '@owge/core';
+import { WidgetConfirmationDialogComponent } from '@owge/widgets';
+
+
 import { BaseComponent } from './../base/base.component';
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { MEDIA_ROUTES } from './../config/config.pojo';
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Upgrade } from './../shared-pojo/upgrade.pojo';
 // tslint:disable-next-line:max-line-length
-import { WidgetConfirmationDialogComponent } from '../modules/widgets/components/widget-confirmation-dialog/widget-confirmation-dialog.component';
-import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-display-single-upgrade',

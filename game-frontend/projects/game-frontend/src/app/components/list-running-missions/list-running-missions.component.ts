@@ -1,9 +1,10 @@
 import { Component, Input, ElementRef, ViewChild, ViewChildren, QueryList, Output, EventEmitter, OnInit } from '@angular/core';
+import { ModalComponent } from '@owge/core';
+
 import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { BaseComponent } from '../../base/base.component';
 import { UnitRunningMission } from '../../shared/types/unit-running-mission.type';
 import { MissionService } from '../../services/mission.service';
-import { ModalComponent } from '../modal/modal.component';
 import { MissionInformationStore } from '../../store/mission-information.store';
 import { UnitService } from '../../service/unit.service';
 

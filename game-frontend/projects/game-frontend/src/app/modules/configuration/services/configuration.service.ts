@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import {map} from 'rxjs/operators';
+
+import { LoggerHelper } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
+
 import { Configuration } from '../types/configuration.type';
-import { CoreGameService } from '../../core/services/core-game.service';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
-import { LoggerHelper } from '../../../../helpers/logger.helper';
 import { Observable } from 'rxjs';
 import { ConfigurationStore } from '../store/configuration.store';
 
@@ -21,7 +23,7 @@ export class ConfigurationService {
   private _configuration: Configuration<any>[];
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  constructor(private _coreGameService: CoreGameService, private _configurationStore: ConfigurationStore) { }
+  constructor(private _universeGameService: UniverseGameService, private _configurationStore: ConfigurationStore) { }
 
   /**
    *
@@ -32,7 +34,7 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public async init(): Promise<void> {
-    this._configuration = await this._coreGameService.getToUniverse('configuration').toPromise();
+    this._configuration = await this._universeGameService.getToUniverse('configuration').toPromise();
     this._configurationStore.currentConfiguration.next(this._configuration);
   }
 

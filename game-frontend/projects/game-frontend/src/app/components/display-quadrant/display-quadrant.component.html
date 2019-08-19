@@ -1,5 +1,5 @@
 <app-mission-modal #missionModal></app-mission-modal>
-<app-loading [isReady]="navigationData && navigationConfig">
+<owge-core-loading [isReady]="navigationData && navigationConfig">
   <div class="owge-base-colors navigation-controls">
     <app-navigation-controls *ngIf="navigationData" [navigationData]="navigationData" [navigationConfig]="navigationConfig"
       (onNavigation)="changePosition($event)"></app-navigation-controls>
@@ -17,4 +17,4 @@
       </ng-template>
     </app-planet-selector>
   </div>
-</app-loading>
+</owge-core-loading>

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
-import { LoggerHelper } from 'helpers/logger.helper';
-import { ProgrammingError } from 'error/programming.error';
+
+import { LoggerHelper, ProgrammingError } from '@owge/core';
+
 import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
 
 @Injectable()

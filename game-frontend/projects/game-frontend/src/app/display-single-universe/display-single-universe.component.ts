@@ -10,7 +10,7 @@ import { Universe } from '../shared-pojo/universe.pojo';
 export class DisplaySingleUniverseComponent implements OnInit {
 
   @Input()
-  public universe : Universe;
+  public universe: Universe;
 
   constructor() { }
 

@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+
+import { ROUTES } from '@owge/core';
+
 import { Credentials } from '../../shared/types/credentials.type';
 import { LoginSessionService } from '../../login-session/login-session.service';
-import { Router } from '@angular/router';
-import { ROUTES } from '../../config/config.pojo';
 
 @Component({
   selector: 'app-synchronize-credentials',

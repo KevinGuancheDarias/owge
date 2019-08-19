@@ -1,15 +1,15 @@
 import { Router } from '@angular/router';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
+
+import { ROUTES } from '@owge/core';
+import { ClockSyncService, Universe } from '@owge/universe';
+
 import { UserService } from './../service/user.service';
 import { BaseComponent } from '../base/base.component';
-import { Component, OnInit, ElementRef, ViewChild, SecurityContext } from '@angular/core';
-
-import { ROUTES } from '../config/config.pojo';
-import { Universe } from '../shared-pojo/universe.pojo';
 import { UniverseService } from '../universe/universe.service';
 import { Credentials } from '../shared/types/credentials.type';
 import { SafeUrl } from '@angular/platform-browser';
 import { SanitizeService } from '../services/sanitize.service';
-import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 
 @Component({
   selector: 'app-universe-selection',

@@ -7,8 +7,6 @@ export class SanitizeService {
 
   constructor(private _domSanitizer: DomSanitizer) { }
 
-
-
   /**
    * Checks if the URL is valid <br>
    * <b>NOTICE:</b> Non string inputs such as null, are always considered NOT safe

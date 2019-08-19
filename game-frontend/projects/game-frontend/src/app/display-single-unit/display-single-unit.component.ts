@@ -1,7 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { MEDIA_ROUTES } from './../config/config.pojo';
+import { MEDIA_ROUTES } from '@owge/core';
+
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';

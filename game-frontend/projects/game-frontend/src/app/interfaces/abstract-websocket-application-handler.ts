@@ -1,5 +1,4 @@
-import { LoggerHelper } from 'helpers/logger.helper';
-import { ProgrammingError } from 'error/programming.error';
+import { LoggerHelper, ProgrammingError } from '@owge/core';
 
 /**
  * Represents classes that are used to handle deliver_message websocket events

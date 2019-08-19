@@ -1,27 +1,24 @@
-
-import {filter} from 'rxjs/operators';
+import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
+import {filter} from 'rxjs/operators';
+import { Observable ,  BehaviorSubject } from 'rxjs';
+
+import { ProgrammingError } from '@owge/core';
+import { ClockSyncService, UniverseGameService } from '@owge/universe';
 
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
-
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { RunningUnitPojo } from './../shared-pojo/running-unit-build.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { PlanetService } from './planet.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ResourceManagerService } from './resource-manager.service';
-import { Injectable } from '@angular/core';
-import { Observable ,  BehaviorSubject } from 'rxjs';
-
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
-import { ProgrammingError } from '../../error/programming.error';
 import { UnitTypeService } from '../services/unit-type.service';
-import { ClockSyncService } from '../modules/core/services/clock-sync.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
 import { LoginSessionService } from '../login-session/login-session.service';
-import { CoreGameService } from '../modules/core/services/core-game.service';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -69,7 +66,7 @@ export class UnitService {
     private _unitTypeService: UnitTypeService,
     private _clockSyncService: ClockSyncService,
     private _loginSessionService: LoginSessionService,
-    private _coreGameService: CoreGameService
+    private _universeGameService: UniverseGameService
   ) {
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._subscribeToPlanetChanges();
@@ -82,7 +79,7 @@ export class UnitService {
    * @author Kevin Guanche Darias
    */
   public findUnlocked(): Observable<UnitPojo> {
-    return this._coreGameService.getWithAuthorizationToUniverse('unit/findUnlocked');
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/findUnlocked');
   }
 
   /**
@@ -140,7 +137,7 @@ export class UnitService {
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
-    this._coreGameService.getWithAuthorizationToUniverse('unit/build', {params}).subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse('unit/build', {params}).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
@@ -164,7 +161,7 @@ export class UnitService {
   public cancel(missionData: RunningUnitPojo) {
     let params: HttpParams = new HttpParams();
     params =  params.append('missionId', missionData.missionId);
-    this._coreGameService.getWithAuthorizationToUniverse('unit/cancel', {params}).subscribe(() => {
+    this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', {params}).subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, missionData.requiredPrimary);
       this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, missionData.requiredSecondary);
       this._resourceManagerService.minusResources(ResourcesEnum.CONSUMED_ENERGY, missionData.unit.energy * missionData.count);
@@ -184,7 +181,7 @@ export class UnitService {
   public findInMyPlanet(planetId: number): Observable<ObtainedUnit[]> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planetId.toString());
-    return this._coreGameService.getWithAuthorizationToUniverse('unit/findInMyPlanet', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/findInMyPlanet', {params});
   }
 
 
@@ -196,7 +193,7 @@ export class UnitService {
    * @memberof UnitService
    */
   public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
-    return this._coreGameService.getWithAuthorizationToUniverse('unit/requirements');
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/requirements');
   }
 
 
@@ -214,7 +211,7 @@ export class UnitService {
       throw new ProgrammingError('ObtainedUnit MUST have an id, and the count MUST be specified');
     }
     const { id, count } = unit;
-    await this._coreGameService.postwithAuthorizationToUniverse('unit/delete', { id, count }).toPromise();
+    await this._universeGameService.postwithAuthorizationToUniverse('unit/delete', { id, count }).toPromise();
     this._unitTypeService.sustractToType(unit.unit.typeId, count);
   }
 
@@ -297,7 +294,7 @@ export class UnitService {
   private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planet.id.toString());
-    return this._coreGameService.getWithAuthorizationToUniverse('unit/findRunning', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/findRunning', {params});
   }
 
   /**

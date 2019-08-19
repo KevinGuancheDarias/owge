@@ -1,5 +1,6 @@
+import { MEDIA_ROUTES } from '@owge/core';
+
 import { RequirementPojo } from './requirement.pojo';
-import { MEDIA_ROUTES } from '../config/config.pojo';
 
 /**
  * Represents a Unit as sent by backend

@@ -1,4 +1,4 @@
-<app-modal #reportDetailsModal [hasCloseButton]="true">
+<owge-core-modal #reportDetailsModal [hasCloseButton]="true">
   <div class="header">
     Mission to {{ selectedReport?.parsedJson?.targetPlanet?.name }} as of {{ findReportDate(selectedReport) | date:
     commonDateFormat}}
@@ -58,8 +58,8 @@
       </ng-container>
     </div>
   </div>
-</app-modal>
-<app-loading [isReady]="reports">
+</owge-core-modal>
+<owge-core-loading [isReady]="reports">
   <ng-container *ngIf="reports">
     <div *ngIf="!reports.length" class="owge-empty-collection">
       No mission reports are available for now
@@ -77,4 +77,4 @@
       </div>
     </div>
   </ng-container>
-</app-loading>
+</owge-core-loading>

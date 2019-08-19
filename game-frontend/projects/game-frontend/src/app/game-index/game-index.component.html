@@ -1,5 +1,5 @@
 <div *ngIf="userData" class="game-index">
-  <app-loading [isReady]="myUnitRunningMissions">
+  <owge-core-loading [isReady]="myUnitRunningMissions">
     <div *ngIf="myUnitRunningMissions" class="owge-card-list">
       <h1 class="owge-title">My missions</h1>
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isMovable]="true" [isCancellable]="true"
@@ -8,8 +8,8 @@
         You are not running any mission
       </p>
     </div>
-  </app-loading>
-  <app-loading [isReady]="enemyRunningMissions">
+  </owge-core-loading>
+  <owge-core-loading [isReady]="enemyRunningMissions">
     <div *ngIf="enemyRunningMissions" class="owge-card-list">
       <h1 class="owge-title">Enemy missions</h1>
       <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"
@@ -18,5 +18,5 @@
         No enemy mission are running to any of your planets
       </p>
     </div>
-  </app-loading>
+  </owge-core-loading>
 </div>

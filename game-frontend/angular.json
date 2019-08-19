@@ -483,11 +483,43 @@
               "projects/game-frontend/src/assets"
             ],
             "styles": [
-              "projects/game-frontend/src/styles.css"
+              "node_modules/bootstrap/dist/css/bootstrap.css",
+              "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
+              "node_modules/@fortawesome/fontawesome-free/css/solid.css",
+              "projects/game-frontend/src/styles.less",
+              "projects/game-frontend/src/forms.less"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/jquery/dist/jquery.js",
+              "node_modules/popper.js/dist/umd/popper.js",
+              "node_modules/bootstrap/dist/js/bootstrap.js"
+            ]
           },
           "configurations": {
+            "publicAccount": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/game-frontend/src/environments/environment.ts",
+                  "with": "projects/game-frontend/src/environments/environment.public-account.ts"
+                }
+              ]
+            },
+            "localDrupal": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/game-frontend/src/environments/environment.ts",
+                  "with": "projects/game-frontend/src/environments/local-drupal-account.environment.ts"
+                }
+              ]
+            },
+            "becariaccount": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/game-frontend/src/environments/environment.ts",
+                  "with": "projects/game-frontend/src/environments/environment.becariaccount.ts"
+                }
+              ]
+            },
             "production": {
               "fileReplacements": [
                 {
@@ -525,6 +557,15 @@
             "browserTarget": "game-frontend:build"
           },
           "configurations": {
+            "publicAccount": {
+              "browserTarget": "game-frontend:build:publicAccount"
+            },
+            "localDrupal": {
+              "browserTarget": "game-frontend:build:localDrupal"
+            },
+            "becariaccount": {
+              "browserTarget": "game-frontend:build:becariaccount"
+            },
             "production": {
               "browserTarget": "game-frontend:build:production"
             }
@@ -581,7 +622,7 @@
       }
     }
   },
-  "defaultProject": "game-frontend-old",
+  "defaultProject": "game-frontend",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",

@@ -4,14 +4,9 @@ import { Injectable } from '@angular/core';
 import {  HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
-
-
-
-import { Config } from '../config/config.pojo';
+import { Config, CoreHttpService } from '@owge/core';
 import { environment } from '../../environments/environment';
 import { LoginSessionService } from '../login-session/login-session.service';
-import { CoreHttpService } from '../modules/core/services/core-http.service';
 
 @Injectable()
 export class LoginService {
@@ -39,7 +34,7 @@ export class LoginService {
       }
     );
 
-    return this._coreHttpService.post(`${Config.ACCOUNT_SERVER_URL}${Config.ACCOUNT_LOGIN_ENDPOINT}`, params).pipe(
+    return this._coreHttpService.post(`${Config.accountServerUrl}${Config.accountLoginendpoint}`, params).pipe(
       map(res => {
         this._loginSessionService.setTokenPojo(res.token);
         return this._loginSessionService.getRawToken();

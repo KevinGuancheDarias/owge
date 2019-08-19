@@ -1,10 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 
+import { ModalComponent } from '@owge/core';
+
 import { ReportService } from '../../services/report.service';
 import { MissionReport } from '../../shared/types/mission-report.type';
-import { ModalComponent } from '../modal/modal.component';
 import { BaseComponent } from '../../base/base.component';
-import { ExploreMissionReportJson } from '../../shared/types/explore-mission-report-json.type';
 
 @Component({
   selector: 'app-reports-list',

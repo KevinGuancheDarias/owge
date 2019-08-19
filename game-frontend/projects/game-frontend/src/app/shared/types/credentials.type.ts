@@ -1,5 +1,4 @@
-import { Universe } from '../../shared-pojo/universe.pojo';
-
+import { Universe } from '@owge/universe';
 
 /**
  * Represents the credentials (usually sent from to different frontend domains)

@@ -1,4 +1,4 @@
-<app-loading [isReady]="buildingUnit !== undefined">
+<owge-core-loading [isReady]="buildingUnit !== undefined">
   <ng-container *ngIf="unlockedUnits !== undefined">
     <div *ngIf="!unlockedUnits.length" class="owge-base-colors">You can't build any unit for now, please check the
       requirements
@@ -9,4 +9,4 @@
         (buildDone)="buildingUnit = null" [defaultView]="'requirements'"></app-display-single-unit>
     </ng-container>
   </ng-container>
-</app-loading>
+</owge-core-loading>

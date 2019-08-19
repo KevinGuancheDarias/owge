@@ -22,7 +22,7 @@ export class AllianceService {
   constructor(
     private _allianceStorage: AllianceStorage,
     private _userStorage: UserStorage<UserWithAlliance>,
-    private _coreGameService: UniverseGameService) {
+    private _universeGameService: UniverseGameService) {
     this._loadMyAlliance();
   }
 
@@ -34,7 +34,7 @@ export class AllianceService {
    * @returns
    */
   public findAll(): Observable<Alliance[]> {
-    return this._coreGameService.getWithAuthorizationToUniverse('alliance');
+    return this._universeGameService.getWithAuthorizationToUniverse('alliance');
   }
 
   /**
@@ -46,7 +46,7 @@ export class AllianceService {
    * @returns
    */
   public findMembers(allianceId: number): Observable<UserWithAlliance[]> {
-    return this._coreGameService.getWithAuthorizationToUniverse(`alliance/${allianceId}/members`);
+    return this._universeGameService.getWithAuthorizationToUniverse(`alliance/${allianceId}/members`);
   }
 
   /**
@@ -59,8 +59,8 @@ export class AllianceService {
    */
   public save(alliance: Alliance): Observable<Alliance> {
     const retVal: Observable<Alliance> = alliance.id
-      ? this._coreGameService.putwithAuthorizationToUniverse('alliance', alliance)
-      : this._coreGameService.postwithAuthorizationToUniverse('alliance', alliance);
+      ? this._universeGameService.putwithAuthorizationToUniverse('alliance', alliance)
+      : this._universeGameService.postwithAuthorizationToUniverse('alliance', alliance);
     return retVal.pipe(
       switchMap(saved => this._updateStorages(saved))
     );
@@ -75,7 +75,7 @@ export class AllianceService {
    * @returns Should always return null
    */
   public delete(id: number): Observable<Alliance> {
-    return this._coreGameService.deleteWithAuthorizationToUniverse('alliance').pipe(
+    return this._universeGameService.deleteWithAuthorizationToUniverse('alliance').pipe(
       switchMap(deleted => this._updateStorages(deleted))
     );
   }
@@ -89,7 +89,7 @@ export class AllianceService {
    * @returns
    */
   public requestJoin(allianceId: number): Observable<AllianceJoinRequest> {
-    return this._coreGameService.postwithAuthorizationToUniverse('alliance/requestJoin', { allianceId });
+    return this._universeGameService.postwithAuthorizationToUniverse('alliance/requestJoin', { allianceId });
   }
 
   /**
@@ -100,7 +100,7 @@ export class AllianceService {
    * @returns
    */
   public findJoinRequest(): Observable<AllianceJoinRequest[]> {
-    return this._coreGameService.getWithAuthorizationToUniverse('alliance/listRequest');
+    return this._universeGameService.getWithAuthorizationToUniverse('alliance/listRequest');
   }
 
 
@@ -113,7 +113,7 @@ export class AllianceService {
    * @returns
    */
   public acceptJoinRequest(joinRequestId: number): Observable<void> {
-    return this._coreGameService.postwithAuthorizationToUniverse('alliance/acceptJoinRequest', { joinRequestId });
+    return this._universeGameService.postwithAuthorizationToUniverse('alliance/acceptJoinRequest', { joinRequestId });
   }
 
   /**
@@ -125,7 +125,7 @@ export class AllianceService {
    * @returns
    */
   public rejectJoinRequest(joinRequestId: number): Observable<void> {
-    return this._coreGameService.postwithAuthorizationToUniverse('alliance/rejectJoinRequest', { joinRequestId });
+    return this._universeGameService.postwithAuthorizationToUniverse('alliance/rejectJoinRequest', { joinRequestId });
   }
 
 
@@ -137,7 +137,7 @@ export class AllianceService {
    * @returns
    */
   public leave(): Observable<Alliance> {
-    return this._coreGameService.postwithAuthorizationToUniverse('alliance/leave').pipe(
+    return this._universeGameService.postwithAuthorizationToUniverse('alliance/leave').pipe(
       switchMap(_ => this._updateStorages(null))
     );
   }

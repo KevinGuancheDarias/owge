@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CoreGameService } from '../../core/services/core-game.service';
+import { UniverseGameService } from '@owge/universe';
 
 /**
  *
@@ -12,7 +12,7 @@ import { CoreGameService } from '../../core/services/core-game.service';
 @Injectable()
 export class RankingService {
 
-  public constructor(private _coreGameService: CoreGameService) { }
+  public constructor(private _universeGameService: UniverseGameService) { }
 
   /**
    * Returns the entire ranking
@@ -23,6 +23,6 @@ export class RankingService {
    * @memberof RankingService
    */
   public findAll() {
-    return this._coreGameService.getWithAuthorizationToUniverse('ranking');
+    return this._universeGameService.getWithAuthorizationToUniverse('ranking');
   }
 }

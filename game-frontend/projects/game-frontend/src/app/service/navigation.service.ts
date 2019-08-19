@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 
-import { ProgrammingError } from '../../error/programming.error';
+import { ProgrammingError } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
+
 import { NavigationConfig } from '../shared/types/navigation-config.type';
 import { NavigationData } from '../shared/types/navigation-data.type';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { CoreGameService } from '../modules/core/services/core-game.service';
 import { HttpParams } from '@angular/common/http';
 import { PlanetService } from './planet.service';
 
@@ -17,7 +18,7 @@ export class NavigationService {
 
   constructor(
     private _loginSessionService: LoginSessionService,
-    private _coreGameService: CoreGameService,
+    private _universeGameService: UniverseGameService,
     private planetService: PlanetService) {
     this._loginSessionService.findSelectedPlanet.subscribe(selectedPlanet => this._selectedPlanet = selectedPlanet);
   }
@@ -42,7 +43,7 @@ export class NavigationService {
   }
 
   public async navigate(targetPosition: NavigationConfig): Promise<NavigationData> {
-    const navigationData = await this._coreGameService.getWithAuthorizationToUniverse('galaxy/navigate', {
+    const navigationData = await this._universeGameService.getWithAuthorizationToUniverse('galaxy/navigate', {
       params: this._genUrlParams(targetPosition)
     }).toPromise();
     this._lastNavigationPosition = targetPosition;

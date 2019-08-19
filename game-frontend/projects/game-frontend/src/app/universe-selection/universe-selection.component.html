@@ -1,4 +1,4 @@
-<app-modal #missionModal [isOpenOnLoad]="true" [closeOnOverlayClick]="false">
+<owge-core-modal #missionModal [isOpenOnLoad]="true" [closeOnOverlayClick]="false">
     <div class="header">
         Select universe
     </div>
@@ -16,6 +16,6 @@
     <div class="footer">
         <button [disabled]="!localForm.form.valid" type="submit" class="btn btn-default" (click)="onFormSubmit()" data-dismiss="modal">Seleccionar</button>
     </div>
-</app-modal>
+</owge-core-modal>
 <app-faction-selector *ngIf="showFactionSelector"></app-faction-selector>
 <iframe #credentialsFrame *ngIf="safeFrontendUrl" [src]="safeFrontendUrl"></iframe>

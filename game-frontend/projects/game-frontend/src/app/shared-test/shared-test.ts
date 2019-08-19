@@ -1,4 +1,3 @@
-import { ProviderElementContext } from '@angular/compiler/src/provider_analyzer';
 import { Router } from '@angular/router';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { Provider } from '@angular/core';
@@ -24,14 +23,14 @@ export const COMMON_DECLARATIONS = [
 
 export const COMMON_PROVIDERS: Provider[] = [
     LoginSessionService,
-    { provide: Router, useClass: class { navigate = jasmine.createSpy("navigate"); } }
-]
+    { provide: Router, useClass: class { navigate = jasmine.createSpy('navigate'); } }
+];
 
 export class Providers {
   static get(): Provider[] {
-    let providers: Provider[] = [];
-    for (let i in COMMON_PROVIDERS) {
-      providers.push(COMMON_PROVIDERS[i]);
+    const providers: Provider[] = [];
+    for (const current of COMMON_PROVIDERS) {
+      providers.push(current);
     }
     return providers;
   }

@@ -1,6 +1,7 @@
 import { Router } from '@angular/router';
-import { ROUTES } from '../config/config.pojo';
 import { Component, OnInit } from '@angular/core';
+
+import { ROUTES } from '@owge/core';
 
 import { BaseComponent } from '../base/base.component';
 

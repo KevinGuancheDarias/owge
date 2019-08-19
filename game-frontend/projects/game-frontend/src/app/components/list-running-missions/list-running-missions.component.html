@@ -1,12 +1,12 @@
-<app-modal #navigationModal>
+<owge-core-modal #navigationModal>
   <div class="header">
     Select target planet
   </div>
   <div class="body">
     <app-display-quadrant></app-display-quadrant>
   </div>
-</app-modal>
-<app-loading [isReady]="runningUnitMissions" (ready)="onReady()">
+</owge-core-modal>
+<owge-core-loading [isReady]="runningUnitMissions" (ready)="onReady()">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
     <div #missionRoot class="card owge auto-expand"
       *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
@@ -47,4 +47,4 @@
       </div>
     </div>
   </ng-container>
-</app-loading>
+</owge-core-loading>

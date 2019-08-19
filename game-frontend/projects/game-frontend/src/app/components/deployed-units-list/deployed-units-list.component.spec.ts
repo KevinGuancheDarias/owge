@@ -41,14 +41,14 @@ describe('DeployedUnitsListComponent', () => {
   helper.testItCreates();
 
   it('isReady should be falsy, when obtainedUnits is not defined', () => {
-    const loadingComponent: LoadingComponent = helper.findComponentInstance('app-loading');
+    const loadingComponent: LoadingComponent = helper.findComponentInstance('owge-core-loading');
     expect(loadingComponent.isReady).toBeFalsy();
   });
 
   describe('When obtainedUnits is defined... ', () => {
     let loadingComponent: LoadingComponent;
     beforeEach(async done => {
-      loadingComponent = helper.findComponentInstance('app-loading');
+      loadingComponent = helper.findComponentInstance('owge-core-loading');
       helper.component.obtainedUnits = obtainedUnits;
       helper.component.ngOnInit();
       await helper.reloadView();

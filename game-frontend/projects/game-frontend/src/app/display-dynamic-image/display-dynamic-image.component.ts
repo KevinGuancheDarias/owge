@@ -1,6 +1,6 @@
-import { MEDIA_ROUTES } from '../config/config.pojo';
 import { Component, Input } from '@angular/core';
 
+import { MEDIA_ROUTES } from '@owge/core';
 @Component({
   selector: 'app-display-dynamic-image',
   templateUrl: './display-dynamic-image.component.html',

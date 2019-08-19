@@ -1,17 +1,16 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { ROUTES, ModalComponent } from '@owge/core';
+
+import { version } from '../../version';
 import { BaseComponent } from './../base/base.component';
-import { ROUTES } from './../config/config.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { PlanetService } from '../service/planet.service';
-import { ModalComponent } from '../components/modal/modal.component';
 import { UniverseService } from '../universe/universe.service';
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
 import { UnitTypeService } from '../services/unit-type.service';
 import { UnitType } from '../shared/types/unit-type.type';
-
-const { version, owge: { versionDate } } = require('../../../package.json');
 
 @Component({
   selector: 'app-side-bar',
@@ -28,7 +27,7 @@ export class SideBarComponent extends BaseComponent implements OnInit {
   public sideBarOpen = true;
   public menuRoutes = ROUTES;
   public myPlanets: PlanetPojo[];
-  public versionInformation: { version: string, versionDate: string };
+  public versionInformation: { version: string};
   public withLimitUnitTypes: UnitType[];
 
   @ViewChild('planetSelectionModal', { static: true })
@@ -42,7 +41,7 @@ export class SideBarComponent extends BaseComponent implements OnInit {
   ) {
     super();
     this.requireUser();
-    this.versionInformation = { version, versionDate };
+    this.versionInformation = { version };
   }
 
   public ngOnInit() {

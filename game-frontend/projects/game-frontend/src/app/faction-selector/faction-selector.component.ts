@@ -1,5 +1,5 @@
 import { Router } from '@angular/router';
-import { ROUTES } from '../config/config.pojo';
+import { ROUTES } from '@owge/core';
 import { Component, OnInit } from '@angular/core';
 
 import { FactionService } from '../faction/faction.service';

@@ -1,10 +1,11 @@
 import { Component, OnInit, ViewChildren, QueryList, ElementRef } from '@angular/core';
 
+import { MEDIA_ROUTES } from '@owge/core';
+
 import { UnitService } from '../../service/unit.service';
 import { UnitUpgradeRequirements } from '../../shared/types/unit-upgrade-requirements.type';
 import { UnitPojo } from '../../shared-pojo/unit.pojo';
 import { Upgrade } from '../../shared-pojo/upgrade.pojo';
-import { MEDIA_ROUTES } from '../../config/config.pojo';
 import { BaseUnitComponent } from '../../shared/base-unit.component';
 
 @Component({

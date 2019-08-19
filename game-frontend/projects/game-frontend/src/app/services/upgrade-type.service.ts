@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable ,  BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
+import { UniverseGameService } from '@owge/universe';
+
 import { UpgradeType } from '../shared/types/upgrade-type.type';
-import { CoreGameService } from '../modules/core/services/core-game.service';
 import { UnitType } from '../shared/types/unit-type.type';
 
 
@@ -12,7 +13,7 @@ export class UpgradeTypeService {
 
   private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
 
-  constructor(private _coreGameService: CoreGameService) {
+  constructor(private _universeGameService: UniverseGameService) {
     this._loadTypes();
   }
 
@@ -21,7 +22,7 @@ export class UpgradeTypeService {
   }
 
   private _loadTypes(): void {
-    this._coreGameService.getWithAuthorizationToUniverse('upgradeType/')
+    this._universeGameService.getWithAuthorizationToUniverse('upgradeType/')
       .subscribe(upgradeTypes => this._loadableBehaviorSubject.next(upgradeTypes));
   }
 }

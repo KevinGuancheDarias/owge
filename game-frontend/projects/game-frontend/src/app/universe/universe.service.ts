@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Config } from '../config/config.pojo';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 
-import { Universe } from '../shared-pojo/universe.pojo';
+import { Config, ProgrammingError, CoreHttpService } from '@owge/core';
+import { UniverseGameService, Universe } from '@owge/universe';
+
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
-import { ProgrammingError } from '../../error/programming.error';
-import { CoreHttpService } from '../modules/core/services/core-http.service';
-import { CoreGameService } from '../modules/core/services/core-game.service';
 import { HttpParams } from '@angular/common/http';
 import { LoginSessionService } from '../login-session/login-session.service';
 
@@ -15,12 +13,12 @@ export class UniverseService {
 
   constructor(
     private _coreHttpService: CoreHttpService,
-    private _coreGameService: CoreGameService,
+    private _universeGameService: UniverseGameService,
     private _loginSessionService: LoginSessionService
   ) { }
 
   public findOfficials(): Observable<Universe[]> {
-    return this._coreHttpService.get(Config.ACCOUNT_SERVER_URL + 'universe/findOfficials');
+    return this._coreHttpService.get(Config.accountServerUrl + 'universe/findOfficials');
   }
 
   /**
@@ -30,7 +28,7 @@ export class UniverseService {
    * @author Kevin Guanche Darias
    */
   public userExists(): Observable<boolean> {
-    return this._coreGameService.getWithAuthorizationToUniverse('user/exists');
+    return this._universeGameService.getWithAuthorizationToUniverse('user/exists');
   }
 
   /**
@@ -43,7 +41,7 @@ export class UniverseService {
   public subscribe(factionId: number): Observable<boolean> {
     let params: HttpParams = new HttpParams();
     params = params.append('factionId', factionId.toString());
-    return this._coreGameService.getWithAuthorizationToUniverse('user/subscribe', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('user/subscribe', {params});
   }
 
   public findUniverseUserLocalConfig(): UniverseLocalConfig {

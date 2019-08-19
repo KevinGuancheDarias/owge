@@ -2,32 +2,31 @@ import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
+import { ProgrammingError, LoadingService } from '@owge/core';
+import { ClockSyncService, UniverseGameService } from '@owge/universe';
+
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { UnitMissionInformation } from '../shared/types/unit-mission-information.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '../shared/types/mission.type';
-import { ProgrammingError } from '../../error/programming.error';
-import { ClockSyncService } from '../modules/core/services/clock-sync.service';
-import { CoreGameService } from '../modules/core/services/core-game.service';
-import { LoadingService } from './loading.service';
+
 
 @Injectable()
 export class MissionService {
 
   public constructor(
     private _clockSyncService: ClockSyncService,
-    private _coreGameService: CoreGameService,
+    private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService
   ) { }
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
-    return this._syncDate(this._coreGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy'));
+    return this._syncDate(this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy'));
   }
 
   public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
-    return this._syncDate(this._coreGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy'));
+    return this._syncDate(this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy'));
   }
 
   /**
@@ -106,7 +105,7 @@ export class MissionService {
   }
 
   public cancelMission(missionId: number): Observable<void> {
-    return this._coreGameService.postwithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
+    return this._universeGameService.postwithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
   }
 
   public isUnitMission(mission: AnyRunningMission): boolean {
@@ -131,7 +130,7 @@ export class MissionService {
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._coreGameService.postwithAuthorizationToUniverse<void>(
+    return this._universeGameService.postwithAuthorizationToUniverse<void>(
       url, {
         sourcePlanetId: sourcePlanet.id,
         targetPlanetId: targetPlanet.id,
