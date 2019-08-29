@@ -1,0 +1,9 @@
+<div id="owge-side-bar-root" *ngIf="sidebarRoutes">
+    <div class="magic-overflow">
+          <a *ngFor="let route of sidebarRoutes" class="owge-sidebar-btn-menu" role="button" routerLink="{{ route.path }}"
+                routerLinkActive="selectedMenu"><span><i [class]="route.icon"></i></span><img
+                      src="/assets/img/blanckbotton200x200.png" />{{ route.text }}</a>
+          <hr>
+          <ng-content select=".body"></ng-content>
+    </div>
+</div>

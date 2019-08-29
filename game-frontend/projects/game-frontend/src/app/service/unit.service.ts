@@ -5,20 +5,19 @@ import { Observable ,  BehaviorSubject } from 'rxjs';
 
 import { ProgrammingError } from '@owge/core';
 import { ClockSyncService, UniverseGameService } from '@owge/universe';
+import { PlanetService, PlanetStore } from '@owge/galaxy';
 
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { RunningUnitPojo } from './../shared-pojo/running-unit-build.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
-import { PlanetService } from './planet.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ResourceManagerService } from './resource-manager.service';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { UnitTypeService } from '../services/unit-type.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { LoginSessionService } from '../login-session/login-session.service';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -65,12 +64,12 @@ export class UnitService {
     private _planetService: PlanetService,
     private _unitTypeService: UnitTypeService,
     private _clockSyncService: ClockSyncService,
-    private _loginSessionService: LoginSessionService,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _planetStore: PlanetStore
   ) {
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._subscribeToPlanetChanges();
-    this._loginSessionService.findSelectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
+    this._planetStore.selectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
   }
 
   /**

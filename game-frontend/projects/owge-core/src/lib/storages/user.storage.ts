@@ -3,6 +3,7 @@ import { ReplaySubject } from 'rxjs';
 
 import { User } from '../types/user.type';
 import { OwgeUserModule } from '../owge-user.module';
+import { SessionStore } from '../store/session.store';
 
 /**
  * Stores logged in user information
@@ -23,11 +24,15 @@ export class UserStorage<U extends User> {
      */
     public readonly currentUser: ReplaySubject<U> = new ReplaySubject(1);
 
-
     /**
      * Current JWT token
      *
      * @since 0.7.0
      */
     public readonly currentToken: ReplaySubject<string> = new ReplaySubject(1);
+
+    public constructor(private _sessionStore: SessionStore) {
+        this._sessionStore.addSubject('currentUser', this.currentUser);
+        this._sessionStore.addSubject('currentToken', this.currentToken);
+    }
 }

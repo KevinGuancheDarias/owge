@@ -3,7 +3,12 @@
         "MY_ALLIANCE": "My alianza",
         "BROWSE": "Lista alianzas",
         "LIST_JOIN_REQUEST": "Lista solicitudes de entrar",
-        "MENU_ALLIANCES": "alianzas",
+        "MENU_HOME": "Inicio",
+        "MENU_UPGRADES": "Mejoras",
+        "MENU_UNITS": "Unidades",
+        "MENU_NAVIGATION": "Navegación",
+        "MENU_REPORTS": "Reportes",
+        "MENU_ALLIANCES": "Alianzas",
         "MENU_RANKING": "Ranking"
     },
     "UPGRADE": {

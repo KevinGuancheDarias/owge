@@ -8,6 +8,7 @@ import { ModalComponent } from './components/modal/modal.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccountConfig } from './pojos/account-config.pojo';
 import { Config } from './pojos/config.pojo';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -22,8 +23,8 @@ import { Config } from './pojos/config.pojo';
     RouterModule.forChild([]),
     TranslateModule.forChild()
   ],
-  declarations: [LoadingComponent, RouterRootComponent, ModalComponent],
-  exports: [LoadingComponent, RouterRootComponent, ModalComponent]
+  declarations: [LoadingComponent, RouterRootComponent, ModalComponent, PageNotFoundComponent],
+  exports: [LoadingComponent, RouterRootComponent, ModalComponent, PageNotFoundComponent]
 })
 export class CoreModule {
 

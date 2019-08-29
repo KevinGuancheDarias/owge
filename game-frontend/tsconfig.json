@@ -1,5 +1,8 @@
 {
   "compileOnSave": false,
+  "exclude": [
+    "dist"
+  ],
   "compilerOptions": {
     "downlevelIteration": true,
     "importHelpers": true,
@@ -43,6 +46,18 @@
       ],
       "@owge/widgets/*": [
         "dist/owge-widgets/*"
+      ],
+      "@owge/galaxy": [
+        "dist/owge-galaxy"
+      ],
+      "@owge/galaxy/*": [
+        "dist/owge-galaxy/*"
+      ],
+      "@owge/faction": [
+        "dist/owge-faction"
+      ],
+      "@owge/faction/*": [
+        "dist/owge-faction/*"
       ]
     }
   }

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import {filter} from 'rxjs/operators';
 
+import { PlanetStore } from '@owge/galaxy';
+
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { UnitService } from '../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
@@ -14,7 +16,7 @@ export class DeployedUnitsBigComponent extends BaseUnitComponent implements OnIn
 
   public obtainedUnits: ObtainedUnit[];
 
-  constructor(private _unitService: UnitService) {
+  constructor(private _unitService: UnitService, private _planetStore: PlanetStore) {
     super();
   }
 
@@ -28,7 +30,7 @@ export class DeployedUnitsBigComponent extends BaseUnitComponent implements OnIn
   }
 
   private _findInMyPlanet(): void {
-    this.loginSessionService.findSelectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
+    this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
       this._unitService.findInMyPlanet(planet.id).subscribe(units => this.obtainedUnits = units);
     });
   }

@@ -1,0 +1,51 @@
+<owge-core-modal #planetSelectionModal [hasCloseButton]="true">
+    <div class="header">
+          Select the planet
+    </div>
+    <div class="body">
+          <div *ngFor="let planet of myPlanets" class="card owge planet-card">
+                <app-display-single-planet [planet]="planet"></app-display-single-planet>
+                <div class="card-block">
+                      <a class="owge-sidebar-btn-menu" (click)="selectPlanet(planet)">Select</a>
+                </div>
+                <div class="card-block">
+                      <a *ngIf="!planet.home" class="owge-sidebar-btn-menu" (click)="leavePlanet(planet)">Leave</a>
+                </div>
+          </div>
+    </div>
+</owge-core-modal>
+<owge-widgets-sidebar [sidebarRoutes]="menuRoutes">
+      <div class="body">
+            <div class="selected-planet">
+                  <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()"
+                        class="fa fa-globe"></i>
+                  <app-display-single-planet [planet]="selectedPlanet"> </app-display-single-planet>
+            </div>
+            <div *ngIf="user && resources" class="resource-data">
+                  <app-display-single-resource [resourceName]="user.faction.primaryResourceName"
+                        [resourceImage]="user.faction.primaryResourceImage"
+                        [resourceValue]="resources.currentPrimaryResource">
+
+                  </app-display-single-resource>
+
+                  <app-display-single-resource [resourceName]="user.faction.secondaryResourceName"
+                        [resourceImage]="user.faction.secondaryResourceImage"
+                        [resourceValue]="resources.currentSecondaryResource">
+
+                  </app-display-single-resource>
+
+                  <app-display-single-resource [resourceName]="user.faction.energyName"
+                        [resourceImage]="user.faction.energyImage"
+                        [resourceValue]="100-(resources.currentEnergy*100)/resources.currentMaxEnergy"
+                        [resourceMaxValue]="resources.currentMaxEnergy">
+                  </app-display-single-resource>
+
+                  <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
+                        [resourceName]="unitType.name" [resourceImage]="unitType.image"
+                        [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount"
+                        [resourceMaxValue]="unitType.computedMaxCount">
+
+                  </app-display-single-resource>
+            </div>
+      </div>
+</owge-widgets-sidebar>

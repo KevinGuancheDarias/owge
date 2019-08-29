@@ -3,7 +3,7 @@ import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from
 import {skip, map} from 'rxjs/operators';
 
 import { UserStorage, LoggerHelper, CoreHttpService, ProgrammingError, User } from '@owge/core';
-import { UniverseStorage, Universe } from '@owge/universe';
+import { UniverseStorage, Universe, UniverseGameService } from '@owge/universe';
 
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
@@ -61,7 +61,8 @@ export class LoginSessionService implements CanActivate {
     private _resourceManagerService: ResourceManagerService,
     private _userStorage: UserStorage<User>,
     private _universeStorage: UniverseStorage,
-    private _coreHttpService: CoreHttpService
+    private _coreHttpService: CoreHttpService,
+    private _universeGameService: UniverseGameService
   ) {
     this._workaroundUserStorage();
     this._workaroundUniverseStorage();
@@ -173,7 +174,16 @@ export class LoginSessionService implements CanActivate {
     return target.append('Authorization', `Bearer ${this.getRawToken()}`);
   }
 
+
+  /**
+   *
+   * @deprecated As of 0.8.0 it's better to use the same method but from UniverseGameService
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.3.0
+   * @returns
+   */
   public findLoggedInUserData(): Observable<UserPojo> {
+    this._lgsLog.warnDeprecated('findLoggedInUserData', '0.8.0', 'UniverseGameService.findLoggedInUserData()');
     return this._coreHttpService.getWithAuthorization<UserPojo>(this.getSelectedUniverse().restBaseUrl + '/user/findData').pipe(
     map(current => {
       if (!current.consumedEnergy) {
@@ -303,8 +313,8 @@ export class LoginSessionService implements CanActivate {
    * @author Kevin Guanche Darias
    */
   private _findUserData(): void {
-    this.findLoggedInUserData().subscribe(
-      (userData) => {
+    this._universeGameService.findLoggedInUserData<any>().subscribe(
+      userData => {
         this._findSelectedPlanet.next(userData.homePlanetDto);
         this._userData.next(userData);
         this._resourceManagerService.startHandling(userData);

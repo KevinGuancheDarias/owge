@@ -1,10 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CoreModule } from '@owge/core';
 
 import { WidgetConfirmationDialogComponent } from './components/widget-confirmation-dialog/widget-confirmation-dialog.component';
+import { WidgetSideBarComponent } from './components/widget-sidebar/widget-sidebar.component';
+import { DisplayService } from './services/display.service';
 
 /**
  * Has UI widgets for OWGE
@@ -17,10 +20,17 @@ import { WidgetConfirmationDialogComponent } from './components/widget-confirmat
   imports: [
     CommonModule,
     CoreModule,
+    RouterModule,
     TranslateModule.forChild()
   ],
-  declarations: [WidgetConfirmationDialogComponent],
-  exports: [WidgetConfirmationDialogComponent]
+  declarations: [
+    WidgetConfirmationDialogComponent,
+    WidgetSideBarComponent
+  ],
+  providers: [
+    DisplayService
+  ],
+  exports: [WidgetConfirmationDialogComponent, WidgetSideBarComponent]
 })
 export class OwgeWidgetsModule {
 }

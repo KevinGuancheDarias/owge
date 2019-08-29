@@ -1,0 +1,9 @@
+{
+  "name": "owge-faction",
+  "version": "0.8.0",
+  "peerDependencies": {
+    "@angular/common": "^8.2.0",
+    "@angular/core": "^8.2.0",
+    "@owge/core": "0.8.0"
+  }
+}

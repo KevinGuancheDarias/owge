@@ -1,0 +1,249 @@
+@import 'colors.less';
+@import 'common_include.less';
+@import './modules/owge-widgets/widget-sidebar.less';
+@import './forms.less';
+
+@selectedMenuColor: RGBA(56,154,209,1);
+
+html,body{min-height: 100%;}
+body{
+    background-color: silver;
+    background-repeat: no-repeat;
+    background-image:url('/assets/img/bg.jpg');
+    background-size: cover;
+    min-height: 100%;
+}
+
+*{
+    margin:0px;
+    padding: 0px;
+  
+}
+
+.row{
+    margin:0px;
+    padding: 0px;
+    background-color: rgba(0,0,0,0);
+}
+
+.resourceImage, .owge.card .resourceImage{
+	margin-top: 6px;    
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background-color: @bgColorOther;
+	padding: 3px;
+	box-shadow: 0px 0px 3px RGBA(17,70,98,1), inset 0px 0px 5px RGBA(56,154,209,1);
+	margin-left: 5px;
+}
+
+.owge-scrollable-dialog {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+
+}
+
+.owge-card-header {
+    background-color: blue;
+    color: white;
+    text-align: center;
+    padding: 2px;
+}
+
+.owge-card-body {
+    background-color: #66F;
+    color: white;
+    padding: 3px;
+	margin-top: -7px;
+}
+
+// START Common items
+.owge-base-colors {
+	background-color: @bgColor;
+	color: @mainColor;
+	box-shadow: @commonBoxShadow;
+	text-shadow: @commonTextShadow;
+}
+
+.owge-title {
+	.owge-base-colors;
+	text-indent: 5px;
+	padding: 3px;
+}
+
+@media (min-width:768px){
+	body{
+		background-color: silver;
+		background-repeat: no-repeat;
+		background-image:url('/assets/img/bg.jpg');
+		background-size: cover;
+	}
+
+	/* Allows using scroll in position fixed elements */
+	.magic-overflow{
+		width: 190px;
+		overflow:auto;
+		margin-right: -100px;
+		max-height:100%;
+		scrollbar-width: none; /* Firefox */
+		-ms-overflow-style: none;  /* IE 10+ */
+		
+		&::-webkit-scrollbar {
+			width: 0px;
+			height: 0px;
+		}
+	}
+
+	/* NOTICE: Temporary addon, .resourceImage should be in CSS of display-single-resource , but CSS isolation doesn't allow parent-child CSS inherit for now! */
+	.resourceImage, .owge.card .resourceImage{
+		margin-top: 6px;    
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background-color: @bgColorOther;
+		padding: 3px;
+		box-shadow: 0px 0px 3px RGBA(17,70,98,1), inset 0px 0px 5px RGBA(56,154,209,1);
+		margin-left: 5px;
+	}
+
+	.btn{
+			background-color: @bgColor;
+			color: @mainColor;
+			border-color: none;
+	}
+
+	a.btn{
+		width: 100%;
+		margin-top: 10px;
+		box-shadow: 4px 4px 4px black;
+		transition: all 0.5s;
+		&:hover{
+			box-shadow: 2px 2px 2px black;
+			color: @mainColor;
+		}
+	}
+
+	a.selectedMenu{
+		/*	box-shadow: 2px 2px 2px @selectedMenuColor;
+			color: @mainColor;
+		*/
+		
+		&:hover{
+			box-shadow: 1px 1px 1px @selectedMenuColor;
+			color: @mainColor;
+		}
+	}
+
+	// START common game card
+	.owge.card .card-text.auto-overflow{
+		overflow:auto;
+		margin-right: -100px;
+		padding-right: 100px;
+		max-height:100%;
+	}
+	.owge.card{
+		width: 316px;
+		background-color:@bgColor;/*background-color: @bgColor;*/
+		color: @mainColor;
+
+		box-shadow: @commonBoxShadow;
+		text-shadow: @commonTextShadow;
+		transition: all 0.3s;
+
+		a.selectedMenu{
+			box-shadow: 2px 2px 2px @selectedMenuColor;
+			color: @mainColor;
+			&:hover{
+				box-shadow: 1px 1px 1px @selectedMenuColor;
+				color: @mainColor;
+			}
+		}
+		.owge-green-shadow {
+			box-shadow: @commonBoxShadowWithoutColor green;
+		}
+		
+		.owge-red-shadow {
+			box-shadow: @commonBoxShadowWithoutColor red;
+		}
+		
+		&.auto-expand {
+			transition: all 0.001s;
+		}
+
+		h5{
+			font-size: 12pt;
+		}
+
+		h6{
+			font-size: 10pt;
+		}
+
+		img.card-img-top {
+			transition: all 0.3s;
+			width: 310px;
+			height: 194px;
+			padding-left: 3px;
+		}
+
+		&.planet-card {
+			width: 165px;
+
+			&:hover {
+				width: 148px;
+			}
+		}
+
+		a{
+			box-shadow: 0 0 15px black;
+			margin-bottom: 3px;
+		}
+		a:hover{
+			box-shadow: 0 0 9px silver;
+		}
+
+		.upgrading-countdown {
+			
+			text-align: center;
+			position: absolute;
+			top: 25%;
+			width: 100%
+		}
+	}
+
+	.owge-card-list {
+
+		.card.owge {
+			float: left;
+			width: 70px;
+			padding: 10px;
+			margin: 3px;
+
+			img {
+				width: 50px;
+				height: 50px;
+			}
+		}
+		.card-title {
+			text-align: right;
+		}
+		input {
+			width: 100%;
+			text-align: right;
+		}
+	}
+
+	// END Common game card
+}
+
+table.owge-table {
+    th,td {
+        .owge-base-colors;
+        border: 2px lighten(@bgColor, 20%) solid;
+        padding: 7px;
+    }
+    td {
+        background-color: lighten(@bgColor, 10%);
+    }
+}
+// END Common items

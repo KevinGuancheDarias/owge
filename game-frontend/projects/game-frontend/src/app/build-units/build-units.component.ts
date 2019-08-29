@@ -1,6 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import {filter} from 'rxjs/operators';
 
+import { PlanetStore } from '@owge/galaxy';
+
 import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
 import { UnitPojo } from './../shared-pojo/unit.pojo'; import { BaseUnitComponent } from '../shared/base-unit.component';
 
@@ -18,7 +20,7 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
 
   public buildingUnit: RunningUnitIntervalInformation;
 
-  constructor(private _unitService: UnitService) {
+  constructor(private _unitService: UnitService, private _planetStore: PlanetStore) {
     super();
   }
 
@@ -26,7 +28,7 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
     this.requireUser();
     this.findUnlocked();
 
-    this.loginSessionService.findSelectedPlanet.pipe(filter(planet => !!planet)).subscribe(() => {
+    this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(() => {
       this._unitService.planetsLoaded.pipe(filter(value => !!value))
         .subscribe(() => this.buildingUnit = this._unitService.findIsRunningInSelectedPlanet());
     });

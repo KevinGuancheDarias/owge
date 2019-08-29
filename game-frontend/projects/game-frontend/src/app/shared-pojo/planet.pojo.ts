@@ -1,5 +1,13 @@
 import { MEDIA_ROUTES, Config } from '@owge/core';
 
+
+/**
+ *
+ * @deprecated As of 0.8.0 it's better to use Planet from lib project OwgeGalaxy
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.3.0
+ * @export
+ */
 export class PlanetPojo {
     public id: number;
     public name: string;
@@ -28,9 +36,8 @@ export class PlanetPojo {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @static
-     * @param {PlanetPojo} planet
-     * @returns {boolean}
-     * @memberof PlanetPojo
+     * @param  planet
+     * @returns
      */
     public static isExplored(planet: PlanetPojo): boolean {
         return planet && typeof planet.richness !== 'undefined';

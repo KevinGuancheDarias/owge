@@ -184,13 +184,22 @@
               "projects/game-admin/src/assets"
             ],
             "styles": [
-              "projects/game-admin/src/styles.css"
+              "shared/styles.less",
+              "projects/game-admin/src/styles.less"
             ],
             "scripts": []
           },
           "configurations": {
             "libs": {
               "tsConfig": "projects/game-admin/tsconfig.libs.json"
+            },
+            "localDrupal": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/game-admin/src/environments/environment.ts",
+                  "with": "projects/game-admin/src/environments/local-drupal-account.environment.ts"
+                }
+              ]
             },
             "production": {
               "fileReplacements": [
@@ -232,6 +241,9 @@
             "libs": {
               "browserTarget": "game-admin:build:libs"
             },
+            "localDrupal": {
+              "browserTarget": "game-admin:build:localDrupal"
+            },
             "production": {
               "browserTarget": "game-admin:build:production"
             }
@@ -255,7 +267,7 @@
               "projects/game-admin/src/assets"
             ],
             "styles": [
-              "projects/game-admin/src/styles.css"
+              "projects/game-frontend/src/styles.less"
             ],
             "scripts": []
           }
@@ -486,8 +498,7 @@
               "node_modules/bootstrap/dist/css/bootstrap.css",
               "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
               "node_modules/@fortawesome/fontawesome-free/css/solid.css",
-              "projects/game-frontend/src/styles.less",
-              "projects/game-frontend/src/forms.less"
+              "shared/styles/styles.less"
             ],
             "scripts": [
               "node_modules/jquery/dist/jquery.js",
@@ -617,6 +628,76 @@
             "production": {
               "devServerTarget": "game-frontend:serve:production"
             }
+          }
+        }
+      }
+    },
+    "owge-galaxy": {
+      "projectType": "library",
+      "root": "projects/owge-galaxy",
+      "sourceRoot": "projects/owge-galaxy/src",
+      "prefix": "owge-galaxy",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-galaxy/tsconfig.lib.json",
+            "project": "projects/owge-galaxy/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-galaxy/src/test.ts",
+            "tsConfig": "projects/owge-galaxy/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-galaxy/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-galaxy/tsconfig.lib.json",
+              "projects/owge-galaxy/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "owge-faction": {
+      "projectType": "library",
+      "root": "projects/owge-faction",
+      "sourceRoot": "projects/owge-faction/src",
+      "prefix": "owge-faction",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/owge-faction/tsconfig.lib.json",
+            "project": "projects/owge-faction/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/owge-faction/src/test.ts",
+            "tsConfig": "projects/owge-faction/tsconfig.spec.json",
+            "karmaConfig": "projects/owge-faction/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/owge-faction/tsconfig.lib.json",
+              "projects/owge-faction/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
           }
         }
       }

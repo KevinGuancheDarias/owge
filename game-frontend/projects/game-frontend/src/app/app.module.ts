@@ -12,13 +12,12 @@ import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, 
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
 import { OwgeUniverseModule } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
+import { OwgeGalaxyModule } from '@owge/galaxy';
 
 import { environment } from '../environments/environment';
 import { ServiceLocator } from './service-locator/service-locator';
-import { LoginService } from './login/login.service';
 import { LoginSessionService } from './login-session/login-session.service';
 import { NavigationService } from './service/navigation.service';
-import { PlanetService } from './service/planet.service';
 import { UnitService } from './service/unit.service';
 import { UpgradeService } from './service/upgrade.service';
 import { ResourceManagerService } from './service/resource-manager.service';
@@ -29,7 +28,6 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
 import { DisplaySingleUniverseComponent } from './display-single-universe/display-single-universe.component';
 import { GameIndexComponent } from './game-index/game-index.component';
-import { SideBarComponent } from './side-bar/side-bar.component';
 import { FactionSelectorComponent } from './faction-selector/faction-selector.component';
 import { DisplaySingleFactionComponent } from './display-single-faction/display-single-faction.component';
 import { DisplaySinglePlanetComponent } from './display-single-planet/display-single-planet.component';
@@ -73,6 +71,7 @@ import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
 import { Subscription } from 'rxjs';
+import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -108,7 +107,6 @@ export const APP_ROUTES: Routes = [
     UniverseSelectionComponent,
     DisplaySingleUniverseComponent,
     GameIndexComponent,
-    SideBarComponent,
     FactionSelectorComponent,
     DisplaySingleFactionComponent,
     DisplaySinglePlanetComponent,
@@ -137,7 +135,8 @@ export const APP_ROUTES: Routes = [
     CountdownComponent,
     MilisToDatePipe,
     PlanetSelectorComponent,
-    MissionModalComponent
+    MissionModalComponent,
+    GameSidebarComponent
   ],
   imports: [
     BrowserModule,
@@ -152,10 +151,14 @@ export const APP_ROUTES: Routes = [
     ConfigurationModule.forRoot(),
     CoreModule.forRoot({
       url: environment.accountUrl,
-      loginEndpoint: environment.loginEndpoint
+      loginEndpoint: environment.loginEndpoint,
+      loginDomain: environment.loginDomain,
+      loginClientId: environment.loginClientId,
+      loginClientSecret: environment.loginClientSecret
     }),
     RankingModule,
     OwgeWidgetsModule,
+    OwgeGalaxyModule,
     TranslateModule.forRoot({
       useDefaultLang: true,
       loader: {
@@ -166,12 +169,10 @@ export const APP_ROUTES: Routes = [
     })
   ],
   providers: [
-    LoginService,
     LoginSessionService,
     ResourceManagerService,
     UpgradeService,
     UnitService,
-    PlanetService,
     NavigationService,
     WebsocketService,
     LoadingService,

@@ -1,7 +1,5 @@
 @import "../../colors.less";
 
-
-
 .owge-sidebar-btn-menu{
     width: 13%;
     margin-left: 1%;
@@ -11,7 +9,6 @@
     border-radius: 5%;
     margin-top: 1px;
    
-    /*text-indent:-9999px; */
     overflow:hidden;
    
     font-size: 35px;
@@ -46,18 +43,7 @@
     border:inset;
     color: gold;
 }
-.resource-data{
-    width: 50%;
-    float: left;
-    
-}
 
-.selected-planet i{    
-    position: absolute;
-    top: 108px;
-    right: 55%;
-    color: silver;
-} 
 hr {
     width: 100%;
     float: left;
@@ -67,10 +53,6 @@ hr {
 }
 
 @media (min-width:768px){
-    .resource-data{
-        width: 100%;
-        
-    }
     .owge-sidebar-btn-menu img{
         display: none;
     }
@@ -83,13 +65,6 @@ hr {
     .owge-sidebar-btn-menu span{
         display: none;
     }
-   
-    .selected-planet i{
-        float: left;
-        position: relative;
-        top: 30px;
-        right: -160px;
-    }  
     hr{
        display: hidden;
     }
@@ -120,8 +95,5 @@ hr {
                 box-shadow:  0px 0px 0px black;
             }
         }        
-    }
-    owge-core-modal .planet-card {
-        float: left;
     }
 }

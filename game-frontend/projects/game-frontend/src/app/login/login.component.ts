@@ -2,10 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {filter} from 'rxjs/operators';
 
-import { ROUTES } from '@owge/core';
+import { ROUTES, LoginService, SessionService } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
 
-import { LoginService } from './login.service';
-import { LoginSessionService } from '../login-session/login-session.service';
 import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
 
@@ -22,24 +21,25 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private _loginService: LoginService,
-    private _loginSessionService: LoginSessionService,
+    private _sessionService: SessionService,
     private _websocketService: WebsocketService,
-    private _router: Router
+    private _router: Router,
+    private _universeGameService: UniverseGameService
   ) { }
 
   ngOnInit() {
-    if (this._loginSessionService.hasLoginDomain() && this._loginSessionService.isLoginDomain() && this._loginSessionService.isLoggedIn()) {
-      this._loginSessionService.logout();
-    } else if (this._loginSessionService.hasLoginDomain() && !this._loginSessionService.isLoginDomain()) {
-      if (!this._loginSessionService.isLoggedIn()) {
+    if (this._sessionService.hasLoginDomain() && this._sessionService.isLoginDomain() && this._sessionService.isLoggedIn()) {
+      this._sessionService.logout();
+    } else if (this._sessionService.hasLoginDomain() && !this._sessionService.isLoginDomain()) {
+      if (!this._sessionService.isLoggedIn()) {
         window.location.href = `//${environment.loginDomain}`;
       } else {
-        this._loginSessionService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
+        this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
           this._router.navigate([ROUTES.GAME_INDEX]);
         });
       }
     } else {
-      this._loginSessionService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
+      this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
         this._router.navigate([ROUTES.GAME_INDEX]);
       });
     }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { AbstractModalContainerComponent, LoggerHelper } from '@owge/core';
+import { PlanetService } from '@owge/galaxy';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
@@ -8,7 +9,6 @@ import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { UnitType } from '../shared/types/unit-type.type';
 import { MissionType } from '../shared/types/mission.type';
 import { MissionService } from '../services/mission.service';
-import { PlanetService } from '../service/planet.service';
 import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';

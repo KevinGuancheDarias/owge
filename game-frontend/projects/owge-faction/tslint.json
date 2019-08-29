@@ -1,0 +1,17 @@
+{
+  "extends": "../../tslint.json",
+  "rules": {
+    "directive-selector": [
+      true,
+      "attribute",
+      "owgeFaction",
+      "camelCase"
+    ],
+    "component-selector": [
+      true,
+      "element",
+      "owge-faction",
+      "kebab-case"
+    ]
+  }
+}

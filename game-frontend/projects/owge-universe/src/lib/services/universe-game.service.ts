@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { first ,  switchMap } from 'rxjs/operators';
+import { first ,  switchMap, map } from 'rxjs/operators';
 
-import { CoreHttpService, HttpOptions } from '@owge/core';
+import { CoreHttpService, HttpOptions, User, SessionStore } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 
@@ -20,8 +20,32 @@ type validWriteMethod = 'post' | 'put';
 @Injectable()
 export class UniverseGameService {
 
-  constructor(private _coreHttpService: CoreHttpService, private _universeStorage: UniverseStorage) {
+  constructor(
+    private _coreHttpService: CoreHttpService,
+    private _universeStorage: UniverseStorage,
+    private _sessionStore: SessionStore
+  ) { }
 
+
+  /**
+   * Finds the logged in current user
+   * <b>NOTICE:</b>, Will set PlanetStore.selectedPlanet to user home planet
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   * @template T
+   * @returns
+   */
+  public findLoggedInUserData<T extends User>(): Observable<T> {
+    return this.getWithAuthorizationToUniverse('user/findData').pipe(
+    map(current => {
+      if (!current.consumedEnergy) {
+        current.consumedEnergy = 0;
+      }
+      this._workaroundFactionFix(current);
+      this._sessionStore.next('selectedPlanet', current.homePlanetDto);
+      return current;
+    }));
   }
 
   /**
@@ -121,5 +145,18 @@ export class UniverseGameService {
         currentUniverse => this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${url}`, body, options)
       )
     );
+  }
+
+
+  /**
+   * Because backend still sends as user property, factionDto instead of faction, we have to fix it here
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param  backendUser
+   */
+  private _workaroundFactionFix(backendUser: any): void {
+    if (backendUser.factionDto && !backendUser.faction) {
+      backendUser.faction = backendUser.factionDto;
+    }
   }
 }

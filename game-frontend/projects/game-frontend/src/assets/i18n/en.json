@@ -3,6 +3,11 @@
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
         "LIST_JOIN_REQUEST": "List join request",
+        "MENU_HOME": "Home",
+        "MENU_UPGRADES": "Upgrades",
+        "MENU_UNITS": "Units",
+        "MENU_NAVIGATION": "Navigation",
+        "MENU_REPORTS": "Reports",
         "MENU_ALLIANCES": "Alliances",
         "MENU_RANKING": "Ranking"
     },

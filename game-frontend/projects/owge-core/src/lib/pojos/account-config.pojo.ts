@@ -8,6 +8,9 @@
  * @export
  */
 export class AccountConfig {
-    url: string;
-    loginEndpoint: string;
+    public url: string;
+    public loginEndpoint: string;
+    public loginDomain: string;
+    public loginClientId?: string;
+    public loginClientSecret?: string;
 }
