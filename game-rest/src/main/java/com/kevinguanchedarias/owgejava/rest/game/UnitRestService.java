@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
-@RequestMapping("unit")
+@RequestMapping("game/unit")
 @ApplicationScope
 public class UnitRestService {
 

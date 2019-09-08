@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +11,7 @@ import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 @RestController
-@RequestMapping("deliverBackdoor")
+@RequestMapping("game/deliverBackdoor")
 @ApplicationScope
 public class DeliverBackdoorRestService {
 

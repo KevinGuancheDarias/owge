@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.open;
 
 import java.util.Date;
 
@@ -17,7 +17,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@RequestMapping("clock")
+@RequestMapping("/open/clock")
 @ApplicationScope
 public class ClockRestService {
 

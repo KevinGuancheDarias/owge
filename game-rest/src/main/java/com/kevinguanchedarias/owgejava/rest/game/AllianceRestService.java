@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@RequestMapping("alliance")
+@RequestMapping("game/alliance")
 @ApplicationScope
 public class AllianceRestService implements BaseRestServiceTrait {
 

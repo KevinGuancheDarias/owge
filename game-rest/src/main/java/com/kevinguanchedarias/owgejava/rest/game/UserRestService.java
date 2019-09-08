@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +18,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("game/user")
 @ApplicationScope
 public class UserRestService {
 

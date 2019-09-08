@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@RequestMapping("configuration")
+@RequestMapping("game/configuration")
 @ApplicationScope
 public class ConfigurationRestService {
 	@Autowired

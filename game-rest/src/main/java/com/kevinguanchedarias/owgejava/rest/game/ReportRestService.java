@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.MissionReportDto;
 
 @RestController
-@RequestMapping("report")
+@RequestMapping("game/report")
 @ApplicationScope
 public class ReportRestService {
 

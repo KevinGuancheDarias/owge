@@ -2,17 +2,13 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.Faction;
@@ -34,8 +30,6 @@ import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 public class UserStorageBo implements BaseBo<UserStorage> {
 	private static final long serialVersionUID = 2837362546838035726L;
 
-	private static final Logger LOGGER = Logger.getLogger(UserStorageBo.class);
-
 	public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
 
 	@Autowired
@@ -46,9 +40,6 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 
 	@Autowired
 	private PlanetBo planetBo;
-
-	@Autowired(required = false)
-	private transient SecurityContextService securityContextService;
 
 	@Autowired
 	private RequirementBo requirementBo;
@@ -65,14 +56,8 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	@Autowired
 	private AllianceBo allianceBo;
 
-	@PostConstruct
-	public void init() {
-		if (securityContextService == null) {
-			securityContextService = new SecurityContextService();
-			LOGGER.warn("Had to spawn an entire " + SecurityContextService.class.getName()
-					+ " because it's not defined as a bean, define a singletone bean for performance and convenience purposes");
-		}
-	}
+	@Autowired
+	private AuthenticationBo authenticationBo;
 
 	@Override
 	public JpaRepository<UserStorage, Number> getRepository() {
@@ -113,7 +98,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * @author Kevin Guanche Darias
 	 */
 	public UserStorage findLoggedIn() {
-		return convertTokenUserToUserStorage(findTokenUser());
+		return convertTokenUserToUserStorage(authenticationBo.findTokenUser());
 	}
 
 	/**
@@ -292,10 +277,6 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 		}
 		userRef.setAlliance(null);
 		save(userRef);
-	}
-
-	private TokenUser findTokenUser() {
-		return (TokenUser) securityContextService.getAuthentication().getDetails();
 	}
 
 	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {

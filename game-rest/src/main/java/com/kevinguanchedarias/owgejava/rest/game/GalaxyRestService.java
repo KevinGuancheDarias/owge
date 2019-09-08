@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import com.kevinguanchedarias.owgejava.pojo.NavigationPojo;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
-@RequestMapping("galaxy")
+@RequestMapping("game/galaxy")
 @ApplicationScope
 public class GalaxyRestService {
 

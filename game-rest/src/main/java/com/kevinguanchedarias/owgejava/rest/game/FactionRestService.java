@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,7 +9,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import com.kevinguanchedarias.owgejava.business.FactionBo;
 
 @RestController
-@RequestMapping("faction")
+@RequestMapping("game/faction")
 @ApplicationScope
 public class FactionRestService {
 

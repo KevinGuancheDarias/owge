@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 
 @RestController
-@RequestMapping("upgrade")
+@RequestMapping("game/upgrade")
 @ApplicationScope
 public class UpgradeRestService {
 

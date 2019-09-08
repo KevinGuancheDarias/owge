@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +16,7 @@ import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 @RestController
-@RequestMapping("unitType")
+@RequestMapping("game/unitType")
 @ApplicationScope
 public class UnitTypeRestService {
 

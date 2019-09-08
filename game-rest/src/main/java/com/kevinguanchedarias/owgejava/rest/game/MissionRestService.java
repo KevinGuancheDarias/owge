@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 
 @RestController
-@RequestMapping("mission")
+@RequestMapping("game/mission")
 @ApplicationScope
 public class MissionRestService {
 

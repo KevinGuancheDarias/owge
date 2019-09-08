@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.kevinguanchedarias.owgejava.rest;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import com.kevinguanchedarias.owgejava.pojo.RankingEntry;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@RequestMapping("ranking")
+@RequestMapping("game/ranking")
 @ApplicationScope
 public class RankingRestService {
 
