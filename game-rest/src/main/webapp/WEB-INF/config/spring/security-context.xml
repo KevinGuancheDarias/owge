@@ -68,15 +68,10 @@
 	<security:global-method-security
 		pre-post-annotations="enabled" />
 
-	<security:http pattern="/admin/login" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
-		<security:csrf disabled="true"/>
-		<security:custom-filter before="FORM_LOGIN_FILTER" ref="gameJwtAuthenticationFilter"/>
-	</security:http>
 	<security:http pattern="/admin/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
 		<security:csrf disabled="true"/>
 		<security:custom-filter before="FORM_LOGIN_FILTER" ref="adminJwtAuthenticationFilter"/>
 	</security:http>
-	<security:http pattern="/game/configuration" security="none" />
 	<security:http pattern="/game/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
 		<security:csrf disabled="true"/>
 		<security:custom-filter before="FORM_LOGIN_FILTER" ref="gameJwtAuthenticationFilter"/>

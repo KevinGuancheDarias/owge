@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.kevinguanchedarias.owgejava.rest.admin;
+package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,14 +18,14 @@ import com.kevinguanchedarias.owgejava.pojo.TokenPojo;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@RequestMapping("admin")
+@RequestMapping("game")
 @ApplicationScope
-public class LoginRestService {
+public class AdminLoginRestService {
 
 	@Autowired
 	private AdminUserBo adminUserBo;
 
-	@PostMapping(value = "login")
+	@PostMapping(value = "adminLogin")
 	public TokenPojo login() {
 		return adminUserBo.login();
 	}
