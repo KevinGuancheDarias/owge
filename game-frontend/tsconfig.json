@@ -58,6 +58,12 @@
       ],
       "@owge/faction/*": [
         "dist/owge-faction/*"
+      ],
+      "@owge/admin": [
+        "dist/owge-admin"
+      ],
+      "@owge/admin/*": [
+        "dist/owge-admin/*"
       ]
     }
   }

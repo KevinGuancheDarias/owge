@@ -34,7 +34,7 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public async init(): Promise<void> {
-    this._configuration = await this._universeGameService.getToUniverse('configuration').toPromise();
+    this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
     this._configurationStore.currentConfiguration.next(this._configuration);
   }
 

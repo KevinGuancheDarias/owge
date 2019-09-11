@@ -2,12 +2,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { first ,  switchMap, map } from 'rxjs/operators';
 
-import { CoreHttpService, HttpOptions, User, SessionStore } from '@owge/core';
+import {
+  CoreHttpService,
+  HttpOptions,
+  User,
+  SessionStore,
+  validContext,
+  validNonDataMethod,
+  validWriteMethod,
+  LoggerHelper
+} from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
-
-type validNonDataMethod = 'get' | 'delete';
-type validWriteMethod = 'post' | 'put';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -20,12 +26,13 @@ type validWriteMethod = 'post' | 'put';
 @Injectable()
 export class UniverseGameService {
 
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
     private _sessionStore: SessionStore
   ) { }
-
 
   /**
    * Finds the logged in current user
@@ -70,6 +77,7 @@ export class UniverseGameService {
   /**
    * Sends a GET request to current universe
    *
+   * @deprecated As of 0.8.0 Use requestWithAutorizationToContext() instead
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -78,12 +86,14 @@ export class UniverseGameService {
    * @returns
    */
   public getWithAuthorizationToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._getDeleteWithAuthorizationToUuniverse<T>('get', url, options);
+    this._log.warnDeprecated('getWithAuthorizationToUniverse()', '0.8.0', 'requestWithAutorizationToContext()');
+    return this._getDeleteWithAuthorizationToContext<T>('game', 'get', url, options);
   }
 
   /**
    * Sends a POST request to current universe
    *
+   * @deprecated As of 0.8.0 Use requestWithAutorizationToContext() instead
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -93,12 +103,14 @@ export class UniverseGameService {
    * @returns
    */
   public postwithAuthorizationToUniverse<T = any>(url: string, body?: any, options?: HttpOptions): Observable<T> {
-    return this._postPutWithAuthorizationToUniverse<T>('post', url, body, options);
+    this._log.warnDeprecated('postWithAuthorizationToUniverse()', '0.8.0', 'requestWithAutorizationToContext()');
+    return this._postPutWithAuthorizationToContext<T>('game', 'post', url, body, options);
   }
 
   /**
    * Sends a PUT request to current universe
    *
+   * @deprecated As of 0.8.0 Use requestWithAutorizationToContext() instead
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -107,12 +119,14 @@ export class UniverseGameService {
    * @param [options]
    */
   public putwithAuthorizationToUniverse<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this._postPutWithAuthorizationToUniverse<T>('put', url, body, options);
+    this._log.warnDeprecated('putWithAuthorizationToUniverse()', '0.8.0', 'requestWithAutorizationToContext()');
+    return this._postPutWithAuthorizationToContext<T>('game', 'put', url, body, options);
   }
 
   /**
    * Sends a DELETE request to current universe
    *
+   * @deprecated As of 0.8.0 Use requestWithAutorizationToContext() instead
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -121,19 +135,82 @@ export class UniverseGameService {
    * @returns
    */
   public deleteWithAuthorizationToUniverse<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._getDeleteWithAuthorizationToUuniverse<T>('delete', url, options);
+    this._log.warnDeprecated('deleteWithAuthorizationToUniverse()', '0.8.0', 'requestWithAutorizationToContext()');
+    return this._getDeleteWithAuthorizationToContext<T>('game', 'delete', url, options);
   }
 
-  private _getDeleteWithAuthorizationToUuniverse<T = any>(method: validNonDataMethod, url: string, options: HttpOptions): Observable<T> {
+  /**
+   * Executes an HTTP request to the currently selected universe
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   * @template T
+   * @param context
+   *  The backend context to use, will be appended to the baseUrl,
+   *  example <code>context = 'admin', baseUrl = 'http://foo/backend' , would merge into 'http://foo/backend/admin'</code>
+   * @param method HTTP method to use
+   * @param url The target URL to use, will be appended just after the <i>context</i>
+   * @param [body] Required only when using post or put methods
+   * @param [options] additional options to add, such as HTTP headers
+   * @returns
+   * @memberof UniverseGameService
+   */
+  public requestWithAutorizationToContext<T = any>(
+    context: validContext,
+    method: validNonDataMethod | validWriteMethod,
+    url: string,
+    body?: any,
+    options?: HttpOptions
+  ): Observable<T> {
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
-        currentUniverse => this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${url}`, options)
+        currentUniverse =>
+        this._coreHttpService.requestWithAutorizationToContext<T>(context, method, currentUniverse.restBaseUrl, url, options, body)
       )
     );
   }
 
-  private _postPutWithAuthorizationToUniverse<T = any>(
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @template T
+   * @param contextPrefix If the context is game, admin, or open
+   * @param method
+   * @param url
+   * @param options
+   * @returns
+   */
+  private _getDeleteWithAuthorizationToContext<T = any>(
+    contextPrefix: validContext,
+    method: validNonDataMethod,
+    url: string,
+    options: HttpOptions
+  ): Observable<T> {
+    return this._universeStorage.currentUniverse.pipe<Universe, any>(
+      first(),
+      switchMap(
+        currentUniverse =>
+          this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${contextPrefix}/${url}`, options)
+      )
+    );
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @template T
+   * @param contextPrefix
+   * @param method
+   * @param url
+   * @param body
+   * @param [options]
+   * @returns
+   */
+  private _postPutWithAuthorizationToContext<T = any>(
+    contextPrefix: validContext,
     method: validWriteMethod,
     url: string,
     body: any,
@@ -142,7 +219,8 @@ export class UniverseGameService {
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
-        currentUniverse => this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${url}`, body, options)
+        currentUniverse =>
+          this._coreHttpService[`${method}WithAuthorization`](`${currentUniverse.restBaseUrl}/${contextPrefix}/${url}`, body, options)
       )
     );
   }

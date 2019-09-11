@@ -1,15 +1,24 @@
 
 import {throwError as observableThrowError,  Observable ,  EMPTY as empty } from 'rxjs';
+import { switchMap ,  first ,  catchError } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { switchMap ,  first ,  catchError } from 'rxjs/operators';
 
 import { HttpOptions } from '../types/http-options.type';
-import { UserStorage } from '../storages/user.storage';
-import { User } from '../types/user.type';
+import { LoggerHelper } from '../helpers/logger.helper';
+import { SessionStore } from '../store/session.store';
+import { ProgrammingError } from '../errors/programming.error';
 
-type validNonDataMethod = 'get' | 'delete';
-type validWriteMethod = 'post' | 'put';
+export type validNonDataMethod = 'get' | 'delete';
+export type validWriteMethod = 'post' | 'put';
+export type validContext = 'game' | 'admin' | 'open';
+
+type internalValidContext = validContext | 'none';
+
+interface ContextUrlAndStoreKey {
+  url: string;
+  storeKey: string;
+}
 
 /**
  * Provides common HTTP commands
@@ -21,7 +30,9 @@ type validWriteMethod = 'post' | 'put';
 @Injectable()
 export class CoreHttpService {
 
-  constructor(private _httpClient: HttpClient, private _userStorage: UserStorage<User>) {
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
+  constructor(private _httpClient: HttpClient, private _sessionStore: SessionStore) {
 
   }
 
@@ -91,6 +102,7 @@ export class CoreHttpService {
   /**
    * Sends a GET request with token authentication to the url
    *
+   * @deprecated 0.8.0 As of 0.8.0 it's required to use getWithAuthorizationToContext
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T type to return
@@ -99,12 +111,14 @@ export class CoreHttpService {
    * @returns
    */
   public getWithAuthorization<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._doGetOrDeleteWithAuthorization('get', url, options);
+    this._log.warnDeprecated('getWithAuthorization', '0.8.0', 'requestWithAutorizationToContext');
+    return this._doGetOrDeleteWithAuthorizationToContext('none', 'get', '', url, options);
   }
 
   /**
    * Sends a POST request with token authentication to the url
    *
+   * @deprecated 0.8.0 As of 0.8.0 it's required to use postWithAuthorizationToContext
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -114,12 +128,14 @@ export class CoreHttpService {
    * @returns
    */
   public postWithAuthorization<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this._doPostOrPutWithAuthorization('post', url, body, options);
+    this._log.warnDeprecated('postWithAuthorization', '0.8.0', 'requestWithAutorizationToContext');
+    return this._doPostOrPutWithAuthorizationToContext('none', 'post', '', url, body, options);
   }
 
   /**
    * Sends a PUT request with token authentication to the url
    *
+   * @deprecated 0.8.0 As of 0.8.0 it's required to use putWithAuthorizationToContext
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T
@@ -129,12 +145,14 @@ export class CoreHttpService {
    * @returns
    */
   public putWithAuthorization<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this._doPostOrPutWithAuthorization('put', url, body, options);
+    this._log.warnDeprecated('putWithAuthorization', '0.8.0', 'requestWithAutorizationToContext');
+    return this._doPostOrPutWithAuthorizationToContext('none', 'put', '', url, body, options);
   }
 
   /**
    * Sends a DELETE request with token authentication to the url
    *
+   * @deprecated 0.8.0 As of 0.8.0 it's required to use deleteWithAuthorizationToContext
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @template T type to return
@@ -143,7 +161,47 @@ export class CoreHttpService {
    * @returns
    */
   public deleteWithAuthorization<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._doGetOrDeleteWithAuthorization('delete', url, options);
+    this._log.warnDeprecated('deleteWithAuthorization', '0.8.0', 'requestWithAutorizationToContext');
+    return this._doGetOrDeleteWithAuthorizationToContext('none', 'delete', '', url, options);
+  }
+
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   * @template T
+   * @param context
+   *  The backend context to use, will be appended to the baseUrl,
+   *  example <code>context = 'admin', baseUrl = 'http://foo/backend' , would merge into 'http://foo/backend/admin'</code> <br>
+   *  <b>Notice: </b> The admin context won't work outside of admin project, because AdminUserStore MUST sync SessionStore
+   * @param method HTTP method to use
+   * @param baseUrl Base URL is tipically the universe URL, example http://localhost/backend_api/ (trailing lash can be ommited)
+   * @param url The target URL to use, will be appended just after the <i>context</i>
+   * @param [options] additional options to add, such as HTTP headers
+   * @param [body] Required only when using post or put methods
+   * @returns
+   * @memberof CoreHttpService
+   */
+  public requestWithAutorizationToContext<T = any>(
+    context: validContext,
+    method: validNonDataMethod | validWriteMethod,
+    baseUrl: string,
+    url: string,
+    options?: HttpOptions,
+    body?: any,
+  ): Observable<T> {
+    if (method === 'get' || method === 'delete') {
+      return this._doGetOrDeleteWithAuthorizationToContext(context, method, baseUrl, url, options);
+    } else if (method === 'post' || method === 'put') {
+      if (!body) {
+        throw new ProgrammingError(`You can't use ${method} without specifying a body`);
+      }
+      return this._doPostOrPutWithAuthorizationToContext(context, method, baseUrl, url, body, options);
+    } else {
+      throw new ProgrammingError(`Unsupported HTTP method ${method} specified`);
+    }
   }
 
   /**
@@ -211,13 +269,20 @@ export class CoreHttpService {
     return this._httpClient[method](url, body, options).pipe(catchError(error => this._handleError(error)));
   }
 
-  private _doGetOrDeleteWithAuthorization<T = any>(method: validNonDataMethod, url: string, options: HttpOptions): Observable<T> {
+  private _doGetOrDeleteWithAuthorizationToContext<T = any>(
+    context: internalValidContext,
+    method: validNonDataMethod,
+    base: string,
+    url: string,
+    options: HttpOptions
+  ): Observable<T> {
     const parsedOptions: HttpOptions = this._createParsedOptions(options);
-    return this._userStorage.currentToken.pipe(
+    const contextConfig: ContextUrlAndStoreKey = this._handleContextDefinition(context, base, url, false);
+    return this._sessionStore.get(contextConfig.storeKey).pipe(
       first(),
       switchMap(token => {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
-        return this[method](url, parsedOptions);
+        return this[method](contextConfig.url, parsedOptions);
       }),
       catchError((err, caught) => {
         return this._handleObservableError(options, err, caught);
@@ -225,18 +290,49 @@ export class CoreHttpService {
     );
   }
 
-  private _doPostOrPutWithAuthorization<T = any>(method: validWriteMethod, url: string, body: any, options?: HttpOptions): Observable<T> {
+  private _doPostOrPutWithAuthorizationToContext<T = any>(
+    context: internalValidContext,
+    method: validWriteMethod,
+    base: string,
+    url: string,
+    body: any,
+    options?: HttpOptions
+  ): Observable<T> {
     const parsedOptions: HttpOptions = this._createParsedOptions(options);
-    return this._userStorage.currentToken.pipe(
+    const contextConfig: ContextUrlAndStoreKey = this._handleContextDefinition(context, base, url, false);
+    return this._sessionStore.get(contextConfig.storeKey).pipe(
       first(),
       switchMap(token => {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
-        return this[method]<T>(url, body, parsedOptions);
+        return this[method]<T>(contextConfig.url, body, parsedOptions);
       }),
       catchError((err, caught) => {
         return this._handleObservableError(options, err, caught);
       })
     );
+  }
+
+  private _handleContextDefinition(
+    context: internalValidContext,
+    baseUrl: string,
+    url: string,
+    allowOpen: boolean
+  ): ContextUrlAndStoreKey {
+    if (context === 'open' && !allowOpen) {
+      throw new ProgrammingError(`Context ${context} can't be used in authenticated request`);
+    } else if (context === 'admin' || context === 'game' || context === 'open') {
+      return {
+        url: `${baseUrl}/${context}/${url}`,
+        storeKey: context === 'game' ? 'currentToken' : 'adminToken'
+      };
+    } else if (context === 'none') {
+      return {
+        url,
+        storeKey: 'currentToken'
+      };
+    } else {
+      throw new ProgrammingError('This condition should never ever happend');
+    }
   }
 
   private _handleObservableError(options: HttpOptions, err: any, caught: Observable<any>): Observable<any> {

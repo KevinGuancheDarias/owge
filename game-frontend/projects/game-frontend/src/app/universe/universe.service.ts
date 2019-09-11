@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 
-import { Config, ProgrammingError, CoreHttpService } from '@owge/core';
+import { Config, ProgrammingError, CoreHttpService, LoggerHelper } from '@owge/core';
 import { UniverseGameService, Universe } from '@owge/universe';
 
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
@@ -10,6 +10,7 @@ import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()
 export class UniverseService {
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   constructor(
     private _coreHttpService: CoreHttpService,
@@ -17,7 +18,17 @@ export class UniverseService {
     private _loginSessionService: LoginSessionService
   ) { }
 
+  /**
+   *
+   *
+   * @deprecated As of 0.8.0 it's better to use the version in the OwgeUniverse lib
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.3.0
+   * @returns {Observable<Universe[]>}
+   * @memberof UniverseService
+   */
   public findOfficials(): Observable<Universe[]> {
+    this._log.warnDeprecated('UniverseService.findOfficials', '0.8.0', 'OwgeUniverse/UniverseService.findOfficials');
     return this._coreHttpService.get(Config.accountServerUrl + 'universe/findOfficials');
   }
 

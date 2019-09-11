@@ -20,6 +20,11 @@ body{
   
 }
 
+.app-container{
+	width: 100%;
+	float: left;
+}
+
 .row{
     margin:0px;
     padding: 0px;
@@ -92,6 +97,38 @@ body{
 		&::-webkit-scrollbar {
 			width: 0px;
 			height: 0px;
+		}
+	}
+
+	.app-container{
+		margin-top: 10px;
+		padding-left: 220px;
+		width: 100%;    
+	}
+	.is-loading {
+		position: fixed;
+		top: 0px;
+		left: 0px;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(255,255,255,0.8);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1060;
+
+		div {
+			border: 16px solid #f3f3f3; /* Light grey */
+			border-top: 16px solid #3498db; /* @bgColorOther */
+			border-radius: 50%;
+			width: 120px;
+			height: 120px;
+			animation: spin 2s linear infinite;
+		}
+		
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
 		}
 	}
 

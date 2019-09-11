@@ -181,10 +181,18 @@
             "aot": false,
             "assets": [
               "projects/game-admin/src/favicon.ico",
-              "projects/game-admin/src/assets"
+              "projects/game-admin/src/assets",
+              {
+                "glob": "**/*",
+                "input": "./shared/assets/",
+                "output": "./assets"
+              }
             ],
             "styles": [
-              "shared/styles.less",
+              "node_modules/bootstrap/dist/css/bootstrap.css",
+              "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
+              "node_modules/@fortawesome/fontawesome-free/css/solid.css",
+              "shared/styles/styles.less",
               "projects/game-admin/src/styles.less"
             ],
             "scripts": []
@@ -492,7 +500,12 @@
             "aot": false,
             "assets": [
               "projects/game-frontend/src/favicon.ico",
-              "projects/game-frontend/src/assets"
+              "projects/game-frontend/src/assets",
+              {
+                "glob": "**/*",
+                "input": "./libs/shared-assets/",
+                "output": "./assets"
+              }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.css",

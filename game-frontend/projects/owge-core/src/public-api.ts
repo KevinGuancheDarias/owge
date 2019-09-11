@@ -23,5 +23,6 @@ export * from './lib/types/http-options.type';
 export * from './lib/types/menu-route.type';
 export * from './lib/types/router-data.type';
 export * from './lib/types/user.type';
+export * from './lib/utils/jwt-token.util';
 export * from './lib/owge-core.module';
 export * from './lib/owge-user.module';

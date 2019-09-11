@@ -1,0 +1,9 @@
+Email: <input type="email" [(ngModel)]="email"/> <br />
+Password: <input type="password" [(ngModel)]="password"/> <br />
+Universe: <select [(ngModel)]="selectedUniverse" (ngModelChange)="onUniverseSelected($event)">
+    <option *ngFor="let universe of universes" [ngValue]="universe">
+        {{ universe.name }}
+    </option>
+</select>
+<span *ngIf="selectedUniverse">SAY HI!!!</span>
+<button (click)="doLogin()" [disabled]="!selectedUniverse">Login</button>

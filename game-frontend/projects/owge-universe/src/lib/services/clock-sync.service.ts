@@ -42,7 +42,7 @@ export class ClockSyncService {
    * @returns
    */
   public findServerClockTime(): Observable<Date> {
-    return this._universeGameService.getToUniverse('clock').pipe(map(clock => new Date(clock)));
+    return this._universeGameService.getToUniverse('open/clock').pipe(map(clock => new Date(clock)));
   }
 
   /**

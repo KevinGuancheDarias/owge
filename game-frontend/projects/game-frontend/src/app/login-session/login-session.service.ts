@@ -184,7 +184,7 @@ export class LoginSessionService implements CanActivate {
    */
   public findLoggedInUserData(): Observable<UserPojo> {
     this._lgsLog.warnDeprecated('findLoggedInUserData', '0.8.0', 'UniverseGameService.findLoggedInUserData()');
-    return this._coreHttpService.getWithAuthorization<UserPojo>(this.getSelectedUniverse().restBaseUrl + '/user/findData').pipe(
+    return this._universeGameService.getWithAuthorizationToUniverse('user/findData').pipe(
     map(current => {
       if (!current.consumedEnergy) {
         current.consumedEnergy = 0;
@@ -197,7 +197,16 @@ export class LoginSessionService implements CanActivate {
     return JSON.parse(sessionStorage.getItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE));
   }
 
+
+  /**
+   *
+   * @deprecated As of 0.8.0 it's better to use OwgeUniverse/UniverseService.setSelectedUniverse
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param universe
+   * @memberof LoginSessionService
+   */
   public setSelectedUniverse(universe: Universe) {
+    this._lgsLog.warnDeprecated('setSelectedUniverse()', '0.8.0', 'OwgeUniverse/UniverseService.setSelectedUniverse');
     this._universeStorage.currentUniverse.next(universe);
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE, JSON.stringify(universe));
   }

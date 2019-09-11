@@ -1,4 +1,6 @@
 import { ReplaySubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+
 import { Universe } from '../types/universe.type';
 
 /**
@@ -8,6 +10,7 @@ import { Universe } from '../types/universe.type';
  * @since 0.7.0
  * @export
  */
+@Injectable()
 export class UniverseStorage {
 
     /**

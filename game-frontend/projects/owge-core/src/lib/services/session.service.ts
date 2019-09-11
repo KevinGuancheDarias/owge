@@ -9,6 +9,7 @@ import { AccountConfig } from '../pojos/account-config.pojo';
 import { ProgrammingError } from '../errors/programming.error';
 import { UserStorage } from '../storages/user.storage';
 import { User } from '../types/user.type';
+import { JwtTokenUtil } from '../utils/jwt-token.util';
 
 /**
  * Modern implementation of session control (replacement for good old' SessionService)
@@ -23,6 +24,21 @@ export class SessionService implements CanActivate {
     public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
 
     public constructor(private _router: Router, private _accountConfig: AccountConfig, private _userStore: UserStorage<User>) {
+    }
+
+    /**
+     * Inits the stores
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     * @memberof SessionService
+     */
+    public initStore(): void {
+      const token = this._findTokenIfNotExpired();
+      if (token) {
+        this._userStore.currentToken.next(this.getRawToken());
+        this._userStore.currentUser.next(token.data);
+      }
     }
 
     public canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> | Promise<boolean> | boolean {
@@ -64,8 +80,7 @@ export class SessionService implements CanActivate {
     }
 
     public getParsedToken(): TokenPojo {
-        const jwtToken: string = sessionStorage.getItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
-        return this._parseToken(jwtToken);
+        return JwtTokenUtil.parseToken(this.getRawToken());
     }
 
     public getRawToken() {
@@ -86,23 +101,6 @@ export class SessionService implements CanActivate {
     sessionStorage.setItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM, token);
   }
 
-   /**
-    * Will return the parsed Token
-    *
-    * @param  jwtToken - The jwt token
-    * @return  the encoded token
-    * @author Kevin Guanche Darias
-    */
-    private _parseToken(jwtToken: string): TokenPojo {
-        if (jwtToken) {
-            const retVal: TokenPojo = JSON.parse(atob(jwtToken.split('.')[1]));
-            retVal.exp *= 1000;
-            return retVal;
-        } else {
-            return null;
-        }
-    }
-
     private _redirectTo(route: string): void {
         this._router.navigate([route]);
     }
@@ -114,6 +112,11 @@ export class SessionService implements CanActivate {
         }
     }
 
+    /**
+     *
+     * @todo Investigate if this method makes sense... look at _findTokenIfNotExpired()
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
     private _removeSessionStorageDataIfSessionExpired() {
         if (!this._findTokenIfNotExpired()) {
             this._clearSessionData();
@@ -121,18 +124,7 @@ export class SessionService implements CanActivate {
     }
 
     private _findTokenIfNotExpired(): TokenPojo {
-        let retVal: TokenPojo;
-        if (this.getRawToken()) {
-          const sessionToken: TokenPojo = this.getParsedToken();
-          if (sessionToken) {
-            if (!TokenPojo.isExpired(sessionToken)) {
-              retVal = sessionToken;
-            } else {
-              this._clearSessionData();
-            }
-          }
-        }
-        return retVal;
+        return JwtTokenUtil.findTokenIfNotExpired(this.getRawToken(), () => this._clearSessionData());
     }
 
     private _clearSessionData() {
