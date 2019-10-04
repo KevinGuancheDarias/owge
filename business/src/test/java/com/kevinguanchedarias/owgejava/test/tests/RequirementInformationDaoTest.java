@@ -14,7 +14,7 @@ import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementType;
+import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectEntityRepository;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
@@ -48,15 +48,15 @@ public class RequirementInformationDaoTest {
 		objectRelation.setReferenceId(1);
 		objectRelation = objectRelationsRepository.save(objectRelation);
 
-		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementType.BEEN_RACE, 4);
+		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementTypeEnum.BEEN_RACE, 4);
 		assertEquals(4,
-				requirementInformationDao.findRequirementsByType(objectRelation, RequirementType.BEEN_RACE).size());
-		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementType.HAVE_SPECIAL_AVAILABLE, 2);
+				requirementInformationDao.findRequirementsByType(objectRelation, RequirementTypeEnum.BEEN_RACE).size());
+		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementTypeEnum.HAVE_SPECIAL_AVAILABLE, 2);
 		assertEquals(2, requirementInformationDao
-				.findRequirementsByType(objectRelation, RequirementType.HAVE_SPECIAL_AVAILABLE).size());
-		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementType.HAVE_SPECIAL_ENABLED, 6);
+				.findRequirementsByType(objectRelation, RequirementTypeEnum.HAVE_SPECIAL_AVAILABLE).size());
+		storeRandomRequiremenValuestOfGivenType(objectRelation, RequirementTypeEnum.HAVE_SPECIAL_ENABLED, 6);
 		assertEquals(6, requirementInformationDao
-				.findRequirementsByType(objectRelation, RequirementType.HAVE_SPECIAL_ENABLED).size());
+				.findRequirementsByType(objectRelation, RequirementTypeEnum.HAVE_SPECIAL_ENABLED).size());
 
 	}
 
@@ -69,7 +69,7 @@ public class RequirementInformationDaoTest {
 	 * @param times
 	 * @author Kevin Guanche Darias
 	 */
-	private void storeRandomRequiremenValuestOfGivenType(ObjectRelation relation, RequirementType type, int times) {
+	private void storeRandomRequiremenValuestOfGivenType(ObjectRelation relation, RequirementTypeEnum type, int times) {
 		for (int i = 0; i < times; i++) {
 			RequirementInformation requirementInformation = new RequirementInformation();
 			requirementInformation.setRelation(relation);

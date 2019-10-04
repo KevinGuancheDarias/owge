@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 
 @Component
-public class ObtainedUpradeBo implements BaseBo<ObtainedUpgrade> {
+public class ObtainedUpgradeBo implements BaseBo<ObtainedUpgrade> {
 	private static final long serialVersionUID = 2294363946431892708L;
 
 	@Autowired
@@ -75,7 +75,7 @@ public class ObtainedUpradeBo implements BaseBo<ObtainedUpgrade> {
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
 		return ObjectUtils.firstNonNull(
 				obtainedUpgradeRepository.sumByUserAndImprovementUnitTypeImprovementType(user, type.name()), 0L);
 	}

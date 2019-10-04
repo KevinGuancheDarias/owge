@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUpradeBo;
+import com.kevinguanchedarias.owgejava.business.ObtainedUpgradeBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
@@ -26,7 +26,7 @@ public class UpgradeRestService {
 	private UserStorageBo userStorageBo;
 
 	@Autowired
-	private ObtainedUpradeBo obtainedUpgradeBo;
+	private ObtainedUpgradeBo obtainedUpgradeBo;
 
 	@Autowired
 	private MissionBo missionBo;

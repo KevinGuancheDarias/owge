@@ -3,7 +3,7 @@ package com.kevinguanchedarias.owgejava.util;
 import org.apache.log4j.Logger;
 
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementType;
+import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 
 public final class RequirementUtil {
 	
@@ -21,7 +21,7 @@ public final class RequirementUtil {
 	 */
 	public static Boolean validRequirementType(String input){
 		try{
-			RequirementType.valueOf(input);
+			RequirementTypeEnum.valueOf(input);
 			return true;
 		}catch(IllegalArgumentException e){
 			logger.warn(e);

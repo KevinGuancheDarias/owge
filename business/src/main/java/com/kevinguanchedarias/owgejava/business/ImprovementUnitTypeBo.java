@@ -12,28 +12,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
+import com.kevinguanchedarias.owgejava.dto.ImprovementUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
-import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
-import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
+import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
+import com.kevinguanchedarias.owgejava.exception.NotFoundException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.pojo.AffectedItem;
+import com.kevinguanchedarias.owgejava.repository.ImprovementUnitTypeRepository;
+import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
 @Service
-public class ImprovementBo implements Serializable {
+public class ImprovementUnitTypeBo implements Serializable {
 	private static final long serialVersionUID = -3323254005323573001L;
 
-	private static final Logger LOGGER = Logger.getLogger(ImprovementBo.class);
+	private static final Logger LOGGER = Logger.getLogger(ImprovementUnitTypeBo.class);
 
 	private static final Double DEFAULT_STEP = 10D;
-	@Autowired
-	private UnitTypeRepository unitTypeRepository;
 
 	@Autowired
-	private ImprovementRepository improvementRepository;
+	private ImprovementUnitTypeRepository improvementUnitTypeRepository;
 
 	@Autowired
-	private ObtainedUpradeBo obtainedUpgradeBo;
+	private ObtainedUpgradeBo obtainedUpgradeBo;
 
 	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
@@ -41,9 +47,58 @@ public class ImprovementBo implements Serializable {
 	@Autowired
 	private ConfigurationBo configurationBo;
 
+	@Autowired
+	private ImprovementBo improvementBo;
+
+	@Autowired
+	private UnitTypeBo unitTypeBo;
+
+	@Autowired
+	private transient ExceptionUtilService exceptionUtilService;
+
 	/**
-	 * Will remove invalid improvements from Source List, Notice negative values
-	 * are considered valid EXPENSIVE method!
+	 * Adds the specified unit type improvement to the target improvement (<b>
+	 * doesn't save</b>)
+	 * 
+	 * @throws SgtBackendInvalidInputException If is not valid, or it's duplicated
+	 *                                         (for given <i>improvement</i>)
+	 * @param improvementId
+	 * @param improvementUnitType
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Improvement add(Integer improvementId, ImprovementUnitType improvementUnitType) {
+		return add(improvementBo.findByIdOrDie(improvementId), improvementUnitType);
+	}
+
+	/**
+	 * Adds the specified unit type improvement to the target improvement (<b>
+	 * doesn't save</b>)
+	 * 
+	 * @throws SgtBackendInvalidInputException If is not valid, or it's duplicated
+	 *                                         (for given <i>improvement</i>)
+	 * @param improvement
+	 * @param improvementUnitType
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Improvement add(Improvement improvement, ImprovementUnitType improvementUnitType) {
+		checkIsValid(improvementUnitType);
+		if (isDuplicated(improvement, improvementUnitType)) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class,
+							"I18N_ERR_UNIT_IMPROVEMENT_DUPLICATED")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
+		improvementUnitType.setImprovementId(improvement);
+		improvement.getUnitTypesUpgrades().add(improvementUnitType);
+		return improvement;
+	}
+
+	/**
+	 * Will remove invalid improvements from Source List, Notice negative values are
+	 * considered valid EXPENSIVE method!
 	 * 
 	 * @param source
 	 * @return List without invalid improvements
@@ -60,13 +115,30 @@ public class ImprovementBo implements Serializable {
 	}
 
 	/**
+	 * Returns true if {@link ImprovementUnitType} of same type already exists in
+	 * the target improvement <br>
+	 * <b>NOTICE:</b> It reloads the unit types of the <i>improvement</i>
+	 * 
+	 * @param improvement         Improvement that has the list of unit type
+	 *                            improvements (because the uniqueness depends of
+	 *                            each parent improvement
+	 * @param improvementUnitType New unit type to check if it's dupllicated
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isDuplicated(Improvement improvement, ImprovementUnitType improvementUnitType) {
+		loadImprovementUnitTypes(improvement);
+		return isDuplicated(improvement.getUnitTypesUpgrades(), improvementUnitType);
+	}
+
+	/**
 	 * Will check if improvement is duplicated, known because, it has the same
-	 * type,the same target unit_type, and the same value NOTICE: Will not check
-	 * the object instance itself
+	 * type,the same target unit_type, and the same value NOTICE: Will not check the
+	 * object instance itself
 	 * 
 	 * @param source
-	 * @param compared
-	 *            Item to compare against the list
+	 * @param compared Item to compare against the list
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -89,7 +161,7 @@ public class ImprovementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	public Boolean isValid(ImprovementUnitType input) {
-		return validType(input) && validUnitType(input) && validValue(input);
+		return isValidType(input) && isValidUnitType(input) && isValidValue(input);
 	}
 
 	/**
@@ -100,31 +172,25 @@ public class ImprovementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	public void loadImprovementUnitTypes(Improvement improvement) {
-		improvement.setUnitTypesUpgrades(improvementRepository.findByImprovementIdId(improvement.getId()));
+		improvement.setUnitTypesUpgrades(improvementUnitTypeRepository.findByImprovementIdId(improvement.getId()));
 	}
 
-	/**
-	 * Will delete an improvement by id
-	 * 
-	 * @param improvement
-	 * @author Kevin Guanche Darias
-	 */
-	public void removeImprovementUnitType(Integer improvement) {
+	public void removeImprovementUnitType(Integer improvementUnitTypeId) {
 		try {
-			improvementRepository.delete(improvement);
+			improvementUnitTypeRepository.delete(improvementUnitTypeId);
 		} catch (EmptyResultDataAccessException e) {
 			LOGGER.log(Level.INFO, e);
 		}
 	}
 
 	/**
-	 * Will delete an improvement
+	 * Will delete an improvement unit type
 	 * 
-	 * @param improvement
+	 * @param improvementUnitType
 	 * @author Kevin Guanche Darias
 	 */
-	public void removeImprovementUnitType(ImprovementUnitType improvement) {
-		removeImprovementUnitType(improvement.getId());
+	public void removeImprovementUnitType(ImprovementUnitType improvementUnitType) {
+		removeImprovementUnitType(improvementUnitType.getId());
 	}
 
 	public Double computeImprovementValue(double value, double inputPercentage) {
@@ -140,39 +206,110 @@ public class ImprovementBo implements Serializable {
 	}
 
 	/**
-	 * Returns the total sum of the value for the specified improvement type for
-	 * the given user
+	 * Returns the total sum of the value for the specified improvement type for the
+	 * given user
 	 * 
 	 * @param user
-	 * @param type
-	 *            The expected type
+	 * @param type The expected type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
 		return ObjectUtils.firstNonNull(obtainedUnitBo.sumUnitTypeImprovementByUserAndImprovementType(user, type), 0L)
 				+ ObjectUtils.firstNonNull(obtainedUpgradeBo.sumUnitTypeImprovementByUserAndImprovementType(user, type),
 						0L);
 	}
 
-	private boolean validType(ImprovementUnitType input) {
+	/**
+	 * Test if input arguments share same type and same unitType
+	 * 
+	 * @param improvementUnitTypeDto
+	 * @param improvementUnitTypeDto2
+	 * @return True if both have the same type and the same unitType id
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isSameTarget(ImprovementUnitTypeDto improvementUnitTypeDto,
+			ImprovementUnitTypeDto improvementUnitTypeDto2) {
+		return improvementUnitTypeDto.getType().equals(improvementUnitTypeDto2.getType())
+				&& improvementUnitTypeDto.getUnitTypeId().equals(improvementUnitTypeDto2.getUnitTypeId());
+	}
+
+	/**
+	 * Throws {@link NotFoundException} if the existing improvement doesn't contain
+	 * a unit type improvement with the specified id
+	 * 
+	 * @param improvementId
+	 * @param unitTypeImprovementId
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void checkHasUnitTypeImprovementById(Integer improvementId, Integer unitTypeImprovementId) {
+		if (improvementBo.findByIdOrDie(improvementId).getUnitTypesUpgrades().stream()
+				.filter(current -> current.getId().equals(unitTypeImprovementId)).findFirst().orElse(null) == null) {
+			throw exceptionUtilService
+					.createExceptionBuilder(NotFoundException.class,
+							"I18N_ERR_IMPROVEMENT_HAS_NO_SUCH_UNIT_IMPROVEMENT")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS)
+					.withAffectedItem(new AffectedItem(
+							SpringRepositoryUtil.findEntityClass(improvementUnitTypeRepository), unitTypeImprovementId))
+					.build();
+		}
+	}
+
+	private boolean isValidType(ImprovementUnitType input) {
 		return !(input.getType() == null || input.getType().isEmpty()
-				|| !EnumUtils.isValidEnum(ImprovementType.class, input.getType()));
+				|| !EnumUtils.isValidEnum(ImprovementTypeEnum.class, input.getType()));
 	}
 
-	private boolean validUnitType(ImprovementUnitType input) {
+	private void checkValidType(ImprovementUnitType input) {
+		if (!isValidType(input)) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_INVALID_TYPE")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
+	}
+
+	private boolean isValidUnitType(ImprovementUnitType input) {
 		return !(input.getUnitType() == null || input.getUnitType().getId() == null
-				|| !unitTypeRepository.exists(input.getUnitType().getId()));
+				|| !unitTypeBo.exists(input.getUnitType().getId()));
 	}
 
-	private boolean validValue(ImprovementUnitType input) {
+	private void checkValidUnitType(ImprovementUnitType input) {
+		if (!isValidUnitType(input)) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_INVALID_UNIT_TYPE")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		} else {
+			if (ImprovementTypeEnum.valueOf(input.getType()) == ImprovementTypeEnum.AMOUNT) {
+				UnitType unitType = unitTypeBo.findById(input.getUnitType().getId());
+				if (!unitType.hasMaxCount()) {
+					throw this.exceptionUtilService
+							.createExceptionBuilder(SgtBackendInvalidInputException.class,
+									"I18N_ERR_UNIT_TYPE_UNLIMITED_COUNT")
+							.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS)
+							.build();
+				}
+			}
+		}
+	}
+
+	private boolean isValidValue(ImprovementUnitType input) {
 		return !(input.getValue() == null || input.getValue() == 0);
+	}
+
+	private void checkValidValue(ImprovementUnitType input) {
+		if (!isValidValue(input)) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_INVALID_VALUE")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
 	}
 
 	private void removeInvalidType(List<ImprovementUnitType> source) {
 		for (Iterator<ImprovementUnitType> it = source.iterator(); it.hasNext();) {
 			ImprovementUnitType currentImprovement = it.next();
-			if (!validType(currentImprovement)) {
+			if (!isValidType(currentImprovement)) {
 				it.remove();
 			}
 		}
@@ -181,7 +318,7 @@ public class ImprovementBo implements Serializable {
 	private void removeInvalidUnitType(List<ImprovementUnitType> source) {
 		for (Iterator<ImprovementUnitType> it = source.iterator(); it.hasNext();) {
 			ImprovementUnitType currentImprovement = it.next();
-			if (!validUnitType(currentImprovement)) {
+			if (!isValidUnitType(currentImprovement)) {
 				it.remove();
 			}
 		}
@@ -190,9 +327,15 @@ public class ImprovementBo implements Serializable {
 	private void removeInvalidValue(List<ImprovementUnitType> source) {
 		for (Iterator<ImprovementUnitType> it = source.iterator(); it.hasNext();) {
 			ImprovementUnitType currentImprovement = it.next();
-			if (!validValue(currentImprovement)) {
+			if (!isValidValue(currentImprovement)) {
 				it.remove();
 			}
 		}
+	}
+
+	private void checkIsValid(ImprovementUnitType improvementUnitType) {
+		checkValidType(improvementUnitType);
+		checkValidUnitType(improvementUnitType);
+		checkValidValue(improvementUnitType);
 	}
 }

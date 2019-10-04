@@ -21,7 +21,7 @@ import org.springframework.beans.BeanUtils;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.owgejava.business.FactionBo;
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
@@ -56,7 +56,7 @@ public class UserStorageBoTest extends TestCommon {
 	private UserImprovementBo userImprovementBoMock;
 
 	@Mock
-	private ImprovementBo improvementBo;
+	private ImprovementUnitTypeBo improvementBo;
 
 	@Mock
 	private ObtainedUnitBo obtainedUnitBo;

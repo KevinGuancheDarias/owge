@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 
@@ -33,15 +34,36 @@ public class UnlockedRelationBo implements BaseBo<UnlockedRelation> {
 		return repository.findOneByUserIdAndRelationId(userId, relationId);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use the same method but with {@link ObjectEnum} instead of
+	 *             {@link RequirementTargetObject}
+	 * @param userId
+	 * @param type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public List<UnlockedRelation> findByUserIdAndObjectType(Integer userId, RequirementTargetObject type) {
+		return repository.findByUserIdAndRelationObjectDescription(userId, type.name());
+	}
+
+	/**
+	 * 
+	 * @param userId
+	 * @param type
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<UnlockedRelation> findByUserIdAndObjectType(Integer userId, ObjectEnum type) {
 		return repository.findByUserIdAndRelationObjectDescription(userId, type.name());
 	}
 
 	/**
 	 * Converts a list of unlocked relations into a list of relations
 	 * 
-	 * @param unlockedRelations
-	 *            list of unlocked relations
+	 * @param unlockedRelations list of unlocked relations
 	 * @return list of relations
 	 * @author Kevin Guanche Darias
 	 */

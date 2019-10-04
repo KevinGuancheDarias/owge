@@ -10,7 +10,7 @@ INSERT INTO `configuration` (`name`, `display_name`, `value`, `privileged`) VALU
 
 
 -- START Prepare  objects
-INSERT INTO objects (description, repository) VALUES ('RACE_SPECIAL', 'invalid.RaceSpecial');
+INSERT INTO objects (description, repository) VALUES ('TIME_SPECIAL', 'com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository');
 INSERT INTO objects (description, repository) VALUES ('UNIT', 'com.kevinguanchedarias.owgejava.repository.UnitRepository');
 INSERT INTO objects (description, repository) VALUES ('UPGRADE', 'com.kevinguanchedarias.owgejava.repository.UpgradeRepository');
 -- END Prepare objects

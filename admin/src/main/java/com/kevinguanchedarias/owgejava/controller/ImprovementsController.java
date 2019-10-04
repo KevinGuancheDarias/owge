@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
 import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
@@ -36,7 +36,7 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 	private ImprovementUnitType newImprovementUnitType;
 
 	@Autowired
-	private ImprovementBo improvementsBo;
+	private ImprovementUnitTypeBo improvementUnitTypeBo;
 
 	@Autowired
 	private UnitTypeBo unitTypeBo;
@@ -71,7 +71,7 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 		for (Iterator<ImprovementUnitType> it = selectedObjectImprovementsUnitType.iterator(); it.hasNext();) {
 			ImprovementUnitType current = it.next();
 			if (current == selected) {
-				improvementsBo.removeImprovementUnitType(current);
+				improvementUnitTypeBo.removeImprovementUnitType(current);
 				it.remove();
 				return;
 			}
@@ -101,7 +101,7 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 
 	public void loadSelectedObjectProxies() {
 		if (selectedObjectImprovementsUnitType == null) {
-			improvementsBo.loadImprovementUnitTypes(getSelectedObject().getImprovement());
+			improvementUnitTypeBo.loadImprovementUnitTypes(getSelectedObject().getImprovement());
 			selectedObjectImprovementsUnitType = getSelectedObject().getImprovement().getUnitTypesUpgrades();
 		}
 	}
@@ -175,7 +175,7 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 	 * @throws SgtBackendInvalidInputException
 	 */
 	private void checkValid() {
-		if (!improvementsBo.isValid(newImprovementUnitType)) {
+		if (!improvementUnitTypeBo.isValid(newImprovementUnitType)) {
 			throw new SgtBackendInvalidInputException("No se han rellenado todos los datos necesarios");
 		}
 	}
@@ -187,7 +187,7 @@ public class ImprovementsController extends SgtCommonController<EntityWithImprov
 	 * @throws com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 	 */
 	private void checkDuplicate(List<ImprovementUnitType> improvements) {
-		if (improvementsBo.isDuplicated(improvements, newImprovementUnitType)) {
+		if (improvementUnitTypeBo.isDuplicated(improvements, newImprovementUnitType)) {
 			throw new SgtBackendInvalidInputException("Ya se mejora eso, quizá quieras cambiar el valor del existente");
 		}
 	}

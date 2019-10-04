@@ -48,7 +48,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	protected MissionRepository missionRepository;
 
 	@Autowired
-	protected ObtainedUpradeBo obtainedUpgradeBo;
+	protected ObtainedUpgradeBo obtainedUpgradeBo;
 
 	@Autowired
 	protected ObjectRelationBo objectRelationBo;

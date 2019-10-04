@@ -31,7 +31,7 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
@@ -52,7 +52,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
 
 	@Autowired
-	private ImprovementBo improvementBo;
+	private ImprovementUnitTypeBo improvementBo;
 
 	@Autowired
 	private UnitTypeBo unitTypeBo;
@@ -128,14 +128,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 			initialCount = obtainedUnit.getCount();
 			finalCount = initialCount;
 			totalAttack = initialCount.doubleValue() * unit.getAttack();
-			totalAttack += (totalAttack * userUnitTypeImprovement.findValueRational(ImprovementType.ATTACK));
+			totalAttack += (totalAttack * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.ATTACK));
 			pendingAttack = totalAttack;
 			totalShield = initialCount.doubleValue() * unit.getShield();
-			totalShield += (totalShield * userUnitTypeImprovement.findValueRational(ImprovementType.SHIELD));
+			totalShield += (totalShield * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.SHIELD));
 			availableShield = totalShield;
 			totalHealth = initialCount.doubleValue() * unit.getHealth();
 			initialHealth = totalHealth;
-			totalHealth += (totalHealth * userUnitTypeImprovement.findValueRational(ImprovementType.DEFENSE));
+			totalHealth += (totalHealth * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.DEFENSE));
 			availableHealth = totalHealth;
 			this.obtainedUnit = obtainedUnit;
 		}
@@ -161,7 +161,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private UserStorage user;
 		private UserUnitTypeImprovement userUnitTypeImprovement;
 
-		public AttackUserInformation(UserStorage user, ImprovementBo improvementBo) {
+		public AttackUserInformation(UserStorage user, ImprovementUnitTypeBo improvementBo) {
 			this.setUser(user);
 			userUnitTypeImprovement = new UserUnitTypeImprovement(user, improvementBo);
 		}

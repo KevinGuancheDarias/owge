@@ -11,8 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendEntityNotFoundException;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
 @FunctionalInterface
 public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
@@ -46,8 +47,7 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	public default E findByIdOrDie(Number id) {
 		E retVal = getRepository().findOne(id);
 		if (retVal == null) {
-			throw new SgtBackendEntityNotFoundException("No entyty with id " + id + " found for repository "
-					+ getRepository().getClass().getCanonicalName());
+			throwNotFound(id);
 		}
 		return retVal;
 	}
@@ -87,13 +87,32 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	}
 
 	/**
-	 * Used to refresh the entity for example for lazy fetching
-	 * FETCH-Joins<br />
-	 * This method is useful for example to refresh {@link SpecialLocation}
-	 * galaxy
 	 * 
 	 * @param entity
-	 *            Notice: doesn't refresh the source entity
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default void existsOrDie(E entity) {
+		existsOrDie(entity.getId());
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default void existsOrDie(Number id) {
+		if (!exists(id)) {
+			throwNotFound(id);
+		}
+	}
+
+	/**
+	 * Used to refresh the entity for example for lazy fetching FETCH-Joins<br />
+	 * This method is useful for example to refresh {@link SpecialLocation} galaxy
+	 * 
+	 * @param entity Notice: doesn't refresh the source entity
 	 * @return The refreshed entity
 	 * @author Kevin Guanche Darias
 	 */
@@ -117,5 +136,9 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 		if (!getEntityManager().contains(entity)) {
 			throw new ProgrammingException("Method requires a persisted entity, transient passed");
 		}
+	}
+
+	private void throwNotFound(Number id) {
+		throw NotFoundException.fromAffected(SpringRepositoryUtil.findEntityClass(getRepository()), id);
 	}
 }

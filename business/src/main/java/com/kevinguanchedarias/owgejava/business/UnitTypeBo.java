@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -26,7 +26,7 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 	private UnitTypeRepository unitTypeRepository;
 
 	@Autowired
-	private ImprovementBo improvementBo;
+	private ImprovementUnitTypeBo improvementUnitTypeBo;
 
 	@Autowired
 	private PlanetBo planetBo;
@@ -51,9 +51,9 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 		UnitType type = findById(typeId);
 		Long retVal = 0L;
 		if (type.hasMaxCount()) {
-			retVal = improvementBo
+			retVal = improvementUnitTypeBo
 					.computeImprovementValue(type.getMaxCount(),
-							improvementBo.sumUnitTypeImprovementByUserAndImprovementType(user, ImprovementType.AMOUNT))
+							improvementUnitTypeBo.sumUnitTypeImprovementByUserAndImprovementType(user, ImprovementTypeEnum.AMOUNT))
 					.longValue();
 		}
 		return retVal;

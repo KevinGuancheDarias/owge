@@ -15,6 +15,7 @@
 	<context:annotation-config></context:annotation-config>
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.dao" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.business" />
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.util" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.admin" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.game" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.open" />
@@ -51,5 +52,5 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<jpa:repositories base-package="com.kevinguanchedarias.owgejava.repository"></jpa:repositories>
+	<jpa:repositories base-package="com.kevinguanchedarias.owgejava.repository" factory-class="com.kevinguanchedarias.owgejava.factory.CustomSpringDataRepositoryFactory"></jpa:repositories>
 </beans>

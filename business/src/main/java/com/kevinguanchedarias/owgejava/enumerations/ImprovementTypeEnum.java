@@ -1,5 +1,5 @@
 package com.kevinguanchedarias.owgejava.enumerations;
 
-public enum ImprovementType {
+public enum ImprovementTypeEnum {
 	ATTACK, DEFENSE, SHIELD, AMOUNT;
 }

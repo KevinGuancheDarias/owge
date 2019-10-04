@@ -51,7 +51,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
-	private ImprovementBo improvementBo;
+	private ImprovementUnitTypeBo improvementUnitTypeBo;
 
 	@Autowired
 	private AllianceBo allianceBo;
@@ -232,7 +232,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	public Double findMaxEnergy(UserStorage user) {
-		return ObjectUtils.firstNonNull(improvementBo.computeImprovementValue(user.getEnergy(),
+		return ObjectUtils.firstNonNull(improvementUnitTypeBo.computeImprovementValue(user.getEnergy(),
 				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()), 0D);
 	}
 

@@ -21,10 +21,12 @@ public class ImprovementDto implements DtoFromEntity<Improvement> {
 	public void dtoFromEntity(Improvement entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
 		unitTypesUpgrades = new ArrayList<>();
-		entity.getUnitTypesUpgrades().forEach(current -> {
-			ImprovementUnitTypeDto currentDto = new ImprovementUnitTypeDto();
-			currentDto.dtoFromEntity(current);
-		});
+		if (entity.getUnitTypesUpgrades() != null) {
+			entity.getUnitTypesUpgrades().forEach(current -> {
+				ImprovementUnitTypeDto currentDto = new ImprovementUnitTypeDto();
+				currentDto.dtoFromEntity(current);
+			});
+		}
 	}
 
 	public void dtoFromEntity(UserImprovement entity) {
