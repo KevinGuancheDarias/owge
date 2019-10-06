@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
@@ -14,7 +15,7 @@ import com.kevinguanchedarias.owgejava.repository.RequirementInformationReposito
 
 @Component
 @Transactional
-public class RequirementInformationBo implements BaseBo<RequirementInformation> {
+public class RequirementInformationBo implements BaseBo<Integer, RequirementInformation, RequirementInformationDto> {
 	private static final long serialVersionUID = 4755638529538733332L;
 
 	@Autowired
@@ -25,6 +26,26 @@ public class RequirementInformationBo implements BaseBo<RequirementInformation> 
 
 	@Autowired
 	private RequirementInformationRepository repository;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
+	 */
+	@Override
+	public JpaRepository<RequirementInformation, Integer> getRepository() {
+		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<RequirementInformationDto> getDtoClass() {
+		return RequirementInformationDto.class;
+	}
 
 	/**
 	 * Deletes a requirement information from database<br />
@@ -97,7 +118,7 @@ public class RequirementInformationBo implements BaseBo<RequirementInformation> 
 	 */
 	@Transactional
 	@Override
-	public void delete(Number id) {
+	public void delete(Integer id) {
 		delete(findByIdOrDie(id));
 	}
 
@@ -106,7 +127,7 @@ public class RequirementInformationBo implements BaseBo<RequirementInformation> 
 	 * 
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(com.kevinguanchedarias
-	 * .kevinsuite.commons.entity.SimpleIdEntity)
+	 * .kevinsuite.commons.entity.EntityWithId)
 	 */
 	@Transactional
 	@Override
@@ -115,15 +136,5 @@ public class RequirementInformationBo implements BaseBo<RequirementInformation> 
 		BaseBo.super.delete(entity);
 		requirementBo.triggerRelationChanged(entity.getRelation());
 
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
-	 */
-	@Override
-	public JpaRepository<RequirementInformation, Number> getRepository() {
-		return repository;
 	}
 }

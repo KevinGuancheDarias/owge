@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenConfigLoader;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.AdminUser;
 import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.pojo.TokenPojo;
 import com.kevinguanchedarias.owgejava.repository.AdminUserRepository;
 
@@ -29,7 +31,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class AdminUserBo implements BaseBo<AdminUser> {
+public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<AdminUser>> {
 	private static final long serialVersionUID = -5545554818842439920L;
 
 	public static final String JWT_SECRET_DB_CODE = "ADMIN_JWT_SECRET";
@@ -70,8 +72,18 @@ public class AdminUserBo implements BaseBo<AdminUser> {
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
-	public JpaRepository<AdminUser, Number> getRepository() {
+	public JpaRepository<AdminUser, Integer> getRepository() {
 		return adminUserRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<DtoFromEntity<AdminUser>> getDtoClass() {
+		throw new SgtBackendNotImplementedException("For now AdminUser doesn't have a DTO");
 	}
 
 	/**
@@ -84,7 +96,7 @@ public class AdminUserBo implements BaseBo<AdminUser> {
 	 */
 	public TokenPojo login() {
 		TokenUser tokenUser = authenticationBo.findTokenUser();
-		AdminUser adminUser = findById(tokenUser.getId());
+		AdminUser adminUser = findById(tokenUser.getId().intValue());
 		if (adminUser == null) {
 			throw new AccessDeniedException("ERR_NO_SUCH_USER");
 		} else if (!adminUser.getEnabled()) {

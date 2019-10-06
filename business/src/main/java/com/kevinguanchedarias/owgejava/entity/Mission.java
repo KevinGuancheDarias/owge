@@ -19,11 +19,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "missions")
-public class Mission implements SimpleIdEntity {
+public class Mission implements EntityWithId<Long> {
 	private static final long serialVersionUID = -5258361356566850987L;
 
 	public interface MissionIdAndTerminationDateProjection {
@@ -94,6 +92,7 @@ public class Mission implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

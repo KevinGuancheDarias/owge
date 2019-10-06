@@ -8,19 +8,17 @@ import javax.persistence.MappedSuperclass;
 
 import org.apache.commons.lang3.ObjectUtils;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @MappedSuperclass
-public abstract class ImprovementBase implements SimpleIdEntity {
+public abstract class ImprovementBase<K> implements EntityWithId<K> {
 	private static final long serialVersionUID = 8483043984040996933L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private K id;
 
 	/**
-	 * @deprecated Unused property, the system uses now an UnitType requirement
-	 *             of type AMOUNT
+	 * @deprecated Unused property, the system uses now an UnitType requirement of
+	 *             type AMOUNT
 	 */
 	@Deprecated
 	@Column(name = "more_soldiers_production")
@@ -48,17 +46,18 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	private Float moreUnitBuildSpeed = 0F;
 
 	@Override
-	public Integer getId() {
+	public K getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	@Override
+	public void setId(K id) {
 		this.id = id;
 	}
 
 	/**
-	 * @deprecated Unused property, the system uses now an UnitType requirement
-	 *             of type AMOUNT
+	 * @deprecated Unused property, the system uses now an UnitType requirement of
+	 *             type AMOUNT
 	 * 
 	 * @param value
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -68,37 +67,37 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 		moreSoldiersProduction += value;
 	}
 
-	public ImprovementBase addMorePrimaryResourceProduction(Float value) {
+	public ImprovementBase<K> addMorePrimaryResourceProduction(Float value) {
 		morePrimaryResourceProduction += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreSecondaryResourceProduction(Float value) {
+	public ImprovementBase<K> addMoreSecondaryResourceProduction(Float value) {
 		moreSecondaryResourceProduction += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreEnergyProduction(Float value) {
+	public ImprovementBase<K> addMoreEnergyProduction(Float value) {
 		moreEnergyProduction += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreChargeCapacity(Float value) {
+	public ImprovementBase<K> addMoreChargeCapacity(Float value) {
 		moreChargeCapacity += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreMissions(Float value) {
+	public ImprovementBase<K> addMoreMissions(Float value) {
 		moreMisions += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreUpgradeResearchSpeed(Float value) {
+	public ImprovementBase<K> addMoreUpgradeResearchSpeed(Float value) {
 		moreUpgradeResearchSpeed += value;
 		return this;
 	}
 
-	public ImprovementBase addMoreUnitBuildSpeed(Float value) {
+	public ImprovementBase<K> addMoreUnitBuildSpeed(Float value) {
 		moreUnitBuildSpeed += value;
 		return this;
 	}
@@ -108,8 +107,8 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	}
 
 	/**
-	 * @deprecated Unused property, the system uses now an UnitType requirement
-	 *             of type AMOUNT
+	 * @deprecated Unused property, the system uses now an UnitType requirement of
+	 *             type AMOUNT
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -119,8 +118,8 @@ public abstract class ImprovementBase implements SimpleIdEntity {
 	}
 
 	/**
-	 * @deprecated Unused property, the system uses now an UnitType requirement
-	 *             of type AMOUNT
+	 * @deprecated Unused property, the system uses now an UnitType requirement of
+	 *             type AMOUNT
 	 * @param moreSoldiersProduction
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

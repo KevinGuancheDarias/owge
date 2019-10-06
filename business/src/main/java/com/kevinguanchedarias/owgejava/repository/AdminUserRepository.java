@@ -12,6 +12,6 @@ import com.kevinguanchedarias.owgejava.entity.AdminUser;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface AdminUserRepository extends JpaRepository<AdminUser, Number> {
+public interface AdminUserRepository extends JpaRepository<AdminUser, Integer> {
 
 }

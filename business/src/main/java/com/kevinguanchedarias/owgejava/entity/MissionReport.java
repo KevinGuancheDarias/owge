@@ -13,11 +13,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "mission_reports")
-public class MissionReport implements SimpleIdEntity {
+public class MissionReport implements EntityWithId<Long> {
 	private static final long serialVersionUID = 129057515438080621L;
 
 	@Id
@@ -105,6 +103,7 @@ public class MissionReport implements SimpleIdEntity {
 		this.userReadDate = userReadDate;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

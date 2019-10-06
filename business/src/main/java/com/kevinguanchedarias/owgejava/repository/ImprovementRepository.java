@@ -14,6 +14,6 @@ import com.kevinguanchedarias.owgejava.entity.Improvement;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface ImprovementRepository extends JpaRepository<Improvement, Number>, Serializable {
+public interface ImprovementRepository extends JpaRepository<Improvement, Integer>, Serializable {
 
 }

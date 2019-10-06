@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -20,7 +21,7 @@ import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class AllianceBo implements WithNameBo<Alliance> {
+public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	private static final long serialVersionUID = 2632768998010477053L;
 
 	@Autowired
@@ -37,8 +38,18 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Override
-	public JpaRepository<Alliance, Number> getRepository() {
+	public JpaRepository<Alliance, Integer> getRepository() {
 		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<AllianceDto> getDtoClass() {
+		return AllianceDto.class;
 	}
 
 	/**
@@ -62,14 +73,12 @@ public class AllianceBo implements WithNameBo<Alliance> {
 
 	/**
 	 * Saves an alliance to the database <br>
-	 * <b>NOTICE:</b> Also sets the user alliance of the owner to the
-	 * <i>newly</i> created alliance
+	 * <b>NOTICE:</b> Also sets the user alliance of the owner to the <i>newly</i>
+	 * created alliance
 	 * 
 	 * @param alliance
-	 * @param invokerId
-	 *            User requesting the save
-	 * @throws ProgrammingException
-	 *             When the owner is null
+	 * @param invokerId User requesting the save
+	 * @throws ProgrammingException When the owner is null
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -102,11 +111,11 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * @param ownerId
 	 * @return Persisted user
 	 * @since 0.7.0
-	 * @throws SgtBackendInvalidInputException
-	 *             When you already belong to an alliance
+	 * @throws SgtBackendInvalidInputException When you already belong to an
+	 *                                         alliance
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public AllianceJoinRequest requestJoin(Number allianceId, Number ownerId) {
+	public AllianceJoinRequest requestJoin(Integer allianceId, Integer ownerId) {
 		Alliance alliance = findByIdOrDie(allianceId);
 		UserStorage user = userStorageBo.findByIdOrDie(ownerId);
 		if (user.getAlliance() != null) {
@@ -119,7 +128,7 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	}
 
 	@Transactional
-	public void acceptJoin(Number joinRequestId, Number invoker) {
+	public void acceptJoin(Integer joinRequestId, Number invoker) {
 		AllianceJoinRequest request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
 		checkInvokerIsOwner(request.getAlliance(), invoker);
 		if (request.getUser().getAlliance() == null) {
@@ -139,7 +148,7 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public void rejectJoin(Number joinRequestId, Number invoker) {
+	public void rejectJoin(Integer joinRequestId, Number invoker) {
 		AllianceJoinRequest request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
 		checkInvokerIsOwner(request.getAlliance(), invoker);
 		allianceJoinRequestBo.delete(request);
@@ -152,7 +161,7 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public void leave(Number userId) {
+	public void leave(Integer userId) {
 		userStorageBo.leave(userId);
 	}
 
@@ -174,8 +183,8 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * Deletes the alliance associated with the user
 	 * 
 	 * @param transientUser
-	 * @throws SgtBackendInvalidInputException
-	 *             When user is not the owner of the alliance
+	 * @throws SgtBackendInvalidInputException When user is not the owner of the
+	 *                                         alliance
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -207,8 +216,8 @@ public class AllianceBo implements WithNameBo<Alliance> {
 	 * 
 	 * @param alliance
 	 * @param userId
-	 * @throws SgtBackendInvalidInputException
-	 *             When user is not the owner of the alliance
+	 * @throws SgtBackendInvalidInputException When user is not the owner of the
+	 *                                         alliance
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

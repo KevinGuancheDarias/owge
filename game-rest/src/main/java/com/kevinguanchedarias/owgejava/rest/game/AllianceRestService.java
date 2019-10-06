@@ -124,19 +124,19 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	}
 
 	@PostMapping(value = "/requestJoin")
-	public void join(@RequestBody Map<String, Number> body) {
+	public void join(@RequestBody Map<String, Integer> body) {
 		checkMapEntry(body, ALLIANCE_ID_KEY);
 		allianceBo.requestJoin(body.get(ALLIANCE_ID_KEY), userStorageBo.findLoggedIn().getId());
 	}
 
 	@PostMapping(value = "/acceptJoinRequest")
-	public void acceptRequest(@RequestBody Map<String, Number> body) {
+	public void acceptRequest(@RequestBody Map<String, Integer> body) {
 		checkMapEntry(body, JOIN_REQUEST_ID);
 		allianceBo.acceptJoin(body.get(JOIN_REQUEST_ID), userStorageBo.findLoggedIn().getId());
 	}
 
 	@PostMapping(value = "/rejectJoinRequest")
-	public void rejectRequest(@RequestBody Map<String, Number> body) {
+	public void rejectRequest(@RequestBody Map<String, Integer> body) {
 		checkMapEntry(body, JOIN_REQUEST_ID);
 		allianceBo.rejectJoin(body.get(JOIN_REQUEST_ID), userStorageBo.findLoggedIn().getId());
 	}

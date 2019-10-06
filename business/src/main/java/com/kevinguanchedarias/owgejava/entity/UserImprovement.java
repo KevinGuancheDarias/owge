@@ -8,7 +8,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "user_improvements")
-public class UserImprovement extends ImprovementBase {
+public class UserImprovement extends ImprovementBase<Integer> {
 	private static final long serialVersionUID = -2450393006005853525L;
 
 	@OneToOne(fetch = FetchType.LAZY)

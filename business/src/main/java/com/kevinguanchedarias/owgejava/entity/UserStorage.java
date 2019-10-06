@@ -18,11 +18,9 @@ import javax.persistence.Transient;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "user_storage")
-public class UserStorage implements SimpleIdEntity {
+public class UserStorage implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 3718075595543259580L;
 
 	@Id
@@ -119,8 +117,7 @@ public class UserStorage implements SimpleIdEntity {
 	}
 
 	/**
-	 * Returns a new instance of {@link UserStorage} with only id and username
-	 * <br>
+	 * Returns a new instance of {@link UserStorage} with only id and username <br>
 	 * Potentially useful when wanting to remove ORM proxies
 	 * 
 	 * @return
@@ -138,6 +135,7 @@ public class UserStorage implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -280,8 +278,7 @@ public class UserStorage implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.0
-	 * @param alliance
-	 *            the alliance to set
+	 * @param alliance the alliance to set
 	 */
 	public void setAlliance(Alliance alliance) {
 		this.alliance = alliance;

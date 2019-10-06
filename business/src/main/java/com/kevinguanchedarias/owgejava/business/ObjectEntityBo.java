@@ -8,8 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Service;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
@@ -61,14 +62,15 @@ public class ObjectEntityBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@SuppressWarnings("unchecked")
-	public <E extends SimpleIdEntity> WithNameBo<E> findBo(ObjectEntity object) {
+	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> WithNameBo<K, E, D> findBo(
+			ObjectEntity object) {
 		String repositoryName = findRepository(object).getClass().getName();
 		String[] repositoryNameParts = repositoryName.split(".");
 		repositoryNameParts[3] = "business";
 		repositoryNameParts[4] = repositoryNameParts[4].replaceFirst("Repository", "Bo");
 		String boName = String.join(".", repositoryNameParts);
 		try {
-			Class<? extends WithNameBo<E>> clazz = (Class<? extends WithNameBo<E>>) Class.forName(boName);
+			Class<? extends WithNameBo<K, E, D>> clazz = (Class<? extends WithNameBo<K, E, D>>) Class.forName(boName);
 			return beanFactory.getBean(clazz);
 		} catch (ClassNotFoundException e) {
 			throw new ProgrammingException(

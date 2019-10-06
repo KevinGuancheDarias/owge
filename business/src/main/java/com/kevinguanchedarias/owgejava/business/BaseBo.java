@@ -9,15 +9,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
-@FunctionalInterface
-public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
-	public abstract JpaRepository<E, Number> getRepository();
+public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>>
+		extends Serializable {
+	public abstract JpaRepository<E, K> getRepository();
+
+	/**
+	 * 
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public abstract Class<D> getDtoClass();
 
 	public default List<E> findAll() {
 		return getRepository().findAll();
@@ -36,15 +46,15 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
-	public default E getOne(Number id) {
+	public default E getOne(K id) {
 		return getRepository().getOne(id);
 	}
 
-	public default E findById(Number id) {
+	public default E findById(K id) {
 		return getRepository().findOne(id);
 	}
 
-	public default E findByIdOrDie(Number id) {
+	public default E findByIdOrDie(K id) {
 		E retVal = getRepository().findOne(id);
 		if (retVal == null) {
 			throwNotFound(id);
@@ -74,7 +84,7 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public default void delete(Number id) {
+	public default void delete(K id) {
 		delete(findByIdOrDie(id));
 	}
 
@@ -82,7 +92,7 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 		return exists(entity.getId());
 	}
 
-	public default boolean exists(Number id) {
+	public default boolean exists(K id) {
 		return getRepository().exists(id);
 	}
 
@@ -102,7 +112,7 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public default void existsOrDie(Number id) {
+	public default void existsOrDie(K id) {
 		if (!exists(id)) {
 			throwNotFound(id);
 		}
@@ -138,7 +148,19 @@ public interface BaseBo<E extends SimpleIdEntity> extends Serializable {
 		}
 	}
 
-	private void throwNotFound(Number id) {
+	/**
+	 * Converts the entity to a DTO
+	 * 
+	 * @param entity
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default D toDto(E entity) {
+		return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
+	}
+
+	private void throwNotFound(K id) {
 		throw NotFoundException.fromAffected(SpringRepositoryUtil.findEntityClass(getRepository()), id);
 	}
 }

@@ -8,8 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  *
  * @since 0.8.0
@@ -17,7 +15,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "admin_users")
-public class AdminUser implements SimpleIdEntity {
+public class AdminUser implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 7181807205260800042L;
 
 	@Id
@@ -43,9 +41,9 @@ public class AdminUser implements SimpleIdEntity {
 
 	/**
 	 * @since 0.8.0
-	 * @param id
-	 *            the id to set
+	 * @param id the id to set
 	 */
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -60,8 +58,7 @@ public class AdminUser implements SimpleIdEntity {
 
 	/**
 	 * @since 0.8.0
-	 * @param username
-	 *            the username to set
+	 * @param username the username to set
 	 */
 	public void setUsername(String username) {
 		this.username = username;
@@ -69,8 +66,8 @@ public class AdminUser implements SimpleIdEntity {
 
 	/**
 	 * @since 0.8.0
-	 * @todo In the future, when we are ready to drop old admin panel, rename
-	 *       table column to "email" instead of "mail"
+	 * @todo In the future, when we are ready to drop old admin panel, rename table
+	 *       column to "email" instead of "mail"
 	 * @return the email
 	 */
 	public String getEmail() {
@@ -79,8 +76,7 @@ public class AdminUser implements SimpleIdEntity {
 
 	/**
 	 * @since 0.8.0
-	 * @param email
-	 *            the email to set
+	 * @param email the email to set
 	 */
 	public void setEmail(String email) {
 		this.email = email;
@@ -96,8 +92,7 @@ public class AdminUser implements SimpleIdEntity {
 
 	/**
 	 * @since 0.8.0
-	 * @param enabled
-	 *            the enabled to set
+	 * @param enabled the enabled to set
 	 */
 	public void setEnabled(Boolean enabled) {
 		this.enabled = enabled;

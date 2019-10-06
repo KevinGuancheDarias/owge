@@ -13,7 +13,7 @@ import com.kevinguanchedarias.owgejava.exception.NotFoundException;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public class AffectedItem {
-	private final Number id;
+	private final Object id;
 	private final Class<?> type;
 
 	/**
@@ -45,7 +45,7 @@ public class AffectedItem {
 	 * @since 0.8.0
 	 * @return the id
 	 */
-	public Number getId() {
+	public Object getId() {
 		return id;
 	}
 

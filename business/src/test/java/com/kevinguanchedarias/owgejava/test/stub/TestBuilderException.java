@@ -19,7 +19,6 @@ public class TestBuilderException extends CommonException {
 	 */
 	public TestBuilderException(GameBackendErrorPojo gameBackendErrorPojo, Exception cause) {
 		super(gameBackendErrorPojo, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -29,7 +28,6 @@ public class TestBuilderException extends CommonException {
 	 */
 	public TestBuilderException(GameBackendErrorPojo gameBackendErrorPojo) {
 		super(gameBackendErrorPojo);
-		// TODO Auto-generated constructor stub
 	}
 
 }

@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-public class FactionDto {
+import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
+
+public class FactionDto implements WithDtoFromEntityTrait<Faction> {
 
 	private Integer id;
 	private Boolean hidden;

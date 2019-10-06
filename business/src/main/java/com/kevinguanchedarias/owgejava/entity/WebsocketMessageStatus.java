@@ -16,11 +16,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "websocket_messages_status")
-public class WebsocketMessageStatus implements SimpleIdEntity {
+public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 	private static final long serialVersionUID = 5440664489889906269L;
 
 	@Id
@@ -58,6 +56,7 @@ public class WebsocketMessageStatus implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(BigInteger id) {
 		this.id = id;
 	}
@@ -122,8 +121,8 @@ public class WebsocketMessageStatus implements SimpleIdEntity {
 
 	/**
 	 * True if it's required to have userAck defined <br>
-	 * If required, should <b>not</b> consider message as delivered unless the
-	 * user ack is defined
+	 * If required, should <b>not</b> consider message as delivered unless the user
+	 * ack is defined
 	 * 
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

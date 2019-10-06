@@ -143,7 +143,7 @@ public class RequirementBoTest extends TestCommon {
 
 		Upgrade upgrade = new Upgrade();
 		upgrade.setId(1);
-		Mockito.when(upgradeBo.findById(Mockito.any(Number.class))).thenReturn(upgrade);
+		Mockito.when(upgradeBo.findById(Mockito.any(Integer.class))).thenReturn(upgrade);
 
 		ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
 		obtainedUpgrade.setLevel(4);
@@ -151,8 +151,8 @@ public class RequirementBoTest extends TestCommon {
 
 		ObjectRelation validRelation = prepareRelationWithOneRequirement(validRelationId, upgradeId, validLevel,
 				RequirementTypeEnum.UPGRADE_LEVEL, RequirementTargetObject.UNIT);
-		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(4, 20L, 7L, RequirementTypeEnum.UPGRADE_LEVEL,
-				RequirementTargetObject.UNIT);
+		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(4, 20L, 7L,
+				RequirementTypeEnum.UPGRADE_LEVEL, RequirementTargetObject.UNIT);
 
 		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.UPGRADE_LEVEL))
 				.thenReturn(relations);
@@ -198,8 +198,10 @@ public class RequirementBoTest extends TestCommon {
 	public void shouldRemoveFromUnlockedRelationsWhenRelationRequirementsAreNotLongerMet() {
 		List<ObjectRelation> relations = new ArrayList<>();
 		ObjectRelation validRelation = prepareRelationWithOneRequirement(1, 1L, RequirementTypeEnum.BEEN_RACE);
-		unlockedRelationsStore.add(prepareUnlockedRelationWithOneRequirement(2, 2L, RequirementTypeEnum.HOME_GALAXY, user));
-		unlockedRelationsStore.add(prepareUnlockedRelationWithOneRequirement(3, 2L, RequirementTypeEnum.BEEN_RACE, user));
+		unlockedRelationsStore
+				.add(prepareUnlockedRelationWithOneRequirement(2, 2L, RequirementTypeEnum.HOME_GALAXY, user));
+		unlockedRelationsStore
+				.add(prepareUnlockedRelationWithOneRequirement(3, 2L, RequirementTypeEnum.BEEN_RACE, user));
 		UnlockedRelation multipleOne = prepareUnlockedRelationWithOneRequirement(4, 2L, RequirementTypeEnum.BEEN_RACE,
 				user);
 		multipleOne.getRelation().getRequirements()

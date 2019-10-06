@@ -20,7 +20,7 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table(name = "time_specials")
-public class TimeSpecial extends CommonEntity<Integer> implements EntityWithImprovements {
+public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -4022925345261224355L;
 
 	private Long duration;

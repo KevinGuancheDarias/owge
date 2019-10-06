@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -19,7 +20,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 
 @Component
-public class UnitTypeBo implements WithNameBo<UnitType> {
+public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	private static final long serialVersionUID = 1064115662505668879L;
 
 	@Autowired
@@ -32,14 +33,24 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 	private PlanetBo planetBo;
 
 	@Override
-	public JpaRepository<UnitType, Number> getRepository() {
+	public JpaRepository<UnitType, Integer> getRepository() {
 		return unitTypeRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<UnitTypeDto> getDtoClass() {
+		return UnitTypeDto.class;
 	}
 
 	/**
 	 * Finds the max amount of a certain unit type the given user can have <br>
-	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units
-	 * to find the improvement</b>
+	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
+	 * find the improvement</b>
 	 * 
 	 * @param user
 	 * @param typeId
@@ -52,8 +63,8 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 		Long retVal = 0L;
 		if (type.hasMaxCount()) {
 			retVal = improvementUnitTypeBo
-					.computeImprovementValue(type.getMaxCount(),
-							improvementUnitTypeBo.sumUnitTypeImprovementByUserAndImprovementType(user, ImprovementTypeEnum.AMOUNT))
+					.computeImprovementValue(type.getMaxCount(), improvementUnitTypeBo
+							.sumUnitTypeImprovementByUserAndImprovementType(user, ImprovementTypeEnum.AMOUNT))
 					.longValue();
 		}
 		return retVal;
@@ -62,21 +73,16 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 	/**
 	 * Test if the specified unit type can run the specified mission
 	 * 
-	 * @param user
-	 *            user that is going to run the mission (used to test planet
-	 *            ownership... if required)
-	 * @param targetPlanet
-	 *            Target mission planet (used to test planet ownership... if
-	 *            required)
-	 * @param unitType
-	 *            Unit type to test
-	 * @param type
-	 *            Mission to execute
+	 * @param user         user that is going to run the mission (used to test
+	 *                     planet ownership... if required)
+	 * @param targetPlanet Target mission planet (used to test planet ownership...
+	 *                     if required)
+	 * @param unitType     Unit type to test
+	 * @param type         Mission to execute
 	 * @return
-	 * @throws SgtCorruptDatabaseException
-	 *             Value in unit types database table is not an accepted value
-	 * @throws SgtBackendInvalidInputException
-	 *             Mission is not supported
+	 * @throws SgtCorruptDatabaseException     Value in unit types database table is
+	 *                                         not an accepted value
+	 * @throws SgtBackendInvalidInputException Mission is not supported
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, UnitType unitType, MissionType type) {
@@ -105,4 +111,5 @@ public class UnitTypeBo implements WithNameBo<UnitType> {
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {
 		return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
 	}
+
 }

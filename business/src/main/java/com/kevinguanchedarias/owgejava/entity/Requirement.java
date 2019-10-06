@@ -6,15 +6,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * @author Kevin Guanche Darias
  *
  */
 @Entity
 @Table(name = "requirements")
-public class Requirement implements SimpleIdEntity {
+public class Requirement implements EntityWithId<Integer> {
 
 	private static final long serialVersionUID = 418080945672588722L;
 
@@ -30,6 +28,7 @@ public class Requirement implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

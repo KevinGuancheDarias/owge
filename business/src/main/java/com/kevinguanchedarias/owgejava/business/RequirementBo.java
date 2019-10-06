@@ -14,11 +14,12 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
+import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
@@ -141,8 +142,8 @@ public class RequirementBo implements Serializable {
 
 	public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
 		return requirementDao
-				.findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue()).stream()
-				.filter(current -> current.getObject().getDescription().equals(ObjectType.UNIT.name()))
+				.findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue())
+				.stream().filter(current -> current.getObject().getDescription().equals(ObjectType.UNIT.name()))
 				.map(current -> createUnitUpgradeRequiements(objectRelationBo.unboxObjectRelation(current),
 						current.getRequirements()))
 				.collect(Collectors.toList());
@@ -159,7 +160,8 @@ public class RequirementBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@SuppressWarnings("unchecked")
-	public <E extends SimpleIdEntity> WithNameBo<E> findBoByRequirement(RequirementTypeEnum requirementType) {
+	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> WithNameBo<K, E, D> findBoByRequirement(
+			RequirementTypeEnum requirementType) {
 		Class<?> clazz;
 		switch (requirementType) {
 		case UPGRADE_LEVEL:
@@ -189,7 +191,7 @@ public class RequirementBo implements Serializable {
 			throw new SgtBackendNotImplementedException(
 					"Support for " + requirementType.name() + " has not been added yet");
 		}
-		return (WithNameBo<E>) beanFactory.getBean(clazz);
+		return (WithNameBo<K, E, D>) beanFactory.getBean(clazz);
 	}
 
 	/**
@@ -211,7 +213,8 @@ public class RequirementBo implements Serializable {
 	 */
 	@Transactional
 	public void triggerFactionSelection(UserStorage user) {
-		processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE), user);
+		processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE),
+				user);
 	}
 
 	/**
@@ -222,7 +225,8 @@ public class RequirementBo implements Serializable {
 	 */
 	@Transactional
 	public void triggerHomeGalaxySelection(UserStorage user) {
-		processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.HOME_GALAXY), user);
+		processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.HOME_GALAXY),
+				user);
 	}
 
 	/**
@@ -252,9 +256,8 @@ public class RequirementBo implements Serializable {
 	@Transactional
 	public void triggerUnitBuildCompleted(UserStorage user, Unit unit) {
 		long count = obtainedUnitBo.countByUserAndUnitId(user, unit.getId());
-		processRelationList(
-				requirementDao.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT, unit.getId().longValue()),
-				user);
+		processRelationList(requirementDao.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT,
+				unit.getId().longValue()), user);
 		processRelationList(requirementDao.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
 				RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), count), user);
 	}
@@ -316,7 +319,8 @@ public class RequirementBo implements Serializable {
 		requirementInformation.setThirdValue(input.getThirdValue());
 		requirementInformation.setRelation(objectRelationBo.findObjectRelationOrCreate(
 				ObjectEnum.valueOf(input.getRelation().getObjectCode()), input.getRelation().getReferenceId()));
-		requirementInformation.setRequirement(findOneByCode(RequirementTypeEnum.valueOf(input.getRequirement().getCode())));
+		requirementInformation
+				.setRequirement(findOneByCode(RequirementTypeEnum.valueOf(input.getRequirement().getCode())));
 		requirementInformation = requirementInformationBo.save(requirementInformation);
 		return dtoUtilService.dtoFromEntity(RequirementInformationDto.class, requirementInformation);
 	}

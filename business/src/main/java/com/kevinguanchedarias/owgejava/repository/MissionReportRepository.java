@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 
-public interface MissionReportRepository extends JpaRepository<MissionReport, Number>, Serializable {
+public interface MissionReportRepository extends JpaRepository<MissionReport, Long>, Serializable {
 
 	List<MissionReport> findByUserIdOrderByIdDesc(Integer userId, Pageable pageRequest);
 

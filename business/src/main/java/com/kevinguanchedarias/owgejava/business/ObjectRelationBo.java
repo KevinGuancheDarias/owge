@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -24,7 +25,7 @@ import com.kevinguanchedarias.owgejava.repository.WithNameRepository;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
 @Component
-public class ObjectRelationBo implements BaseBo<ObjectRelation> {
+public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectRelationDto> {
 	private static final long serialVersionUID = -8660185836978327225L;
 	private static final Logger LOG = Logger.getLogger(RequirementInformationBo.class);
 
@@ -33,6 +34,21 @@ public class ObjectRelationBo implements BaseBo<ObjectRelation> {
 
 	@Autowired
 	private ObjectRelationsRepository objectRelationsRepository;
+
+	@Override
+	public JpaRepository<ObjectRelation, Integer> getRepository() {
+		return objectRelationsRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<ObjectRelationDto> getDtoClass() {
+		return ObjectRelationDto.class;
+	}
 
 	/**
 	 * @deprecated Use {@link ObjectEnum} instead as first parameter
@@ -182,8 +198,8 @@ public class ObjectRelationBo implements BaseBo<ObjectRelation> {
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public List<ObjectRelation> findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(RequirementTypeEnum type,
-			Long secondValue, Long thirdValue) {
+	public List<ObjectRelation> findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
+			RequirementTypeEnum type, Long secondValue, Long thirdValue) {
 		return objectRelationsRepository
 				.findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
 						type.name(), secondValue, thirdValue);
@@ -204,10 +220,5 @@ public class ObjectRelationBo implements BaseBo<ObjectRelation> {
 					+ relation.getReferenceId() + " para el repositorio " + object.getRepository());
 		}
 
-	}
-
-	@Override
-	public JpaRepository<ObjectRelation, Number> getRepository() {
-		return objectRelationsRepository;
 	}
 }

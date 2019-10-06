@@ -17,7 +17,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
  * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface AllianceJoinRequestRepository extends JpaRepository<AllianceJoinRequest, Number>, Serializable {
+public interface AllianceJoinRequestRepository extends JpaRepository<AllianceJoinRequest, Integer>, Serializable {
 	AllianceJoinRequest findOneByUserAndAlliance(UserStorage user, Alliance alliance);
 
 	List<AllianceJoinRequest> findByAlliance(Alliance alliance);

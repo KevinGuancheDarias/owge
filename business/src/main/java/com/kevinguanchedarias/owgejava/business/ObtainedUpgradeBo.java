@@ -7,28 +7,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 
 @Component
-public class ObtainedUpgradeBo implements BaseBo<ObtainedUpgrade> {
+public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto> {
 	private static final long serialVersionUID = 2294363946431892708L;
 
 	@Autowired
 	private ObtainedUpgradeRepository obtainedUpgradeRepository;
 
 	@Override
-	public JpaRepository<ObtainedUpgrade, Number> getRepository() {
+	public JpaRepository<ObtainedUpgrade, Long> getRepository() {
 		return obtainedUpgradeRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<ObtainedUpgradeDto> getDtoClass() {
+		return ObtainedUpgradeDto.class;
 	}
 
 	/**
 	 * Returns obtained upgrades by given user
 	 * 
-	 * @param userId
-	 *            id of the user
+	 * @param userId id of the user
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -43,10 +53,8 @@ public class ObtainedUpgradeBo implements BaseBo<ObtainedUpgrade> {
 	/**
 	 * Does user has the given upgrade obtained?
 	 * 
-	 * @param userId
-	 *            id of the user
-	 * @param upgradeId
-	 *            id of the asked upgrade
+	 * @param userId    id of the user
+	 * @param upgradeId id of the asked upgrade
 	 * @return true if upgrade has been obtained
 	 * @author Kevin Guanche Darias
 	 */
@@ -70,8 +78,7 @@ public class ObtainedUpgradeBo implements BaseBo<ObtainedUpgrade> {
 	 * user obtained upgrades
 	 * 
 	 * @param user
-	 * @param type
-	 *            The expected type
+	 * @param type The expected type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

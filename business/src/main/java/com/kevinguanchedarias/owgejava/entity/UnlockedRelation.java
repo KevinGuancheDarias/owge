@@ -12,11 +12,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "unlocked_relation")
-public class UnlockedRelation implements SimpleIdEntity {
+public class UnlockedRelation implements EntityWithId<Long> {
 	private static final long serialVersionUID = -5112848052048425078L;
 
 	@Id
@@ -37,6 +35,7 @@ public class UnlockedRelation implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

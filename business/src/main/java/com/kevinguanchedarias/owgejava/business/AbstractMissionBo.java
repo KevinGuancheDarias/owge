@@ -21,6 +21,7 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -39,7 +40,7 @@ import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public abstract class AbstractMissionBo implements BaseBo<Mission> {
+public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
 	private static final long serialVersionUID = 3252246009672348672L;
 
 	private static final Integer MAX_ATTEMPS = 3;
@@ -94,8 +95,18 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	public abstract Logger getLogger();
 
 	@Override
-	public JpaRepository<Mission, Number> getRepository() {
+	public JpaRepository<Mission, Long> getRepository() {
 		return missionRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<MissionDto> getDtoClass() {
+		return MissionDto.class;
 	}
 
 	@Transactional
@@ -126,8 +137,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	}
 
 	/**
-	 * Finds a <b>not resolved </b>mission by userId, mission type and target
-	 * planet
+	 * Finds a <b>not resolved </b>mission by userId, mission type and target planet
 	 * 
 	 * @param userId
 	 * @param type
@@ -162,8 +172,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	 * Checks if the user exists (in this universe), throws if not
 	 * 
 	 * @param userId
-	 * @throws UserNotFoundException
-	 *             If user doesn't exists
+	 * @throws UserNotFoundException If user doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	protected void checkUserExists(Integer userId) {
@@ -186,8 +195,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	}
 
 	/**
-	 * @param type
-	 *            enum based mission type
+	 * @param type enum based mission type
 	 * @return persisted mission type
 	 * @author Kevin Guanche Darias
 	 */
@@ -200,11 +208,9 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	}
 
 	/**
-	 * Returns the date that the mission will have according to the required
-	 * time
+	 * Returns the date that the mission will have according to the required time
 	 * 
-	 * @param requiredTime
-	 *            ammount of time required (in seconds)
+	 * @param requiredTime ammount of time required (in seconds)
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -241,8 +247,7 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	/**
 	 * Defines the mission as resolved and saves it to the database
 	 * 
-	 * @param mission
-	 *            Mission to persist
+	 * @param mission Mission to persist
 	 * @return Persisted entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -254,10 +259,8 @@ public abstract class AbstractMissionBo implements BaseBo<Mission> {
 	/**
 	 * Returns true if the input mission is of the expected type
 	 * 
-	 * @param mission
-	 *            input mission
-	 * @param type
-	 *            expected type
+	 * @param mission input mission
+	 * @param type    expected type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

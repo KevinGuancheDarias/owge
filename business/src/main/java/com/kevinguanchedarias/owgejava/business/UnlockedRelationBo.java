@@ -8,15 +8,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 
 @Service
 @Transactional
-public class UnlockedRelationBo implements BaseBo<UnlockedRelation> {
+public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFromEntity<UnlockedRelation>> {
 	private static final long serialVersionUID = 8586133814355378376L;
 
 	@Autowired
@@ -26,8 +28,18 @@ public class UnlockedRelationBo implements BaseBo<UnlockedRelation> {
 	private ObjectRelationBo objectRelationBo;
 
 	@Override
-	public JpaRepository<UnlockedRelation, Number> getRepository() {
+	public JpaRepository<UnlockedRelation, Long> getRepository() {
 		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<DtoFromEntity<UnlockedRelation>> getDtoClass() {
+		throw new SgtBackendNotImplementedException("UnlockedRelation doesn't have a dto ... for now =/");
 	}
 
 	public UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId) {
@@ -83,4 +95,5 @@ public class UnlockedRelationBo implements BaseBo<UnlockedRelation> {
 	public <E> List<E> unboxToTargetEntity(List<UnlockedRelation> unlockedRelations) {
 		return objectRelationBo.unboxObjectRelation(unboxUnlockedRelationList(unlockedRelations));
 	}
+
 }

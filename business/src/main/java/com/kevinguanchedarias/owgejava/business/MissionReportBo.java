@@ -13,7 +13,7 @@ import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
 
 @Service
-public class MissionReportBo implements BaseBo<MissionReport> {
+public class MissionReportBo implements BaseBo<Long, MissionReport, MissionReportDto> {
 	private static final long serialVersionUID = -3125120788150047385L;
 
 	private static final Integer DEFAULT_PAGE_SIZE = 15;
@@ -25,8 +25,18 @@ public class MissionReportBo implements BaseBo<MissionReport> {
 	private MissionBo missionBo;
 
 	@Override
-	public JpaRepository<MissionReport, Number> getRepository() {
+	public JpaRepository<MissionReport, Long> getRepository() {
 		return missionReportRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<MissionReportDto> getDtoClass() {
+		return MissionReportDto.class;
 	}
 
 	public List<MissionReportDto> findPaginatedByUserId(Integer userId, Integer page) {

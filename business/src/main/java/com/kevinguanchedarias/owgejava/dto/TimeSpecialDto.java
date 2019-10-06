@@ -13,7 +13,7 @@ import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public class TimeSpecialDto extends AbstractCommonDtoWithNumericId<Integer>
+public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial>
 		implements WithDtoFromEntityTrait<TimeSpecial>, DtoWithImprovements {
 
 	private Long duration;
@@ -33,7 +33,7 @@ public class TimeSpecialDto extends AbstractCommonDtoWithNumericId<Integer>
 			improvement = new ImprovementDto();
 			improvement.dtoFromEntity(entity.getImprovement());
 		}
-		WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+		super.dtoFromEntity(entity);
 	}
 
 	/**

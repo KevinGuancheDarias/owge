@@ -13,11 +13,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "obtained_upgrades")
-public class ObtainedUpgrade implements SimpleIdEntity {
+public class ObtainedUpgrade implements EntityWithId<Long> {
 	private static final long serialVersionUID = 2859853666452009827L;
 
 	@Id
@@ -45,6 +43,7 @@ public class ObtainedUpgrade implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

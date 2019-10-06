@@ -3,26 +3,20 @@
  */
 package com.kevinguanchedarias.owgejava.rest.trait;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
+import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
-import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.rest.AbstractCrudRestService;
+import com.kevinguanchedarias.owgejava.pojo.SupportedOperations;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
@@ -33,7 +27,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @todo Make the owned things work
  * @param <N> The numeric id type used for the entity (this class doesn't
  *            support non numeric id classes)
- * @param <E> Target entity class <b>MUST implement {@link SimpleIdEntity} </b>
+ * @param <E> Target entity class <b>MUST implement {@link EntityWithId} </b>
  * @param <S> Bo service used for crud operations, <b>MUST implement
  *            {@link BaseBo}</b>
  * @param <D> Target DTO class (used to receive&send from/to the browser as
@@ -41,61 +35,12 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface CrudRestServiceTrait<N extends Number, E extends SimpleIdEntity, S extends BaseBo<E>, D extends DtoFromEntity<E>>
-		extends CrudRestServiceNoOpEventsTrait<D, E> {
+public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
+		extends CrudRestServiceNoOpEventsTrait<D, E>, WithReadRestServiceTrait<N, E, S, D>,
+		WithDeleteRestServiceTrait<N, E, S, D> {
 
-	/**
-	 * Returns the class used as entity
-	 * 
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Class<E> getEntityClass();
-
-	/**
-	 * Returns the service associated with the entity (usually "autowired")
-	 * 
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public S getBo();
-
-	/**
-	 * Returns the class used as DTO for the entities returned by the Business
-	 * object
-	 * 
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Class<D> getDtoClass();
-
-	/**
-	 * Returns the service used to convert entities to DTOS <br>
-	 * 
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public DtoUtilService getDtoUtilService();
-
-	/**
-	 * GET mapping that returns all entities (converted to the Dto)
-	 * 
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@GetMapping
-	public default List<D> findAll() {
-		if (!getSupportedOperationsBuilder().build().canRead()) {
-			AccessDeniedException.fromUnsupportedOperation();
-		}
-		return getDtoUtilService().convertEntireArray(getDtoClass(), getBo().findAll()).stream()
-				.map(current -> beforeRequestEnd(current).orElse(current)).collect(Collectors.toList());
-	}
+	@Override
+	public RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
 
 	/**
 	 * POST mapping that saves a new entity (expects a DTO as request body)
@@ -110,19 +55,19 @@ public interface CrudRestServiceTrait<N extends Number, E extends SimpleIdEntity
 	@PostMapping
 	@Transactional
 	public default D saveNew(@RequestBody D entityDto) {
-		if (!getSupportedOperationsBuilder().build().canCreate()) {
+		if (!findSupportedOperations().canCreate()) {
 			throw AccessDeniedException.fromUnsupportedOperation();
 		}
 		D parsedDto = beforeConversion(entityDto).orElse(entityDto);
 		E transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
-		E parsedEntity = beforeSave(transientEntity).orElse(transientEntity);
+		E parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
 		if (hasId(parsedEntity)) {
 			throw new SgtBackendInvalidInputException(
 					"New entities can't have an id, use PUT instead if you wish to update an entity");
 		}
 		E savedEntity = getBo().save(parsedEntity);
 		D finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
-		return beforeRequestEnd(finalDto).orElse(finalDto);
+		return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
 	}
 
 	/**
@@ -139,39 +84,45 @@ public interface CrudRestServiceTrait<N extends Number, E extends SimpleIdEntity
 	@PutMapping("{id}")
 	@Transactional
 	public default D saveExisting(@PathVariable() N id, @RequestBody D entityDto) {
-		if (!getSupportedOperationsBuilder().build().canUpdateAny()) {
+		if (!findSupportedOperations().canUpdateAny()) {
 			throw AccessDeniedException.fromUnsupportedOperation();
 		}
 		D parsedDto = beforeConversion(entityDto).orElse(entityDto);
 		E transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
-		E parsedEntity = beforeSave(transientEntity).orElse(transientEntity);
+		E parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
 		if (!hasId(parsedEntity) || !id.equals(parsedEntity.getId())) {
 			throw new SgtBackendInvalidInputException("Id not specified, or path id doesn't match body id");
 		}
 		E savedEntity = getBo().save(parsedEntity);
 		D finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
-		return beforeRequestEnd(finalDto).orElse(finalDto);
-	}
-
-	/**
-	 * DELETE mapping to delete an entity
-	 * 
-	 * @throws NotFoundException If there is not an entity with the specified
-	 *                           <i>id</i>
-	 * @param id The path param id
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@DeleteMapping("{id}")
-	public default ResponseEntity<Void> delete(@PathVariable() N id) {
-		if (!getSupportedOperationsBuilder().build().canDeleteAny()) {
-			throw AccessDeniedException.fromUnsupportedOperation();
-		}
-		getBo().delete(id);
-		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
 	}
 
 	private boolean hasId(E transientEntity) {
 		return transientEntity.getId() != null && !transientEntity.getId().equals(0);
+	}
+
+	private DtoUtilService getDtoUtilService() {
+		return getBeanFactory().getBean(DtoUtilService.class);
+	}
+
+	private S getBo() {
+		return getRestCrudConfigBuilder().build().getBoService();
+	}
+
+	private BeanFactory getBeanFactory() {
+		return getRestCrudConfigBuilder().build().getBeanFactory();
+	}
+
+	private Class<D> getDtoClass() {
+		return getRestCrudConfigBuilder().build().getDtoClass();
+	}
+
+	private Class<E> getEntityClass() {
+		return getRestCrudConfigBuilder().build().getEntityClass();
+	}
+
+	private SupportedOperations findSupportedOperations() {
+		return getRestCrudConfigBuilder().build().getSupportedOperationsBuilder().build();
 	}
 }

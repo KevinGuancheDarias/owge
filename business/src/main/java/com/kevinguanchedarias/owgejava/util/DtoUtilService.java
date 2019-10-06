@@ -89,7 +89,7 @@ public class DtoUtilService implements Serializable {
 	 * @param <P>      Target DTO (guessed from second argument)
 	 * @param <E>      Entity type
 	 * @param instance Target <b>existing</b> entity
-	 * @param dto     Source DTO
+	 * @param dto      Source DTO
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

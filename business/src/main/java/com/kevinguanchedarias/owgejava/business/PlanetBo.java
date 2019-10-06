@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -21,7 +22,7 @@ import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 
 @Component
-public class PlanetBo implements WithNameBo<Planet> {
+public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	private static final long serialVersionUID = 3000986169771610777L;
 
 	@Autowired
@@ -46,8 +47,18 @@ public class PlanetBo implements WithNameBo<Planet> {
 	private transient EntityManager entityManager;
 
 	@Override
-	public JpaRepository<Planet, Number> getRepository() {
+	public JpaRepository<Planet, Long> getRepository() {
 		return planetRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<PlanetDto> getDtoClass() {
+		return PlanetDto.class;
 	}
 
 	@Override
@@ -56,8 +67,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 	}
 
 	/**
-	 * @param galaxyId
-	 *            if null will be a random galaxy
+	 * @param galaxyId if null will be a random galaxy
 	 * @return Random planet fom galaxy id
 	 * @throws SgtBackendUniverseIsFull
 	 * @author Kevin Guanche Darias
@@ -85,8 +95,7 @@ public class PlanetBo implements WithNameBo<Planet> {
 
 	/**
 	 * 
-	 * @param user
-	 *            the owner of the planets
+	 * @param user the owner of the planets
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -210,4 +219,5 @@ public class PlanetBo implements WithNameBo<Planet> {
 				&& missionBo.findRunningUnitBuild(invokerId, Double.valueOf(planetId)) == null
 				&& !missionBo.existsByTargetPlanetAndType(planetId, MissionType.RETURN_MISSION);
 	}
+
 }

@@ -10,9 +10,9 @@ public class NotFoundException extends CommonException {
 	private static final String GENERIC_I18N_STRING = "I18N_ERR_GENERIC_ITEM_NOT_FOUND";
 
 	private final Class<?> affectedItemType;
-	private final Number affectedItemId;
+	private final Object affectedItemId;
 
-	public static NotFoundException fromAffected(Class<?> clazz, Number id) {
+	public static NotFoundException fromAffected(Class<?> clazz, Object id) {
 		return new NotFoundException(GENERIC_I18N_STRING, clazz, id);
 	}
 
@@ -47,7 +47,7 @@ public class NotFoundException extends CommonException {
 		affectedItemId = null;
 	}
 
-	protected NotFoundException(String message, Class<?> affectedItemType, Number affectedItemId) {
+	protected NotFoundException(String message, Class<?> affectedItemType, Object affectedItemId) {
 		super(message);
 		this.affectedItemType = affectedItemType;
 		this.affectedItemId = affectedItemId;
@@ -64,10 +64,9 @@ public class NotFoundException extends CommonException {
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @return the affectedItemId
 	 */
-	public Number getAffectedItemId() {
+	public Object getAffectedItemId() {
 		return affectedItemId;
 	}
 

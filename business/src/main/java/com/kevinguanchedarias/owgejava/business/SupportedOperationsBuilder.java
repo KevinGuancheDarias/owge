@@ -46,7 +46,7 @@ public class SupportedOperationsBuilder {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public SupportedOperationsBuilder withFullPrivilege() {
-		withRead().withReadHidden().withReadOwned().withCreate().withUpdateOwned().withUpdateAny().withDeleteOwned()
+		withReadAll().withReadHidden().withReadOwned().withCreate().withUpdateOwned().withUpdateAny().withDeleteOwned()
 				.withDeleteAny();
 		return this;
 	}
@@ -57,8 +57,19 @@ public class SupportedOperationsBuilder {
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public SupportedOperationsBuilder withRead() {
-		supportedOperations.setRead(true);
+	public SupportedOperationsBuilder withReadAll() {
+		supportedOperations.setReadAll(true);
+		return this;
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SupportedOperationsBuilder withReadById() {
+		supportedOperations.setReadById(true);
 		return this;
 	}
 

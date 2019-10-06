@@ -13,11 +13,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "galaxies")
-public class Galaxy implements SimpleIdEntity {
+public class Galaxy implements EntityWithId<Integer> {
 	private static final long serialVersionUID = -230625496064517670L;
 
 	@Id
@@ -40,6 +38,7 @@ public class Galaxy implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

@@ -11,7 +11,8 @@ package com.kevinguanchedarias.owgejava.pojo;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public class SupportedOperations {
-	private boolean read;
+	private boolean readAll;
+	private boolean readById;
 	private boolean readOwned;
 	private boolean readHidden;
 	private boolean create;
@@ -24,16 +25,32 @@ public class SupportedOperations {
 	 * @since 0.8.0
 	 * @return the read
 	 */
-	public boolean canRead() {
-		return read;
+	public boolean canReadAll() {
+		return readAll;
 	}
 
 	/**
 	 * @since 0.8.0
 	 * @param read the read to set
 	 */
-	public void setRead(boolean read) {
-		this.read = read;
+	public void setReadAll(boolean read) {
+		this.readAll = read;
+	}
+
+	/**
+	 * @since 0.8.0
+	 * @return the readById
+	 */
+	public boolean canReadById() {
+		return readById;
+	}
+
+	/**
+	 * @since 0.8.0
+	 * @param readById the readById to set
+	 */
+	public void setReadById(boolean readById) {
+		this.readById = readById;
 	}
 
 	/**

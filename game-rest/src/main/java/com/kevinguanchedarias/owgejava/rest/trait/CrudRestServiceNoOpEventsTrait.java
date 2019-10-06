@@ -8,8 +8,6 @@ import java.util.Optional;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
-
 /**
  * Defines the default actions for the events (and the supportedOperations
  *
@@ -19,8 +17,6 @@ import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public interface CrudRestServiceNoOpEventsTrait<D, E> {
-
-	public SupportedOperationsBuilder getSupportedOperationsBuilder();
 
 	/**
 	 * Can be used to transform the DTO prior to converting it to an entity
@@ -47,7 +43,7 @@ public interface CrudRestServiceNoOpEventsTrait<D, E> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS)
-	public default Optional<E> beforeSave(E entity) {
+	public default Optional<E> beforeSave(D parsedDto, E entity) {
 		// By default do nothing before save
 		return Optional.of(entity);
 	}
@@ -75,7 +71,7 @@ public interface CrudRestServiceNoOpEventsTrait<D, E> {
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public default Optional<D> beforeRequestEnd(D dto) {
+	public default Optional<D> beforeRequestEnd(D dto, E savedEntity) {
 		// By default do not <b>transform</b> the dto prior to submission
 		return Optional.of(dto);
 	}

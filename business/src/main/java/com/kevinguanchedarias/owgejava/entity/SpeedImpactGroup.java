@@ -7,11 +7,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "speed_impact_groups")
-public class SpeedImpactGroup implements SimpleIdEntity {
+public class SpeedImpactGroup implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 8120163868349636675L;
 
 	@Id
@@ -44,6 +42,7 @@ public class SpeedImpactGroup implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

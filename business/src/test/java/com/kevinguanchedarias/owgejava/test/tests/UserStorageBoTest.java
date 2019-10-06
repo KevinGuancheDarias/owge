@@ -67,7 +67,7 @@ public class UserStorageBoTest extends TestCommon {
 	@Before
 	public void init() {
 		// By default always return faction exists
-		Mockito.when(factionBo.exists(Mockito.any(Number.class))).thenReturn(true);
+		Mockito.when(factionBo.exists(Mockito.any(Integer.class))).thenReturn(true);
 	}
 
 	@Test
@@ -107,7 +107,7 @@ public class UserStorageBoTest extends TestCommon {
 	@Test(expected = SgtFactionNotFoundException.class)
 	public void shouldThrowExceptionWhenSubscribingBecauseFactionDoesNotExists() {
 		fakeFinLoggedInUser(null);
-		Mockito.when(factionBo.exists(Mockito.any(Number.class))).thenReturn(false);
+		Mockito.when(factionBo.exists(Mockito.any(Integer.class))).thenReturn(false);
 		userStorageBo.subscribe(1);
 	}
 
@@ -121,7 +121,7 @@ public class UserStorageBoTest extends TestCommon {
 	@Test
 	public void shouldReturnTrueWhenSubscribingBecauseUserExists() {
 		fakeFinLoggedInUser(null);
-		Mockito.when(factionBo.findById(Mockito.any(Number.class))).thenReturn(prepareValidFaction());
+		Mockito.when(factionBo.findById(Mockito.any(Integer.class))).thenReturn(prepareValidFaction());
 		Mockito.when(planetBo.findRandomPlanet(null)).thenReturn(new Planet());
 		Mockito.when(userStorageRepository.exists(Mockito.anyInt())).thenReturn(false);
 		Mockito.when(userStorageRepository.save(Mockito.any(UserStorage.class))).thenReturn(prepareValidUserStorage(1));
@@ -131,7 +131,7 @@ public class UserStorageBoTest extends TestCommon {
 	@Test
 	public void shouldDefineMandatoryEntitiesWhenSubscribing() {
 		fakeFinLoggedInUser(null);
-		Mockito.when(factionBo.findById(Mockito.any(Number.class))).thenReturn(prepareValidFaction());
+		Mockito.when(factionBo.findById(Mockito.any(Integer.class))).thenReturn(prepareValidFaction());
 		Mockito.when(planetBo.findRandomPlanet(null)).thenReturn(new Planet());
 		Mockito.when(userStorageRepository.exists(Mockito.anyInt())).thenReturn(false);
 		Mockito.when(userStorageRepository.save(Mockito.any(UserStorage.class))).thenReturn(prepareValidUserStorage(1));
@@ -182,7 +182,7 @@ public class UserStorageBoTest extends TestCommon {
 		UserStorage detailsUser = new UserStorage();
 		BeanUtils.copyProperties(simpleUser, detailsUser);
 		simpleUser.setEmail("lol@dot.com");
-		Mockito.when(userStorageRepository.findOne(simpleUser.getId())).thenReturn(detailsUser);
+		Mockito.when(userStorageRepository.findOne(simpleUser.getId().intValue())).thenReturn(detailsUser);
 		userStorageBo.findLoggedInWithDetails(true);
 		Mockito.verify(userStorageRepository).save(detailsUser);
 	}
@@ -193,7 +193,7 @@ public class UserStorageBoTest extends TestCommon {
 		UserStorage detailsUser = new UserStorage();
 		BeanUtils.copyProperties(simpleUser, detailsUser);
 		simpleUser.setUsername("lol@dot.com");
-		Mockito.when(userStorageRepository.findOne(simpleUser.getId())).thenReturn(detailsUser);
+		Mockito.when(userStorageRepository.findOne(simpleUser.getId().intValue())).thenReturn(detailsUser);
 		userStorageBo.findLoggedInWithDetails(true);
 		Mockito.verify(userStorageRepository).save(detailsUser);
 	}
@@ -217,7 +217,7 @@ public class UserStorageBoTest extends TestCommon {
 		detailsUser.setPrimaryResource(0.0);
 		detailsUser.setSecondaryResource(0.0);
 
-		Mockito.when(userStorageRepository.findOne(simpleUser.getId())).thenReturn(detailsUser);
+		Mockito.when(userStorageRepository.findOne(simpleUser.getId().intValue())).thenReturn(detailsUser);
 		userStorageBo.triggerResourcesUpdate();
 		assertEquals(30, detailsUser.getPrimaryResource().longValue());
 		assertEquals(30, detailsUser.getSecondaryResource().longValue());
@@ -248,8 +248,7 @@ public class UserStorageBoTest extends TestCommon {
 	/**
 	 * Will fake the request to {@link SecurityContextService}
 	 * 
-	 * @param tokenUser
-	 *            If null will create a valid one
+	 * @param tokenUser If null will create a valid one
 	 * @return - The user used to mock
 	 * @author Kevin Guanche Darias
 	 */
@@ -279,7 +278,7 @@ public class UserStorageBoTest extends TestCommon {
 		UserStorage detailsUser = new UserStorage();
 		BeanUtils.copyProperties(simpleUser, detailsUser);
 
-		Mockito.when(userStorageRepository.findOne(simpleUser.getId())).thenReturn(detailsUser);
+		Mockito.when(userStorageRepository.findOne(simpleUser.getId().intValue())).thenReturn(detailsUser);
 
 		return detailsUser;
 	}

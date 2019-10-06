@@ -15,7 +15,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 
 /**
@@ -25,7 +24,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
  */
 @Entity
 @Table(name = "unit_types")
-public class UnitType extends EntityWithImage implements SimpleIdEntity {
+public class UnitType extends EntityWithImage implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 6571633664776386521L;
 
 	@Id
@@ -94,6 +93,7 @@ public class UnitType extends EntityWithImage implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

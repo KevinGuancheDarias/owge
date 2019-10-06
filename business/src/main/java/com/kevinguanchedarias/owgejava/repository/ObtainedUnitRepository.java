@@ -11,7 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
-public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Number>, Serializable {
+public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long>, Serializable {
 	public List<ObtainedUnit> findByMissionId(Long missionId);
 
 	public List<ObtainedUnit> findBySourcePlanetId(Long planetId);

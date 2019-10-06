@@ -2,6 +2,8 @@ package com.kevinguanchedarias.owgejava.util;
 
 import java.util.stream.Stream;
 
+import org.springframework.util.StringUtils;
+
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.GameBackendErrorPojo;
 
@@ -109,7 +111,9 @@ public class ValidationUtil {
 	 * 
 	 * @throws SgtBackendInvalidInputException If number is 0 or negative
 	 * @param target
-	 * @param position
+	 * @param position "The position to report in the target object, for example {
+	 *                 "person": { "docType": "Passport" } }, value "person", and
+	 *                 "person.docType" can be passed as <i>position</i>
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -118,7 +122,25 @@ public class ValidationUtil {
 		requireNotNull(target, position);
 		if (target <= 0) {
 			throw new SgtBackendInvalidInputException(
-					"Value for " + position + " must be a pssitive greater than zero number");
+					"Value for " + position + " must be a positive greater than zero number");
+		}
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param target
+	 * @param position "The position to report in the target object, for example {
+	 *                 "person": { "docType": "Passport" } }, value "person", and
+	 *                 "person.docType" can be passed as <i>position</i>
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.0
+	 */
+	public ValidationUtil requireNonEmptyString(String target, String position) {
+		requireNotNull(target, position);
+		if (StringUtils.isEmpty(StringUtils.trimWhitespace(target))) {
+			throw new SgtBackendInvalidInputException("Value for " + position + " can NOT be an empty string");
 		}
 		return this;
 	}

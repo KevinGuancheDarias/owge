@@ -6,26 +6,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 
 @Service
-public class FactionBo implements WithNameBo<Faction> {
+public class FactionBo implements WithNameBo<Integer, Faction, FactionDto> {
 	private static final long serialVersionUID = -6735454832872729630L;
 
 	@Autowired
 	private FactionRepository factionRepository;
 
 	@Override
-	public JpaRepository<Faction, Number> getRepository() {
+	public JpaRepository<Faction, Integer> getRepository() {
 		return factionRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<FactionDto> getDtoClass() {
+		return FactionDto.class;
 	}
 
 	/**
 	 * Returns the factions that are visible
 	 * 
-	 * @param lazyFetch
-	 *            Fetch the proxies, or set to null
+	 * @param lazyFetch Fetch the proxies, or set to null
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -38,8 +48,7 @@ public class FactionBo implements WithNameBo<Faction> {
 	/**
 	 * Will check if given faction exists AND it's visible
 	 * 
-	 * @param id
-	 *            faction id
+	 * @param id faction id
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -58,4 +67,5 @@ public class FactionBo implements WithNameBo<Faction> {
 			}
 		}
 	}
+
 }

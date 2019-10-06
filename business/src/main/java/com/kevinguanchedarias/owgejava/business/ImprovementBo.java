@@ -19,7 +19,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class ImprovementBo implements BaseBo<Improvement> {
+public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDto> {
 	private static final long serialVersionUID = 174646136669035809L;
 
 	@Autowired
@@ -34,11 +34,21 @@ public class ImprovementBo implements BaseBo<Improvement> {
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
-	public JpaRepository<Improvement, Number> getRepository() {
+	public JpaRepository<Improvement, Integer> getRepository() {
 		return repository;
 	}
 
-	public Improvement createOrUpdateFromDto(EntityWithImprovements entityWithImprovements,
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<ImprovementDto> getDtoClass() {
+		return ImprovementDto.class;
+	}
+
+	public Improvement createOrUpdateFromDto(EntityWithImprovements<Number> entityWithImprovements,
 			ImprovementDto improvementDto) {
 		Integer originalId = null;
 		if (entityWithImprovements.getImprovement() == null) {

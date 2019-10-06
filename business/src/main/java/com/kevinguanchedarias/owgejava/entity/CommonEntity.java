@@ -1,12 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
-
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
 
 /**
  * Represents an entity with the common parameters:
@@ -18,12 +18,11 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  * </ul>
  * 
  *
- * @param <K>
- *            Id type
+ * @param <K> Id type
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @MappedSuperclass
-public abstract class CommonEntity<K extends Number> implements SimpleIdEntity {
+public abstract class CommonEntity<K extends Serializable> implements EntityWithId<K> {
 	private static final long serialVersionUID = -5044252651188741213L;
 
 	@Id
@@ -41,6 +40,7 @@ public abstract class CommonEntity<K extends Number> implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(K id) {
 		this.id = id;
 	}

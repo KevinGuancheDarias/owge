@@ -6,11 +6,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "upgrade_types")
-public class UpgradeType implements SimpleIdEntity {
+public class UpgradeType implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 1232888359913908779L;
 
 	@Id
@@ -24,6 +22,7 @@ public class UpgradeType implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

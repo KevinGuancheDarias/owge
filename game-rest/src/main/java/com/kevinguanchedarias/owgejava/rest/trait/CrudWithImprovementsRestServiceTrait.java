@@ -6,6 +6,7 @@ package com.kevinguanchedarias.owgejava.rest.trait;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
@@ -27,6 +29,7 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
  * Adds REST Improvement management for given entity
@@ -39,14 +42,16 @@ import com.kevinguanchedarias.owgejava.exception.NotFoundException;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extends EntityWithImprovements, S extends BaseBo<E>, D extends DtoFromEntity<E>>
+public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extends EntityWithImprovements<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
 		extends CrudRestServiceTrait<N, E, S, D> {
 
-	public ImprovementBo getImprovementBo();
-
-	public ImprovementUnitTypeBo getImprovementUnitTypeBo();
-
-	public UnitTypeBo getUnitTypeBo();
+	/**
+	 * Config
+	 * 
+	 * @since 0.8.0
+	 */
+	@Override
+	public RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
 
 	/*
 	 * (non-Javadoc)
@@ -55,10 +60,10 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	 * AdminCrudRestServiceNoOpEventsTrait#beforeRequestEnd(java.lang.Object)
 	 */
 	@Override
-	public default Optional<D> beforeRequestEnd(D dto) {
+	public default Optional<D> beforeRequestEnd(D dto, E savedEntity) {
 		DtoWithImprovements withImprovements = (DtoWithImprovements) dto;
 		withImprovements.setImprovement(null);
-		return CrudRestServiceTrait.super.beforeRequestEnd(dto);
+		return CrudRestServiceTrait.super.beforeRequestEnd(dto, savedEntity);
 	}
 
 	/**
@@ -72,7 +77,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@GetMapping("{id}/improvement")
-	public default ImprovementDto find(@PathVariable Integer id) {
+	public default ImprovementDto find(@PathVariable N id) {
 		E entity = findEntityOrDie(id);
 		ImprovementDto retVal = new ImprovementDto();
 		Improvement improvement = findImprovementOrDie(entity);
@@ -89,12 +94,13 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@SuppressWarnings("unchecked")
 	@PutMapping("{id}/improvement")
-	public default ImprovementDto saveImprovement(@PathVariable Integer id,
-			@RequestBody ImprovementDto improvementDto) {
+	public default ImprovementDto saveImprovement(@PathVariable N id, @RequestBody ImprovementDto improvementDto) {
 		E entity = findEntityOrDie(id);
 		improvementDto.setUnitTypesUpgrades(null);
-		Improvement improvement = getImprovementBo().createOrUpdateFromDto(entity, improvementDto);
+		Improvement improvement = getBeanFactory().getBean(ImprovementBo.class)
+				.createOrUpdateFromDto((EntityWithImprovements<Number>) entity, improvementDto);
 		return getDtoUtilService().dtoFromEntity(ImprovementDto.class, improvement);
 	}
 
@@ -110,7 +116,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	public default List<ImprovementUnitTypeDto> findUnitTypeImprovements(@PathVariable N id) {
 		E entity = findEntityOrDie(id);
 		Improvement improvement = findImprovementOrDie(entity);
-		getImprovementUnitTypeBo().loadImprovementUnitTypes(improvement);
+		getBeanFactory().getBean(ImprovementUnitTypeBo.class).loadImprovementUnitTypes(improvement);
 		return getDtoUtilService().convertEntireArray(ImprovementUnitTypeDto.class, improvement.getUnitTypesUpgrades());
 	}
 
@@ -129,14 +135,16 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 		E entity = findEntityOrDie(id);
 		ImprovementUnitType improvementUnitTypeEntity = getDtoUtilService().entityFromDto(ImprovementUnitType.class,
 				improvementUnitTypeDto);
-		improvementUnitTypeEntity.setUnitType(getUnitTypeBo().findByIdOrDie(improvementUnitTypeDto.getUnitTypeId()));
-		Improvement improvement = getImprovementUnitTypeBo().add(entity.getImprovement(), improvementUnitTypeEntity);
-		getImprovementBo().save(improvement);
-		getImprovementUnitTypeBo().loadImprovementUnitTypes(improvement);
+		improvementUnitTypeEntity.setUnitType(
+				getBeanFactory().getBean(UnitTypeBo.class).findByIdOrDie(improvementUnitTypeDto.getUnitTypeId()));
+		ImprovementUnitTypeBo improvementUnitTypeBo = getBeanFactory().getBean(ImprovementUnitTypeBo.class);
+		Improvement improvement = improvementUnitTypeBo.add(entity.getImprovement(), improvementUnitTypeEntity);
+		getBeanFactory().getBean(ImprovementBo.class).save(improvement);
+		improvementUnitTypeBo.loadImprovementUnitTypes(improvement);
 		List<ImprovementUnitTypeDto> improvementUnitTypeDtos = getDtoUtilService()
 				.convertEntireArray(ImprovementUnitTypeDto.class, improvement.getUnitTypesUpgrades());
 		return improvementUnitTypeDtos.stream()
-				.filter(current -> getImprovementUnitTypeBo().isSameTarget(current, improvementUnitTypeDto)).findAny()
+				.filter(current -> improvementUnitTypeBo.isSameTarget(current, improvementUnitTypeDto)).findAny()
 				.orElse(null);
 	}
 
@@ -152,13 +160,14 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	@DeleteMapping("{id}/improvement/unitTypeImprovements/{unitTypeImprovementId}")
 	public default ResponseEntity<Void> deleteUnitTypeImprovement(@PathVariable N id,
 			@PathVariable Integer unitTypeImprovementId) {
+		ImprovementUnitTypeBo improvementUnitTypeBo = getBeanFactory().getBean(ImprovementUnitTypeBo.class);
 		Improvement improvement = findImprovementOrDie(findEntityOrDie(id));
-		getImprovementUnitTypeBo().checkHasUnitTypeImprovementById(improvement.getId(), unitTypeImprovementId);
-		getImprovementUnitTypeBo().removeImprovementUnitType(unitTypeImprovementId);
+		improvementUnitTypeBo.checkHasUnitTypeImprovementById(improvement.getId(), unitTypeImprovementId);
+		improvementUnitTypeBo.removeImprovementUnitType(unitTypeImprovementId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
-	private E findEntityOrDie(Number id) {
+	private E findEntityOrDie(N id) {
 		E entity = getBo().findById(id);
 		if (entity == null) {
 			throw new NotFoundException();
@@ -176,5 +185,17 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 			throw new NotFoundException("I18N_ERR_NULL_IMPROVEMENT");
 		}
 		return entity.getImprovement();
+	}
+
+	private DtoUtilService getDtoUtilService() {
+		return getBeanFactory().getBean(DtoUtilService.class);
+	}
+
+	private S getBo() {
+		return getRestCrudConfigBuilder().build().getBoService();
+	}
+
+	private BeanFactory getBeanFactory() {
+		return getRestCrudConfigBuilder().build().getBeanFactory();
 	}
 }

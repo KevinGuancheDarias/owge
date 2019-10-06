@@ -2,7 +2,13 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import java.io.Serializable;
 
-@FunctionalInterface
-public interface EntityWithId extends Serializable {
-	public Number getId();
+public interface EntityWithId<K> extends Serializable {
+	public K getId();
+
+	/**
+	 * 
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setId(K id);
 }

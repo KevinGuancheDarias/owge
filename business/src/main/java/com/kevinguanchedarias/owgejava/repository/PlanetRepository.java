@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.kevinguanchedarias.owgejava.entity.Planet;
 
-public interface PlanetRepository extends WithNameRepository<Planet, Number>, Serializable {
+public interface PlanetRepository extends WithNameRepository<Planet, Long>, Serializable {
 	public Planet findOneByGalaxyIdAndOwnerNotNullOrderByGalaxyId(Integer galaxyId);
 
 	public long countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId);
