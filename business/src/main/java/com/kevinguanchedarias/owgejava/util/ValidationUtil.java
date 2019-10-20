@@ -119,6 +119,22 @@ public class ValidationUtil {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ValidationUtil requirePositiveNumber(Integer target, String position) {
+		return requirePositiveNumber(target.intValue(), position);
+	}
+
+	/**
+	 * Checks if the target is <b>is not null</b> and a positive number
+	 * 
+	 * @throws SgtBackendInvalidInputException If number is 0 or negative
+	 * @param target
+	 * @param position "The position to report in the target object, for example {
+	 *                 "person": { "docType": "Passport" } }, value "person", and
+	 *                 "person.docType" can be passed as <i>position</i>
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ValidationUtil requirePositiveNumber(Long target, String position) {
 		requireNotNull(target, position);
 		if (target <= 0) {
 			throw new SgtBackendInvalidInputException(

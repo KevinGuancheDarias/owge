@@ -199,7 +199,8 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 			imageStore.setFilename(fileName);
 			imageStore.setChecksum(checksum);
 			ImageStore storedImageStore = findOneByChecksum(checksum);
-			storedImageStore = storedImageStore != null ? storedImageStore : save(imageStore);
+			storedImageStore = storedImageStore != null ? storedImageStore : BaseBo.super.save(imageStore);
+			storedImageStore = computeImageUrl(storedImageStore);
 			return dtoUtilService.dtoFromEntity(ImageStoreDto.class, storedImageStore);
 		} catch (Exception e) {
 			LOG.error("Couldn't save the image to the database", e);
@@ -233,9 +234,12 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ImageStore computeImageUrl(ImageStore imageStore) {
-		String schemeAndHost = StringUtils.isEmpty(imageHost) ? request.getScheme() + "://" + request.getHeader("Host")
-				: imageHost;
-		imageStore.setUrl(schemeAndHost + "/" + dynamicUrl + "/" + imageStore.getFilename());
+		if (imageStore != null) {
+			String schemeAndHost = StringUtils.isEmpty(imageHost)
+					? request.getScheme() + "://" + request.getHeader("Host")
+					: imageHost;
+			imageStore.setUrl(schemeAndHost + "/" + dynamicUrl + "/" + imageStore.getFilename());
+		}
 		return imageStore;
 	}
 

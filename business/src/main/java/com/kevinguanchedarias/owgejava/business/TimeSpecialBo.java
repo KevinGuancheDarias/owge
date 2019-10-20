@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository;
+import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 
 /**
  *
@@ -44,4 +45,17 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 		return TimeSpecialDto.class;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.AbstractWithImageBo#save(com.
+	 * kevinguanchedarias.owgejava.entity.CommonEntityWithImageStore)
+	 */
+	@Override
+	public TimeSpecial save(TimeSpecial entity) {
+		ValidationUtil.getInstance().requireNonEmptyString(entity.getName(), "name")
+				.requirePositiveNumber(entity.getDuration(), "duration")
+				.requirePositiveNumber(entity.getRechargeTime(), "rechargeTime");
+		return super.save(entity);
+	}
 }
