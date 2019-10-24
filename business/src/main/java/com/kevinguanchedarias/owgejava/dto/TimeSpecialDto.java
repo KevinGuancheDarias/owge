@@ -3,8 +3,6 @@
  */
 package com.kevinguanchedarias.owgejava.dto;
 
-import org.hibernate.Hibernate;
-
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
@@ -29,10 +27,7 @@ public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial
 	 */
 	@Override
 	public void dtoFromEntity(TimeSpecial entity) {
-		if (Hibernate.isInitialized(entity.getImprovement()) && entity.getImprovement() != null) {
-			improvement = new ImprovementDto();
-			improvement.dtoFromEntity(entity.getImprovement());
-		}
+		DtoWithImprovements.super.dtoFromEntity(entity);
 		super.dtoFromEntity(entity);
 	}
 

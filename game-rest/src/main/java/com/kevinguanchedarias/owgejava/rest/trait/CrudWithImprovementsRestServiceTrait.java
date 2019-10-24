@@ -6,6 +6,8 @@ package com.kevinguanchedarias.owgejava.rest.trait;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -88,6 +90,8 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	/**
 	 * Creates or updates the entity's improvement
 	 * 
+	 * @todo In the future refactor not to use the controller for the saving of the
+	 *       entity
 	 * @param id
 	 * @param improvementDto
 	 * @return
@@ -95,12 +99,14 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@SuppressWarnings("unchecked")
+	@Transactional
 	@PutMapping("{id}/improvement")
 	public default ImprovementDto saveImprovement(@PathVariable N id, @RequestBody ImprovementDto improvementDto) {
 		E entity = findEntityOrDie(id);
 		improvementDto.setUnitTypesUpgrades(null);
 		Improvement improvement = getBeanFactory().getBean(ImprovementBo.class)
 				.createOrUpdateFromDto((EntityWithImprovements<Number>) entity, improvementDto);
+		getBo().save(entity);
 		return getDtoUtilService().dtoFromEntity(ImprovementDto.class, improvement);
 	}
 

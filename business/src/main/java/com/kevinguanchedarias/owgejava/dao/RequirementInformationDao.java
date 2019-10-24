@@ -166,7 +166,8 @@ public class RequirementInformationDao implements Serializable {
 	 */
 	public List<RequirementInformation> findRequirements(ObjectEnum objectEnum, Integer referenceId) {
 		ObjectRelation objectRelation = objectRelationsBo.findOne(objectEnum, referenceId);
-		return requirementInformationRepository.findByRelationId(objectRelation.getId());
+		return objectRelation != null ? requirementInformationRepository.findByRelationId(objectRelation.getId())
+				: new ArrayList<>();
 	}
 
 	/**

@@ -119,7 +119,7 @@ public class ValidationUtil {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ValidationUtil requirePositiveNumber(Integer target, String position) {
-		return requirePositiveNumber(target.intValue(), position);
+		return requirePositiveNumber(Long.valueOf(target), position);
 	}
 
 	/**
