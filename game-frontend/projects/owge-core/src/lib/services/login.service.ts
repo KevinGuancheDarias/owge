@@ -1,11 +1,11 @@
 
-import {map} from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import {  HttpParams } from '@angular/common/http';
+import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { SessionService } from './session.service';
-import { AccountConfig } from '../pojos/account-config.pojo';
+import { OwgeCoreConfig } from '../pojos/owge-core-config';
 import { CoreHttpService } from './core-http.service';
 import { OwgeUserModule } from '../owge-user.module';
 
@@ -16,9 +16,12 @@ import { OwgeUserModule } from '../owge-user.module';
  * @since 0.8.0
  * @export
  */
-@Injectable({ providedIn: OwgeUserModule})
+@Injectable({ providedIn: OwgeUserModule })
 export class LoginService {
-  constructor(private _coreHttpService: CoreHttpService, private _sessionService: SessionService, private _accountConfig: AccountConfig) { }
+  constructor(
+    private _coreHttpService: CoreHttpService,
+    private _sessionService: SessionService,
+    private _accountConfig: OwgeCoreConfig) { }
 
   /**
    * Executes the game action agains the OWGE Authentication server
@@ -31,7 +34,8 @@ export class LoginService {
    */
   public login(email: string, password: string): Observable<string> {
     const params: HttpParams = new HttpParams(
-      { fromObject :
+      {
+        fromObject:
         {
           grant_type: 'password',
           client_id: this._accountConfig.loginClientId,

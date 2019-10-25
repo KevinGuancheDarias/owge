@@ -1,0 +1,21 @@
+<owge-core-modal #crudModal [hasCloseButton]="true">
+    <div class="header">
+        {{ 'UNIVERSE.IMAGE_SELECTOR.SELECT_ONE' }}
+    </div>
+    <div class="body">
+        <div class="card owge" *ngFor="let image of images, let i = index">
+            <div class="card-block">
+                <div class="card-title">
+                    <span>{{ image.displayName }}</span>
+                </div>
+                <img [src]="image.url"/>
+                <div class="card-block">
+                    {{ image.description }}
+                </div>
+            </div>
+            <a class="btn btn-block" role="button" (click)="edit(image)">{{ 'CRUD.EDIT' | translate}}</a>
+            <a class="btn btn-block" role="button" (click)="delete(image)">{{ 'CRUD.DELETE' | translate }}</a>
+        </div>
+    </div>
+</owge-core-modal>
+<button class="btn btn-block" click="selectExisting()">{{ 'UNIVERSE.IMAGE_SELECTOR.BTN_SELECT_EXISTING' | translate}}</button> <button class="btn btn-block" (click)="uploadAndSelect()" >{{ 'UNIVERSE.IMAGE_SELECTOR.BTN_UPLOAD_AND_SELECT' | translate }}</button>

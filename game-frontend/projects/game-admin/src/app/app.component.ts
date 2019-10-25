@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
 import { UserStorage, User, MenuRoute, ROUTES } from '@owge/core';
+import { AbstractSidebarComponent } from '@owge/widgets';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  *
@@ -14,19 +16,18 @@ import { UserStorage, User, MenuRoute, ROUTES } from '@owge/core';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent extends AbstractSidebarComponent implements OnInit {
   public jwtToken: string;
   public sidebarRoutes: MenuRoute[] = [
-    {
-      path: ROUTES.GAME_INDEX,
-      text: 'Home',
-      icon: 'fa fa-home'
-    }
+    this._createTranslatableMenuRoute('APP.MENU_HOME', ROUTES.GAME_INDEX, 'fa fa-home'),
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock')
   ];
 
-  public constructor(private _userStore: UserStorage<User>) {}
+  public constructor(private _userStore: UserStorage<User>, _translateService: TranslateService) {
+    super(_translateService);
+  }
 
   public ngOnInit(): void {
-    this._userStore.currentToken.subscribe(token => this.jwtToken = token );
+    this._userStore.currentToken.subscribe(token => this.jwtToken = token);
   }
 }

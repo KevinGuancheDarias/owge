@@ -1,4 +1,4 @@
-import { HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 
@@ -18,5 +18,5 @@ export interface HttpOptions {
     reportProgress?: boolean;
     responseType?: 'json';
     withCredentials?: boolean;
-    errorHandler?: (err: any, caught: Observable<any>) => Observable<any>;
+    errorHandler?: (err: HttpErrorResponse | any, caught: Observable<any>) => Observable<any>;
 }

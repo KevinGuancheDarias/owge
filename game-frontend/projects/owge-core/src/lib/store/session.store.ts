@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {  ReplaySubject, Observable, Subject } from 'rxjs';
+import { ReplaySubject, Observable, Subject } from 'rxjs';
 
 import { LoggerHelper } from '../helpers/logger.helper';
 import { ProgrammingError } from '../errors/programming.error';
@@ -7,7 +7,7 @@ import { ProgrammingError } from '../errors/programming.error';
 /**
  * Stores the created subject, and the original observable associated with it
  */
-interface SubjectAndSource {
+export interface SubjectAndSource {
     subject: ReplaySubject<any>;
     source?: Subject<any>;
 }
@@ -71,7 +71,7 @@ export class SessionStore {
      * @param [length=1]
      * @memberof SessionStore
      */
-    public addSubject( key: string, observable?: Subject<any>, length = 1 ): void {
+    public addSubject(key: string, observable?: Subject<any>, length = 1): void {
         if (!this._replaySubjectsStore[key]) {
             this._replaySubjectsStore[key] = {
                 subject: new ReplaySubject(length),
@@ -83,11 +83,26 @@ export class SessionStore {
         observable.subscribe(value => this._replaySubjectsStore[key].subject.next(value));
     }
 
-    private _existsAndHasSource(key: string): boolean {
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param  key
+     * @returns
+     */
+    protected _existsAndHasSource(key: string): boolean {
         return !!(this._replaySubjectsStore[key] && this._replaySubjectsStore[key].source);
     }
 
-    private _getSubjectAndSource(key: string): SubjectAndSource {
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @protected
+     * @param  key
+     * @returns
+     */
+    protected _getSubjectAndSource(key: string): SubjectAndSource {
         if (!this._replaySubjectsStore[key]) {
             this._log.debug(`Tryed to get subject ${key}, that was not initialized`);
             this.addSubject(key);

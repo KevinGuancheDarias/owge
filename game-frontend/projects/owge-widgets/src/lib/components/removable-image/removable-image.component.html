@@ -1,0 +1,7 @@
+ <div *ngIf="imageUrl" [class]="cssClass || ''">
+    <span (click)="remove()"><i class="fas fa-times"></i></span>
+    <img [src]="imageUrl"/>
+</div>
+<div *ngIf="!imageUrl && undoTimer">
+    <button class="btn btn-block btn-primary" (click)="undo()">Undo {{ undoTimer }}</button>
+</div>

@@ -1,17 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { UniverseGameService } from '@owge/universe';
 
 import { UpgradeType } from '../shared/types/upgrade-type.type';
-import { UnitType } from '../shared/types/unit-type.type';
 
 
 @Injectable()
 export class UpgradeTypeService {
 
-  private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
+  private _loadableBehaviorSubject: BehaviorSubject<UpgradeType[]> = new BehaviorSubject(null);
 
   constructor(private _universeGameService: UniverseGameService) {
     this._loadTypes();

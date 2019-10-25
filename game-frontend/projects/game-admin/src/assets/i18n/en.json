@@ -1,0 +1,116 @@
+{
+    "APP": {
+        "MENU_HOME": "Home",
+        "MENU_UPGRADES": "Upgrades",
+        "MENU_UNITS": "Units",
+        "MENU_NAVIGATION": "Navigation",
+        "MENU_ALLIANCES": "Alliances",
+        "MENU_RANKING": "Ranking",
+        "MENU_TIME_SPECIALS": "Time Specials"
+    },
+    "CRUD": {
+        "EDIT": "Edit",
+        "DELETE": "Delete",
+        "CREATE": "Create",
+        "CONFIRM_DELETE": "{{elName}} will be removed, are you sure?",
+        "MODAL_CREATE_TITLE": "Creating a new element",
+        "MODAL_EDIT_TITLE": "Editing {{elName}}",
+        "ELEMENT_NAME": "Name",
+        "ELEMENT_DESCRIPTION": "Description",
+        "BTN_SAVE": "Save",
+        "BTN_CANCEL": "Cancel",
+        "BTN_CLOSE": "Close",
+        "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
+        "TIME_SPECIAL": {
+            "DURATION": "Duration",
+            "RECHARGE_TIME": "Recharge time"
+        },
+        "IMPROVEMENTS": "Improvements",
+        "REQUIREMENTS": "Requirements"
+    },
+    "CRUD_WITH_IMAGE": {
+        "IMAGE": "Image"
+    },
+    "OBJECT_REQUIREMENTS_CRUD": {
+        "TABLE": {
+            "DESCRIPTION": "Description",
+            "VALUE": "Value",
+            "ACTIONS": "Actions",
+            "EMPTY": "The specified item doesn't have any requirement defined",
+            "CAPTION": "List of requirements",
+            "BTN_ADD": "Add requirement",
+            "BTN_DELETE": "Delete"
+        },
+        "MODAL": {
+            "TITLE": "Add requirement"
+        }
+    },
+    "OBJECT_IMPROVEMENTS_CRUD": {
+        "TABLE": {
+            "IMPROVEMENT_TYPE": "Improvement Type",
+            "UNIT_TYPE": "Unit type",
+            "VALUE": "Value",
+            "ACTIONS": "Actions",
+            "EMPTY": "The specified item doesn't have any improvement that improves unit types",
+            "CAPTION": "Unit type improvements",
+            "BTN_ADD": "Add improvement",
+            "BTN_DELETE": "Delete"
+        },
+        "MODAL": {
+            "TITLE": "Improvements for unit types"
+        },
+        "UNIT_TYPES_MODAL": {
+            "TITLE": "Add new",
+            "UNIT_TYPE": "Unit type",
+            "TYPE": "Type",
+            "VALUE": "Value"
+        }
+    },
+    "REQUIREMENTS": {
+        "ONLY_ON_SAVED": "You can only modify requirements on a saved item",
+        "DESCRIPTIONS": {
+            "BEEN_RACE": "Is of faction",
+            "UPGRADE_LEVEL": "Have upgrade to level"
+        },
+        "TARGETS": {
+            "BEEN_RACE": "Required faction",
+            "UPGRADE_LEVEL": "Required upgrade"
+        },
+        "THIRD_VALUES": {
+            "UPGRADE_LEVEL": "Upgrade level"
+        }
+    },
+    "IMPROVEMENTS": {
+        "ONLY_ON_SAVED": "You can only modify improvement on a saved item",
+        "MORE_PR_PRODUCTION": "More production of primary resource",
+        "MORE_SR_PRODUCTION": "More production of secondary resource",
+        "MORE_ENERGY": "More energy",
+        "MORE_CHARGE_CAPACITY": "More charge capacity",
+        "MORE_MISSIONS": "More missions",
+        "MORE_RESEARCH_SPEED": "More research speed",
+        "MORE_BUILD_SPEED": "More build speed",
+        "BTN_SAVE": "Save improvement",
+        "BTN_MODIFY_UNIT_TYPE": "Modify unit type improvements",
+        "TYPES": {
+            "ATTACK": "More attack",
+            "DEFENSE": "More health",
+            "SHIELD": "More shield",
+            "AMOUNT": "More amount"
+        }
+    },
+    "UNIVERSE": {
+        "IMAGE_SELECTOR": {
+            "BTN_SELECT_EXISTING": "Select existing",
+            "BTN_UPLOAD_AND_SELECT": "Upload and select"
+        }
+    },
+    "EXCEPTIONS": {
+        "com_kevinguanchedarias_owgejava_exception_NotFoundException": {
+            "generic": "The backend threw that something was not found... dunno what exactly.",
+            "I18N_ERR_NULL_IMPROVEMENT": "The specified entity doesn't have an improvement, so can't return it"
+        },
+        "com_kevinguanchedarias_owgejava_business_ImprovementUnitTypeBo": {
+            "I18N_ERR_UNIT_IMPROVEMENT_DUPLICATED": "You already have one improvement of the specified type  ({{type}}) targeting the specified unit type {{unitTypeName}}"
+        }
+    }
+}

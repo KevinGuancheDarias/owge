@@ -1,13 +1,13 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { Planet, PlanetService, PlanetStore } from '@owge/galaxy';
 import { MenuRoute, ROUTES, UserStorage, ModalComponent } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import { DisplayService } from '@owge/widgets';
+import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
+import { UnitType } from '@owge/universe';
 
 import { version } from '../../../version';
-import { UnitType } from '../../shared/types/unit-type.type';
 import { ResourceManagerService } from '../../service/resource-manager.service';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { AutoUpdatedResources } from '../../class/auto-updated-resources';
@@ -24,7 +24,7 @@ import { AutoUpdatedResources } from '../../class/auto-updated-resources';
   templateUrl: './game-sidebar.component.html',
   styleUrls: ['./game-sidebar.component.less']
 })
-export class GameSidebarComponent implements OnInit {
+export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
 
   @ViewChild('planetSelectionModal', { static: true }) private _modalComponent: ModalComponent;
   public selectedPlanet: Planet;
@@ -54,14 +54,15 @@ export class GameSidebarComponent implements OnInit {
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
     private _planetStore: PlanetStore
-  ) { }
+  ) {
+    super(_translateService);
+  }
 
   public ngOnInit() {
     this._userStorage.currentUser.subscribe(user => this.user = user);
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
     this.resources = new AutoUpdatedResources(this._resourceManagerService);
     this._planetStore.selectedPlanet.subscribe(selectedPlanet => {
-      console.log('hi');
       this.selectedPlanet = selectedPlanet;
     });
     this._loadMyPlanets();
@@ -89,25 +90,7 @@ export class GameSidebarComponent implements OnInit {
     }
   }
 
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param textIndex The name of the translation in the file
-   * @param path
-   * @param icon
-   */
-  private _createTranslatableMenuRoute(textIndex: string, path: string, icon: string): MenuRoute {
-    const retVal: MenuRoute =  {
-      text: 'Loading...',
-      path,
-      icon
-    };
-    this._translateService.get(textIndex).subscribe(value => retVal.text = value);
-    return retVal;
-  }
-
   private async _loadMyPlanets(): Promise<void> {
-    this.myPlanets =  await this._planetService.findMyPlanets();
+    this.myPlanets = await this._planetService.findMyPlanets();
   }
 }

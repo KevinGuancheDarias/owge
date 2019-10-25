@@ -5,6 +5,7 @@ import { PageNotFoundComponent, SessionService } from '@owge/core';
 
 import { LoginComponent } from './components/login/login.component';
 import { IndexComponent } from './components/index/index.component';
+import { TimeSpecialCrudComponent } from './components/time-special-crud/time-special-crud.component';
 
 const routes: Routes = [
   {
@@ -12,6 +13,9 @@ const routes: Routes = [
   },
   {
     path: 'home', component: IndexComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'time_specials', component: TimeSpecialCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

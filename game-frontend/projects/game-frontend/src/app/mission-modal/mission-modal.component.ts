@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 
 import { AbstractModalContainerComponent, LoggerHelper } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
+import { UnitType } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { UnitType } from '../shared/types/unit-type.type';
 import { MissionType } from '../shared/types/mission.type';
 import { MissionService } from '../services/mission.service';
 import { UnitTypeService } from '../services/unit-type.service';

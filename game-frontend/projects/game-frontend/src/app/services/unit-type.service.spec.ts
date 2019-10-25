@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
+import { UnitType } from '@owge/universe';
+
 import { UnitTypeService } from './unit-type.service';
 import { CommonServiceTestHelper } from '../../helpers/common-service-test.helper';
 import { TestMetadataBuilder } from '../../helpers/test-metadata.builder';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { GameCommonTestHelper } from '../../helpers/game-common-test.helper';
-import { UnitType } from '../shared/types/unit-type.type';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 
@@ -54,7 +55,7 @@ fdescribe('UnitTypeService', () => {
     const loginSessionService = TestBed.get(LoginSessionService);
     behaviorLoaded = new Promise(resolve => {
       // Please review git repository history for this file
-        resolve();
+      resolve();
     });
   });
   helper.createService();

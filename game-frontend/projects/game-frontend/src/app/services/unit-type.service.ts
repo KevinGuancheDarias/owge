@@ -1,16 +1,15 @@
 
-import {filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { camelCase, upperFirst } from 'lodash-es';
 
 import { ProgrammingError } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, UnitType } from '@owge/universe';
 
-import { UnitType } from '../shared/types/unit-type.type';
 import { MissionType } from '../shared/types/mission.type';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { MissionSupport } from '../shared/types/mission-support.type';
+import { MissionSupport } from '../../../../owge-universe/src/lib/types/mission-support.type';
 import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()

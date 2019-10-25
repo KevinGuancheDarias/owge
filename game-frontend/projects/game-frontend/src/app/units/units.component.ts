@@ -1,6 +1,6 @@
 import { Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
-import { UnitType } from '../shared/types/unit-type.type';
+import { UnitType } from '@owge/universe';
 import { UnitTypeService } from '../services/unit-type.service';
 import { BaseComponent } from '../base/base.component';
 

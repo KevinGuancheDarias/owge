@@ -1,8 +1,10 @@
-import { Component, ViewEncapsulation, Input, OnChanges, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, Output, EventEmitter } from '@angular/core';
+
+import { UnitType } from '@owge/universe';
+
 import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
 import { UnitPojo } from '../../shared-pojo/unit.pojo';
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
-import { UnitType } from '../../shared/types/unit-type.type';
 import { UnitTypeService } from '../../services/unit-type.service';
 
 @Component({

@@ -1,3 +1,4 @@
+import { validContext } from '../services/core-http.service';
 
 /**
  * Configuration of the account server <br>
@@ -7,8 +8,9 @@
  * @since 0.8.0
  * @export
  */
-export class AccountConfig {
+export class OwgeCoreConfig {
     public url: string;
+    public contextPath: validContext;
     public loginEndpoint: string;
     public loginDomain: string;
     public loginClientId?: string;

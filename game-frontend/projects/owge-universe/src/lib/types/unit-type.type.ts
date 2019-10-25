@@ -5,7 +5,6 @@ import { MissionSupport } from './mission-support.type';
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @interface UnitType
  */
 export interface UnitType {
     id: number;

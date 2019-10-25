@@ -1,8 +1,8 @@
 
-import {throwError as observableThrowError,  Observable ,  EMPTY as empty } from 'rxjs';
-import { switchMap ,  first ,  catchError } from 'rxjs/operators';
+import { throwError as observableThrowError, Observable, EMPTY as empty } from 'rxjs';
+import { switchMap, first, catchError } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 
 import { HttpOptions } from '../types/http-options.type';
 import { LoggerHelper } from '../helpers/logger.helper';
@@ -48,7 +48,7 @@ export class CoreHttpService {
    * @returns
    */
   public get<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._httpClient.get<any>(url, options).pipe(catchError(error => this._handleError(error)));
+    return this._httpClient.get<any>(url, options).pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
 
 
@@ -65,7 +65,8 @@ export class CoreHttpService {
    * @returns
    */
   public post<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this._doPostOrPut<T>('post', url, body, options);
+    return this._doPostOrPut<T>('post', url, body, options)
+      .pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
 
   /**
@@ -81,7 +82,8 @@ export class CoreHttpService {
    * @returns
    */
   public put<T = any>(url: string, body: any, options?: HttpOptions): Observable<T> {
-    return this._doPostOrPut<T>('put', url, body, options);
+    return this._doPostOrPut<T>('put', url, body, options)
+      .pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
 
   /**
@@ -96,7 +98,8 @@ export class CoreHttpService {
    * @returns
    */
   public delete<T = any>(url: string, options?: HttpOptions): Observable<T> {
-    return this._httpClient.delete<any>(url, options).pipe(catchError(error => this._handleError(error)));
+    return this._httpClient.delete<any>(url, options)
+      .pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
 
   /**
@@ -165,7 +168,6 @@ export class CoreHttpService {
     return this._doGetOrDeleteWithAuthorizationToContext('none', 'delete', '', url, options);
   }
 
-
   /**
    *
    *
@@ -205,29 +207,6 @@ export class CoreHttpService {
   }
 
   /**
-   * Will handle errors coming from http client
-   *
-   * @todo Add default server pojo
-   * @param error Error object coming from request
-   * @author Kevin Guanche Darias
-   */
-  private _handleError(error: Response | any): Observable<any> {
-    let errMsg: string;
-    if (error instanceof Response) {
-      if (error.status === 0 && !error.ok) {
-        errMsg = 'No se pudo conectar con el servidor, comprueba tu conexión a Internet';
-      } else {
-        errMsg = this._translateServerError(error);
-      }
-    } else if (error.error && error.error.exceptionType) {
-      errMsg = this._translateServerError(error.error);
-    } else {
-      errMsg = error.message ? error.message : error.toString();
-    }
-    return observableThrowError(errMsg);
-  }
-
-  /**
    * Invoked when it's confirmed connection with server was success<br />
    * Will translate the server error message to a single string
    *
@@ -236,13 +215,17 @@ export class CoreHttpService {
    * @return Translated message
    * @memberOf BaseHttpService
    */
-  private _translateServerError(error: Response | any): string {
+  private _translateServerError(error: Response | HttpErrorResponse | any): string {
     try {
-      let body: any = {};
-      if (error instanceof Response) {
+      let body: any;
+      if (error instanceof HttpErrorResponse) {
+        body = error.error;
+      } else if (error instanceof Response) {
         body = error.json() || ''; // Should have a default server exception pojo
       } else if (error.exceptionType && error.message) {
         body = error;
+      } else {
+        throw new ProgrammingError('Unexpected value for error');
       }
       return body.message ? body.message : 'El servidor no respondió correctamente';
     } catch (e) {
@@ -266,7 +249,8 @@ export class CoreHttpService {
   }
 
   private _doPostOrPut<T = any>(method: validWriteMethod, url: string, body: any, options: HttpOptions): Observable<T> {
-    return this._httpClient[method](url, body, options).pipe(catchError(error => this._handleError(error)));
+    return this._httpClient[method](url, body, options)
+      .pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
 
   private _doGetOrDeleteWithAuthorizationToContext<T = any>(
@@ -342,7 +326,8 @@ export class CoreHttpService {
         return result;
       }
     } else {
-      alert(`Error!\n ${err}`);
+      const errString = this._translateServerError(err);
+      alert(`Error!\n ${errString}`);
       return empty;
     }
   }

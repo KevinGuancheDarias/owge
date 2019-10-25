@@ -6,7 +6,7 @@ import { RouterModule } from '@angular/router';
 import { CoreHttpService } from './services/core-http.service';
 import { ModalComponent } from './components/modal/modal.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { AccountConfig } from './pojos/account-config.pojo';
+import { OwgeCoreConfig } from './pojos/owge-core-config';
 import { Config } from './pojos/config.pojo';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
@@ -35,12 +35,12 @@ export class CoreModule {
    * @param accountConfig
    * @returns
    */
-  public static forRoot(accountConfig: AccountConfig): ModuleWithProviders {
+  public static forRoot(accountConfig: OwgeCoreConfig): ModuleWithProviders {
     return {
       ngModule: CoreModule,
       providers: [
         CoreHttpService,
-        { provide: AccountConfig, useValue: accountConfig}
+        { provide: OwgeCoreConfig, useValue: accountConfig }
       ]
     };
   }
@@ -51,7 +51,7 @@ export class CoreModule {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param accountConfig
    */
-  public constructor (accountConfig: AccountConfig) {
+  public constructor(accountConfig: OwgeCoreConfig) {
     Config.accountServerUrl = accountConfig.url;
     Config.accountLoginendpoint = accountConfig.loginEndpoint;
   }
