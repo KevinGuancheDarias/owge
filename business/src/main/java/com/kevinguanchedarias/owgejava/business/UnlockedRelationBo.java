@@ -15,6 +15,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @Service
 @Transactional
@@ -26,6 +27,9 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 
 	@Autowired
 	private ObjectRelationBo objectRelationBo;
+
+	@Autowired
+	private DtoUtilService dtoUtilService;
 
 	@Override
 	public JpaRepository<UnlockedRelation, Long> getRepository() {
@@ -94,6 +98,22 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	 */
 	public <E> List<E> unboxToTargetEntity(List<UnlockedRelation> unlockedRelations) {
 		return objectRelationBo.unboxObjectRelation(unboxUnlockedRelationList(unlockedRelations));
+	}
+
+	/**
+	 * Unbox to target dto
+	 * 
+	 * @param <E>               Entity class
+	 * @param <D>               Dto class
+	 * @param dtoClass          Dto class
+	 * @param unlockedRelations
+	 * @return List of object entities converted to DTO
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <E, D extends DtoFromEntity<E>> List<D> unboxToTargetDto(Class<D> dtoClass,
+			List<UnlockedRelation> unlockedRelations) {
+		return dtoUtilService.convertEntireArray(dtoClass, unboxToTargetEntity(unlockedRelations));
 	}
 
 }

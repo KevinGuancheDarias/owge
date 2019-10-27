@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
+import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -113,8 +115,9 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	public <E> List<E> unboxObjectRelation(List<ObjectRelation> relations) {
 		List<E> retVal = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(relations)) {
-			WithNameRepository<E, Number> repository = objectEntityBo.findRepository(relations.get(0).getObject());
-			relations.stream().forEach(current -> retVal.add(repository.findOne(current.getReferenceId())));
+			BaseBo<Integer, EntityWithId<Integer>, DtoFromEntity<EntityWithId<Integer>>> bo = objectEntityBo
+					.findBo(relations.get(0).getObject());
+			relations.stream().forEach(current -> retVal.add((E) bo.findById(current.getReferenceId())));
 		}
 		return retVal;
 	}

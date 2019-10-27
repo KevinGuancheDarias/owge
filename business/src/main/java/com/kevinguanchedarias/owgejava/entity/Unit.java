@@ -15,9 +15,11 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
+
 @Entity
 @Table(name = "units")
-public class Unit extends EntityWithImage implements EntityWithImprovements<Integer> {
+public class Unit extends EntityWithImage implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
 	private static final long serialVersionUID = -1923291486680931835L;
 
 	@Id
@@ -63,10 +65,6 @@ public class Unit extends EntityWithImage implements EntityWithImprovements<Inte
 
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
-
-	public Unit() {
-		super();
-	}
 
 	@Override
 	public Integer getId() {
