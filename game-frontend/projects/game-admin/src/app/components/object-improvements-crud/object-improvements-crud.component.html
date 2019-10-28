@@ -1,0 +1,112 @@
+<owge-core-modal #improvementsUnitTypesModal>
+    <div class="header">
+        <span>{{ 'OBJECT_IMPROVEMENTS_CRUD.UNIT_TYPES_MODAL.TITLE' | translate  }}</span>
+    </div>
+    <div class="body">
+        <div class="form-row" *ngIf="newImprovementUnitType">
+            <div class="form-group col-md-12">
+                <label for="target-unit-type">{{ 'OBJECT_IMPROVEMENTS_CRUD.UNIT_TYPES_MODAL.UNIT_TYPE' | translate  }}</label>
+                <select id="target-unit-type" [(ngModel)]="newImprovementUnitType.unitTypeId" class="form-control" (change)="onChangeSelectedUnitType()">
+                    <option [ngValue]="undefined">Please select</option>
+                    <option *ngFor="let unitType of unitTypes" [ngValue]="unitType.id">{{ unitType.name }}</option>
+                </select>
+            </div>
+            <div class="form-group col-md-12">
+                <label for="target-unit-type-improvement">{{ 'OBJECT_IMPROVEMENTS_CRUD.UNIT_TYPES_MODAL.TYPE' | translate  }}</label>
+                <select id="target-unit-type-improvement" [disabled]="!newImprovementUnitType.unitTypeId" [(ngModel)]="newImprovementUnitType.type" class="form-control">
+                    <option [ngValue]="undefined">Please select</option>
+                    <option value="ATTACK">{{ 'IMPROVEMENTS.TYPES.ATTACK' | translate }} </option>
+                    <option value="DEFENSE">{{ 'IMPROVEMENTS.TYPES.DEFENSE' | translate }} </option>
+                    <option value="SHIELD">{{ 'IMPROVEMENTS.TYPES.SHIELD' | translate }} </option>
+                    <option [disabled]="!selectedUnitType?.maxCount" value="AMOUNT">{{ 'IMPROVEMENTS.TYPES.AMOUNT' | translate }} </option>
+                </select>
+            </div>
+            <div class="form-group col-md-12">
+                <label for="target-unit-type-value">{{ 'OBJECT_IMPROVEMENTS_CRUD.UNIT_TYPES_MODAL.VALUE' | translate  }}</label>
+                <input type="number" id="target-unit-type-value" [disabled]="!newImprovementUnitType.unitTypeId || !newImprovementUnitType.type" [(ngModel)]="newImprovementUnitType.value" class="form-control"/>
+            </div>
+        </div>
+    </div>
+    <div class="footer" *ngIf="newImprovementUnitType">
+        <button class="btn btn-primary" role="button" (click)="clickSaveUnitTypeImprovement()" [disabled]="!canAdd()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="clickCancelUnitTypeImprovement()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>
+
+<owge-core-modal #improvementsModal>
+    <div class="header">
+        <span>{{ 'OBJECT_IMPROVEMENTS_CRUD.MODAL.TITLE' | translate  }}</span>
+    </div>
+    <div class="body">
+        <table class="table table-dark" *ngIf="improvementUnitTypes !== null">
+            <thead>
+                <tr>
+                    <th class="col">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.IMPROVEMENT_TYPE' | translate }}</th>
+                    <th class="col">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.UNIT_TYPE' | translate }}</th>
+                    <th class="col">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.VALUE' | translate }}</th>
+                    <th class="col">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.ACTIONS' | translate }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let current of improvementUnitTypes">
+                    <td>{{ current.type }}</td>
+                    <td>{{ current.unitTypeName }} </td>
+                    <td>{{ current.value }}</td>
+                    <td><button class="btn" (click)="clickDelete(current)">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.BTN_DELETE' | translate }} </button></td>
+                </tr>
+                <tr *ngIf="!improvementUnitTypes.length">
+                    <th class="row" colspan="4">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.EMPTY' | translate }}</th>
+                </tr>
+            </tbody>
+            <caption class="table-dark owge-table-caption">
+                {{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.CAPTION' | translate }} <button class="btn" (click)="clickAddUnitTypeImprovement()">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.BTN_ADD' | translate }}</button>
+            </caption>
+        </table>
+    </div>
+    <div class="footer">
+        <button class="btn" role="button" (click)="clickCloseImprovements()">{{ 'CRUD.BTN_CLOSE' | translate }}</button>
+    </div>
+</owge-core-modal>
+<ng-container *ngIf="modificableImprovement">
+    <div class="form-group col-md-6">
+        <label for="more-pr-production"> {{ 'IMPROVEMENTS.MORE_PR_PRODUCTION' | translate }} (%) </label>
+        <input id="more-pr-production" type="number" class="form-control" [(ngModel)]="modificableImprovement.morePrimaryResourceProduction"/>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="more-sr-production"> {{ 'IMPROVEMENTS.MORE_SR_PRODUCTION' | translate }} (%) </label>
+        <input id="more-sr-production" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreSecondaryResourceProduction"/>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="more-energy-production"> {{ 'IMPROVEMENTS.MORE_ENERGY' | translate }} (%) </label>
+        <input id="more-energy-production" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreEnergyProduction"/>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="more-charge-capacity"> {{ 'IMPROVEMENTS.MORE_CHARGE_CAPACITY' | translate }} (%) </label>
+        <input id="more-charge-capacity" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreChargeCapacity"/>
+    </div>
+
+    <div class="form-group col-md-12">
+        <label for="more-missions"> {{ 'IMPROVEMENTS.MORE_MISSIONS' | translate }} (%) </label>
+        <input id="more-missions" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreMisions"/>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="more-research-speed"> {{ 'IMPROVEMENTS.MORE_RESEARCH_SPEED' | translate }} (%) </label>
+        <input id="more-energy-production" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreUpgradeResearchSpeed"/>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="more-build-speed"> {{ 'IMPROVEMENTS.MORE_BUILD_SPEED' | translate }} (%) </label>
+        <input id="more-build-speed" type="number" class="form-control" [(ngModel)]="modificableImprovement.moreUnitBuildSpeed"/>
+    </div>
+
+    <div class="form-group col-md-6">
+        <button class="btn btn-primary" (click)="clickSave()"  [disabled]="!detectIsChanged()">{{ 'IMPROVEMENTS.BTN_SAVE' | translate}}</button> 
+    </div>
+    <div class="form-group col-md-6">
+        <button class="btn" [disabled]="!modificableImprovement.unitTypesUpgrades" (click)="clickModifyUnitTypeImprovements()">{{ 'IMPROVEMENTS.BTN_MODIFY_UNIT_TYPE' | translate}}</button> 
+    </div>
+</ng-container>
+<div class="gorm-group col-md-12" *ngIf="!modificableImprovement">
+    {{ 'IMPROVEMENTS.ONLY_ON_SAVED' | translate }}
+</div>

@@ -1,0 +1,38 @@
+<owge-widgets-confirmation-dialog #confirmDialog (confirmResult)="cancelUpgrade($event)" [text]="vConfirmDeleteText">
+
+</owge-widgets-confirmation-dialog>
+
+<div class="card owge" *ngIf="userData">
+  <div class="card-block">
+    <h5 class="card-title">{{ upgrade.name }}</h5>
+    <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">Nivel {{ obtainedUpgrade.level }}
+      <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
+  </div>
+  <img class="card-img-top" src="{{ image }}" alt="image of the upgrade">
+  <div class="card-block upgrade-text">
+    <p class="card-text">{{ upgrade.description }}</p>
+  </div>
+  <ng-container *ngIf="obtainedUpgrade.requirements">
+    <div class="card-block Requirements">
+      <h5 class="card-title">Requisitos</h5>
+      <app-display-requirements [requirements]="obtainedUpgrade.requirements"></app-display-requirements>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="runningUpgrade">
+    <ng-container *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
+      <div class="upgrading-countdown">
+        <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate"
+          (timeOver)="notifyCaller()">
+        </app-countdown>
+      </div>
+      <a class="btn btn-block" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
+    </ng-container>
+    <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
+      (click)="otherUpgradeAlreadyRunning()">---</a>
+  </ng-container>
+  <ng-container *ngIf="!runningUpgrade">
+    <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
+      (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+  </ng-container>
+</div>

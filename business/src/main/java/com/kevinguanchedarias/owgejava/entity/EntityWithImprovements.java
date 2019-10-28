@@ -1,7 +1,5 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * This interface forces the entity to have certain attributes which allows it
  * to have improvements
@@ -9,7 +7,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  * @author Kevin Guanche Darias
  *
  */
-public interface EntityWithImprovements extends SimpleIdEntity {
+public interface EntityWithImprovements<K> extends EntityWithId<K> {
 	public Improvement getImprovement();
 
 	public void setImprovement(Improvement improvement);

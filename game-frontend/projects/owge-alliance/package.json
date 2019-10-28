@@ -1,0 +1,11 @@
+{
+  "name": "@owge/alliance",
+  "version": "0.8.0",
+  "peerDependencies": {
+    "@angular/common": "^8.2.0",
+    "@angular/core": "^8.2.0",
+    "@owge/core": "0.8.0",
+    "@owge/universe": "0.8.0",
+    "@owge/widgets": "0.8.0"
+  }
+}

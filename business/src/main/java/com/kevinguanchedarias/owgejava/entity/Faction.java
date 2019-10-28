@@ -23,7 +23,7 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table(name = "factions")
-public class Faction extends EntityWithImage implements EntityWithImprovements {
+public class Faction extends EntityWithImage implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -8190094507195501651L;
 
 	@Id
@@ -84,6 +84,7 @@ public class Faction extends EntityWithImage implements EntityWithImprovements {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

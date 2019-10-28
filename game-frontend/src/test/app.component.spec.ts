@@ -35,11 +35,11 @@ describe('AppComponent', () => {
         gameHelper.fakeLoginSessionServiceIsInGame(true);
         helper.component.isInGame = true;
         helper.startNgLifeCycle();
-        helper.testHtmlElementPresent('app-side-bar');
+        helper.testHtmlElementPresent('owge-widgets-sidebar');
 
         gameHelper.fakeLoginSessionServiceIsInGame(false);
         helper.component.isInGame = false;
         helper.startNgLifeCycle();
-        helper.testHtmlElementPresent('app-side-bar', true);
+        helper.testHtmlElementPresent('owge-widgets-sidebar', true);
     });
 });

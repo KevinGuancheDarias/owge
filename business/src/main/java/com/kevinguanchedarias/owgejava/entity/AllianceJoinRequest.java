@@ -17,8 +17,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * Represents a join request for an alliance
  * 
@@ -27,7 +25,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "alliance_join_request")
-public class AllianceJoinRequest implements SimpleIdEntity {
+public class AllianceJoinRequest implements EntityWithId<Integer> {
 	private static final long serialVersionUID = -5567072839053714253L;
 
 	@Id
@@ -58,9 +56,9 @@ public class AllianceJoinRequest implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.0
-	 * @param id
-	 *            the id to set
+	 * @param id the id to set
 	 */
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -75,8 +73,7 @@ public class AllianceJoinRequest implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.0
-	 * @param alliance
-	 *            the alliance to set
+	 * @param alliance the alliance to set
 	 */
 	public void setAlliance(Alliance alliance) {
 		this.alliance = alliance;
@@ -92,8 +89,7 @@ public class AllianceJoinRequest implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.0
-	 * @param user
-	 *            the user to set
+	 * @param user the user to set
 	 */
 	public void setUser(UserStorage user) {
 		this.user = user;
@@ -109,8 +105,7 @@ public class AllianceJoinRequest implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.0
-	 * @param requestDate
-	 *            the requestDate to set
+	 * @param requestDate the requestDate to set
 	 */
 	public void setRequestDate(Date requestDate) {
 		this.requestDate = requestDate;

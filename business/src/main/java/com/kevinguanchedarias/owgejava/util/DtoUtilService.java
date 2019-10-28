@@ -19,12 +19,12 @@ public class DtoUtilService implements Serializable {
 	/**
 	 * Null safe method to create a pojo
 	 * 
-	 * @todo In the future find out a way to remove the static thingy, as is
-	 *       hard to mock
+	 * @todo In the future find out a way to remove the static thingy, as is hard to
+	 *       mock
 	 * @param targetDtoClass
 	 * @param entity
-	 * @return If the <i>entity</i> is null, will return null, else the
-	 *         generated dto
+	 * @return If the <i>entity</i> is null, will return null, else the generated
+	 *         dto
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public static <E, P extends DtoFromEntity<E>> P staticDtoFromEntity(Class<P> targetDtoClass, E entity) {
@@ -48,10 +48,8 @@ public class DtoUtilService implements Serializable {
 	/**
 	 * Converts an entire array of entities into an array of pojos
 	 * 
-	 * @param targetDtoClass
-	 *            Dto class to use
-	 * @param entities
-	 *            entities array
+	 * @param targetDtoClass Dto class to use
+	 * @param entities       entities array
 	 * @return an array of dtos
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -66,24 +64,38 @@ public class DtoUtilService implements Serializable {
 
 	/**
 	 * Returns the entity created from the dto <br>
-	 * <b>NOTICE:</b> For now only primitive types are copied, in the future
-	 * should be different
+	 * <b>NOTICE:</b> For now only primitive types are copied, in the future should
+	 * be different
 	 * 
 	 * @param targetEntityClass
 	 * @param pojo
 	 * @return
-	 * @todo In the future create a method toEntity() in {@link DtoFromEntity}
-	 *       to allow custom entity creations
+	 * @todo In the future create a method toEntity() in {@link DtoFromEntity} to
+	 *       allow custom entity creations
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public <P extends DtoFromEntity<E>, E> E entityFromDto(Class<E> targetEntityClass, P pojo) {
 		try {
-			E entity = targetEntityClass.newInstance();
-			BeanUtils.copyProperties(pojo, entity);
-			return entity;
+			return entityFromDto(targetEntityClass.newInstance(), pojo);
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new CommonException(INSTANTIATION_ERROR, e);
 		}
+	}
+
+	/**
+	 * Copies DTO properties to an <b>existing entity class</b>
+	 * 
+	 * @param <P>      Target DTO (guessed from second argument)
+	 * @param <E>      Entity type
+	 * @param instance Target <b>existing</b> entity
+	 * @param dto      Source DTO
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <P extends DtoFromEntity<E>, E> E entityFromDto(E instance, P dto) {
+		BeanUtils.copyProperties(dto, instance);
+		return instance;
 	}
 }

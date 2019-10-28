@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
@@ -13,7 +14,7 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.UpgradeRepository;
 
 @Component
-public class UpgradeBo implements WithNameBo<Upgrade> {
+public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	private static final long serialVersionUID = -4559943498112928568L;
 
 	@Autowired
@@ -23,8 +24,18 @@ public class UpgradeBo implements WithNameBo<Upgrade> {
 	private transient RequirementInformationDao requirementInformationDao;
 
 	@Override
-	public JpaRepository<Upgrade, Number> getRepository() {
+	public JpaRepository<Upgrade, Integer> getRepository() {
 		return upgradeRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<UpgradeDto> getDtoClass() {
+		return UpgradeDto.class;
 	}
 
 	@Transactional
@@ -59,4 +70,5 @@ public class UpgradeBo implements WithNameBo<Upgrade> {
 
 		return retVal;
 	}
+
 }

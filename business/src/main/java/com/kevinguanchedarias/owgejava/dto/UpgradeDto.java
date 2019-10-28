@@ -4,7 +4,7 @@ import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UpgradeType;
 
-public class UpgradeDto implements DtoFromEntity<Upgrade> {
+public class UpgradeDto implements DtoFromEntity<Upgrade>, DtoWithImprovements {
 	private Integer id;
 	private String name;
 	private String image;
@@ -25,9 +25,8 @@ public class UpgradeDto implements DtoFromEntity<Upgrade> {
 		UpgradeType typeEntity = entity.getType();
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
-		
-		improvement = new ImprovementDto();
-		improvement.dtoFromEntity(entity.getImprovement());
+
+		DtoWithImprovements.super.dtoFromEntity(entity);
 	}
 
 	public Integer getId() {
@@ -118,10 +117,12 @@ public class UpgradeDto implements DtoFromEntity<Upgrade> {
 		this.levelEffect = levelEffect;
 	}
 
+	@Override
 	public ImprovementDto getImprovement() {
 		return improvement;
 	}
 
+	@Override
 	public void setImprovement(ImprovementDto improvement) {
 		this.improvement = improvement;
 	}

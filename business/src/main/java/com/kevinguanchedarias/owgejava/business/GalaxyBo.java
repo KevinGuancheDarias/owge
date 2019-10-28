@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
+import com.kevinguanchedarias.owgejava.dto.GalaxyDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -19,7 +20,7 @@ import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 
 @Service
-public class GalaxyBo implements WithNameBo<Galaxy> {
+public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	private static final long serialVersionUID = 5691936505840441041L;
 
 	private static final Integer PLANETS_FOR_EACH_QUADRANT = 20;
@@ -32,8 +33,18 @@ public class GalaxyBo implements WithNameBo<Galaxy> {
 	private PlanetRepository planetRepository;
 
 	@Override
-	public JpaRepository<Galaxy, Number> getRepository() {
+	public JpaRepository<Galaxy, Integer> getRepository() {
 		return galaxyRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<GalaxyDto> getDtoClass() {
+		return GalaxyDto.class;
 	}
 
 	/**
@@ -58,8 +69,7 @@ public class GalaxyBo implements WithNameBo<Galaxy> {
 	 * 
 	 * @param galaxy
 	 * @author Kevin Guanche Darias
-	 * @throws SgtBackendInvalidInputException
-	 *             When it's not possible to save
+	 * @throws SgtBackendInvalidInputException When it's not possible to save
 	 */
 	public void canSave(Galaxy galaxy) {
 		checkInput(galaxy);
@@ -106,8 +116,8 @@ public class GalaxyBo implements WithNameBo<Galaxy> {
 	}
 
 	/**
-	 * Will check if the selected galaxy is empty Considered empty when there
-	 * are not players in it
+	 * Will check if the selected galaxy is empty Considered empty when there are
+	 * not players in it
 	 * 
 	 * @param galaxy
 	 * @author Kevin Guanche Darias
@@ -146,8 +156,8 @@ public class GalaxyBo implements WithNameBo<Galaxy> {
 	}
 
 	/**
-	 * Prepares the galaxy for saving, so if galaxy has never been persisted
-	 * will insert ALL its planets WARNING: HEAVY INTENSE OPERATION!
+	 * Prepares the galaxy for saving, so if galaxy has never been persisted will
+	 * insert ALL its planets WARNING: HEAVY INTENSE OPERATION!
 	 * 
 	 * @param galaxy
 	 * @author Kevin Guanche Darias

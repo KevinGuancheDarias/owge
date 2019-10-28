@@ -1,0 +1,9 @@
+<owge-core-loading [isReady]="obtainedUnits">
+  <ng-container *ngIf="obtainedUnits">
+    <div *ngIf="!obtainedUnits.length" class="owge-base-colors">There are no units in this planet</div>
+    <ng-container *ngFor="let unit of obtainedUnits">
+      <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" [unit]="unit.unit" [isDeletable]="true"
+        [withInPlanetMode]="true" [inPlanetCount]="unit.count" [obtainedUnit]="unit" (delete)="onDeletion()"></app-display-single-unit>
+    </ng-container>
+  </ng-container>
+</owge-core-loading>

@@ -16,7 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUpradeBo;
+import com.kevinguanchedarias.owgejava.business.ObtainedUpgradeBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.UpgradeBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
@@ -34,7 +34,7 @@ import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementType;
+import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 
@@ -54,7 +54,7 @@ public class RequirementBoTest extends TestCommon {
 	private UnlockedRelationRepository unlockedRelationRepositoryMock;
 
 	@Mock
-	private ObtainedUpradeBo obtainedUpgradeBoMock;
+	private ObtainedUpgradeBo obtainedUpgradeBoMock;
 
 	@Mock
 	private UpgradeBo upgradeBo;
@@ -94,19 +94,19 @@ public class RequirementBoTest extends TestCommon {
 		List<ObjectRelation> relations = new ArrayList<>();
 
 		ObjectRelation validRelation = prepareRelationWithOneRequirement(validRelationId, 1L,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relations.add(validRelation);
 
 		ObjectRelation relationHavingOtherFactionAsReq = prepareRelationWithOneRequirement(2, 3L,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relations.add(relationHavingOtherFactionAsReq);
 
 		ObjectRelation relationHavingValidFactionButInvalidGalaxy = prepareRelationWithOneRequirement(3, 1L,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relationHavingValidFactionButInvalidGalaxy.getRequirements()
-				.add(prepareRequirementInformation(RequirementType.HOME_GALAXY, 44L, null));
+				.add(prepareRequirementInformation(RequirementTypeEnum.HOME_GALAXY, 44L, null));
 
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 
 		requirementBo.triggerFactionSelection(user);
@@ -120,10 +120,10 @@ public class RequirementBoTest extends TestCommon {
 		List<ObjectRelation> relations = new ArrayList<>();
 
 		ObjectRelation validRelation = prepareRelationWithOneRequirement(validRelationId,
-				Long.valueOf(user.getHomePlanet().getGalaxy().getId()), RequirementType.HOME_GALAXY);
-		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(2, 329L, RequirementType.HOME_GALAXY);
+				Long.valueOf(user.getHomePlanet().getGalaxy().getId()), RequirementTypeEnum.HOME_GALAXY);
+		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(2, 329L, RequirementTypeEnum.HOME_GALAXY);
 
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.HOME_GALAXY))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.HOME_GALAXY))
 				.thenReturn(relations);
 
 		relations.add(validRelation);
@@ -143,18 +143,18 @@ public class RequirementBoTest extends TestCommon {
 
 		Upgrade upgrade = new Upgrade();
 		upgrade.setId(1);
-		Mockito.when(upgradeBo.findById(Mockito.any(Number.class))).thenReturn(upgrade);
+		Mockito.when(upgradeBo.findById(Mockito.any(Integer.class))).thenReturn(upgrade);
 
 		ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
 		obtainedUpgrade.setLevel(4);
 		Mockito.when(obtainedUpgradeBoMock.findByUserAndUpgrade(1, 1)).thenReturn(obtainedUpgrade);
 
 		ObjectRelation validRelation = prepareRelationWithOneRequirement(validRelationId, upgradeId, validLevel,
-				RequirementType.UPGRADE_LEVEL, RequirementTargetObject.UNIT);
-		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(4, 20L, 7L, RequirementType.UPGRADE_LEVEL,
-				RequirementTargetObject.UNIT);
+				RequirementTypeEnum.UPGRADE_LEVEL, RequirementTargetObject.UNIT);
+		ObjectRelation invalidRelation = prepareRelationWithOneRequirement(4, 20L, 7L,
+				RequirementTypeEnum.UPGRADE_LEVEL, RequirementTargetObject.UNIT);
 
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.UPGRADE_LEVEL))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.UPGRADE_LEVEL))
 				.thenReturn(relations);
 
 		relations.add(validRelation);
@@ -171,22 +171,22 @@ public class RequirementBoTest extends TestCommon {
 		List<ObjectRelation> relations = new ArrayList<>();
 
 		ObjectRelation relationHavingMultipleValidReq = prepareRelationWithOneRequirement(1, validFaction,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relationHavingMultipleValidReq.getRequirements()
-				.add(prepareRequirementInformation(RequirementType.HOME_GALAXY, 1L, null));
+				.add(prepareRequirementInformation(RequirementTypeEnum.HOME_GALAXY, 1L, null));
 		ObjectRelation relationHavingValidFactionButInvalidGalaxy = prepareRelationWithOneRequirement(2, validFaction,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relationHavingValidFactionButInvalidGalaxy.getRequirements()
-				.add(prepareRequirementInformation(RequirementType.HOME_GALAXY, 44L, null));
+				.add(prepareRequirementInformation(RequirementTypeEnum.HOME_GALAXY, 44L, null));
 		ObjectRelation relationHavingValidGalaxyButInvalidFaction = prepareRelationWithOneRequirement(3, 44L,
-				RequirementType.BEEN_RACE);
+				RequirementTypeEnum.BEEN_RACE);
 		relationHavingValidGalaxyButInvalidFaction.getRequirements().add(prepareRequirementInformation(
-				RequirementType.HOME_GALAXY, Long.valueOf(user.getHomePlanet().getGalaxy().getId()), null));
+				RequirementTypeEnum.HOME_GALAXY, Long.valueOf(user.getHomePlanet().getGalaxy().getId()), null));
 
 		relations.add(relationHavingMultipleValidReq);
 		relations.add(relationHavingValidFactionButInvalidGalaxy);
 		relations.add(relationHavingValidGalaxyButInvalidFaction);
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 
 		requirementBo.triggerFactionSelection(user);
@@ -197,13 +197,15 @@ public class RequirementBoTest extends TestCommon {
 	@Test
 	public void shouldRemoveFromUnlockedRelationsWhenRelationRequirementsAreNotLongerMet() {
 		List<ObjectRelation> relations = new ArrayList<>();
-		ObjectRelation validRelation = prepareRelationWithOneRequirement(1, 1L, RequirementType.BEEN_RACE);
-		unlockedRelationsStore.add(prepareUnlockedRelationWithOneRequirement(2, 2L, RequirementType.HOME_GALAXY, user));
-		unlockedRelationsStore.add(prepareUnlockedRelationWithOneRequirement(3, 2L, RequirementType.BEEN_RACE, user));
-		UnlockedRelation multipleOne = prepareUnlockedRelationWithOneRequirement(4, 2L, RequirementType.BEEN_RACE,
+		ObjectRelation validRelation = prepareRelationWithOneRequirement(1, 1L, RequirementTypeEnum.BEEN_RACE);
+		unlockedRelationsStore
+				.add(prepareUnlockedRelationWithOneRequirement(2, 2L, RequirementTypeEnum.HOME_GALAXY, user));
+		unlockedRelationsStore
+				.add(prepareUnlockedRelationWithOneRequirement(3, 2L, RequirementTypeEnum.BEEN_RACE, user));
+		UnlockedRelation multipleOne = prepareUnlockedRelationWithOneRequirement(4, 2L, RequirementTypeEnum.BEEN_RACE,
 				user);
 		multipleOne.getRelation().getRequirements()
-				.add(prepareRequirementInformation(RequirementType.BEEN_RACE, 1L, null));
+				.add(prepareRequirementInformation(RequirementTypeEnum.BEEN_RACE, 1L, null));
 		unlockedRelationsStore.add(multipleOne);
 		assertEquals(3, unlockedRelationsStore.size());
 
@@ -219,7 +221,7 @@ public class RequirementBoTest extends TestCommon {
 				.thenReturn(unlockedRelationsStore.get(1));
 		Mockito.when(unlockedRelationRepositoryMock.findOneByUserIdAndRelationId(1, 4))
 				.thenReturn(unlockedRelationsStore.get(2));
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 
 		requirementBo.triggerFactionSelection(user);
@@ -231,11 +233,11 @@ public class RequirementBoTest extends TestCommon {
 	public void shouldNotCallSaveObtainedUpgradeWhenTypeIsNotAnUpgrade() {
 		List<ObjectRelation> relations = new ArrayList<>();
 
-		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, null, RequirementType.BEEN_RACE,
+		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, null, RequirementTypeEnum.BEEN_RACE,
 				RequirementTargetObject.UNIT);
 
 		relations.add(relation);
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 		requirementBo.triggerFactionSelection(user);
 		Mockito.verify(obtainedUpgradeBoMock, Mockito.never()).save(Mockito.any(ObtainedUpgrade.class));
@@ -244,14 +246,14 @@ public class RequirementBoTest extends TestCommon {
 	@Test
 	public void shouldCallSaveObtainedUpgradeWhenUseralreadyHasItSettingAvailableToTrueIfItWasNot() {
 		List<ObjectRelation> relations = new ArrayList<>();
-		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, RequirementType.BEEN_RACE);
+		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, RequirementTypeEnum.BEEN_RACE);
 		relation.setReferenceId(1);
 		relations.add(relation);
 		ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
 		obtainedUpgrade.setId(1L);
 		obtainedUpgrade.setUserId(user);
 		Mockito.when(obtainedUpgradeBoMock.findUserObtainedUpgrade(1, 1)).thenReturn(obtainedUpgrade);
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 		Mockito.when(obtainedUpgradeBoMock.userHasUpgrade(1, 1)).thenReturn(true);
 		requirementBo.triggerFactionSelection(user);
@@ -262,7 +264,7 @@ public class RequirementBoTest extends TestCommon {
 	@Test
 	public void shouldSetObtainedUpgradeToUnavailableWhenReqsAreNotLongerMet() {
 		List<ObjectRelation> relations = new ArrayList<>();
-		ObjectRelation relation = prepareRelationWithOneRequirement(1, 4L, RequirementType.BEEN_RACE);
+		ObjectRelation relation = prepareRelationWithOneRequirement(1, 4L, RequirementTypeEnum.BEEN_RACE);
 		relation.setReferenceId(1);
 		relations.add(relation);
 		ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
@@ -270,7 +272,7 @@ public class RequirementBoTest extends TestCommon {
 		obtainedUpgrade.setUserId(user);
 		obtainedUpgrade.setAvailable(true);
 		Mockito.when(obtainedUpgradeBoMock.findUserObtainedUpgrade(1, 1)).thenReturn(obtainedUpgrade);
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 		Mockito.when(obtainedUpgradeBoMock.userHasUpgrade(1, 1)).thenReturn(true);
 		requirementBo.triggerFactionSelection(user);
@@ -281,10 +283,10 @@ public class RequirementBoTest extends TestCommon {
 	@Test
 	public void shouldCallSaveObtainedUpgradeWhenRelationIsAnUpgradeAndUserDoesNotHaveIt() {
 		List<ObjectRelation> relations = new ArrayList<>();
-		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, RequirementType.BEEN_RACE);
+		ObjectRelation relation = prepareRelationWithOneRequirement(1, 1L, RequirementTypeEnum.BEEN_RACE);
 		relation.setReferenceId(1);
 		relations.add(relation);
-		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementType.BEEN_RACE))
+		Mockito.when(requirementDaoMock.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE))
 				.thenReturn(relations);
 		Mockito.when(obtainedUpgradeBoMock.userHasUpgrade(1, 1)).thenReturn(false);
 		requirementBo.triggerFactionSelection(user);
@@ -301,12 +303,12 @@ public class RequirementBoTest extends TestCommon {
 		obtainedUnit.setUnit(unit);
 
 		ObjectRelation relation = prepareRelationWithOneRequirement(1, unit.getId().longValue(),
-				RequirementType.HAVE_UNIT);
+				RequirementTypeEnum.HAVE_UNIT);
 
 		List<ObjectRelation> relations = new ArrayList<>();
 		relations.add(relation);
 
-		Mockito.when(requirementDaoMock.findByRequirementTypeAndSecondValue(RequirementType.HAVE_UNIT,
+		Mockito.when(requirementDaoMock.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT,
 				unit.getId().longValue())).thenReturn(relations);
 		Mockito.when(obtainedUnitBoMock.findOneByUserIdAndUnitId(user.getId(), unit.getId())).thenReturn(obtainedUnit);
 		requirementBo.triggerUnitBuildCompleted(user, unit);
@@ -327,14 +329,14 @@ public class RequirementBoTest extends TestCommon {
 		obtainedUnit.setUnit(unit);
 
 		ObjectRelation relation = prepareRelationWithOneRequirement(1, unit.getId().longValue(), fakeCount,
-				RequirementType.UNIT_AMOUNT, RequirementTargetObject.UNIT);
+				RequirementTypeEnum.UNIT_AMOUNT, RequirementTargetObject.UNIT);
 
 		List<ObjectRelation> relations = new ArrayList<>();
 		relations.add(relation);
 
 		Mockito.when(obtainedUnitBoMock.countByUserAndUnitId(user, unitId)).thenReturn(fakeCount);
 		Mockito.when(requirementDaoMock.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-				RequirementType.UNIT_AMOUNT, unit.getId().longValue(), fakeCount)).thenReturn(relations);
+				RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), fakeCount)).thenReturn(relations);
 		Mockito.when(obtainedUnitBoMock.findOneByUserIdAndUnitId(user.getId(), unit.getId())).thenReturn(obtainedUnit);
 		requirementBo.triggerUnitBuildCompleted(user, unit);
 
@@ -357,14 +359,14 @@ public class RequirementBoTest extends TestCommon {
 		unlockedRelation.setId(1L);
 
 		ObjectRelation relation = prepareRelationWithOneRequirement(1, unit.getId().longValue(), requirementValue,
-				RequirementType.UNIT_AMOUNT, RequirementTargetObject.UNIT);
+				RequirementTypeEnum.UNIT_AMOUNT, RequirementTargetObject.UNIT);
 
 		List<ObjectRelation> relations = new ArrayList<>();
 		relations.add(relation);
 
 		Mockito.when(obtainedUnitBoMock.countByUserAndUnitId(user, unitId)).thenReturn(userValue);
 		Mockito.when(requirementDaoMock.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-				RequirementType.UNIT_AMOUNT, unit.getId().longValue(), userValue)).thenReturn(relations);
+				RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), userValue)).thenReturn(relations);
 		Mockito.when(obtainedUnitBoMock.findOneByUserIdAndUnitId(user.getId(), unit.getId())).thenReturn(obtainedUnit);
 		Mockito.when(unlockedRelationRepositoryMock.findOneByUserIdAndRelationId(user.getId(), relation.getId()))
 				.thenReturn(unlockedRelation);
@@ -375,14 +377,14 @@ public class RequirementBoTest extends TestCommon {
 		Mockito.verify(unlockedRelationRepositoryMock).delete(unlockedRelation.getId());
 	}
 
-	private Requirement emulateRequirement(RequirementType type) {
+	private Requirement emulateRequirement(RequirementTypeEnum type) {
 		Requirement requirement = new Requirement();
 		requirement.setId(type.getValue());
 		requirement.setCode(type.name());
 		return requirement;
 	}
 
-	private RequirementInformation prepareRequirementInformation(RequirementType type, Long secondValue,
+	private RequirementInformation prepareRequirementInformation(RequirementTypeEnum type, Long secondValue,
 			Long thirdValue) {
 		RequirementInformation retVal = new RequirementInformation();
 		retVal.setRequirement(emulateRequirement(type));
@@ -392,7 +394,7 @@ public class RequirementBoTest extends TestCommon {
 	}
 
 	private UnlockedRelation prepareUnlockedRelationWithOneRequirement(Integer relationId, Long secondValue,
-			RequirementType type, UserStorage user) {
+			RequirementTypeEnum type, UserStorage user) {
 		UnlockedRelation retVal = new UnlockedRelation();
 		retVal.setRelation(prepareRelationWithOneRequirement(relationId, secondValue, type));
 		retVal.setUser(user);
@@ -401,7 +403,7 @@ public class RequirementBoTest extends TestCommon {
 	}
 
 	private ObjectRelation prepareRelationWithOneRequirement(Integer relationId, Long secondValue, Long thirdValue,
-			RequirementType type, RequirementTargetObject target) {
+			RequirementTypeEnum type, RequirementTargetObject target) {
 		ObjectRelation retVal = new ObjectRelation();
 		ObjectEntity object = new ObjectEntity();
 		object.setDescription(target.name());
@@ -420,7 +422,7 @@ public class RequirementBoTest extends TestCommon {
 	}
 
 	private ObjectRelation prepareRelationWithOneRequirement(Integer relationId, Long secondValue,
-			RequirementType type) {
+			RequirementTypeEnum type) {
 		return prepareRelationWithOneRequirement(relationId, secondValue, null, type, RequirementTargetObject.UPGRADE);
 	}
 

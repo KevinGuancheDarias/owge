@@ -1,0 +1,9 @@
+<app-game-sidebar *ngIf="isInGame"></app-game-sidebar>
+<div class="app-container">
+    <router-outlet></router-outlet>
+</div>
+<div *ngIf="isLoading" class="is-loading">
+    <div>
+
+    </div>
+</div>

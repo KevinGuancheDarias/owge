@@ -2,18 +2,15 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.kevinsuite.commons.rest.security.SecurityContextService;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
+import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -31,10 +28,8 @@ import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class UserStorageBo implements BaseBo<UserStorage> {
+public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
 	private static final long serialVersionUID = 2837362546838035726L;
-
-	private static final Logger LOGGER = Logger.getLogger(UserStorageBo.class);
 
 	public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
 
@@ -47,9 +42,6 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	@Autowired
 	private PlanetBo planetBo;
 
-	@Autowired(required = false)
-	private transient SecurityContextService securityContextService;
-
 	@Autowired
 	private RequirementBo requirementBo;
 
@@ -60,23 +52,27 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
-	private ImprovementBo improvementBo;
+	private ImprovementUnitTypeBo improvementUnitTypeBo;
 
 	@Autowired
 	private AllianceBo allianceBo;
 
-	@PostConstruct
-	public void init() {
-		if (securityContextService == null) {
-			securityContextService = new SecurityContextService();
-			LOGGER.warn("Had to spawn an entire " + SecurityContextService.class.getName()
-					+ " because it's not defined as a bean, define a singletone bean for performance and convenience purposes");
-		}
-	}
+	@Autowired
+	private AuthenticationBo authenticationBo;
 
 	@Override
-	public JpaRepository<UserStorage, Number> getRepository() {
+	public JpaRepository<UserStorage, Integer> getRepository() {
 		return userStorageRepository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<UserStorageDto> getDtoClass() {
+		return UserStorageDto.class;
 	}
 
 	/**
@@ -86,6 +82,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Override
 	public boolean exists(Integer id) {
 		return userStorageRepository.exists(id);
 	}
@@ -93,8 +90,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	/**
 	 * User exists <b>in this universe</b>
 	 * 
-	 * @param user
-	 *            Typically comes from a user token
+	 * @param user Typically comes from a user token
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -104,8 +100,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	/**
-	 * Finds the logged in user information ONLY the base one, and from
-	 * token<br />
+	 * Finds the logged in user information ONLY the base one, and from token<br />
 	 * Only id, email, and username will be returned, used
 	 * findLoggedInWithDetailts() for everything
 	 * 
@@ -113,17 +108,16 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * @author Kevin Guanche Darias
 	 */
 	public UserStorage findLoggedIn() {
-		return convertTokenUserToUserStorage(findTokenUser());
+		return convertTokenUserToUserStorage(authenticationBo.findTokenUser());
 	}
 
 	/**
 	 * Returns the logged in user with ALL his details <br />
 	 * <b>NOTICE:</b> If required, will update base information (username,email)
 	 * 
-	 * @param populateTransient
-	 *            Should Compute transient values<br />
-	 *            Recommended if needs the computed real resource generation
-	 *            after improvements parsing
+	 * @param populateTransient Should Compute transient values<br />
+	 *                          Recommended if needs the computed real resource
+	 *                          generation after improvements parsing
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -150,8 +144,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	/**
 	 * Will subscribe logged in user to this universe
 	 * 
-	 * @param factionId
-	 *            Faction that the user wants to use
+	 * @param factionId Faction that the user wants to use
 	 * @return Success registering the user, if user exists already, it's not a
 	 *         success!
 	 * @author Kevin Guanche Darias
@@ -196,8 +189,8 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	/**
-	 * Will update <b>logged in user</b> resources, based on seconds passed
-	 * since last resources update
+	 * Will update <b>logged in user</b> resources, based on seconds passed since
+	 * last resources update
 	 * 
 	 * @author Kevin Guanche Darias
 	 */
@@ -222,10 +215,8 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * Checks if you own the specified planet
 	 *
 	 * @param planetId
-	 * @throws PlanetNotFoundException
-	 *             when planet doesn't exists
-	 * @throws NotYourPlanetException
-	 *             When you do not own the planet
+	 * @throws PlanetNotFoundException when planet doesn't exists
+	 * @throws NotYourPlanetException  When you do not own the planet
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void checkOwnPlanet(Long planetId) {
@@ -247,7 +238,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	}
 
 	public Double findMaxEnergy(UserStorage user) {
-		return ObjectUtils.firstNonNull(improvementBo.computeImprovementValue(user.getEnergy(),
+		return ObjectUtils.firstNonNull(improvementUnitTypeBo.computeImprovementValue(user.getEnergy(),
 				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()), 0D);
 	}
 
@@ -274,7 +265,7 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public void defineAllianceByAllianceId(Number oldAlliance, Number newAlliance) {
+	public void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
 		Alliance targetNewAlliance = newAlliance == null ? null : allianceBo.findById(newAlliance);
 		userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance), targetNewAlliance);
 	}
@@ -285,17 +276,13 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public void leave(Number userId) {
+	public void leave(Integer userId) {
 		UserStorage userRef = getOne(userId);
 		if (allianceBo.isOwnerOfAnAlliance(userId)) {
 			throw new SgtBackendInvalidInputException("You can't leave your own alliance");
 		}
 		userRef.setAlliance(null);
 		save(userRef);
-	}
-
-	private TokenUser findTokenUser() {
-		return (TokenUser) securityContextService.getAuthentication().getDetails();
 	}
 
 	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
@@ -308,14 +295,10 @@ public class UserStorageBo implements BaseBo<UserStorage> {
 
 	/**
 	 * 
-	 * @param now
-	 *            datetime representing now!
-	 * @param lastAction
-	 *            datetime representing the last time value was update
-	 * @param perSecondValue
-	 *            Value to increase each second
-	 * @param value
-	 *            current value
+	 * @param now            datetime representing now!
+	 * @param lastAction     datetime representing the last time value was update
+	 * @param perSecondValue Value to increase each second
+	 * @param value          current value
 	 * @return the new value for the given resource
 	 * @author Kevin Guanche Darias
 	 */

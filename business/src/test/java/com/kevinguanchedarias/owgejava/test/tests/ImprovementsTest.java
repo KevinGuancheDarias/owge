@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
@@ -42,7 +42,7 @@ public class ImprovementsTest {
 	private UnitTypeRepository unitTypeRepository;
 
 	@InjectMocks
-	private ImprovementBo improvementsBo;
+	private ImprovementUnitTypeBo improvementsBo;
 
 	@PostConstruct
 	public void init() {

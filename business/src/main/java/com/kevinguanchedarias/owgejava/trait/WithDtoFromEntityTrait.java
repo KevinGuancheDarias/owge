@@ -10,8 +10,7 @@ import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 /**
  * Copies common properties by default when invoking <i>dtoFromEntity</i>
  *
- * @param <E>
- *            Target entity
+ * @param <E> Target entity
  * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */

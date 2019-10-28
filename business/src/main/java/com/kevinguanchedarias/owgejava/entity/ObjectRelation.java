@@ -18,8 +18,6 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * This entity contains the id of the referenced table and the object type id
  * 
@@ -27,7 +25,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "object_relations")
-public class ObjectRelation implements SimpleIdEntity {
+public class ObjectRelation implements EntityWithId<Integer> {
 	private static final long serialVersionUID = -7972319667060686603L;
 
 	@Id
@@ -52,6 +50,7 @@ public class ObjectRelation implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

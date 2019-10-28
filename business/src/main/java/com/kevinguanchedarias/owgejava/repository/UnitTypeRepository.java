@@ -4,6 +4,6 @@ import java.io.Serializable;
 
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 
-public interface UnitTypeRepository extends WithNameRepository<UnitType, Number>, Serializable {
+public interface UnitTypeRepository extends WithNameRepository<UnitType, Integer>, Serializable {
 
 }

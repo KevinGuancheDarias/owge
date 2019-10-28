@@ -1,12 +1,19 @@
+/**
+ * 
+ */
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
-import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
+import com.kevinguanchedarias.owgejava.entity.Improvement;
 
-public interface ImprovementRepository extends JpaRepository<ImprovementUnitType, Integer>, Serializable {
-	public List<ImprovementUnitType> findByImprovementIdId(Integer id);
+/**
+ *
+ * @since 0.8.0
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ */
+public interface ImprovementRepository extends JpaRepository<Improvement, Integer>, Serializable {
+
 }

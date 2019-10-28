@@ -15,11 +15,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Table(name = "obtained_units")
 @Entity
-public class ObtainedUnit implements SimpleIdEntity {
+public class ObtainedUnit implements EntityWithId<Long> {
 	private static final long serialVersionUID = -373057104230776167L;
 
 	@Id
@@ -72,6 +70,7 @@ public class ObtainedUnit implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -134,8 +133,7 @@ public class ObtainedUnit implements SimpleIdEntity {
 
 	/**
 	 * @since 0.7.4
-	 * @param firstDeploymentMission
-	 *            the firstDeploymentMission to set
+	 * @param firstDeploymentMission the firstDeploymentMission to set
 	 */
 	public void setFirstDeploymentMission(Mission firstDeploymentMission) {
 		this.firstDeploymentMission = firstDeploymentMission;

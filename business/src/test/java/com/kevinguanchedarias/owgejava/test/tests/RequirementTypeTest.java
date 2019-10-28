@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.entity.Requirement;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementType;
+import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 
 @ActiveProfiles("dev")
@@ -26,7 +26,7 @@ public class RequirementTypeTest {
 
 	@Test
 	public void integerValuesShouldMatchStringValuesInDatabase() {
-		for (RequirementType type : RequirementType.values()) {
+		for (RequirementTypeEnum type : RequirementTypeEnum.values()) {
 			Requirement current = requirementRepository.findOne(type.getValue());
 			assertEquals(current.getCode(), type.name());
 		}

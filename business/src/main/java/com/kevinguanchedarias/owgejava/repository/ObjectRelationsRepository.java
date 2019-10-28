@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 
-public interface ObjectRelationsRepository extends JpaRepository<ObjectRelation, Number>, Serializable {
+public interface ObjectRelationsRepository extends JpaRepository<ObjectRelation, Integer>, Serializable {
 	public ObjectRelation findOneByObjectDescriptionAndReferenceId(String objectEntityCode, Integer refId);
 
 	public List<ObjectRelation> findByRequirementsRequirementCode(String code);

@@ -26,7 +26,7 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUpradeBo;
+import com.kevinguanchedarias.owgejava.business.ObtainedUpgradeBo;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.UnitBo;
@@ -72,7 +72,7 @@ public class MissionBoTest extends TestCommon {
 	private MissionRepository missionRepositoryMock;
 
 	@Mock
-	private ObtainedUpradeBo obtainedUpgradeBoMock;
+	private ObtainedUpgradeBo obtainedUpgradeBoMock;
 
 	@Mock
 	private ObjectRelationBo objectRelationBoMock;

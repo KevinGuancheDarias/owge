@@ -10,17 +10,27 @@
 	<bean id="jwtAuthenticationProvider"
 		class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationProvider"></bean>
 
-	<bean id="owgeTokenConfigLoader"
+	<bean id="adminOwgeTokenConfigLoader"
+			class="com.kevinguanchedarias.owgejava.security.AdminTokenConfigLoader"></bean>
+	<bean id="gameOwgeTokenConfigLoader"
 			class="com.kevinguanchedarias.owgejava.security.DevelopmentSgtTokenConfigLoader"></bean>
 	<bean id="owgeResourceAutoUpdateEventHandler"
 		class="com.kevinguanchedarias.owgejava.event.ResourceAutoUpdateEventHandler"></bean>
-	<bean id="jwtAuthenticationFilter"
+	<bean id="gameJwtAuthenticationFilter"
 		class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationFilter">
 		<property name="authenticationManager" ref="authenticationManager"></property>
 		<property name="authenticationSuccessHandler" ref="jwtAuthenticationSuccessHandler"></property>
-		<property name="tokenConfigLoader" ref="owgeTokenConfigLoader"></property>
+		<property name="tokenConfigLoader" ref="gameOwgeTokenConfigLoader"></property>
 		<property name="convertExceptionToJson" value="true"></property>
 		<property name="filterEventHandler" ref="owgeResourceAutoUpdateEventHandler"></property>
+	</bean>
+	
+	<bean id="adminJwtAuthenticationFilter"
+		class="com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationFilter">
+		<property name="authenticationManager" ref="authenticationManager"></property>
+		<property name="authenticationSuccessHandler" ref="jwtAuthenticationSuccessHandler"></property>
+		<property name="tokenConfigLoader" ref="adminOwgeTokenConfigLoader"></property>
+		<property name="convertExceptionToJson" value="true"></property>
 	</bean>
 
 	<!-- START Allow using CORS inside a Spring security application -->
@@ -58,22 +68,22 @@
 	<security:global-method-security
 		pre-post-annotations="enabled" />
 
-	<security:http pattern="/login" security="none" />
-	<security:http pattern="/universe/findOfficials"
-		security="none" />
-	<security:http pattern="/clock" security="none" />
-	<security:http pattern="/configuration" security="none" />
-	<security:http pattern="/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
+	<security:http pattern="/admin/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
 		<security:csrf disabled="true"/>
-		<security:custom-filter before="FORM_LOGIN_FILTER" ref="jwtAuthenticationFilter"/>
+		<security:custom-filter before="FORM_LOGIN_FILTER" ref="adminJwtAuthenticationFilter"/>
 	</security:http>
+	<security:http pattern="/game/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless" >
+		<security:csrf disabled="true"/>
+		<security:custom-filter before="FORM_LOGIN_FILTER" ref="gameJwtAuthenticationFilter"/>
+	</security:http>
+	<security:http pattern="/open/**" security="none"/>
 
 	<security:authentication-manager alias="authenticationManager">
 		<security:authentication-provider
 			ref="jwtAuthenticationProvider"></security:authentication-provider>
 	</security:authentication-manager>
 	<beans profile="rsaKeys">
-		<bean id="owgeTokenConfigLoader"
+		<bean id="gameOwgeTokenConfigLoader"
 			class="com.kevinguanchedarias.owgejava.security.SgtTokenConfigLoader"></bean>
 	</beans>
 </beans>

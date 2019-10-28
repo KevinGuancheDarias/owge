@@ -13,8 +13,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * Has the special field secondValue , which represents the whole reason to
  * match ObjectRelation with a Requirement
@@ -24,7 +22,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "requirements_information")
-public class RequirementInformation implements SimpleIdEntity {
+public class RequirementInformation implements EntityWithId<Integer> {
 	private static final long serialVersionUID = -4898440527789250186L;
 
 	@Id
@@ -52,6 +50,7 @@ public class RequirementInformation implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

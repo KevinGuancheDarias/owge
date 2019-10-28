@@ -9,8 +9,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 /**
  * Represents a <i>planet</i> that has been explored by <i>user</i>
  *
@@ -18,7 +16,7 @@ import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
  */
 @Entity
 @Table(name = "explored_planets")
-public class ExploredPlanet implements SimpleIdEntity {
+public class ExploredPlanet implements EntityWithId<Long> {
 	private static final long serialVersionUID = -3912109333691756684L;
 
 	@Id
@@ -38,6 +36,7 @@ public class ExploredPlanet implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

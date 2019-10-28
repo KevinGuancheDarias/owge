@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-public class FactionDto {
+import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
+
+public class FactionDto implements WithDtoFromEntityTrait<Faction>, DtoWithImprovements {
 
 	private Integer id;
 	private Boolean hidden;
@@ -19,6 +22,20 @@ public class FactionDto {
 	private Float secondaryResourceProduction;
 	private Integer maxPlanets;
 	private Boolean clonedImprovements = false;
+	private ImprovementDto improvement;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait#dtoFromEntity(
+	 * java.lang.Object)
+	 */
+	@Override
+	public void dtoFromEntity(Faction entity) {
+		WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+		DtoWithImprovements.super.dtoFromEntity(entity);
+	}
 
 	public Integer getId() {
 		return id;
@@ -154,5 +171,27 @@ public class FactionDto {
 
 	public void setMaxPlanets(Integer maxPlanets) {
 		this.maxPlanets = maxPlanets;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.dto.DtoWithImprovements#getImprovement()
+	 */
+	@Override
+	public ImprovementDto getImprovement() {
+		return improvement;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.dto.DtoWithImprovements#setImprovement(com.
+	 * kevinguanchedarias.owgejava.dto.ImprovementDto)
+	 */
+	@Override
+	public void setImprovement(ImprovementDto improvementDto) {
+		improvement = improvementDto;
 	}
 }

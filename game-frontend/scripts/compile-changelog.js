@@ -3,7 +3,7 @@ const showdown = require('showdown');
 const fs = require('fs');
 const converter = new showdown.Converter();
 const html = converter.makeHtml(fs.readFileSync('./CHANGELOG.md', 'UTF-8'));
-const targetFile = './src/assets/html/changelog.html';
+const targetFile = './projects/game-frontend/src/assets/html/changelog.html';
 if (fs.existsSync(targetFile)) {
     fs.unlinkSync(targetFile);
 }

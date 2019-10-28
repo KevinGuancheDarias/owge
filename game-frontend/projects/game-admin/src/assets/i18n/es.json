@@ -1,0 +1,116 @@
+{
+    "APP": {
+        "MENU_HOME": "Inicio",
+        "MENU_UPGRADES": "Mejoras",
+        "MENU_UNITS": "Unidades",
+        "MENU_NAVIGATION": "Navigación",
+        "MENU_ALLIANCES": "Alianzas",
+        "MENU_RANKING": "Ranking",
+        "MENU_TIME_SPECIALS": "Especiales de tiempo"
+    },
+    "CRUD": {
+        "EDIT": "Editar",
+        "DELETE": "Eliminar",
+        "CREATE": "Crear",
+        "CONFIRM_DELETE": "¿Estás seguro de que deseas eliminar {{elName}}?",
+        "MODAL_CREATE_TITLE": "Creando un nuevo elemento",
+        "MODAL_EDIT_TITLE": "Modificando {{elName}}",
+        "ELEMENT_NAME": "Nombre",
+        "ELEMENT_DESCRIPTION": "Descripción",
+        "BTN_SAVE": "Guardar",
+        "BTN_CANCEL": "Cancelar",
+        "BTN_CLOSE": "Cerrar",
+        "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
+        "TIME_SPECIAL": {
+            "DURATION": "Duración",
+            "RECHARGE_TIME": "Tiempo de recarga"
+        },
+        "IMPROVEMENTS": "Improvements",
+        "REQUIREMENTS": "Requisitos"
+    },
+    "OBJECT_REQUIREMENTS_CRUD": {
+        "TABLE": {
+            "DESCRIPTION": "Descripción",
+            "VALUE": "Valor",
+            "ACTIONS": "Acciones",
+            "EMPTY": "El elemento especificado no tiene requisitos definidos",
+            "CAPTION": "Lista de requisitos",
+            "BTN_ADD": "Añadir requisito",
+            "BTN_DELETE": "Eliminar"
+        },
+        "MODAL": {
+            "TITLE": "Añadir requisito"
+        }
+    },
+    "OBJECT_IMPROVEMENTS_CRUD": {
+        "TABLE": {
+            "IMPROVEMENT_TYPE": "Tipo de improvement",
+            "UNIT_TYPE": "Tipo de unidad",
+            "VALUE": "Valor",
+            "ACTIONS": "Acciones",
+            "EMPTY": "El elemento especificado no tiene un improvement que mejore algún tipo de unidad",
+            "CAPTION": "improvements para tipos de unidad",
+            "BTN_ADD": "Añadir improvement",
+            "BTN_DELETE": "Eliminar"
+        },
+        "MODAL": {
+            "TITLE": "Improvements para tipos de unidad"
+        },
+        "UNIT_TYPES_MODAL": {
+            "TITLE": "Añadir nuevo",
+            "UNIT_TYPE": "Tipo de unidad",
+            "TYPE": "Tipo",
+            "VALUE": "Valor"
+        }
+    },
+    "REQUIREMENTS": {
+        "ONLY_ON_SAVED": "Sólo puedes modificar requisitos en un elemento guardado",
+        "DESCRIPTIONS": {
+            "BEEN_RACE": "Pertenecer a facción",
+            "UPGRADE_LEVEL": "Tener una mejorar a un nivel determinado"
+        },
+        "TARGETS": {
+            "BEEN_RACE": "Facción necesaria",
+            "UPGRADE_LEVEL": "Mejora necesaria"
+        },
+        "THIRD_VALUES": {
+            "UPGRADE_LEVEL": "Nivel de la mejora"
+        }
+    },
+    "IMPROVEMENTS": {
+        "ONLY_ON_SAVED": "Sólo puedes modificar los improvements en un elemento guardado",
+        "MORE_PR_PRODUCTION": "Más producción de recurso primario",
+        "MORE_SR_PRODUCTION": "Más producción de recurso secundario",
+        "MORE_ENERGY": "Más energía",
+        "MORE_CHARGE_CAPACITY": "Más capacidad de carga",
+        "MORE_MISSIONS": "Más misiones",
+        "MORE_RESEARCH_SPEED": "Más velocidad investigación",
+        "MORE_BUILD_SPEED": "Más velocidad construcción",
+        "BTN_SAVE": "Guardar improvement",
+        "BTN_MODIFY_UNIT_TYPE": "Improvements para tipos de unidad",
+        "TYPES": {
+            "ATTACK": "Más ataque",
+            "DEFENSE": "Más vida",
+            "SHIELD": "Más escudo",
+            "AMOUNT": "Más cantidad"
+        }
+    },
+    "CRUD_WITH_IMAGE": {
+        "IMAGE": "Imagen"
+    },
+    "UNIVERSE": {
+        "IMAGE_SELECTOR": {
+            "BTN_SELECT_EXISTING": "Seleccionar existente",
+            "BTN_UPLOAD_AND_SELECT": "Subir y seleccionar"
+        }
+    },
+    "EXCEPTIONS": {
+        "com_kevinguanchedarias_owgejava_exception_NotFoundException": {
+            "generic": "El servidor dice que algo no ha sido encontrado, pero ni idea de qué exactamente... gracias Backend por ser tan explicativo.",
+            "I18N_ERR_NULL_IMPROVEMENT": "La entidad especificada no tiene un Improvement, por lo que éste no puede ser devuelto"
+        },
+        "com_kevinguanchedarias_owgejava_business_ImprovementUnitTypeBo": {
+            "I18N_ERR_UNIT_IMPROVEMENT_DUPLICATED": "Ya tienes una mejora del tipo ({{type}}) para el tipo de unidad {{unitTypeName}}"
+        }
+    }
+}

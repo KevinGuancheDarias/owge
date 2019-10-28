@@ -13,11 +13,9 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "improvements_unit_types")
-public class ImprovementUnitType implements SimpleIdEntity {
+public class ImprovementUnitType implements EntityWithId<Integer> {
 
 	private static final long serialVersionUID = -6385439199243097164L;
 
@@ -44,14 +42,47 @@ public class ImprovementUnitType implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
+	/**
+	 * @since 0.8.0
+	 * @return the improvementId
+	 */
+	public Improvement getImprovementId() {
+		return improvementId;
+	}
+
+	/**
+	 * @since 0.8.0
+	 * @param improvementId the improvementId to set
+	 */
+	public void setImprovementId(Improvement improvementId) {
+		this.improvementId = improvementId;
+	}
+
+	/**
+	 * 
+	 * @deprecated Confusing name, not matching property name, use
+	 *             {@link ImprovementUnitType#getImprovementId()}
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Improvement getUpgradeId() {
 		return improvementId;
 	}
 
+	/**
+	 * 
+	 * @deprecated Confusing name, not matching property name, use
+	 *             {@link ImprovementUnitType#setImprovementId(Improvement)}
+	 * @param upgradeId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public void setUpgradeId(Improvement upgradeId) {
 		this.improvementId = upgradeId;
 	}

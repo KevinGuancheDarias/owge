@@ -14,7 +14,7 @@ import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "improvements")
-public class Improvement extends ImprovementBase {
+public class Improvement extends ImprovementBase<Integer> {
 	private static final long serialVersionUID = 2210759653999657847L;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "improvementId")

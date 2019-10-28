@@ -7,11 +7,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "mission_types")
-public class MissionType implements SimpleIdEntity {
+public class MissionType implements EntityWithId<Integer> {
 	private static final long serialVersionUID = -4343475889445744756L;
 
 	@Id
@@ -28,10 +26,11 @@ public class MissionType implements SimpleIdEntity {
 	private Boolean isShared;
 
 	@Override
-	public Number getId() {
+	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

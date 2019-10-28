@@ -4,6 +4,6 @@ import java.io.Serializable;
 
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
 
-public interface GalaxyRepository extends WithNameRepository<Galaxy, Number>, Serializable {
+public interface GalaxyRepository extends WithNameRepository<Galaxy, Integer>, Serializable {
 
 }

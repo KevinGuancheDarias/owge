@@ -17,14 +17,14 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementType;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 
 @Service
-public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
+public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto> {
 	private static final long serialVersionUID = -2056602917496640872L;
 
 	@Autowired
@@ -46,8 +46,18 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	private UnitMissionBo unitMissionBo;
 
 	@Override
-	public JpaRepository<ObtainedUnit, Number> getRepository() {
+	public JpaRepository<ObtainedUnit, Long> getRepository() {
 		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<ObtainedUnitDto> getDtoClass() {
+		return ObtainedUnitDto.class;
 	}
 
 	public boolean hasUnitsInPlanet(UserStorage user, Planet planet) {
@@ -116,8 +126,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * Will add the count to existing one, <b>if it exists in the planet</b>
 	 * 
 	 * @param userId
-	 * @param obtainedUnit
-	 *            <b>NOTICE:</b> Won't be changed from inside
+	 * @param obtainedUnit <b>NOTICE:</b> Won't be changed from inside
 	 * @return new instance of saved obtained unit
 	 * @author Kevin Guanche Darias
 	 */
@@ -154,12 +163,9 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	/**
 	 * Saves the Obtained unit with subtraction
 	 * 
-	 * @param obtainedUnit
-	 *            Target obtained unit
-	 * @param substractionCount
-	 *            Count to subtract
-	 * @param handleImprovements
-	 *            If specified will sustract the improvements too
+	 * @param obtainedUnit       Target obtained unit
+	 * @param substractionCount  Count to subtract
+	 * @param handleImprovements If specified will sustract the improvements too
 	 * @return saved obtained unit, null if the count is the same
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -185,13 +191,11 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	}
 
 	/**
-	 * Searches an ObtainedUnit in <i>storage</i> having an unit with the
-	 * <b>same id</b> than <i>searchValue</i>
+	 * Searches an ObtainedUnit in <i>storage</i> having an unit with the <b>same
+	 * id</b> than <i>searchValue</i>
 	 * 
-	 * @param storage
-	 *            List that will be searched through
-	 * @param searchValue
-	 *            Value that is going to be search inside <i>storage</i>
+	 * @param storage     List that will be searched through
+	 * @param searchValue Value that is going to be search inside <i>storage</i>
 	 * @return ObtainedUnit found or <b>null if NOT found</b>
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -216,12 +220,11 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	/**
 	 * Deletes obtained units involved in passed mission <br>
 	 * <b>NOTICE: </b> As of 0.7.3, the param <i>subtractImprovements</i> can be
-	 * specified, for example to avoid removing improvements of a unit that has
-	 * not been even built
+	 * specified, for example to avoid removing improvements of a unit that has not
+	 * been even built
 	 * 
 	 * @param missionId
-	 * @param subtractImprovements
-	 *            If true will too subtract improvements
+	 * @param subtractImprovements If true will too subtract improvements
 	 * @return
 	 * @since 0.7.3
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -302,12 +305,11 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * user obtained unit
 	 * 
 	 * @param user
-	 * @param type
-	 *            The expected type
+	 * @param type The expected type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementType type) {
+	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
 		return ObjectUtils.firstNonNull(repository.sumByUserAndImprovementUnitTypeImprovementType(user, type.name()),
 				0L);
 	}
@@ -322,8 +324,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * 
 	 * @param user
 	 * @param typeId
-	 * @param count
-	 *            Count to test if would exceed the unit type limit
+	 * @param count  Count to test if would exceed the unit type limit
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -339,8 +340,7 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	 * @param user
 	 * @param typeId
 	 * @param count
-	 * @throws SgtBackendInvalidInputException
-	 *             When reached
+	 * @throws SgtBackendInvalidInputException When reached
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void checkWouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
@@ -369,4 +369,5 @@ public class ObtainedUnitBo implements BaseBo<ObtainedUnit> {
 	public Mission findPlanetDeployedMission(Integer userId, Planet planet) {
 		return unitMissionBo.findOneByUserIdAndTypeAndTargetPlanet(userId, MissionType.DEPLOYED, planet.getId());
 	}
+
 }

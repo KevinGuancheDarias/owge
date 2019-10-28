@@ -1,5 +1,8 @@
 {
   "compileOnSave": false,
+  "exclude": [
+    "dist"
+  ],
   "compilerOptions": {
     "downlevelIteration": true,
     "importHelpers": true,
@@ -18,6 +21,50 @@
       "dom"
     ],
     "module": "esnext",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "paths": {
+      "@owge/core": [
+        "dist/owge-core"
+      ],
+      "@owge/core/*": [
+        "dist/owge-core/*"
+      ],
+      "@owge/universe": [
+        "dist/owge-universe"
+      ],
+      "@owge/universe/*": [
+        "dist/owge-universe/*"
+      ],
+      "@owge/alliance": [
+        "dist/owge-alliance"
+      ],
+      "@owge/alliance/*": [
+        "dist/owge-alliance/*"
+      ],
+      "@owge/widgets": [
+        "dist/owge-widgets"
+      ],
+      "@owge/widgets/*": [
+        "dist/owge-widgets/*"
+      ],
+      "@owge/galaxy": [
+        "dist/owge-galaxy"
+      ],
+      "@owge/galaxy/*": [
+        "dist/owge-galaxy/*"
+      ],
+      "@owge/faction": [
+        "dist/owge-faction"
+      ],
+      "@owge/faction/*": [
+        "dist/owge-faction/*"
+      ],
+      "@owge/admin": [
+        "dist/owge-admin"
+      ],
+      "@owge/admin/*": [
+        "dist/owge-admin/*"
+      ]
+    }
   }
 }

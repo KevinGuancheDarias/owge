@@ -17,7 +17,7 @@ import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "units")
-public class Unit extends EntityWithImage implements EntityWithImprovements {
+public class Unit extends EntityWithImage implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -1923291486680931835L;
 
 	@Id
@@ -73,6 +73,7 @@ public class Unit extends EntityWithImage implements EntityWithImprovements {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

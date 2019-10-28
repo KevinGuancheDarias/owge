@@ -1,0 +1,49 @@
+{
+    "APP": {
+        "MY_ALLIANCE": "My alliance",
+        "BROWSE": "Browse",
+        "LIST_JOIN_REQUEST": "List join request",
+        "MENU_HOME": "Home",
+        "MENU_UPGRADES": "Upgrades",
+        "MENU_UNITS": "Units",
+        "MENU_NAVIGATION": "Navigation",
+        "MENU_REPORTS": "Reports",
+        "MENU_ALLIANCES": "Alliances",
+        "MENU_RANKING": "Ranking"
+    },
+    "UPGRADE": {
+        "CANCEL_TEXT": "You are going to cancel, {{upgradeName}}, are you sure?"
+    },
+    "WIDGETS": {
+        "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
+        "CONFIRMATION_DIALOG_CANCEL": "Cancel",
+        "CONFIRMATION_DIALOG_CONFIRM": "Confirm"
+    },
+    "ALLIANCE": {
+        "NOT_IN_ALLIANCE": "You are not in an alliance",
+        "CREATE": "Create new",
+        "CREATE_AN_ALLIANCE": "Create an alliance",
+        "EDIT_ALLIANCE": "Edit my alliance",
+        "NAME": "Name",
+        "DESCRIPTION": "Description",
+        "SAVE": "Save",
+        "CANCEL": "Cancel",
+        "MEMBER_LIST": "Member list",
+        "ACTIONS": "Actions",
+        "ACTION_LEAVE": "Leave",
+        "ACTION_DELETE": "Delete",
+        "ACTION_REQUEST_JOIN": "Request join",
+        "DELETE_CONFIRMATION": "You are about to delete your alliance {{allianceName}}, are you sure?",
+        "USER": "User",
+        "REQUEST_ACTIONS": "Actions",
+        "ACCEPT_REQUEST": "Accept request",
+        "REJECT_REQUEST": "Reject request",
+        "NO_PENDING_JOIN_REQUEST": "No pending join requests"
+    },
+    "RANKING": {
+        "POSITION": "Position",
+        "POINTS": "Points",
+        "USER": "User",
+        "ALLIANCE": "Alliance"
+    }
+}

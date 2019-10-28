@@ -11,7 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDat
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
-public interface MissionRepository extends JpaRepository<Mission, Number>, Serializable {
+public interface MissionRepository extends JpaRepository<Mission, Long>, Serializable {
 	public Mission findOneByUserIdAndTypeCode(Integer userId, String type);
 
 	public Mission findOneByUserIdAndTypeCodeAndSourcePlanetId(Integer userId, String type, Long planetId);

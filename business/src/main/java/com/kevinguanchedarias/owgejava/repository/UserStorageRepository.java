@@ -12,7 +12,7 @@ import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
-public interface UserStorageRepository extends JpaRepository<UserStorage, Number>, Serializable {
+public interface UserStorageRepository extends JpaRepository<UserStorage, Integer>, Serializable {
 	public UserStorage findOneByIdAndFactionId(Integer userId, Integer factionId);
 
 	public List<UserStorage> findAllByOrderByPointsDesc();

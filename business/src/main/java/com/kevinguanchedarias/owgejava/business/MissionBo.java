@@ -55,10 +55,8 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Registers a level up mission
 	 * 
-	 * @param userId
-	 *            user that has requested level up
-	 * @param upgradeId
-	 *            the id of the upgrade that the user wants to level up
+	 * @param userId    user that has requested level up
+	 * @param upgradeId the id of the upgrade that the user wants to level up
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
@@ -100,8 +98,7 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Process the effects of leveling up an upgrade
 	 * 
-	 * @param missionId
-	 *            Id of the mission to process
+	 * @param missionId Id of the mission to process
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
@@ -267,6 +264,7 @@ public class MissionBo extends AbstractMissionBo {
 		abortMissionJob(mission);
 	}
 
+	@Transactional
 	public void cancelUpgradeMission(Integer userId) {
 		cancelMission(findByUserIdAndTypeCode(userId, MissionType.LEVEL_UP));
 	}
@@ -338,8 +336,7 @@ public class MissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Finds a mission by user id, mission type, and value inside
-	 * MissionInformation
+	 * Finds a mission by user id, mission type, and value inside MissionInformation
 	 * 
 	 * @param userId
 	 * @param type
@@ -352,8 +349,8 @@ public class MissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Checks that there is not another upgrade mission running, if it's doing,
-	 * will throw an exception
+	 * Checks that there is not another upgrade mission running, if it's doing, will
+	 * throw an exception
 	 * 
 	 * @param userId
 	 * @param type
@@ -367,8 +364,8 @@ public class MissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Checks that there is not another unit recluit mission running in
-	 * <b>target planet</b>
+	 * Checks that there is not another unit recluit mission running in <b>target
+	 * planet</b>
 	 * 
 	 * @param userId
 	 * @param planetId
@@ -386,8 +383,7 @@ public class MissionBo extends AbstractMissionBo {
 	 * exception
 	 * 
 	 * @param obtainedUpgrade
-	 * @throws SgtMissionRegistrationException
-	 *             target upgrade is not available
+	 * @throws SgtMissionRegistrationException target upgrade is not available
 	 * @author Kevin Guanche Darias
 	 */
 	private void checkUpgradeIsAvailable(ObtainedUpgrade obtainedUpgrade) {

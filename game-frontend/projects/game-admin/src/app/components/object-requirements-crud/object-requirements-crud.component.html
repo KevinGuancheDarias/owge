@@ -1,0 +1,62 @@
+<owge-core-modal #requirementsModal>
+    <div class="header">
+        <span>{{ 'OBJECT_REQUIREMENTS_CRUD.MODAL.TITLE' | translate  }}</span>
+    </div>
+    <div class="body">
+        <div class="form-row">
+            <ng-container *ngIf="newRequirement">
+                <div class="form-group col-md-12">
+                    <label for="requirement-code">Requirement</label>
+                    <select [(ngModel)]="newRequirement.requirement.code" id="requirement-code" class="form-control" (change)="loadSecondValue()">
+                        <option [ngValue]="undefined">Please select</option>
+                        <option value="BEEN_RACE">{{ findRequirementDescription('BEEN_RACE') | async }}</option>
+                        <option value="UPGRADE_LEVEL">{{ findRequirementDescription('UPGRADE_LEVEL') | async }}</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-12" *ngIf="newRequirement.targetSecondValueTranslation">
+                    <label for="second-value">{{ newRequirement.targetSecondValueTranslation }}</label>
+                    <select *ngIf="secondValueList !== null" [(ngModel)]="newRequirement.secondValue" id="second-value" class="form-control">
+                        <option [ngValue]="undefined">Please select</option>
+                        <option *ngFor="let current of secondValueList" [ngValue]="current.id">
+                            {{ current.name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group col-md-12" *ngIf="newRequirement.targetThirdValueTranslation">
+                    <label for="third-value">{{ newRequirement.targetThirdValueTranslation }}</label>
+                    <input type="number" [(ngModel)]="newRequirement.thirdValue" id="third-value" class="form-control" />
+                </div>
+            </ng-container>
+        </div>
+    </div>
+    <div class="footer" *ngIf="newRequirement">
+        <button class="btn btn-primary" role="button" (click)="save()" [disabled]="!canAdd()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="cancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>
+
+<table class="table table-dark" *ngIf="entityId">
+    <thead>
+        <tr>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.DESCRIPTION' | translate }}</th>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.VALUE' | translate }}</th>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.ACTIONS' | translate }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let requirement of requirements">
+            <td>{{  requirement.translatedDescription }}</td>
+            <td>{{  requirement.resolvedName }}</td>
+            <td><button class="btn" (click)="delete(requirement)">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.BTN_DELETE' | translate }} </button></td>
+        </tr>
+        <tr *ngIf="!requirements || !requirements.length">
+            <th class="row" colspan="3">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.EMPTY' | translate }}</th>
+        </tr>
+    </tbody>
+    <caption class="table-dark owge-table-caption">
+        {{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.CAPTION' | translate }} <button class="btn" (click)="add()">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.BTN_ADD' | translate }}</button>
+    </caption>
+</table>
+<div class="gorm-group col-md-12 table-dark" *ngIf="!entityId">
+    {{ 'REQUIREMENTS.ONLY_ON_SAVED' | translate }}
+</div>

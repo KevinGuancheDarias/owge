@@ -4,6 +4,15 @@ public class BackendErrorPojo {
 	private String message;
 	private String exceptionType;
 
+	public BackendErrorPojo() {
+
+	}
+
+	public BackendErrorPojo(Exception e) {
+		setMessage(e.getMessage());
+		setExceptionType(e.getClass().getSimpleName());
+	}
+
 	public String getMessage() {
 		return message;
 	}

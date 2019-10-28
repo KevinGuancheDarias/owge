@@ -15,16 +15,20 @@ public class ImprovementDto implements DtoFromEntity<Improvement> {
 	private Float moreEnergyProduction;
 	private Float moreChargeCapacity;
 	private Float moreMisions;
+	private Float moreUpgradeResearchSpeed;
+	private Float moreUnitBuildSpeed;
 	private List<ImprovementUnitTypeDto> unitTypesUpgrades;
 
 	@Override
 	public void dtoFromEntity(Improvement entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
 		unitTypesUpgrades = new ArrayList<>();
-		entity.getUnitTypesUpgrades().forEach(current -> {
-			ImprovementUnitTypeDto currentDto = new ImprovementUnitTypeDto();
-			currentDto.dtoFromEntity(current);
-		});
+		if (entity.getUnitTypesUpgrades() != null) {
+			entity.getUnitTypesUpgrades().forEach(current -> {
+				ImprovementUnitTypeDto currentDto = new ImprovementUnitTypeDto();
+				currentDto.dtoFromEntity(current);
+			});
+		}
 	}
 
 	public void dtoFromEntity(UserImprovement entity) {
@@ -85,6 +89,34 @@ public class ImprovementDto implements DtoFromEntity<Improvement> {
 
 	public void setMoreMisions(Float moreMisions) {
 		this.moreMisions = moreMisions;
+	}
+
+	/**
+	 * @return the moreUpgradeResearchSpeed
+	 */
+	public Float getMoreUpgradeResearchSpeed() {
+		return moreUpgradeResearchSpeed;
+	}
+
+	/**
+	 * @param moreUpgradeResearchSpeed the moreUpgradeResearchSpeed to set
+	 */
+	public void setMoreUpgradeResearchSpeed(Float moreUpgradeResearchSpeed) {
+		this.moreUpgradeResearchSpeed = moreUpgradeResearchSpeed;
+	}
+
+	/**
+	 * @return the moreUnitBuildSpeed
+	 */
+	public Float getMoreUnitBuildSpeed() {
+		return moreUnitBuildSpeed;
+	}
+
+	/**
+	 * @param moreUnitBuildSpeed the moreUnitBuildSpeed to set
+	 */
+	public void setMoreUnitBuildSpeed(Float moreUnitBuildSpeed) {
+		this.moreUnitBuildSpeed = moreUnitBuildSpeed;
 	}
 
 	public List<ImprovementUnitTypeDto> getUnitTypesUpgrades() {

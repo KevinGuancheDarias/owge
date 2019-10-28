@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -21,27 +22,38 @@ import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class AllianceJoinRequestBo implements BaseBo<AllianceJoinRequest> {
+public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinRequest, AllianceJoinRequestDto> {
 	private static final long serialVersionUID = -596625245649965948L;
 
 	@Autowired
 	private AllianceJoinRequestRepository repository;
 
 	@Override
-	public JpaRepository<AllianceJoinRequest, Number> getRepository() {
+	public JpaRepository<AllianceJoinRequest, Integer> getRepository() {
 		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<AllianceJoinRequestDto> getDtoClass() {
+		return AllianceJoinRequestDto.class;
 	}
 
 	/**
 	 * Saves the request to the database <br>
 	 * <b>Notice: </b> Defines the <i>requestDate</i> property
 	 * 
-	 * @throws SgtBackendInvalidInputException
-	 *             When:
-	 *             <ul>
-	 *             <li>You are modifying an existing request</li>
-	 *             <li>You already have a join request for this alliance</li>
-	 *             </ul>
+	 * @throws SgtBackendInvalidInputException When:
+	 *                                         <ul>
+	 *                                         <li>You are modifying an existing
+	 *                                         request</li>
+	 *                                         <li>You already have a join request
+	 *                                         for this alliance</li>
+	 *                                         </ul>
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

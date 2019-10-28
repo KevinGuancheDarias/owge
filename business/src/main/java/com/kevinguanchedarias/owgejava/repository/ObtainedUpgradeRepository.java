@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
-public interface ObtainedUpgradeRepository extends JpaRepository<ObtainedUpgrade, Number>, Serializable {
+public interface ObtainedUpgradeRepository extends JpaRepository<ObtainedUpgrade, Long>, Serializable {
 	public ObtainedUpgrade findOneByUserIdIdAndUpgradeId(Integer userId, Integer upgradeId);
 
 	public List<ObtainedUpgrade> findByUserIdId(Integer userId);

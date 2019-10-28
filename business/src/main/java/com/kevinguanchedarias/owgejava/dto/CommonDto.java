@@ -3,12 +3,14 @@
  */
 package com.kevinguanchedarias.owgejava.dto;
 
+import java.io.Serializable;
+
 /**
  *
  * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public abstract class CommonDto<K> {
+public abstract class CommonDto<K extends Serializable> {
 	private K id;
 	private String name;
 	private String description;
@@ -23,8 +25,7 @@ public abstract class CommonDto<K> {
 
 	/**
 	 * @since 0.7.0
-	 * @param id
-	 *            the id to set
+	 * @param id the id to set
 	 */
 	public void setId(K id) {
 		this.id = id;
@@ -40,8 +41,7 @@ public abstract class CommonDto<K> {
 
 	/**
 	 * @since 0.7.0
-	 * @param name
-	 *            the name to set
+	 * @param name the name to set
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -57,8 +57,7 @@ public abstract class CommonDto<K> {
 
 	/**
 	 * @since 0.7.0
-	 * @param description
-	 *            the description to set
+	 * @param description the description to set
 	 */
 	public void setDescription(String description) {
 		this.description = description;

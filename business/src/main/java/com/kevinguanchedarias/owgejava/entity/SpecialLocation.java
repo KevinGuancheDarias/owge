@@ -18,7 +18,7 @@ import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "special_locations")
-public class SpecialLocation extends EntityWithImage implements EntityWithImprovements {
+public class SpecialLocation extends EntityWithImage implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -4665366711844492367L;
 
 	@Id
@@ -52,6 +52,7 @@ public class SpecialLocation extends EntityWithImage implements EntityWithImprov
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}

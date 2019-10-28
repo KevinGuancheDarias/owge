@@ -4,6 +4,6 @@ import java.io.Serializable;
 
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 
-public interface SpecialLocationRepository extends WithNameRepository<SpecialLocation, Number>, Serializable {
+public interface SpecialLocationRepository extends WithNameRepository<SpecialLocation, Integer>, Serializable {
 
 }

@@ -1,0 +1,15 @@
+<app-common-crud [_crudService]="viewExposedService">
+    <ng-template #middleOfCard let-element>
+        <img *ngIf="element.imageUrl" [src]="element.imageUrl">
+    </ng-template>
+    <ng-template #modalBody let-newElement>
+            <div class="form-group col-md-6" *ngIf="newElement">
+                <label>{{ 'CRUD_WITH_IMAGE.IMAGE' | translate }}</label><br>
+                <owge-widgets-removable-image [(imageUrl)]="newElement.imageUrl"></owge-widgets-removable-image>
+            </div>
+            <div class="form-group col-md-6">
+                <owge-universe-image-selector (selected)="setImage(newElement, $event)"></owge-universe-image-selector>
+            </div>
+        <ng-container *ngTemplateOutlet="innerModalBody, context: { $implicit: newElement}"></ng-container>
+    </ng-template>
+</app-common-crud>

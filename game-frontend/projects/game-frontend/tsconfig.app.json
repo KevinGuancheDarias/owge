@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../out-tsc/app",
+    "types": []
+  },
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/test.ts",
+    "src/helpers/abstract-common-test.helper.ts",
+    "src/helpers/common-component-test.helper.ts",
+    "src/helpers/common-service-test.helper.ts",
+    "src/helpers/game-common-test.helper.ts",
+    "src/helpers/test-metadata.builder.ts",
+    "src/app/shared-test/*.ts",
+    "src/**/*.spec.ts"
+  ]
+}

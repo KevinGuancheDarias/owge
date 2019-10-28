@@ -16,11 +16,9 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.kevinsuite.commons.entity.SimpleIdEntity;
-
 @Entity
 @Table(name = "planets")
-public class Planet implements SimpleIdEntity {
+public class Planet implements EntityWithId<Long> {
 	private static final long serialVersionUID = 1574111685072163032L;
 
 	@Id
@@ -62,6 +60,7 @@ public class Planet implements SimpleIdEntity {
 		return id;
 	}
 
+	@Override
 	public void setId(Long id) {
 		this.id = id;
 	}

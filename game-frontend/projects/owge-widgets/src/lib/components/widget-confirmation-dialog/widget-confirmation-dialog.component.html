@@ -1,0 +1,18 @@
+<owge-core-modal #childModal [hasCloseButton]="false" [closeOnOverlayClick]="closeOnOverlayClick" [isOpenOnLoad]="isOpenOnLoad"
+  [hasCloseButton]="hasCloseButton">
+  <div class="header">
+    {{ title }}
+  </div>
+  <div class="body">
+    {{ text}}
+  </div>
+
+  <div class="footer">
+    <div class="btn-group">
+      <button (click)="confirmResult.emit(false)" class="btn btn-primary">{{ 'WIDGETS.CONFIRMATION_DIALOG_CANCEL' |
+        translate}}</button>
+      <button (click)="confirmResult.emit(true)" class="btn btn-secondary">{{ 'WIDGETS.CONFIRMATION_DIALOG_CONFIRM' |
+        translate}}</button>
+    </div>
+  </div>
+</owge-core-modal>
