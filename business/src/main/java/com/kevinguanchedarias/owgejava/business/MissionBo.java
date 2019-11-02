@@ -28,7 +28,6 @@ import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.MissionNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
@@ -433,9 +432,7 @@ public class MissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias
 	 */
 	private void checkUnlockedUnit(Integer userId, ObjectRelation relation) {
-		if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relation.getId()) == null) {
-			throw new SgtBackendTargetNotUnlocked("The target object relation has not been unlocked");
-		}
+		objectRelationBo.checkIsUnlocked(userId, relation.getId());
 	}
 
 	/**

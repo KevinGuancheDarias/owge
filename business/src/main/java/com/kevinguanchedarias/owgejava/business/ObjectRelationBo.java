@@ -16,12 +16,14 @@ import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.WithNameRepository;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
@@ -33,6 +35,9 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	@Autowired
 	private ObjectEntityBo objectEntityBo;
+
+	@Autowired
+	private UnlockedRelationBo unlockedRelationBo;
 
 	@Autowired
 	private ObjectRelationsRepository objectRelationsRepository;
@@ -223,5 +228,31 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 					+ relation.getReferenceId() + " para el repositorio " + object.getRepository());
 		}
 
+	}
+
+	/**
+	 * Checks if the relation is unlocked
+	 * 
+	 * @param user
+	 * @param relation
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void checkIsUnlocked(UserStorage user, ObjectRelation relation) {
+		checkIsUnlocked(user.getId(), relation.getId());
+	}
+
+	/**
+	 * Checks if the relation is unlocked
+	 * 
+	 * @param userId
+	 * @param relationId
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void checkIsUnlocked(Integer userId, Integer relationId) {
+		if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId) == null) {
+			throw new SgtBackendTargetNotUnlocked("The target object relation has not been unlocked");
+		}
 	}
 }

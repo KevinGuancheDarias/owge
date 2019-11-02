@@ -5,13 +5,17 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.TimeSpecialBo;
+import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -32,7 +36,27 @@ public class TimeSpecialRestService
 	private TimeSpecialBo timeSpecialBo;
 
 	@Autowired
+	private ActiveTimeSpecialBo activeTimeSpecialBo;
+	@Autowired
 	private AutowireCapableBeanFactory beanFactory;
+
+	@PostMapping("/activate")
+	public ActiveTimeSpecialDto activate(@RequestBody Integer timeSpecialId) {
+		return activeTimeSpecialBo.toDto(activeTimeSpecialBo.activate(timeSpecialId));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait#
+	 * alterDto(com.kevinguanchedarias.owgejava.dto.DtoFromEntity)
+	 */
+	@Override
+	public TimeSpecialDto alterDto(TimeSpecialDto input) {
+		input.setActiveTimeSpecialDto(
+				activeTimeSpecialBo.toDto(activeTimeSpecialBo.findOneByTimeSpecial(input.getId())));
+		return input;
+	}
 
 	@Override
 	public RestCrudConfigBuilder<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> getRestCrudConfigBuilder() {

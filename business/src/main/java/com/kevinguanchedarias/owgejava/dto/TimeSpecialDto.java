@@ -17,6 +17,7 @@ public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial
 	private Long duration;
 	private Long rechargeTime;
 	private ImprovementDto improvement;
+	private ActiveTimeSpecialDto activeTimeSpecialDto;
 
 	/*
 	 * (non-Javadoc)
@@ -79,6 +80,24 @@ public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial
 	@Override
 	public void setImprovement(ImprovementDto improvement) {
 		this.improvement = improvement;
+	}
+
+	/**
+	 * @return the activeTimeSpecialDto
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ActiveTimeSpecialDto getActiveTimeSpecialDto() {
+		return activeTimeSpecialDto;
+	}
+
+	/**
+	 * @param activeTimeSpecialDto the activeTimeSpecialDto to set
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setActiveTimeSpecialDto(ActiveTimeSpecialDto activeTimeSpecialDto) {
+		this.activeTimeSpecialDto = activeTimeSpecialDto;
 	}
 
 }

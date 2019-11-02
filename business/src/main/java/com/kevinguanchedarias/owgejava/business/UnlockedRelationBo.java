@@ -31,21 +31,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	@Autowired
 	private DtoUtilService dtoUtilService;
 
-	@Override
-	public JpaRepository<UnlockedRelation, Long> getRepository() {
-		return repository;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
-	 */
-	@Override
-	public Class<DtoFromEntity<UnlockedRelation>> getDtoClass() {
-		throw new SgtBackendNotImplementedException("UnlockedRelation doesn't have a dto ... for now =/");
-	}
-
 	public UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId) {
 		return repository.findOneByUserIdAndRelationId(userId, relationId);
 	}
@@ -114,6 +99,21 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	public <E, D extends DtoFromEntity<E>> List<D> unboxToTargetDto(Class<D> dtoClass,
 			List<UnlockedRelation> unlockedRelations) {
 		return dtoUtilService.convertEntireArray(dtoClass, unboxToTargetEntity(unlockedRelations));
+	}
+
+	@Override
+	public JpaRepository<UnlockedRelation, Long> getRepository() {
+		return repository;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+	 */
+	@Override
+	public Class<DtoFromEntity<UnlockedRelation>> getDtoClass() {
+		throw new SgtBackendNotImplementedException("UnlockedRelation doesn't have a dto ... for now =/");
 	}
 
 }

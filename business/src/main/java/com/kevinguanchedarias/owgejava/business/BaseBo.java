@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -30,7 +31,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	public abstract Class<D> getDtoClass();
 
 	public default List<E> findAll() {
-		return getRepository().findAll();
+		return getRepository().findAll().stream().map(this::onFind).collect(Collectors.toList());
 	}
 
 	public default Long countAll() {
@@ -51,7 +52,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	public default E findById(K id) {
-		return getRepository().findOne(id);
+		return onFind(getRepository().findOne(id));
 	}
 
 	public default E findByIdOrDie(K id) {
@@ -59,7 +60,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 		if (retVal == null) {
 			throwNotFound(id);
 		}
-		return retVal;
+		return onFind(retVal);
 	}
 
 	public default E save(E entity) {
@@ -158,6 +159,18 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	 */
 	public default D toDto(E entity) {
 		return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
+	}
+
+	/**
+	 * Can be used to alter all calls to findBy
+	 * 
+	 * @param entity
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default E onFind(E entity) {
+		return entity;
 	}
 
 	private void throwNotFound(K id) {

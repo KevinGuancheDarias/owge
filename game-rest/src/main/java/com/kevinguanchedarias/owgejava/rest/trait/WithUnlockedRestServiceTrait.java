@@ -51,8 +51,22 @@ public interface WithUnlockedRestServiceTrait<N extends Number, E extends Entity
 		UnlockedRelationBo unlockedRelationBo = beanFactory.getBean(UnlockedRelationBo.class);
 		UserStorageBo userStorageBo = beanFactory.getBean(UserStorageBo.class);
 
-		return dtoUtilService.convertEntireArray(getRestCrudConfigBuilder().build().getDtoClass(),
+		List<D> retVal = dtoUtilService.convertEntireArray(getRestCrudConfigBuilder().build().getDtoClass(),
 				unlockedRelationBo.unboxToTargetEntity(unlockedRelationBo
 						.findByUserIdAndObjectType(userStorageBo.findLoggedIn().getId(), getObject())));
+		retVal.forEach(this::alterDto);
+		return retVal;
+	}
+
+	/**
+	 * Override, to run an action on the unlocked item DTO, to transform the DTO
+	 * 
+	 * @param input
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public default D alterDto(D input) {
+		return input;
 	}
 }
