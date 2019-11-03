@@ -1,0 +1,16 @@
+<div *ngIf="elements" class="owge-card-list">
+    <div class="card owge" *ngFor="let element of elements, let i = index">
+        <div class="card-block">
+            <div class="card-title">
+                <span>
+                    {{ titleFn(element) }}
+                </span>
+            </div>
+            <ng-container *ngTemplateOutlet="middleOfCard, context: { $implicit: element}"></ng-container>
+            <div class="card-block">
+                {{ descriptionFn(element) }}
+            </div>
+        </div>
+        <ng-container *ngTemplateOutlet="footerOfCard, context: { $implicit: element}"></ng-container>
+    </div>
+</div>

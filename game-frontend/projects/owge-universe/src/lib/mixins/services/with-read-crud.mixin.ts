@@ -2,7 +2,6 @@ import { Subject, Observable, ReplaySubject } from 'rxjs';
 import { UniverseGameService } from '../../services/universe-game.service';
 import { AbstractConfigurationCrudService } from '../../services/abstract-configuration-crud.service';
 
-
 /**
  * This mixing adds findAll and findOneById
  *
@@ -49,6 +48,18 @@ export class WithReadCrudMixin<T, K> extends AbstractConfigurationCrudService<T,
         } else {
             return this._universeGameService.getToUniverse(`${this._getContextPathPrefix()}/${path}`);
         }
+    }
+
+    /**
+     * Finds the unlocked entities (if the entity support this operation)
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     * @returns
+     */
+    public findUnlocked(): Observable<T[]> {
+        const path = `${this._getEntity()}/findUnlocked`;
+        return this._universeGameService.requestWithAutorizationToContext(this._getContextPathPrefix(), 'get', path);
     }
 
 }

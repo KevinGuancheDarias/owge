@@ -9,6 +9,7 @@ import { WidgetConfirmationDialogComponent } from './components/widget-confirmat
 import { WidgetSideBarComponent } from './components/widget-sidebar/widget-sidebar.component';
 import { DisplayService } from './services/display.service';
 import { RemovableImageComponent } from './components/removable-image/removable-image.component';
+import { OwgeCardListComponent } from './components/owge-card-list/owge-card-list.component';
 
 /**
  * Has UI widgets for OWGE
@@ -27,12 +28,13 @@ import { RemovableImageComponent } from './components/removable-image/removable-
   declarations: [
     WidgetConfirmationDialogComponent,
     WidgetSideBarComponent,
-    RemovableImageComponent
+    RemovableImageComponent,
+    OwgeCardListComponent
   ],
   providers: [
     DisplayService
   ],
-  exports: [WidgetConfirmationDialogComponent, WidgetSideBarComponent, RemovableImageComponent]
+  exports: [WidgetConfirmationDialogComponent, WidgetSideBarComponent, RemovableImageComponent, OwgeCardListComponent]
 })
 export class OwgeWidgetsModule {
 }

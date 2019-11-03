@@ -3,7 +3,7 @@ import { Observable, Subject } from 'rxjs';
 
 import { ProgrammingError, LoggerHelper } from '@owge/core';
 
-import { CrudConfig } from '../types/crud-config-type';
+import { CrudConfig } from '../types/crud-config.type';
 import { take, map } from 'rxjs/operators';
 import { WithReadCrudMixin } from '../mixins/services/with-read-crud.mixin';
 import { WithDeleteCrudMixin } from '../mixins/services/with-delete-crud.mixin';

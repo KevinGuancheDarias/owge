@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import {filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
@@ -72,6 +72,8 @@ import { ConfigurationModule } from './modules/configuration/configuration.modul
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
 import { Subscription } from 'rxjs';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
+import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
+import { TimeSpecialService } from './services/time-specials.service';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -86,6 +88,9 @@ export const APP_ROUTES: Routes = [
   { path: 'navigate', component: NavigationComponent, canActivate: [LoginSessionService] },
   { path: 'reports', component: ReportsListComponent, canActivate: [LoginSessionService] },
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
+  {
+    path: 'time_specials', component: TimeSpecialsComponent, canActivate: [LoginSessionService]
+  },
   {
     path: 'alliance', component: RouterRootComponent, canActivate: [LoginSessionService],
     children: ALLIANCE_ROUTES, data: ALLIANCE_ROUTES_DATA
@@ -136,13 +141,14 @@ export const APP_ROUTES: Routes = [
     MilisToDatePipe,
     PlanetSelectorComponent,
     MissionModalComponent,
-    GameSidebarComponent
+    GameSidebarComponent,
+    TimeSpecialsComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     Angular2FontawesomeModule,
-    RouterModule.forRoot(APP_ROUTES, {onSameUrlNavigation: 'reload'}),
+    RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload' }),
     HttpClientModule,
     NgbModule,
     OwgeUserModule,
@@ -154,7 +160,8 @@ export const APP_ROUTES: Routes = [
       loginEndpoint: environment.loginEndpoint,
       loginDomain: environment.loginDomain,
       loginClientId: environment.loginClientId,
-      loginClientSecret: environment.loginClientSecret
+      loginClientSecret: environment.loginClientSecret,
+      contextPath: 'game',
     }),
     RankingModule,
     OwgeWidgetsModule,
@@ -180,7 +187,8 @@ export const APP_ROUTES: Routes = [
     SanitizeService,
     UnitTypeService,
     UpgradeTypeService,
-    MissionService
+    MissionService,
+    TimeSpecialService,
   ],
   bootstrap: [AppComponent]
 })

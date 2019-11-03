@@ -2,7 +2,7 @@ import { ProgrammingError, LoggerHelper } from '@owge/core';
 
 import { UniverseGameService } from '../../services/universe-game.service';
 import { Observable } from 'rxjs';
-import { CrudConfig } from '../../types/crud-config-type';
+import { CrudConfig } from '../../types/crud-config.type';
 import { RequirementInformation } from '../../types/requirement-information.type';
 
 /**
