@@ -66,7 +66,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			ActiveTimeSpecial activeTimeSpecial = findById(Long.valueOf((Integer) message.findSimpleContent()));
 			activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
 			Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
-			activeTimeSpecial.setExpiringDate(computeExpiringDate(rechargeTime));
+			activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
 			save(activeTimeSpecial);
 			sqsManagerService.sendMessage(
 					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, activeTimeSpecial.getId()),
@@ -111,7 +111,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ActiveTimeSpecial findOneByTimeSpecial(Integer timeSpecialId) {
-		return repository.findOneByTimeSpecialId(timeSpecialId);
+		return onFind(repository.findOneByTimeSpecialId(timeSpecialId));
 	}
 
 	/**
@@ -133,9 +133,10 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			ActiveTimeSpecial newActive = new ActiveTimeSpecial();
 			newActive.setActivationDate(new Date());
 			newActive.setExpiringDate(computeExpiringDate(timeSpecial.getDuration()));
+			newActive.setState(TimeSpecialStateEnum.ACTIVE);
+			definePendingTime(newActive);
 			newActive.setTimeSpecial(timeSpecial);
 			newActive.setUser(userStorageBo.findLoggedInWithDetails(false));
-			newActive.setState(TimeSpecialStateEnum.ACTIVE);
 			newActive = save(newActive);
 			sqsManagerService.sendMessage(
 					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, newActive.getId()),
@@ -169,12 +170,22 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	@Override
 	public ActiveTimeSpecial onFind(ActiveTimeSpecial activeTimeSpecial) {
-		activeTimeSpecial.setPendingTime(activeTimeSpecial.getExpiringDate().getTime() - new Date().getTime());
+		definePendingTime(activeTimeSpecial);
 		return activeTimeSpecial;
 	}
 
 	private Date computeExpiringDate(Long time) {
 		Long difference = new Date().getTime() + time * 1000;
 		return new Date(difference);
+	}
+
+	private void definePendingTime(ActiveTimeSpecial activeTimeSpecial) {
+		if (activeTimeSpecial != null) {
+			if (activeTimeSpecial.getState() == TimeSpecialStateEnum.ACTIVE) {
+				activeTimeSpecial.setPendingTime(activeTimeSpecial.getExpiringDate().getTime() - new Date().getTime());
+			} else {
+				activeTimeSpecial.setPendingTime(activeTimeSpecial.getReadyDate().getTime() - new Date().getTime());
+			}
+		}
 	}
 }
