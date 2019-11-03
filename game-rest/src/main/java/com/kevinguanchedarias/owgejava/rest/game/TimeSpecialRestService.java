@@ -3,6 +3,8 @@
  */
 package com.kevinguanchedarias.owgejava.rest.game;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +21,7 @@ import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.rest.trait.WithReadRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
 
 /**
@@ -30,7 +33,8 @@ import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
 @ApplicationScope
 @RequestMapping("game/time_special")
 public class TimeSpecialRestService
-		implements WithUnlockedRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> {
+		implements WithUnlockedRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto>,
+		WithReadRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> {
 
 	@Autowired
 	private TimeSpecialBo timeSpecialBo;
@@ -43,6 +47,19 @@ public class TimeSpecialRestService
 	@PostMapping("/activate")
 	public ActiveTimeSpecialDto activate(@RequestBody Integer timeSpecialId) {
 		return activeTimeSpecialBo.toDto(activeTimeSpecialBo.activate(timeSpecialId));
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceNoOpEventsTrait#
+	 * beforeRequestEnd(java.lang.Object, java.lang.Object)
+	 */
+	@Override
+	public Optional<TimeSpecialDto> beforeRequestEnd(TimeSpecialDto dto, TimeSpecial savedEntity) {
+		dto = alterDto(dto);
+		return WithReadRestServiceTrait.super.beforeRequestEnd(dto, savedEntity);
 	}
 
 	/*
