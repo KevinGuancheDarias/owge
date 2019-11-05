@@ -61,7 +61,10 @@ public interface WithReadRestServiceTrait<N extends Number, E extends EntityWith
 		if (!config.getSupportedOperationsBuilder().build().canReadAll()) {
 			AccessDeniedException.fromUnsupportedOperation();
 		}
-		return getDtoUtilService().dtoFromEntity(config.getDtoClass(), config.getBoService().findByIdOrDie(id));
+		E entity = config.getBoService().findByIdOrDie(id);
+		D dto = getDtoUtilService().dtoFromEntity(config.getDtoClass(), entity);
+		dto = beforeRequestEnd(dto, entity).orElse(dto);
+		return dto;
 	}
 
 	private DtoUtilService getDtoUtilService() {

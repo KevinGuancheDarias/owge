@@ -15,10 +15,8 @@
 	<context:annotation-config></context:annotation-config>
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.dao" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.business" />
+	<context:component-scan base-package="com.kevinguanchedarias.owgejava.configurations" />
 	<context:component-scan base-package="com.kevinguanchedarias.owgejava.util" />
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.admin" />
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.game" />
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest.open" />
 
 	<!-- This is like a bean. but insteat, it uses a jndi value -->
 	<jee:jndi-lookup jndi-name="jdbc/owgejava" id="dataSource"

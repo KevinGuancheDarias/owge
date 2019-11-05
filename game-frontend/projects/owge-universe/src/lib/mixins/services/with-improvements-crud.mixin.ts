@@ -6,7 +6,7 @@ import { BackendError, ProgrammingError, LoggerHelper } from '@owge/core';
 import { DisplayService } from '@owge/widgets';
 
 import { UniverseGameService } from '../../services/universe-game.service';
-import { CrudConfig } from '../../types/crud-config-type';
+import { CrudConfig } from '../../types/crud-config.type';
 import { Improvement } from '../../types/improvement.type';
 import { ImprovementUnitType } from '../../types/improvement-unit-type.type';
 

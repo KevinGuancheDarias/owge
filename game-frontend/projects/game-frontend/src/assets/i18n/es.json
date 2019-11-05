@@ -9,6 +9,7 @@
         "MENU_NAVIGATION": "Navegación",
         "MENU_REPORTS": "Reportes",
         "MENU_ALLIANCES": "Alianzas",
+        "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking"
     },
     "UPGRADE": {
@@ -39,6 +40,11 @@
         "ACCEPT_REQUEST": "Aceptar solicitud",
         "REJECT_REQUEST": "Rechazar solicitud",
         "NO_PENDING_JOIN_REQUEST": "No hay ninguna petición de entrar pendiente"
+    },
+    "TIME_SPECIAL": {
+        "BTN_ACTIVATE": "Activar",
+        "IS_ACTIVE": "Activo",
+        "IS_IN_RECHARGE": "Recargando"
     },
     "RANKING": {
         "POSITION": "Posición",

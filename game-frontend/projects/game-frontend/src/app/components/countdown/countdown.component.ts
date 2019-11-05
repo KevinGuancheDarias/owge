@@ -19,6 +19,9 @@ export class CountdownComponent implements OnInit {
   @Input()
   public targetDate: Date;
 
+  @Input()
+  public text = 'Work in progress Remaining time:';
+
   @Output()
   public timeOver: EventEmitter<{}> = new EventEmitter();
 

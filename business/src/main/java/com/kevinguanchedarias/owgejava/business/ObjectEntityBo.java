@@ -18,6 +18,7 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.repository.ObjectEntityRepository;
 import com.kevinguanchedarias.owgejava.repository.WithNameRepository;
+import com.kevinguanchedarias.owgejava.util.ProxyUtil;
 
 @Service
 public class ObjectEntityBo implements Serializable {
@@ -64,8 +65,8 @@ public class ObjectEntityBo implements Serializable {
 	@SuppressWarnings("unchecked")
 	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> WithNameBo<K, E, D> findBo(
 			ObjectEntity object) {
-		String repositoryName = findRepository(object).getClass().getName();
-		String[] repositoryNameParts = repositoryName.split(".");
+		String repositoryName = ProxyUtil.resolveProxy(findRepository(object)).getName();
+		String[] repositoryNameParts = repositoryName.split("\\.");
 		repositoryNameParts[3] = "business";
 		repositoryNameParts[4] = repositoryNameParts[4].replaceFirst("Repository", "Bo");
 		String boName = String.join(".", repositoryNameParts);

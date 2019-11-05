@@ -1,0 +1,20 @@
+<owge-widgets-card-list [elements]="elements">
+    <ng-template #middleOfCard let-element>
+        <img *ngIf="element.imageUrl" [src]="element.imageUrl">
+        <div class="ts-state" *ngIf="element.activeTimeSpecialDto.element">
+            <span class="active" *ngIf="element.activeTimeSpecialDto.element.state === 'ACTIVE'">{{ 'TIME_SPECIAL.IS_ACTIVE' | translate}}</span>
+            <span class="recharge" *ngIf="element.activeTimeSpecialDto.element.state === 'RECHARGE'">{{ 'TIME_SPECIAL.IS_IN_RECHARGE' | translate}}</span>
+        </div>
+        <ng-container *ngIf="element?.activeTimeSpecialDto?.element?.pendingTime">
+            <app-countdown *ngIf="element.activeTimeSpecialDto.element.state === 'ACTIVE'" [text]="null"
+            [targetDate]="element.activeTimeSpecialDto.getCalculatedField('pendingTime')" (timeOver)="changeToRecharge(element)">
+            </app-countdown>
+            <app-countdown *ngIf="element.activeTimeSpecialDto.element.state === 'RECHARGE'" [text]="null"
+            [targetDate]="element.activeTimeSpecialDto.getCalculatedField('pendingTime')" (timeOver)="markAsAvailable(element)">
+            </app-countdown>
+        </ng-container>
+    </ng-template>
+    <ng-template #footerOfCard let-element>
+        <button *ngIf="!element.activeTimeSpecialDto.element" class="btn btn-block" role="button" (click)="clickActivate(element.id)">{{ 'TIME_SPECIAL.BTN_ACTIVATE' | translate }}</button>
+    </ng-template>
+</owge-widgets-card-list>
