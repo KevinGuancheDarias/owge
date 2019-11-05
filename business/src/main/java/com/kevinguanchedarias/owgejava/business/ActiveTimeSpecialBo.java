@@ -19,9 +19,12 @@ import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.OwgeSqsMessageEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
+import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.OwgeSqsMessage;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -32,7 +35,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto> {
+public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource {
 	/**
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -54,6 +57,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	private UserStorageBo userStorageBo;
 
 	@Autowired
+	private ImprovementBo improvementBo;
+
+	@Autowired
 	private transient SqsManagerService sqsManagerService;
 
 	@Autowired
@@ -61,6 +67,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	@PostConstruct
 	public void init() {
+		improvementBo.addImprovementSource(this);
 		sqsManagerService.addHandler(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, message -> {
 			LOG.debug("Time special effect end" + message.findSimpleContent());
 			ActiveTimeSpecial activeTimeSpecial = findById(Long.valueOf((Integer) message.findSimpleContent()));
@@ -68,6 +75,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
 			activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
 			save(activeTimeSpecial);
+			improvementBo.clearSourceCache(activeTimeSpecial.getUser(), this);
 			sqsManagerService.sendMessage(
 					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, activeTimeSpecial.getId()),
 					rechargeTime);
@@ -89,6 +97,19 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	 */
 	public List<ActiveTimeSpecial> findByUser(Integer userId) {
 		return repository.findByUserId(userId).stream().map(this::onFind).collect(Collectors.toList());
+	}
+
+	/**
+	 * Finds active specials with the given state
+	 * 
+	 * @param userId
+	 * @param state
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ActiveTimeSpecial> findByUserAndState(Integer userId, TimeSpecialStateEnum state) {
+		return repository.findByUserIdAndState(userId, state);
 	}
 
 	/**
@@ -136,7 +157,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			newActive.setState(TimeSpecialStateEnum.ACTIVE);
 			definePendingTime(newActive);
 			newActive.setTimeSpecial(timeSpecial);
-			newActive.setUser(userStorageBo.findLoggedInWithDetails(false));
+			UserStorage user = userStorageBo.findLoggedInWithDetails(false);
+			newActive.setUser(user);
+			improvementBo.clearSourceCache(user, this);
 			newActive = save(newActive);
 			sqsManagerService.sendMessage(
 					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, newActive.getId()),
@@ -172,6 +195,20 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	public ActiveTimeSpecial onFind(ActiveTimeSpecial activeTimeSpecial) {
 		definePendingTime(activeTimeSpecial);
 		return activeTimeSpecial;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
+	 * calculateImprovement(com.kevinguanchedarias.owgejava.entity.UserStorage)
+	 */
+	@Override
+	public GroupedImprovement calculateImprovement(UserStorage user) {
+		GroupedImprovement groupedImprovement = new GroupedImprovement();
+		findByUserAndState(user.getId(), TimeSpecialStateEnum.ACTIVE)
+				.forEach(current -> groupedImprovement.add(current.getTimeSpecial().getImprovement()));
+		return groupedImprovement;
 	}
 
 	private Date computeExpiringDate(Long time) {

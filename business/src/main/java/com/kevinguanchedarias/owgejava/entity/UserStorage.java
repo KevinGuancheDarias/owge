@@ -70,6 +70,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<UnlockedRelation> unlockedRelations;
 
+	@Deprecated(since = "0.8.0")
 	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
 	@Fetch(FetchMode.JOIN)
 	private UserImprovement improvements;
@@ -252,10 +253,23 @@ public class UserStorage implements EntityWithId<Integer> {
 		this.unlockedRelations = unlockedRelations;
 	}
 
+	/**
+	 * 
+	 * @deprecated We use computed improvements
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public UserImprovement getImprovements() {
 		return improvements;
 	}
 
+	/**
+	 * @deprecated We use computed improvements
+	 * @param improvements
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public void setImprovements(UserImprovement improvements) {
 		this.improvements = improvements;
 	}

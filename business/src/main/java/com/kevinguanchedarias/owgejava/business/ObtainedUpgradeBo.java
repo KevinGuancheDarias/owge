@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +14,24 @@ import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
+import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 
 @Component
-public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto> {
+public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto>, ImprovementSource {
 	private static final long serialVersionUID = 2294363946431892708L;
 
 	@Autowired
 	private ObtainedUpgradeRepository obtainedUpgradeRepository;
+
+	@Autowired
+	private ImprovementBo improvementBo;
+
+	@PostConstruct
+	public void init() {
+		improvementBo.addImprovementSource(this);
+	}
 
 	@Override
 	public JpaRepository<ObtainedUpgrade, Long> getRepository() {
@@ -85,5 +98,18 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
 		return ObjectUtils.firstNonNull(
 				obtainedUpgradeRepository.sumByUserAndImprovementUnitTypeImprovementType(user, type.name()), 0L);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
+	 * calculateImprovement()
+	 */
+	@Override
+	public GroupedImprovement calculateImprovement(UserStorage user) {
+		return new GroupedImprovement().add(findByUser(user.getId()).stream()
+				.map(current -> improvementBo.multiplyValues(current.getUpgrade().getImprovement(), current.getLevel()))
+				.collect(Collectors.toList()));
 	}
 }

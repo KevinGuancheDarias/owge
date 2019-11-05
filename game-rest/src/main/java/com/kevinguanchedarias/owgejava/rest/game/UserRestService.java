@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
+import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
@@ -15,6 +17,7 @@ import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
@@ -27,6 +30,9 @@ public class UserRestService {
 
 	@Autowired
 	private DtoUtilService dtoUtilService;
+
+	@Autowired
+	private ImprovementBo improvementBo;
 
 	@RequestMapping(value = "exists", method = RequestMethod.GET)
 	public Object exists() {
@@ -49,6 +55,7 @@ public class UserRestService {
 		UserStorage user = userStorageBo.findLoggedInWithDetails(true);
 		UserStorageDto userDto = new UserStorageDto();
 		userDto.dtoFromEntity(user);
+		userDto.setImprovements(improvementBo.findUserImprovement(user));
 		userDto.setFactionDto(EntityPojoConverterUtil.convertFromTo(FactionDto.class, user.getFaction()));
 		userDto.setHomePlanetDto(EntityPojoConverterUtil.convertFromTo(PlanetDto.class, user.getHomePlanet()));
 		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
@@ -60,4 +67,10 @@ public class UserRestService {
 		userDto.setMaxEnergy(userStorageBo.findMaxEnergy(user));
 		return userDto;
 	}
+
+	@GetMapping("improvements")
+	public GroupedImprovement findImprovements() {
+		return improvementBo.findUserImprovement(userStorageBo.findLoggedInWithDetails(false));
+	}
+
 }

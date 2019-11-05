@@ -1,33 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cache="http://www.springframework.org/schema/cache"
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
 
 	<context:annotation-config></context:annotation-config>
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.configuration" />
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.rest"></context:component-scan>
-	<context:component-scan base-package="com.kevinguanchedarias.owgejava.util"></context:component-scan>
+	<context:component-scan
+		base-package="com.kevinguanchedarias.owgejava.configuration" />
+	<context:component-scan
+		base-package="com.kevinguanchedarias.owgejava.rest"></context:component-scan>
+	<context:component-scan
+		base-package="com.kevinguanchedarias.owgejava.util"></context:component-scan>
 	<context:component-scan
 		base-package="com.kevinguanchedarias.owgejava.exceptionhandler"></context:component-scan>
 
 	<mvc:annotation-driven>
 		<mvc:message-converters>
-			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
-				<property name="supportedMediaTypes" value="text/plain;charset=UTF-8" />
+			<bean
+				class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes"
+					value="text/plain;charset=UTF-8" />
 			</bean>
-			<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
-        <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
-            <property name="objectMapper" ref="jacksonObjectMapper" />
-        </bean>  
+			<bean
+				class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper" ref="jacksonObjectMapper" />
+			</bean>
 		</mvc:message-converters>
 	</mvc:annotation-driven>
 
-	<bean id="jacksonObjectMapper" class="com.fasterxml.jackson.databind.ObjectMapper">
+	<bean id="jacksonObjectMapper"
+		class="com.fasterxml.jackson.databind.ObjectMapper">
 		<property name="serializationInclusion">
-			<value type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_NULL</value>
+			<value
+				type="com.fasterxml.jackson.annotation.JsonInclude.Include">NON_NULL</value>
 		</property>
 	</bean>
 </beans>

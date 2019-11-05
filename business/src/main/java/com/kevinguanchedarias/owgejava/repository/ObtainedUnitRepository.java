@@ -18,6 +18,17 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionNull(Long planetId);
 
+	/**
+	 * Finds all user units that are not of a specified mission type
+	 * 
+	 * @param userId
+	 * @param code
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByUserIdAndMissionTypeCode(Integer userId, String code);
+
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId);
 
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId);

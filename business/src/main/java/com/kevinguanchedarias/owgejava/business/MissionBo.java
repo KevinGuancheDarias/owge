@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
@@ -110,8 +110,8 @@ public class MissionBo extends AbstractMissionBo {
 					upgrade.getId());
 			obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
 			obtainedUpgradeBo.save(obtainedUpgrade);
-			addImprovementsIfPossible(mission.getUser(), upgrade.getImprovement(), 1L);
 			requirementBo.triggerLevelUpCompleted(mission.getUser());
+			improvementBo.clearSourceCache(mission.getUser(), obtainedUpgradeBo);
 			delete(mission);
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
@@ -271,15 +271,22 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public void processBuildUnit(Long missionId) {
 		Mission mission = findById(missionId);
-
+		final List<Boolean> shouldClearImprovementsCache = new ArrayList<>(1);
+		shouldClearImprovementsCache.add(false);
 		if (mission != null) {
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
-				addImprovementsIfPossible(mission.getUser(), current.getUnit().getImprovement(), current.getCount());
+				if (current.getUnit().getImprovement() != null) {
+					shouldClearImprovementsCache.remove(0);
+					shouldClearImprovementsCache.add(true);
+				}
 				obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
 						mission.getMissionInformation().getValue().longValue());
 				requirementBo.triggerUnitBuildCompleted(mission.getUser(), current.getUnit());
 			});
 			delete(mission);
+			if (shouldClearImprovementsCache.get(0)) {
+				improvementBo.clearSourceCache(mission.getUser(), obtainedUnitBo);
+			}
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}
@@ -408,19 +415,6 @@ public class MissionBo extends AbstractMissionBo {
 				LOG.error("Couldn't remove job", e);
 				throw new SgtBackendSchedulerException("Couldn't remove job", e);
 			}
-		}
-	}
-
-	/**
-	 * Update user improvements if possible
-	 * 
-	 * @param user
-	 * @param improvement
-	 * @author Kevin Guanche Darias
-	 */
-	private void addImprovementsIfPossible(UserStorage user, Improvement improvement, Long count) {
-		if (improvement != null) {
-			userImprovementBo.addImprovements(improvement, user, count);
 		}
 	}
 
