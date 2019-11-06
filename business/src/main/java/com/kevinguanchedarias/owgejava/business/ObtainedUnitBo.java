@@ -94,7 +94,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findNotBuilding(Integer userId) {
-		return repository.findByUserIdAndMissionTypeCode(userId, MissionType.BUILD_UNIT.name());
+		return repository.findByUserAndNotBuilding(userId);
 	}
 
 	public boolean hasUnitsInPlanet(UserStorage user, Planet planet) {

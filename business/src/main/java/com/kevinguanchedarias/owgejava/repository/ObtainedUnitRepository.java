@@ -27,7 +27,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public List<ObtainedUnit> findByUserIdAndMissionTypeCode(Integer userId, String code);
+	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE ou.user.id = ?1 AND (ou.mission.type.code IS NULL OR ou.mission.type.code <> 'BUILD_UNIT')")
+	public List<ObtainedUnit> findByUserAndNotBuilding(Integer userId);
 
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId);
 
