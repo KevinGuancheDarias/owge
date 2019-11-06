@@ -210,8 +210,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount,
 			boolean handleImprovements) {
 		if (handleImprovements) {
-			userImprovementBo.subtractImprovements(obtainedUnit.getUnit().getImprovement(), obtainedUnit.getUser(),
-					substractionCount);
+			improvementBo.clearSourceCache(obtainedUnit.getUser(), this);
 		}
 		if (substractionCount > obtainedUnit.getCount()) {
 			throw new SgtBackendInvalidInputException(

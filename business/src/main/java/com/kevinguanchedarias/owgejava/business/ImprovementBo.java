@@ -5,9 +5,12 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -111,6 +114,31 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		cacheManager.getCache(CACHE_KEY).evict(sourceCacheName);
 	}
 
+	/**
+	 * Clears all the cache entries for a given source
+	 * 
+	 * @param source
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@SuppressWarnings("unchecked")
+	public void clearCacheEntries(ImprovementSource source) {
+		Cache cache = cacheManager.getCache(CACHE_KEY);
+		if (Map.class.isInstance(cache.getNativeCache())) {
+			Map<Object, GroupedImprovement> cacheEntries = (Map<Object, GroupedImprovement>) cache.getNativeCache();
+			AtomicInteger count = new AtomicInteger(0);
+			cacheEntries.keySet().stream().filter(key -> !Integer.class.isInstance(key)).map(key -> (String) key)
+					.filter(key -> key.startsWith(findSourceServiceName(source))).forEach(key -> {
+						cache.evict(key);
+						count.incrementAndGet();
+					});
+			LOG.debug("Cleared " + count + " cache entries from " + findSourceServiceName(source));
+		} else {
+			LOG.warn("Used cache backend, not supported for selective cache clearing, will clear ALL");
+			cache.clear();
+		}
+	}
+
 	public Improvement createOrUpdateFromDto(EntityWithImprovements<Number> entityWithImprovements,
 			ImprovementDto improvementDto) {
 		Integer originalId = null;
@@ -164,6 +192,23 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		return improvementDto;
 	}
 
+	/**
+	 * Clears the cache for an entire source, only if the given entity has
+	 * improvements defined
+	 * 
+	 * @param <K>
+	 * @param entityWithImprovements
+	 * @param improvementSource
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <K> void clearCacheEntriesIfRequired(EntityWithImprovements<K> entityWithImprovements,
+			ImprovementSource improvementSource) {
+		if (entityWithImprovements.getImprovement() != null) {
+			clearCacheEntries(improvementSource);
+		}
+	}
+
 	private GroupedImprovement findFromCacheOrBo(UserStorage user, ImprovementSource improvementSource) {
 		String childCacheKey = findSourceCacheName(user, improvementSource);
 		ValueWrapper cached = cacheManager.getCache(CACHE_KEY).get(childCacheKey);
@@ -176,11 +221,15 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		}
 	}
 
-	private String findSourceCacheName(UserStorage user, ImprovementSource improvementSource) {
+	private String findSourceServiceName(ImprovementSource improvementSource) {
 		String className = improvementSource.getClass().getName();
 		int enhancedBySpringPosition = className.indexOf("$$");
-		String serviceName = enhancedBySpringPosition != -1 ? className.substring(0, enhancedBySpringPosition)
+		return enhancedBySpringPosition != -1 ? className.substring(0, enhancedBySpringPosition)
 				: improvementSource.getClass().getName();
-		return serviceName + '/' + user.getId();
+
+	}
+
+	private String findSourceCacheName(UserStorage user, ImprovementSource improvementSource) {
+		return findSourceServiceName(improvementSource) + '/' + user.getId();
 	}
 }

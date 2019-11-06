@@ -8,12 +8,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.transaction.Transactional;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
@@ -71,14 +72,19 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 		sqsManagerService.addHandler(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, message -> {
 			LOG.debug("Time special effect end" + message.findSimpleContent());
 			ActiveTimeSpecial activeTimeSpecial = findById(Long.valueOf((Integer) message.findSimpleContent()));
-			activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
-			Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
-			activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
-			save(activeTimeSpecial);
-			improvementBo.clearSourceCache(activeTimeSpecial.getUser(), this);
-			sqsManagerService.sendMessage(
-					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, activeTimeSpecial.getId()),
-					rechargeTime);
+			if (activeTimeSpecial != null) {
+				activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
+				Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
+				activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
+				save(activeTimeSpecial);
+				improvementBo.clearSourceCache(activeTimeSpecial.getUser(), this);
+				sqsManagerService.sendMessage(
+						new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, activeTimeSpecial.getId()),
+						rechargeTime);
+			} else {
+				LOG.debug(
+						"ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
+			}
 		});
 		sqsManagerService.addHandler(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, message -> {
 			Long id = Long.valueOf((Integer) message.findSimpleContent());
@@ -133,6 +139,20 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	 */
 	public ActiveTimeSpecial findOneByTimeSpecial(Integer timeSpecialId) {
 		return onFind(repository.findOneByTimeSpecialId(timeSpecialId));
+	}
+
+	/**
+	 * Deletes all active time specials <br>
+	 * <b>Has Propagation.MANDATORY as should not be run by controllers, this action
+	 * is reserved to another service
+	 * 
+	 * @param timeSpecial
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	public void deleteByTimeSpecial(TimeSpecial timeSpecial) {
+		repository.deleteByTimeSpecialId(timeSpecial.getId());
 	}
 
 	/**

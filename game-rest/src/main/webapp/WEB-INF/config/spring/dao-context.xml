@@ -50,7 +50,7 @@
 		<property name="dataSource" ref="dataSource" />
 		<property name="jpaProperties">
 			<props>
-				<prop key="hibernate.show_sql">false</prop>
+				<prop key="hibernate.show_sql">${OWGE_SHOW_SQL:false}</prop>
 			</props>
 		</property>
 	</bean>

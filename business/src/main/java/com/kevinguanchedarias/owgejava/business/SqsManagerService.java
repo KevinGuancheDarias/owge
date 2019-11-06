@@ -70,6 +70,7 @@ public class SqsManagerService {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void sendMessage(OwgeSqsMessage messageData, Long deliverAfterSeconds) {
+		LOG.debug("Sending SQS message");
 		producer.sendMessageSync(createJsonMessage(messageData, deliverAfterSeconds));
 	}
 

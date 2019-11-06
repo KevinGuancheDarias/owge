@@ -28,6 +28,9 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
 
+	@Autowired
+	private ImprovementBo improvementBo;
+
 	@Override
 	public JpaRepository<Unit, Integer> getRepository() {
 		return unitRepository;
@@ -41,6 +44,42 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 	@Override
 	public Class<UnitDto> getDtoClass() {
 		return UnitDto.class;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
+	 * owgejava.entity.EntityWithId)
+	 */
+	@Override
+	public Unit save(Unit entity) {
+		improvementBo.clearCacheEntriesIfRequired(entity, obtainedUnitBo);
+		return WithNameBo.super.save(entity);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
+	 */
+	@Override
+	public void save(List<Unit> entities) {
+		improvementBo.clearCacheEntries(obtainedUnitBo);
+		WithNameBo.super.save(entities);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
+	 */
+	@Override
+	public void delete(Unit unit) {
+		improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitBo);
+		WithNameBo.super.delete(unit);
 	}
 
 	public List<Unit> findUnlocked(UserStorage user) {
