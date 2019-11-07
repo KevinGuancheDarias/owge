@@ -17,8 +17,6 @@ export * from './lib/types/active-time-special.type';
 export * from './lib/types/crud-config.type';
 export * from './lib/types/crud-service-auth-control.type';
 export * from './lib/types/image-store.type';
-export * from './lib/types/improvement-unit-type.type';
-export * from './lib/types/improvement.type';
 export * from './lib/types/mission-support.type';
 export * from './lib/types/requirement-information.type';
 export * from './lib/types/requirement.type';

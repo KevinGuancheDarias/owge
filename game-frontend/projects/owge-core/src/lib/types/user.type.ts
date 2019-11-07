@@ -1,3 +1,5 @@
+import { Improvement } from './improvement.type';
+
 /**
  * Better way to represent user details
  *
@@ -16,14 +18,10 @@ export interface User {
     firstName: string;
     lastName: string;
     notifications: boolean;
+    improvements: Improvement;
 
     consumedEnergy: number;
     maxEnergy: number;
     primaryResource: number;
-    primaryResourceGenerationPerSecond: number;
     secondaryResource: number;
-    secondaryResourceGenerationPerSecond: number;
-
-    computedPrimaryResourceGenerationPerSecond: number;
-    computedSecondaryResourceGenerationPerSecond: number;
 }

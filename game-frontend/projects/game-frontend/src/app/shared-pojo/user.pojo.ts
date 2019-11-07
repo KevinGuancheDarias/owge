@@ -1,6 +1,13 @@
 import { PlanetPojo } from './planet.pojo';
 import { Faction } from './faction.pojo';
 
+
+/**
+ *
+ * @deprecated As of 0.8.0 Type User should be used
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @export
+ */
 export class UserPojo {
     public id: number;
     public username: string;

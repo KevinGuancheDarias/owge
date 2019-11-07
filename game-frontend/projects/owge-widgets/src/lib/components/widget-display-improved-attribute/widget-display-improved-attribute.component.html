@@ -1,0 +1,12 @@
+<div *ngIf="placeHolderTranslationObservable | async as placeHolderTranslation" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
+    <owge-widgets-display-image [image]="image" [title]="name" [customClass]="'resourceImage'" [staticImage]="staticImage"
+      [assetsImage]="assetsImage"></owge-widgets-display-image>
+    <p #textElement>
+        <owge-widgets-span-with-placeholder *ngIf="isMouseOver" [placeholder]="placeHolderTranslation" [placeholderWidth]="'100px'">
+            {{ value | number: numberFormat }} + {{ improvementAdd | number: numberFormat }}
+        </owge-widgets-span-with-placeholder>
+        <span *ngIf="isMouseOver"></span>
+        <span *ngIf="!isMouseOver">{{ (value + improvementAdd) | number: numberFormat }}</span>
+        <span [title]="maxValue" *ngIf="maxValue"> % </span>
+    </p>
+</div>

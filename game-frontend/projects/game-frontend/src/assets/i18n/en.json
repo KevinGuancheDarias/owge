@@ -18,7 +18,10 @@
     "WIDGETS": {
         "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
         "CONFIRMATION_DIALOG_CANCEL": "Cancel",
-        "CONFIRMATION_DIALOG_CONFIRM": "Confirm"
+        "CONFIRMATION_DIALOG_CONFIRM": "Confirm",
+        "DISPLAY_IMPROVED_ATTRIBUTE": {
+            "PLACEHOLDER": "Base + Improvement"
+        }
     },
     "ALLIANCE": {
         "NOT_IN_ALLIANCE": "You are not in an alliance",

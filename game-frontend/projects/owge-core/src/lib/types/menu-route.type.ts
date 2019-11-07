@@ -10,11 +10,11 @@ import { Injector } from '@angular/core';
 export interface MenuRoute {
 
     /**
+     * Angular Router's route
      *
      * @since 0.7.0
      */
-    path: string;
-
+    path?: string;
 
     /**
      *
@@ -22,6 +22,12 @@ export interface MenuRoute {
      */
     text: string;
 
+    /**
+     * Action to run when you click the button
+     *
+     * @since 0.8.0
+     */
+    action?: Function;
 
     /**
      *

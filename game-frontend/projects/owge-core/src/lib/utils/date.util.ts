@@ -8,6 +8,7 @@
  */
 export class DateUtil {
 
+    private static readonly _INTENTIONAL_DELAY = 3000;
 
     /**
      * Creates the ending date for a given input pending time
@@ -18,7 +19,7 @@ export class DateUtil {
      * @returns The date where should end the input millis
      */
     public static createFromPendingMillis(pendingMillis: number): Date {
-        return new Date(new Date().getTime() + pendingMillis + 1000);
+        return new Date(new Date().getTime() + pendingMillis + DateUtil._INTENTIONAL_DELAY);
     }
 
     private constructor() {

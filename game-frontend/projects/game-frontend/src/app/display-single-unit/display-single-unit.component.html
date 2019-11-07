@@ -14,14 +14,14 @@
     <app-display-requirements *ngIf="selectedView === 'requirements'" [requirements]="unit.requirements">
     </app-display-requirements>
     <ng-container *ngIf="selectedView === 'attributes'">
-      <app-display-single-resource *ngIf="unit.health" [resourceName]="'Health'" [resourceValue]="unit.health"
-        [assetsImage]="true" [resourceImage]="'hearth.png'"></app-display-single-resource>
-      <app-display-single-resource *ngIf="unit.shield" [resourceName]="'Shield'" [resourceValue]="unit.shield"
-        [assetsImage]="true" [resourceImage]="'shield.png'"></app-display-single-resource>
-      <app-display-single-resource *ngIf="unit.attack" [resourceName]="'Attack'" [resourceValue]="unit.attack"
-        [assetsImage]="true" [resourceImage]="'sword.png'"></app-display-single-resource>
-      <app-display-single-resource *ngIf="unit.charge" [resourceName]="'Charge'" [resourceValue]="unit.charge"
-        [assetsImage]="true" [resourceImage]="'carry.png'"></app-display-single-resource>
+      <owge-widgets-display-improved-attribute *ngIf="unit.health" [name]="'Health'" [value]="unit.health"
+        [assetsImage]="true" [image]="'hearth.png'" [improvementPercentage]="moreHealth"></owge-widgets-display-improved-attribute>
+      <owge-widgets-display-improved-attribute *ngIf="unit.shield" [name]="'Shield'" [value]="unit.shield"
+        [assetsImage]="true" [image]="'shield.png'" [improvementPercentage]="moreShield"></owge-widgets-display-improved-attribute>
+      <owge-widgets-display-improved-attribute *ngIf="unit.attack" [name]="'Attack'" [value]="unit.attack"
+        [assetsImage]="true" [image]="'sword.png'" [improvementPercentage]="moreAttack"></owge-widgets-display-improved-attribute>
+      <owge-widgets-display-improved-attribute *ngIf="unit.charge" [name]="'Charge'" [value]="unit.charge"
+        [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge"></owge-widgets-display-improved-attribute>
     </ng-container>
   </div>
 
@@ -30,7 +30,7 @@
       <ng-container *ngIf="building.missionData.unit.id === unit.id ">
         <div class="upgrading-countdown">
           <app-countdown *ngIf="building.missionData.terminationDate"
-            [targetDate]="building.missionData.terminationDate" (timeOver)="buildDone.emit()">
+            [targetDate]="building.missionData.terminationDate" (timeOver)="onBuildDone(building.missionData.unit)">
           </app-countdown>
         </div>
         <a class="btn btn-block" role="button" (click)="cancelUnit()">Cancelar</a>

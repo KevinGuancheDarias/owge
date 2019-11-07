@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject ,  Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { skip } from 'rxjs/operators';
+
+import { Improvement, UserStorage, LoggerHelper } from '@owge/core';
+import { UserWithFaction } from '@owge/faction';
 
 import { ResourcesEnum } from '../shared-enum/resources-enum';
 import { UserPojo } from '../shared-pojo/user.pojo';
@@ -43,8 +47,9 @@ export class ResourceManagerService {
   private _currentSecondaryResourceFloor: BehaviorSubject<number> = new BehaviorSubject(0);
   private _currentEnergyFloor: BehaviorSubject<number> = new BehaviorSubject(0);
   private _currentMaxEnergyFloor: BehaviorSubject<number> = new BehaviorSubject(0);
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  constructor() {
+  constructor(private _userStore: UserStorage<UserWithFaction>) {
 
   }
 
@@ -57,7 +62,7 @@ export class ResourceManagerService {
     this.stopHandling();
     this._lastDate = new Date();
     if (userPojo) {
-      this._setResources(userPojo);
+      this._setResources(<any>userPojo);
     }
     this._intervalId = window.setInterval(() => {
       const currentDate: Date = new Date();
@@ -126,14 +131,21 @@ export class ResourceManagerService {
     this.addResources(resourceType, value * -1);
   }
 
-  private _setResources(userPojo: UserPojo) {
-    this._setPrimaryValue(userPojo.primaryResource);
-    this._setSecondaryValue(userPojo.secondaryResource);
+  private _setResources(user: UserWithFaction) {
+    this._setPrimaryValue(user.primaryResource);
+    this._setSecondaryValue(user.secondaryResource);
 
-    this._currentPrimaryResourcePerSecond = userPojo.computedPrimaryResourceGenerationPerSecond;
-    this._currentSecondaryResourcePerSecond = userPojo.computedSecondaryResourceGenerationPerSecond;
-    this._currentEnergy = userPojo.consumedEnergy;
-    this._currentMaxEnergy = userPojo.maxEnergy;
+
+    this._definePerSecondVariables(user, user.improvements);
+    this._userStore.currentUserImprovements.pipe(skip(1)).subscribe(improvement => {
+      const oldPerSecond = this._findPerSecondVariables();
+      this._definePerSecondVariables(user, improvement);
+      const newPerSecond = this._findPerSecondVariables();
+      this._log.debug('Recalculating per second values from old', oldPerSecond, 'to', newPerSecond);
+    });
+
+    this._currentEnergy = user.consumedEnergy;
+    this._currentMaxEnergy = user.maxEnergy;
 
     this._currentEnergyFloor.next(Math.floor(this._currentEnergy));
     this._currentMaxEnergyFloor.next(Math.floor(this._currentMaxEnergy));
@@ -149,10 +161,23 @@ export class ResourceManagerService {
     this._currentSecondaryResourceFloor.next(Math.floor(this._currentSecondaryResource));
   }
 
+  private _definePerSecondVariables(user: UserWithFaction, improvement: Improvement) {
+    this._currentPrimaryResourcePerSecond = this._computeUserResourcePerSecond(
+      user.faction.primaryResourceProduction,
+      improvement && improvement.morePrimaryResourceProduction
+    );
+    this._currentSecondaryResourcePerSecond = this._computeUserResourcePerSecond(
+      user.faction.secondaryResourceProduction,
+      improvement && improvement.moreSecondaryResourceProduction
+    );
+    console.log('maxEnergy', user.faction.initialEnergy + (user.faction.initialEnergy * (improvement.moreEnergyProduction / 100)));
+  }
+
   /**
    * calculates the new value using the date diff and the value per second<br />
    * <b>WARNING!: To avoid float madness ensure that atleast there is a interval of 500ms</b>
    *
+   * @see java://owge-backend/com.kevinguanchedarias.owgejava.business.UserStorageBo(private)#calculateSum()
    * @param {Date} present datetime representing now
    * @param {Date} past datetime represents the last time value was update
    * @param {number} perSecondValue Value to increase each second
@@ -166,5 +191,28 @@ export class ResourceManagerService {
 
     retVal += (difference * perSecondValue);
     return retVal;
+  }
+
+  /**
+	 * Computes the resource per second that one faction resource has according to
+	 * the current user improvement <br>
+   * As of 0.8.0 calculate resource production in the frontend too
+	 *
+	 * @param factionResource     The faction resource production
+	 * @param resourceImprovement The improvement resource production
+	 * @return the computed resource per second
+	 * @author Kevin Guanche Darias
+   * @since 0.8.0
+	 */
+  private _computeUserResourcePerSecond(factionResource: number, resourceImprovement: number): number {
+    const nanSafeImprovement: number = isNaN(resourceImprovement) ? 0 : resourceImprovement;
+    return factionResource + (factionResource * (nanSafeImprovement / 100));
+  }
+
+  private _findPerSecondVariables() {
+    return {
+      primary: this._currentPrimaryResourcePerSecond,
+      secondary: this._currentSecondaryResourcePerSecond
+    };
   }
 }
