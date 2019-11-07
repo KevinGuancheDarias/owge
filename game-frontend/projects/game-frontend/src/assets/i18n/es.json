@@ -10,7 +10,8 @@
         "MENU_REPORTS": "Reportes",
         "MENU_ALLIANCES": "Alianzas",
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
-        "MENU_RANKING": "Ranking"
+        "MENU_RANKING": "Ranking",
+        "MENU_LOGOUT": "Salir"
     },
     "UPGRADE": {
         "CANCEL_TEXT": "Vas a cancelar la mejora {{upgradeName}}, ¿Estás seguro de ello?"
