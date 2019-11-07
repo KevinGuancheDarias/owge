@@ -11,6 +11,8 @@ import com.kevinguanchedarias.owgejava.dto.AbstractImprovementDto;
 import com.kevinguanchedarias.owgejava.dto.ImprovementDto;
 import com.kevinguanchedarias.owgejava.dto.ImprovementUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 
 /**
  * Represents the full sum of a improvement
@@ -70,6 +72,36 @@ public class GroupedImprovement extends AbstractImprovementDto {
 			doAdd(improvementDto);
 		}
 		return this;
+	}
+
+	/**
+	 * Finds the value of a unit type improvement (sum of all even of different
+	 * {@link UnitType}
+	 * 
+	 * @param improvementTypeEnum
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long findUnitTypeImprovement(ImprovementTypeEnum improvementTypeEnum) {
+		return getUnitTypesUpgrades().stream().filter(current -> improvementTypeEnum.name().equals(current.getType()))
+				.map(ImprovementUnitTypeDto::getValue).reduce(0L, (sum, current) -> sum + current).longValue();
+	}
+
+	/**
+	 * Finds the value of a unit type improvement for a given unit type
+	 * 
+	 * @param improvementTypeEnum Type of improvement
+	 * @param unitTypeId          Target {@link UnitType} id
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long findUnitTypeImprovement(ImprovementTypeEnum improvementTypeEnum, Integer unitTypeId) {
+		return getUnitTypesUpgrades().stream()
+				.filter(current -> improvementTypeEnum.name().equals(current.getType())
+						&& unitTypeId.equals(current.getUnitTypeId()))
+				.map(ImprovementUnitTypeDto::getValue).reduce(0L, (sum, current) -> sum + current).longValue();
 	}
 
 	private void doAdd(AbstractImprovementDto improvementDto) {

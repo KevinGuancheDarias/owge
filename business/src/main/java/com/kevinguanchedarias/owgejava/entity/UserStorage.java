@@ -51,11 +51,13 @@ public class UserStorage implements EntityWithId<Integer> {
 	@Column(nullable = false)
 	private Double energy;
 
-	@Column(name = "primary_resource_generation_per_second")
-	private Double primaryResourceGenerationPerSecond;
+	@Column(name = "primary_resource_generation_per_second", nullable = true)
+	@Deprecated(since = "0.8.0")
+	private Double primaryResourceGenerationPerSecond = 0D;
 
-	@Column(name = "secondary_resource_generation_per_second")
-	private Double secondaryResourceGenerationPerSecond;
+	@Column(name = "secondary_resource_generation_per_second", nullable = true)
+	@Deprecated(since = "0.8.0")
+	private Double secondaryResourceGenerationPerSecond = 0D;
 
 	/**
 	 * @deprecated Max Energy is now a computed value
@@ -71,7 +73,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	private List<UnlockedRelation> unlockedRelations;
 
 	@Deprecated(since = "0.8.0")
-	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, optional = true)
 	@Fetch(FetchMode.JOIN)
 	private UserImprovement improvements;
 
@@ -84,9 +86,11 @@ public class UserStorage implements EntityWithId<Integer> {
 	private Alliance alliance;
 
 	@Transient
+	@Deprecated(since = "0.8.0")
 	private Double computedPrimaryResourceGenerationPerSecond;
 
 	@Transient
+	@Deprecated(since = "0.8.0")
 	private Double computedSecondaryResourceGenerationPerSecond;
 
 	public void addtoPrimary(Double value) {
@@ -101,8 +105,11 @@ public class UserStorage implements EntityWithId<Integer> {
 	 * Fills the transient properties of the entity <br />
 	 * <b>IMPORTANT: The entity should have all the "details" </b>
 	 * 
+	 * @deprecated Transient properties of UserStorage are not longer required, use
+	 *             version without transient argument
 	 * @author Kevin Guanche Darias
 	 */
+	@Deprecated(since = "0.8.0")
 	public void fillTransientValues() {
 		if (faction != null) {
 			computedPrimaryResourceGenerationPerSecond = (double) (faction.getPrimaryResourceProduction()
@@ -205,18 +212,44 @@ public class UserStorage implements EntityWithId<Integer> {
 		this.energy = energy;
 	}
 
+	/**
+	 * 
+	 * @deprecated Not used, it's a calculated value by UserStorage
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Double getPrimaryResourceGenerationPerSecond() {
 		return primaryResourceGenerationPerSecond;
 	}
 
+	/**
+	 * 
+	 * @deprecated Not used, it's a calculated value by UserStorage
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public void setPrimaryResourceGenerationPerSecond(Double primaryResourceGenerationPerSecond) {
 		this.primaryResourceGenerationPerSecond = primaryResourceGenerationPerSecond;
 	}
 
+	/**
+	 * 
+	 * @deprecated Not used, it's a calculated value by UserStorage
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Double getSecondaryResourceGenerationPerSecond() {
 		return secondaryResourceGenerationPerSecond;
 	}
 
+	/**
+	 * 
+	 * @deprecated Not used, it's a calculated value by UserStorage
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public void setSecondaryResourceGenerationPerSecond(Double secondaryResourceGenerationPerSecond) {
 		this.secondaryResourceGenerationPerSecond = secondaryResourceGenerationPerSecond;
 	}
@@ -298,10 +331,25 @@ public class UserStorage implements EntityWithId<Integer> {
 		this.alliance = alliance;
 	}
 
+	/**
+	 * 
+	 * @deprecated Transient properties of UserStorage are not longer required, we
+	 *             calculate in the frontend and in the backend
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Double getComputedPrimaryResourceGenerationPerSecond() {
 		return computedPrimaryResourceGenerationPerSecond;
 	}
 
+	/**
+	 * @deprecated Transient properties of UserStorage are not longer required, we
+	 *             calculate in the frontend and in the backend
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Double getComputedSecondaryResourceGenerationPerSecond() {
 		return computedSecondaryResourceGenerationPerSecond;
 	}

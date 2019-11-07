@@ -39,8 +39,8 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.DeliveryQueueEntry;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
-import com.kevinguanchedarias.owgejava.pojo.UserUnitTypeImprovement;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @Service
@@ -52,14 +52,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
 
 	@Autowired
-	private ImprovementUnitTypeBo improvementBo;
-
-	@Autowired
 	private UnitTypeBo unitTypeBo;
 
 	/**
-	 * Represents an ObtainedUnit, its full attack, and the pending attack is
-	 * has
+	 * Represents an ObtainedUnit, its full attack, and the pending attack is has
 	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -123,19 +119,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * @param obtainedUnit
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
-		public void setObtainedUnit(ObtainedUnit obtainedUnit, UserUnitTypeImprovement userUnitTypeImprovement) {
+		public void setObtainedUnit(ObtainedUnit obtainedUnit, GroupedImprovement userImprovement) {
 			Unit unit = obtainedUnit.getUnit();
+			Integer unitTypeId = unit.getType().getId();
 			initialCount = obtainedUnit.getCount();
 			finalCount = initialCount;
 			totalAttack = initialCount.doubleValue() * unit.getAttack();
-			totalAttack += (totalAttack * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.ATTACK));
+			totalAttack += (totalAttack * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitTypeId)));
 			pendingAttack = totalAttack;
 			totalShield = initialCount.doubleValue() * unit.getShield();
-			totalShield += (totalShield * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.SHIELD));
+			totalShield += (totalShield * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitTypeId)));
 			availableShield = totalShield;
 			totalHealth = initialCount.doubleValue() * unit.getHealth();
 			initialHealth = totalHealth;
-			totalHealth += (totalHealth * userUnitTypeImprovement.findValueRational(ImprovementTypeEnum.DEFENSE));
+			totalHealth += (totalHealth * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.DEFENSE, unitTypeId)));
 			availableHealth = totalHealth;
 			this.obtainedUnit = obtainedUnit;
 		}
@@ -159,11 +159,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		boolean canAttack = true;
 
 		private UserStorage user;
-		private UserUnitTypeImprovement userUnitTypeImprovement;
+		private GroupedImprovement userImprovement;
 
-		public AttackUserInformation(UserStorage user, ImprovementUnitTypeBo improvementBo) {
+		public AttackUserInformation(UserStorage user) {
 			this.setUser(user);
-			userUnitTypeImprovement = new UserUnitTypeImprovement(user, improvementBo);
+			userImprovement = improvementBo.findUserImprovement(user);
 		}
 
 		/**
@@ -216,13 +216,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			return earnedPoints;
 		}
 
-		public UserUnitTypeImprovement getUserUnitTypeImprovement() {
-			return userUnitTypeImprovement;
+		public GroupedImprovement getUserImprovement() {
+			return userImprovement;
 		}
 
 		/**
-		 * Deletes the mission from the system, when all units involved ade
-		 * death
+		 * Deletes the mission from the system, when all units involved ade death
 		 * 
 		 * Notice, should be invoked after <b>removing the obtained unit</b>
 		 * 
@@ -303,8 +302,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		/**
-		 * If the user has an alliance, removes all those users that are not in
-		 * the user alliance
+		 * If the user has an alliance, removes all those users that are not in the user
+		 * alliance
 		 * 
 		 * @param current
 		 * @return
@@ -332,8 +331,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		/**
-		 * To have the expected behavior sohuld be invoked after
-		 * <i>startAttack()</i>
+		 * To have the expected behavior sohuld be invoked after <i>startAttack()</i>
 		 * 
 		 * @return true if the mission has been removed from the database
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -353,12 +351,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.filter(current -> current.getUser().getId().equals(unitToAdd.getUser().getId())).findFirst()
 					.orElse(null);
 			if (attackUserInformation == null) {
-				attackUserInformation = new AttackUserInformation(unitToAdd.getUser(), improvementBo);
+				attackUserInformation = new AttackUserInformation(unitToAdd.getUser());
 				attackUserInformation.attackInformationRef = this;
 				users.add(attackUserInformation);
 			}
 			AttackObtainedUnit attackObtainedUnit = new AttackObtainedUnit();
-			attackObtainedUnit.setObtainedUnit(unitToAdd, attackUserInformation.getUserUnitTypeImprovement());
+			attackObtainedUnit.setObtainedUnit(unitToAdd, attackUserInformation.getUserImprovement());
 			attackUserInformation.unitsWithAvailableAttack.add(attackObtainedUnit);
 		}
 
@@ -436,16 +434,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Registers a explore mission <b>as logged in user</b>
 	 * 
-	 * @param missionInformation
-	 *            <i>userId</i> is <b>ignored</b> in this method <b>immutable
-	 *            object</b>
+	 * @param missionInformation <i>userId</i> is <b>ignored</b> in this method
+	 *                           <b>immutable object</b>
 	 * @return mission representation DTO
-	 * @throws SgtBackendInvalidInputException
-	 *             When input information is not valid
-	 * @throws UserNotFoundException
-	 *             When user doesn't exists <b>(in this universe)</b>
-	 * @throws PlanetNotFoundException
-	 *             When the planet doesn't exists
+	 * @throws SgtBackendInvalidInputException When input information is not valid
+	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
+	 *                                         universe)</b>
+	 * @throws PlanetNotFoundException         When the planet doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
@@ -459,12 +454,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * 
 	 * @param missionInformation
 	 * @return mission representation DTO
-	 * @throws SgtBackendInvalidInputException
-	 *             When input information is not valid
-	 * @throws UserNotFoundException
-	 *             When user doesn't exists <b>(in this universe)</b>
-	 * @throws PlanetNotFoundException
-	 *             When the planet doesn't exists
+	 * @throws SgtBackendInvalidInputException When input information is not valid
+	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
+	 *                                         universe)</b>
+	 * @throws PlanetNotFoundException         When the planet doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
@@ -590,8 +583,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
 				.reduce(0L, (sum, current) -> sum + current);
 		Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
+		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
 		Double withUserImprovement = withPlanetRichness
-				+ (withPlanetRichness * user.getImprovements().findRationalChargeCapacity());
+				+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
 		Double primaryResource = withUserImprovement * 0.7;
 		Double secondaryResource = withUserImprovement * 0.3;
 		user.addtoPrimary(primaryResource);
@@ -667,8 +661,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Creates a return mission from an existing mission
 	 * 
-	 * @param mission
-	 *            Existing mission that will be returned
+	 * @param mission Existing mission that will be returned
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
@@ -679,11 +672,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Creates a return mission from an existing mission
 	 * 
-	 * @param mission
-	 *            Existing mission that will be returned
-	 * @param customRequiredTime
-	 *            If not null will be used as the time for the return mission,
-	 *            else will use source mission time
+	 * @param mission            Existing mission that will be returned
+	 * @param customRequiredTime If not null will be used as the time for the return
+	 *                           mission, else will use source mission time
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
@@ -775,10 +766,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * finds user <b>not resolved</b> deployed mission, if none exists creates
-	 * one <br>
-	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has
-	 * to remove the firstDeploymentMission
+	 * finds user <b>not resolved</b> deployed mission, if none exists creates one
+	 * <br>
+	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has to
+	 * remove the firstDeploymentMission
 	 * 
 	 * @param origin
 	 * @param unit
@@ -817,8 +808,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Executes modifications to <i>missionInformation</i> to define the logged
-	 * in user as the sender user
+	 * Executes modifications to <i>missionInformation</i> to define the logged in
+	 * user as the sender user
 	 * 
 	 * @param missionInformation
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -868,30 +859,28 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Will check if the input DTO is valid, the following validations will be
-	 * done <br>
-	 * <b>IMPORTANT:</b> This method is intended to be use as part of the
-	 * mission registration process
+	 * Will check if the input DTO is valid, the following validations will be done
+	 * <br>
+	 * <b>IMPORTANT:</b> This method is intended to be use as part of the mission
+	 * registration process
 	 * <ul>
 	 * <li>Check if the user exists</li>
 	 * <li>Check if the sourcePlanet exists</li>
 	 * <li>Check if the targetPlanet exists</li>
-	 * <li>Check for each selected unit if there is an associated obtainedUnit
-	 * and if count is valid</li>
+	 * <li>Check for each selected unit if there is an associated obtainedUnit and
+	 * if count is valid</li>
 	 * <li>removes DEPLOYED mission if required</li>
 	 * </ul>
 	 * 
 	 * @param missionInformation
-	 * @return Database list of <i>ObtainedUnit</i> with the subtraction
-	 *         <b>already applied</b>, whose key is the "unit" id (don't confuse
-	 *         with obtained unit id)
+	 * @return Database list of <i>ObtainedUnit</i> with the subtraction <b>already
+	 *         applied</b>, whose key is the "unit" id (don't confuse with obtained
+	 *         unit id)
 	 * 
-	 * @throws SgtBackendInvalidInputException
-	 *             when validation was not passed
-	 * @throws UserNotFoundException
-	 *             When user doesn't exists <b>(in this universe)</b>
-	 * @throws PlanetNotFoundException
-	 *             When the planet doesn't exists
+	 * @throws SgtBackendInvalidInputException when validation was not passed
+	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
+	 *                                         universe)</b>
+	 * @throws PlanetNotFoundException         When the planet doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private Map<Integer, ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
@@ -953,8 +942,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Checks if the DEPLOY mission is allowed
 	 * 
 	 * @param missionType
-	 * @throws SgtBackendInvalidInputException
-	 *             If the deployment mission is <b>globally</b> disabled
+	 * @throws SgtBackendInvalidInputException If the deployment mission is
+	 *                                         <b>globally</b> disabled
 	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -984,8 +973,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * 
 	 * @param id
 	 * @return the expected obtained id
-	 * @throws NotFoundException
-	 *             If obtainedUnit doesn't exists
+	 * @throws NotFoundException If obtainedUnit doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private ObtainedUnit findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNullOrDeployed(Integer userId,
@@ -1002,8 +990,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Checks if the logged in user is the creator of the mission
 	 * 
-	 * @param invoker
-	 *            The creator of the mission
+	 * @param invoker The creator of the mission
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private void checkInvokerIsTheLoggedUser(Integer invoker) {
@@ -1074,10 +1061,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Defines the new owner for the targetPlanet
 	 * 
-	 * @param owner
-	 *            The new owner
-	 * @param involvedUnits
-	 *            The units used by the owner to conquest the planet
+	 * @param owner         The new owner
+	 * @param involvedUnits The units used by the owner to conquest the planet
 	 * @param targetPlanet
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.FilterEventHandler;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 public class ResourceAutoUpdateEventHandler implements FilterEventHandler {
 
@@ -17,8 +18,9 @@ public class ResourceAutoUpdateEventHandler implements FilterEventHandler {
 
 	@Override
 	public void doAfter() {
-		if (userStorageBo.exists(userStorageBo.findLoggedIn())) {
-			userStorageBo.triggerResourcesUpdate();
+		UserStorage user = userStorageBo.findLoggedIn();
+		if (userStorageBo.exists(user)) {
+			userStorageBo.triggerResourcesUpdate(user.getId());
 		}
 	}
 

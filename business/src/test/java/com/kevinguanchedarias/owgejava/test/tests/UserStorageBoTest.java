@@ -218,7 +218,7 @@ public class UserStorageBoTest extends TestCommon {
 		detailsUser.setSecondaryResource(0.0);
 
 		Mockito.when(userStorageRepository.findOne(simpleUser.getId().intValue())).thenReturn(detailsUser);
-		userStorageBo.triggerResourcesUpdate();
+		userStorageBo.triggerResourcesUpdate(detailsUser.getId());
 		assertEquals(30, detailsUser.getPrimaryResource().longValue());
 		assertEquals(30, detailsUser.getSecondaryResource().longValue());
 	}

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.pojo;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
@@ -10,8 +11,11 @@ import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 /**
  * Represents the sum of all the unit type improvements for given user
  *
+ * @deprecated Use {@link GroupedImprovement} instead, obtained from
+ *             {@link ImprovementBo#findUserImprovement(UserStorage)}
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
+@Deprecated(since = "0.8.0")
 public class UserUnitTypeImprovement {
 
 	private Map<String, Long> improvements = new HashMap<>();

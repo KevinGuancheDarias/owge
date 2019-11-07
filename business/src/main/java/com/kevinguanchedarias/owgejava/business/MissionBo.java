@@ -70,9 +70,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		resourceRequirements.setRequiredTime(
-				resourceRequirements.getRequiredTime() - (user.getImprovements().getMoreUpgradeResearchSpeed() / 100
-						* resourceRequirements.getRequiredTime()));
+		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
+				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
+						improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed()));
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
 
@@ -142,8 +142,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime()
-				- (user.getImprovements().getMoreUnitBuildSpeed() / 100 * resourceRequirements.getRequiredTime()));
+		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
+				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
+						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed()));
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);

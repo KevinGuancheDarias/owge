@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -20,6 +19,7 @@ import com.kevinguanchedarias.owgejava.exception.NotYourPlanetException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtFactionNotFoundException;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 
 /**
@@ -52,13 +52,13 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
-	private ImprovementUnitTypeBo improvementUnitTypeBo;
-
-	@Autowired
 	private AllianceBo allianceBo;
 
 	@Autowired
 	private AuthenticationBo authenticationBo;
+
+	@Autowired
+	private ImprovementBo improvementBo;
 
 	@Override
 	public JpaRepository<UserStorage, Integer> getRepository() {
@@ -115,13 +115,24 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * Returns the logged in user with ALL his details <br />
 	 * <b>NOTICE:</b> If required, will update base information (username,email)
 	 * 
+	 * @deprecated Transient properties of UserStorage are not longer required, use
+	 *             version without transient argument
 	 * @param populateTransient Should Compute transient values<br />
 	 *                          Recommended if needs the computed real resource
 	 *                          generation after improvements parsing
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
+	@Deprecated(since = "0.8.0")
 	public UserStorage findLoggedInWithDetails(boolean populateTransient) {
+		UserStorage dbFullUser = findLoggedInWithDetails();
+		if (populateTransient) {
+			dbFullUser.fillTransientValues();
+		}
+		return dbFullUser;
+	}
+
+	public UserStorage findLoggedInWithDetails() {
 		UserStorage tokenSimpleUser = findLoggedIn();
 		UserStorage dbFullUser = findById(tokenSimpleUser.getId());
 
@@ -130,9 +141,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 			dbFullUser.setEmail(tokenSimpleUser.getEmail());
 			dbFullUser.setUsername(tokenSimpleUser.getUsername());
 			save(dbFullUser);
-		}
-		if (populateTransient) {
-			dbFullUser.fillTransientValues();
 		}
 		return dbFullUser;
 	}
@@ -168,8 +176,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		user.setPrimaryResource(selectedFaction.getInitialPrimaryResource().doubleValue());
 		user.setSecondaryResource(selectedFaction.getInitialSecondaryResource().doubleValue());
 		user.setEnergy(selectedFaction.getInitialEnergy().doubleValue());
-		user.setPrimaryResourceGenerationPerSecond(selectedFaction.getPrimaryResourceProduction().doubleValue());
-		user.setSecondaryResourceGenerationPerSecond(selectedFaction.getSecondaryResourceProduction().doubleValue());
 		user.setLastAction(new Date());
 		user = userStorageRepository.save(user);
 		user.setImprovements(userImprovementBo.findUserImprovements(user));
@@ -195,14 +201,19 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
-	public void triggerResourcesUpdate() {
-		UserStorage user = findLoggedInWithDetails(true);
+	public void triggerResourcesUpdate(Integer userId) {
+		UserStorage user = findByIdOrDie(userId);
+		Faction faction = user.getFaction();
+		GroupedImprovement userImprovements = improvementBo.findUserImprovement(user);
+
 		Date now = new Date();
 		Date lastLogin = user.getLastAction();
-		user.setPrimaryResource(calculateSum(now, lastLogin, user.getComputedPrimaryResourceGenerationPerSecond(),
-				user.getPrimaryResource()));
-		user.setSecondaryResource(calculateSum(now, lastLogin, user.getComputedSecondaryResourceGenerationPerSecond(),
-				user.getSecondaryResource()));
+		user.setPrimaryResource(
+				calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
+						userImprovements.getMorePrimaryResourceProduction()), user.getPrimaryResource()));
+		user.setSecondaryResource(
+				calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getSecondaryResourceProduction(),
+						userImprovements.getMoreSecondaryResourceProduction()), user.getSecondaryResource()));
 		user.setLastAction(now);
 		save(user);
 	}
@@ -238,8 +249,10 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	}
 
 	public Double findMaxEnergy(UserStorage user) {
-		return ObjectUtils.firstNonNull(improvementUnitTypeBo.computeImprovementValue(user.getEnergy(),
-				userImprovementBo.findUserImprovements(user).getMoreEnergyProduction()), 0D);
+		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+		Faction faction = user.getFaction();
+		return improvementBo.computePlusPercertage(Float.valueOf(faction.getInitialEnergy()),
+				groupedImprovement.getMoreEnergyProduction());
 	}
 
 	/**
@@ -308,4 +321,18 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		retVal += (difference * perSecondValue);
 		return retVal;
 	}
+
+	/**
+	 * Computes the resource per second that one faction resource has according to
+	 * the current user improvement
+	 * 
+	 * @param factionResource     The faction resource production
+	 * @param resourceImprovement The improvement resource production
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {
+		return improvementBo.computePlusPercertage(factionResource, resourceImprovement);
+	}
+
 }

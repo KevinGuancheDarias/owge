@@ -52,7 +52,7 @@ public class UserRestService {
 
 	@RequestMapping(value = "findData", method = RequestMethod.GET)
 	public Object findData() {
-		UserStorage user = userStorageBo.findLoggedInWithDetails(true);
+		UserStorage user = userStorageBo.findLoggedInWithDetails();
 		UserStorageDto userDto = new UserStorageDto();
 		userDto.dtoFromEntity(user);
 		userDto.setImprovements(improvementBo.findUserImprovement(user));

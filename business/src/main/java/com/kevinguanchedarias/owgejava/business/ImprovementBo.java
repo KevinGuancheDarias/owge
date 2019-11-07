@@ -209,6 +209,65 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		}
 	}
 
+	/**
+	 * Utility method to find a base value plus a percentage <br>
+	 * If base is 4, and percentage is 25 , will do 4 + 4*0.25
+	 * 
+	 * @param base
+	 * @param percentage If null will just return base
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public double computePlusPercertage(Long base, Long percentage) {
+		return computePlusPercertage(Float.valueOf(base), Float.valueOf(percentage));
+	}
+
+	/**
+	 * Utility method to find a base value plus a percentage <br>
+	 * If base is 4, and percentage is 25 , will do 4 + 4*0.25
+	 * 
+	 * @param base
+	 * @param percentage If null will just return base
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public double computePlusPercertage(Float base, Float percentage) {
+		if (percentage == null) {
+			LOG.debug("Percentage is null for base " + base);
+			return base;
+		} else {
+			return base + (base * (percentage / 100));
+		}
+	}
+
+	/**
+	 * Finds the percentage value as a rational number, for example 80% wuld be
+	 * returned as 0.8
+	 * 
+	 * @param inputPercentage
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public double findAsRational(Double inputPercentage) {
+		return inputPercentage / 100;
+	}
+
+	/**
+	 * Finds the percentage value as a rational number, for example 80% wuld be
+	 * returned as 0.8
+	 * 
+	 * @param inputPercentage
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public float findAsRational(Float inputPercentage) {
+		return (float) findAsRational((double) inputPercentage);
+	}
+
 	private GroupedImprovement findFromCacheOrBo(UserStorage user, ImprovementSource improvementSource) {
 		String childCacheKey = findSourceCacheName(user, improvementSource);
 		ValueWrapper cached = cacheManager.getCache(CACHE_KEY).get(childCacheKey);
