@@ -2,6 +2,11 @@
 
 v0.8.0 (latest)
 =================
+* __Feature:__ [As a developer I would like to have an easier way to apply the improvements #121](https://github.com/KevinGuancheDarias/owge/issues/121)
+* __Feature:__ [As a player I would like to be able to use time specials #3](https://github.com/KevinGuancheDarias/owge/issues/3)
+* __Feature:__ [As an admin I want to be able to create time specials](https://github.com/KevinGuancheDarias/owge/issues/2)
+* __Feature:__ [As a project owner I want the project to use Angular 8 #106](https://github.com/KevinGuancheDarias/owge/issues/106)
+* __Feature:__ [As a frontend developer I would like to have a dockerized environment to focus in frontend tasks #45](https://github.com/KevinGuancheDarias/owge/issues/45)
 * __Merge:__ v0.7.5
 
 v0.7.5 (2019-08-13 16:58)
