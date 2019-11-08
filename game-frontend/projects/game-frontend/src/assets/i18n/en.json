@@ -10,7 +10,8 @@
         "MENU_REPORTS": "Reports",
         "MENU_ALLIANCES": "Alliances",
         "MENU_TIME_SPECIALS": "Time Specials",
-        "MENU_RANKING": "Ranking"
+        "MENU_RANKING": "Ranking",
+        "MENU_LOGOUT": "Logout"
     },
     "UPGRADE": {
         "CANCEL_TEXT": "You are going to cancel, {{upgradeName}}, are you sure?"

@@ -11,6 +11,7 @@ import { version } from '../../../version';
 import { ResourceManagerService } from '../../service/resource-manager.service';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { AutoUpdatedResources } from '../../class/auto-updated-resources';
+import { LoginSessionService } from '../../login-session/login-session.service';
 
 /**
  *
@@ -39,8 +40,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._createTranslatableMenuRoute('APP.MENU_NAVIGATION', ROUTES.NAVIGATE, 'fa fa-map'),
     this._createTranslatableMenuRoute('APP.MENU_REPORTS', ROUTES.REPORTS, 'fa fa-envelope'),
     this._createTranslatableMenuRoute('APP.MENU_ALLIANCES', ROUTES.ALLIANCE, 'fas fa-user-friends'),
-    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fas fa-user-friends'),
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock'),
     this._createTranslatableMenuRoute('APP.MENU_RANKING', ROUTES.RANKING, 'fa fa-trophy'),
+    this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._loginSessionService.logout(), 'fa fa-times'),
     {
       text: version,
       path: ROUTES.VERSION,
@@ -54,7 +56,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _displayService: DisplayService,
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
-    private _planetStore: PlanetStore
+    private _planetStore: PlanetStore,
+    private _loginSessionService: LoginSessionService
   ) {
     super(_translateService);
   }
