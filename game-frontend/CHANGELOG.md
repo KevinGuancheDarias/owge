@@ -2,7 +2,10 @@
 
 v0.8.0 (latest)
 =================
-* __Feature:__ [As a developer I would like to have an easier way to apply the improvements #121](https://github.com/KevinGuancheDarias/owge/issues/121)
+* __Feature:__ [As a player I would like to display the current upgrade in the game home page #4](https://github.com/KevinGuancheDarias/owge/issues/4)  
+![As a player I would like to display the current upgrade in the game home page #4](assets/changelog/features/4.png)  
+* __Feature:__ [As a developer I would like to have an easier way to apply the improvements #121](https://github.com/KevinGuancheDarias/owge/issues/121)  
+![As a developer I would like to have an easier way to apply the improvements #121](assets/changelog/features/121.png)  
 * __Feature:__ [As a player I would like to be able to use time specials #3](https://github.com/KevinGuancheDarias/owge/issues/3)
 * __Feature:__ [As an admin I want to be able to create time specials](https://github.com/KevinGuancheDarias/owge/issues/2)
 * __Feature:__ [As a project owner I want the project to use Angular 8 #106](https://github.com/KevinGuancheDarias/owge/issues/106)

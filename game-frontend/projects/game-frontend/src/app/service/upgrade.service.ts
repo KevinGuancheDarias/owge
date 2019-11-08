@@ -15,8 +15,8 @@ import { Improvement } from '@owge/core/owge-core';
 @Injectable()
 export class UpgradeService {
 
-  public get isUpgrading(): BehaviorSubject<RunningUpgrade> {
-    return this._isUpgrading;
+  public get isUpgrading(): Observable<RunningUpgrade> {
+    return this._isUpgrading.asObservable();
   }
   private _isUpgrading: BehaviorSubject<RunningUpgrade> = new BehaviorSubject(null);
 
@@ -37,6 +37,19 @@ export class UpgradeService {
     return this._universeGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
   }
 
+
+  /**
+   * Finds obe obained upgrade by upgrade id
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   * @param upgradeId
+   * @returns
+   */
+  public findOneObtained(upgradeId: number): Observable<ObtainedUpgradePojo> {
+    return this._universeGameService.requestWithAutorizationToContext('game', 'get', `upgrade/findObtained/${upgradeId}`);
+  }
+
   /**
    * Checks in the backend if there is an upgrade mission going <br />
    * Will flush result to isUpgrading observable
@@ -46,12 +59,12 @@ export class UpgradeService {
    */
   public backendRunningUpgradeCheck(): void {
     this._universeGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
-      this._isUpgradingInternalData = res;
-      if (res) {
+      if (res && (!this._isUpgradingInternalData || this._isUpgradingInternalData.missionId !== res.missionId)) {
+        this._isUpgradingInternalData = res;
         res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
         this._registerInterval();
+        this._isUpgrading.next(res);
       }
-      this._isUpgrading.next(res);
     });
   }
 
@@ -115,7 +128,7 @@ export class UpgradeService {
         this._registerInterval();
       }
       this._isUpgradingInternalData = res;
-      this.isUpgrading.next(res);
+      this._isUpgrading.next(res);
     });
   }
 
@@ -143,7 +156,9 @@ export class UpgradeService {
   }
 
   private _registerInterval(): void {
-    this._runningUpgradeCheckIntervalId = window.setInterval(() => this._checkIsYetUpgrading(), 1000);
+    if (!this._runningUpgradeCheckIntervalId) {
+      this._runningUpgradeCheckIntervalId = window.setInterval(() => this._checkIsYetUpgrading(), 1000);
+    }
   }
 
   /**
@@ -155,6 +170,7 @@ export class UpgradeService {
     if (this._runningUpgradeCheckIntervalId) {
       clearInterval(this._runningUpgradeCheckIntervalId);
       this._runningUpgradeCheckIntervalId = null;
+      delete this._isUpgradingInternalData;
       this._isUpgrading.next(null);
     }
   }

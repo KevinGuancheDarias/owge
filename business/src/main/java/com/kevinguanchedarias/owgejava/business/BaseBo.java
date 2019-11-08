@@ -158,7 +158,11 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public default D toDto(E entity) {
-		return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
+		if (entity == null) {
+			return null;
+		} else {
+			return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
+		}
 	}
 
 	/**
