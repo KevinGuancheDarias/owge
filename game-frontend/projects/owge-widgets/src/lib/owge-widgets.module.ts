@@ -10,6 +10,11 @@ import { WidgetSideBarComponent } from './components/widget-sidebar/widget-sideb
 import { DisplayService } from './services/display.service';
 import { RemovableImageComponent } from './components/removable-image/removable-image.component';
 import { OwgeCardListComponent } from './components/owge-card-list/owge-card-list.component';
+import {
+  WidgetDisplayImprovedAttributeComponent
+} from './components/widget-display-improved-attribute/widget-display-improved-attribute.component';
+import { WidgetDisplayImageComponent } from './components/widget-display-dynamic-image/widget-display-image.component';
+import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-with-placeholder/widget-span-with-placeholder.component';
 
 /**
  * Has UI widgets for OWGE
@@ -29,12 +34,23 @@ import { OwgeCardListComponent } from './components/owge-card-list/owge-card-lis
     WidgetConfirmationDialogComponent,
     WidgetSideBarComponent,
     RemovableImageComponent,
-    OwgeCardListComponent
+    OwgeCardListComponent,
+    WidgetDisplayImprovedAttributeComponent,
+    WidgetDisplayImageComponent,
+    WidgetSpanWithPlaceholderComponent
   ],
   providers: [
     DisplayService
   ],
-  exports: [WidgetConfirmationDialogComponent, WidgetSideBarComponent, RemovableImageComponent, OwgeCardListComponent]
+  exports: [
+    WidgetConfirmationDialogComponent,
+    WidgetSideBarComponent,
+    RemovableImageComponent,
+    OwgeCardListComponent,
+    WidgetDisplayImprovedAttributeComponent,
+    WidgetDisplayImageComponent,
+    WidgetSpanWithPlaceholderComponent
+  ]
 })
 export class OwgeWidgetsModule {
 }

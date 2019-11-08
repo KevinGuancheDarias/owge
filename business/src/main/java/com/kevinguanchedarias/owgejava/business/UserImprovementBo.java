@@ -11,6 +11,12 @@ import com.kevinguanchedarias.owgejava.entity.UserImprovement;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.repository.UserImprovementRepository;
 
+/**
+ * 
+ * @deprecated No longer store the current values in the database
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ */
+@Deprecated(since = "0.8.0")
 @Service
 public class UserImprovementBo implements Serializable {
 	private static final long serialVersionUID = -3549407827748093566L;
@@ -33,8 +39,7 @@ public class UserImprovementBo implements Serializable {
 	/**
 	 * Adds the improvements to the user and <b>saves</b> to database
 	 * 
-	 * @param improvement
-	 *            improvement to add
+	 * @param improvement improvement to add
 	 * @param user
 	 * @author Kevin Guanche Darias
 	 */
@@ -45,11 +50,9 @@ public class UserImprovementBo implements Serializable {
 	/**
 	 * Adds the improvements to the user and <b>saves</b> to database
 	 * 
-	 * @param improvement
-	 *            improvement to add
+	 * @param improvement improvement to add
 	 * @param user
-	 * @param count
-	 *            Number of times to add it
+	 * @param count       Number of times to add it
 	 * @author Kevin Guanche Darias
 	 */
 	public void addImprovements(Improvement improvement, UserStorage user, Long count) {
@@ -97,8 +100,7 @@ public class UserImprovementBo implements Serializable {
 	 * 
 	 * @param userImprovement
 	 * @param source
-	 * @param sum
-	 *            If true will add, if false will subtract
+	 * @param sum             If true will add, if false will subtract
 	 * @author Kevin Guanche Darias
 	 */
 	private void operateImprovements(UserImprovement userImprovement, Improvement source, boolean sum) {

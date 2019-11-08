@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +36,6 @@ public class ImprovementUnitTypeBo implements Serializable {
 
 	@Autowired
 	private ImprovementUnitTypeRepository improvementUnitTypeRepository;
-
-	@Autowired
-	private ObtainedUpgradeBo obtainedUpgradeBo;
-
-	@Autowired
-	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
 	private ConfigurationBo configurationBo;
@@ -193,6 +186,16 @@ public class ImprovementUnitTypeBo implements Serializable {
 		removeImprovementUnitType(improvementUnitType.getId());
 	}
 
+	/**
+	 * 
+	 * @todo As of 0.8.0 we don't use this function to detect unitType maxCount, nor
+	 *       maxEnergy, users may not be happy with new working, so keep here till
+	 *       future tells
+	 * @param value
+	 * @param inputPercentage
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
 	public Double computeImprovementValue(double value, double inputPercentage) {
 		double retVal = value;
 		double step = Double
@@ -209,15 +212,19 @@ public class ImprovementUnitTypeBo implements Serializable {
 	 * Returns the total sum of the value for the specified improvement type for the
 	 * given user
 	 * 
+	 * @deprecated No need to use this, GroupedImprovement from
+	 *             {@link ImprovementBo#findUserImprovement(UserStorage)} already
+	 *             has a method, as you can see in the current body of this
+	 *             function, And in case of use, may be <b>potentially bugged</b>,
+	 *             as doesn't take into account the unit type id
 	 * @param user
 	 * @param type The expected type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.8.0")
 	public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
-		return ObjectUtils.firstNonNull(obtainedUnitBo.sumUnitTypeImprovementByUserAndImprovementType(user, type), 0L)
-				+ ObjectUtils.firstNonNull(obtainedUpgradeBo.sumUnitTypeImprovementByUserAndImprovementType(user, type),
-						0L);
+		return improvementBo.findUserImprovement(user).findUnitTypeImprovement(type);
 	}
 
 	/**

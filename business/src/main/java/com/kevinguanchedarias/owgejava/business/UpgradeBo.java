@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,12 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	@Autowired
 	private transient RequirementInformationDao requirementInformationDao;
 
+	@Autowired
+	private ObtainedUpgradeBo obtainedUpgradeBo;
+
+	@Autowired
+	private ImprovementBo improvementBo;
+
 	@Override
 	public JpaRepository<Upgrade, Integer> getRepository() {
 		return upgradeRepository;
@@ -41,8 +49,33 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	@Transactional
 	@Override
 	public void delete(Upgrade upgrade) {
+		improvementBo.clearCacheEntriesIfRequired(upgrade, obtainedUpgradeBo);
 		requirementInformationDao.deleteAllObjectRelations(RequirementTargetObject.UPGRADE, upgrade.getId());
 		WithNameBo.super.delete(upgrade);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
+	 * owgejava.entity.EntityWithId)
+	 */
+	@Override
+	public Upgrade save(Upgrade entity) {
+		improvementBo.clearCacheEntriesIfRequired(entity, obtainedUpgradeBo);
+		return WithNameBo.super.save(entity);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
+	 */
+	@Override
+	public void save(List<Upgrade> entities) {
+		improvementBo.clearCacheEntries(obtainedUpgradeBo);
+		WithNameBo.super.save(entities);
 	}
 
 	/**
@@ -70,5 +103,4 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 
 		return retVal;
 	}
-
 }

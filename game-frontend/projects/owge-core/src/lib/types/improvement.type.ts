@@ -1,3 +1,4 @@
+import { ImprovementUnitType } from './improvement-unit-type.type';
 
 /**
  * Represents an improvement
@@ -16,4 +17,5 @@ export interface Improvement {
     moreMisions: number;
     moreUpgradeResearchSpeed: number;
     moreUnitBuildSpeed: number;
+    unitTypesUpgrades?: ImprovementUnitType[];
 }

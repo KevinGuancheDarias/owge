@@ -3,9 +3,12 @@
  */
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
@@ -21,6 +24,12 @@ import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, TimeSpecialDto>
 		implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto> {
 	static final long serialVersionUID = -2736277577264790898L;
+
+	@Autowired
+	private ImprovementBo improvementBo;
+
+	@Autowired
+	private ActiveTimeSpecialBo activeTimeSpecialBo;
 
 	@Autowired
 	private transient TimeSpecialRepository repository;
@@ -56,6 +65,46 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 		ValidationUtil.getInstance().requireNonEmptyString(entity.getName(), "name")
 				.requirePositiveNumber(entity.getDuration(), "duration")
 				.requirePositiveNumber(entity.getRechargeTime(), "rechargeTime");
+		improvementBo.clearCacheEntriesIfRequired(entity, activeTimeSpecialBo);
 		return super.save(entity);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
+	 */
+	@Override
+	public void save(List<TimeSpecial> entities) {
+		improvementBo.clearCacheEntries(activeTimeSpecialBo);
+		super.save(entities);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(com.kevinguanchedarias
+	 * .owgejava.entity.EntityWithId)
+	 */
+	@Override
+	@Transactional
+	public void delete(TimeSpecial entity) {
+		activeTimeSpecialBo.deleteByTimeSpecial(entity);
+		super.delete(entity);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
+	 */
+	@Override
+	@Transactional
+	public void delete(Integer id) {
+		// Only adds the transaction
+		super.delete(id);
+	}
+
 }

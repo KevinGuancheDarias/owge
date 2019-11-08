@@ -1,10 +1,10 @@
 
-import { filter } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { camelCase, upperFirst } from 'lodash-es';
 
-import { ProgrammingError } from '@owge/core';
+import { ProgrammingError, Improvement, UserStorage, User, LoggerHelper } from '@owge/core';
 import { UniverseGameService, UnitType } from '@owge/universe';
 
 import { MissionType } from '../shared/types/mission.type';
@@ -16,8 +16,14 @@ import { LoginSessionService } from '../login-session/login-session.service';
 export class UnitTypeService {
 
   private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
+  private _oldCount = 0;
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  public constructor(private _loginSessionService: LoginSessionService, private _universeGameService: UniverseGameService) {
+  public constructor(
+    private _loginSessionService: LoginSessionService,
+    private _universeGameService: UniverseGameService,
+    private _userStore: UserStorage<User>
+  ) {
     this._loadTypes();
   }
 
@@ -26,14 +32,23 @@ export class UnitTypeService {
   }
 
   private _loadTypes(): void {
-    this._universeGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
-      this._loadableBehaviorSubject.next(result.map(current => {
-        if (!current.userBuilt) {
-          current.userBuilt = 0;
+    this._userStore.currentUserImprovements
+      .pipe(
+        filter(improvement => this._isQuantityChanged(improvement))
+      )
+      .subscribe(() => {
+        if (this._oldCount) {
+          this._log.debug('Max Quantity count changed, updating unit types');
         }
-        return current;
-      }));
-    });
+        this._universeGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
+          this._loadableBehaviorSubject.next(result.map(current => {
+            if (!current.userBuilt) {
+              current.userBuilt = 0;
+            }
+            return current;
+          }));
+        });
+      });
   }
 
 
@@ -146,5 +161,19 @@ export class UnitTypeService {
       throw new ProgrammingError(`No UnitType with id ${id} was found`);
     }
     return retVal;
+  }
+
+  private _isQuantityChanged(newImprovement: Improvement): boolean {
+    if (newImprovement.unitTypesUpgrades) {
+      const newCount: number = newImprovement.unitTypesUpgrades
+        .filter(current => current.type === 'AMOUNT')
+        .map(current => current.value)
+        .reduce((sum, current) => sum + current, 0);
+      const retVal: boolean = newCount !== this._oldCount;
+      this._oldCount = newCount;
+      return retVal;
+    } else {
+      return false;
+    }
   }
 }

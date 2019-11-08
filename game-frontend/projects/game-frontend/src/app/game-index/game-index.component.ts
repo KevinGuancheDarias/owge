@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
+import { UserStorage, User } from '@owge/core';
+
 import { BaseComponent } from '../base/base.component';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionService } from '../services/mission.service';
@@ -15,14 +17,13 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   public myUnitRunningMissions: AnyRunningMission[];
   public enemyRunningMissions: UnitRunningMission[];
 
-  public constructor(private _missionService: MissionService) {
+  public constructor(private _missionService: MissionService, private _userStore: UserStorage<User>) {
     super();
   }
 
   public ngOnInit() {
     this.requireUser();
-    this.loginSessionService
-      .findLoggedInUserData()
+    this._userStore.currentUser
       .subscribe(async () => {
         this.findMyMissions();
         this.findEnemyMissions();

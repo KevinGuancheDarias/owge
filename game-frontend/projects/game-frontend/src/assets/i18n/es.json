@@ -18,7 +18,10 @@
     "WIDGETS": {
         "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Confirmar eliminación",
         "CONFIRMATION_DIALOG_CANCEL": "Cancelar",
-        "CONFIRMATION_DIALOG_CONFIRM": "Confirmar"
+        "CONFIRMATION_DIALOG_CONFIRM": "Confirmar",
+        "DISPLAY_IMPROVED_ATTRIBUTE": {
+            "PLACEHOLDER": "Base + mejora"
+        }
     },
     "ALLIANCE": {
         "NOT_IN_ALLIANCE": "No estás en una alianza",

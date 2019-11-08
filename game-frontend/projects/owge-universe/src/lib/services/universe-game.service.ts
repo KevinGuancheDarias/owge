@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { first ,  switchMap, map } from 'rxjs/operators';
+import { first, switchMap, map, take } from 'rxjs/operators';
 
 import {
   CoreHttpService,
@@ -10,7 +10,9 @@ import {
   validContext,
   validNonDataMethod,
   validWriteMethod,
-  LoggerHelper
+  LoggerHelper,
+  UserStorage,
+  Improvement
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
@@ -31,7 +33,8 @@ export class UniverseGameService {
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
-    private _sessionStore: SessionStore
+    private _sessionStore: SessionStore,
+    private _userStore: UserStorage<User>
   ) { }
 
   /**
@@ -44,15 +47,32 @@ export class UniverseGameService {
    * @returns
    */
   public findLoggedInUserData<T extends User>(): Observable<T> {
-    return this.getWithAuthorizationToUniverse('user/findData').pipe(
-    map(current => {
-      if (!current.consumedEnergy) {
-        current.consumedEnergy = 0;
-      }
-      this._workaroundFactionFix(current);
-      this._sessionStore.next('selectedPlanet', current.homePlanetDto);
-      return current;
-    }));
+    return this.getWithAuthorizationToUniverse<T>('user/findData').pipe(
+      map(current => {
+        if (!current.consumedEnergy) {
+          current.consumedEnergy = 0;
+        }
+        this._workaroundFactionFix(current);
+        this._userStore.currentUserImprovements.next(current.improvements);
+        this._sessionStore.next('selectedPlanet', (<any>current).homePlanetDto);
+        return current;
+      })
+    );
+  }
+
+  /**
+   * Invokes a reloading of the improvements in the UserStorage
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   * @returns The loaded improvement (may not even be used... but it's nice to return something :P)
+   */
+  public async reloadImprovement(): Promise<Improvement> {
+    this._log.debug('Reloading improvements as requested');
+    const improvement: Improvement = await this._getDeleteWithAuthorizationToContext<Improvement>('game', 'get', 'user/improvements')
+      .pipe(take(1)).toPromise();
+    this._userStore.currentUserImprovements.next(improvement);
+    return improvement;
   }
 
   /**
@@ -166,7 +186,7 @@ export class UniverseGameService {
       first(),
       switchMap(
         currentUniverse =>
-        this._coreHttpService.requestWithAutorizationToContext<T>(context, method, currentUniverse.restBaseUrl, url, options, body)
+          this._coreHttpService.requestWithAutorizationToContext<T>(context, method, currentUniverse.restBaseUrl, url, options, body)
       )
     );
   }
@@ -186,7 +206,7 @@ export class UniverseGameService {
     contextPrefix: validContext,
     method: validNonDataMethod,
     url: string,
-    options: HttpOptions
+    options?: HttpOptions
   ): Observable<T> {
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),

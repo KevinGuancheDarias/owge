@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 
 @Component
@@ -27,10 +28,10 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	private UnitTypeRepository unitTypeRepository;
 
 	@Autowired
-	private ImprovementUnitTypeBo improvementUnitTypeBo;
+	private PlanetBo planetBo;
 
 	@Autowired
-	private PlanetBo planetBo;
+	private ImprovementBo improvementBo;
 
 	@Override
 	public JpaRepository<UnitType, Integer> getRepository() {
@@ -55,17 +56,15 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * @param user
 	 * @param typeId
 	 * @return
-	 * @todo In the future, should cache this value when possible
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Long findUniTypeLimitByUser(UserStorage user, Integer typeId) {
 		UnitType type = findById(typeId);
 		Long retVal = 0L;
 		if (type.hasMaxCount()) {
-			retVal = improvementUnitTypeBo
-					.computeImprovementValue(type.getMaxCount(), improvementUnitTypeBo
-							.sumUnitTypeImprovementByUserAndImprovementType(user, ImprovementTypeEnum.AMOUNT))
-					.longValue();
+			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+			retVal = (long) Math.floor(improvementBo.computePlusPercertage(type.getMaxCount(),
+					groupedImprovement.findUnitTypeImprovement(ImprovementTypeEnum.AMOUNT, typeId)));
 		}
 		return retVal;
 	}

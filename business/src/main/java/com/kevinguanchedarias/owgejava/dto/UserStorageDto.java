@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 
 public class UserStorageDto implements DtoFromEntity<UserStorage> {
 
@@ -17,7 +18,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	private FactionDto factionDto;
 	private PlanetDto homePlanetDto;
 	private AllianceDto alliance;
-	private ImprovementDto improvements;
+	private GroupedImprovement improvements;
 
 	private Double computedPrimaryResourceGenerationPerSecond;
 	private Double computedSecondaryResourceGenerationPerSecond;
@@ -27,10 +28,6 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	public void dtoFromEntity(UserStorage entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
 		maxEnergy = null;
-		if (entity.getImprovements() != null) {
-			improvements = new ImprovementDto();
-			improvements.dtoFromEntity(entity.getImprovements());
-		}
 	}
 
 	public Integer getId() {
@@ -131,18 +128,27 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 
 	/**
 	 * @since 0.7.0
-	 * @param alliance
-	 *            the alliance to set
+	 * @param alliance the alliance to set
 	 */
 	public void setAlliance(AllianceDto alliance) {
 		this.alliance = alliance;
 	}
 
-	public ImprovementDto getImprovements() {
+	/**
+	 * @return the improvements
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public GroupedImprovement getImprovements() {
 		return improvements;
 	}
 
-	public void setImprovements(ImprovementDto improvements) {
+	/**
+	 * @param improvements the improvements to set
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setImprovements(GroupedImprovement improvements) {
 		this.improvements = improvements;
 	}
 

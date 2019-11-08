@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import {filter} from 'rxjs/operators';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
+import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 
-import { ProgrammingError } from '@owge/core';
+import { ProgrammingError, UserStorage, User, Improvement } from '@owge/core';
 import { ClockSyncService, UniverseGameService } from '@owge/universe';
 import { PlanetService, PlanetStore } from '@owge/galaxy';
 
@@ -58,6 +58,7 @@ export class UnitService {
 
   private _selectedPlanet: PlanetPojo;
   private _resources: AutoUpdatedResources;
+  private _improvement: Improvement;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
@@ -65,8 +66,10 @@ export class UnitService {
     private _unitTypeService: UnitTypeService,
     private _clockSyncService: ClockSyncService,
     private _universeGameService: UniverseGameService,
-    private _planetStore: PlanetStore
+    private _planetStore: PlanetStore,
+    private _userStore: UserStorage<User>
   ) {
+    this._userStore.currentUserImprovements.pipe(take(1)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._subscribeToPlanetChanges();
     this._planetStore.selectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
@@ -106,16 +109,25 @@ export class UnitService {
     if (!countBehaviorSubject) {
       this._doComputeRequiredResources(unit, subscribeToResources);
     } else {
+      let improvementSuscription: Subscription;
       countBehaviorSubject.subscribe(newCount => {
-        if (unit.requirements) {
-          unit.requirements.stopDynamicRunnable();
+        if (improvementSuscription) {
+          improvementSuscription.unsubscribe();
         }
-        unit.requirements = new RequirementPojo();
-        unit.requirements.requiredPrimary = unit.primaryResource * newCount;
-        unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
-        unit.requirements.requiredTime = unit.time * newCount;
-        unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
-        this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
+        improvementSuscription = this._userStore.currentUserImprovements.subscribe(improvement => {
+          if (unit.requirements) {
+            unit.requirements.stopDynamicRunnable();
+          }
+          unit.requirements = new RequirementPojo();
+          unit.requirements.requiredPrimary = unit.primaryResource * newCount;
+          unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
+          unit.requirements.requiredTime = Math.ceil(unit.requirements.handleSustractionPercentage(
+            unit.time * newCount,
+            improvement.moreUnitBuildSpeed
+          ));
+          unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
+          this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
+        });
       });
     }
     return unit;
@@ -136,7 +148,7 @@ export class UnitService {
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
-    this._universeGameService.getWithAuthorizationToUniverse('unit/build', {params}).subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse('unit/build', { params }).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
@@ -159,8 +171,8 @@ export class UnitService {
    */
   public cancel(missionData: RunningUnitPojo) {
     let params: HttpParams = new HttpParams();
-    params =  params.append('missionId', missionData.missionId);
-    this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', {params}).subscribe(() => {
+    params = params.append('missionId', missionData.missionId);
+    this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params }).subscribe(() => {
       this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, missionData.requiredPrimary);
       this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, missionData.requiredSecondary);
       this._resourceManagerService.minusResources(ResourcesEnum.CONSUMED_ENERGY, missionData.unit.energy * missionData.count);
@@ -180,7 +192,7 @@ export class UnitService {
   public findInMyPlanet(planetId: number): Observable<ObtainedUnit[]> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planetId.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/findInMyPlanet', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/findInMyPlanet', { params });
   }
 
 
@@ -293,7 +305,7 @@ export class UnitService {
   private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planet.id.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/findRunning', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/findRunning', { params });
   }
 
   /**
@@ -317,6 +329,7 @@ export class UnitService {
     requirements.requiredPrimary = unit.primaryResource * count;
     requirements.requiredSecondary = unit.secondaryResource * count;
     requirements.requiredTime = unit.time * count;
+    requirements.requiredTime += requirements.handleSustractionPercentage(requirements.requiredTime, this._improvement.moreUnitBuildSpeed);
     requirements.requiredEnergy = (unit.energy || 0) * count;
 
     this._doCheckResourcesSubscriptionForRequirements(requirements, subscribeToResources);

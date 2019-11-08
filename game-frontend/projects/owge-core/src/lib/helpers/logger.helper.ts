@@ -1,27 +1,43 @@
 import { Log, Level, Logger } from 'ng2-logger/browser';
 
+import { ProgrammingError } from '../errors/programming.error';
+
 export class LoggerHelper {
     private _log: Logger<any>;
     public constructor(private _targetClass: string, ...level: Level[]) {
         this._log = Log.create(_targetClass, ...level);
     }
 
-    public debug(...message: string[]): void {
+    public debug(...message: any[]): void {
         this._log.d(this._findCallerMethodName(), ...message);
     }
 
-    public info(...message: string[]): void {
+    public info(...message: any[]): void {
         this._log.i(this._findCallerMethodName(), ...message);
     }
 
-    public warn(...message: string[]): void {
+    public warn(...message: any[]): void {
         this._log.w(this._findCallerMethodName(), ...message);
     }
 
-    public error(...message: string[]): void {
+    public error(...message: any[]): void {
         this._log.er(this._findCallerMethodName(), ...message);
     }
 
+    /**
+     * Reports a TODO message
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     * @param messages
+     * @param [level=warn]
+     */
+    public todo(messages: any[], level: keyof LoggerHelper = 'warn'): void {
+        if (level === 'todo') {
+            throw new ProgrammingError(`Can't use todo level in todo log method... doesn't even make sense, noob!`);
+        }
+        this[level].apply(this, ['TODO:', ...messages]);
+    }
 
     /**
      * Prints a deprecation warning

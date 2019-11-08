@@ -1,3 +1,5 @@
+import { LoggerHelper } from '@owge/core';
+
 export interface MilisToDaysHoursMinutesSeconds {
     days: number;
     hours: number;
@@ -7,7 +9,7 @@ export interface MilisToDaysHoursMinutesSeconds {
 
 export class DateTimeUtil {
 
-
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(DateTimeUtil.name);
     /**
      * Converts the input seconds to an object containing days, hours, minutes and seconds
      *
@@ -18,6 +20,7 @@ export class DateTimeUtil {
      * @memberof DateTimeUtil
      */
     public static milisToDaysHoursMinutesSeconds(inputMilis: number): MilisToDaysHoursMinutesSeconds {
+        this._LOG.todo(['In the future move this functionality to DateUtil, and deprecate this class']);
         const unixTime = new Date(inputMilis);
         return {
             days: Math.floor((unixTime.getTime() / 1000) / 86400),

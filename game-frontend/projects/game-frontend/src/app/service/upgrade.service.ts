@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 import { ClockSyncService, UniverseGameService } from '@owge/universe';
 
@@ -10,6 +10,7 @@ import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
+import { Improvement } from '@owge/core/owge-core';
 
 @Injectable()
 export class UpgradeService {
@@ -61,10 +62,15 @@ export class UpgradeService {
    *          - Notice: this function alters this object
    * @param {boolean} subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
+   * @param [userImprovement] The improvement to apply, for example to calculate the time
    * @returns obtainedUpgrade with filled values
    * @author Kevin Guanche Darias
    */
-  public computeReqiredResources(obtainedUpgrade: ObtainedUpgradePojo, subscribeToResources = false): ObtainedUpgradePojo {
+  public computeReqiredResources(
+    obtainedUpgrade: ObtainedUpgradePojo,
+    subscribeToResources = false,
+    userImprovement?: Improvement
+  ): ObtainedUpgradePojo {
     const upgradeRef = obtainedUpgrade.upgrade;
     const requirements: RequirementPojo = new RequirementPojo();
     requirements.requiredPrimary = upgradeRef.primaryResource;
@@ -76,6 +82,12 @@ export class UpgradeService {
       requirements.requiredPrimary += (requirements.requiredPrimary * upgradeRef.levelEffect);
       requirements.requiredSecondary += (requirements.requiredSecondary * upgradeRef.levelEffect);
       requirements.requiredTime += (requirements.requiredTime * upgradeRef.levelEffect);
+    }
+    if (userImprovement && userImprovement.moreUpgradeResearchSpeed) {
+      requirements.requiredTime = requirements.handleSustractionPercentage(
+        requirements.requiredTime,
+        userImprovement.moreUpgradeResearchSpeed
+      );
     }
     if (subscribeToResources) {
       requirements.startDynamicRunnable(this._resourceManagerService);
@@ -95,7 +107,7 @@ export class UpgradeService {
   public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
     let params: HttpParams = new HttpParams();
     params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
-    this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', {params}).subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', { params }).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, obtainedUpgrade.requirements.requiredSecondary);
       if (res) {

@@ -67,6 +67,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	protected UserImprovementBo userImprovementBo;
 
 	@Autowired
+	protected ImprovementBo improvementBo;
+
+	@Autowired
 	protected RequirementBo requirementBo;
 
 	@Autowired

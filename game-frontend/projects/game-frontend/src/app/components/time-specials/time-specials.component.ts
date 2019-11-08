@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
-import { TimeSpecial } from '@owge/universe';
-import { CalculatedFieldsWrapper, DateUtil, LoggerHelper } from '@owge/core';
+import { TimeSpecial, UniverseGameService } from '@owge/universe';
+import { CalculatedFieldsWrapper, DateUtil, LoggerHelper, Improvement } from '@owge/core';
 
 import { TimeSpecialService } from '../../services/time-specials.service';
-import { take, timestamp } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 
 /**
  * Component to display and handle the time specials
@@ -19,10 +19,10 @@ import { take, timestamp } from 'rxjs/operators';
   styleUrls: ['./time-specials.component.less']
 })
 export class TimeSpecialsComponent implements OnInit {
-  private static readonly _LOG: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
+  private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
   public elements: TimeSpecial[];
 
-  constructor(private _timeSpecialService: TimeSpecialService) { }
+  constructor(private _timeSpecialService: TimeSpecialService, private _universeGameService: UniverseGameService) { }
 
   ngOnInit() {
     this._timeSpecialService.findUnlocked().subscribe(elements => {
@@ -55,8 +55,14 @@ export class TimeSpecialsComponent implements OnInit {
       if (serverTimeSpecial.activeTimeSpecialDto.element.state === 'RECHARGE') {
         const timeSpecial = this._findById(serverTimeSpecial.id);
         timeSpecial.activeTimeSpecialDto = serverTimeSpecial.activeTimeSpecialDto;
+        const improvement: Improvement = await this._universeGameService.reloadImprovement();
+        this._log.debug(
+          'As active countdown has end, we reloaded the improvement, ' +
+          '(in the future will be done by websocket messaging, and will be responsability of the TimeSpecial service',
+          <any>improvement
+        );
       } else {
-        TimeSpecialsComponent._LOG.warn(
+        this._log.warn(
           `Backend state for time special ${serverTimeSpecial.id} should have been RECHARGE,
           but was ${serverTimeSpecial.activeTimeSpecialDto.element.state}`
         );
@@ -72,7 +78,7 @@ export class TimeSpecialsComponent implements OnInit {
         const timeSpecial = this._findById(serverTimeSpecial.id);
         timeSpecial.activeTimeSpecialDto = serverTimeSpecial.activeTimeSpecialDto;
       } else {
-        TimeSpecialsComponent._LOG.error(
+        this._log.error(
           'Server should have returned a null active time special', <any>serverTimeSpecial.activeTimeSpecialDto.element
         );
         window.location.reload();

@@ -8,6 +8,8 @@ import javax.persistence.MappedSuperclass;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+
 @MappedSuperclass
 public abstract class ImprovementBase<K> implements EntityWithId<K> {
 	private static final long serialVersionUID = 8483043984040996933L;
@@ -102,6 +104,14 @@ public abstract class ImprovementBase<K> implements EntityWithId<K> {
 		return this;
 	}
 
+	/**
+	 * 
+	 * @deprecated Use {@link ImprovementBo#findAsRational(Double)}, as we may reuse
+	 *             this for other improvements
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.8.0")
 	public Double findRationalChargeCapacity() {
 		return moreChargeCapacity / (double) 100;
 	}

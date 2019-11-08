@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,10 +23,12 @@ import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 
 @Service
-public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto> {
+public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, ImprovementSource {
 	private static final long serialVersionUID = -2056602917496640872L;
 
 	@Autowired
@@ -45,6 +49,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Autowired
 	private UnitMissionBo unitMissionBo;
 
+	@Autowired
+	private ImprovementBo improvementBo;
+
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
 		return repository;
@@ -58,6 +65,36 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Override
 	public Class<ObtainedUnitDto> getDtoClass() {
 		return ObtainedUnitDto.class;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
+	 * calculateImprovement(com.kevinguanchedarias.owgejava.entity.UserStorage)
+	 */
+	@Override
+	public GroupedImprovement calculateImprovement(UserStorage user) {
+		GroupedImprovement groupedImprovement = new GroupedImprovement();
+		findNotBuilding(user.getId()).forEach(current -> groupedImprovement.add(current.getUnit().getImprovement()));
+		return groupedImprovement;
+	}
+
+	@PostConstruct
+	public void init() {
+		improvementBo.addImprovementSource(this);
+	}
+
+	/**
+	 * Finds all the user obtained units that are <b>not</b> in a building state
+	 * 
+	 * @param userId
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findNotBuilding(Integer userId) {
+		return repository.findByUserAndNotBuilding(userId);
 	}
 
 	public boolean hasUnitsInPlanet(UserStorage user, Planet planet) {
@@ -173,8 +210,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount,
 			boolean handleImprovements) {
 		if (handleImprovements) {
-			userImprovementBo.subtractImprovements(obtainedUnit.getUnit().getImprovement(), obtainedUnit.getUser(),
-					substractionCount);
+			improvementBo.clearSourceCache(obtainedUnit.getUser(), this);
 		}
 		if (substractionCount > obtainedUnit.getCount()) {
 			throw new SgtBackendInvalidInputException(
@@ -200,8 +236,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ObtainedUnit findHavingSameUnit(List<ObtainedUnit> storage, ObtainedUnit searchValue) {
-		return storage.stream().filter(currentUnit -> searchValue.getUnit().getId() == currentUnit.getUnit().getId())
-				.findFirst().orElse(null);
+		return storage.stream()
+				.filter(currentUnit -> searchValue.getUnit().getId().equals(currentUnit.getUnit().getId())).findFirst()
+				.orElse(null);
 	}
 
 	/**

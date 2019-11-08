@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import {map} from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 import { UniverseGameService } from './universe-game.service';
 import { LoggerHelper, ProgrammingError } from '@owge/core';
@@ -14,6 +14,8 @@ import { LoggerHelper, ProgrammingError } from '@owge/core';
  */
 @Injectable()
 export class ClockSyncService {
+
+  private static readonly _INTENTIONAL_DELAY_MILLIS = 1500;
 
   private _timeDifference: number;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
@@ -31,6 +33,9 @@ export class ClockSyncService {
     const serverDate: Date = await this.findServerClockTime().toPromise();
     const localTime: Date = new Date();
     this._timeDifference = serverDate.getTime() - localTime.getTime();
+    this._log.todo([
+      'In the future don\'t use this,' + ' just return the remaining seconds from the backend (as we do with TimeSpecial)'
+    ]);
     this._log.debug(`The time difference is server=${serverDate}, browser=${localTime}, ms=${this._timeDifference}`);
   }
 
@@ -72,6 +77,6 @@ export class ClockSyncService {
     const time: number = serverTerminationDate instanceof Date
       ? serverTerminationDate.getTime()
       : serverTerminationDate;
-    return new Date(time + (this.getTimeDifference() * -1));
+    return new Date(ClockSyncService._INTENTIONAL_DELAY_MILLIS + time + (this.getTimeDifference() * -1));
   }
 }

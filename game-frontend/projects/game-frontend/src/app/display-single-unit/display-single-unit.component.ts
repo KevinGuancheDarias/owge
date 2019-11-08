@@ -1,7 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { MEDIA_ROUTES } from '@owge/core';
+import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
@@ -72,6 +73,10 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   public numberToDelete: number;
   public image: string;
   public isDescriptionDisplayed = false;
+  public moreAttack: number;
+  public moreShield: number;
+  public moreHealth: number;
+  public moreCharge: number;
 
   public get count(): any {
     return this._count.value;
@@ -92,12 +97,25 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   }
   private _count: BehaviorSubject<number> = new BehaviorSubject(1);
 
-  constructor(private _unitService: UnitService, private _unitTypeService: UnitTypeService) {
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
+  constructor(
+    private _unitService: UnitService,
+    private _unitTypeService: UnitTypeService,
+    private _universeGameService: UniverseGameService,
+    private _userStore: UserStorage<User>
+  ) {
     super();
   }
 
   public ngOnInit() {
     this.requireUser();
+    this._userStore.currentUserImprovements.subscribe(improvement => {
+      this.moreCharge = improvement.moreChargeCapacity;
+      this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
+      this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);
+      this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unit.typeId);
+    });
     this.image = MEDIA_ROUTES.IMAGES_ROOT + this.unit.image;
     this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
     this.selectedView = this.defaultView;
@@ -115,7 +133,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
     if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
       this.obtainedUnit.count = this.numberToDelete;
       await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit));
-
+      await this._reloadImprovement(this.obtainedUnit.unit);
       this.delete.emit();
     }
   }
@@ -146,5 +164,29 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    */
   public isValidCount(): boolean {
     return (this.unit.isUnique && this.count === 1) || !this.unit.isUnique;
+  }
+
+  /**
+   * Runs when the build of the unit is done
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   */
+  public async onBuildDone(unit: UnitPojo): Promise<void> {
+    await this._reloadImprovement(unit);
+    this.buildDone.emit();
+  }
+
+  private async _reloadImprovement(unit: UnitPojo): Promise<void> {
+    if (!unit || unit.improvement) {
+      const improvement: Improvement = await this._universeGameService.reloadImprovement();
+      this._log.todo(
+        [
+          'AS unit build has end, or unit has been deleted, ' +
+          'will reload improvements, when websocket becomes available, this should be removed from here',
+          improvement
+        ]
+      );
+    }
   }
 }

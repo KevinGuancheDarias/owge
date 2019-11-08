@@ -39,4 +39,37 @@ export class RequirementPojo {
             this._subscription.unsubscribe();
         }
     }
+
+
+    /**
+     * returns the sum of base and percentage <br>
+     * For a base of 10, and a percentage of 20, wold return 12
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     * @param  base
+     * @param  percentage
+     * @returns
+     */
+    public handlePercentage(base: number, percentage: number): number {
+        if (percentage == null) {
+            return base;
+        } else {
+            return base + (base * (percentage / 100));
+        }
+    }
+
+    /**
+     * Returns the sustraction of base and percentage <br>
+     * For a base of 10, and a percentage of 20, wold return 8
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     * @param {number} base
+     * @param {number} percentage
+     * @returns {number}
+     */
+    public handleSustractionPercentage(base: number, percentage: number): number {
+        return base * 2 + this.handlePercentage(-base, percentage);
+    }
 }
