@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,6 +45,20 @@ public class UpgradeRestService {
 		}
 
 		return obtainedUpgradeDtoList;
+	}
+
+	/**
+	 * Finds one single obtained unit by user and upgrade id
+	 * 
+	 * @param id
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping("findObtained/{id}")
+	public ObtainedUpgradeDto findObtanedById(@PathVariable Integer id) {
+		return obtainedUpgradeBo
+				.toDto(obtainedUpgradeBo.findByUserAndUpgrade(userStorageBo.findLoggedIn().getId(), id));
 	}
 
 	@RequestMapping(value = "findRunningUpgrade", method = RequestMethod.GET)
