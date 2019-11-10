@@ -95,8 +95,13 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	@Cacheable(cacheNames = CACHE_KEY, key = "#user.id")
 	public GroupedImprovement findUserImprovement(UserStorage user) {
 		LOG.debug("Computing improvements for user " + user.getId());
-		return improvementSources.stream().map(current -> findFromCacheOrBo(user, current))
+		GroupedImprovement groupedImprovement = improvementSources.stream()
+				.map(current -> findFromCacheOrBo(user, current))
 				.reduce(new GroupedImprovement(), (accumulator, current) -> accumulator.add(current));
+		if (groupedImprovement.getMoreMisions().equals(0F)) {
+			groupedImprovement.setMoreMisions(1F);
+		}
+		return groupedImprovement;
 	}
 
 	/**

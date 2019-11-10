@@ -25,6 +25,8 @@ import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
@@ -34,6 +36,7 @@ import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.job.RealizationJob;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
+import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 
 /**
  * Contains methods and properties shared between all MissionBo types
@@ -86,6 +89,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	@Autowired(required = false)
 	protected transient SchedulerFactoryBean schedulerFactory;
+
+	@Autowired
+	protected transient ExceptionUtilService exceptionUtilService;
 
 	@Autowired
 	private MissionReportBo missionReportBo;
@@ -157,6 +163,30 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		} else {
 			return missions.get(0);
 		}
+	}
+
+	/**
+	 * Counts the number of missions that a user has running
+	 * 
+	 * @param userId
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Integer countUserMissions(Integer userId) {
+		return missionRepository.countByUserIdAndResolvedFalse(userId);
+	}
+
+	/**
+	 * Returns the max number of missions a user can run
+	 * 
+	 * @param user
+	 * @return
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Integer findUserMaxAllowedMissions(UserStorage user) {
+		return improvementBo.findUserImprovement(user).getMoreMisions().intValue() + 1;
 	}
 
 	/**
@@ -298,6 +328,14 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
 			mission.setReport(missionReport);
 		});
+	}
+
+	protected void checkCanDoMisison(UserStorage user) {
+		if (countUserMissions(user.getId()) + 1 >= findUserMaxAllowedMissions(user)) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
 	}
 
 	private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {

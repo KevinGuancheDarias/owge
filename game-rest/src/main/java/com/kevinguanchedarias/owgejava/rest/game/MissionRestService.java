@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +13,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
+import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 
@@ -27,6 +29,14 @@ public class MissionRestService {
 
 	@Autowired
 	private MissionBo missionBo;
+
+	@Autowired
+	private UserStorageBo userStorageBo;
+
+	@GetMapping("count")
+	public Integer findCount() {
+		return missionBo.countUserMissions(userStorageBo.findLoggedIn().getId());
+	}
 
 	@RequestMapping(value = "explorePlanet", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
 	public UnitRunningMissionDto explorePlanet(@RequestBody UnitMissionInformation missionInformation) {

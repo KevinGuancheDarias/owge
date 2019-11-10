@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -66,14 +67,15 @@ public class UnitRestService {
 		return retVal;
 	}
 
-	@RequestMapping(value = "build", method = RequestMethod.GET)
+	@PostMapping(value = "build")
 	public Object build(@RequestParam("planetId") Long planetId, @RequestParam("unitId") Integer unitId,
 			@RequestParam("count") Long count) {
-		RunningUnitBuildDto retVal = missionBo.registerBuildUnit(findLoggedInUser().getId(), planetId, unitId, count);
+		Integer userId = findLoggedInUser().getId();
+		RunningUnitBuildDto retVal = missionBo.registerBuildUnit(userId, planetId, unitId, count);
 		if (retVal == null) {
 			return "";
 		}
-
+		retVal.setMissionsCount(missionBo.countUserMissions(userId));
 		return retVal;
 	}
 

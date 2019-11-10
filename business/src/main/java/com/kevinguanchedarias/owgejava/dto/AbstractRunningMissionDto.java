@@ -12,6 +12,7 @@ public abstract class AbstractRunningMissionDto {
 	private Double requiredSecondary;
 	private Date terminationDate;
 	private MissionType type;
+	private Integer missionsCount;
 
 	public AbstractRunningMissionDto() {
 		throw new UnsupportedOperationException("Can't create a RunningMissionDto from an empty constructor");
@@ -67,6 +68,24 @@ public abstract class AbstractRunningMissionDto {
 
 	public void setType(MissionType type) {
 		this.type = type;
+	}
+
+	/**
+	 * @return the missionsCount
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Integer getMissionsCount() {
+		return missionsCount;
+	}
+
+	/**
+	 * @param missionsCount the missionsCount to set
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setMissionsCount(Integer missionsCount) {
+		this.missionsCount = missionsCount;
 	}
 
 }

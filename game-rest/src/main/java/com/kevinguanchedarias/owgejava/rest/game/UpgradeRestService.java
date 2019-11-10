@@ -72,11 +72,13 @@ public class UpgradeRestService {
 		return retVal;
 	}
 
-	@RequestMapping(value = "registerLevelUp", method = RequestMethod.GET)
-	public Object registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
+	@GetMapping("registerLevelUp")
+	public RunningUpgradeDto registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
 		Integer userId = userStorageBo.findLoggedIn().getId();
 		missionBo.registerLevelUpAnUpgrade(userId, upgradeId);
-		return missionBo.findRunningLevelUpMission(userId);
+		RunningUpgradeDto retVal = missionBo.findRunningLevelUpMission(userId);
+		retVal.setMissionsCount(missionBo.countUserMissions(userId));
+		return retVal;
 	}
 
 	@RequestMapping(value = "cancelUpgrade", method = RequestMethod.GET)
