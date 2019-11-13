@@ -15,6 +15,7 @@ import {
 } from './components/widget-display-improved-attribute/widget-display-improved-attribute.component';
 import { WidgetDisplayImageComponent } from './components/widget-display-dynamic-image/widget-display-image.component';
 import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-with-placeholder/widget-span-with-placeholder.component';
+import { UiIconPipe } from './pipes/ui-icon.pipe';
 
 /**
  * Has UI widgets for OWGE
@@ -37,7 +38,8 @@ import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-wit
     OwgeCardListComponent,
     WidgetDisplayImprovedAttributeComponent,
     WidgetDisplayImageComponent,
-    WidgetSpanWithPlaceholderComponent
+    WidgetSpanWithPlaceholderComponent,
+    UiIconPipe
   ],
   providers: [
     DisplayService
@@ -49,7 +51,8 @@ import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-wit
     OwgeCardListComponent,
     WidgetDisplayImprovedAttributeComponent,
     WidgetDisplayImageComponent,
-    WidgetSpanWithPlaceholderComponent
+    WidgetSpanWithPlaceholderComponent,
+    UiIconPipe
   ]
 })
 export class OwgeWidgetsModule {

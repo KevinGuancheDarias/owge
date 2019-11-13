@@ -5,7 +5,7 @@ import { Planet, PlanetService, PlanetStore } from '@owge/galaxy';
 import { MenuRoute, ROUTES, UserStorage, ModalComponent } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import { UnitType } from '@owge/universe';
+import { UnitType, MissionStore } from '@owge/universe';
 
 import { version } from '../../../version';
 import { ResourceManagerService } from '../../service/resource-manager.service';
@@ -49,6 +49,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       icon: 'fa fa-info'
     }
   ];
+  public missionsCount: number;
+  public maxMissions: number;
+
   constructor(
     _translateService: TranslateService,
     private _userStorage: UserStorage<UserWithFaction>,
@@ -57,7 +60,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
     private _planetStore: PlanetStore,
-    private _loginSessionService: LoginSessionService
+    private _loginSessionService: LoginSessionService,
+    private _missionStore: MissionStore
   ) {
     super(_translateService);
   }
@@ -70,6 +74,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       this.selectedPlanet = selectedPlanet;
     });
     this._loadMyPlanets();
+    this._missionStore.missionsCount.subscribe(count => this.missionsCount = count);
+    this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
   }
 
   public displayPlanetSelectionModal(): void {

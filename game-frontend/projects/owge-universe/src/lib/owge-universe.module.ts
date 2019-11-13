@@ -13,6 +13,7 @@ import { UniverseGameService } from './services/universe-game.service';
 import { ImageSelectorComponent } from './components/image-selector/image-selector.component';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { ImageStoreService } from './services/image-store.service';
+import { MissionStore } from './storages/mission.store';
 
 /**
  *
@@ -48,7 +49,8 @@ export class OwgeUniverseModule {
         UniverseInitializer,
         ClockInitializer,
         OwgeWidgetsModule,
-        ImageStoreService
+        ImageStoreService,
+        MissionStore
       ]
     };
   }

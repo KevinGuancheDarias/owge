@@ -6,4 +6,10 @@ export abstract class AbstractRunningMissionPojo {
     public requiredSecondary: number;
     public terminationDate: Date;
     public type: MissionType;
+
+    /**
+     *
+     * @since 0.8.0
+     */
+    public missionsCount?: number;
 }

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { tap } from 'rxjs/operators';
+import { tap, map, filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ProgrammingError, LoadingService } from '@owge/core';
-import { ClockSyncService, UniverseGameService } from '@owge/universe';
+import { ProgrammingError, LoadingService, UserStorage, User } from '@owge/core';
+import { ClockSyncService, UniverseGameService, MissionStore } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
@@ -18,8 +18,32 @@ export class MissionService {
   public constructor(
     private _clockSyncService: ClockSyncService,
     private _universeGameService: UniverseGameService,
-    private _loadingService: LoadingService
-  ) { }
+    private _loadingService: LoadingService,
+    _userStore: UserStorage<User>,
+    private _missionStore: MissionStore
+  ) {
+    _userStore.currentUser.pipe(filter(user => !!user)).subscribe(() =>
+      this.loadCount()
+    );
+    _userStore.currentUserImprovements.subscribe(improvement =>
+      _missionStore.maxMissions.next(improvement.moreMisions)
+    );
+  }
+
+
+  /**
+   * Loads the count of missions in the <i>MissionStore</i>
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.0
+   */
+  public loadCount(): void {
+    this._universeGameService.requestWithAutorizationToContext<number>('game', 'get', 'mission/count')
+      .subscribe(count => {
+        this._missionStore.missionsCount.next(count);
+        return count;
+      });
+  }
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
     return this._syncDate(this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy'));
@@ -130,13 +154,16 @@ export class MissionService {
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse<void>(
+    return this._universeGameService.postwithAuthorizationToUniverse<AnyRunningMission>(
       url, {
-        sourcePlanetId: sourcePlanet.id,
-        targetPlanetId: targetPlanet.id,
-        involvedUnits
+      sourcePlanetId: sourcePlanet.id,
+      targetPlanetId: targetPlanet.id,
+      involvedUnits
+    }).pipe(map(result => {
+      if (result) {
+        this._missionStore.missionsCount.next(result.missionsCount);
       }
-    );
+    }));
   }
 
   private _syncDate(input: Observable<AnyRunningMission[]>): Observable<AnyRunningMission[]> {

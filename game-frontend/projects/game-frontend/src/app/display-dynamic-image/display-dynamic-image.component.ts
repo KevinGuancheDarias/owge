@@ -2,7 +2,6 @@ import { Component, Input } from '@angular/core';
 
 import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
 
-
 /**
  *
  * @deprecated As of 0.8.0 use OwgeWidgetsModule/WidgetDisplayDynamicImage
@@ -46,7 +45,7 @@ export class DisplayDynamicImageComponent {
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   public constructor() {
-    this._log.warnDeprecated(this.constructor.name, '0.8.0', 'OwgeWidgetsModule/WidgetDisplayDynamicImage');
+    this._log.warnDeprecated(this.constructor.name, '0.8.0', 'OwgeWidgetsModule://components/WidgetDisplayDynamicImage');
   }
 
   private _findFullPath(image: string) {
