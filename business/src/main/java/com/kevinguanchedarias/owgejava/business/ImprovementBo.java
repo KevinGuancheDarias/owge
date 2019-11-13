@@ -98,9 +98,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		GroupedImprovement groupedImprovement = improvementSources.stream()
 				.map(current -> findFromCacheOrBo(user, current))
 				.reduce(new GroupedImprovement(), (accumulator, current) -> accumulator.add(current));
-		if (groupedImprovement.getMoreMisions().equals(0F)) {
-			groupedImprovement.setMoreMisions(1F);
-		}
+		groupedImprovement.addMoreMissions(1F);
 		return groupedImprovement;
 	}
 
