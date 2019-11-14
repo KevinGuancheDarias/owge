@@ -46,6 +46,12 @@
                         [resourceMaxValue]="unitType.computedMaxCount">
 
                   </app-display-single-resource>
+                  <app-display-single-resource *ngIf="maxMissions"
+                        [resourceName]="'APP.SIDEBAR.MISSIONS_RESOURCE_NAME' | translate"
+                        [resourceValue]="missionsCount"
+                        [staticImage]="true" [resourceImage]="'ui_icons/mission.png'"
+                        [resourceMaxValue]="maxMissions" [usePercentage]="false">
+                  </app-display-single-resource>
             </div>
       </div>
 </owge-widgets-sidebar>

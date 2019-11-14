@@ -39,4 +39,13 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 */
 	public List<Mission> findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(Integer userId, String name,
 			Long targetPlanet);
+
+	/**
+	 * Counts the number of missions that a user has running
+	 * 
+	 * @param userId
+	 * @since 0.8.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Integer countByUserIdAndResolvedFalse(Integer userId);
 }

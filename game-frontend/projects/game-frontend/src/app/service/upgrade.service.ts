@@ -37,7 +37,6 @@ export class UpgradeService {
     return this._universeGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
   }
 
-
   /**
    * Finds obe obained upgrade by upgrade id
    *

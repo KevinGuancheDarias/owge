@@ -1,6 +1,6 @@
 import { QueryList, ElementRef } from '@angular/core';
 
-import { LoadingService, MEDIA_ROUTES } from '@owge/core';
+import { LoadingService, MEDIA_ROUTES, LoggerHelper } from '@owge/core';
 
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
 import { ResourceManagerService } from './../service/resource-manager.service';
@@ -21,6 +21,7 @@ export class BaseComponent {
   }
 
   private _userData: UserPojo;
+  private _bcLog: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
@@ -62,7 +63,15 @@ export class BaseComponent {
     return PlanetPojo.findImage(planet);
   }
 
+
+  /**
+   * @deprecated As of 0.8.0 use OwgeWidgets://pipes/uiIcon
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param  name
+   * @returns
+   */
   public findUiIcon(name: string) {
+    this._bcLog.warnDeprecated('BaseComponent.findUiIcon()', '0.8.0', 'OwgeWidgets://pipes/uiIcon');
     return MEDIA_ROUTES.UI_ICONS + name;
   }
 

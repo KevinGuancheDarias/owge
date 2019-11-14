@@ -827,6 +827,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		missionInformation.setMissionType(missionType);
 		UserStorage user = userStorageBo.findLoggedIn();
+		checkCanDoMisison(user);
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
 		targetMissionInformation.setUserId(user.getId());
 		if (missionType != MissionType.EXPLORE
@@ -855,7 +856,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		obtainedUnitBo.save(obtainedUnits);
 		scheduleMission(mission);
-		return new UnitRunningMissionDto(mission, obtainedUnits);
+		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
+		retVal.setMissionsCount(countUserMissions(user.getId()));
+		return retVal;
 	}
 
 	/**

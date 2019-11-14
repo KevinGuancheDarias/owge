@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import {skip, map} from 'rxjs/operators';
+import { skip, map } from 'rxjs/operators';
 
 import { UserStorage, LoggerHelper, CoreHttpService, ProgrammingError, User } from '@owge/core';
 import { UniverseStorage, Universe, UniverseGameService } from '@owge/universe';
@@ -8,11 +8,12 @@ import { UniverseStorage, Universe, UniverseGameService } from '@owge/universe';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { MissionService } from '../services/mission.service';
 
 /**
  * Provides token storage and retrieving features<br />
@@ -61,8 +62,8 @@ export class LoginSessionService implements CanActivate {
     private _resourceManagerService: ResourceManagerService,
     private _userStorage: UserStorage<User>,
     private _universeStorage: UniverseStorage,
-    private _coreHttpService: CoreHttpService,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _missionService: MissionService
   ) {
     this._workaroundUserStorage();
     this._workaroundUniverseStorage();
@@ -185,12 +186,12 @@ export class LoginSessionService implements CanActivate {
   public findLoggedInUserData(): Observable<UserPojo> {
     this._lgsLog.warnDeprecated('findLoggedInUserData', '0.8.0', 'UniverseGameService.findLoggedInUserData()');
     return this._universeGameService.getWithAuthorizationToUniverse('user/findData').pipe(
-    map(current => {
-      if (!current.consumedEnergy) {
-        current.consumedEnergy = 0;
-      }
-      return current;
-    }));
+      map(current => {
+        if (!current.consumedEnergy) {
+          current.consumedEnergy = 0;
+        }
+        return current;
+      }));
   }
 
   public getSelectedUniverse(): Universe {
@@ -346,9 +347,15 @@ export class LoginSessionService implements CanActivate {
     if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
       this._notifyGameFrontendCore();
       this.alreadyNotified = true;
+    } else if (!this._isLoginRoute(loadingRoute)) {
+      this._workaroundMissionsCount();
     }
   }
 
+  private _workaroundMissionsCount(): void {
+    this._lgsLog.todo(['Replace workaroundMissionsCount for a websocket "Adapter" that listens for mission count changes']);
+    this._missionService.loadCount();
+  }
 
   /**
    * Due to deprecation of this.userData, we have to make the new way be working by default <br>

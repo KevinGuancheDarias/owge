@@ -12,6 +12,7 @@ export * from './lib/services/abstract-crud.service';
 export * from './lib/services/clock-sync.service';
 export * from './lib/services/universe-game.service';
 export * from './lib/services/universe.service';
+export * from './lib/storages/mission.store';
 export * from './lib/storages/universe.storage';
 export * from './lib/types/active-time-special.type';
 export * from './lib/types/crud-config.type';
