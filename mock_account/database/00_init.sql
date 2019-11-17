@@ -72,7 +72,7 @@ CREATE TABLE `universes` (
 --
 
 INSERT INTO `universes` (`id`,`name`, `description`,`creation_date`, `public`, `official`, `target_database`, `rest_base_url`, `frontend_url`) VALUES
-(0, 'OWGE Mock Universe', 'It is a mock universe, intended for development', '2019-07-15', 1, 1, 'not_used', '/game_api/', '/');
+(0, 'OWGE Mock Universe', 'It is a mock universe, intended for development', '2019-07-15', 1, 1, 'not_used', '/game_api/', NULL);
 
 -- --------------------------------------------------------
 

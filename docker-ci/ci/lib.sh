@@ -38,7 +38,7 @@ function envFailureCheck(){
 }
 
 function envInfoCheck() {
-        if [ -z "$2"]; then
+        if [ -z "$2" ]; then
                 _hint="";
                 test -n "$3" && _hint="Hint: $3";
 		echo -ne "\e[32mInfo: \e[39m";
@@ -454,6 +454,36 @@ function waitFor () {
                 _i=`expr $_i + 1`;
                 if [ "$_i" -eq "$_attemps" ]; then
                         bash -c "$@";
+                        >&2 echo -e "\e[31mAborting due to error";
+                        exit 1;
+                fi
+        done
+}
+
+
+##
+# Waits till an specified command returns true
+#
+# @param $1 string $Waiting message
+# @param ...$2 string Command
+#
+# @env attemps Number of attemps, defaults to 5
+# @env delay Delay in second, defaults to 1 
+#
+# @author Kevin Guanche Darias
+##
+function waitForSimple () {
+        _waitingMessage="$1";
+        shift;
+        _attemps=${attemps-5};
+        _i=0;
+        log debug "Running waitFor command: $@";
+        while ! "$@" &> /dev/null; do
+                echo -e "$_waitingMessage";
+                sleep ${delay-1};
+                _i=`expr $_i + 1`;
+                if [ "$_i" -eq "$_attemps" ]; then
+                        "$@";
                         >&2 echo -e "\e[31mAborting due to error";
                         exit 1;
                 fi

@@ -4,3 +4,4 @@ yarn.lock
 .scannerwork
 dist
 src/assets/html/changelog.html
+.angulardoc.json

@@ -12,6 +12,10 @@ services:
     expose:
       - "8080"
     environment:
+      - OWGE_SQS_HOST=sqs_server
+      - OWGE_SQS_PORT=7474
+      - OWGE_SQS_QUEUE=not_used
+      - OWGE_CORS_CUSTOM_ORIGIN=*
       - MYSQL_HOST=db
       - MYSQL_DB=owge
       - MYSQL_USER=root

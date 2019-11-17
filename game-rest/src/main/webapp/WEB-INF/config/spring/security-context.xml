@@ -42,6 +42,7 @@
 				<value>http://localhost:4200</value>
 				<value>http://localhost</value>
 				<value>http://192.168.99.100</value>
+				<value>${OWGE_CORS_CUSTOM_ORIGIN:}</value>
 			</list>
 		</property>
 		<property name="rootOriginList">

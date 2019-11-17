@@ -54,7 +54,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 	@Value("${OWGE_DYNAMIC_FILES_PATH:/var/owge_data/dynamic}")
 	private String directoryPath;
 
-	@Value("${OWGE_IMAGE_HOST}")
+	@Value("${OWGE_IMAGE_HOST:}")
 	private String imageHost;
 
 	@Value("${OWGE_DYNAMIC_URL:dynamic}")

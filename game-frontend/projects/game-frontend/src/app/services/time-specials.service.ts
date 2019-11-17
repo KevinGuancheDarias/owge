@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { validContext } from '@owge/core';
 import { WithReadCrudMixin, TimeSpecial, CrudServiceAuthControl, UniverseGameService, ActiveTimeSpecialType } from '@owge/universe';
-import { validContext, Improvement, LoggerHelper } from '@owge/core/owge-core';
+
 import { map } from 'rxjs/operators';
 
 /**

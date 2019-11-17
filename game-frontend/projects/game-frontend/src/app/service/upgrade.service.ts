@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
+import { Improvement } from '@owge/core';
 import { ClockSyncService, UniverseGameService } from '@owge/universe';
 
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
@@ -10,7 +11,6 @@ import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { Improvement } from '@owge/core/owge-core';
 
 @Injectable()
 export class UpgradeService {

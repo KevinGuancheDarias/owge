@@ -33,7 +33,6 @@ if [ -z "$EXTRA_COMPOSE_BUILD_OPTIONS" ]; then
 else
     _emptyWarning="";
 fi
-
 log debug "Debug level is enabled";
 log info "Info level is enabled";
 log warning "Warning level is enabled";
@@ -69,11 +68,11 @@ function _menu () {
     echo -e "OWGE launcher :: By Kevin Guanche Darias & contributors\n"
     echo -e "Passed compose up options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
     echo -e "Passed compose build options:\e[32m${EXTRA_COMPOSE_BUILD_OPTIONS}. $_emptyWarning  \e[36mPass environment variable EXTRA_COMPOSE_BUILD_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_BUILD_OPTIONS=--no-cache -it ./owge_launcher.sh\e[39m"
-    echo -e "     `__findRunningComposerProject owge_all_dockerized 7` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
-     `__findRunningComposerProject owge_frontend_developer 6` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
-     `__findRunningComposerProject owge_backend_developer 6` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
-     `__findRunningComposerProject owge_fullstack_developer 1` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
-     `__findRunningComposerProject owge_fullstack_without_db 1` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
+    echo -e "     `__findRunningComposerProject owge_all_dockerized 9` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
+     `__findRunningComposerProject owge_frontend_developer 7` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
+     `__findRunningComposerProject owge_backend_developer 8` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
+     `__findRunningComposerProject owge_fullstack_developer 2` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
+     `__findRunningComposerProject owge_fullstack_without_db 2` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
      $_extraMockAccountCommands
      \e[32m6\e[39m. \e[31m\U2665 \e[36mDonate \e[31m\U2665\e[39m
      \e[32m7\e[39m. \e[36mSee something nice \e[33m???\e[36m x') \e[39m
@@ -251,6 +250,8 @@ function _doLaunch() {
             export OWGE_FRONTEND_ROOT="${BASH_SOURCE%/*}/../../../game-frontend";
             export OWGE_PHPMYADMIN_SERVERS="Mock Account Database:db_mock_account:3306:root:1234";
             export OWGE_NGINX_PHPMYADMIN_SERVER="phpmyadmin:80";
+            export OWGE_ADMIN_FRONTEND_SERVER="admin_frontend:4200";
+
             # Launch profiles
             for profile in $@; do
                 log debug "Loading profile $profile" 5;
@@ -280,11 +281,11 @@ function _withFrontend() {
         echo -ne "frontend server [\e[33m$_default\e[39m]: ";
         read _value;
         test -z "$_value" && export OWGE_FRONTEND_SERVER="$_default";
-        if [ -z "$_value" ]; then
-            echo -e "Please cd into game-frontend an run \e[32mnpm run ngServeDocker\e[39m";
-        fi
+        echo -e "Please cd into game-frontend and run \e[32mnpm run ngServeDocker\e[39m";
         if [ -n "$OWGE_FRONTEND_SERVER" ]; then
-            attemps=30 waitFor "Waiting for ng serve in \e[32m$OWGE_FRONTEND_SERVER\e[39m" isPortOpen `echo "$OWGE_FRONTEND_SERVER" | sed 's/:/ /'`;
+            isPortOpen "192.168.99.1" 4200
+            attemps=30 waitForSimple "Waiting for ng serve in \e[32m$OWGE_FRONTEND_SERVER\e[39m" isPortOpen `echo "$OWGE_FRONTEND_SERVER" | sed 's/:/ /'`;
+            export OWGE_ADMIN_FRONTEND_SERVER="$OWGE_FRONTEND_SERVER";
         fi
     else 
         export _launchLine="$_launchLine -f ./profiles/frontend.docker-compose.yml";
@@ -293,6 +294,7 @@ function _withFrontend() {
 }
 
 function _withBackend() {
+    _withSqs;
     if [ -z "$OWGE_BACKEND_SERVER" ]; then
         dockerFindHostIp;
         promptWithDefault "Backend Server" "$output:8080";
@@ -310,6 +312,10 @@ function _withBackend() {
 function _withDatabase() {
     export OWGE_PHPMYADMIN_SERVERS="Universe database ($_profileName):db:3306:root:1234|$OWGE_PHPMYADMIN_SERVERS";
     export _launchLine="$_launchLine -f ./profiles/backend_database.docker-compose.yml";
+}
+
+function _withSqs() {
+    export _launchLine="$_launchLine -f ./profiles/sqs_server.docker-compose.yml";
 }
 
 function _withExportedDatabase () {

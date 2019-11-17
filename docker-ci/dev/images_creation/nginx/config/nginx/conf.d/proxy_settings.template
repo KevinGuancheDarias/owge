@@ -11,7 +11,7 @@ server{
 
 	location /admin/ {
 		include /etc/nginx/include/configuracion_proxy.inc;
-		proxy_pass http://${OWGE_BACKEND_SERVER}/${OWGE_ADMIN_CONTEXT_PATH}/;
+		proxy_pass http://${OWGE_ADMIN_FRONTEND_SERVER};
 	}
 
 	location /account/ {

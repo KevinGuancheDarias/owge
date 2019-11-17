@@ -3,166 +3,6 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "game-frontend-old": {
-      "root": "",
-      "sourceRoot": "src",
-      "projectType": "application",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:browser",
-          "options": {
-            "outputPath": "dist",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "tsConfig": "src/tsconfig.app.json",
-            "polyfills": "src/polyfills.ts",
-            "assets": [
-              "src/assets",
-              "src/favicon.ico"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.css",
-              "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
-              "node_modules/@fortawesome/fontawesome-free/css/solid.css",
-              "src/styles.less",
-              "src/forms.less"
-            ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.js",
-              "node_modules/popper.js/dist/umd/popper.js",
-              "node_modules/bootstrap/dist/js/bootstrap.js"
-            ]
-          },
-          "configurations": {
-            "publicAccount": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.public-account.ts"
-                }
-              ]
-            },
-            "localDrupal": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/local-drupal-account.environment.ts"
-                }
-              ]
-            },
-            "becariaccount": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.becariaccount.ts"
-                }
-              ]
-            },
-            "production": {
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ]
-            }
-          }
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "game-frontend-old:build"
-          },
-          "configurations": {
-            "publicAccount": {
-              "browserTarget": "game-frontend-old:build:publicAccount"
-            },
-            "localDrupal": {
-              "browserTarget": "game-frontend-old:build:localDrupal"
-            },
-            "becariaccount": {
-              "browserTarget": "game-frontend-old:build:becariaccount"
-            },
-            "production": {
-              "browserTarget": "game-frontend-old:build:production"
-            }
-          }
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "game-frontend-old:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "src/test.ts",
-            "karmaConfig": "./karma.conf.js",
-            "polyfills": "src/polyfills.ts",
-            "tsConfig": "src/tsconfig.spec.json",
-            "scripts": [
-              "node_modules/jquery/dist/jquery.js",
-              "node_modules/popper.js/dist/umd/popper.js",
-              "node_modules/bootstrap/dist/js/bootstrap.js"
-            ],
-            "styles": [
-              "node_modules/bootstrap/dist/css/bootstrap.css",
-              "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
-              "node_modules/@fortawesome/fontawesome-free/css/solid.css",
-              "src/styles.less",
-              "src/forms.less"
-            ],
-            "assets": [
-              "src/assets",
-              "src/favicon.ico"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": []
-          }
-        }
-      }
-    },
-    "game-frontend-old-e2e": {
-      "root": "e2e",
-      "sourceRoot": "e2e",
-      "projectType": "application",
-      "architect": {
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "./protractor.conf.js",
-            "devServerTarget": "game-frontend-old:serve"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "e2e/tsconfig.e2e.json"
-            ],
-            "exclude": []
-          }
-        }
-      }
-    },
     "game-admin": {
       "projectType": "application",
       "schematics": {},
@@ -173,11 +13,13 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "baseHref": "/admin/",
+            "deployUrl": "/admin/",
             "outputPath": "dist/game-admin",
             "index": "projects/game-admin/src/index.html",
             "main": "projects/game-admin/src/main.ts",
             "polyfills": "projects/game-admin/src/polyfills.ts",
-            "tsConfig": "projects/game-admin/tsconfig.app.json",
+            "tsConfig": "projects/game-admin/tsconfig.with-libs.json",
             "aot": false,
             "assets": [
               "projects/game-admin/src/favicon.ico",
@@ -198,9 +40,6 @@
             "scripts": []
           },
           "configurations": {
-            "libs": {
-              "tsConfig": "projects/game-admin/tsconfig.libs.json"
-            },
             "localDrupal": {
               "fileReplacements": [
                 {
@@ -210,6 +49,7 @@
               ]
             },
             "production": {
+              "tsConfig": "projects/game-admin/tsconfig.app.json",
               "fileReplacements": [
                 {
                   "replace": "projects/game-admin/src/environments/environment.ts",
@@ -496,7 +336,7 @@
             "index": "projects/game-frontend/src/index.html",
             "main": "projects/game-frontend/src/main.ts",
             "polyfills": "projects/game-frontend/src/polyfills.ts",
-            "tsConfig": "projects/game-frontend/tsconfig.app.json",
+            "tsConfig": "projects/game-frontend/tsconfig.with-libs.json",
             "aot": false,
             "assets": [
               "projects/game-frontend/src/favicon.ico",
@@ -545,6 +385,7 @@
               ]
             },
             "production": {
+              "tsConfig": "projects/game-frontend/tsconfig.app.json",
               "fileReplacements": [
                 {
                   "replace": "projects/game-frontend/src/environments/environment.ts",

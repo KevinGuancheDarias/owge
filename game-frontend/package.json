@@ -5,10 +5,13 @@
   "angular-cli": {},
   "scripts": {
     "postinstall": "npm run createVersionFile",
+    "ng": "ng",
     "start": "npm run createVersionFile && npm run compileChangelog && ng serve",
-    "startAdmin": "ng serve game-admin --host 0.0.0.0 --disable-host-check",
+    "startAdmin": "ng serve game-admin",
+    "buildLibs": "ng build owge-core && ng build owge-widgets && ng build owge-universe && ng build owge-alliance && ng build owge-galaxy && ng build owge-faction",
     "ngServeDocker": "npm run createVersionFile && npm run compileChangelog && ng serve --host 0.0.0.0 --disable-host-check",
-    "build": "npm run createVersionFile && npm run compileChangelog && ng build --prod --build-optimizer && npm run addVersionSuffixWebpackBundles",
+    "ngServeDockerAdmin": "ng serve game-admin --host 0.0.0.0 --disable-host-check",
+    "build": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build --prod  && npm run addVersionSuffixWebpackBundles",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",
     "createVersionFile": "node scripts/create-version-file.js",
@@ -22,6 +25,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-devkit/architect": "^0.803.4",
     "@angular/animations": "^8.2.2",
     "@angular/common": "^8.2.2",
     "@angular/compiler": "^8.2.2",
@@ -50,9 +54,9 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.802.1",
-    "@angular-devkit/build-ng-packagr": "~0.802.1",
-    "@angular/cli": "^8.2.1",
+    "@angular-devkit/build-angular": "^0.803.4",
+    "@angular-devkit/build-ng-packagr": "^0.803.4",
+    "@angular/cli": "^8.3.4",
     "@angular/compiler-cli": "^8.2.2",
     "@angular/language-service": "^8.2.2",
     "@types/jasmine": "~2.8.3",
