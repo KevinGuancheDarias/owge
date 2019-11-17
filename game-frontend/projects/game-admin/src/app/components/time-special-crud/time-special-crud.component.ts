@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+
+import { TimeSpecial } from '@owge/universe';
 import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
-import { TimeSpecial } from '@owge/universe/public-api';
 
 @Component({
   selector: 'app-time-special-crud',

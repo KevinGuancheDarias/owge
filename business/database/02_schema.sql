@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.0.1
+-- version 4.9.1
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le :  sam. 10 août 2019 à 12:54
+-- Généré le :  ven. 15 nov. 2019 à 10:19
 -- Version du serveur :  5.7.19-log
--- Version de PHP :  7.2.19
+-- Version de PHP :  7.2.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -21,6 +21,22 @@ SET time_zone = "+00:00";
 --
 -- Base de données :  `sgalactica_java`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `active_time_specials`
+--
+
+CREATE TABLE `active_time_specials` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `time_special_id` smallint(5) UNSIGNED NOT NULL,
+  `state` enum('ACTIVE','RECHARGE') NOT NULL COMMENT 'possible states for the time special',
+  `activation_date` datetime NOT NULL,
+  `expiring_date` datetime NOT NULL,
+  `ready_date` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -184,6 +200,20 @@ CREATE TABLE `galaxies` (
   `quadrants` int(11) UNSIGNED NOT NULL,
   `order_number` smallint(6) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `images_store`
+--
+
+CREATE TABLE `images_store` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `checksum` char(32) CHARACTER SET ascii NOT NULL,
+  `filename` varchar(500) NOT NULL,
+  `display_name` varchar(50) DEFAULT NULL,
+  `description` varchar(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -650,6 +680,23 @@ CREATE TABLE `speed_impact_groups` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `time_specials`
+--
+
+CREATE TABLE `time_specials` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `duration` bigint(20) UNSIGNED NOT NULL COMMENT 'Duration <b>in seconds</b> of the time special',
+  `recharge_time` bigint(20) UNSIGNED NOT NULL COMMENT 'Time to wait <b>in seconds</b> to be able to use the time special again',
+  `improvement_id` smallint(6) UNSIGNED DEFAULT NULL,
+  `cloned_improvements` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `units`
 --
 
@@ -804,6 +851,14 @@ CREATE TABLE `websocket_messages_status` (
 --
 
 --
+-- Index pour la table `active_time_specials`
+--
+ALTER TABLE `active_time_specials`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `time_special_id` (`time_special_id`);
+
+--
 -- Index pour la table `admin_users`
 --
 ALTER TABLE `admin_users`
@@ -869,6 +924,13 @@ ALTER TABLE `factions`
 --
 ALTER TABLE `galaxies`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `images_store`
+--
+ALTER TABLE `images_store`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `checksum` (`checksum`);
 
 --
 -- Index pour la table `improvements`
@@ -1084,6 +1146,13 @@ ALTER TABLE `speed_impact_groups`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Index pour la table `time_specials`
+--
+ALTER TABLE `time_specials`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `image_id` (`image_id`);
+
+--
 -- Index pour la table `units`
 --
 ALTER TABLE `units`
@@ -1151,6 +1220,12 @@ ALTER TABLE `websocket_messages_status`
 --
 
 --
+-- AUTO_INCREMENT pour la table `active_time_specials`
+--
+ALTER TABLE `active_time_specials`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `admin_users`
 --
 ALTER TABLE `admin_users`
@@ -1197,6 +1272,12 @@ ALTER TABLE `factions`
 --
 ALTER TABLE `galaxies`
   MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `images_store`
+--
+ALTER TABLE `images_store`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `improvements`
@@ -1289,6 +1370,12 @@ ALTER TABLE `speed_impact_groups`
   MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `time_specials`
+--
+ALTER TABLE `time_specials`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `units`
 --
 ALTER TABLE `units`
@@ -1333,6 +1420,13 @@ ALTER TABLE `websocket_messages_status`
 --
 -- Contraintes pour les tables déchargées
 --
+
+--
+-- Contraintes pour la table `active_time_specials`
+--
+ALTER TABLE `active_time_specials`
+  ADD CONSTRAINT `active_time_specials_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`),
+  ADD CONSTRAINT `active_time_specials_ibfk_2` FOREIGN KEY (`time_special_id`) REFERENCES `time_specials` (`id`);
 
 --
 -- Contraintes pour la table `alliances`
@@ -1460,6 +1554,12 @@ ALTER TABLE `special_locations`
   ADD CONSTRAINT `special_locations_ibfk_1` FOREIGN KEY (`planet_id`) REFERENCES `planets` (`id`),
   ADD CONSTRAINT `special_locations_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
   ADD CONSTRAINT `special_locations_ibfk_3` FOREIGN KEY (`galaxy_id`) REFERENCES `galaxies` (`id`);
+
+--
+-- Contraintes pour la table `time_specials`
+--
+ALTER TABLE `time_specials`
+  ADD CONSTRAINT `time_specials_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --
 -- Contraintes pour la table `units`

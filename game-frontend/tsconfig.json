@@ -1,8 +1,6 @@
 {
   "compileOnSave": false,
-  "exclude": [
-    "dist"
-  ],
+  "exclude": ["dist"],
   "compilerOptions": {
     "downlevelIteration": true,
     "importHelpers": true,
@@ -13,58 +11,17 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2017",
-      "dom"
-    ],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2017", "dom"],
     "module": "esnext",
     "baseUrl": "./",
     "paths": {
-      "@owge/core": [
-        "dist/owge-core"
-      ],
-      "@owge/core/*": [
-        "dist/owge-core/*"
-      ],
-      "@owge/universe": [
-        "dist/owge-universe"
-      ],
-      "@owge/universe/*": [
-        "dist/owge-universe/*"
-      ],
-      "@owge/alliance": [
-        "dist/owge-alliance"
-      ],
-      "@owge/alliance/*": [
-        "dist/owge-alliance/*"
-      ],
-      "@owge/widgets": [
-        "dist/owge-widgets"
-      ],
-      "@owge/widgets/*": [
-        "dist/owge-widgets/*"
-      ],
-      "@owge/galaxy": [
-        "dist/owge-galaxy"
-      ],
-      "@owge/galaxy/*": [
-        "dist/owge-galaxy/*"
-      ],
-      "@owge/faction": [
-        "dist/owge-faction"
-      ],
-      "@owge/faction/*": [
-        "dist/owge-faction/*"
-      ],
-      "@owge/admin": [
-        "dist/owge-admin"
-      ],
-      "@owge/admin/*": [
-        "dist/owge-admin/*"
-      ]
+      "@owge/core": ["dist/owge-core"],
+      "@owge/universe": ["dist/owge-universe"],
+      "@owge/alliance": ["dist/owge-alliance"],
+      "@owge/widgets": ["dist/owge-widgets"],
+      "@owge/galaxy": ["dist/owge-galaxy"],
+      "@owge/faction": ["dist/owge-faction"]
     }
   }
 }

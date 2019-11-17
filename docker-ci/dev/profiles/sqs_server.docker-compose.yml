@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  sqs_server:
+    build:
+      context: ../images_creation/sqs_server
+      dockerfile: ./Dockerfile
+    expose:
+      - "7474"
+    environment:
+      - SQS_HOST=127.0.0.1
+      - SQS_PORT=7474
+      - SQS_QUEUE=not_used

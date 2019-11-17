@@ -20,7 +20,7 @@ export class SanitizeService {
   public isSafe(url: string): boolean {
     if (typeof url === 'string') {
       const urlObject: URL = new URL(url);
-      return TRUSTED_DOMAINS.some(current => urlObject.hostname.endsWith(current));
+      return url.startsWith('/') || TRUSTED_DOMAINS.some(current => urlObject.hostname.endsWith(current));
     } else {
       return false;
     }

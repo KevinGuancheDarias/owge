@@ -2,8 +2,24 @@ version: '3.4'
 
 services:
   frontend:
+    volumes: 
+      - npm-cache:/root/.npm
     build:
       context: ../../../game-frontend
       dockerfile: ../docker-ci/dev/images_creation/frontend_ng_serve/Dockerfile
+      target: game-frontend
     expose: 
       - "4200"
+  admin_frontend:
+    volumes:
+      - npm-cache:/root/.npm
+    build:
+      context: ../../../game-frontend
+      dockerfile: ../docker-ci/dev/images_creation/frontend_ng_serve/Dockerfile
+      target: game-admin
+    expose:
+      - "4200"
+
+volumes:
+  npm-cache:
+    external: false

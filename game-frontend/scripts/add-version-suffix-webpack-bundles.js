@@ -1,6 +1,6 @@
 const JSDOM = require('jsdom').JSDOM;
 const fs = require('fs');
-const targetFile = 'dist/index.html';
+const targetFile = process.argv[2] ? process.argv[2] : 'dist/game-frontend/index.html';
 const version = require('../package.json').version;
 console.log(`Adding version suffix to all webpack bundles of target ${targetFile} file`);
 (async () => {
