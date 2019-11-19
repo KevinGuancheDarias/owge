@@ -1,6 +1,6 @@
 {
   "name": "game-frontend",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "license": "MIT",
   "angular-cli": {},
   "scripts": {
@@ -18,6 +18,7 @@
     "createVersionFile": "node scripts/create-version-file.js",
     "compileChangelog": "node scripts/compile-changelog.js",
     "addVersionSuffixWebpackBundles": "node scripts/add-version-suffix-webpack-bundles.js",
+    "setVersion": "node scripts/set-project-version.js",
     "pree2e": "webdriver-manager update",
     "e2e": "protractor"
   },
@@ -76,6 +77,7 @@
     "karma-less-preprocessor": "^0.3.3",
     "ng-packagr": "^5.3.0",
     "protractor": "~5.1.2",
+    "replace-in-file": "^4.2.0",
     "showdown": "^1.8.6",
     "ts-node": "~4.1.0",
     "tsickle": "^0.36.0",

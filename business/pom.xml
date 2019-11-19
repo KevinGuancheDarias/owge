@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.kevinguanchedarias.owge</groupId>
 	<artifactId>owgejava-backend</artifactId>
-	<version>0.8.0-SNAPSHOT</version>
+	<version>0.8.1-SNAPSHOT</version>
 	<name>OWGE Business</name>
 	<url>http://owgejava.kevinguanchedarias.com</url>
 
