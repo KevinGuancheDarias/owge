@@ -64,7 +64,7 @@ function mavenRun () {
 	_targetDirectory="$1";
 	shift;
 	 docker run -it --rm --volume "$_targetDirectory"://usr/src/app \
-        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-jdk-8-alpine mvn $@
+        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-jdk-11-openj9 mvn $@
 }
 
 function nodeRun() {
@@ -74,7 +74,7 @@ function nodeRun() {
 		rollback;
 	fi
 	shift;
-	docker run -it --rm --volume "$_targetDirectory"://home/node -w=/home/node node:8-alpine $@
+	docker run -it --rm --env NG_CLI_ANALYTICS=ci --volume "$_targetDirectory"://home/node -w=/home/node node:10 $@
 }
 
 ##
@@ -122,6 +122,10 @@ function compileMavenProject () {
 
 }
 
+##
+# @param string $1 Source directory
+# @param string $2 Target directory
+##
 function compileAngularProject () {
 	test -d "$1/dist" && rm -r "$1/dist";
 	test -d "$1" && echo "Compiling Angular project in $1 to $2";
@@ -131,7 +135,8 @@ function compileAngularProject () {
 	fi
 	cp -rp "$1" "$2";
 	nodeRun "$2" npm install &> /dev/null;
-	nodeRun "$2" npm run build -- -prod --build-optimizer &> /dev/null;
+	nodeRun "$2" npm run build > /dev/null;
+	nodeRun "$2" npm run buildAdmin > /dev/null
 	if [ ! -d "$2/dist" ]; then
 		echo "FATAL, Angular compilation failed, aborting script execution";
 		rollback;
@@ -154,15 +159,11 @@ if [ -z "$NO_COMPILE" ]; then
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteCommonBackend";
 	OPTIONAL=1 SKIP_TESTS=1 compileMavenProject "$kevinsuiteRestBackend";
 	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../business "$targetRoot";
-	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../account "$targetRoot";
-	OPTIONAL="$owgeOptional" SKIP_TESTS=1 compileMavenProject "$PWD"/../../admin "$targetRoot";
 	export OWGE_CI_INSTALL_ADMIN_FILE="$globalCompiledMavenFile";
-	export OWGE_ADMIN_WAR_FILENAME="$globalMavenFilename";
 	OPTIONAL="$owgeOptional" compileMavenProject "$PWD"/../../game-rest "$targetRoot";
 	export OWGE_CI_INSTALL_GAME_REST_FILE="$globalCompiledMavenFile";
 	export OWGE_REST_WAR_FILENAME="$globalMavenFilename";
 	OPTIONAL="$owgeOptional" compileAngularProject "$PWD/../../game-frontend" "$targetRoot/frontend";
-	export OWGE_CI_INSTALL_FRONTEND_DIR="$targetRoot/frontend/dist";
 else
 	echo "Currently NO_COMPILE is buggy, and is work in progress :(  ...... aborting :/";
 	rollback;
@@ -172,10 +173,15 @@ export OWGE_CI_VERSION="$1";
 launcherPath="$PWD";
 cd main_reverse_proxy;
 chmod +x install.sh;
-./install.sh "$targetRoot/frontend"
+./install.sh "$targetRoot/frontend";
+_err=$?;
 cd "$launcherPath";
-echo "Executing jenkins install";
-chmod +x jenkins_install.sh
-OWGE_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
+if [ "$_err" == "0" ]; then
+	echo "Executing jenkins install";
+	chmod +x jenkins_install.sh
+	OWGE_UNIVERSE_ID="$4" ./jenkins_install.sh "$2" "$3";
+else 
+	echo "Failed to install the frontend to the nginx target directory";
+fi
 echo "git checkingout again the previously branch: $oldBranch";
 git checkout "$oldBranch";

@@ -23,28 +23,21 @@ function checkExists(){
 }
 
 # START env aliasing
-adminWarFile="$OWGE_CI_INSTALL_ADMIN_FILE";
 gameRestWarFile="$OWGE_CI_INSTALL_GAME_REST_FILE";
 gameFrontendNgDir="$OWGE_CI_INSTALL_FRONTEND_DIR";
 owgeVersion="$OWGE_CI_VERSION";
 gameRestFilename="$OWGE_REST_WAR_FILENAME";
-gameAdminFilename="$OWGE_ADMIN_WAR_FILENAME";
 universeId="$OWGE_UNIVERSE_ID";
 # END env aliasing
 
 # START check env
-envFailureCheck 1 "$adminWarFile";
 envFailureCheck 2 "$gameRestWarFile";
-envFailureCheck 3 "$gameFrontendNgDir";
 envFailureCheck 4 "$owgeVersion";
 envFailureCheck 5 "$gameRestFilename";
-envFailureCheck 6 "$gameAdminFilename";
-envFailureCheck 7 "$universeId";
+envFailureCheck 6 "$universeId";
 
 
-checkExists 1 f "$adminWarFile";
 checkExists 2 f "$gameRestWarFile";
-checkExists 3 d "$gameFrontendNgDir";
 # END check env
 
 # START ask or set parameters
@@ -69,7 +62,7 @@ fi
 
 checkDirectoryExists "$dynamicImgDir";
 
-COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_ADMIN_WAR_FILENAME="$gameAdminFilename" docker-compose down;
+COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" docker-compose down;
 sleep 2;
 if ! owgePort=`getPortByUniverseId $universeId`; then
         echo "Error getting port: $owgePort";
@@ -84,12 +77,14 @@ tomcatContainer="$localPath/admin_panel_and_rest_game";
 gameFrontendContainer="$localPath/main_reverse_proxy";
 
 test ! -d "$tomcatContainer/target" && mkdir "$tomcatContainer/target";
-cp "$adminWarFile" "$tomcatContainer/target/";
 cp "$gameRestWarFile" "$tomcatContainer/target/";
-test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target";
-cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
+if [ -n "$gameFrontendNgDir" ]; then
+	echo "Copying frontend files";
+	test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target";
+	cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
+fi
 
 cd $localPath;
-COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="$owgePort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_ADMIN_WAR_FILENAME="$gameAdminFilename" OWGE_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
+COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="$owgePort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
 cd -;
 # END program itself

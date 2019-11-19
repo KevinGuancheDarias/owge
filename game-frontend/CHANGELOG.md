@@ -1,6 +1,6 @@
 # OWGE changelog
 
-v0.8.0 (latest)
+v0.8.0 (2019-11-19 03:44)
 =================
 * __Feature:__ [As a player I would like to display the current upgrade in the game home page #4](https://github.com/KevinGuancheDarias/owge/issues/4)  
 ![As a player I would like to display the current upgrade in the game home page #4](assets/changelog/features/4.png)  

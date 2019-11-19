@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { mix } from 'ts-mixer';
+import { Mixin } from 'ts-mixer';
 
 import { validContext, SessionStore, LoggerHelper } from '@owge/core';
 import {
@@ -14,7 +14,8 @@ import {
 } from '@owge/universe';
 import { DisplayService } from '@owge/widgets';
 
-
+export interface AdminTimeSpecialService
+    extends AbstractCrudService<TimeSpecial, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
 /**
  *
  *
@@ -23,7 +24,6 @@ import { DisplayService } from '@owge/widgets';
  * @export
  */
 @Injectable()
-@mix(WithRequirementsCrudMixin, WithImprovementsCrudMixin)
 export class AdminTimeSpecialService extends AbstractCrudService<TimeSpecial, number> {
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
     protected _crudConfig: CrudConfig;
@@ -75,5 +75,4 @@ export class AdminTimeSpecialService extends AbstractCrudService<TimeSpecial, nu
         };
     }
 }
-export interface AdminTimeSpecialService
-    extends AbstractCrudService<TimeSpecial, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
+(<any>AdminTimeSpecialService) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, <any>AdminTimeSpecialService);

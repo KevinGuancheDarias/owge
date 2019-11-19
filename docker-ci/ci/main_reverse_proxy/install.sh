@@ -11,8 +11,8 @@ if [ -z "$1" ]; then
 fi
 
 frontend="$1";
-if [ ! -f "$frontend/.angular-cli.json" ]; then
-	echo "No parece un proyecto válido debe haber angular cli";
+if [ ! -f "$frontend/angular.json" ]; then
+	echo "Not a valid Angular CLI project";
 	exit 1;
 fi
 
@@ -20,20 +20,12 @@ launcherPath=$PWD;
 compiledDestination="$frontend/dist";
 
 if [ ! -d "$compiledDestination" ]; then
-	if ! ng -v ; then
-		echo "No se encontró Angular cli en el sistema operativo, lo que significa que no está instalado";
-		exit 1;
-	fi
-	echo "Compilando proyecto angular";
-	cd $frontend;
-	test -d $compiledDestination && rm -r $compiledDestination;
-	ng build  --prod
-	if [ ! -d "$compiledDestination" ];then
-		echo "Parece que la compilación no salió bien, ya que nose creo ./dist";
-		exit 1;
-	fi
-else
-	echo "Not recompiling frontend, as ithas already been compiled by other script";
+	echo "Compiled destination not found, should not used install.sh outside of launch_admin_rest.sh for now";
+	exit 1;
+fi
+if [ ! -d "$compiledDestination/game-frontend" ] || [ ! -d "$compiledDestination/game-admin" ]; then
+	echo "Compiled destination exists, but doesn't have game-frontend, or/nor game-admin";
+	exit 1;
 fi
 echo "Copying compiled files to target, so is available to docker build";
 sourceDestination="$launcherPath/target";
@@ -45,7 +37,8 @@ fi
 
 test -d $sourceDestination && rm -r $sourceDestination;
 
-cp -rp "$compiledDestination" "$sourceDestination";
+cp -rp "$compiledDestination/game-frontend" "$sourceDestination";
+cp -rp "$compiledDestination/game-admin" "$sourceDestination/admin";
 
 # START docker fun if wanteed to
 if [ ! -z "$2" ]; then
