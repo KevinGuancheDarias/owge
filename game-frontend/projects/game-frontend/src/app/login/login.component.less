@@ -1,11 +1,3 @@
-.forgot-password{
-    float: left;
-    width: 49%;
-}
-.btn-register{
-    float: right;
-    width: 49%;
-}
 .loginContainer{
     width: 100%;
     margin:0px;
@@ -36,19 +28,57 @@ span{
 .absolute-center.is-responsive {
     width: 100%;
     min-height: 300px;
-    max-height: 400px;
+    max-height: 550px;
 }
-.loginActions a{
-    background-color: silver;
-    border:2px inset darkgray;
-    border-radius:5px;
-    width: 100%;
-    padding: 5px;
+.loginActions {
+    div {
+        background-color: silver;
+        border:2px inset darkgray;
+        border-radius:5px;
+        padding: 5px;
+        &:hover {
+            border:2px outset darkgray;
+        }
+    }
+    a {
+        width: 100%;
+    }
 }
-.loginActions a:hover{
-    border:2px outset darkgray;
+
+.donations  {
+    a.patreon img {
+        min-height: 35px;
+    }
+    a {
+        background-color: transparent;
+        border-color: transparent;
+        border-radius: 5px;
+        box-shadow: none;
+        width: 100%;
+        opacity: 0.7;
+        padding: 0px;
+        margin: 0 auto;
+        
+        &:hover {
+            opacity: 1.0;
+        }
+        img {
+            width: 100%;
+            max-height: 40px;
+            min-width: 120px;
+        }
+    }
 }
+
 @media (min-width:541px){
+    .donations  {
+        a {
+            max-width: 200px;
+            img  {
+                max-width: 200px;
+            }
+        }
+    }
     span{
         width: 15px;
         text-align: center;
@@ -59,10 +89,6 @@ span{
     .loginContainer{
         width: 50%;
         height: 450px;
-
-        .row{
-            height: 450px;
-        }
     }
 
     .absolute-center.is-responsive {
@@ -71,7 +97,7 @@ span{
         -webkit-box-shadow: inset 0px 0px 5px black;
         box-shadow: 0px 0px 5px black, inset 0px 0px 25px gold;
         background-color: rgba(240, 240, 240, 0.8);
-        max-height: 450px;
+        max-height: 550px;
     }
 
     .logo-container{

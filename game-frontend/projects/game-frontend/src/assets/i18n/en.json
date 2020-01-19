@@ -1,5 +1,13 @@
 {
     "APP": {
+        "LOGIN": {
+            "PLACEHOLDER_EMAIL": "Email or username",
+            "PLACEHOLDER_PASS": "Password",
+            "BTN_LOGIN": "Login",
+            "BTN_KGDW": "View on KGDW",
+            "BTN_FORGOT_PASSWORD": "Forgot password",
+            "BTN_REGISTER": "Register"
+        },
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
         "LIST_JOIN_REQUEST": "List join request",

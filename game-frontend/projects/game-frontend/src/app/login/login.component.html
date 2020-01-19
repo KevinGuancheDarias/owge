@@ -7,20 +7,39 @@
           <div class="input-group">
             <span class="input-group-addon"> <i fa [name]="'envelope-open'"></i></span>
             <input [(ngModel)]="email" required class="form-control" type="email" name='email'
-              placeholder="Correo electrónico" #spy pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$" />
+          placeholder="{{ 'APP.LOGIN.PLACEHOLDER_EMAIL' | translate }}"/>
           </div>
           <div class="input-group">
             <span class="input-group-addon"><i fa [name]="'lock'" [size]=1></i></span>
             <input [(ngModel)]="password" required class="form-control" type="password" name='password'
-              placeholder="Contraseña" />
+              placeholder="{{ 'APP.LOGIN.PLACEHOLDER_PASS' | translate }}" />
           </div>
           <div class="form-group">
             <button [disabled]="!loginForm.form.valid" type="submit"
-              class="btn btn-def btn-block owge-base-colors">Login</button>
+              class="btn btn-def btn-block owge-base-colors">{{ 'APP.LOGIN.BTN_LOGIN' | translate }}</button>
           </div>
-          <div class="form-group text-center loginActions">
-            <a target="_blank" [href]="accountUrl + '/user/password'" class="forgot-password">Contraseña olvidada</a>
-            <a target="_blank" [href]="accountUrl + '/user/register'" class="btn-register">Registrarse</a>
+          <div class="form-group">
+            <a class="btn btn-block owge-base-colors" target="_blank" [href]="kgdwGamesUrl">{{ 'APP.LOGIN.BTN_KGDW' | translate }}</a>
+          </div>
+          <div class="row text-center loginActions">
+            <div class="col-md-6">
+              <a class="btn btn-block" target="_blank" [href]="accountUrl + '/user/password'" class="forgot-password">{{ 'APP.LOGIN.BTN_FORGOT_PASSWORD' | translate }}</a>
+            </div>
+            <div class="col-md-6">
+              <a class="btn btn-block" target="_blank" [href]="accountUrl + '/user/register'" class="btn-register">{{ 'APP.LOGIN.BTN_REGISTER' | translate }}</a>
+            </div>
+          </div>
+          <div class="row donations">
+            <div class="col-md-6">
+              <a class="patreon btn btn-block" target="_blank" href="https://www.patreon.com/bePatron?u=13416760" >
+                <img src="/assets/img/patreon-button.png" alt="Become a Patreon"/>
+              </a>
+            </div>
+            <div class="col-md-6">
+              <a class="paypal btn btn-block" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XYSG7NDRN5HM6&source=url" rel="nofollow">
+                <img src="/assets/img/paypal-button.png" alt="Donate paypal"/>
+              </a>
+            </div>
           </div>
         </form>
       </div>
