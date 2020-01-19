@@ -25,6 +25,14 @@ if (process.argv.length >= 3) {
             from: `<version>${versionEl.innerHTML}</version>`,
             to: `<version>${targetVersion}-SNAPSHOT</version>`
         });
+        const owgeVersionEl = Array.from(dom.window.document.querySelectorAll('project > properties *')).find(el => el.tagName === 'owge.version');
+        if(owgeVersionEl) {
+            replaceInFile({
+                files: pomFile,
+                from: `<owge.version>${owgeVersionEl.innerHTML}</owge.version>`,
+                to: `<owge.version>${targetVersion}-SNAPSHOT</owge.version>`
+            })
+        }
     });
     packageJsonFiles.forEach(async packageJson => {
         console.log(`Changing version to  file ${packageJson}`);
