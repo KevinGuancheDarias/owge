@@ -27,7 +27,7 @@ export class UniverseService extends GameBaseService {
    */
   public userExists(): Observable<boolean> {
     return this.doGetWithAuthorization(
-      this.getLoginSessionService().getSelectedUniverse().restBaseUrl + '/user/exists'
+      this.getLoginSessionService().getSelectedUniverse().restBaseUrl + '/game/user/exists'
     );
   }
 

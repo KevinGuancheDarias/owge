@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.7.6 (2020-01-20 18:05 URGENT PATCH VERSION)
+=====================
+* __Fix:__ Login not working when the login page is using v0.8.x version
+
 v0.7.5 (2019-08-13 16:58)
 ====================
 * __Improvement:__ [Disable websocket when not configured](https://github.com/KevinGuancheDarias/owge/issues/105)  

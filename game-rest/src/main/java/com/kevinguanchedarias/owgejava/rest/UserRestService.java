@@ -18,7 +18,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("game/user")
 @ApplicationScope
 public class UserRestService {
 
