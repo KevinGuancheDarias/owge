@@ -68,7 +68,6 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
    */
   private async checkUniverseUserExists(isUserSubscribed: boolean) {
     if (isUserSubscribed) {
-      await this._clockSyncService.init();
       this._redirectToGameIndex();
     } else {
       if (confirm('Nunca has jugado en este universo, \n ¿deseas empezas?')) {
@@ -88,8 +87,9 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
     );
   }
 
-  private _redirectToGameIndex() {
+  private async _redirectToGameIndex(): Promise<void> {
     if (!this.selectedUniverse.frontendUrl) {
+      await this._clockSyncService.init();
       this._router.navigate([ROUTES.GAME_INDEX]);
     } else {
       const iframe: HTMLIFrameElement = this._credentialsFrame.nativeElement;

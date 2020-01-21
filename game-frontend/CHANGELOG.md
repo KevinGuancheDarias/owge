@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.8.1 (latest)
+
+* __Fix:__ Fix in the login should not do clock-sync init if we are going to change domain
+
 v0.8.0 (2019-11-19 03:44)
 =================
 * __Feature:__ [As a player I would like to display the current upgrade in the game home page #4](https://github.com/KevinGuancheDarias/owge/issues/4)  
