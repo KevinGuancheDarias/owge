@@ -9,15 +9,19 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import com.kevinguanchedarias.owgejava.business.FactionBo;
 
 @RestController
-@RequestMapping("faction")
 @ApplicationScope
 public class FactionRestService {
 
 	@Autowired
 	private FactionBo factionBo;
 
-	@RequestMapping(value = "findVisible", method = RequestMethod.GET)
+	@RequestMapping(value = "/faction/findVisible", method = RequestMethod.GET)
 	public Object findVisible() {
+		return factionBo.findVisible(false);
+	}
+
+	@RequestMapping(value = "/game/faction/findVisible", method = RequestMethod.GET)
+	public Object findVisible2() {
 		return factionBo.findVisible(false);
 	}
 }
