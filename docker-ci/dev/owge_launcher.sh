@@ -72,7 +72,7 @@ function _menu () {
      `__findRunningComposerProject owge_frontend_developer 7` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
      `__findRunningComposerProject owge_backend_developer 8` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
      `__findRunningComposerProject owge_fullstack_developer 2` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
-     `__findRunningComposerProject owge_fullstack_without_db 2` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
+     `__findRunningComposerProject owge_fullstack_without_database 2` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
      $_extraMockAccountCommands
      \e[32m6\e[39m. \e[31m\U2665 \e[36mDonate \e[31m\U2665\e[39m
      \e[32m7\e[39m. \e[36mSee something nice \e[33m???\e[36m x') \e[39m
@@ -114,7 +114,7 @@ function _menu () {
             ;;
         5)
             (
-                _doLaunch "owge_fullstack_without_db" _withFrontend _withBackend;
+                _doLaunch "owge_fullstack_without_database" _withFrontend _withBackend;
             )
             ;;
         account)
@@ -141,7 +141,7 @@ function _menu () {
                     fi
                 done
             else
-                echo -e "\e[31mAccount system not available";
+                echo -e "\e[31mAccount system not available\e[39m";
                 _noAccount=true
             fi
             
