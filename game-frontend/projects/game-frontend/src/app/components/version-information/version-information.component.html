@@ -1,3 +1,14 @@
-<div [innerHTML]="htmlContent" class="owge-base-colors">
+<div *ngIf="classesInformation.length" class="owge-base-colors classes-filter">
+  <h1>{{ 'APP.VERSION_INFORMATION.FILTERS' | translate }} </h1>
+  <div *ngFor="let class of classesInformation" class="row">
+    <div class="col-md-3">
+      <span class="input-group-addon">{{ class.i18nValue | async }}</span>
+    </div>
+    <div class="col-md-6">
+      <input type="checkbox" (click)="clickCheckbox($event, class.className)"/>
+    </div>
+  </div>
+</div>
+<div [innerHTML]="htmlContent" #changelogContent class="owge-base-colors content">
   Loading...
 </div>

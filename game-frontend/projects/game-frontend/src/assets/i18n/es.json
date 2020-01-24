@@ -19,7 +19,15 @@
         "MENU_ALLIANCES": "Alianzas",
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking",
-        "MENU_LOGOUT": "Salir"
+        "MENU_LOGOUT": "Salir",
+        "VERSION_INFORMATION": {
+            "FILTERS": "Advanced filters",
+            "CLASSES": {
+                "DEVELOPER": "Developer",
+                "ADMIN": "Admin",
+                "ADVANCED": "Advanced"
+            }
+        }
     },
     "UPGRADE": {
         "CANCEL_TEXT": "Vas a cancelar la mejora {{upgradeName}}, ¿Estás seguro de ello?"

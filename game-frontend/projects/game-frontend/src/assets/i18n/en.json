@@ -22,6 +22,14 @@
         "MENU_LOGOUT": "Logout",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Missions"
+        },
+        "VERSION_INFORMATION": {
+            "FILTERS": "Advanced filters",
+            "CLASSES": {
+                "DEVELOPER": "Developer",
+                "ADMIN": "Admin",
+                "ADVANCED": "Advanced"
+            }
         }
     },
     "UPGRADE": {
