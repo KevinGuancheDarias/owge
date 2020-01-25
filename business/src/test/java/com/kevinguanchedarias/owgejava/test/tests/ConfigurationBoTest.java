@@ -59,27 +59,6 @@ public class ConfigurationBoTest {
 	}
 
 	@Test
-	public void shouldUseDefaultValueForMissionWhenNotConfigured() {
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_EXPLORE),
-				configurationBo.findMissionExploreBaseTime());
-
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_GATHER),
-				configurationBo.findMissionGatherBaseTime());
-
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_ESTABLISH_BASE),
-				configurationBo.findMissionEstablishBaseBaseTime());
-
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_ATTACK),
-				configurationBo.findMissionAttackBaseTime());
-
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_CONQUEST),
-				configurationBo.findMissionConquestBaseTime());
-
-		assertEquals(Long.valueOf(ConfigurationBo.MISSION_DEFAULT_TIME_COUNTERATTACK),
-				configurationBo.findMissionCounterattackBaseTime());
-	}
-
-	@Test
 	public void shouldUseConfiguredValueForMissionWhenConfigured() {
 		Mockito.when(configurationRepository.findOne(ConfigurationBo.MISSION_TIME_EXPLORE_KEY))
 				.thenReturn(EXISTING_PROPERTY);
