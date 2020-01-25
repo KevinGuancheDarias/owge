@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.kevinguanchedarias.owgejava.entity.Configuration;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
@@ -33,35 +35,41 @@ public class ConfigurationBo implements Serializable {
 	public static final String MISSION_TIME_INDEX_OF_KEY = "MISSION_TIME_";
 	public static final Long MISSION_TIME_MINIMUM_VALUE = 10L;
 
-	public static final String MISSION_DEFAULT_TIME_EXPLORE = "60";
 	public static final String MISSION_TIME_EXPLORE_KEY = "MISSION_TIME_EXPLORE";
-	public static final String MISSION_TIME_EXPLORE_DISPLAY_NAME = "Tiempo base explorar";
-
-	public static final String MISSION_DEFAULT_TIME_GATHER = "900";
 	public static final String MISSION_TIME_GATHER_KEY = "MISSION_TIME_GATHER";
-	public static final String MISSION_TIME_GATHER_DISPLAY_NAME = "Tiempo base recolectar";
-
-	public static final String MISSION_DEFAULT_TIME_ESTABLISH_BASE = "43200";
 	public static final String MISSION_TIME_ESTABLISH_BASE_KEY = "MISSION_TIME_ESTABLISH_BASE";
-	public static final String MISSION_TIME_ESTABLISH_BASE_DISPLAY_NAME = "Tiempo base establecer base";
-
-	public static final String MISSION_DEFAULT_TIME_ATTACK = "600";
 	public static final String MISSION_TIME_ATTACK_KEY = "MISSION_TIME_ATTACK";
-	public static final String MISSION_TIME_ATTACK_DISPLAY_NAME = "Tiempo base atacar";
-
-	public static final String MISSION_DEFAULT_TIME_CONQUEST = "900";
 	public static final String MISSION_TIME_CONQUEST_KEY = "MISSION_TIME_CONQUEST";
-	public static final String MISSION_TIME_CONQUEST_DISPLAY_NAME = "Tiempo base conquistar";
-
-	public static final String MISSION_DEFAULT_TIME_COUNTERATTACK = "900";
 	public static final String MISSION_TIME_COUNTERATTACK_KEY = "MISSION_TIME_COUNTERATTACK";
-	public static final String MISSION_TIME_COUNTERATTACK_DISPLAY_NAME = "Tiempo base contratacar";
-
-	public static final String MISSION_DEFAULT_TIME_DEPLOY = "60";
 	public static final String MISSION_TIME_DEPLOY_KEY = "MISSION_TIME_DEPLOY";
-	public static final String MISSION_TIME_DEPLOY_DISPLAY_NAME = "Base time deploy";
+
+	protected static final Map<String, MissionTimeStore> MISSION_DEFAULT_CONFIG_STORE = new HashMap<>();
+
+	static {
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_EXPLORE_KEY, new MissionTimeStore("60", "Base explore time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_GATHER_KEY, new MissionTimeStore("900", "Base gather time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_ESTABLISH_BASE_KEY,
+				new MissionTimeStore("43200", "Base establish base time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_ATTACK_KEY, new MissionTimeStore("600", "Base attack time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_CONQUEST_KEY,
+				new MissionTimeStore("86400", "Base conquest time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_COUNTERATTACK_KEY,
+				new MissionTimeStore("60", "Base counterattack time"));
+		MISSION_DEFAULT_CONFIG_STORE.put(MISSION_TIME_DEPLOY_KEY, new MissionTimeStore("60", "Base deploy time"));
+	}
 
 	public static final Integer MISSION_NUMBER_OF_MISSIONS = 6;
+
+	private static class MissionTimeStore {
+		private String time;
+		private String description;
+
+		public MissionTimeStore(String time, String description) {
+			this.time = time;
+			this.description = description;
+		}
+
+	}
 
 	private HashMap<String, Configuration> cache = new HashMap<>();
 
@@ -129,27 +137,19 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	public List<Configuration> findAllMissionBaseTime() {
-		ArrayList<String> missionKeys = new ArrayList<>();
-		missionKeys.add(MISSION_TIME_EXPLORE_KEY);
-		missionKeys.add(MISSION_TIME_GATHER_KEY);
-		missionKeys.add(MISSION_TIME_ESTABLISH_BASE_KEY);
-		missionKeys.add(MISSION_TIME_ATTACK_KEY);
-		missionKeys.add(MISSION_TIME_CONQUEST_KEY);
-		missionKeys.add(MISSION_TIME_COUNTERATTACK_KEY);
-		missionKeys.add(MISSION_TIME_DEPLOY_KEY);
-		return configurationRepository.findByNameIn(missionKeys);
+		return configurationRepository.findByNameIn(createMissionsKeyArray());
 	}
 
 	/**
 	 * Finds the base time by enumeration
 	 * 
-	 * @param type
-	 *            mission base time enum
+	 * @deprecated Use findmissionBaseTime(String)
+	 * @param type mission base time enum
 	 * @return the computed base time value
-	 * @throws SgtBackendInvalidInputException
-	 *             MissionType not supported
+	 * @throws SgtBackendInvalidInputException MissionType not supported
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionBaseTimeByType(MissionType type) {
 		Long retVal;
 		switch (type) {
@@ -180,32 +180,98 @@ public class ConfigurationBo implements Serializable {
 		return retVal;
 	}
 
+	/**
+	 * Finds the mission base time, if not set will return the default
+	 * 
+	 * @since 0.8.1
+	 * @param key The mission KEY, should use one of the constants available here
+	 * @return
+	 * @throws ProgrammingException When key is not a vlid mission key
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	public Long findMissionBaseTime(String key) {
+		if (MISSION_DEFAULT_CONFIG_STORE.containsKey(key)) {
+			return findMissionBaseTime(key, MISSION_DEFAULT_CONFIG_STORE.get(key).time);
+		} else {
+			throw new ProgrammingException("key " + key + " is not a valid mission key");
+		}
+	}
+
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionExploreBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_EXPLORE_KEY, MISSION_DEFAULT_TIME_EXPLORE);
+		return findMissionBaseTime(MISSION_TIME_EXPLORE_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_EXPLORE_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionGatherBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_GATHER_KEY, MISSION_DEFAULT_TIME_GATHER);
+		return findMissionBaseTime(MISSION_TIME_GATHER_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_GATHER_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionEstablishBaseBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_ESTABLISH_BASE_KEY, MISSION_DEFAULT_TIME_ESTABLISH_BASE);
+		return findMissionBaseTime(MISSION_TIME_ESTABLISH_BASE_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_ESTABLISH_BASE_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionAttackBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_ATTACK_KEY, MISSION_DEFAULT_TIME_ATTACK);
+		return findMissionBaseTime(MISSION_TIME_ATTACK_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_ATTACK_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionConquestBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_CONQUEST_KEY, MISSION_DEFAULT_TIME_CONQUEST);
+		return findMissionBaseTime(MISSION_TIME_CONQUEST_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_CONQUEST_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionCounterattackBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_COUNTERATTACK_KEY, MISSION_DEFAULT_TIME_COUNTERATTACK);
+		return findMissionBaseTime(MISSION_TIME_COUNTERATTACK_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_COUNTERATTACK_KEY).time);
 	}
 
+	/**
+	 * 
+	 * @deprecated Use findMissionBaseTime(String)
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Long findMissionDeployBaseTime() {
-		return findMissionBaseTime(MISSION_TIME_DEPLOY_KEY, MISSION_DEFAULT_TIME_DEPLOY);
+		return findMissionBaseTime(MISSION_TIME_DEPLOY_KEY,
+				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_DEPLOY_KEY).time);
 	}
 
 	/**
@@ -260,62 +326,46 @@ public class ConfigurationBo implements Serializable {
 		return value;
 	}
 
-	private Configuration saveMissionExploreBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_EXPLORE_KEY, value, MISSION_TIME_EXPLORE_DISPLAY_NAME);
+	private void insertMissionBaseTimeIfMissing() {
+		List<Configuration> storedValues = findAllMissionBaseTime();
+		MISSION_DEFAULT_CONFIG_STORE.forEach((key, value) -> {
+			if (storedValues.stream().noneMatch(current -> current.getName().equals(key))) {
+				LOCAL_LOGGER.info("Mission time for " + key + " doesn't exists, adding default");
+				doSaveDefaultMissionBaseTime(key);
+			}
+		});
+
 	}
 
-	private Configuration saveMissionGatherBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_GATHER_KEY, value, MISSION_TIME_GATHER_DISPLAY_NAME);
-	}
-
-	private Configuration saveMissionEstablishBaseBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_ESTABLISH_BASE_KEY, value, MISSION_TIME_ESTABLISH_BASE_DISPLAY_NAME);
-	}
-
-	private Configuration saveMissionAttackBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_ATTACK_KEY, value, MISSION_TIME_ATTACK_DISPLAY_NAME);
-	}
-
-	private Configuration saveMissionConquestBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_CONQUEST_KEY, value, MISSION_TIME_CONQUEST_DISPLAY_NAME);
-	}
-
-	private Configuration saveMissionCounterattackBaseTime(Long value) {
-		return doSaveMissionBaseTime(MISSION_TIME_COUNTERATTACK_KEY, value, MISSION_TIME_COUNTERATTACK_DISPLAY_NAME);
+	/**
+	 * @return
+	 */
+	private ArrayList<String> createMissionsKeyArray() {
+		ArrayList<String> missionKeys = new ArrayList<>();
+		missionKeys.add(MISSION_TIME_EXPLORE_KEY);
+		missionKeys.add(MISSION_TIME_GATHER_KEY);
+		missionKeys.add(MISSION_TIME_ESTABLISH_BASE_KEY);
+		missionKeys.add(MISSION_TIME_ATTACK_KEY);
+		missionKeys.add(MISSION_TIME_CONQUEST_KEY);
+		missionKeys.add(MISSION_TIME_COUNTERATTACK_KEY);
+		missionKeys.add(MISSION_TIME_DEPLOY_KEY);
+		return missionKeys;
 	}
 
 	private Long findMissionBaseTime(String key, String defaultValue) {
 		return Long.valueOf(findOrSetDefault(key, defaultValue).getValue());
 	}
 
-	private Configuration doSaveMissionBaseTime(String key, Long value, String displayName) {
-		return save(new Configuration(key, String.valueOf(value), displayName));
-	}
-
-	private void insertMissionBaseTimeIfMissing() {
-		if (!isAccountProject() && findAllMissionBaseTime().size() != MISSION_NUMBER_OF_MISSIONS) {
-			LOCAL_LOGGER.info(
-					"Notice: missions base times, not matching expected number of entries in config, adding with default");
-
-			saveMissionExploreBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_EXPLORE));
-			saveMissionGatherBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_GATHER));
-			saveMissionEstablishBaseBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_ESTABLISH_BASE));
-			saveMissionAttackBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_ATTACK));
-			saveMissionConquestBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_CONQUEST));
-			saveMissionCounterattackBaseTime(Long.valueOf(MISSION_DEFAULT_TIME_COUNTERATTACK));
-		}
-	}
-
-	private boolean isAccountProject() {
-		return configurationRepository.findOne("JWT_ALGO") != null;
+	private Configuration doSaveDefaultMissionBaseTime(String key) {
+		MissionTimeStore defaultValue = MISSION_DEFAULT_CONFIG_STORE.get(key);
+		return save(new Configuration(key, defaultValue.time, defaultValue.description));
 	}
 
 	/**
 	 * Checks if the configuration refers to the base time of a mission
 	 * 
 	 * @param configuration
-	 * @throws SgtBackendInvalidInputException
-	 *             Number is below the expected value
+	 * @throws SgtBackendInvalidInputException Number is below the expected value
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
