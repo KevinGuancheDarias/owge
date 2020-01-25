@@ -226,6 +226,7 @@ function _doLaunch() {
         log debug "Profile: \e[36m$_profileName\e[39m";
         log debug "Port \e[36m$_port\e[39m";
         _accountPort=`expr $_port + 1`;
+        _sqsPort=`expr $_port + 2`;
         log debug "Account port \e[36m$_accountPort\e[39m";
         log debug "Static directory: \e[36m$_staticDirectory\e[39m";
         log debug "Dynamic directory: \e[36m$_dynamicDirectory\e[39m";
@@ -303,6 +304,9 @@ function _withBackend() {
         export OWGE_REST_CONTEXT_PATH="$_output";
         promptWithDefault "Admin contextpath" "owgejava-admin";
         export OWGE_ADMIN_CONTEXT_PATH="$_output";
+        promptWithDefault "In which port do you want the SQS docker container to listen to?" "7474";
+        export OWGE_SQS_PORT=7474;
+        export _launchLine="$_launchLine -f ./profiles/exposed-sqs-server.docker-compose.yml";
     else 
         export _launchLine="$_launchLine -f ./profiles/backend.docker-compose.yml";
     fi

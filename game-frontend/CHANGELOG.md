@@ -3,6 +3,7 @@
 v0.8.1 (latest)
 =================
 
+* [class=Advanced] __Improvement:__ Allow to expose dockerized SQS server, when you want to run your backend manually
 * [class=Advanced] __Fix:__ In OWGE Docker Launcher, advanced pro guys profile was not working  
 * __Improvement:__ Allow to filter changelog by technical level
 * [class=Advanced]__Fix:__ Fix in the login should not do clock-sync init if we are going to change domain
