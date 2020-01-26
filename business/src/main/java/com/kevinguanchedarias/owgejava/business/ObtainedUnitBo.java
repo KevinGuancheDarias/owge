@@ -101,6 +101,15 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return hasUnitsInPlanet(user.getId(), planet.getId());
 	}
 
+	/**
+	 * Note: Takes into account also the units involved in missions that originate
+	 * from this planet, even if they are outside now
+	 * 
+	 * @param userId
+	 * @param planetId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
 	public boolean hasUnitsInPlanet(Integer userId, Long planetId) {
 		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
 	}
@@ -132,8 +141,36 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullOrDeployed(userId, unitId, planetId);
 	}
 
+	/**
+	 * 
+	 * @since 0.8.1
+	 * @param userId
+	 * @param unitId
+	 * @param planetId
+	 * @return
+	 */
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(Integer userId, Integer unitId,
+			Long planetId) {
+		return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNull(userId, unitId, planetId);
+	}
+
 	public ObtainedUnit findOneByUserIdAndUnitId(Integer userId, Integer unitId) {
 		return repository.findOneByUserIdAndUnitId(userId, unitId);
+	}
+
+	/**
+	 * 
+	 * @param userId
+	 * @param id
+	 * @param id2
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(Integer userId, Integer unitId,
+			Long planetId) {
+		return repository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(userId, unitId, planetId,
+				MissionType.DEPLOYED.name());
 	}
 
 	public Long countByUserAndUnitId(UserStorage user, Integer unitId) {
@@ -149,12 +186,13 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * Returns the units in the <i>targetPlanet</i> that are not in mission <br>
 	 * Ideally used to explore a planet
 	 * 
+	 * @param exploreMission mission that is executing the explore
 	 * @param targetPlanet
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public List<ObtainedUnit> explorePlanetUnits(Planet targetPlanet) {
-		return repository.findBySourcePlanetIdAndMissionIsNullOrDeployed(targetPlanet.getId());
+	public List<ObtainedUnit> explorePlanetUnits(Mission exploreMission, Planet targetPlanet) {
+		return repository.findByExplorePlanet(exploreMission.getId(), targetPlanet.getId());
 	}
 
 	/**
@@ -164,13 +202,16 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * 
 	 * @param userId
 	 * @param obtainedUnit <b>NOTICE:</b> Won't be changed from inside
+	 * @param targetPlanet Planet to where you are adding the units
 	 * @return new instance of saved obtained unit
 	 * @author Kevin Guanche Darias
 	 */
-	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit) {
+	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit, Long targetPlanet) {
+		Integer unitId = obtainedUnit.getUnit().getId();
 		ObtainedUnit retVal;
-		ObtainedUnit existingOne = findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNullOrDeployed(userId,
-				obtainedUnit.getUnit().getId(), obtainedUnit.getSourcePlanet().getId());
+		ObtainedUnit existingOne = planetBo.isOfUserProperty(userId, targetPlanet)
+				? findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, targetPlanet)
+				: findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, targetPlanet);
 		if (existingOne == null) {
 			retVal = save(obtainedUnit);
 		} else {
@@ -313,21 +354,21 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	@Transactional(propagation = Propagation.MANDATORY)
 	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
-		Planet originPlanet = unit.getTargetPlanet();
-		unit.setTargetPlanet(unit.getSourcePlanet());
-		unit.setSourcePlanet(planetBo.findByIdOrDie(planetId));
+		Planet planet = planetBo.findById(planetId);
+		unit.setSourcePlanet(unit.getSourcePlanet());
+		unit.setTargetPlanet(planet);
 		if (planetBo.isOfUserProperty(userId, planetId)) {
-			saveWithAdding(userId, unit);
+			unit.setSourcePlanet(planet);
+			saveWithAdding(userId, unit, planetId);
 			unit.setMission(null);
 			unit.setTargetPlanet(null);
 			unit.setFirstDeploymentMission(null);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
 			save(unit);
 		} else {
-			unit.setTargetPlanet(originPlanet);
-			unit = saveWithAdding(userId, unit);
+			unit = saveWithAdding(userId, unit, planetId);
 			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
-				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(originPlanet, unit));
+				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(unit));
 				save(unit);
 			}
 		}

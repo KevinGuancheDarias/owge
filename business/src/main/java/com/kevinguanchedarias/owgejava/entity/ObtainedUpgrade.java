@@ -72,8 +72,23 @@ public class ObtainedUpgrade implements EntityWithId<Long> {
 		this.level = level;
 	}
 
+	/**
+	 * 
+	 * @deprecated Use isAvailable instead()
+	 * @return
+	 */
+	@Deprecated(since = "0.8.1")
 	public Boolean getAvailable() {
 		return available;
+	}
+
+	/**
+	 * 
+	 * @since 0.8.1
+	 * @return
+	 */
+	public boolean isAvailable() {
+		return Boolean.TRUE.equals(available);
 	}
 
 	public void setAvailable(Boolean available) {

@@ -137,7 +137,7 @@ public class MissionBo extends AbstractMissionBo {
 		UserStorage user = userStorageBo.findById(userId);
 		checkCanDoMisison(user);
 		Unit unit = unitBo.findByIdOrDie(unitId);
-		Long finalCount = unit.getIsUnique() ? 1 : count;
+		Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
 		unitBo.checkIsUniqueBuilt(user, unit);
 		ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
@@ -276,17 +276,18 @@ public class MissionBo extends AbstractMissionBo {
 		final List<Boolean> shouldClearImprovementsCache = new ArrayList<>(1);
 		shouldClearImprovementsCache.add(false);
 		if (mission != null) {
+			Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
 				if (current.getUnit().getImprovement() != null) {
 					shouldClearImprovementsCache.remove(0);
 					shouldClearImprovementsCache.add(true);
 				}
-				obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
-						mission.getMissionInformation().getValue().longValue());
+				current.setSourcePlanet(planetBo.findById(sourcePlanetId));
+				obtainedUnitBo.moveUnit(current, mission.getUser().getId(), sourcePlanetId);
 				requirementBo.triggerUnitBuildCompleted(mission.getUser(), current.getUnit());
 			});
 			delete(mission);
-			if (shouldClearImprovementsCache.get(0)) {
+			if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
 				improvementBo.clearSourceCache(mission.getUser(), obtainedUnitBo);
 			}
 		} else {
@@ -395,7 +396,7 @@ public class MissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias
 	 */
 	private void checkUpgradeIsAvailable(ObtainedUpgrade obtainedUpgrade) {
-		if (!obtainedUpgrade.getAvailable()) {
+		if (!obtainedUpgrade.isAvailable()) {
 			throw new SgtMissionRegistrationException(
 					"Can't register mission, of type LEVEL_UP, when upgrade is not available!");
 		}

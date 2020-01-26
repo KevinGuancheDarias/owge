@@ -50,8 +50,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
 
-	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE ou.sourcePlanet.id = ?1 AND(ou.mission.id IS NULL OR ou.mission.type.code = 'DEPLOYED') ")
-	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNullOrDeployed(Long planetId);
+	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE ou.mission.id != ?1 AND (ou.mission.id IS NULL AND ou.sourcePlanet.id = ?2) OR (ou.mission.type.code = 'DEPLOYED' AND ou.targetPlanet.id = ?2) ")
+	public List<ObtainedUnit> findByExplorePlanet(Long exploreMissionId, Long planetId);
 
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
 
@@ -73,5 +73,29 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	@Query("SELECT SUM(utg.value * ou.count) FROM ObtainedUnit ou INNER JOIN ou.unit.improvement.unitTypesUpgrades utg WHERE ou.user = ?1 AND utg.type = ?2")
 	public Long sumByUserAndImprovementUnitTypeImprovementType(UserStorage user, String name);
+
+	/**
+	 * 
+	 * @param userId
+	 * @param unitId
+	 * @param planetId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNull(Integer userId, Integer unitId,
+			Long planetId);
+
+	/**
+	 * 
+	 * @param userId
+	 * @param unitId
+	 * @param planetId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(Integer userId, Integer unitId,
+			Long planetId, String missionCode);
 
 }

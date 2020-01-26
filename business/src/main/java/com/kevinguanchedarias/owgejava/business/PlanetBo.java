@@ -15,7 +15,6 @@ import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
@@ -216,8 +215,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	public boolean canLeavePlanet(Integer invokerId, Long planetId) {
 		return !isHomePlanet(planetId) && isOfUserProperty(invokerId, planetId)
 				&& !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
-				&& missionBo.findRunningUnitBuild(invokerId, Double.valueOf(planetId)) == null
-				&& !missionBo.existsByTargetPlanetAndType(planetId, MissionType.RETURN_MISSION);
+				&& missionBo.findRunningUnitBuild(invokerId, Double.valueOf(planetId)) == null;
 	}
 
 }

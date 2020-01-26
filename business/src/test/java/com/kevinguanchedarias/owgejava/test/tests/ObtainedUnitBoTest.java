@@ -22,7 +22,6 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -62,53 +61,6 @@ public class ObtainedUnitBoTest {
 		sourcePlanet = new Planet();
 		sourcePlanet.setId(SOURCE_PLANET_ID);
 		Mockito.when(planetBoMock.isOfUserProperty(USER_ID, SOURCE_PLANET_ID)).thenReturn(true);
-	}
-
-	@Test(expected = SgtBackendNotImplementedException.class)
-	public void shouldThrowBecauseNonDeployedInLocalPlanetSavingIsNotSupported() {
-		Planet otherPlanet = new Planet();
-		otherPlanet.setId(2L);
-		obtainedUnit.setSourcePlanet(otherPlanet);
-		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
-	}
-
-	@Test
-	public void shouldSaveAddedOneWhenUnitDoesNotExistsInDatabase() {
-		obtainedUnit.setSourcePlanet(sourcePlanet);
-
-		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
-		Mockito.verify(repositoryMock).save(obtainedUnit);
-		Mockito.verify(repositoryMock, Mockito.never()).delete(Mockito.any(ObtainedUnit.class));
-	}
-
-	@Test
-	public void shouldSaveExistingOneWhenUnitExistsInDatabaseDeletingAddedIfHasId() {
-		obtainedUnit.setSourcePlanet(sourcePlanet);
-
-		ObtainedUnit existingOne = new ObtainedUnit();
-		existingOne.setId(2L);
-		existingOne.setCount(1L);
-		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(USER_ID, UNIT_ID,
-				SOURCE_PLANET_ID, obtainedUnit.getId())).thenReturn(existingOne);
-		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
-		Mockito.verify(repositoryMock).save(existingOne);
-		Mockito.verify(repositoryMock).delete(obtainedUnit);
-
-	}
-
-	@Test
-	public void shouldSaveExistingOneWhenUnitExistsInDatabaseNotDeletingIfHasNotId() {
-		obtainedUnit.setSourcePlanet(sourcePlanet);
-		obtainedUnit.setId(null);
-
-		ObtainedUnit existingOne = new ObtainedUnit();
-		existingOne.setId(2L);
-		existingOne.setCount(1L);
-		Mockito.when(repositoryMock.findOneByUserIdAndUnitIdAndSourcePlanetIdAndIdNotAndMissionNull(USER_ID, UNIT_ID,
-				SOURCE_PLANET_ID, obtainedUnit.getId())).thenReturn(existingOne);
-		obtainedUnitBo.saveWithAdding(USER_ID, obtainedUnit);
-		Mockito.verify(repositoryMock).save(existingOne);
-		Mockito.verify(repositoryMock, Mockito.never()).delete(obtainedUnit);
 	}
 
 	@Test(expected = SgtBackendInvalidInputException.class)
