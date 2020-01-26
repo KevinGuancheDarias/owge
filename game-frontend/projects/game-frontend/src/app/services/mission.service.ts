@@ -129,7 +129,7 @@ export class MissionService {
   }
 
   public cancelMission(missionId: number): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
+    return this._universeGameService.postWithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
   }
 
   public isUnitMission(mission: AnyRunningMission): boolean {
@@ -154,7 +154,7 @@ export class MissionService {
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse<AnyRunningMission>(
+    return this._universeGameService.postWithAuthorizationToUniverse<AnyRunningMission>(
       url, {
       sourcePlanetId: sourcePlanet.id,
       targetPlanetId: targetPlanet.id,

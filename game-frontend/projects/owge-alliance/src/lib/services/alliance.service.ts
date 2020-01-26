@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { switchMap ,  first ,  map } from 'rxjs/operators';
+import { switchMap, first, map } from 'rxjs/operators';
 
 import { UserStorage } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
@@ -60,7 +60,7 @@ export class AllianceService {
   public save(alliance: Alliance): Observable<Alliance> {
     const retVal: Observable<Alliance> = alliance.id
       ? this._universeGameService.putwithAuthorizationToUniverse('alliance', alliance)
-      : this._universeGameService.postwithAuthorizationToUniverse('alliance', alliance);
+      : this._universeGameService.postWithAuthorizationToUniverse('alliance', alliance);
     return retVal.pipe(
       switchMap(saved => this._updateStorages(saved))
     );
@@ -89,7 +89,7 @@ export class AllianceService {
    * @returns
    */
   public requestJoin(allianceId: number): Observable<AllianceJoinRequest> {
-    return this._universeGameService.postwithAuthorizationToUniverse('alliance/requestJoin', { allianceId });
+    return this._universeGameService.postWithAuthorizationToUniverse('alliance/requestJoin', { allianceId });
   }
 
   /**
@@ -113,7 +113,7 @@ export class AllianceService {
    * @returns
    */
   public acceptJoinRequest(joinRequestId: number): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse('alliance/acceptJoinRequest', { joinRequestId });
+    return this._universeGameService.postWithAuthorizationToUniverse('alliance/acceptJoinRequest', { joinRequestId });
   }
 
   /**
@@ -125,7 +125,7 @@ export class AllianceService {
    * @returns
    */
   public rejectJoinRequest(joinRequestId: number): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse('alliance/rejectJoinRequest', { joinRequestId });
+    return this._universeGameService.postWithAuthorizationToUniverse('alliance/rejectJoinRequest', { joinRequestId });
   }
 
 
@@ -137,7 +137,7 @@ export class AllianceService {
    * @returns
    */
   public leave(): Observable<Alliance> {
-    return this._universeGameService.postwithAuthorizationToUniverse('alliance/leave').pipe(
+    return this._universeGameService.postWithAuthorizationToUniverse('alliance/leave').pipe(
       switchMap(_ => this._updateStorages(null))
     );
   }

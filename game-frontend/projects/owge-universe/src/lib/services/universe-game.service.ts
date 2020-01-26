@@ -122,7 +122,7 @@ export class UniverseGameService {
    * @param [options]
    * @returns
    */
-  public postwithAuthorizationToUniverse<T = any>(url: string, body?: any, options?: HttpOptions): Observable<T> {
+  public postWithAuthorizationToUniverse<T = any>(url: string, body?: any, options?: HttpOptions): Observable<T> {
     this._log.warnDeprecated('postWithAuthorizationToUniverse()', '0.8.0', 'requestWithAutorizationToContext()');
     return this._postPutWithAuthorizationToContext<T>('game', 'post', url, body, options);
   }
