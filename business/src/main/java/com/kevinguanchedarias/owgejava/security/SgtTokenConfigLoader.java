@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenConfigLoader;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.enumerations.TokenVerificationMethod;
@@ -17,6 +18,9 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 
 	@Autowired
 	private ConfigurationBo configurationBo;
+
+	@Value("${OWGE_CLOCK_SKEW:300}")
+	private long allowedClockSkew;
 
 	@Override
 	public String getTokenSecret() {
@@ -57,6 +61,11 @@ public class SgtTokenConfigLoader implements TokenConfigLoader {
 	@Override
 	public String getPublicKey() {
 		return "/var/owge_data/keys/public.key";
+	}
+
+	@Override
+	public long getAllowedClockSkew() {
+		return allowedClockSkew;
 	}
 
 }

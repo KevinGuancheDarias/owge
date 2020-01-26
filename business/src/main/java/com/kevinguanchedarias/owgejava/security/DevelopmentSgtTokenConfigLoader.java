@@ -63,4 +63,9 @@ public class DevelopmentSgtTokenConfigLoader implements TokenConfigLoader {
 		return null;
 	}
 
+	@Override
+	public long getAllowedClockSkew() {
+		return 3600;
+	}
+
 }
