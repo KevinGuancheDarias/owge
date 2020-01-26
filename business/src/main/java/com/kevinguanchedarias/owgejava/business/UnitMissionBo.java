@@ -842,11 +842,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 		targetMissionInformation.getInvolvedUnits().forEach(current -> {
 			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
 			currentObtainedUnit.setMission(mission);
-			currentObtainedUnit.setFirstDeploymentMission(dbUnits.get(current.getId()).getFirstDeploymentMission());
+			Mission firstDeploymentMission = dbUnits.get(current.getId()).getFirstDeploymentMission();
+			currentObtainedUnit.setFirstDeploymentMission(firstDeploymentMission);
 			currentObtainedUnit.setCount(current.getCount());
 			currentObtainedUnit.setUser(user);
 			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
-			currentObtainedUnit.setSourcePlanet(mission.getSourcePlanet());
+			currentObtainedUnit.setSourcePlanet(firstDeploymentMission == null ? mission.getSourcePlanet()
+					: firstDeploymentMission.getSourcePlanet());
 			currentObtainedUnit.setTargetPlanet(mission.getTargetPlanet());
 			obtainedUnits.add(currentObtainedUnit);
 		});
