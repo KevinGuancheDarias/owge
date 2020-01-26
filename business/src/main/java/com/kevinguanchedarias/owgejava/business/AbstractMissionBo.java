@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -335,6 +336,44 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 			throw exceptionUtilService
 					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED")
 					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
+	}
+
+	/**
+	 * Finds the last mission in the relation tree that is not a RETURN_MISSION
+	 * 
+	 * @param missionId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	protected Mission findLastMissionInRelationTree(Long missionId) {
+		return findLastMissionInRelationTree(missionId,
+				mission -> MissionType.RETURN_MISSION.name().equals(mission.getType().getCode()));
+	}
+
+	/**
+	 * Find the last mission in the relation tree that matches "false" to
+	 * <i>ignore</i> lambda
+	 * 
+	 * @param missionId
+	 * @param ignore
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	protected Mission findLastMissionInRelationTree(Long missionId, Predicate<Mission> ignore) {
+		Mission mission = findById(missionId);
+		if (mission != null && mission.getRelatedMission() != null) {
+			if (ignore.test(mission)) {
+				return findLastMissionInRelationTree(missionId, ignore);
+			} else {
+				return mission;
+			}
+		} else if (mission != null && mission.getRelatedMission() == null) {
+			return mission;
+		} else {
+			throw new ProgrammingException("Passed null");
 		}
 	}
 

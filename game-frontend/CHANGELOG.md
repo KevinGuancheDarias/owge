@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [You can't see allyes units in exploration report #55](https://github.com/KevinGuancheDarias/owge/issues/55)
 * __Fix:__ [Unit building stopped working in 0.8.0 #146](https://github.com/KevinGuancheDarias/owge/issues/146)
 * __Fix:__ [Can't leave base X when a mission from base Y to base X is in return state #144](https://github.com/KevinGuancheDarias/owge/issues/144)
 * [class=Admin] __Fix:__ [Admin configuration for mission times, is getting reset each time the backend restarts #141](https://github.com/KevinGuancheDarias/owge/issues/141) 
