@@ -561,7 +561,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (!planetBo.isExplored(user, targetPlanet)) {
 			planetBo.defineAsExplored(user, targetPlanet);
 		}
-		List<ObtainedUnit> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(targetPlanet);
+		List<ObtainedUnit> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(mission, targetPlanet);
 		adminRegisterReturnMission(mission);
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
@@ -684,8 +684,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		returnMission.setRequiredTime(mission.getRequiredTime());
 		Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
 		returnMission.setTerminationDate(computeTerminationDate(requiredTime));
-		returnMission.setSourcePlanet(mission.getTargetPlanet());
-		returnMission.setTargetPlanet(mission.getSourcePlanet());
+		returnMission.setSourcePlanet(mission.getSourcePlanet());
+		returnMission.setTargetPlanet(mission.getTargetPlanet());
 		returnMission.setUser(mission.getUser());
 		returnMission.setRelatedMission(mission);
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
@@ -700,7 +700,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		Mission mission = missionRepository.findOne(missionId);
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
-				mission.getTargetPlanet().getId()));
+				mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChange(mission, mission.getUser());
 	}
@@ -778,13 +778,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public Mission findDeployedMissionOrCreate(Planet origin, ObtainedUnit unit) {
+	public Mission findDeployedMissionOrCreate(ObtainedUnit unit) {
 		UserStorage user = unit.getUser();
-		Planet target = unit.getSourcePlanet();
+		Planet origin = unit.getSourcePlanet();
+		Planet target = unit.getTargetPlanet();
 		Mission existingMission = findOneByUserIdAndTypeAndTargetPlanet(user.getId(), MissionType.DEPLOYED,
 				target.getId());
 		if (existingMission != null) {
 			unit.setFirstDeploymentMission(null);
+			unit.setMission(existingMission);
 			obtainedUnitBo.save(unit);
 			return existingMission;
 		} else {
@@ -844,8 +846,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 			currentObtainedUnit.setCount(current.getCount());
 			currentObtainedUnit.setUser(user);
 			currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
-			currentObtainedUnit.setSourcePlanet(mission.getTargetPlanet());
-			currentObtainedUnit.setTargetPlanet(mission.getSourcePlanet());
+			currentObtainedUnit.setSourcePlanet(mission.getSourcePlanet());
+			currentObtainedUnit.setTargetPlanet(mission.getTargetPlanet());
 			obtainedUnits.add(currentObtainedUnit);
 		});
 		List<UnitType> involvedUnitTypes = obtainedUnits.stream().map(current -> current.getUnit().getType())
@@ -888,8 +890,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	private Map<Integer, ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
 		Map<Integer, ObtainedUnit> retVal = new HashMap<>();
-		checkUserExists(missionInformation.getUserId());
-		checkPlanetExists(missionInformation.getSourcePlanetId());
+		Integer userId = missionInformation.getUserId();
+		Long sourcePlanetId = missionInformation.getSourcePlanetId();
+		checkUserExists(userId);
+		checkPlanetExists(sourcePlanetId);
 		checkPlanetExists(missionInformation.getTargetPlanetId());
 		checkDeployedAllowed(missionInformation.getMissionType());
 		Set<Mission> deletedMissions = new HashSet<>();
@@ -900,8 +904,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 			if (current.getCount() == null) {
 				throw new SgtBackendInvalidInputException("No count was specified for unit " + current.getId());
 			}
-			ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNullOrDeployed(
-					missionInformation.getUserId(), current.getId(), missionInformation.getSourcePlanetId());
+			ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(
+					missionInformation.getUserId(), current.getId(), sourcePlanetId,
+					!planetBo.isOfUserProperty(userId, sourcePlanetId));
 			checkUnitCanDeploy(currentObtainedUnit, missionInformation);
 			ObtainedUnit unitAfterSubstraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
 					current.getCount(), false);
@@ -975,14 +980,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * ObtainedUnit
 	 * 
 	 * @param id
+	 * @param isDeployedMission If true will search for a deployed obtained unit,
+	 *                          else for an obtained unit with a <i>null<i> mission
 	 * @return the expected obtained id
 	 * @throws NotFoundException If obtainedUnit doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private ObtainedUnit findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMissionIdIsNullOrDeployed(Integer userId,
-			Integer unitId, Long planetId) {
-		ObtainedUnit retVal = obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNullOrDeployed(userId,
-				unitId, planetId);
+	private ObtainedUnit findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(Integer userId, Integer unitId,
+			Long planetId, boolean isDeployedMission) {
+		ObtainedUnit retVal = isDeployedMission
+				? obtainedUnitBo.findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, planetId)
+				: obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, planetId);
+
 		if (retVal == null) {
 			throw new NotFoundException("No obtainedUnit for unit with id " + unitId + " was found in planet "
 					+ planetId + ", nice try, dirty hacker!");

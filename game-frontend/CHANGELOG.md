@@ -3,6 +3,8 @@
 v0.8.1 (latest)
 =================
 
+* __Fix:__ [Can't leave base X when a mission from base Y to base X is in return state #144
+](https://github.com/KevinGuancheDarias/owge/issues/144)
 * [class=Admin] __Fix:__ [Admin configuration for mission times, is getting reset each time the backend restarts #141](https://github.com/KevinGuancheDarias/owge/issues/141) 
 * [class=Advanced] __Improvement:__ Allow to expose dockerized SQS server, when you want to run your backend manually
 * [class=Advanced] __Fix:__ In OWGE Docker Launcher, advanced pro guys profile was not working  
