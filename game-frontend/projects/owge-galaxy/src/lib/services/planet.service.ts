@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
-import {filter} from 'rxjs/operators';
-import { Observable ,  BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 import { User, UserStorage } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
@@ -59,7 +59,7 @@ export class PlanetService {
   }
 
   public leavePlanet(planet: Planet): Observable<void> {
-    return this._universeGameService.postwithAuthorizationToUniverse('planet/leave?planetId=' + planet.id);
+    return this._universeGameService.postWithAuthorizationToUniverse('planet/leave?planetId=' + planet.id);
   }
 
   public findSelectedPlanet(): Promise<Planet> {

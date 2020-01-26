@@ -148,7 +148,7 @@ export class UnitService {
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
-    this._universeGameService.getWithAuthorizationToUniverse('unit/build', { params }).subscribe(res => {
+    this._universeGameService.postWithAuthorizationToUniverse('unit/build', '', { params }).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
@@ -222,7 +222,7 @@ export class UnitService {
       throw new ProgrammingError('ObtainedUnit MUST have an id, and the count MUST be specified');
     }
     const { id, count } = unit;
-    await this._universeGameService.postwithAuthorizationToUniverse('unit/delete', { id, count }).toPromise();
+    await this._universeGameService.postWithAuthorizationToUniverse('unit/delete', { id, count }).toPromise();
     this._unitTypeService.sustractToType(unit.unit.typeId, count);
   }
 
