@@ -2,6 +2,9 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [Units deployed in other planets appear in the fight #95](https://github.com/KevinGuancheDarias/owge/issues/95)
+* __Fix:__ [Base establishment mission is participating in an attack to the source planet, and not to the target planet #54](https://github.com/KevinGuancheDarias/owge/issues/54)
+* __Fix:__ [Displaying units in planet is not working in some cases, when the user owns multiple planets #56](https://github.com/KevinGuancheDarias/owge/issues/56)
 * __Fix:__ [You can't see allyes units in exploration report #55](https://github.com/KevinGuancheDarias/owge/issues/55)
 * __Fix:__ [Unit building stopped working in 0.8.0 #146](https://github.com/KevinGuancheDarias/owge/issues/146)
 * __Fix:__ [Can't leave base X when a mission from base Y to base X is in return state #144](https://github.com/KevinGuancheDarias/owge/issues/144)
