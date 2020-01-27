@@ -130,7 +130,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 				findUnitMissionBoInstance().adminRegisterReturnMission(mission);
 				resolveMission(mission);
 			} else if (missionType == MissionType.BUILD_UNIT) {
-				obtainedUnitBo.deleteByMissionId(mission.getId(), false);
+				obtainedUnitBo.deleteByMissionId(mission.getId());
 				delete(mission);
 			} else if (missionType == MissionType.LEVEL_UP) {
 				delete(mission);

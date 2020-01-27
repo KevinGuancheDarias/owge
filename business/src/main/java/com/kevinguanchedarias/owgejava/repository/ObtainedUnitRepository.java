@@ -16,6 +16,15 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	public List<ObtainedUnit> findBySourcePlanetId(Long planetId);
 
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public List<ObtainedUnit> findByTargetPlanetId(Long id);
+
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionNull(Long planetId);
 
 	/**

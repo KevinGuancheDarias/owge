@@ -44,9 +44,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	private UnitTypeBo unitTypeBo;
 
 	@Autowired
-	private UserImprovementBo userImprovementBo;
-
-	@Autowired
 	private UnitMissionBo unitMissionBo;
 
 	@Autowired
@@ -292,7 +289,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 */
 	@Transactional(propagation = Propagation.MANDATORY)
 	public int deleteByMissionId(Long missionId) {
-		return deleteByMissionId(missionId, true);
+		int retVal = repository.deleteByMissionId(missionId).intValue();
+		improvementBo.clearCacheEntries(this);
+		return retVal;
 	}
 
 	/**
@@ -301,22 +300,26 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * specified, for example to avoid removing improvements of a unit that has not
 	 * been even built
 	 * 
+	 * @deprecated Use the version without the <i>subtractImprovements</i> param, as
+	 *             it's not longer required
 	 * @param missionId
 	 * @param subtractImprovements If true will too subtract improvements
 	 * @return
 	 * @since 0.7.3
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.8.1")
 	@Transactional(propagation = Propagation.MANDATORY)
 	public int deleteByMissionId(Long missionId, boolean subtractImprovements) {
-		return repository.findByMissionId(missionId).stream().map(current -> {
-			if (subtractImprovements) {
-				userImprovementBo.subtractImprovements(current.getUnit().getImprovement(), current.getUser(),
-						current.getCount());
-			}
+		int retVal = repository.findByMissionId(missionId).stream().map(current -> {
 			delete(current);
 			return current;
 		}).collect(Collectors.toList()).size();
+		if (subtractImprovements) {
+			improvementBo.clearCacheEntries(this);
+
+		}
+		return retVal;
 	}
 
 	public List<ObtainedUnit> findInMyPlanet(Long planetId) {
@@ -335,12 +338,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet, Mission attackMission) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
 		retVal.addAll(repository.findBySourcePlanetId(attackedPlanet.getId()));
-		retVal.addAll(repository
-				.findByTargetPlanetIdAndMissionIdNotNullAndMissionIdNot(attackedPlanet.getId(), attackMission.getId())
-				.stream()
-				.filter(current -> MissionType
-						.valueOf(current.getMission().getType().getCode()) != MissionType.DEPLOYED)
-				.collect(Collectors.toList()));
+		retVal.addAll(repository.findByTargetPlanetId(attackedPlanet.getId()));
 		return retVal;
 	}
 
