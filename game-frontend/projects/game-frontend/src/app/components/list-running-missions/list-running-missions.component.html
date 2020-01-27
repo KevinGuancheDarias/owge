@@ -3,7 +3,7 @@
     Select target planet
   </div>
   <div class="body">
-    <app-display-quadrant></app-display-quadrant>
+    <app-display-quadrant *ngIf="isDisplayingModal"></app-display-quadrant>
   </div>
 </owge-core-modal>
 <owge-core-loading [isReady]="runningUnitMissions" (ready)="onReady()">

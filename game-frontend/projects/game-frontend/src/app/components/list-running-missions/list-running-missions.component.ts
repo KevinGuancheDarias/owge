@@ -41,6 +41,7 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   public tooltipPlanetComponent: ElementRef;
 
   public tooltipPlanet: PlanetPojo;
+  public isDisplayingModal = false;
 
   @ViewChild('navigationModal', { static: true })
   private _navigationModal: ModalComponent;
@@ -59,6 +60,7 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   public ngOnInit(): void {
     this._missionInformationStore.missionSent.subscribe(() => {
       this._navigationModal.hide();
+      this.isDisplayingModal = false;
       this.missionDone.emit();
     });
   }
@@ -99,5 +101,6 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
     this._missionInformationStore.originPlanet.next(runningMission.targetPlanet);
     this._missionInformationStore.availableUnits.next(runningMission.involvedUnits);
     this._navigationModal.show();
+    this.isDisplayingModal = true;
   }
 }
