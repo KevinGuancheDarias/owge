@@ -629,7 +629,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public void processAttack(Long missionId) {
 		Mission mission = findById(missionId);
-		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		AttackInformation attackInformation = buildAttackInformation(targetPlanet, mission);
 		attackInformation.startAttack();
@@ -638,7 +637,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		resolveMission(mission);
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
-				.create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, involvedUnits)
+				.create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, new ArrayList<>())
 				.withAttackInformation(attackInformation);
 		hanleMissionReportSave(mission, builder,
 				attackInformation.users.stream().map(current -> current.user).collect(Collectors.toList()));

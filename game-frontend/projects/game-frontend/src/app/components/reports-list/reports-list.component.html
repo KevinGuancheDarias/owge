@@ -19,8 +19,8 @@
           </div>
           <app-display-single-planet [planet]="selectedReport.parsedJson.targetPlanet"></app-display-single-planet>
         </div>
-        <h1>Involved units</h1>
-        <app-deployed-units-list [obtainedUnits]="selectedReport.parsedJson.involvedUnits"></app-deployed-units-list>
+        <h1 *ngIf="selectedReport.parsedJson.involvedUnits?.length">Involved units</h1>
+        <app-deployed-units-list  *ngIf="selectedReport.parsedJson.involvedUnits?.length" [obtainedUnits]="selectedReport.parsedJson.involvedUnits"></app-deployed-units-list>
         <ng-container *ngIf="selectedReport.parsedJson.unitsInPlanet">
           <h1>Units in planet</h1>
           <app-deployed-units-list [obtainedUnits]="selectedReport.parsedJson.unitsInPlanet"></app-deployed-units-list>
