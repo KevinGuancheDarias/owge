@@ -13,7 +13,7 @@
   <div *ngIf="navigationData">
     <app-planet-selector [navigationData]="navigationData">
       <ng-template let-planet="planet">
-        <img [src]="findUiIcon('mission.png')" title="Enviar misión" (click)="sendMission(planet)" />
+        <img [src]="'mission.png' | uiIcon" title="Enviar misión" (click)="sendMission(planet)" />
       </ng-template>
     </app-planet-selector>
   </div>

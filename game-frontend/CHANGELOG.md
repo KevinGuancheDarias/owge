@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ [Improve phone battery consumption and performance when browsing the universe #139](https://github.com/KevinGuancheDarias/owge/issues/139)
 * __Improvement:__ Doesn't make much sense to display "Involved units" in the attack mission report, remove it 
 * __Fix:__ [The units that go in the attack mission, are not participating in the attack itself #149](https://github.com/KevinGuancheDarias/owge/issues/149)
 * __Fix:__ [Units deployed in other planets appear in the fight #95](https://github.com/KevinGuancheDarias/owge/issues/95)
