@@ -176,6 +176,18 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	public Long countByUserAndUnitType(UserStorage user, Integer typeId) {
 		UnitType type = unitTypeBo.findById(typeId);
+		return countByUserAndUnitType(user, type);
+	}
+
+	/**
+	 * 
+	 * @param user
+	 * @param type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public Long countByUserAndUnitType(UserStorage user, UnitType type) {
 		return repository.countByUserAndUnitType(user, type);
 	}
 

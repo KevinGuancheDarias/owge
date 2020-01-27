@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
@@ -29,14 +29,16 @@ public class UnitTypeRestService {
 	@Autowired
 	private UnitTypeBo unitTypeBo;
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@GetMapping("/")
 	public List<UnitTypeDto> findAll() {
 		return unitTypeBo.findAll().stream().map(current -> {
 			UnitTypeDto currentDto = new UnitTypeDto();
 			currentDto.dtoFromEntity(current);
-			UserStorage user = userStorageBo.findLoggedInWithDetails(false);
-			currentDto.setComputedMaxCount(unitTypeBo.findUniTypeLimitByUser(user, current.getId()));
-			currentDto.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current.getId()));
+			UserStorage user = userStorageBo.findLoggedInWithDetails();
+			currentDto.setComputedMaxCount(unitTypeBo.findUniTypeLimitByUser(user, current));
+			if (current.hasMaxCount()) {
+				currentDto.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current));
+			}
 			return currentDto;
 		}).collect(Collectors.toList());
 	}

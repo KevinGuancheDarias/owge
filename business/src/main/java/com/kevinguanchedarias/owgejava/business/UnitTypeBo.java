@@ -60,11 +60,26 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 */
 	public Long findUniTypeLimitByUser(UserStorage user, Integer typeId) {
 		UnitType type = findById(typeId);
+		return findUniTypeLimitByUser(user, type);
+	}
+
+	/**
+	 * Finds the max amount of a certain unit type the given user can have <br>
+	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
+	 * find the improvement</b>
+	 * 
+	 * @param user
+	 * @param type
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.8.1
+	 */
+	public Long findUniTypeLimitByUser(UserStorage user, UnitType type) {
 		Long retVal = 0L;
 		if (type.hasMaxCount()) {
 			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
 			retVal = (long) Math.floor(improvementBo.computePlusPercertage(type.getMaxCount(),
-					groupedImprovement.findUnitTypeImprovement(ImprovementTypeEnum.AMOUNT, typeId)));
+					groupedImprovement.findUnitTypeImprovement(ImprovementTypeEnum.AMOUNT, type.getId())));
 		}
 		return retVal;
 	}
