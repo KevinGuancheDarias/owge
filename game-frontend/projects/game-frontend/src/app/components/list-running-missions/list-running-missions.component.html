@@ -15,7 +15,7 @@
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
         (click)="cancelMission(runningUnitMission)" class="fas fa-times"></i>
       <span class="display-time">
-        <app-countdown *ngIf="runningUnitMission.terminationDate"
+        <app-countdown *ngIf="runningUnitMission.terminationDate && runningUnitMission.terminationDate.toString() !== 'Invalid Date'"
           [targetDate]="convertToDate(runningUnitMission.terminationDate)" (timeOver)="missionDone.emit()">
         </app-countdown>
       </span>
