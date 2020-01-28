@@ -68,11 +68,11 @@ function _menu () {
     echo -e "OWGE launcher :: By Kevin Guanche Darias & contributors\n"
     echo -e "Passed compose up options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
     echo -e "Passed compose build options:\e[32m${EXTRA_COMPOSE_BUILD_OPTIONS}. $_emptyWarning  \e[36mPass environment variable EXTRA_COMPOSE_BUILD_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_BUILD_OPTIONS=--no-cache -it ./owge_launcher.sh\e[39m"
-    echo -e "     `__findRunningComposerProject owge_all_dockerized 9` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
-     `__findRunningComposerProject owge_frontend_developer 7` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
-     `__findRunningComposerProject owge_backend_developer 8` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
-     `__findRunningComposerProject owge_fullstack_developer 2` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
-     `__findRunningComposerProject owge_fullstack_without_database 2` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
+    echo -e "     `__findRunningComposerProject owge_all_dockerized 8` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
+     `__findRunningComposerProject owge_frontend_developer 6` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
+     `__findRunningComposerProject owge_backend_developer 7` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
+     `__findRunningComposerProject owge_fullstack_developer 5` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
+     `__findRunningComposerProject owge_fullstack_without_database 4` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
      $_extraMockAccountCommands
      \e[32m6\e[39m. \e[31m\U2665 \e[36mDonate \e[31m\U2665\e[39m
      \e[32m7\e[39m. \e[36mSee something nice \e[33m???\e[36m x') \e[39m
@@ -226,7 +226,6 @@ function _doLaunch() {
         log debug "Profile: \e[36m$_profileName\e[39m";
         log debug "Port \e[36m$_port\e[39m";
         _accountPort=`expr $_port + 1`;
-        _sqsPort=`expr $_port + 2`;
         log debug "Account port \e[36m$_accountPort\e[39m";
         log debug "Static directory: \e[36m$_staticDirectory\e[39m";
         log debug "Dynamic directory: \e[36m$_dynamicDirectory\e[39m";
@@ -295,7 +294,6 @@ function _withFrontend() {
 }
 
 function _withBackend() {
-    _withSqs;
     if [ -z "$OWGE_BACKEND_SERVER" ]; then
         dockerFindHostIp;
         promptWithDefault "Backend Server" "$output:8080";
@@ -304,9 +302,6 @@ function _withBackend() {
         export OWGE_REST_CONTEXT_PATH="$_output";
         promptWithDefault "Admin contextpath" "owgejava-admin";
         export OWGE_ADMIN_CONTEXT_PATH="$_output";
-        promptWithDefault "In which port do you want the SQS docker container to listen to?" "7474";
-        export OWGE_SQS_PORT=7474;
-        export _launchLine="$_launchLine -f ./profiles/exposed-sqs-server.docker-compose.yml";
     else 
         export _launchLine="$_launchLine -f ./profiles/backend.docker-compose.yml";
     fi
@@ -318,9 +313,6 @@ function _withDatabase() {
     export _launchLine="$_launchLine -f ./profiles/backend_database.docker-compose.yml";
 }
 
-function _withSqs() {
-    export _launchLine="$_launchLine -f ./profiles/sqs_server.docker-compose.yml";
-}
 
 function _withExportedDatabase () {
     promptPort "backend MySQL" 1;

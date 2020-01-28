@@ -1,6 +1,0 @@
-version: '3.4'
-
-services:
-    sqs_server:
-        ports:
-            - "${OWGE_SQS_PORT}:7474"

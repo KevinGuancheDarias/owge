@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kevinguanchedarias.owgejava.configurations.SqsConfig;
@@ -31,9 +30,12 @@ import com.kevinguanchedarias.sqs.producer.Producer;
 /**
  * 
  * @since 0.8.0
+ * @deprecated While SQS was a nice idea, has too many errors in concurrent
+ *             "stressful" servers, while should be fixed, SQS is a low near-to
+ *             none priority project
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-@Service
+@Deprecated(since = "0.8.1")
 public class SqsManagerService {
 	private static final Logger LOG = Logger.getLogger(SqsManagerService.class);
 

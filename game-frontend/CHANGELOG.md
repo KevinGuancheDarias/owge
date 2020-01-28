@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* [class=Developer] __Improvement:__ No longer use SQS as it is unstable on stressful server
 * [class=Developer] __Improvement:__ Display slow method executions as warning in the log
 * [class=Developer] __Improvement:__ [In unitType/finAll don't compute userBuilt on unitTypes that don't have a maxCount #125](https://github.com/KevinGuancheDarias/owge/issues/125)
 * [class=Developer] __Improvement:__ [In mission list don't create instances of display-quadrant if modal is not shown #138](https://github.com/KevinGuancheDarias/owge/issues/138)

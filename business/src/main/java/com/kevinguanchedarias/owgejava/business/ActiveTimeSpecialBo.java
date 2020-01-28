@@ -22,11 +22,10 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.OwgeSqsMessageEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
-import com.kevinguanchedarias.owgejava.pojo.OwgeSqsMessage;
+import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
@@ -61,7 +60,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	private ImprovementBo improvementBo;
 
 	@Autowired
-	private transient SqsManagerService sqsManagerService;
+	private transient ScheduledTasksManagerService scheduledTasksManagerService;
 
 	@Autowired
 	private DtoUtilService dtoUtilService;
@@ -69,25 +68,25 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	@PostConstruct
 	public void init() {
 		improvementBo.addImprovementSource(this);
-		sqsManagerService.addHandler(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, message -> {
-			LOG.debug("Time special effect end" + message.findSimpleContent());
-			ActiveTimeSpecial activeTimeSpecial = findById(Long.valueOf((Integer) message.findSimpleContent()));
+		scheduledTasksManagerService.addHandler("TIME_SPECIAL_EFFECT_END", task -> {
+			Long id = (Long) task.getContent();
+			LOG.debug("Time special effect end" + id);
+			ActiveTimeSpecial activeTimeSpecial = findById(id);
 			if (activeTimeSpecial != null) {
 				activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
 				Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
 				activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
 				save(activeTimeSpecial);
 				improvementBo.clearSourceCache(activeTimeSpecial.getUser(), this);
-				sqsManagerService.sendMessage(
-						new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, activeTimeSpecial.getId()),
-						rechargeTime);
+				task.setType("TIME_SPECIAL_IS_READY");
+				scheduledTasksManagerService.registerEvent(task, rechargeTime);
 			} else {
 				LOG.debug(
 						"ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
 			}
 		});
-		sqsManagerService.addHandler(OwgeSqsMessageEnum.TIME_SPECIAL_IS_READY, message -> {
-			Long id = Long.valueOf((Integer) message.findSimpleContent());
+		scheduledTasksManagerService.addHandler("TIME_SPECIAL_IS_READY", task -> {
+			Long id = (Long) task.getContent();
 			LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
 			delete(id);
 		});
@@ -181,9 +180,8 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			newActive.setUser(user);
 			improvementBo.clearSourceCache(user, this);
 			newActive = save(newActive);
-			sqsManagerService.sendMessage(
-					new OwgeSqsMessage(OwgeSqsMessageEnum.TIME_SPECIAL_EFFECT_END, newActive.getId()),
-					timeSpecial.getDuration());
+			ScheduledTask<Long> task = new ScheduledTask<>("TIME_SPECIAL_EFFECT_END", newActive.getId());
+			scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
 			return newActive;
 		} else {
 			LOG.warn("The specified time special, is already active, doing nothing");
