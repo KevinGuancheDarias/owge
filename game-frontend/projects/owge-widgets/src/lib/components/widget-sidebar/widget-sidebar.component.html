@@ -1,15 +1,23 @@
-<div id="owge-side-bar-root" *ngIf="sidebarRoutes">
-    <div class="magic-overflow">
-          <ng-container *ngFor="let route of sidebarRoutes">
+<div class="owge-side-bar-root" *ngIf="sidebarRoutes">
+      <div class="magic-overflow">
+
+            <a *ngIf="selectedRoute" class="owge-sidebar-btn-menu selected-menu" role="button" routerLink="{{ selectedRoute.path }}">
+                  <span><i [class]="selectedRoute.icon"></i></span>
+                  <svg xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                        <text y="70%" [attr.textLength]="computedLength" lengthAdjust="spacingAndGlyphs">{{ selectedRoute.text }}</text>
+                        </g>
+                  </svg>
+            </a>
+            <ng-container *ngFor="let route of sidebarRoutes">
                   <a *ngIf="route.path" class="owge-sidebar-btn-menu" role="button" routerLink="{{ route.path }}"
-                  routerLinkActive="selectedMenu">
-                        <span><i [class]="route.icon"></i></span><img src="/assets/img/blanckbotton200x200.png" />{{ route.text }}
+                  routerLinkActive="selected-menu-link">
+                        <span><i [class]="route.icon"></i></span>
                   </a>
                   <button *ngIf="route.action" class="owge-sidebar-btn-menu" role="button" (click)="route.action()">
-                        <span><i [class]="route.icon"></i></span><img src="/assets/img/blanckbotton200x200.png" />{{ route.text }}
+                        <span><i [class]="route.icon"></i></span>
                   </button>
-            <hr>
-          </ng-container>
-          <ng-content select=".body"></ng-content>
-    </div>
+            </ng-container>
+      </div>
+      <ng-content select=".body"></ng-content>
 </div>

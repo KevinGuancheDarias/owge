@@ -85,21 +85,6 @@ body{
 		background-size: cover;
 	}
 
-	/* Allows using scroll in position fixed elements */
-	.magic-overflow{
-		width: 190px;
-		overflow:auto;
-		margin-right: -100px;
-		max-height:100%;
-		scrollbar-width: none; /* Firefox */
-		-ms-overflow-style: none;  /* IE 10+ */
-		
-		&::-webkit-scrollbar {
-			width: 0px;
-			height: 0px;
-		}
-	}
-
 	.app-container{
 		margin-top: 10px;
 		padding-left: 220px;
@@ -157,17 +142,6 @@ body{
 		transition: all 0.5s;
 		&:hover{
 			box-shadow: 2px 2px 2px black;
-			color: @mainColor;
-		}
-	}
-
-	a.selectedMenu{
-		/*	box-shadow: 2px 2px 2px @selectedMenuColor;
-			color: @mainColor;
-		*/
-		
-		&:hover{
-			box-shadow: 1px 1px 1px @selectedMenuColor;
 			color: @mainColor;
 		}
 	}

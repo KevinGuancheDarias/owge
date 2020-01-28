@@ -1,19 +1,28 @@
 @import "../../colors.less";
 
+.magic-overflow {
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
 .owge-sidebar-btn-menu{
-    width: 13%;
+    width: 18.67%;
     margin-left: 1%;
     height: 50px;
     background-image: url('/assets/img/oldmetalnew.jpg');
-    float: left;
     border-radius: 5%;
     margin-top: 1px;
+    padding-top: 5px;
+    padding-left: 10px;
    
-    overflow:hidden;
+    overflow: hidden;
+
+    display: block;
    
     font-size: 35px;
     text-align: center;
-    vertical-align: middle;
     text-shadow: 0px 0px 1px black;
     background-position: top;
     background-size: 100% 100%;
@@ -24,6 +33,50 @@
     font-weight: bold;
     font-size: 180%;
     color: silver;
+
+    &.selected-menu-link {
+        color: gold;
+    }
+
+    &.selected-menu{
+        border:inset;
+        color: gold;
+    }
+
+    &.selected-menu {
+        box-shadow: 2px 2px 2px @selectedMenuColor;
+        color: @mainColor;
+        width: 100%;
+        font-size: 1.5rem;
+        padding-left: 55px;
+        padding-right: 10px;
+        position: relative;
+        
+        span {
+            position: absolute;
+            top: 5px;
+            left: 0px;
+        }
+
+        svg {
+            display: block;
+        }
+        
+        &:hover{
+            box-shadow: 1px 1px 1px @selectedMenuColor;
+            color: @mainColor;
+        }
+    }
+
+    svg {
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        display: none;
+        g {
+            fill: @mainColor;
+        }
+    }
 
 }
 .owge-sidebar-btn-menu img{
@@ -39,10 +92,6 @@
     width: 40px;
     height: 40px;
 }
-.owge-sidebar-btn-menu.selectedMenu{
-    border:inset;
-    color: gold;
-}
 
 hr {
     width: 100%;
@@ -51,24 +100,18 @@ hr {
     margin: 0px;
     color:rgba(0,0,0,0);
 }
-
 @media (min-width:768px){
-    .owge-sidebar-btn-menu img{
-        display: none;
-    }
     .owge-sidebar-btn-menu{
-        width: 100%;
-        text-indent: 0px;
+        width: 31.2%;
+        text-indent: 10px;
         border-radius: 10px;
         margin:1%;
+        font-size: 200%;
+        padding-left: 0px;
+        padding-top: 0px;
     }
-    .owge-sidebar-btn-menu span{
-        display: none;
-    }
-    hr{
-       visibility: hidden;
-    }
-    #owge-side-bar-root{
+
+    .owge-side-bar-root{
         position: fixed;
         z-index: 90;
         height: 100%;

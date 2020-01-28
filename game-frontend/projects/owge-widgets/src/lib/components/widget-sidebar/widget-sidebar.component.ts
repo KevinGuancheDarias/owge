@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
-import {  MenuRoute } from '@owge/core';
+import { MenuRoute } from '@owge/core';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'owge-widgets-sidebar',
@@ -8,9 +10,27 @@ import {  MenuRoute } from '@owge/core';
   styleUrls: ['./widget-sidebar.component.less'],
   providers: []
 })
-export class WidgetSideBarComponent {
+export class WidgetSideBarComponent implements OnInit {
   @Input() public sidebarRoutes: MenuRoute[];
 
-  constructor() {}
+  public selectedRoute: MenuRoute;
+  public computedLength = '100%';
 
+  constructor(private _router: Router) {
+
+  }
+
+  public ngOnInit(): void {
+    this.selectedRoute = this.sidebarRoutes.find(current => current.path === this._router.url);
+    this._router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((route: NavigationEnd) => {
+      this.selectedRoute = this.sidebarRoutes.find(current => current.path === route.url);
+      this._calculateSvgLength();
+    });
+    this._calculateSvgLength();
+  }
+
+  private _calculateSvgLength(): void {
+    const length: number = this.selectedRoute.text.length * 8;
+    this.computedLength = ((length > 100) ? 100 : length) + '%';
+  }
 }

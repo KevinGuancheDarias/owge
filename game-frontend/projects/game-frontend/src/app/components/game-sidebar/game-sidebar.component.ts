@@ -40,14 +40,14 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._createTranslatableMenuRoute('APP.MENU_NAVIGATION', ROUTES.NAVIGATE, 'fa fa-map'),
     this._createTranslatableMenuRoute('APP.MENU_REPORTS', ROUTES.REPORTS, 'fa fa-envelope'),
     this._createTranslatableMenuRoute('APP.MENU_ALLIANCES', ROUTES.ALLIANCE, 'fas fa-user-friends'),
-    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock'),
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', '/time_specials', 'fa fa-clock'),
     this._createTranslatableMenuRoute('APP.MENU_RANKING', ROUTES.RANKING, 'fa fa-trophy'),
-    this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._loginSessionService.logout(), 'fa fa-times'),
     {
       text: version,
       path: ROUTES.VERSION,
       icon: 'fa fa-info'
-    }
+    },
+    this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._loginSessionService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
   public maxMissions: number;
