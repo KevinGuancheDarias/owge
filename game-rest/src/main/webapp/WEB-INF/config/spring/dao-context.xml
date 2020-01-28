@@ -18,7 +18,6 @@
 		http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
 
 	<context:annotation-config></context:annotation-config>
-
 	<context:component-scan
 		base-package="com.kevinguanchedarias.owgejava.dao" />
 	<context:component-scan
@@ -77,4 +76,17 @@
 	<jpa:repositories
 		base-package="com.kevinguanchedarias.owgejava.repository"
 		factory-class="com.kevinguanchedarias.owgejava.factory.CustomSpringDataRepositoryFactory"></jpa:repositories>
+
+	<beans profile="methodtiming">
+		<bean id="performanceMonitorDao"
+			class="com.kevinguanchedarias.owgejava.util.OwgePerformanceMonitorInterceptor">
+			<constructor-arg index="0" value="false"></constructor-arg>
+		</bean>
+
+		<aop:config>
+			<aop:advisor
+				pointcut="within(com.kevinguanchedarias.owgejava.business..*)"
+				advice-ref="performanceMonitorDao" order="3" />
+		</aop:config>
+	</beans>
 </beans>
