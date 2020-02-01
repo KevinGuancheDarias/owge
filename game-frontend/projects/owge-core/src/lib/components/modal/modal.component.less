@@ -6,7 +6,7 @@
     .modal-content {
         height: 100%;
         .modal-header {
-            font-size: 24pt;
+            font-size: 16pt;
             font-weight: bold;
         }
 
@@ -17,7 +17,7 @@
     }
 }
 
-@media only screen and (max-width: 768px) {
+.owge-modal-mobile {
     .modal.fade {
         position: fixed;
         width: 100%;
@@ -39,4 +39,8 @@
         height: 100%;
         background-color: white;
     }
+}
+
+@media only screen and (max-width: 768px), screen and (max-height: 759px) {
+    .owge-modal-mobile;    
 }

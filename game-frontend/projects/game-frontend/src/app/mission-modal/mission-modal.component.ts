@@ -26,7 +26,7 @@ import { ConfigurationService } from '../modules/configuration/services/configur
 @Component({
   selector: 'app-mission-modal',
   templateUrl: './mission-modal.component.html',
-  styleUrls: ['./mission-modal.component.less']
+  styleUrls: ['./mission-modal.component.scss']
 })
 export class MissionModalComponent extends AbstractModalContainerComponent implements OnInit {
 
@@ -49,10 +49,9 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public obtainedUnits: ObtainedUnit[];
 
   public selectedUnits: SelectedUnit[];
-
   public selectedUnitsTypes: UnitType[];
-
   public missionType: MissionType = null;
+  public isValidSelection = false;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
@@ -117,6 +116,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
 
   public onSelectedUnitTypes(unitTypes: UnitType[]): void {
     this.selectedUnitsTypes = unitTypes;
+    this.isValidSelection = this.areUnitsSelected();
     if (!this.selectedUnitsTypes.length || !this.isMissionRealizableByUnitTypes(this.missionType)) {
       this.missionType = null;
     } else if (this.missionType === null && this.isMissionRealizableByUnitTypes('EXPLORE')) {

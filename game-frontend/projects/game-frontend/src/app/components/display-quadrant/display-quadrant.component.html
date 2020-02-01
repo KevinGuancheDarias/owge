@@ -4,14 +4,15 @@
     <app-navigation-controls *ngIf="navigationData" [navigationData]="navigationData" [navigationConfig]="navigationConfig"
       (onNavigation)="changePosition($event)"></app-navigation-controls>
   </div>
-  <div class="owge-base-colors navigation-controls" *ngIf="navigationConfig && navigationData">
-    Coordenadas actuales Galaxia:
-    <b>{{ findSelectedGalaxyName() }}</b>, Sector:
-    <b>{{ navigationConfig.sector }}</b>, Cuadrante:
-    <b>{{ navigationConfig.quadrant }}</b>
+  <h4 class="display-quadrant owge-base-colors">Coordenadas actuales</h4>
+  <div class="owge-base-colors display-quadrant navigation-status row" *ngIf="navigationConfig && navigationData">
+    
+    <div class="col-xs-4"><div>{{ 'APP.DISPLAY_QUADRANT.GALAXY' |translate}}:</div> <div class="value">{{ findSelectedGalaxyName() }}</div></div>
+    <div class="col-xs-4"><div>{{ 'APP.DISPLAY_QUADRANT.SECTOR' |translate}}:</div> <div class="value">{{ navigationConfig.sector }}</div></div>
+    <div class="col-xs-4"><div>{{ 'APP.DISPLAY_QUADRANT.QUADRANT' |translate}}:</div> <div class="value">{{ navigationConfig.quadrant }}</div></div>
   </div>
   <div *ngIf="navigationData">
-    <app-planet-selector [navigationData]="navigationData">
+    <app-planet-selector [navigationData]="navigationData" [class]="isFullWidth ? 'full-width' : 'in-content'">
       <ng-template let-planet="planet">
         <img [src]="'mission.png' | uiIcon" title="Enviar misión" (click)="sendMission(planet)" />
       </ng-template>

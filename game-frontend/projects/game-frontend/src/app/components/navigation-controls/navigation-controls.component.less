@@ -1,0 +1,16 @@
+div.row  {
+    display: flex;
+    justify-content: center;
+    > div {
+        background-color: rgba(255, 255, 255, 0.3);
+        label {
+            padding: 2px 10px;
+            text-align: center;
+        }
+
+        ~ div.form-group select {
+            text-align-last: right;
+            direction: rtl;
+        }
+    }
+}

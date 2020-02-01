@@ -1,52 +1,133 @@
 @import '../../../colors.less';
 @import "../../../common_include.less";
 
+h4.display-quadrant {
+    margin-top: 4px;
+    margin-bottom: 0px;
+    font-size: 12pt;
+    text-align: center;
+}
 
-div.owge-quadrant{
-    float: left;
-    margin-top: 7px;
-    margin-left: 10px;
-    width: 110px;
-    background-color: @bgColor;
-    color: @mainColor;
-    box-shadow: @commonBoxShadow;
-    text-shadow: @commonTextShadow;
+.display-quadrant{
+    
+    &.navigation-status {
+        display: flex;
+        justify-content: center;
+        padding: 5px 15px;
 
-    &:hover {
-        box-shadow: @commonHoverBoxShadow;
+        > * {
+            padding: 5px 20px;
+            > div {
+                display: block;
+                width: 100%;
+            } 
+            .value {
+                font-weight: bold;
+            }
+            + div .value {
+                text-align: right;
+            }
+        }
     }
+}
 
-    h5 {
-        font-size: 10pt;
-        letter-spacing: 1.5px;
-        position: relative;
-        top: 6px;
-        left: 6px;
-    }
+app-planet-selector {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    background-color: rgba(255,255,255,0.3);
+    padding: 1.5% 4%;
 
-    .planet-image {
-        width: 95px;
-        height: 95px;
-        border-radius: 92.5px;
-        filter: drop-shadow(1px 0px 2px @bgColorOther);
+    div.owge-planet-card {
+        width: 47%;
+        background-color: @bgColor;
+        color: @mainColor;
+        box-shadow: @commonBoxShadow;
+        text-shadow: @commonTextShadow;
+        box-sizing: border-box;
+        margin: 3px;
 
         &:hover {
-            filter: drop-shadow(3px 0px 6px @bgColorOther);
+            box-shadow: @commonHoverBoxShadow;
         }
-    }    
-    .planet-actions {
-        width: 100%;
-        min-height: 20px;
 
-        img {
-            float: left;
-            height: 20px;
-            margin-left: 5px;
-            margin-bottom: 5px;
+        h5 {
+            font-size: 10pt;
+            letter-spacing: 1.5px;
+            position: relative;
+            top: 6px;
+            left: 6px;
+        }
+
+        .planet-image {
+            margin: 2px auto;
+            width: 95px;
+            height: 95px;
+            border-radius: 92.5px;
+            filter: drop-shadow(1px 0px 2px @bgColorOther);
 
             &:hover {
-                .fn-ui-circular-icon-focus;
+                filter: drop-shadow(3px 0px 6px @bgColorOther);
             }
+        }    
+        .planet-actions {
+            width: 100%;
+            min-height: 20px;
+
+            img {
+                float: left;
+                height: 20px;
+                margin-left: 5px;
+                margin-bottom: 5px;
+
+                &:hover {
+                    .fn-ui-circular-icon-focus;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 359px) {
+    app-planet-selector div.owge-planet-card {
+        width: 47.5%;
+    }
+}
+
+@media (min-width: 410px) {
+    app-planet-selector div.owge-planet-card {
+        width: 31.5%;
+    }
+}
+
+@media (min-width: 639px) {
+    app-planet-selector div.owge-planet-card {
+        width: 18.9%;
+    }
+}
+
+@media (min-width:760px){
+    app-planet-selector.full-width div.owge-planet-card {
+        width: 15.66%;
+    }
+    app-planet-selector.in-content div.owge-planet-card {
+        width: 18.8%;
+    }
+}
+
+@media (min-width: 1020px ) {
+    app-planet-selector.in-content div.owge-planet-card {
+        width: 15.66%;
+    }
+}
+
+@media (min-width: 1359px) {
+
+    app-planet-selector.in-content {
+
+        div.owge-planet-card {
+            width: 10.95%;
+            max-width: 110px;
         }
     }
 }

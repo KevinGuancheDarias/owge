@@ -8,6 +8,33 @@
             "BTN_FORGOT_PASSWORD": "Forgot password",
             "BTN_REGISTER": "Register"
         },
+        "MISSION_TYPES": {
+            "PLEASE_SELECT": "Select...",
+            "EXPLORE": "Explore",
+            "RETURN_MISSION": "Return",
+            "GATHER": "Gather",
+            "ESTABLISH_BASE": "Establish base",
+            "ATTACK": "Attack",
+            "COUNTERATTACK": "Counterattack",
+            "CONQUEST": "Conquest",
+            "DEPLOY": "Deploy",
+            "DEPLOYED": "Deployed"
+        },
+        "MISSION_LIST": {
+            "HEADER_MISSION_TYPE_FROM_USER": "{{missionType}} from player {{userName}}",
+            "ORIGIN": "Origin",
+            "TARGET": "Target"
+        },
+        "DISPLAY_QUADRANT": {
+            "GALAXY": "Galaxy",
+            "SECTOR": "Sector",
+            "QUADRANT": "Quadrant"
+        },
+        "MISSION_MODAL": {
+            "HEADER": "Send mission to {{planetName}}",
+            "MISSION_TYPE": "Mission type",
+            "CHOOSE_UNITS_FIRST": "You have to select units before you can choose mission type"
+        },
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
         "LIST_JOIN_REQUEST": "List join request",

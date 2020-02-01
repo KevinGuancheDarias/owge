@@ -35,6 +35,13 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   @Input()
   public finalCount: number;
 
+  /**
+   * Allow to choose if should use tiny cards or not
+   *
+   * @since 0.8.1
+   */
+  @Input() public useTiny = false;
+
   @Output()
   public selection: EventEmitter<SelectedUnit[]> = new EventEmitter();
 
@@ -52,7 +59,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
 
   public ngOnChanges() {
     if (this.obtainedUnits) {
-      this.selectedCounts = this.obtainedUnits.map(() => 0);
+      this.selectedCounts = this.obtainedUnits.map(() => null);
     }
   }
 

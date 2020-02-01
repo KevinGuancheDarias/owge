@@ -1,24 +1,20 @@
 <owge-core-loading [isReady]="obtainedUnits">
-  <div *ngIf="obtainedUnits" class="card-block">
+  <div class="owge-card-list" [ngClass]="{'tiny-imgs': useTiny}">
     <div class="card owge" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
-      <div class="card-block" *ngIf="selectedCounts">
+      <div class="card-block card-header-block">
         <div class="card-title">
-          <span *ngIf="selectedCounts[i]">
-            {{ obtainedUnit.count }}
-          </span>
-          <span *ngIf="!selectedCounts[i]">
+          <span>
             {{ obtainedUnit.count }}
           </span>
         </div>
+        <img [src]="findUnitImageUrl(obtainedUnit.unit)" />
       </div>
-      <img [src]="findUnitImageUrl(obtainedUnit.unit)" />
       <div class="card-block" *ngIf="selectable">
-        <input min="0" [max]="obtainedUnit.count" type="number" placeholder="Select count" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"
-        />
+        <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" placeholder="Select count" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>
       </div>
     </div>
-  </div>
-  <div *ngIf="!obtainedUnits || !obtainedUnits.length" class="owge-empty-collection">
-    There are no units in the planet
+    <div *ngIf="!obtainedUnits || !obtainedUnits.length" class="owge-empty-collection">
+      There are no units in the planet
+    </div>
   </div>
 </owge-core-loading>

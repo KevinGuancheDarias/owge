@@ -41,7 +41,7 @@
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
     "angular2-fontawesome": "~5.2.0",
-    "bootstrap": "^4.0.0-alpha.5",
+    "bootstrap": "^4.4.1",
     "core-js": "^2.4.1",
     "jquery": "^3.1.1",
     "karma-spec-reporter": "0.0.26",

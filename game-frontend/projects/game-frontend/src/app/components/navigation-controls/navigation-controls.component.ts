@@ -8,7 +8,6 @@ import { ProgrammingError } from '@owge/core';
   selector: 'app-navigation-controls',
   templateUrl: './navigation-controls.component.html',
   styleUrls: ['./navigation-controls.component.less'],
-  encapsulation: ViewEncapsulation.None
 })
 export class NavigationControlsComponent implements OnInit {
 

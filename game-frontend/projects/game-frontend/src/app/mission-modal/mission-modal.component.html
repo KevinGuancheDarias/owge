@@ -1,29 +1,32 @@
 <owge-core-modal #childModal [hasCloseButton]="true" [closeOnOverlayClick]="closeOnOverlayClick" [isOpenOnLoad]="isOpenOnLoad"
   [hasCloseButton]="hasCloseButton">
   <div class="header">
-    Send mission to planet {{ targetPlanet | planetDisplayName }}
+    {{ 'APP.MISSION_MODAL.HEADER' | translate: { planetName: targetPlanet | planetDisplayName} }}
   </div>
-  <div class="body">
-    <span>Mission type:</span>
-    <select *ngIf="targetPlanet" [(ngModel)]="missionType">
-      <option [ngValue]="null">None</option>
-      <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">Explore</option>
-      <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">Gather</option>
-      <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">Establish
-        base</option>
-      <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">Attack</option>
-      <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">Counterattack</option>
-      <option *ngIf="isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">Deploy</option>
-      <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home"
-        value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">Conquest</option>
-    </select>
+  <div class="body owge-base-colors">
+    <div *ngIf="isValidSelection">
+      <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
+      <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType">
+      <option [ngValue]="null">{{ 'APP.MISSION_TYPES.PLEASE_SELECT' | translate }}</option>
+        <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">{{ 'APP.MISSION_TYPES.EXPLORE' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">{{ 'APP.MISSION_TYPES.GATHER' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">{{ 'APP.MISSION_TYPES.ESTABLISH_BASE' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">{{ 'APP.MISSION_TYPES.ATTACK' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">{{ 'APP.MISSION_TYPES.COUNTERATTACK' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">{{ 'APP.MISSION_TYPES.DEPLOY' | translate }}</option>
+        <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home" value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">{{ 'APP.MISSION_TYPES.CONQUEST' | translate }}</option>
+      </select>
+    </div>
+    <div *ngIf="!isValidSelection">
+      {{ 'APP.MISSION_MODAL.CHOOSE_UNITS_FIRST' | translate }}
+    </div>
     <div class="unit-selection">
       <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"
         (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
     </div>
   </div>
   <div class="footer">
-    <button (click)="sendMission()" [disabled]="!areUnitsSelected() || !missionType || hasSelectedMoreThanPossible()"
+    <button (click)="sendMission()" [disabled]="!isValidSelection || !missionType || hasSelectedMoreThanPossible()"
       class="btn-primary btn-send-mission">Send
       mission</button>
   </div>

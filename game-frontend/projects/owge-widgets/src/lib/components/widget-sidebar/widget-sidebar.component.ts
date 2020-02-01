@@ -21,7 +21,9 @@ export class WidgetSideBarComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.selectedRoute = this.sidebarRoutes.find(current => current.path === this._router.url);
+    if (this.selectedRoute) {
+      this.selectedRoute = this.sidebarRoutes.find(current => current.path === this._router.url);
+    }
     this._router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((route: NavigationEnd) => {
       this.selectedRoute = this.sidebarRoutes.find(current => current.path === route.url);
       this._calculateSvgLength();
@@ -30,7 +32,9 @@ export class WidgetSideBarComponent implements OnInit {
   }
 
   private _calculateSvgLength(): void {
-    const length: number = this.selectedRoute.text.length * 8;
-    this.computedLength = ((length > 100) ? 100 : length) + '%';
+    if (this.selectedRoute) {
+      const length: number = this.selectedRoute.text.length * 8;
+      this.computedLength = ((length > 100) ? 100 : length) + '%';
+    }
   }
 }

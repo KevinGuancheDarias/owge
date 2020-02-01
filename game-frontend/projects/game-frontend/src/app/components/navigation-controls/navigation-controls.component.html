@@ -1,25 +1,31 @@
-<div *ngIf="navigationData">
-  <label> Galaxia: </label>
-  <select [compareWith]="galaxyEquals" [(ngModel)]="selectedGalaxy" (ngModelChanges)="hasChanged()">
-    <option *ngFor="let galaxy of navigationData.galaxies" [ngValue]="galaxy">
-      {{ galaxy.name }}
-    </option>
-  </select>
+<div *ngIf="navigationData" class="row">
+  <div class="col-xs-3 form-group">
+    <label> Galaxia: </label>
+    <select class="owge-base-colors form-control" [compareWith]="galaxyEquals" [(ngModel)]="selectedGalaxy" (ngModelChanges)="hasChanged()">
+      <option *ngFor="let galaxy of navigationData.galaxies" [ngValue]="galaxy">
+        {{ galaxy.name }}
+      </option>
+    </select>
+  </div>
   <ng-container *ngIf="selectedGalaxy">
-    <label> Sector: </label>
-    <select [(ngModel)]="selectedSector" (ngModelChanges)="hasChanged()">
-      <option *ngFor="let sector of createLoop(selectedGalaxy.sectors); let i = index" [value]="i+1">
-        {{ i+1 }}
-      </option>
-    </select>
-
-    <label> Cuadrante: </label>
-    <select [(ngModel)]="selectedQuadrant" (ngModelChanges)="hasChanged()">
-      <option *ngFor="let quadrant of createLoop(selectedGalaxy.quadrants); let i = index" [value]="i+1">
-        {{ i+1 }}
-      </option>
-    </select>
+    <div class="col-xs-3 form-group">
+      <label> Sector: </label>
+      <select class="owge-base-colors form-control" [(ngModel)]="selectedSector" (ngModelChanges)="hasChanged()">
+        <option *ngFor="let sector of createLoop(selectedGalaxy.sectors); let i = index" [value]="i+1">
+          {{ i+1 }}
+        </option>
+      </select>
+    </div>
+    <div class="col-xs-3 form-group">
+      <label> Cuadrante: </label>
+      <select class="owge-base-colors form-control" [(ngModel)]="selectedQuadrant" (ngModelChanges)="hasChanged()">
+        <option *ngFor="let quadrant of createLoop(selectedGalaxy.quadrants); let i = index" [value]="i+1">
+          {{ i+1 }}
+        </option>
+      </select>
+    </div>    
   </ng-container>
-
-  <button [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (click)="navigate()">Navegar</button>
+  <div class="col-xs-3 form-group">
+    <button class="btn btn-primary" [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (click)="navigate()">Navegar</button>
+  </div>
 </div>

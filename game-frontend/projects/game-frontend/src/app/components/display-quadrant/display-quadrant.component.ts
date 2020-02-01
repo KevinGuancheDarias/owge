@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, Input, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Input, ViewChild } from '@angular/core';
 
 import { BaseComponent } from '../../base/base.component';
 import { NavigationData } from '../../shared/types/navigation-data.type';
@@ -15,6 +15,8 @@ import { MissionInformationStore } from '../../store/mission-information.store';
   encapsulation: ViewEncapsulation.None
 })
 export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
+
+  @Input() public isFullWidth = false;
 
   public navigationData: NavigationData;
   public navigationConfig: NavigationConfig;

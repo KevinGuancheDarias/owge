@@ -1,0 +1,22 @@
+@import './partials/colors';
+
+.owge-card-list {
+    flex-wrap: wrap;
+}
+
+input {
+    padding: 5px 10px;
+
+    &.owge-base-colors {
+        background-color: scale-color($color: $bgColor, $lightness: 10%, $saturation: 7.5%);
+
+        &::placeholder {
+            color: #CCC;
+            text-align: center;
+        }
+        &::-ms-input-placeholder {
+            color: #CCC;
+            text-align: center;
+        }
+    }
+}

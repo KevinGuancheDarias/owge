@@ -65,10 +65,6 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
     });
   }
 
-  public onReady(): void {
-    this.autoSpanCard(this._components, '.auto-expand', el => el.parentElement.parentElement.parentElement);
-  }
-
   public onMouseEnter(planet: PlanetPojo): void {
     this.tooltipPlanet = planet;
     $(this.tooltipPlanetComponent.nativeElement).detach().appendTo('.tooltip');
