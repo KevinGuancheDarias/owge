@@ -1,9 +1,5 @@
 @import './partials/colors';
 
-.owge-card-list {
-    flex-wrap: wrap;
-}
-
 input {
     padding: 5px 10px;
 
@@ -19,4 +15,8 @@ input {
             text-align: center;
         }
     }
+}
+
+.owge-card-list {
+    flex-wrap: wrap;
 }

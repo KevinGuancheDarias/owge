@@ -6,7 +6,10 @@ import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/dat
 @Component({
   selector: 'app-display-requirements',
   templateUrl: './display-requirements.component.html',
-  styleUrls: ['./display-requirements.component.less']
+  styleUrls: [
+    './display-requirements.component.less',
+    './display-requirements.component.scss'
+  ]
 })
 export class DisplayRequirementsComponent extends BaseComponent implements OnInit, OnChanges {
 

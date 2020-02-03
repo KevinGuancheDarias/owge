@@ -74,6 +74,7 @@ import { Subscription } from 'rxjs';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
 import { TimeSpecialService } from './services/time-specials.service';
+import { HideDuplicatedNamePipe } from './pipes/hide-duplicated-name.pipe';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -142,7 +143,8 @@ export const APP_ROUTES: Routes = [
     PlanetSelectorComponent,
     MissionModalComponent,
     GameSidebarComponent,
-    TimeSpecialsComponent
+    TimeSpecialsComponent,
+    HideDuplicatedNamePipe
   ],
   imports: [
     BrowserModule,

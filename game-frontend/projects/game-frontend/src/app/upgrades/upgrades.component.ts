@@ -10,7 +10,7 @@ import { UpgradeType } from '../shared/types/upgrade-type.type';
 @Component({
   selector: 'app-upgrades',
   templateUrl: './upgrades.component.html',
-  styleUrls: ['./upgrades.component.less']
+  styleUrls: ['./upgrades.component.scss']
 })
 export class UpgradesComponent extends BaseComponent implements OnInit {
   private static readonly _SESSION_STORAGE_UPGRADE_TYPE_KEY = 'upgrades.component.unitType';

@@ -1,4 +1,7 @@
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { Observable, Subscription } from 'rxjs';
+
 
 import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
@@ -8,15 +11,18 @@ import { BaseComponent } from './../base/base.component';
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { Upgrade } from './../shared-pojo/upgrade.pojo';
+import { ScreenDimensionsServie } from 'projects/owge-core/src/lib/services/screen-dimensions.service';
 
 @Component({
   selector: 'app-display-single-upgrade',
   templateUrl: './display-single-upgrade.component.html',
-  styleUrls: ['./display-single-upgrade.component.less']
+  styleUrls: [
+    './display-single-upgrade.component.less',
+    './display-single-upgrade.component.scss',
+  ]
 })
-export class DisplaySingleUpgradeComponent extends BaseComponent implements OnInit {
+export class DisplaySingleUpgradeComponent extends BaseComponent implements OnInit, OnDestroy {
 
   @Input()
   public upgrade: Upgrade;
@@ -25,27 +31,35 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   public obtainedUpgrade: ObtainedUpgradePojo;
 
   @Output()
-  public onRunningUpgradeDone: EventEmitter<{}> = new EventEmitter();
+  public runningUpgradeDone: EventEmitter<{}> = new EventEmitter();
 
   @ViewChild('confirmDialog', { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public image: string;
   public runningUpgrade: RunningUpgrade;
   public vConfirmDeleteText: string;
+  public isDesktop: boolean;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _sdsIdentifier: string;
+  private _subscription: Subscription;
 
   constructor(
     private _upgradeService: UpgradeService,
     private _translateService: TranslateService,
     private _universeGameService: UniverseGameService,
-    private _userStore: UserStorage<User>
+    private _userStore: UserStorage<User>,
+    private _screenDimensionsService: ScreenDimensionsServie
   ) {
     super();
     this.requireUser();
+    this._sdsIdentifier = this._screenDimensionsService.generateIdentifier(this);
   }
 
   public ngOnInit() {
+    this._subscription = this._screenDimensionsService.hasMinWidth(767, this._sdsIdentifier).subscribe(val => {
+      this.isDesktop = val;
+    });
     if (this.obtainedUpgrade) {
       this.upgrade = this.obtainedUpgrade.upgrade;
       this._userStore.currentUserImprovements.subscribe(improvement =>
@@ -54,6 +68,11 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
     }
     this.image = MEDIA_ROUTES.IMAGES_ROOT + this.upgrade.image;
     this._syncIsUpgrading();
+  }
+
+  public ngOnDestroy(): void {
+    this._screenDimensionsService.removeHandler(this._sdsIdentifier);
+    this._subscription.unsubscribe();
   }
 
   public updateSelectedUpgrade(selected: ObtainedUpgradePojo): void {
@@ -101,7 +120,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
         ]
       );
     }, 5000);
-    this.onRunningUpgradeDone.emit();
+    this.runningUpgradeDone.emit();
   }
 
   private _syncIsUpgrading(): void {

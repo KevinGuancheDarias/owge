@@ -3,7 +3,9 @@
   <option [ngValue]="null">All upgrades</option>
   <option *ngFor="let currentType of upgradeTypes" [ngValue]="currentType">{{ currentType.name }}</option>
 </select>
-<div *ngFor="let obtainedUpgrade of obtainedUpgrades">
-  <app-display-single-upgrade *ngIf="isOfTypeOrNullFilter(obtainedUpgrade.upgrade, 'upgradeType') && obtainedUpgrade.available"
-    [obtainedUpgrade]="obtainedUpgrade" (onRunningUpgradeDone)="onRunningUpgradeDone()"></app-display-single-upgrade>
+<div class="owge-card-list">
+  <ng-container *ngFor="let obtainedUpgrade of obtainedUpgrades">
+    <app-display-single-upgrade *ngIf="isOfTypeOrNullFilter(obtainedUpgrade.upgrade, 'upgradeType') && obtainedUpgrade.available"
+      [obtainedUpgrade]="obtainedUpgrade" (runningUpgradeDone)="onRunningUpgradeDone()"></app-display-single-upgrade>
+  </ng-container>
 </div>

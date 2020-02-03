@@ -9,6 +9,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { OwgeCoreConfig } from './pojos/owge-core-config';
 import { Config } from './pojos/config.pojo';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { ScreenDimensionsServie } from './services/screen-dimensions.service';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -40,7 +41,8 @@ export class CoreModule {
       ngModule: CoreModule,
       providers: [
         CoreHttpService,
-        { provide: OwgeCoreConfig, useValue: accountConfig }
+        { provide: OwgeCoreConfig, useValue: accountConfig },
+        ScreenDimensionsServie
       ]
     };
   }
