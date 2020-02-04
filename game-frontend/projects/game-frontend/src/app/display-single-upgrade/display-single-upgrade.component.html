@@ -11,6 +11,13 @@
         <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
     </div>
     <img src="{{ image }}" alt="image of the upgrade">
+    <ng-container *ngIf="runningUpgrade && obtainedUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
+      <div class="upgrading-countdown" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
+        <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate"
+          (timeOver)="notifyCaller()">
+        </app-countdown>
+      </div>  
+    </ng-container>
     <div class="card-block upgrade-text">
       <p class="card-text">{{ upgrade.description }}</p>
     </div>
@@ -20,27 +27,20 @@
         <app-display-requirements [requirements]="obtainedUpgrade.requirements"></app-display-requirements>
       </div>
     </ng-container>
-
-    <ng-container *ngIf="runningUpgrade">
-      <ng-container *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
-        <div class="upgrading-countdown">
-          <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate"
-            (timeOver)="notifyCaller()">
-          </app-countdown>
-        </div>
-        <a class="btn btn-block" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
-      </ng-container>
-      <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
-        (click)="otherUpgradeAlreadyRunning()">---</a>
-    </ng-container>
     <ng-container *ngIf="!runningUpgrade">
       <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
         (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+    </ng-container>
+    <ng-container *ngIf="runningUpgrade">
+      <a class="btn btn-block" *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
+      <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
+        (click)="otherUpgradeAlreadyRunning()">---</a>
     </ng-container>
   </div>
 
   <!-- desktop view -->
   <ng-container *ngIf="isDesktop">
+
     <div class="desktop-view-header owge-base-colors">
       <h5>
         {{ upgrade.name | hideDuplicatedName }}
@@ -54,6 +54,23 @@
         </div>
         <div>
           <img [src]="image" alt="image of the upgrade">
+          <ng-container *ngIf="runningUpgrade">
+            <ng-container *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
+              <div class="upgrading-countdown">
+                <app-countdown *ngIf="runningUpgrade.terminationDate" [targetDate]="runningUpgrade.terminationDate"
+                  (timeOver)="notifyCaller()">
+                </app-countdown>
+              </div>
+            </ng-container>
+            
+            <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
+              (click)="otherUpgradeAlreadyRunning()">---</a>
+          </ng-container>
+          <ng-container *ngIf="!runningUpgrade">
+            <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
+              (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+          </ng-container>
+          <a class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
         </div>
       </div>
 

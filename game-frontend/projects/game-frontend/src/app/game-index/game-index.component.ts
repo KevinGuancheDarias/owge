@@ -14,7 +14,10 @@ import { ObtainedUpgradePojo } from '../shared-pojo/obtained-upgrade.pojo';
 @Component({
   selector: 'app-game-index',
   templateUrl: './game-index.component.html',
-  styleUrls: ['./game-index.component.less']
+  styleUrls: [
+    './game-index.component.less',
+    './game-index.component.scss'
+  ]
 })
 export class GameIndexComponent extends BaseComponent implements OnInit {
 

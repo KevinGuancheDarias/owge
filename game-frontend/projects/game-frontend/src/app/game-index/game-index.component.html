@@ -6,7 +6,7 @@
     <div *ngIf="myUnitRunningMissions" class="owge-card-list">
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isMovable]="true" [isCancellable]="true"
         (missionDone)="findMyMissions()"></app-list-running-missions>
-      <p *ngIf="!myUnitRunningMissions.length" class="owge-base-colors">
+      <p *ngIf="!myUnitRunningMissions.length" class="owge-base-colors no-missions">
         You are not running any mission
       </p>
     </div>
@@ -16,7 +16,7 @@
     <div *ngIf="enemyRunningMissions" class="owge-card-list">
       <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"
         (missionDone)="findEnemyMissions()"></app-list-running-missions>
-      <p *ngIf="!enemyRunningMissions.length" class="owge-base-colors">
+      <p *ngIf="!enemyRunningMissions.length" class="owge-base-colors no-missions">
         No enemy mission are running to any of your planets
       </p>
     </div>

@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Improve Upgrades view
 * __Fix:__ [When phone is in landscape mode, the modals don't have correct length #156](https://github.com/KevinGuancheDarias/owge/issues/156)
 * __Improvement:__ Improve Home view
 * __Improvement/Fix:__ In v0.8.0 the sidebar was not working properly in mobile, fix it, and change the way I display it, as not working neither in some laptop scren resolutions
