@@ -21,11 +21,9 @@ export class WidgetSideBarComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    if (this.selectedRoute) {
-      this.selectedRoute = this.sidebarRoutes.find(current => current.path === this._router.url);
-    }
+    this.selectedRoute = this.sidebarRoutes.find(current => this._router.url.startsWith(current.path));
     this._router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((route: NavigationEnd) => {
-      this.selectedRoute = this.sidebarRoutes.find(current => current.path === route.url);
+      this.selectedRoute = this.sidebarRoutes.find(current => route.url.startsWith(current.path));
       this._calculateSvgLength();
     });
     this._calculateSvgLength();
