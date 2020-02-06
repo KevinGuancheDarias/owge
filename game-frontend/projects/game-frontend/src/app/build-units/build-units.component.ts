@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import {filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
 import { PlanetStore } from '@owge/galaxy';
 
@@ -9,14 +9,14 @@ import { UnitPojo } from './../shared-pojo/unit.pojo'; import { BaseUnitComponen
 @Component({
   selector: 'app-build-units',
   templateUrl: './build-units.component.html',
-  styleUrls: ['./build-units.component.less']
+  styleUrls: ['./build-units.component.scss']
 })
 export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
 
-  public get unlockedUnits(): UnitPojo {
+  public get unlockedUnits(): UnitPojo[] {
     return this._unlockedUnits;
   }
-  private _unlockedUnits: UnitPojo;
+  private _unlockedUnits: UnitPojo[];
 
   public buildingUnit: RunningUnitIntervalInformation;
 

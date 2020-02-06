@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {filter} from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
 import { PlanetStore } from '@owge/galaxy';
 
@@ -10,7 +10,7 @@ import { BaseUnitComponent } from '../shared/base-unit.component';
 @Component({
   selector: 'app-deployed-units-big',
   templateUrl: './deployed-units-big.component.html',
-  styleUrls: ['./deployed-units-big.component.less']
+  styleUrls: ['./deployed-units-big.component.scss']
 })
 export class DeployedUnitsBigComponent extends BaseUnitComponent implements OnInit {
 

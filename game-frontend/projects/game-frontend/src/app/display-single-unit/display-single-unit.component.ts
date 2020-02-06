@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
@@ -15,12 +15,15 @@ export type validViews = 'requirements' | 'attributes';
 @Component({
   selector: 'app-display-single-unit',
   templateUrl: './display-single-unit.component.html',
-  styleUrls: ['./display-single-unit.component.less']
+  styleUrls: ['./display-single-unit.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class DisplaySingleUnitComponent extends BaseComponent implements OnInit {
 
   @Input()
   public unit: UnitPojo;
+
+  @Input() isCompactView = false;
 
   @Input()
   public building: RunningUnitIntervalInformation;

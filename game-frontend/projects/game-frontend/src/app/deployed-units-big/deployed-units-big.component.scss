@@ -1,0 +1,12 @@
+@media (min-width: 767px){
+    owge-core-loading.compact-view {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+
+        app-display-single-unit {
+            width: initial;
+            margin: 0;
+        }
+    }
+}

@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subscription } from 'rxjs';
 
 
-import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User } from '@owge/core';
+import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { UniverseGameService } from '@owge/universe';
 
@@ -12,7 +12,6 @@ import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { Upgrade } from './../shared-pojo/upgrade.pojo';
-import { ScreenDimensionsServie } from 'projects/owge-core/src/lib/services/screen-dimensions.service';
 
 @Component({
   selector: 'app-display-single-upgrade',
@@ -49,7 +48,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
     private _translateService: TranslateService,
     private _universeGameService: UniverseGameService,
     private _userStore: UserStorage<User>,
-    private _screenDimensionsService: ScreenDimensionsServie
+    private _screenDimensionsService: ScreenDimensionsService
   ) {
     super();
     this.requireUser();

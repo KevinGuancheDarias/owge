@@ -1,24 +1,25 @@
 import { Router } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChildren, AfterViewInit, QueryList } from '@angular/core';
 import { UnitType } from '@owge/universe';
 import { UnitTypeService } from '../services/unit-type.service';
 import { BaseComponent } from '../base/base.component';
+import { LocalConfigurationService } from '@owge/core';
 
 type ValidLocation = 'BUILD_URL' | 'DEPLOYED_URL' | 'REQUIREMENTS_URL';
 
 @Component({
   selector: 'app-units',
   templateUrl: './units.component.html',
-  styleUrls: ['./units.component.less']
+  styleUrls: ['./units.component.scss']
 })
-export class UnitsComponent extends BaseComponent implements OnInit {
+export class UnitsComponent extends BaseComponent implements OnInit, AfterViewInit {
   private static readonly _SESSION_STORAGE_UNIT_TYPE_KEY = 'units.component.unitType';
   readonly BUILD_URL = '/units/build';
   readonly DEPLOYED_URL = '/units/deployed';
   readonly REQUIREMENTS_URL = '/units/requirements';
 
+  @ViewChildren('inputHideDescription') public inputHideDescription: QueryList<ElementRef>;
   public route: string;
-
   public unitTypes: UnitType[];
 
   /**
@@ -29,17 +30,43 @@ export class UnitsComponent extends BaseComponent implements OnInit {
    */
   public unitType?: UnitType = null;
 
+  public hideDescription = false;
+  public inputElement: HTMLInputElement;
+
   public get location(): ValidLocation {
     return this.findLocation();
   }
 
-  constructor(private _router: Router, private _unitTypeService: UnitTypeService) {
+  constructor(
+    private _router: Router,
+    private _unitTypeService: UnitTypeService,
+    private _localConfiguationService: LocalConfigurationService
+  ) {
     super();
+    this.hideDescription = this._localConfiguationService.findConfig(this.constructor.name);
   }
 
-  public ngOnInit() {
+  public ngOnInit(): void {
     this.unitType = JSON.parse(sessionStorage.getItem(UnitsComponent._SESSION_STORAGE_UNIT_TYPE_KEY));
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.unitTypes = unitTypes);
+  }
+
+  public ngAfterViewInit(): void {
+    if (this.inputHideDescription.first) {
+      this.inputElement = this.inputHideDescription.first.nativeElement;
+    }
+  }
+
+  public viewChanged(val: boolean) {
+    if (val) {
+      this.inputHideDescription.changes.subscribe(comps => {
+        this.inputElement = comps.first.nativeElement;
+      });
+    }
+  }
+
+  public onCheckboxChanged(): void {
+    this._localConfiguationService.saveConfig(this.constructor.name, this.hideDescription);
   }
 
   public onUnitTypeChange(): void {

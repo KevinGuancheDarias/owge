@@ -1,0 +1,52 @@
+@import '../../../../../../shared/styles/partials/colors';
+
+:host {
+    width: 98%;
+}
+
+.mobile-view.card.owge {
+    padding-bottom: 46px;
+    a.btn {
+        position: absolute;
+        bottom: 0px;
+        left: 0;
+    }
+}
+
+.image-container {
+    margin: 5px auto;
+    box-shadow: inset 0px 0px 10px gold, inset 0px 0px 2px black, 0px 0px 10px silver;
+    padding: 5px;
+    background-color: $bgColorOther;
+}
+
+.desktop-view-header {
+    margin-top: 5px;    
+    padding: 10px;
+    font-size: 13pt;
+    display: inline-block;
+    box-shadow: none;
+}
+
+.desktop-view {
+    width: 98%;
+    margin-top: 0px;
+
+    > div:last-child {
+        min-width: 160px;
+    }   
+}
+
+@media (min-width: 767px) {
+    .image-container {
+        display: table;
+    }
+}
+
+@media (max-width: 767px) {
+    .upgrading-countdown {
+        width: 50%;
+        margin: 0 auto;
+        text-align: center;
+    }
+}

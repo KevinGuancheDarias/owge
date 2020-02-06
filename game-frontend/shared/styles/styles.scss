@@ -17,6 +17,26 @@ input {
     }
 }
 
+select {
+    &.owge-base-colors.form-control {
+        width: auto;
+        height: auto;
+
+        &:hover {
+            text-shadow: none;
+        }
+    }
+}
+
+.btn.selected-menu {
+    color: $bgColor;
+    background-color: $mainColor;
+    border: solid 2px $borderColor;
+    
+    &:hover {
+        color: scale-color($color: $bgColor, $saturation: 40%, $lightness: 40%);
+    }
+}
 .owge-card-list {
     flex-wrap: wrap;
 }

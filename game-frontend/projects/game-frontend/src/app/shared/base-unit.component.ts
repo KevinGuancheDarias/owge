@@ -16,6 +16,8 @@ export class BaseUnitComponent extends BaseComponent {
     @Input()
     public unitType?: UnitType;
 
+    @Input() public isCompactView = false;
+
     /**
      * Returns true if the unit is of the same type, of it's null
      *

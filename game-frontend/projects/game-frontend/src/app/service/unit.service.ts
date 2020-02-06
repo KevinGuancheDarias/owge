@@ -80,7 +80,7 @@ export class UnitService {
    *
    * @author Kevin Guanche Darias
    */
-  public findUnlocked(): Observable<UnitPojo> {
+  public findUnlocked(): Observable<UnitPojo[]> {
     return this._universeGameService.getWithAuthorizationToUniverse('unit/findUnlocked');
   }
 

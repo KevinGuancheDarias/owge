@@ -1,5 +1,6 @@
 $mainColor: rgba(241, 228, 232, 1);
 $bgColor: rgb(12,41,49);
 $borderColor: scale-color($color: $bgColor, $lightness: 15%, $saturation: 30%);
+$bgColorOverBgColor: scale-color($color: $bgColor, $lightness: 10%, $saturation: 20%);
 $bgColorAlpha: rgba(12,41,49,0.5);
 $bgColorOther: rgb(15,86,120);

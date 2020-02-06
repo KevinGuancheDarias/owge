@@ -1,5 +1,7 @@
 import { Injectable, Type } from '@angular/core';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged } from 'rxjs/operators';
+
 import { LoggerHelper } from '../helpers/logger.helper';
 
 
@@ -7,10 +9,12 @@ class SubjectAndExpectaction {
     public subject: Subject<boolean>;
     public expectedPx: number;
     public timeoutId: number;
+    public identifier: string;
 
-    public constructor(subject: Subject<boolean>, expectedPx: number) {
+    public constructor(subject: Subject<boolean>, expectedPx: number, identifier: string) {
         this.subject = subject;
         this.expectedPx = expectedPx;
+        this.identifier = identifier;
         this.timeoutId = 0;
     }
 
@@ -26,10 +30,18 @@ class SubjectAndExpectaction {
  * @class ScreenDimensionsServie
  */
 @Injectable()
-export class ScreenDimensionsServie {
+export class ScreenDimensionsService {
     protected _subjects: Map<string, SubjectAndExpectaction> = new Map();
 
     private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+
+    public constructor() {
+        window.addEventListener('resize', () => {
+            this._subjects.forEach(current => {
+                this._resizeHandler(current);
+            });
+        });
+    }
 
     /**
      * Generates an unique identifier (that doesn't exists in the map)
@@ -61,15 +73,10 @@ export class ScreenDimensionsServie {
     public hasMinWidth(expectedPx: number, identifier: string): Observable<boolean> {
         this._log.debug(`Adding handler ${identifier} with expectation ${expectedPx}`);
         const subjectAndExpectation: SubjectAndExpectaction = new SubjectAndExpectaction(
-            new BehaviorSubject(this._isGreaterThanExpectedWidth(expectedPx)), expectedPx
+            new BehaviorSubject(this._isGreaterThanExpectedWidth(expectedPx)), expectedPx, identifier
         );
         this._subjects.set(identifier, subjectAndExpectation);
-        window.addEventListener('resize', () => {
-            this._subjects.forEach(current => {
-                this._resizeHandler(current);
-            });
-        });
-        return subjectAndExpectation.subject.asObservable();
+        return subjectAndExpectation.subject.asObservable().pipe(distinctUntilChanged());
     }
 
     /**
@@ -96,7 +103,9 @@ export class ScreenDimensionsServie {
             subjectAndExpectation.timeoutId = 0;
         }
         subjectAndExpectation.timeoutId = setTimeout(() => {
-            subjectAndExpectation.subject.next(this._isGreaterThanExpectedWidth(subjectAndExpectation.expectedPx));
+            if (this._subjects.get(subjectAndExpectation.identifier)) {
+                subjectAndExpectation.subject.next(this._isGreaterThanExpectedWidth(subjectAndExpectation.expectedPx));
+            }
             subjectAndExpectation.timeoutId = 0;
         });
     }

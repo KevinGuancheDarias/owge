@@ -1,6 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../../shared/util/date-time.util';
-import { LoggerHelper } from '@owge/core';
+import { LoggerHelper, DateRepresentation, DateUtil } from '@owge/core';
 
 /**
  *
@@ -12,34 +11,27 @@ import { LoggerHelper } from '@owge/core';
  * @implements {OnInit}
  */
 @Component({
-  selector: 'app-countdown',
-  templateUrl: './countdown.component.html',
-  styleUrls: ['./countdown.component.less']
+  selector: 'owge-widgets-countdown',
+  templateUrl: './widget-countdown.component.html',
+  styleUrls: ['./widget-countdown.component.less']
 })
-export class CountdownComponent implements OnInit {
+export class WidgetCountdownComponent implements OnInit {
 
   private intervalID: number;
 
   /**
    * If should auto start counting defaults to true
    */
-  @Input()
-  private autoStart = true;
+  @Input() public autoStart = true;
 
-  @Input()
-  public targetDate: Date;
-
-  @Input()
-  public text = 'Work in progress Remaining time:';
-
-  @Output()
-  public timeOver: EventEmitter<{}> = new EventEmitter();
+  @Input() public targetDate: Date;
+  @Output() public timeOver: EventEmitter<{}> = new EventEmitter();
 
   public get done(): boolean {
     return this._done;
   }
 
-  public time: MilisToDaysHoursMinutesSeconds;
+  public time: DateRepresentation;
 
   private _done = false;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
@@ -65,7 +57,7 @@ export class CountdownComponent implements OnInit {
    */
   public startCounter(): void {
     if (!this.intervalID) {
-      this.intervalID = window.setInterval(() => this.counterRun(), 1000);
+      this.intervalID = window.setInterval(() => this._counterRun(), 1000);
     }
   }
 
@@ -86,7 +78,7 @@ export class CountdownComponent implements OnInit {
    *
    * @author Kevin Guanche Darias
    */
-  private counterRun(): void {
+  private _counterRun(): void {
     const now = new Date();
     const unixTime = new Date(Math.abs(this.targetDate.getTime() - now.getTime()));
     if (now > this.targetDate) {
@@ -94,7 +86,7 @@ export class CountdownComponent implements OnInit {
       this.stopCounter();
       this.timeOver.emit();
     } else {
-      this.time = DateTimeUtil.milisToDaysHoursMinutesSeconds(unixTime.getTime());
+      this.time = DateUtil.milisToDaysHoursMinutesSeconds(unixTime.getTime());
     }
 
   }

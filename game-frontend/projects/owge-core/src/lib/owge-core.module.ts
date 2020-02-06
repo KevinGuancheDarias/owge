@@ -9,7 +9,11 @@ import { TranslateModule } from '@ngx-translate/core';
 import { OwgeCoreConfig } from './pojos/owge-core-config';
 import { Config } from './pojos/config.pojo';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { ScreenDimensionsServie } from './services/screen-dimensions.service';
+import { ScreenDimensionsService } from './services/screen-dimensions.service';
+import { HideDuplicatedNamePipe } from './pipes/hide-duplicated-name.pipe';
+import { OwgeContentDirective } from './directives/owge-content.directive';
+import { OwgeCoreIfDesktopDirective } from './directives/if-desktop.directive';
+import { LocalConfigurationService } from './services/local-configuration.service';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -24,8 +28,28 @@ import { ScreenDimensionsServie } from './services/screen-dimensions.service';
     RouterModule.forChild([]),
     TranslateModule.forChild()
   ],
-  declarations: [LoadingComponent, RouterRootComponent, ModalComponent, PageNotFoundComponent],
-  exports: [LoadingComponent, RouterRootComponent, ModalComponent, PageNotFoundComponent]
+  declarations: [
+    LoadingComponent,
+    RouterRootComponent,
+    ModalComponent,
+    PageNotFoundComponent,
+    HideDuplicatedNamePipe,
+    OwgeContentDirective,
+    OwgeCoreIfDesktopDirective
+  ],
+  providers: [
+    ScreenDimensionsService,
+    LocalConfigurationService
+  ],
+  exports: [
+    LoadingComponent,
+    RouterRootComponent,
+    ModalComponent,
+    PageNotFoundComponent,
+    HideDuplicatedNamePipe,
+    OwgeContentDirective,
+    OwgeCoreIfDesktopDirective
+  ],
 })
 export class CoreModule {
 
@@ -42,7 +66,8 @@ export class CoreModule {
       providers: [
         CoreHttpService,
         { provide: OwgeCoreConfig, useValue: accountConfig },
-        ScreenDimensionsServie
+        ScreenDimensionsService,
+        LocalConfigurationService
       ]
     };
   }

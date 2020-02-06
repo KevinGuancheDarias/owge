@@ -1,4 +1,4 @@
-<select *ngIf="upgradeTypes" class="btn btn-block" [(ngModel)]="upgradeType" (ngModelChange)="onTypeChange()"
+<select *ngIf="upgradeTypes" class="owge-base-colors form-control btn-block" [(ngModel)]="upgradeType" (ngModelChange)="onTypeChange()"
   [compareWith]="isEqualByIdOrIsNull">
   <option [ngValue]="null">All upgrades</option>
   <option *ngFor="let currentType of upgradeTypes" [ngValue]="currentType">{{ currentType.name }}</option>

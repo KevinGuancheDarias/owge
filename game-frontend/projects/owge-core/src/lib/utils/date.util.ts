@@ -1,3 +1,4 @@
+import { DateRepresentation } from '../types/date-representation.type';
 
 /**
  * Has methods for handling dates
@@ -20,6 +21,26 @@ export class DateUtil {
      */
     public static createFromPendingMillis(pendingMillis: number): Date {
         return new Date(new Date().getTime() + pendingMillis + DateUtil._INTENTIONAL_DELAY);
+    }
+
+
+    /**
+     * Converts the input millis to an object containing days, hours, minutes and seconds
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     * @static
+     * @param {number} inputMilis
+     * @returns {DateRepresentation}
+     */
+    public static milisToDaysHoursMinutesSeconds(inputMilis: number): DateRepresentation {
+        const unixTime = new Date(inputMilis);
+        return {
+            days: Math.floor((unixTime.getTime() / 1000) / 86400),
+            hours: unixTime.getUTCHours(),
+            minutes: unixTime.getUTCMinutes(),
+            seconds: unixTime.getUTCSeconds()
+        };
     }
 
     private constructor() {

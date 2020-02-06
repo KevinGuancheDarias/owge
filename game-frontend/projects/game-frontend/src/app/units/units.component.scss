@@ -1,14 +1,30 @@
-@import '../../colors.less';
-
 .page-selector{
     width: 100%;
+    display: flex;
+    flex-wrap: wrap;
 }  
 select.btn{
     width: 98%;
-    float: left;
     margin-top: 0.5rem;
     margin-left: 1%;
 }
+div.use-compact {
+    width: 152px;
+    max-width: 180px;
+    padding: 10px 0px;
+    text-align: center;
+    display: flex;
+    justify-content: space-evenly;
+
+    > * {
+        cursor: pointer;
+    }
+
+    input {
+        margin-top: 6px;
+    }
+}
+
 div {
     width: 90%;
     min-height: 1px;

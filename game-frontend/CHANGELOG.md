@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Improve Units, in planet and build views
 * __Fix:__ Current section text disappears when you click in a subsection of units section
 * __Improvement:__ Improve Upgrades view
 * __Fix:__ [When phone is in landscape mode, the modals don't have correct length #156](https://github.com/KevinGuancheDarias/owge/issues/156)

@@ -35,6 +35,9 @@
             "MISSION_TYPE": "Mission type",
             "CHOOSE_UNITS_FIRST": "You have to select units before you can choose mission type"
         },
+        "UNITS": {
+            "NUMBER": "Number"
+        },
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
         "LIST_JOIN_REQUEST": "List join request",
