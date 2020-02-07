@@ -1,5 +1,9 @@
 <ng-container *ngIf="userData && unit">
-  <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" [image]="image" [hideDesktopSections]="[0,0, isCompactView]">
+  <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" 
+    [image]="image" [hideDesktopSections]="[0,0, isCompactView]"
+    [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.terminationDate"
+    [countdownDate]="building && building.missionData.terminationDate"
+  >
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
       [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">Requirements</a>
@@ -21,6 +25,7 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
+        <a class="btn btn-block" *ngIf="building && building.missionData.unit.id === unit.id" role="button" (click)="cancelUnit()">Cancelar</a>
         <a *ngIf="building && building.missionData.unit.id !== unit.id" class="btn btn-block" role="button"
           (click)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">

@@ -13,7 +13,10 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'owge-widgets-display-improved-attribute',
   templateUrl: './widget-display-improved-attribute.component.html',
-  styleUrls: ['./widget-display-improved-attribute.component.less']
+  styleUrls: [
+    './widget-display-improved-attribute.component.less',
+    './widget-display-improved-attribute.component.scss'
+  ]
 })
 export class WidgetDisplayImprovedAttributeComponent implements OnInit, AfterViewInit, OnChanges {
 
