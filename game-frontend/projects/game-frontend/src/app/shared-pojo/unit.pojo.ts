@@ -1,4 +1,4 @@
-import { MEDIA_ROUTES } from '@owge/core';
+import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
 
 import { RequirementPojo } from './requirement.pojo';
 
@@ -9,6 +9,8 @@ import { RequirementPojo } from './requirement.pojo';
  * @author Kevin Guanche Darias
  */
 export class UnitPojo {
+
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(UnitPojo.name);
 
     public id: number;
     public name: string;
@@ -39,6 +41,7 @@ export class UnitPojo {
      * @memberof UnitPojo
      */
     public static findImagePath(unit?: UnitPojo): string {
+        this._LOG.warnDeprecated('UnitPojo.findImagePath()', '0.8.1', 'ng://OwgeCore/pipes/dynamicImage');
         return MEDIA_ROUTES.IMAGES_ROOT + unit.image;
     }
 }

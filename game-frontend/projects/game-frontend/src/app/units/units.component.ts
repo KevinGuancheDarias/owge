@@ -57,14 +57,28 @@ export class UnitsComponent extends BaseComponent implements OnInit, AfterViewIn
     }
   }
 
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   * @param {boolean} val
+   */
   public viewChanged(val: boolean) {
-    if (val) {
+    if (val && this.inputHideDescription) {
       this.inputHideDescription.changes.subscribe(comps => {
         this.inputElement = comps.first.nativeElement;
       });
     }
   }
 
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   */
   public onCheckboxChanged(): void {
     this._localConfiguationService.saveConfig(this.constructor.name, this.hideDescription);
   }

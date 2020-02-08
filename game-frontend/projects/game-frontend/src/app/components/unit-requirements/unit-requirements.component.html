@@ -1,22 +1,16 @@
-<div *ngIf="unitRequirements" class="owge-card-list units">
+<div *ngIf="unitRequirements" class="owge-card-list" >
   <ng-container *ngFor="let unit of unitRequirements">
-    <div #cardRoot *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" class="card owge auto-expand">
-      <div class="card-block">
-        <div class="card-title">
-          <span class="auto-expand">
-            {{ unit.unit.name }}
-          </span>
-        </div>
-      </div>
-      <img class="card-img-top" [src]="findUnitImageUrl(unit.unit)" />
-      <div class="card-block">
-        <div class="owge-card-list upgrades">
+    <owge-widgets-display-list-item [itemName]="unit.unit.name" [hideDesktopSections]="[0,0,1]" [image]="unit.unit.image | dynamicImage"
+      [classes]="{ 'owge-green-shadow' : unit.allReached, 'owge-red-shadow' : !unit.allReached}"
+    >
+      <ng-template owgeCoreContent [select]="'extra-section'">
+        <div class="owge-card-list">
           <div class="owge card" *ngFor="let upgradeRequirement of unit.requirements" [ngClass]="{ 'owge-green-shadow' : upgradeRequirement.reached, 'owge-red-shadow' : !upgradeRequirement.reached}">
-            <img class="" [src]="findUpgradeImageUrl(upgradeRequirement.upgrade)" />
+            <img [src]="upgradeRequirement.upgrade.image | dynamicImage" />
             <div class="upgrade-level">Lvl {{ upgradeRequirement.level }}</div>
           </div>
         </div>
-      </div>
-    </div>
+      </ng-template>
+    </owge-widgets-display-list-item>
   </ng-container>
 </div>

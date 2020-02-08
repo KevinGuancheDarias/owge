@@ -39,6 +39,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   @Input() public desktopWidth = 767;
   @Input() public hideDesktopSections = [];
   @Input() public hideMobileSections = [];
+  @Input() public classes: any = {};
   @Output() public timeOver: EventEmitter<void> = new EventEmitter();
 
   public isDesktop: boolean;

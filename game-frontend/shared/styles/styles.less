@@ -49,6 +49,7 @@ body{
 	padding-right: 100px;
 	max-height:100%;
 }
+
 .owge.card{
 	background-color:@bgColor;/*background-color: @bgColor;*/
 	color: @mainColor;
@@ -56,14 +57,6 @@ body{
 	box-shadow: @commonBoxShadow;
 	text-shadow: @commonTextShadow;
 	transition: all 0.3s;
-
-	.owge-green-shadow {
-		box-shadow: @commonBoxShadowWithoutColor green;
-	}
-	
-	.owge-red-shadow {
-		box-shadow: @commonBoxShadowWithoutColor red;
-	}
 	
 	&.auto-expand {
 		transition: all 0.001s;
@@ -99,6 +92,14 @@ body{
 	a:hover{
 		box-shadow: 0 0 9px silver;
 	}
+}
+
+.owge-green-shadow, .owge.card.owge-green-shadow, .owge-base-colors.owge-green-shadow {
+	box-shadow: @commonBoxShadowWithoutColor green;
+}
+
+.owge-red-shadow, .owge.card.owge-red-shadow, .owge-base-colors.owge-red-shadow {
+	box-shadow: @commonBoxShadowWithoutColor red;
 }
 // END Common game card
 
