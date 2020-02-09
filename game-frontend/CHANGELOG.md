@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Improve reports view
 * __Improvement:__ Improve Unit requirements view
 * __Improvement:__ Improve Units, in planet and build views
 * __Fix:__ Current section text disappears when you click in a subsection of units section

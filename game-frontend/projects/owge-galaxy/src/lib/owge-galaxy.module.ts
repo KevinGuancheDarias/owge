@@ -1,15 +1,20 @@
 import { NgModule } from '@angular/core';
 import { PlanetStore } from './stores/planet.store';
 import { PlanetService } from './services/planet.service';
+import { PlanetImagePipe } from './pipes/planet-image.pipe';
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    PlanetImagePipe
+  ],
   imports: [
   ],
   providers: [
     PlanetStore,
     PlanetService
   ],
-  exports: []
+  exports: [
+    PlanetImagePipe
+  ]
 })
 export class OwgeGalaxyModule { }

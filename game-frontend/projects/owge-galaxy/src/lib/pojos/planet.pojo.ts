@@ -1,4 +1,4 @@
-import { MEDIA_ROUTES, Config } from '@owge/core';
+import { MEDIA_ROUTES, Config, LoggerHelper } from '@owge/core';
 
 
 /**
@@ -9,6 +9,8 @@ import { MEDIA_ROUTES, Config } from '@owge/core';
  * @export
  */
 export class Planet {
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(Planet.name);
+
     public id: number;
     public name: string;
     public galaxyId: number;
@@ -22,6 +24,7 @@ export class Planet {
     public specialLocationId: number;
 
     public static findImage(planet: Planet): string {
+        this._LOG.warnDeprecated('Planet.findImage()', '0.8.1', 'ng://OwgeGalaxy/pipes/planetImage');
         if (planet.specialLocationId) {
             throw new Error('Unsupported feature for now');
         } else if (Planet.isExplored(planet)) {

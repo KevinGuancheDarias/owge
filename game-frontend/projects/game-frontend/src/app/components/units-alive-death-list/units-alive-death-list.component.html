@@ -12,6 +12,6 @@
         </span>
       </div>
     </div>
-    <img [src]="findUnitImageUrl(unit?.obtainedUnit?.unit)" />
+    <img [src]="unit?.obtainedUnit?.unit?.image | dynamicImage" />
   </div>
 </div>

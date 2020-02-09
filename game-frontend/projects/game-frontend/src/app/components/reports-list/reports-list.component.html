@@ -1,80 +1,69 @@
-<owge-core-modal #reportDetailsModal [hasCloseButton]="true">
-  <div class="header">
-    Mission to {{ selectedReport?.parsedJson?.targetPlanet?.name }} as of {{ findReportDate(selectedReport) | date:
-    commonDateFormat}}
-  </div>
-  <div class="body">
-    <div class="owge-scrollable-dialog">
-      <ng-container *ngIf="selectedReport">
-        <h1>Coordinates</h1>
-        <div class="card owge planet-card">
-          <div class="card-block">
-            <div class="card-title">Source planet</div>
-          </div>
-          <app-display-single-planet [planet]="selectedReport.parsedJson.sourcePlanet"></app-display-single-planet>
-        </div>
-        <div class="card owge planet-card">
-          <div class="card-block">
-            <div class="card-title">Target planet</div>
-          </div>
-          <app-display-single-planet [planet]="selectedReport.parsedJson.targetPlanet"></app-display-single-planet>
-        </div>
-        <h1 *ngIf="selectedReport.parsedJson.involvedUnits?.length">Involved units</h1>
-        <app-deployed-units-list  *ngIf="selectedReport.parsedJson.involvedUnits?.length" [obtainedUnits]="selectedReport.parsedJson.involvedUnits"></app-deployed-units-list>
-        <ng-container *ngIf="selectedReport.parsedJson.unitsInPlanet">
-          <h1>Units in planet</h1>
-          <app-deployed-units-list [obtainedUnits]="selectedReport.parsedJson.unitsInPlanet"></app-deployed-units-list>
-        </ng-container>
-        <ng-container *ngIf="selectedReport.parsedJson.errorText">
-          <h1>Error report =/</h1>
-          <p class="owge-base-colors">{{ selectedReport.parsedJson.errorText }}</p>
-        </ng-container>
-        <ng-container *ngIf="selectedReport.parsedJson.attackInformation">
-          <h1>Attack result</h1>
-          <div class="card owge" *ngFor="let currentUser of selectedReport.parsedJson.attackInformation">
-            <div class="card-block">
-              Username: {{ currentUser.userInfo.username }}
-              <br /> Earned points: {{ currentUser.earnedPoints }}
-              <div class="user-units"></div>
-              <app-units-alive-death-list [units]="currentUser.units"></app-units-alive-death-list>
-            </div>
-          </div>
-        </ng-container>
-        <ng-container
-          *ngIf="selectedReport.parsedJson.gatheredPrimary !== undefined && selectedReport.parsedJson.gatheredSecondary !== undefined">
-          <h1>Gathered resources</h1>
-          <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
-            [resourceImage]="userData.factionDto.primaryResourceImage"
-            [resourceValue]="selectedReport.parsedJson.gatheredPrimary">
-
-          </app-display-single-resource>
-
-          <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName"
-            [resourceImage]="userData.factionDto.secondaryResourceImage"
-            [resourceValue]="selectedReport.parsedJson.gatheredSecondary">
-
-          </app-display-single-resource>
-        </ng-container>
-      </ng-container>
-    </div>
-  </div>
-</owge-core-modal>
 <owge-core-loading [isReady]="reports">
   <ng-container *ngIf="reports">
     <div *ngIf="!reports.length" class="owge-empty-collection">
       No mission reports are available for now
     </div>
     <div class="card owge report-card" *ngFor="let report of reports">
-      <div class="card-block">
-        <h5 class="card-title">Mission to {{ report.parsedJson?.targetPlanet?.name }}</h5>
-      </div>
-      <div class="card-block">
-        <p class="card-text">Date: {{ findReportDate(report) | date: commonDateFormat }}</p>
-        <p class="card-text">Owner: Find owner NOT implemented =/</p>
-      </div>
-      <div class="card-block">
-        <button (click)="showReportDetails(report)">Show details</button>
-      </div>
+      <owge-widgets-display-list-item [itemName]="'Mission to ' + report.parsedJson?.targetPlanet?.name" [image]="report.parsedJson?.targetPlanet | planetImage"
+        [hideDesktopSections]="[0,0,1]"
+      >
+        <ng-template owgeCoreContent [select]="'extra-header'">
+          <h6 class="text-muted">{{ report?.normalizedDate |  date: commonDateFormat }}</h6>
+        </ng-template>
+        <ng-template owgeCoreContent [select]="'extra-section'">
+          <div class="report-collapsable-list">
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SOURCE_PLANET' | translate" [maxWidth]="isDesktop && 130">
+              <owge-widgets-display-simple-item [itemName]="report.parsedJson?.sourcePlanet | planetDisplayName" 
+                [itemImage]="report.parsedJson?.sourcePlanet | planetImage"
+              ></owge-widgets-display-simple-item>
+            </owge-widgets-collapsable-item>
+
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SENT_UNITS' | translate" *ngIf="report.parsedJson?.involvedUnits?.length">
+              <app-deployed-units-list  [obtainedUnits]="report.parsedJson?.involvedUnits"></app-deployed-units-list>
+            </owge-widgets-collapsable-item>
+
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.EXPLORE' | translate" *ngIf="report.parsedJson?.unitsInPlanet">
+              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.unitsInPlanet"></app-deployed-units-list>
+            </owge-widgets-collapsable-item>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ESTABLISH_BASE' | translate" *ngIf="report.parsedJson?.establishBaseStatus !== undefined">
+                <div class="owge-base-colors">
+                  {{ report.parsedJson.establishBaseStatusStr ? 'APP.REPORTS.RESULTS.ESTABLISH_BASE_ERROR' : 'APP.REPORTS.RESULTS.ESTABLISH_BASE_SUCCESS' | translate}}
+                </div>
+            </owge-widgets-collapsable-item>
+
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ERROR' | translate" *ngIf="report.parsedJson?.errorText">
+              <p class="owge-base-colors">{{ report.parsedJson?.errorText }}</p>
+            </owge-widgets-collapsable-item>
+
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ATTACK' | translate" *ngIf="report.parsedJson?.attackInformation">
+              <div class="card owge" *ngFor="let currentUser of report.parsedJson?.attackInformation">
+                <div class="card-block">
+                  Username: {{ currentUser.userInfo.username }}
+                  <br /> Earned points: {{ currentUser.earnedPoints }}
+                  <div class="user-units"></div>
+                  <app-units-alive-death-list [units]="currentUser.units"></app-units-alive-death-list>
+                </div>
+              </div>
+            </owge-widgets-collapsable-item>
+
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.GATHER' | translate"
+              *ngIf="report.parsedJson?.gatheredPrimary !== undefined && report.parsedJson?.gatheredSecondary !== undefined">
+              <h1>Gathered resources</h1>
+              <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
+                [resourceImage]="userData.factionDto.primaryResourceImage"
+                [resourceValue]="report.parsedJson?.gatheredPrimary">
+    
+              </app-display-single-resource>
+    
+              <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName"
+                [resourceImage]="userData.factionDto.secondaryResourceImage"
+                [resourceValue]="report.parsedJson?.gatheredSecondary">
+    
+              </app-display-single-resource>
+            </owge-widgets-collapsable-item>
+          </div>
+        </ng-template>
+      </owge-widgets-display-list-item>
     </div>
   </ng-container>
 </owge-core-loading>

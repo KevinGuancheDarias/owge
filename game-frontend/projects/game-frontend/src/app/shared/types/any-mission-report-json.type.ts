@@ -2,6 +2,7 @@ import { ExploreMissionReportJson } from './explore-mission-report-json.type';
 import { AttackMissionReportJson } from './attack-mission-report-json.type';
 import { GatherMissionReportJson } from './gather-mission-report-json.type';
 import { ErrorMissionReportJson } from './error-mission-report-json.type';
+import { EstablishBaseMissionReportJson } from './establish-base-mission-report.type';
 
 /**
  * Represents any type of mission, "Extends all mission types"
@@ -13,6 +14,7 @@ import { ErrorMissionReportJson } from './error-mission-report-json.type';
  * @extends {AttackMissionReportJson}
  */
 export interface AnyMissionReportJson
-    extends ExploreMissionReportJson, GatherMissionReportJson, AttackMissionReportJson, ErrorMissionReportJson {
+    extends ExploreMissionReportJson, GatherMissionReportJson, AttackMissionReportJson, ErrorMissionReportJson,
+    EstablishBaseMissionReportJson {
 
 }

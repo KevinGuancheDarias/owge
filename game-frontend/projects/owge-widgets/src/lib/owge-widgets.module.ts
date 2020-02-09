@@ -18,6 +18,8 @@ import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-wit
 import { UiIconPipe } from './pipes/ui-icon.pipe';
 import { WidgetDisplayListItemComponent } from './components/widget-display-list-item/widget-display-list-item.component';
 import { WidgetCountdownComponent } from './components/widget-countdown/widget-countdown.component';
+import { WidgetCollapsableItemComponent } from './components/widget-collapsable-item/widget-collapsable-item.component';
+import { WidgetDisplaySimpleItemComponent } from './components/widget-display-simple-item/widget-display-simple-item.component';
 
 /**
  * Has UI widgets for OWGE
@@ -43,7 +45,9 @@ import { WidgetCountdownComponent } from './components/widget-countdown/widget-c
     WidgetSpanWithPlaceholderComponent,
     UiIconPipe,
     WidgetDisplayListItemComponent,
-    WidgetCountdownComponent
+    WidgetCountdownComponent,
+    WidgetCollapsableItemComponent,
+    WidgetDisplaySimpleItemComponent
   ],
   providers: [
     DisplayService
@@ -58,7 +62,9 @@ import { WidgetCountdownComponent } from './components/widget-countdown/widget-c
     WidgetSpanWithPlaceholderComponent,
     UiIconPipe,
     WidgetDisplayListItemComponent,
-    WidgetCountdownComponent
+    WidgetCountdownComponent,
+    WidgetCollapsableItemComponent,
+    WidgetDisplaySimpleItemComponent
   ]
 })
 export class OwgeWidgetsModule {

@@ -1,0 +1,10 @@
+<div class="widget-display-single-item" [ngStyle]="{'max-width': width}">
+    <h6>{{ itemName }}</h6>
+    <div class="image-container">
+        <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
+        <img [src]="itemImage"/>
+    </div>
+    <div class="action-buttons">
+        <ng-container *ngTemplateOutlet="actionButtonsTempate"></ng-container>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+.widget-display-single-item {
+    > * {
+        width: 95%;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    img {
+        display: block;
+        margin: 0 auto;
+    }
+}

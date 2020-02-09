@@ -1,0 +1,19 @@
+.owge-collapsable-item {
+    .header {
+        cursor: pointer;
+        display: flex;
+        padding-left: 0;
+        span {
+            font-size: 14pt;
+        }
+        h5 {
+            margin: 0;
+            margin-left: 5px;
+            color: inherit;
+        }
+    }
+    .body {
+        margin: 0 auto;
+        padding: 5px;
+    }
+}

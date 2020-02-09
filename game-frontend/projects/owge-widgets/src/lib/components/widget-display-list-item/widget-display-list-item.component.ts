@@ -15,7 +15,14 @@ import { Subscription } from 'rxjs';
 import { ProgrammingError, ScreenDimensionsService, OwgeContentDirective, ContentTransclusionUtil } from '@owge/core';
 
 /**
- * Widget to display an element
+ * Widget to display an element <br>
+ * <b>Can place child content at the following selectors: <b>
+ * <ul>
+ * <li>extra-section</li>
+ * <li>extra-header</li>
+ * <li>action-buttons></li>
+ * <li>image-container-prepend</li>
+ * </ul>
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1

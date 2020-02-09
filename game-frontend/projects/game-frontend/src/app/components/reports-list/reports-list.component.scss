@@ -1,0 +1,22 @@
+.owge.card {
+
+    &.report-card {
+        background-color: transparent;
+        box-shadow: none;
+    }
+    h6 {
+        letter-spacing: 0.8px;
+        text-align: center;
+    }
+}
+
+@media (min-width: 768px) {
+    .report-collapsable-list {
+        display: flex;
+        flex-wrap: wrap;
+
+        owge-widgets-collapsable-item {
+            margin-left: 5px;
+        }
+    }
+}

@@ -27,12 +27,25 @@ select {
         }
     }
 }
+.btn {
+    color: $mainColor;
+    background-color: $bgColor;
+    border-color: none;
+
+    &:hover {
+        color: scale-color($color: $mainColor, $saturation: -40%, $lightness: -30%); 
+    }
+}
 
 .btn.selected-menu {
     color: $bgColor;
     background-color: $mainColor;
     border: solid 2px $borderColor;
     
+    &.owge-base-colors {
+        text-shadow: none;
+    }
+
     &:hover {
         color: scale-color($color: $bgColor, $saturation: 40%, $lightness: 40%);
     }
