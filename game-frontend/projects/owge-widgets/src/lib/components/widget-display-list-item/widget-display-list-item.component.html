@@ -4,7 +4,7 @@
         <h5 class="card-title">{{ itemName | hideDuplicatedName }}</h5>
         <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
     </div>
-    <div class="image-container" *ngIf="!hideMobileSections[1]">
+    <div class="image-container" *ngIf="!hideMobileSections[1] && image">
       <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
       <img [src]="image" alt="image of the item"/>
     </div>
@@ -15,6 +15,7 @@
     </div>  
     <div class="card-block item-description" *ngIf="!hideMobileSections[2]">
         <p class="card-text">{{ itemDescription }}</p>
+        <ng-container *ngTemplateOutlet="extraDescriptionTemplate"></ng-container>
     </div>
     <div class="card-block" *ngIf="!hideMobileSections[3]">
       <ng-container *ngTemplateOutlet="extraSectionTemplate"></ng-container>
@@ -37,7 +38,7 @@
           <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
       </div>
       <div class="image-and-actions" >
-        <div class="image-container">
+        <div class="image-container" *ngIf="image">
           <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
           <img [src]="image" alt="image of the item"/>
         </div>
@@ -52,6 +53,7 @@
 
     <div class="p-2 flex-grow-1" *ngIf="!hideDesktopSections[2]">
       {{ itemDescription }}
+      <ng-container *ngTemplateOutlet="extraDescriptionTemplate"></ng-container>
     </div>
     <div class="p-2" *ngIf="!hideDesktopSections[3]">
       <ng-container *ngTemplateOutlet="extraSectionTemplate"></ng-container>

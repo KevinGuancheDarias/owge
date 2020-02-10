@@ -6,7 +6,7 @@ import { Alliance } from '../../types/alliance.type';
 @Component({
   selector: 'owge-alliance-display-list',
   templateUrl: './alliance-display-list.component.html',
-  styleUrls: ['./alliance-display-list.component.less']
+  styleUrls: ['./alliance-display-list.component.scss']
 })
 export class AllianceDisplayListComponent implements OnInit {
 

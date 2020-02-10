@@ -1,43 +1,21 @@
-<owge-widgets-confirmation-dialog #confirmDialog (confirmResult)="onDeleteConfirm($event)" [text]="vConfirmDeleteText">
+<owge-widgets-confirmation-dialog #confirmDialog (confirmResult)="onDeleteConfirm($event)" [text]="vConfirmDeleteText"></owge-widgets-confirmation-dialog>
 
-</owge-widgets-confirmation-dialog>
-
-<div *ngIf="alliance && currentUser" class="owge card">
-  <div class="card-block">
-    <h5 class="card-title owge-title">{{ alliance.name }}</h5>
-  </div>
-  <div class="card-block">
-    <div class="card-text">
-      <h5 class="owge-card-header">{{ 'DESCRIPTION' | translate }}</h5>
-      <div class="owge-card-body">
-        {{ alliance.description }}
-      </div>
+<owge-widgets-display-list-item *ngIf="alliance && currentUser" [itemName]="alliance.name" [itemDescription]="alliance.description">
+  <ng-template owgeCoreContent select="extra-description">
+    <h5 class="owge-card-header">{{ 'ALLIANCE.MEMBER_LIST' | translate }}</h5>
+    <span *ngFor="let member of members"> {{ member.username }} </span>
+  </ng-template>
+  <ng-template owgeCoreContent select="action-buttons">
+    <div class="btn-group">
+      <a (click)="clickLeave()" class="btn btn-block"
+        *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner !== currentUser.id">{{
+        'ALLIANCE.ACTION_LEAVE' | translate }}</a>
+      <a (click)="clickDelete()" class="btn btn-block"
+        *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner === currentUser.id">
+        {{ 'ALLIANCE.ACTION_DELETE' | translate }}
+      </a>
+      <a (click)="clickRequestJoin()" class="btn btn-block" *ngIf="!currentUser.alliance">
+        {{ 'ALLIANCE.ACTION_REQUEST_JOIN' | translate }}</a>
     </div>
-  </div>
-  <div class="card-block" *ngIf="members">
-    <div class="card-text">
-      <h5 class="owge-card-header">{{ 'ALLIANCE.MEMBER_LIST' | translate }}</h5>
-      <div class="owge-card-body">
-        <span *ngFor="let member of members"> {{ member.username }} </span>
-      </div>
-    </div>
-  </div>
-  <div class="card-block">
-    <div class="card-text">
-      <h5 class="owge-card-header">{{ 'ALLIANCE.ACTIONS' | translate }}</h5>
-      <div class="owge-card-body">
-        <div class="btn-group">
-          <button (click)="clickLeave()" class="btn"
-            *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner !== currentUser.id">{{
-            'ALLIANCE.ACTION_LEAVE' | translate }}</button>
-          <button (click)="clickDelete()" class="btn"
-            *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner === currentUser.id">
-            {{ 'ALLIANCE.ACTION_DELETE' | translate }}
-          </button>
-          <button (click)="clickRequestJoin()" class="btn" *ngIf="!currentUser.alliance">
-            {{ 'ALLIANCE.ACTION_REQUEST_JOIN' | translate }}</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+  </ng-template>
+</owge-widgets-display-list-item>

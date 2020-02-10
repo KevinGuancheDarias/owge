@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'owge-alliance-of-user',
   templateUrl: './alliance-of-user.component.html',
-  styleUrls: ['./alliance-of-user.component.less']
+  styleUrls: ['./alliance-of-user.component.scss']
 })
 export class AllianceOfUserComponent implements OnInit {
 

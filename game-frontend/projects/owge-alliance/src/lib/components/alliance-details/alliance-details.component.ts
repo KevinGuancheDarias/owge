@@ -20,7 +20,7 @@ import { UserWithAlliance } from '../../types/user-with-alliance.type';
 @Component({
   selector: 'owge-alliance-details',
   templateUrl: './alliance-details.component.html',
-  styleUrls: ['./alliance-details.component.less']
+  styleUrls: ['./alliance-details.component.scss']
 })
 export class AllianceDetailsComponent implements OnInit {
 

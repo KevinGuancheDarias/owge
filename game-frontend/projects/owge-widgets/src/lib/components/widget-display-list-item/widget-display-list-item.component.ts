@@ -20,6 +20,7 @@ import { ProgrammingError, ScreenDimensionsService, OwgeContentDirective, Conten
  * <ul>
  * <li>extra-section</li>
  * <li>extra-header</li>
+ * <li>extra-description</li>
  * <li>action-buttons></li>
  * <li>image-container-prepend</li>
  * </ul>
@@ -54,6 +55,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   public extraHeaderTemplate: TemplateRef<any>;
   public actionButtonsTemplate: TemplateRef<any>;
   public imageContainerPrependTemplate: TemplateRef<any>;
+  public extraDescriptionTemplate: TemplateRef<any>;
 
   @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
@@ -81,6 +83,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   public ngAfterContentInit() {
     this.extraSectionTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-section');
     this.extraHeaderTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-header');
+    this.extraDescriptionTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-description');
     this.actionButtonsTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'action-buttons');
     this.imageContainerPrependTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'image-container-prepend');
   }
