@@ -1,20 +1,17 @@
-<owge-widgets-card-list [elements]="elements">
-    <ng-template #middleOfCard let-element>
-        <img *ngIf="element.imageUrl" [src]="element.imageUrl">
-        <div class="ts-state" *ngIf="element.activeTimeSpecialDto.element">
-            <span class="active" *ngIf="element.activeTimeSpecialDto.element.state === 'ACTIVE'">{{ 'TIME_SPECIAL.IS_ACTIVE' | translate}}</span>
-            <span class="recharge" *ngIf="element.activeTimeSpecialDto.element.state === 'RECHARGE'">{{ 'TIME_SPECIAL.IS_IN_RECHARGE' | translate}}</span>
-        </div>
-        <ng-container *ngIf="element?.activeTimeSpecialDto?.element?.pendingTime">
-            <app-countdown *ngIf="element.activeTimeSpecialDto.element.state === 'ACTIVE'" [text]="null"
-            [targetDate]="element.activeTimeSpecialDto.getCalculatedField('pendingTime')" (timeOver)="changeToRecharge(element)">
-            </app-countdown>
-            <app-countdown *ngIf="element.activeTimeSpecialDto.element.state === 'RECHARGE'" [text]="null"
-            [targetDate]="element.activeTimeSpecialDto.getCalculatedField('pendingTime')" (timeOver)="markAsAvailable(element)">
-            </app-countdown>
-        </ng-container>
-    </ng-template>
-    <ng-template #footerOfCard let-element>
-        <button *ngIf="!element.activeTimeSpecialDto.element" class="btn btn-block" role="button" (click)="clickActivate(element.id)">{{ 'TIME_SPECIAL.BTN_ACTIVATE' | translate }}</button>
-    </ng-template>
-</owge-widgets-card-list>
+<div class="owge-card-list">
+    <owge-widgets-display-list-item *ngFor="let element of elements" [itemName]="element.name" [itemDescription]="element.description"  [image]="element.imageUrl"
+        [hasToDisplayCountdown]="element.activeTimeSpecialDto?.element?.state === 'ACTIVE' || element.activeTimeSpecialDto?.element?.state === 'RECHARGE'"
+        [countdownDate]="element.activeTimeSpecialDto.getCalculatedField('pendingTime')" (timeOver)="onTimeOver(element)"
+    >
+        <ng-template owgeCoreContent select="extra-header">
+            <div class="ts-state" *ngIf="element.activeTimeSpecialDto?.element">
+                <span class="active" *ngIf="element.activeTimeSpecialDto?.element?.state === 'ACTIVE'">{{ 'TIME_SPECIAL.IS_ACTIVE' | translate}}</span>
+                <span class="recharge" *ngIf="element.activeTimeSpecialDto?.element?.state === 'RECHARGE'">{{ 'TIME_SPECIAL.IS_IN_RECHARGE' | translate}}</span>
+            </div>
+        </ng-template>
+
+        <ng-template owgeCoreContent select="action-buttons">
+            <a *ngIf="!element.activeTimeSpecialDto?.element" class="btn btn-block" role="button" (click)="clickActivate(element.id)">{{ 'TIME_SPECIAL.BTN_ACTIVATE' | translate }}</a>
+        </ng-template>
+    </owge-widgets-display-list-item>
+</div>

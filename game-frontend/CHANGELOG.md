@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Improve time specials view
 * __Improvement:__ Improve alliances view
 * __Improvement:__ Improve reports view
 * __Improvement:__ Improve Unit requirements view

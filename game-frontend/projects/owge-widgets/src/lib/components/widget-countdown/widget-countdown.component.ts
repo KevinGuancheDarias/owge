@@ -1,11 +1,13 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { LoggerHelper, DateRepresentation, DateUtil } from '@owge/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { DateRepresentation, DateUtil } from '@owge/core';
 
 /**
- *
- * @deprecated As of 0.8.1 should use the widget version of this class
+ * Displays a countdown <br>
+ * 
+ * <b>As of 0.8.1 it's capable of reseting the countdown time</b>
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.1
  * @export
  * @class CountdownComponent
  * @implements {OnInit}
@@ -13,11 +15,13 @@ import { LoggerHelper, DateRepresentation, DateUtil } from '@owge/core';
 @Component({
   selector: 'owge-widgets-countdown',
   templateUrl: './widget-countdown.component.html',
-  styleUrls: ['./widget-countdown.component.less']
+  styleUrls: ['./widget-countdown.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WidgetCountdownComponent implements OnInit {
+export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
 
-  private intervalID: number;
+  private intervalId: number;
+  private _isDestroyed = false;
 
   /**
    * If should auto start counting defaults to true
@@ -34,20 +38,19 @@ export class WidgetCountdownComponent implements OnInit {
   public time: DateRepresentation;
 
   private _done = false;
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-
-  constructor() { }
+  constructor(private _cdr: ChangeDetectorRef) { }
 
   public ngOnInit() {
-    this._log.warnDeprecated(this.constructor.name, '0.8.1', 'ng://OwgeWidgets/components/WidgetCountdown');
-    if (!(this.targetDate instanceof Date)) {
-      throw new Error('targetDate MUST be defined, and MUST be a Date object');
-    }
+    this._doStart();
+  }
 
-    if (this.autoStart) {
-      this.startCounter();
-    }
+  public ngOnChanges() {
+    this._doStart();
+  }
+
+  public ngOnDestroy(): void {
+    this._isDestroyed = true;
   }
 
   /**
@@ -56,8 +59,8 @@ export class WidgetCountdownComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   public startCounter(): void {
-    if (!this.intervalID) {
-      this.intervalID = window.setInterval(() => this._counterRun(), 1000);
+    if (!this.intervalId) {
+      this.intervalId = window.setInterval(() => this._counterRun(), 1000);
     }
   }
 
@@ -67,9 +70,22 @@ export class WidgetCountdownComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   public stopCounter(): void {
-    if (this.intervalID) {
-      window.clearInterval(this.intervalID);
-      this.intervalID = null;
+    if (this.intervalId) {
+      window.clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  private _doStart(): void {
+    if (!(this.targetDate instanceof Date)) {
+      throw new Error('targetDate MUST be defined, and MUST be a Date object');
+    }
+    if (this.autoStart) {
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        delete this.intervalId;
+      }
+      this.startCounter();
     }
   }
 
@@ -79,6 +95,7 @@ export class WidgetCountdownComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   private _counterRun(): void {
+    this._done = false;
     const now = new Date();
     const unixTime = new Date(Math.abs(this.targetDate.getTime() - now.getTime()));
     if (now > this.targetDate) {
@@ -88,6 +105,8 @@ export class WidgetCountdownComponent implements OnInit {
     } else {
       this.time = DateUtil.milisToDaysHoursMinutesSeconds(unixTime.getTime());
     }
-
+    if (!this._isDestroyed) {
+      this._cdr.detectChanges();
+    }
   }
 }

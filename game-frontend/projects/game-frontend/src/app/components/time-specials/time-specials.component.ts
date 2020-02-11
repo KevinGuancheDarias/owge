@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 import { TimeSpecial, UniverseGameService } from '@owge/universe';
 import { CalculatedFieldsWrapper, DateUtil, LoggerHelper, Improvement } from '@owge/core';
@@ -16,18 +16,24 @@ import { take } from 'rxjs/operators';
 @Component({
   selector: 'app-time-specials',
   templateUrl: './time-specials.component.html',
-  styleUrls: ['./time-specials.component.less']
+  styleUrls: ['./time-specials.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeSpecialsComponent implements OnInit {
   private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
   public elements: TimeSpecial[];
 
-  constructor(private _timeSpecialService: TimeSpecialService, private _universeGameService: UniverseGameService) { }
+  constructor(
+    private _timeSpecialService: TimeSpecialService,
+    private _universeGameService: UniverseGameService,
+    private _cdr: ChangeDetectorRef
+  ) { }
 
   ngOnInit() {
     this._timeSpecialService.findUnlocked().subscribe(elements => {
       elements.forEach(current => this._defineCalculatedField(current));
       this.elements = elements;
+      this._cdr.detectChanges();
     });
   }
 
@@ -45,7 +51,19 @@ export class TimeSpecialsComponent implements OnInit {
         timeSpecial.activeTimeSpecialDto = new CalculatedFieldsWrapper(result)
           .addCalculatedField('pendingTime', DateUtil.createFromPendingMillis(result.pendingTime));
       }
+      this._cdr.detectChanges();
     });
+  }
+
+  public onTimeOver(element: TimeSpecial): void {
+    if (element.activeTimeSpecialDto.element.state === 'ACTIVE') {
+      this.changeToRecharge(element);
+    } else if (element.activeTimeSpecialDto.element.state === 'RECHARGE') {
+      this.markAsAvailable(element);
+    } else {
+      this._log.warn(`State ${element.activeTimeSpecialDto.element.state} is not expected`);
+    }
+    this._cdr.detectChanges();
   }
 
   public changeToRecharge(element: TimeSpecial): void {
@@ -67,6 +85,7 @@ export class TimeSpecialsComponent implements OnInit {
           but was ${serverTimeSpecial.activeTimeSpecialDto.element.state}`
         );
       }
+      this._cdr.detectChanges();
     }, 1000);
   }
 
@@ -77,6 +96,7 @@ export class TimeSpecialsComponent implements OnInit {
       if (!serverTimeSpecial.activeTimeSpecialDto.element) {
         const timeSpecial = this._findById(serverTimeSpecial.id);
         timeSpecial.activeTimeSpecialDto = serverTimeSpecial.activeTimeSpecialDto;
+        this._cdr.detectChanges();
       } else {
         this._log.error(
           'Server should have returned a null active time special', <any>serverTimeSpecial.activeTimeSpecialDto.element
@@ -97,6 +117,7 @@ export class TimeSpecialsComponent implements OnInit {
         'pendingTime',
         DateUtil.createFromPendingMillis(timeSpecial.activeTimeSpecialDto.element.pendingTime)
       );
+      this._cdr.detectChanges();
     }
   }
 }
