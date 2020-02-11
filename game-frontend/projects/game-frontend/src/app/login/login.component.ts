@@ -43,7 +43,7 @@ export class LoginComponent implements OnInit {
           this._router.navigate([ROUTES.GAME_INDEX]);
         });
       }
-    } else {
+    } else if (this._sessionService.isLoggedIn()) {
       this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
         this._router.navigate([ROUTES.GAME_INDEX]);
       });

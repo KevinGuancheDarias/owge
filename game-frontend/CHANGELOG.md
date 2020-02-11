@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ Not hiding sidebar when login out
 * [class=Advanced] __Fix:__ When universe has not login domain, modal was not closing
 * __Improvement:__ Improve time specials view
 * __Improvement:__ Improve alliances view
