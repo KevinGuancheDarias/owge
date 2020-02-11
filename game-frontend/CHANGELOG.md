@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* [class=Advanced] __Fix:__ When universe has not login domain, modal was not closing
 * __Improvement:__ Improve time specials view
 * __Improvement:__ Improve alliances view
 * __Improvement:__ Improve reports view

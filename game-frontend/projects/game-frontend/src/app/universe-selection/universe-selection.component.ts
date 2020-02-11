@@ -1,7 +1,7 @@
 import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 
-import { ROUTES } from '@owge/core';
+import { ROUTES, ModalComponent } from '@owge/core';
 import { ClockSyncService, Universe } from '@owge/universe';
 
 import { UserService } from './../service/user.service';
@@ -24,6 +24,8 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   public selectedUniverse: Universe;
   public showFactionSelector = false;
   public safeFrontendUrl: SafeUrl | string;
+
+  @ViewChild(ModalComponent, { static: true }) private _modal: ModalComponent;
 
   @ViewChild('credentialsFrame', { static: false })
   private _credentialsFrame: ElementRef;
@@ -90,6 +92,9 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   private async _redirectToGameIndex(): Promise<void> {
     if (!this.selectedUniverse.frontendUrl) {
       await this._clockSyncService.init();
+      if (this._modal) {
+        this._modal.hide();
+      }
       this._router.navigate([ROUTES.GAME_INDEX]);
     } else {
       const iframe: HTMLIFrameElement = this._credentialsFrame.nativeElement;
