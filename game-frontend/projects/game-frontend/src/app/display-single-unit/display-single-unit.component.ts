@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } fro
 import { BehaviorSubject } from 'rxjs';
 
 import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, UnitType } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
@@ -80,6 +80,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   public moreShield: number;
   public moreHealth: number;
   public moreCharge: number;
+  public unitTypes: UnitType[];
 
   public get count(): any {
     return this._count.value;
@@ -113,6 +114,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
 
   public ngOnInit() {
     this.requireUser();
+    this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);
     this._userStore.currentUserImprovements.subscribe(improvement => {
       this.moreCharge = improvement.moreChargeCapacity;
       this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
@@ -156,7 +158,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   public canBuild(): boolean {
     return this.unit.requirements.runnable && this._unitTypeService.hasAvailable(this.unit.typeId, this.count);
   }
-
 
   /**
    * If unit is unique should not allow more than one as <i>count</i> value

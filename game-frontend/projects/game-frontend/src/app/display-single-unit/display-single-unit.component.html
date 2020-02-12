@@ -1,4 +1,4 @@
-<ng-container *ngIf="userData && unit">
+<ng-container *ngIf="userData && unit && unitTypes">
   <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="image" [hideDesktopSections]="[0,0, isCompactView]"
     [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.terminationDate"
