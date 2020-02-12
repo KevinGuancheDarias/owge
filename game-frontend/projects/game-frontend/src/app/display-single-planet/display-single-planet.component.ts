@@ -4,7 +4,10 @@ import { Component, OnInit, Input } from '@angular/core';
 @Component({
   selector: 'app-display-single-planet',
   templateUrl: './display-single-planet.component.html',
-  styleUrls: ['./display-single-planet.component.less']
+  styleUrls: [
+    './display-single-planet.component.less',
+    './display-single-planet.component.scss'
+  ]
 })
 export class DisplaySinglePlanetComponent implements OnInit {
 
@@ -12,18 +15,18 @@ export class DisplaySinglePlanetComponent implements OnInit {
   private _planetImage: string;
 
   @Input()
-  set planet(planet: PlanetPojo){
-    if(planet){
+  set planet(planet: PlanetPojo) {
+    if (planet) {
       this._planet = planet;
       this._planetImage = PlanetPojo.findImage(planet);
     }
   }
 
-  get planet(): PlanetPojo{
+  get planet(): PlanetPojo {
     return this._planet;
   }
 
-  get planetImage(): string{
+  get planetImage(): string {
     return this._planetImage;
   }
 
