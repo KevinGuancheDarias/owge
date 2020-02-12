@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { AbstractModalContainerComponent, LoggerHelper } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { UnitType } from '@owge/universe';
+import { UnitType, MissionStore } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
@@ -52,6 +52,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public selectedUnitsTypes: UnitType[];
   public missionType: MissionType = null;
   public isValidSelection = false;
+  public maxMissions = 1;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
@@ -60,12 +61,14 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     private _planetService: PlanetService,
     private _unitTypeService: UnitTypeService,
     private _missioninformationStore: MissionInformationStore,
-    private _configurationService: ConfigurationService
+    private _configurationService: ConfigurationService,
+    private _missionStore: MissionStore
   ) {
     super();
   }
 
   public ngOnInit(): void {
+    this._missionStore.maxMissions.subscribe(val => this.maxMissions = val);
     this._missioninformationStore.originPlanet.subscribe(sourcePlanet => this.sourcePlanet = sourcePlanet);
     this._missioninformationStore.targetPlanet.subscribe(targetPlanet => this.targetPlanet = targetPlanet);
     this._missioninformationStore.availableUnits.subscribe(availableUnits => this.obtainedUnits = availableUnits);

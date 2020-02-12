@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ If you do a deploy mission till you have more than 1 max mission, won't be able to do anything more
 * __Improvement:__ Add all the missing language translations to spanish and english (remove all hardcoded texts)
 * __Fix:__ Not displaying the "No enough resources" button when you have not enough resources to level up the specified upgrade
 * [class=Advanced] __Imprvement:__ The u1 classic import tool, now imports old game time specials
