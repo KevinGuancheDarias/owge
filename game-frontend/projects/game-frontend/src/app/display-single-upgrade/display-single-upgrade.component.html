@@ -2,6 +2,8 @@
 
 </owge-widgets-confirmation-dialog>
 
+<!-- TODO: Refactor to use wge-widgets-display-list-item -->
+
 <ng-container *ngIf="userData">
   <!-- mobile view -->
   <div class="card owge mobile-view" *ngIf="!isDesktop">
@@ -30,6 +32,7 @@
     <ng-container *ngIf="!runningUpgrade">
       <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
         (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+      <a *ngIf="!obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
     </ng-container>
     <ng-container *ngIf="runningUpgrade">
       <a class="btn btn-block" *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
@@ -69,6 +72,7 @@
           <ng-container *ngIf="!runningUpgrade">
             <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
               (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+            <a *ngIf="!obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
           </ng-container>
           <a class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
         </div>
