@@ -2,6 +2,8 @@
 
 v0.8.1 (latest)
 =================
+* [class=Advanced] __Imprvement:__ The u1 classic import tool, now imports old game time specials
+* [class=Admin] __Fix:__ Admin Time specials stopped working for unknown reasons after upgrading
 * __Fix:__ Not hiding sidebar when login out
 * [class=Advanced] __Fix:__ When universe has not login domain, modal was not closing
 * __Improvement:__ Improve time specials view

@@ -2,9 +2,9 @@ package com.kevinguanchedarias.owgejava.rest.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
@@ -21,7 +21,7 @@ import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@Scope()
+@ApplicationScope
 @RequestMapping("admin/time_special")
 public class AdminTimeSpecialRestService
 		implements CrudWithFullRestService<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto>,

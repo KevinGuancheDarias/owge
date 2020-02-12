@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public interface CrudWithFullRestService<N extends Number, E extends EntityWithImprovements<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
-		extends CrudWithRequirementsRestServiceTrait<N, E, S, D>, CrudWithImprovementsRestServiceTrait<N, E, S, D> {
+		extends CrudWithRequirementsRestServiceTrait<N, E, S, D>, CrudWithImprovementsRestServiceTrait<N, E, S, D>,
+		WithReadRestServiceTrait<N, E, S, D>, CrudRestServiceTrait<N, E, S, D>, WithDeleteRestServiceTrait<N, E, S, D> {
 
 }

@@ -31,9 +31,15 @@ if(file_exists(TARGET_CLASSIC_IMAGES_STORAGE)) {
     mkdir(TARGET_CLASSIC_IMAGES_STORAGE);
 }
 
+if(!getenv('U1_TIME_SPECIAL_MEDIA_DIR')) {
+    echo 'FATAL, path to time special media dir must be specified, the directory should contain all media images with the forma 1.img, 2.img, etc, that represents the u1 format';
+    exit(1);
+} else {
+    define('TIME_SPECIALS_CLASIC_MEDIA_FOLDER', getenv('U1_TIME_SPECIAL_MEDIA_DIR'));
+}
+
 list($_, $user, $password, $sourceDb, $targetDb) = $argv;
 class MysqliProxy extends mysqli {
-    private $connection;
     private $queries = [];
     
     public function query($sql, $resultMode = MYSQLI_STORE_RESULT) {
@@ -41,6 +47,9 @@ class MysqliProxy extends mysqli {
         return parent::query($sql);
     }
     
+    /**
+     * @return string[] Array of SQL queries
+     */
     public function getQueries(): array {
         return $this->queries;
     }
@@ -114,7 +123,7 @@ class NgObjectRelation {
     public $refId;
     
     public function __construct(string $objectDescription, int $refId) {
-        if(!in_array($objectDescription, ['UPGRADE', 'UNIT'])) {
+        if(!in_array($objectDescription, ['UPGRADE', 'UNIT', 'TIME_SPECIAL'])) {
             throw new Exception('Object relation with object type ' . $objectDescription . ' is not supported');
         }
         $this->objectDescription = $objectDescription;
@@ -188,31 +197,52 @@ class RequiredUpgrade {
     }
 }
 
-class Unit extends WithImprovementsObject {
-    public $isUnique = false;
-    public $energy = 0;
-    public $attack = 0;
-    public $health = 0;
-    public $shield = 0;
-    public $charge = 0;
+abstract class WithRequirementsObject extends WithImprovementsObject {
+    /** @var RequiredUpgrade[] */
     public $requiredUpgrades = [];
-    
+
     /**
-     * @param array $upgrades An array of instances of Upgrade, (already populated)
+     * Abstract method that should invoke doDefineRequiredUpgrade() with the correct type and tableSufix
+     * 
+     * @param Upgrade[] $upgrades An array of instances of Upgrade, (already populated)
      * @param mysqli $connection Input connection
      * @author Kevin Guanche Darias
     */
-    public function addRequiredUpgrade(array $upgrades, mysqli $connection) {
-        $cdType = $this->type === 'Tropas'
-            ? 'Unidades'
-            : $this->type;
-        $result = $connection->query("SELECT * FROM `Requisitos$this->type` WHERE `cd$cdType`=$this->classicId AND `Nivel` > 0");
+    public abstract function addRequiredUpgrade(array $upgrades, mysqli $connection);
+
+    /**
+     * Defines the required upgrades of the target entity that has requirements
+     * 
+     * @param Upgrade[] $upgrades An array of upgrades (already populated)
+     * @param string $tableSuffix The suffix of the target table
+     * @param string $type The type (used to find id column name)
+     * @param mysqli $source The U1 classic DB
+     * @author Kevin Guanche Darias
+     */
+    protected function doDefineRequiredUpgrade(array $upgrades, string $tableSuffix, string $type, mysqli $source) {
+        $result = $source->query("SELECT * FROM `Requisitos$tableSuffix` WHERE `cd$type`=$this->classicId AND `Nivel` > 0");
         while($row = $result->fetch_assoc()) {
             $upgrade = Upgrade::findUpgradeInstanceByClassicId($upgrades, $row["mcd"]);
             if($upgrade) {
                 $this->requiredUpgrades[] = new RequiredUpgrade(+$row['Nivel'], $upgrade);
             }
         }
+    }
+}
+
+class Unit extends WithRequirementsObject {
+    public $isUnique = false;
+    public $energy = 0;
+    public $attack = 0;
+    public $health = 0;
+    public $shield = 0;
+    public $charge = 0;
+    
+    public function addRequiredUpgrade(array $upgrades, mysqli $connection) {
+        $cdType = $this->type === 'Tropas'
+            ? 'Unidades'
+            : $this->type;
+        $this->doDefineRequiredUpgrade($upgrades, $this->type, $cdType,$connection);
     }
 }
 
@@ -231,8 +261,97 @@ class Faction extends CommonObject {
     public $srProduction;
     public $maxPlanets;
     
+    /** @var Upgrade[] */
     public $upgrades = [];
+
+    /** @var Unit[] */
     public $units = [];
+
+    /** @var TimeSpecial[] */
+    public $timeSpecials = [];
+}
+
+class TimeSpecial extends WithRequirementsObject {
+    /** @var int */
+    public $duration;
+
+    /** @var int */
+    public $rechargeTime;
+
+    /** @var ImageStore */
+    public $image;
+
+    public function addRequiredUpgrade(array $upgrades, \mysqli $connection) {
+        $this->doDefineRequiredUpgrade($upgrades, 'especialesderaza', 'Especial', $connection);
+    }
+}
+
+class ImageStore {
+    public $extension;
+    public $checksum;
+    public $filename;
+    public $displayName;
+    public $description;
+    public $localPath;
+
+    /**
+     * Creates an imageStore representation from a u1 "imagenes" table
+     * 
+     * @param int $id
+     * @param mysqli $source The u1 database
+     * @author Kevin Guanche Darias
+     */
+    public static function createFromImageId(int $id, mysqli $source): ImageStore {
+        $instance = new self;
+        $instance->description = 'Media imported from classic u1';
+        $instance->localPath = TIME_SPECIALS_CLASIC_MEDIA_FOLDER . DIRECTORY_SEPARATOR . "$id.img";
+        if(!file_exists($instance->localPath)) {
+            echo "Unwilling to continue as ImageStore with id $id doesn't exists in the filesystem, {$instance->localPath}";
+            exit(11);
+        }
+        $result = $source->query("SELECT `Formato` FROM `imagenes` WHERE `cdImagen`= $id");
+        if($result->num_rows) {
+            $instance->extension = '.' . self::findExtension($result->fetch_object()->Formato);
+            $instance->displayName = 'u1_classic_media_id' . $id . $instance->extension;
+        } else {
+            echo "\e[33mWarning: image with id $id doesn't exists\e[39m";
+        }
+        return $instance;
+    }
+
+    private static function findExtension(string $mime) {
+        switch($mime) {
+            case 'image/jpeg':
+                $retVal = 'jpg';
+                break;
+            case 'image/png':
+                $retVal = 'png';
+                break;
+            case 'image/gif':
+                $retVal = 'gif';
+                break;
+        }
+        return $retVal;
+    }
+
+    private function __construct() {
+
+    }
+
+    /**
+     * Saves to the target owge database, and to the target filesystem
+     * 
+     * @param mysqli $target The OWGE database to save to
+     * @return int The saved id
+     * @author Kevin Guanche Darias
+     */
+    public function saveToDbAndDisk(mysqli $target): int {
+        $this->checksum = md5_file($this->localPath);
+        $this->filename = $this->checksum . '.' . $this->extension;
+        copy($this->localPath, TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR . $this->filename);
+        $target->query("REPLACE INTO `images_store` (checksum, filename, display_name, description)VALUES('$this->checksum','$this->filename','$this->displayName','$this->description')");
+        return $target->insert_id;
+    }
 }
 
 /**
@@ -242,6 +361,8 @@ class Faction extends CommonObject {
 */
 class ClassicExtractor {
     private $source;
+
+    /** @var Faction[] */
     private $factionsArray = [];
     
     public function __construct(mysqli $source) {
@@ -275,6 +396,7 @@ class ClassicExtractor {
             $currentFaction->maxPlanets = FACTION_MAX_PLANETS;
             $currentFaction->upgrades = $this->fetchFactionUpgrades($currentFaction);
             $currentFaction->units = $this->fetchFactionUnits($currentFaction);
+            $currentFaction->timeSpecials = $this->fetchFactionTimeSpecials($currentFaction);
             $i++;
             $this->factionsArray[] = $currentFaction;
         }
@@ -308,6 +430,23 @@ class ClassicExtractor {
             $this->iterateUnitRows($this->source->query("SELECT d.*, hd.* FROM defensas d LEFT JOIN heroesdefensas hd ON hd.cd_heroe = d.cdHeroe WHERE rcd=$classicId"), $faction, DEFENSES_TYPE_ID)
         );
         
+    }
+
+    private function fetchFactionTimeSpecials(Faction $faction): array {
+        $classicId = $faction->classicId;
+        $retVal = [];
+        $result = $this->source->query("SELECT * FROM `especialesderaza` WHERE rcd = $classicId");
+        while($row = $result->fetch_object()) {
+            $timeSpecial = new TimeSpecial();
+            $this->doCommonFill($timeSpecial, $row);
+            $timeSpecial->duration = $row->Duracion;
+            $timeSpecial->rechargeTime = $row->Recarga;
+            $this->handleImprovements((object)unserialize($row->Atributos), $timeSpecial);
+            $timeSpecial->image = ImageStore::createFromImageId($row->cdImagen, $this->source);
+            $timeSpecial->addRequiredUpgrade($faction->upgrades, $this->source);
+            $retVal[] = $timeSpecial;
+        }
+        return $retVal;
     }
     
     private function iterateUnitRows(mysqli_result $result, Faction $faction, int $type) {
@@ -357,7 +496,9 @@ class ClassicExtractor {
     private function doCommonFill(CommonObject $target, $row ) {
         $target->classicId = +$row->cd;
         $target->name = $row->Nombre;
-        $target->image = new ImageObject($row->Imagen);
+        if(isset($row->Imagen)) {
+            $target->image = new ImageObject($row->Imagen);
+        }
         $target->description = $row->Descripcion;
     }
     
@@ -480,6 +621,9 @@ class ImportHandler {
         foreach($faction->units as $unit) {
             $this->importFactionUnit($faction, $unit);
         }
+        foreach($faction->timeSpecials as $timeSpecial) {
+            $this->importFactionTimeSpecial($faction, $timeSpecial);
+        }
     }
     
     private function importFactionUpgrade(Faction $ownerFaction, Upgrade $upgrade) {
@@ -496,6 +640,22 @@ class ImportHandler {
         );
     }
     
+    private function importFactionTimeSpecial(Faction $ownerFaction, TimeSpecial $timeSpecial) {
+        $this->insertTimeSpecial($timeSpecial);
+        $this->importImprovements($timeSpecial);
+        $this->connection->query("UPDATE time_specials SET improvement_id = $timeSpecial->improvementId WHERE id = $timeSpecial->ngId");
+        $this->importUnitTypeImprovements($timeSpecial);
+        $timeSpecial->ngObjectRelation = new NgObjectRelation('TIME_SPECIAL', $timeSpecial->ngId);
+        $timeSpecial->ngObjectRelation->save($this->connection);
+        $this->connection->query(
+            'INSERT INTO requirements_information ' .
+            '(relation_id, requirement_id, second_value) VALUES ' .
+            '(' . $timeSpecial->ngObjectRelation->id . ", $this->beenRaceRequirementId, $ownerFaction->ngId)"
+        );
+        $this->importRequirements($timeSpecial);
+
+    }
+
     private function importImprovements(WithImprovementsObject $withImprovementsObject) {
         $this->connection->query(
             'INSERT INTO improvements ' .
@@ -534,6 +694,28 @@ class ImportHandler {
             }
         }
     }
+
+    private function insertTimeSpecial(TimeSpecial $timeSpecial) {
+        $name = escapeString($this->connection, $timeSpecial->name);
+        $description = escapeString($this->connection, $timeSpecial->description);
+        $imageId = $timeSpecial->image->saveToDbAndDisk($this->connection);
+        try {
+            $this->connection->query(
+                'INSERT INTO time_specials ' .
+                '(name, description, image_id, duration, recharge_time, cloned_improvements) VALUES ' . 
+                "('$name','$description','$imageId',$timeSpecial->duration, $timeSpecial->rechargeTime, 0)"
+            );
+            $timeSpecial->ngId = $this->connection->insert_id;
+        } catch(mysqli_sql_exception $e) {
+            if(strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $timeSpecial->name .= ' DUPLICATED';
+                $this->insertTimeSpecial($timeSpecial);
+            } else {
+                throw $e;
+            }
+        }
+    }
+
     private function importUnitTypeImprovements(WithImprovementsObject $withImprovementsObject) {
         $indexMap = [
             [
@@ -595,15 +777,19 @@ class ImportHandler {
             '(relation_id, requirement_id, second_value) VALUES ' .
             '(' . $unit->ngObjectRelation->id . ", $this->beenRaceRequirementId, $ownerFaction->ngId)"
         );
-        foreach($unit->requiredUpgrades as $requiredUpgrade) {
+        $this->importRequirements($unit);
+    }
+    
+    private function importRequirements(WithRequirementsObject $withRequirementsObject): void {
+        foreach($withRequirementsObject->requiredUpgrades as $requiredUpgrade) {
             $this->connection->query(
                 'INSERT INTO requirements_information ' .
                 '(relation_id, requirement_id, second_value, third_value) VALUES ' .
-                '(' . $unit->ngObjectRelation->id . ", $this->haveUpgradeLevelRequirementId, " . $requiredUpgrade->upgradeInstance->ngId . ", $requiredUpgrade->level)"
+                '(' . $withRequirementsObject->ngObjectRelation->id . ", $this->haveUpgradeLevelRequirementId, " . $requiredUpgrade->upgradeInstance->ngId . ", $requiredUpgrade->level)"
             );   
         }
     }
-    
+
     private function insertUnit(Unit $unit) {
         $name = escapeString($this->connection, $unit->name);
         $description = escapeString($this->connection, $unit->description);
@@ -645,10 +831,36 @@ class ImportHandler {
     }
 }
 
+/**
+ * Handles MySQLI exceptions occured inside the <i>$actions</i> <br>
+ * <b>Notice:</b> Will rethrow the exception
+ * 
+ * @param MysqliProxy $db The connection that is expected to have thrown the exception
+ * @param callable $actions The actions that may throw an exception
+ * 
+ */
+function handleSqlException(MysqliProxy $db, callable $actions): void {
+    try {
+        $actions();
+    } catch (mysqli_sql_exception $e) {
+        $queries = $db->getQueries();
+        $lastQuery = $queries[count($queries) -1];
+        echo "Failed to execute: $lastQuery" . PHP_EOL;
+        throw $e;
+    }
+}
+
 // START Program itself
-$extractor = new ClassicExtractor($sourceDbConnection);
-$importHandler = new ImportHandler($targetDbConnection);
-$importHandler->doImport($extractor->getFactionsArray());
+$extractor;
+handleSqlException($sourceDbConnection, function() use ($sourceDbConnection, &$extractor) {
+    $extractor = new ClassicExtractor($sourceDbConnection);
+});
+handleSqlException($targetDbConnection, function() use($targetDbConnection, $extractor) {
+    $importHandler = new ImportHandler($targetDbConnection);
+    $importHandler->doImport($extractor->getFactionsArray());
+});
+
+
 if(getenv('DUMP_TARGET_SQL')) {
     echo implode(PHP_EOL, $targetDbConnection->getQueries());
 }

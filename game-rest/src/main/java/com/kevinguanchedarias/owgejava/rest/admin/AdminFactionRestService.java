@@ -5,9 +5,9 @@ package com.kevinguanchedarias.owgejava.rest.admin;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.FactionBo;
@@ -23,7 +23,7 @@ import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServic
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @RestController
-@Scope()
+@ApplicationScope
 @RequestMapping("admin/faction")
 public class AdminFactionRestService
 		implements CrudWithImprovementsRestServiceTrait<Integer, Faction, FactionBo, FactionDto> {
