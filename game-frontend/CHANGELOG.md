@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Add all the missing language translations to spanish and english (remove all hardcoded texts)
 * __Fix:__ Not displaying the "No enough resources" button when you have not enough resources to level up the specified upgrade
 * [class=Advanced] __Imprvement:__ The u1 classic import tool, now imports old game time specials
 * [class=Admin] __Fix:__ Admin Time specials stopped working for unknown reasons after upgrading

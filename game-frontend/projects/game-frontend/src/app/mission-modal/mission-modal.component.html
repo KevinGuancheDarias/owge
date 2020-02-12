@@ -26,8 +26,6 @@
     </div>
   </div>
   <div class="footer">
-    <button (click)="sendMission()" [disabled]="!isValidSelection || !missionType || hasSelectedMoreThanPossible()"
-      class="btn-primary btn-send-mission">Send
-      mission</button>
+    <button (click)="sendMission()" [disabled]="!isValidSelection || !missionType || hasSelectedMoreThanPossible()" class="btn-primary btn-send-mission">{{ 'APP.MISSION_MODAL.BTN_SEND_MISSION' | translate}}</button>
   </div>
 </owge-core-modal>

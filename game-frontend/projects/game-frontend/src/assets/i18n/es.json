@@ -8,6 +8,109 @@
             "BTN_FORGOT_PASSWORD": "Contraseña olvidada",
             "BTN_REGISTER": "Hacer cuenta"
         },
+        "INDEX": {
+            "TITLE_MY_MISSIONS": "Mis misiones",
+            "NO_MY_MISSIONS": "No estás haciendo misiones",
+            "TITLE_ENEMY_MISSIONS": "Misiones de otros",
+            "NO_ENEMY_MISSIONS": "No hay misiones de otros jugadores a ninguno de tus planetas"
+        },
+        "MISSION_TYPES": {
+            "PLEASE_SELECT": "Seleccionar...",
+            "EXPLORE": "Explorar",
+            "RETURN_MISSION": "Volver",
+            "GATHER": "Recolectar",
+            "ESTABLISH_BASE": "Establecer base",
+            "ATTACK": "Atacar",
+            "COUNTERATTACK": "Contratacar",
+            "CONQUEST": "Conquistar",
+            "DEPLOY": "Desplegar",
+            "DEPLOYED": "Desplegado"
+        },
+        "MISSION_LIST": {
+            "HEADER_MISSION_TYPE_FROM_USER": "{{missionType}} de {{userName}}",
+            "ORIGIN": "Origen",
+            "TARGET": "Objetivo",
+            "BTN_MOVE_UNITS": "Mover unidades",
+            "MODAL": {
+                "TITLE": "Seleccionar planeta objetivo"
+            }
+        },
+        "DISPLAY_QUADRANT": {
+            "GALAXY": "Galaxia",
+            "SECTOR": "Sector",
+            "QUADRANT": "Cuadrante",
+            "CURRENT_COORDINATES": "Coordenadas actuales",
+            "TOOLTIP_SEND_MISSION": "Enviar misión"
+        },
+        "MISSION_MODAL": {
+            "HEADER": "Enviar misión a {{planetName}}",
+            "MISSION_TYPE": "Tipo misión",
+            "CHOOSE_UNITS_FIRST": "Selecciona unidades para poder escoger tipo de misión",
+            "BTN_SEND_MISSION": "Enviar misión"
+        },
+        "UPGRADES": {
+            "DO_UPGRADE": "Mejorar",
+            "NO_ENOUGH_RESOURCES": "Sin recursos",
+            "CANCEL": "Cancelar",
+            "LEVEL": "Nivel {{upgradeLevel}}"
+        },
+        "UNITS": {
+            "HIDE_DESCRIPTION": "Ocultar descripciones",
+            "MENU": {
+                "BTN_IN_PLANET": "En planeta",
+                "BTN_BUILD": "Construir",
+                "BTN_REQUIREMENTS": "Requisitos",
+                "SELECT_ALL_UNITS": "Cualquiera"
+            },
+            "DISPLAY_SINGLE": {
+                "NUMBER": "Cantidad",
+                "ATTRIBUTES": "Atributos",
+                "REQUIREMENTS": "Requisitos",
+                "DELETE": "Borrar",
+                "BUILD": {
+                    "CANCEL": "Cancelar",
+                    "COUNT": "Cantidad",
+                    "BTN_BUILD": "Construir",
+                    "MIN_ONE": "Mínimo 1",
+                    "NO_RESOURCES": "Sin recursos"
+                }
+            },
+            "IN_PLANET": {
+                "NO_UNITS": "No hay unidades en este planeta"
+            }
+        },
+        "DEPLOYED_UNIT_LIST": {
+            "CHOOSE_COUNT": "Seleccionar cantidad"
+        },
+        "NAVIGATION_CONTROLS": {
+            "GALAXY": "Galaxia",
+            "SECTOR": "Sector",
+            "QUADRANT": "Cuadrante",
+            "BTN_NAVIGATE": "Navegar"
+        },
+        "REPORTS": {
+            "NO_REPORTS": "No hay reportes de misión aún",
+            "SOURCE_PLANET": "Planeta origen",
+            "SENT_UNITS": "Misionarios",
+            "RESULTS": {
+                "EXPLORE": "Exploraciónn",
+                "ATTACK": "Ataque",
+                "ERROR": "Error",
+                "GATHER": "Recolección",
+                "ESTABLISH_BASE": "Establecer base",
+                "ESTABLISH_BASE_ERROR": "Error al establecer base, quizá posees el máximo de planetas",
+                "ESTABLISH_BASE_SUCCESS": "Éxito, ahora el planeta es de tu propiedad"
+            },
+            "BODY": {
+                "USERNAME": "Jugador: {{username}}",
+                "GATHER": {
+                    "TITLE": "Recursos obtenidos"
+                },
+                "ATTACK": {
+                    "EARNED_POINTS": "Puntos ganados"
+                }
+            }
+        },
         "MY_ALLIANCE": "My alianza",
         "BROWSE": "Lista alianzas",
         "LIST_JOIN_REQUEST": "Lista solicitudes de entrar",
@@ -20,12 +123,15 @@
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking",
         "MENU_LOGOUT": "Salir",
+        "SIDEBAR": {
+            "MISSIONS_RESOURCE_NAME": "Misiones"
+        },
         "VERSION_INFORMATION": {
-            "FILTERS": "Advanced filters",
+            "FILTERS": "Filtros avanzados",
             "CLASSES": {
-                "DEVELOPER": "Developer",
+                "DEVELOPER": "Desarrollador",
                 "ADMIN": "Admin",
-                "ADVANCED": "Advanced"
+                "ADVANCED": "Avanzado"
             }
         }
     },

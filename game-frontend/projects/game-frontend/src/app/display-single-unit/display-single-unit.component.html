@@ -6,9 +6,9 @@
   >
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
-      [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">Requirements</a>
+    [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' | translate }}</a>
       <a class="btn" (click)="selectedView = 'attributes'"
-        [ngClass]="{ 'selected-menu': selectedView === 'attributes'}">Attributes</a>
+        [ngClass]="{ 'selected-menu': selectedView === 'attributes'}">{{ 'APP.UNITS.DISPLAY_SINGLE.ATTRIBUTES' | translate }}</a>
       <app-display-requirements *ngIf="selectedView === 'requirements'" [requirements]="unit.requirements">
       </app-display-requirements>
       <ng-container *ngIf="selectedView === 'attributes'">
@@ -25,32 +25,29 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a class="btn btn-block" *ngIf="building && building.missionData.unit.id === unit.id" role="button" (click)="cancelUnit()">Cancelar</a>
+        <a class="btn btn-block" *ngIf="building && building.missionData.unit.id === unit.id" role="button" (click)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
         <a *ngIf="building && building.missionData.unit.id !== unit.id" class="btn btn-block" role="button"
           (click)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
-          <input type="number" id="count" name="count" [(ngModel)]="count" placeholder="Cantidad" />
+          <input type="number" id="count" name="count" [(ngModel)]="count" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.BUILD.COUNT' | translate" min="0" />
           <a *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block" role="button"
-            (click)="buildSelectedUnit()">Construir</a>
-          <a *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (click)="count = 1">Máximo 1
-            =/
-          </a>
-          <a *ngIf="!count" class="btn btn-block" role="button" (click)="count = 1">Mínimo 1
-          </a>
-          <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">Sin recursos</a>
+            (click)="buildSelectedUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.BTN_BUILD' | translate }}</a>
+          <a *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (click)="count = 1">Error (report it!)</a>
+          <a *ngIf="!count" class="btn btn-block" role="button" (click)="count = 1">{{ 'APP.UNITS.DISPLAY_SINGLE.MIN_ONE' | translate }}</a>
+          <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">{{ 'APP.UNITS.DISPLAY_SINGLE.NO_RESOURCES' | translate }}</a>
         </ng-container>
       </ng-container>
     
       <ng-container *ngIf="withInPlanetMode">
         <ng-template owgeCoreIfDesktop>
           <div class="in-planet-count">
-            <h5>{{ 'APP.UNITS.NUMBER' | translate }}:</h5>
+            <h5>{{ 'APP.UNITS.DISPLAY_SINGLE.NUMBER' | translate }}:</h5>
             <h5> {{ inPlanetCount }}</h5>
           </div>
         </ng-template>
-        <input class="number-to-delete" type="number" [(ngModel)]="numberToDelete" placeholder="Delete" [min]="0"
+        <input class="number-to-delete" type="number" [(ngModel)]="numberToDelete" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate" [min]="0"
           [max]="inPlanetCount" />
-        <a class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (click)="deleteUnits()">Delete</a>
+        <a class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (click)="deleteUnits()">{{ 'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate }}</a>
       </ng-container>
     </ng-template>
 

@@ -1,17 +1,16 @@
 <div class="page-selector">
-  <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selected-menu' : isDeployedRoute()}">In
-    planet</a>
-  <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selected-menu' : isBuildRoute()}">Build</a>
+  <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selected-menu' : isDeployedRoute()}">{{ 'APP.UNITS.MENU.BTN_IN_PLANET' | translate }}</a>
+  <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selected-menu' : isBuildRoute()}">{{ 'APP.UNITS.MENU.BTN_BUILD' | translate }}</a>
   <a class="btn btn-block" routerLink="{{ REQUIREMENTS_URL }}"
-    [ngClass]="{'selected-menu' : isRequirementsRoute()}">Requirements</a>
+    [ngClass]="{'selected-menu' : isRequirementsRoute()}">{{ 'APP.UNITS.MENU.BTN_REQUIREMENTS' | translate }}</a>
   <select *ngIf="unitTypes" class="owge-base-colors form-control" [(ngModel)]="unitType" (ngModelChange)="onUnitTypeChange()"
     [compareWith]="isEqualByIdOrIsNull">
-    <option [ngValue]="null">All units</option>
+    <option [ngValue]="null">{{ 'APP.UNITS.MENU.SELECT_ALL_UNITS' | translate }}</option>
     <option *ngFor=" let currentType of unitTypes" [ngValue]="currentType">{{ currentType.name }}</option>
   </select>
   <ng-template owgeCoreIfDesktop (changed)="viewChanged($event)">
     <div class="use-compact owge-base-colors" >
-      <span (click)="inputElement.click()">Hide description: </span>
+      <span (click)="inputElement.click()">{{ 'APP.UNITS.HIDE_DESCRIPTION' | translate}}: </span>
       <input #inputHideDescription  type="checkbox" [(ngModel)]="hideDescription" (ngModelChange)="onCheckboxChanged()"/>
     </div>
   </ng-template>

@@ -2,22 +2,22 @@
   <app-display-single-upgrade *ngIf="runningUpgrade && relatedObtainedUpgrade"
     [obtainedUpgrade]="relatedObtainedUpgrade" (runningUpgradeDone)="runningUpgrade = null"></app-display-single-upgrade>
   <owge-core-loading [isReady]="myUnitRunningMissions">
-    <h1 class="owge-title">My missions</h1>
+    <h1 class="owge-title">{{ 'APP.INDEX.TITLE_MY_MISSIONS' | translate }}</h1>
     <div *ngIf="myUnitRunningMissions" class="owge-card-list">
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isMovable]="true" [isCancellable]="true"
         (missionDone)="findMyMissions()"></app-list-running-missions>
       <p *ngIf="!myUnitRunningMissions.length" class="owge-base-colors no-missions">
-        You are not running any mission
+        {{ 'APP.INDEX.NO_MY_MISSIONS' | translate }}
       </p>
     </div>
   </owge-core-loading>
   <owge-core-loading [isReady]="enemyRunningMissions">
-    <h1 class="owge-title">Enemy missions</h1>
+    <h1 class="owge-title">{{ 'APP.INDEX.TITLE_ENEMY_MISSIONS' | translate }}</h1>
     <div *ngIf="enemyRunningMissions" class="owge-card-list">
       <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"
         (missionDone)="findEnemyMissions()"></app-list-running-missions>
       <p *ngIf="!enemyRunningMissions.length" class="owge-base-colors no-missions">
-        No enemy mission are running to any of your planets
+        {{ 'APP.INDEX.NO_ENEMY_MISSIONS' | translate }}
       </p>
     </div>
   </owge-core-loading>

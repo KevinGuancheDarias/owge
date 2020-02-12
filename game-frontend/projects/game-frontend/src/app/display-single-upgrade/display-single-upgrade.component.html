@@ -9,7 +9,7 @@
   <div class="card owge mobile-view" *ngIf="!isDesktop">
     <div class="card-block">
       <h5 class="card-title">{{ upgrade.name | hideDuplicatedName }}</h5>
-      <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">Nivel {{ obtainedUpgrade.level }}
+      <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">{{ 'APP.UPGRADES.LEVEL' | translate: { upgradeLevel: obtainedUpgrade.level } }}
         <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
     </div>
     <img src="{{ image }}" alt="image of the upgrade">
@@ -31,11 +31,11 @@
     </ng-container>
     <ng-container *ngIf="!runningUpgrade">
       <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
-        (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+        (click)="updateSelectedUpgrade(obtainedUpgrade)">{{ 'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
       <a *ngIf="!obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
     </ng-container>
     <ng-container *ngIf="runningUpgrade">
-      <a class="btn btn-block" *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
+      <a class="btn btn-block" *ngIf="obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
       <a *ngIf="obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
         (click)="otherUpgradeAlreadyRunning()">---</a>
     </ng-container>
@@ -52,7 +52,7 @@
     <div class="d-flex desktop-view owge-base-colors" >
       <div class="p-2">
         <div>
-          <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">Nivel {{ obtainedUpgrade.level }}
+          <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">{{ 'APP.UPGRADES.LEVEL' | translate: { upgradeLevel: obtainedUpgrade.level } }}
             <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
         </div>
         <div>
@@ -71,10 +71,10 @@
           </ng-container>
           <ng-container *ngIf="!runningUpgrade">
             <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
-              (click)="updateSelectedUpgrade(obtainedUpgrade)">Mejorar</a>
+              (click)="updateSelectedUpgrade(obtainedUpgrade)">{{ 'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
             <a *ngIf="!obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
           </ng-container>
-          <a class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">Cancelar</a>
+          <a class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
         </div>
       </div>
 

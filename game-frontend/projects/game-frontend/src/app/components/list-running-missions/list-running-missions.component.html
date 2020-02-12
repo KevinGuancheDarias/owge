@@ -1,6 +1,6 @@
 <owge-core-modal #navigationModal [hasCloseButton]="true">
   <div class="header">
-    Select target planet
+    {{ 'APP.MISSION_LIST.MODAL.TITLE' | translate }}
   </div>
   <div class="body">
     <app-display-quadrant *ngIf="isDisplayingModal" [isFullWidth]="true"></app-display-quadrant>
@@ -19,7 +19,7 @@
         </app-countdown>
       </span>
       <div class="card-block" *ngIf="isMovable && runningUnitMission.type === 'DEPLOYED'">
-        <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">Move units</a>
+        <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">{{ 'APP.MISSION_LIST.BTN_MOVE_UNITS' | translate }}</a>
       </div>
       <ng-template #tooltipPlanetComponent>
         <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
@@ -28,13 +28,13 @@
         <div class="card-title">
             <div class="row planet-names">
               <div>
-                <h4>Origin</h4>
+                <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
                 <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
                   (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
                   (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
               </div>
               <div>
-                <h4>Target</h4>
+                <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
                 <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
                   (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
                   (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>

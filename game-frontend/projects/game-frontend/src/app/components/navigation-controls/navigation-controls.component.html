@@ -1,6 +1,6 @@
 <div *ngIf="navigationData" class="row">
   <div class="col-xs-3 form-group">
-    <label> Galaxia: </label>
+    <label> {{ 'APP.NAVIGATION_CONTROLS.GALAXY' | translate }}: </label>
     <select class="owge-base-colors form-control" [compareWith]="galaxyEquals" [(ngModel)]="selectedGalaxy" (ngModelChanges)="hasChanged()">
       <option *ngFor="let galaxy of navigationData.galaxies" [ngValue]="galaxy">
         {{ galaxy.name }}
@@ -9,7 +9,7 @@
   </div>
   <ng-container *ngIf="selectedGalaxy">
     <div class="col-xs-3 form-group">
-      <label> Sector: </label>
+      <label> {{ 'APP.NAVIGATION_CONTROLS.SECTOR' | translate }}: </label>
       <select class="owge-base-colors form-control" [(ngModel)]="selectedSector" (ngModelChanges)="hasChanged()">
         <option *ngFor="let sector of createLoop(selectedGalaxy.sectors); let i = index" [value]="i+1">
           {{ i+1 }}
@@ -17,7 +17,7 @@
       </select>
     </div>
     <div class="col-xs-3 form-group">
-      <label> Cuadrante: </label>
+      <label> {{ 'APP.NAVIGATION_CONTROLS.QUADRANT' | translate }}: </label>
       <select class="owge-base-colors form-control" [(ngModel)]="selectedQuadrant" (ngModelChanges)="hasChanged()">
         <option *ngFor="let quadrant of createLoop(selectedGalaxy.quadrants); let i = index" [value]="i+1">
           {{ i+1 }}
@@ -26,6 +26,6 @@
     </div>    
   </ng-container>
   <div class="col-xs-3 form-group">
-    <button class="btn btn-primary" [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (click)="navigate()">Navegar</button>
+    <button class="btn btn-primary" [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (click)="navigate()">{{ 'APP.NAVIGATION_CONTROLS.BTN_NAVIGATE' | translate }}</button>
   </div>
 </div>

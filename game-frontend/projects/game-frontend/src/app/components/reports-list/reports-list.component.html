@@ -1,7 +1,7 @@
 <owge-core-loading [isReady]="reports">
   <ng-container *ngIf="reports">
     <div *ngIf="!reports.length" class="owge-empty-collection">
-      No mission reports are available for now
+      {{ 'APP.REPORTS.NO_REPORTS' | translate }}
     </div>
     <div class="card owge report-card" *ngFor="let report of reports">
       <owge-widgets-display-list-item [itemName]="'Mission to ' + report.parsedJson?.targetPlanet?.name" [image]="report.parsedJson?.targetPlanet | planetImage"
@@ -38,8 +38,8 @@
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ATTACK' | translate" *ngIf="report.parsedJson?.attackInformation">
               <div class="card owge" *ngFor="let currentUser of report.parsedJson?.attackInformation">
                 <div class="card-block">
-                  Username: {{ currentUser.userInfo.username }}
-                  <br /> Earned points: {{ currentUser.earnedPoints }}
+                  {{ 'APP.REPORTS.BODY.USERNAME' | translate: {username: currentUser.userInfo.username} }}
+                  <br /> {{ 'APP.REPORTS.BODY.ATTACK.EARNED_POINTS' | translate }}: {{ currentUser.earnedPoints }}
                   <div class="user-units"></div>
                   <app-units-alive-death-list [units]="currentUser.units"></app-units-alive-death-list>
                 </div>
@@ -48,7 +48,7 @@
 
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.GATHER' | translate"
               *ngIf="report.parsedJson?.gatheredPrimary !== undefined && report.parsedJson?.gatheredSecondary !== undefined">
-              <h1>Gathered resources</h1>
+              <h5>{{ 'APP.REPORTS.BODY.GATHER.TITLE' | translate }}</h5>
               <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
                 [resourceImage]="userData.factionDto.primaryResourceImage"
                 [resourceValue]="report.parsedJson?.gatheredPrimary">

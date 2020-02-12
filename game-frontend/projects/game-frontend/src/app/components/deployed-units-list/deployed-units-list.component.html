@@ -10,11 +10,11 @@
         <img [src]="obtainedUnit.unit.image | dynamicImage" />
       </div>
       <div class="card-block" *ngIf="selectable">
-        <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" placeholder="Select count" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>
+        <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>
       </div>
     </div>
     <div *ngIf="!obtainedUnits || !obtainedUnits.length" class="owge-empty-collection">
-      There are no units in the planet
+      {{ 'APP.UNITS.IN_PLANET.NO_UNITS' | translate }}
     </div>
   </div>
 </owge-core-loading>
