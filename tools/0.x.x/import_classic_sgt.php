@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+define('DYNAMIC_EXTRA_SOURCE', 'dynamic_extra');
 define('TARGET_CLASSIC_IMAGES_STORAGE', 'owge_classic_media');
 define('FACTION_INITIAL_ENERGY', 4200);
 define('FACTION_ENERGY_ICON','owge_classic.png');
@@ -607,6 +608,7 @@ class ImportHandler {
         $image = $faction->image->download();
         $prImage = $faction->prImage->download();
         $srImage = $faction->srImage->download();
+        copy( DYNAMIC_EXTRA_SOURCE . DIRECTORY_SEPARATOR .  FACTION_ENERGY_ICON, TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR);
         $this->connection->query(
             "INSERT INTO factions " .
             "(hidden, name, image, description, primary_resource_name, primary_resource_image, secondary_resource_name, secondary_resource_image, energy_name, energy_image, initial_primary_resource, initial_secondary_resource, initial_energy, primary_resource_production, secondary_resource_production, max_planets, cloned_improvements) VALUES"
