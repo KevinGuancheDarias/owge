@@ -27,7 +27,7 @@
   <owge-alliance-details *ngIf="userAlliance" [alliance]="userAlliance">
   </owge-alliance-details>
   <ng-container *ngIf="userAlliance === null">
-    <h1 class="owge-base-colors">{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
+    <h1 class="owge-title">{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
     <button (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.CREATE' | translate }}</button>
   </ng-container>
 </owge-core-loading>

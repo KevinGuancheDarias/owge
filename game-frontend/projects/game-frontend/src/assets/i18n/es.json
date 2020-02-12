@@ -170,7 +170,8 @@
     "TIME_SPECIAL": {
         "BTN_ACTIVATE": "Activar",
         "IS_ACTIVE": "Activo",
-        "IS_IN_RECHARGE": "Recargando"
+        "IS_IN_RECHARGE": "Recargando",
+        "NONE_UNLOCKED": "no has desbloqueado ningún especial de tiempo"
     },
     "RANKING": {
         "POSITION": "Posición",

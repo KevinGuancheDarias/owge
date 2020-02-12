@@ -170,7 +170,8 @@
     "TIME_SPECIAL": {
         "BTN_ACTIVATE": "Activate",
         "IS_ACTIVE": "Active",
-        "IS_IN_RECHARGE": "Recharging"
+        "IS_IN_RECHARGE": "Recharging",
+        "NONE_UNLOCKED": "You have not unlocked any time special"
     },
     "RANKING": {
         "POSITION": "Position",
