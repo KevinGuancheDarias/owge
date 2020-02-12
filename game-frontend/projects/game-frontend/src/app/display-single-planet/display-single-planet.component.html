@@ -1,4 +1,5 @@
 <div class="container" *ngIf="planet">
+    <ng-content></ng-content>
     <p>
         <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet.name }}
 

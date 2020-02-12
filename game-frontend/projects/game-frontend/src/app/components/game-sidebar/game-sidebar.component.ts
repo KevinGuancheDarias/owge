@@ -23,7 +23,10 @@ import { LoginSessionService } from '../../login-session/login-session.service';
 @Component({
   selector: 'app-game-sidebar',
   templateUrl: './game-sidebar.component.html',
-  styleUrls: ['./game-sidebar.component.less']
+  styleUrls: [
+    './game-sidebar.component.less',
+    './game-sidebar.component.scss'
+  ]
 })
 export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
 

@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [Planet list icon is in wrong location after certain actions #157](https://github.com/KevinGuancheDarias/owge/issues/157)
 * __Fix:__ Battery drainining bug in build units, when the player reloads the browser window, been in the unit build screen
 * [class=Advanced] __Improvement:__ The u1 classic export tool now provides the energy icon by itself
 * __Fix:__ If you do a deploy mission till you have more than 1 max mission, won't be able to do anything more

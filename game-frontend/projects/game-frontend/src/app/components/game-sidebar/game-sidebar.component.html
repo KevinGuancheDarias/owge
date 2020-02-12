@@ -17,9 +17,9 @@
 <owge-widgets-sidebar [sidebarRoutes]="menuRoutes">
       <div class="body">
             <div class="selected-planet">
-                  <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()"
-                        class="fa fa-globe"></i>
-                  <app-display-single-planet [planet]="selectedPlanet"> </app-display-single-planet>
+                  <app-display-single-planet [planet]="selectedPlanet">
+                        <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()" class="fa fa-globe"></i>
+                  </app-display-single-planet>
             </div>
             <div *ngIf="user && resources" class="resource-data">
                   <app-display-single-resource [resourceName]="user.faction.primaryResourceName"
