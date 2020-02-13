@@ -1,6 +1,6 @@
 import { Router } from '@angular/router';
-import { ROUTES } from '@owge/core';
-import { Component, OnInit } from '@angular/core';
+import { ROUTES, ModalComponent } from '@owge/core';
+import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 
 import { FactionService } from '../faction/faction.service';
 import { BaseComponent } from '../base/base.component';
@@ -14,6 +14,10 @@ import { UniverseService } from '../universe/universe.service';
   providers: [FactionService]
 })
 export class FactionSelectorComponent extends BaseComponent implements OnInit {
+  @Output() public selected: EventEmitter<void> = new EventEmitter;
+
+  @ViewChild(ModalComponent, { static: true }) private _modal: ModalComponent;
+
   public factionsList: Faction[];
   public selectedFactionIndex: number;
   public selectedFaction: Faction;
@@ -52,6 +56,10 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
 
   private redirectToGameIfSubscritionSucceeded(serverMessage: boolean) {
     if (serverMessage) {
+      if (this._modal) {
+        this._modal.hide();
+        this.selected.emit();
+      }
       this._router.navigate([ROUTES.GAME_INDEX]);
     } else {
       this.displayError('Error fatal que no tiene sentido, \
