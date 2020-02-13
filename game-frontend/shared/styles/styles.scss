@@ -37,6 +37,20 @@ select {
     }
 }
 
+.owge-btn {
+    background-image: url('/assets/img/oldmetalnew.jpg');
+    overflow: hidden;
+    text-align: center;
+    text-shadow: 0px 0px 1px black;
+    background-position: top;
+    background-size: 100% 100%;
+    border: outset 2px black;
+    box-shadow: 0px 0px 3px black, 0px 0px 6px black inset;
+    font-weight: bold;
+    font-size: 12pt;
+    color: silver;
+}
+
 .btn.selected-menu {
     color: $bgColor;
     background-color: $mainColor;

@@ -6,10 +6,10 @@
           <div *ngFor="let planet of myPlanets" class="card owge planet-card">
                 <app-display-single-planet [planet]="planet"></app-display-single-planet>
                 <div class="card-block">
-                      <a class="owge-sidebar-btn-menu" (click)="selectPlanet(planet)">Select</a>
+                      <a class="owge-btn btn-block" (click)="selectPlanet(planet)">Select</a>
                 </div>
                 <div class="card-block">
-                      <a *ngIf="!planet.home" class="owge-sidebar-btn-menu" (click)="leavePlanet(planet)">Leave</a>
+                      <a *ngIf="!planet.home" class="owge-btn btn-block" (click)="leavePlanet(planet)">Leave</a>
                 </div>
           </div>
     </div>
