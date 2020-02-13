@@ -1,13 +1,14 @@
 <div class="owge-side-bar-root" *ngIf="sidebarRoutes">
       <div class="magic-overflow">
-
             <a *ngIf="selectedRoute" class="owge-sidebar-btn-menu selected-menu" role="button" routerLink="{{ selectedRoute.path }}">
                   <span><i [class]="selectedRoute.icon"></i></span>
-                  <svg xmlns="http://www.w3.org/2000/svg">
+                  <svg *ngIf="isGreaterThanViewportWidth || isDesktop" xmlns="http://www.w3.org/2000/svg">
                         <g>
                         <text y="70%" [attr.textLength]="computedLength" lengthAdjust="spacingAndGlyphs">{{ selectedRoute.text }}</text>
                         </g>
                   </svg>
+                  <span class="selected-route-text" *ngIf="!isGreaterThanViewportWidth && !isDesktop">{{ selectedRoute.text }}</span>
+                  <span #largestRouteEl *ngIf="largestRouteName && !computedTitleWidth" class="hidden-magic-computation">{{ largestRouteName.text }}</span>
             </a>
             <ng-container *ngFor="let route of sidebarRoutes">
                   <a *ngIf="route.path" class="owge-sidebar-btn-menu" role="button" routerLink="{{ route.path }}"

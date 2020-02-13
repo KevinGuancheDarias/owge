@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [Section title in the menu should not scale when the width is long enough, even when the height is of mobile style #164](https://github.com/KevinGuancheDarias/owge/issues/164)
 * __Fix:__ [After the player chooses faction, the modal does not disappear #159](https://github.com/KevinGuancheDarias/owge/issues/159)
 * [class=Developer] __Fix:__ OWGE Launcher script for developers, not working in Linux
 * __Fix:__ [Planet list icon is in wrong location after certain actions #157](https://github.com/KevinGuancheDarias/owge/issues/157)
