@@ -4,17 +4,20 @@ import { distinctUntilChanged } from 'rxjs/operators';
 
 import { LoggerHelper } from '../helpers/logger.helper';
 
+type targetWindowProp = 'innerWidth' | 'innerHeight';
 
 class SubjectAndExpectaction {
     public subject: Subject<boolean>;
     public expectedPx: number;
     public timeoutId: number;
     public identifier: string;
+    public targetProp: targetWindowProp;
 
-    public constructor(subject: Subject<boolean>, expectedPx: number, identifier: string) {
+    public constructor(subject: Subject<boolean>, expectedPx: number, identifier: string, targetProp: targetWindowProp) {
         this.subject = subject;
         this.expectedPx = expectedPx;
         this.identifier = identifier;
+        this.targetProp = targetProp;
         this.timeoutId = 0;
     }
 
@@ -61,7 +64,7 @@ export class ScreenDimensionsService {
     }
 
     /**
-     * Reacts to screen resize and notifies true or false depending on the widths and the heights
+     * Reacts to screen resize and notifies true or false depending on the screen width
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
@@ -71,12 +74,22 @@ export class ScreenDimensionsService {
      * @returns {Observable<boolean>}
      */
     public hasMinWidth(expectedPx: number, identifier: string): Observable<boolean> {
-        this._log.debug(`Adding handler ${identifier} with expectation ${expectedPx}`);
-        const subjectAndExpectation: SubjectAndExpectaction = new SubjectAndExpectaction(
-            new BehaviorSubject(this._isGreaterThanExpectedWidth(expectedPx)), expectedPx, identifier
-        );
-        this._subjects.set(identifier, subjectAndExpectation);
-        return subjectAndExpectation.subject.asObservable().pipe(distinctUntilChanged());
+        return this._hasMinProp('innerWidth', expectedPx, identifier);
+    }
+
+
+    /**
+     * Reacts to screen resize and notifies true or false depending on the screen height
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     * @param {number} expectedPx
+     * @param {string} identifier Used to be able to remove the handler from the system
+     *  (for example on a ngDestruct of a component that uses this listener)
+     * @returns {Observable<boolean>}
+     */
+    public hasMinHeight(expectedPx: number, identifier: string): Observable<boolean> {
+        return this._hasMinProp('innerHeight', expectedPx, identifier);
     }
 
     /**
@@ -97,6 +110,15 @@ export class ScreenDimensionsService {
         }
     }
 
+    private _hasMinProp(prop: targetWindowProp, expectedPx: number, identifier: string): Observable<boolean> {
+        this._log.debug(`Adding handler ${identifier} with expectation ${expectedPx}`);
+        const subjectAndExpectation: SubjectAndExpectaction = new SubjectAndExpectaction(
+            new BehaviorSubject(this._isGreaterThanExpectedWidth(prop, expectedPx)), expectedPx, identifier, prop
+        );
+        this._subjects.set(identifier, subjectAndExpectation);
+        return subjectAndExpectation.subject.asObservable().pipe(distinctUntilChanged());
+    }
+
     private _resizeHandler(subjectAndExpectation: SubjectAndExpectaction): void {
         if (subjectAndExpectation.timeoutId) {
             clearTimeout(subjectAndExpectation.timeoutId);
@@ -104,13 +126,15 @@ export class ScreenDimensionsService {
         }
         subjectAndExpectation.timeoutId = setTimeout(() => {
             if (this._subjects.get(subjectAndExpectation.identifier)) {
-                subjectAndExpectation.subject.next(this._isGreaterThanExpectedWidth(subjectAndExpectation.expectedPx));
+                subjectAndExpectation.subject.next(
+                    this._isGreaterThanExpectedWidth(subjectAndExpectation.targetProp, subjectAndExpectation.expectedPx)
+                );
             }
             subjectAndExpectation.timeoutId = 0;
         });
     }
 
-    private _isGreaterThanExpectedWidth(expectedPx: number): boolean {
-        return window.innerWidth >= expectedPx;
+    private _isGreaterThanExpectedWidth(targetProp: targetWindowProp, expectedPx: number): boolean {
+        return window[targetProp] >= expectedPx;
     }
 }
