@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [If you open the cancel upgrade level up, and the upgrade finish leveling up before you close, dialog won't work, won't even close #171](https://github.com/KevinGuancheDarias/owge/issues/171)
 * __Fix:__ [In spanish translation of "Exploration mission" report, remove extra "n" char #172](https://github.com/KevinGuancheDarias/owge/issues/172)
 * __Fix:__ [Mission limit reached does not display its translation #162](https://github.com/KevinGuancheDarias/owge/issues/162)
 * __Fix:__ [No resources literal is not translated in units #163](https://github.com/KevinGuancheDarias/owge/issues/163)

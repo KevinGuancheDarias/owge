@@ -32,7 +32,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   @Output()
   public runningUpgradeDone: EventEmitter<{}> = new EventEmitter();
 
-  @ViewChild('confirmDialog', { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
+  @ViewChild(WidgetConfirmationDialogComponent, { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public image: string;
   public runningUpgrade: RunningUpgrade;
@@ -119,6 +119,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
         ]
       );
     }, 5000);
+    this.confirmDialog.hide();
     this.runningUpgradeDone.emit();
   }
 
