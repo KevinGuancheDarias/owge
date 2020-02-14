@@ -9,7 +9,7 @@
     <option *ngFor=" let currentType of unitTypes" [ngValue]="currentType">{{ currentType.name }}</option>
   </select>
   <ng-template owgeCoreIfDesktop (changed)="viewChanged($event)">
-    <div class="use-compact owge-base-colors" >
+    <div class="use-compact owge-base-colors" *ngIf="!isRequirementsRoute()" >
       <span (click)="inputElement.click()">{{ 'APP.UNITS.HIDE_DESCRIPTION' | translate}}: </span>
       <input #inputHideDescription  type="checkbox" [(ngModel)]="hideDescription" (ngModelChange)="onCheckboxChanged()"/>
     </div>
