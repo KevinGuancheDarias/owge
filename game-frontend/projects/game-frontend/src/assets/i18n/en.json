@@ -1,4 +1,5 @@
 {
+    "I18N_ERR_MISSION_LIMIT_EXCEEDED": "You have exceeded your missions limit",
     "APP": {
         "LOGIN": {
             "PLACEHOLDER_EMAIL": "Email or username",

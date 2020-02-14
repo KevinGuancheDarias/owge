@@ -8,6 +8,7 @@ import { HttpOptions } from '../types/http-options.type';
 import { LoggerHelper } from '../helpers/logger.helper';
 import { SessionStore } from '../store/session.store';
 import { ProgrammingError } from '../errors/programming.error';
+import { TranslateService } from '@ngx-translate/core';
 
 export type validNonDataMethod = 'get' | 'delete';
 export type validWriteMethod = 'post' | 'put';
@@ -32,7 +33,7 @@ export class CoreHttpService {
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  constructor(private _httpClient: HttpClient, private _sessionStore: SessionStore) {
+  constructor(private _httpClient: HttpClient, private _sessionStore: SessionStore, private _translateService: TranslateService) {
 
   }
 
@@ -50,7 +51,6 @@ export class CoreHttpService {
   public get<T = any>(url: string, options?: HttpOptions): Observable<T> {
     return this._httpClient.get<any>(url, options).pipe(catchError((err, caught) => this._handleObservableError(options, err, caught)));
   }
-
 
   /**
    * POSTs an HTTP resource <br>
@@ -327,7 +327,9 @@ export class CoreHttpService {
       }
     } else {
       const errString = this._translateServerError(err);
-      alert(`Error!\n ${errString}`);
+      this._translateService.get(errString).subscribe(val => {
+        alert(`Error!\n ${val}`);
+      });
       return empty;
     }
   }
