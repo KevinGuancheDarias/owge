@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [No resources literal is not translated in units #163](https://github.com/KevinGuancheDarias/owge/issues/163)
 * __Fix:__ [In requirements do not show the hide descriptions checkbox #161](https://github.com/KevinGuancheDarias/owge/issues/161)
 * [class=Developer] __Fix:__ Account console doesn't work in Linux env
 * __Fix:__ [Section title in the menu should not scale when the width is long enough, even when the height is of mobile style #164](https://github.com/KevinGuancheDarias/owge/issues/164)

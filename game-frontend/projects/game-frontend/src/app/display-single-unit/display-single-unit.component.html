@@ -34,7 +34,7 @@
             (click)="buildSelectedUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.BTN_BUILD' | translate }}</a>
           <a *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (click)="count = 1">Error (report it!)</a>
           <a *ngIf="!count" class="btn btn-block" role="button" (click)="count = 1">{{ 'APP.UNITS.DISPLAY_SINGLE.MIN_ONE' | translate }}</a>
-          <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">{{ 'APP.UNITS.DISPLAY_SINGLE.NO_RESOURCES' | translate }}</a>
+          <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.NO_RESOURCES' | translate }}</a>
         </ng-container>
       </ng-container>
     
