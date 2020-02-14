@@ -50,7 +50,6 @@ export class UpgradesComponent extends BaseComponent implements OnInit {
   }
 
   public onRunningUpgradeDone(): void {
-    console.log('Esto se ha hecho');
     this.findObtained();
   }
 
