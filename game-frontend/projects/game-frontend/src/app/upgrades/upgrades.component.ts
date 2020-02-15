@@ -48,9 +48,4 @@ export class UpgradesComponent extends BaseComponent implements OnInit {
       error => this.displayError(error)
     );
   }
-
-  public onRunningUpgradeDone(): void {
-    this.findObtained();
-  }
-
 }
