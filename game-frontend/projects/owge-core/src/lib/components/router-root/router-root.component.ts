@@ -30,6 +30,11 @@ export class RouterRootComponent implements OnInit {
         throw new ProgrammingError(`Invalid input for ${this.constructor.name}`);
       }
       this.routerData = <any>data;
+      if (this.routerData.default) {
+        if (!this._route.snapshot.children.length) {
+          this._router.navigate([this._route.snapshot.routeConfig.path, this.routerData.default]);
+        }
+      }
       this._handleNgIfs();
     });
     this._router.events.pipe(

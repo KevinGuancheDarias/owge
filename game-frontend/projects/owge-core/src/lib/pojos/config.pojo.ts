@@ -17,7 +17,7 @@ export const ROUTES = {
     UNITS: '/units',
     NAVIGATE: '/navigate',
     REPORTS: '/reports',
-    ALLIANCE: '/alliance/my',
+    ALLIANCE: '/alliance',
     RANKING: '/ranking',
     VERSION: '/version'
 };
