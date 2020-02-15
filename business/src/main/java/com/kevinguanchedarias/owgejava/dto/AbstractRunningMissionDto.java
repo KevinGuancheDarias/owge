@@ -7,10 +7,13 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 public abstract class AbstractRunningMissionDto {
+	private static final int INTENTIONAL_DELAY_MS = 2000;
+	private static final int NEVER_ENDING_MISSION_SYMBOL = -1;
+
 	private Long missionId;
 	private Double requiredPrimary;
 	private Double requiredSecondary;
-	private Date terminationDate;
+	private Long pendingMillis;
 	private MissionType type;
 	private Integer missionsCount;
 
@@ -26,7 +29,8 @@ public abstract class AbstractRunningMissionDto {
 		missionId = mission.getId();
 		requiredPrimary = mission.getPrimaryResource();
 		requiredSecondary = mission.getSecondaryResource();
-		terminationDate = mission.getTerminationDate();
+		pendingMillis = mission.getTerminationDate() == null ? NEVER_ENDING_MISSION_SYMBOL
+				: (mission.getTerminationDate().getTime() - new Date().getTime() + INTENTIONAL_DELAY_MS);
 		type = MissionType.valueOf(mission.getType().getCode());
 	}
 
@@ -54,12 +58,20 @@ public abstract class AbstractRunningMissionDto {
 		this.requiredSecondary = requiredSecondary;
 	}
 
-	public Date getTerminationDate() {
-		return terminationDate;
+	/**
+	 * @return the pendingMillis
+	 * @since 0.8.1
+	 */
+	public Long getPendingMillis() {
+		return pendingMillis;
 	}
 
-	public void setTerminationDate(Date terminationDate) {
-		this.terminationDate = terminationDate;
+	/**
+	 * @param pendingMillis the pendingMillis to set
+	 * @since 0.8.1
+	 */
+	public void setPendingMillis(Long pendingMillis) {
+		this.pendingMillis = pendingMillis;
 	}
 
 	public MissionType getType() {
