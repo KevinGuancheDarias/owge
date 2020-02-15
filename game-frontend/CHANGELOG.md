@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [Upgrade level doesn't get upgrade unless you change refresh browser, or move outside upgrades list and come back #165](https://github.com/KevinGuancheDarias/owge/issues/165)
 * __Fix:__ [When you click in alliances the main menu title disappears #167](https://github.com/KevinGuancheDarias/owge/issues/167)
 * __Fix:__ [If you open the cancel upgrade level up, and the upgrade finish leveling up before you close, dialog won't work, won't even close #171](https://github.com/KevinGuancheDarias/owge/issues/171)
 * __Fix:__ [In spanish translation of "Exploration mission" report, remove extra "n" char #172](https://github.com/KevinGuancheDarias/owge/issues/172)

@@ -119,6 +119,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
         ]
       );
     }, 5000);
+    setTimeout(() => this.obtainedUpgrade.level++, 1000);
     this.confirmDialog.hide();
     this.runningUpgradeDone.emit();
   }
