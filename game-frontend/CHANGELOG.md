@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ In Alliances, style out the slected section button 
 * __Fix:__ AOT compilation stopped working
 * __Fix:__ [The countdown is not properly syncing, when browser or server has wrong dates #181](https://github.com/KevinGuancheDarias/owge/issues/181)
 * __Improvement:__ Display a loading image, when the universe list is not available
