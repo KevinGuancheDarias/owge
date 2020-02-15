@@ -148,7 +148,7 @@ export const APP_ROUTES: Routes = [
     BrowserModule,
     FormsModule,
     Angular2FontawesomeModule,
-    RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload' }),
+    RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
     HttpClientModule,
     NgbModule,
     OwgeUserModule,

@@ -23,17 +23,20 @@ export const ALLIANCE_ROUTES: Route[] = [
 ];
 
 export const ALLIANCE_ROUTES_DATA: RouterData = {
+    default: 'my',
     sectionTitle: 'Alliance', routes: [
-      { path: 'my', text: 'APP.MY_ALLIANCE' },
-      { path: 'browse', text: 'APP.BROWSE' },
-      { path: 'join-request', text: 'APP.LIST_JOIN_REQUEST', ngIf: async injector => {
-        const allianceStorage: AllianceStorage = injector.get(AllianceStorage);
-        const userStorage: UserStorage<UserWithAlliance> = injector.get<UserStorage<UserWithAlliance>>(UserStorage);
-        const alliance: Alliance = await allianceStorage.userAlliance.pipe(
-            take(1)
-        ).toPromise();
-        const user = await userStorage.currentUser.pipe(take(1)).toPromise();
-        return alliance && alliance.owner === user.id;
-      }}
+        { path: 'my', text: 'APP.MY_ALLIANCE' },
+        { path: 'browse', text: 'APP.BROWSE' },
+        {
+            path: 'join-request', text: 'APP.LIST_JOIN_REQUEST', ngIf: async injector => {
+                const allianceStorage: AllianceStorage = injector.get(AllianceStorage);
+                const userStorage: UserStorage<UserWithAlliance> = injector.get<UserStorage<UserWithAlliance>>(UserStorage);
+                const alliance: Alliance = await allianceStorage.userAlliance.pipe(
+                    take(1)
+                ).toPromise();
+                const user = await userStorage.currentUser.pipe(take(1)).toPromise();
+                return alliance && alliance.owner === user.id;
+            }
+        }
     ]
 };
