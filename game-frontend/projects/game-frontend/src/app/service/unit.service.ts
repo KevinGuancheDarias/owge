@@ -23,12 +23,16 @@ export class PlanetsNotReadyError extends Error { }
 
 export class RunningUnitIntervalInformation {
   public interval: number;
-  public missionData: RunningUnitPojo;
+  public missionData: WithCalculatedDateRunningUnitBuild;
 
-  constructor(interval: number, missionData: RunningUnitPojo) {
+  constructor(interval: number, missionData: WithCalculatedDateRunningUnitBuild) {
     this.interval = interval;
     this.missionData = missionData;
   }
+}
+
+export class WithCalculatedDateRunningUnitBuild extends RunningUnitPojo {
+  public terminationDate: Date;
 }
 
 @Injectable()
@@ -155,7 +159,6 @@ export class UnitService {
       this._unitTypeService.addToType(unit.typeId, count);
       if (res) {
         res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
-        this._registerInterval(this._selectedPlanet, res);
         this._refreshPlanetsLoaded();
       }
     });
@@ -256,13 +259,6 @@ export class UnitService {
     this._intervals = [];
   }
 
-  private _registerInterval(planet: PlanetPojo, runningMission: RunningUnitPojo): void {
-    this._intervals[planet.id] = new RunningUnitIntervalInformation(
-      window.setInterval(() => this._handleMissionTermination(runningMission), 1500),
-      runningMission
-    );
-  }
-
   /**
    * This method will resolve when all planets has been queried
    *
@@ -279,7 +275,6 @@ export class UnitService {
         this._findRunningBuild(currentPlanet).subscribe(runningMission => {
           if (runningMission) {
             runningMission.terminationDate = new Date(runningMission.terminationDate);
-            this._registerInterval(currentPlanet, runningMission);
           }
           resolve();
         });
@@ -288,21 +283,12 @@ export class UnitService {
   }
 
   /**
-   * @todo THIS METHOD IS NOT IMPLEMENTED!!!, DO IT!!!!
-   * @author Kevin Guanche Darias
-   */
-  private _handleMissionTermination(targetPlanet: RunningUnitPojo): void {
-    let now: Date = new Date();
-    now = new Date(now.getTime() - 1000);
-  }
-
-  /**
    * Will ask the server if the selected planet has a unit build mission going!
    *
    * @param {PlanetPojo} planet - Planet to ask for
    * @author Kevin Guanche Darias
    */
-  private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
+  private _findRunningBuild(planet: PlanetPojo): Observable<WithCalculatedDateRunningUnitBuild> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planet.id.toString());
     return this._universeGameService.getWithAuthorizationToUniverse('unit/findRunning', { params });

@@ -1,9 +1,19 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  OnDestroy
+} from '@angular/core';
 import { DateRepresentation, DateUtil } from '@owge/core';
 
 /**
  * Displays a countdown <br>
- * 
+ *
  * <b>As of 0.8.1 it's capable of reseting the countdown time</b>
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -29,6 +39,7 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
   @Input() public autoStart = true;
 
   @Input() public targetDate: Date;
+  @Input() public pendingMillis: number;
   @Output() public timeOver: EventEmitter<{}> = new EventEmitter();
 
   public get done(): boolean {
@@ -38,6 +49,7 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
   public time: DateRepresentation;
 
   private _done = false;
+  private _targetDate: Date;
 
   constructor(private _cdr: ChangeDetectorRef) { }
 
@@ -59,6 +71,7 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
    * @author Kevin Guanche Darias
    */
   public startCounter(): void {
+    this._targetDate = this.targetDate ? this.targetDate : DateUtil.createFromPendingMillis(this.pendingMillis);
     if (!this.intervalId) {
       this.intervalId = window.setInterval(() => this._counterRun(), 1000);
     }
@@ -77,8 +90,8 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private _doStart(): void {
-    if (!(this.targetDate instanceof Date)) {
-      throw new Error('targetDate MUST be defined, and MUST be a Date object');
+    if (!(this.targetDate instanceof Date) && this.pendingMillis === undefined) {
+      throw new Error('targetDate MUST be defined, and MUST be a Date object, or must specify pendingSeconds');
     }
     if (this.autoStart) {
       if (this.intervalId) {
@@ -97,13 +110,13 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
   private _counterRun(): void {
     this._done = false;
     const now = new Date();
-    const unixTime = new Date(Math.abs(this.targetDate.getTime() - now.getTime()));
-    if (now > this.targetDate) {
+    const unixTime = Math.abs(this._targetDate.getTime() - now.getTime());
+    if (now > this._targetDate) {
       this._done = true;
       this.stopCounter();
       this.timeOver.emit();
     } else {
-      this.time = DateUtil.milisToDaysHoursMinutesSeconds(unixTime.getTime());
+      this.time = DateUtil.milisToDaysHoursMinutesSeconds(unixTime);
     }
     if (!this._isDestroyed) {
       this._cdr.detectChanges();

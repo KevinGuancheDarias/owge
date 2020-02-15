@@ -14,9 +14,8 @@
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
         (click)="cancelMission(runningUnitMission)" class="fas fa-times"></i>
       <span class="display-time">
-        <app-countdown *ngIf="runningUnitMission.terminationDate && runningUnitMission.terminationDate.toString() !== 'Invalid Date'"
-          [targetDate]="convertToDate(runningUnitMission.terminationDate)" (timeOver)="missionDone.emit()">
-        </app-countdown>
+        <owge-widgets-countdown *ngIf="runningUnitMission.pendingMillis && runningUnitMission.pendingMillis !== -1" [pendingMillis]="runningUnitMission.pendingMillis"
+          (timeOver)="missionDone.emit()"></owge-widgets-countdown>
       </span>
       <div class="card-block" *ngIf="isMovable && runningUnitMission.type === 'DEPLOYED'">
         <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">{{ 'APP.MISSION_LIST.BTN_MOVE_UNITS' | translate }}</a>

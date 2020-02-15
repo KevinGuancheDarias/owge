@@ -12,6 +12,7 @@ import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { Upgrade } from './../shared-pojo/upgrade.pojo';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-display-single-upgrade',
@@ -42,6 +43,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _sdsIdentifier: string;
   private _subscription: Subscription;
+  private _oldValueRunningUpgrade: RunningUpgrade;
 
   constructor(
     private _upgradeService: UpgradeService,
@@ -108,7 +110,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
    *
    * @author Kevin Guanche Darias
    */
-  public notifyCaller(): void {
+  public _notifyCaller(): void {
     setTimeout(async () => {
       const improvement: Improvement = await this._universeGameService.reloadImprovement();
       this._log.todo(
@@ -125,7 +127,15 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   }
 
   private _syncIsUpgrading(): void {
-    this._upgradeService.isUpgrading.subscribe(runningUpgrade => this.runningUpgrade = runningUpgrade);
+    this._upgradeService.isUpgrading.pipe(
+      distinctUntilChanged()
+    ).subscribe(runningUpgrade => {
+      this.runningUpgrade = runningUpgrade;
+      if (this._oldValueRunningUpgrade && this._oldValueRunningUpgrade.upgrade.id === this.upgrade.id) {
+        this._notifyCaller();
+      }
+      this._oldValueRunningUpgrade = runningUpgrade;
+    });
   }
 
 }

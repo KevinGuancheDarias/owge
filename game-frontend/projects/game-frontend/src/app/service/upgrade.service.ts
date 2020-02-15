@@ -12,6 +12,10 @@ import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
 
+class WithCalculatedDateRunningUpgrade extends RunningUpgrade {
+  public terminationDate: Date;
+}
+
 @Injectable()
 export class UpgradeService {
 
@@ -20,7 +24,7 @@ export class UpgradeService {
   }
   private _isUpgrading: BehaviorSubject<RunningUpgrade> = new BehaviorSubject(null);
 
-  private _isUpgradingInternalData: RunningUpgrade;
+  private _isUpgradingInternalData: WithCalculatedDateRunningUpgrade;
   private _runningUpgradeCheckIntervalId: number;
 
   private _resources: AutoUpdatedResources;
@@ -60,6 +64,7 @@ export class UpgradeService {
     this._universeGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
       if (res && (!this._isUpgradingInternalData || this._isUpgradingInternalData.missionId !== res.missionId)) {
         this._isUpgradingInternalData = res;
+        this._isUpgradingInternalData.terminationDate = new Date(new Date().getTime() + this._isUpgradingInternalData.pendingMillis);
         res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
         this._registerInterval();
         this._isUpgrading.next(res);
@@ -123,10 +128,10 @@ export class UpgradeService {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, obtainedUpgrade.requirements.requiredSecondary);
       if (res) {
-        res.terminationDate = new Date(res.terminationDate);
         this._registerInterval();
       }
       this._isUpgradingInternalData = res;
+      this._isUpgradingInternalData.terminationDate = new Date(new Date().getTime() + this._isUpgradingInternalData.pendingMillis);
       this._isUpgrading.next(res);
     });
   }

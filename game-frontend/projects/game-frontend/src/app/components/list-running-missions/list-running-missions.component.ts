@@ -70,10 +70,6 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
     $(this.tooltipPlanetComponent.nativeElement).detach().appendTo('.tooltip');
   }
 
-  public convertToDate(unixTimestamp: number): Date {
-    return new Date(unixTimestamp);
-  }
-
   public async cancelMission(runningUnitMissions: UnitRunningMission): Promise<void> {
     if (await this.displayConfirm('Are you sure you want to cancel the mission?')) {
       if (runningUnitMissions.type === 'DEPLOYED') {

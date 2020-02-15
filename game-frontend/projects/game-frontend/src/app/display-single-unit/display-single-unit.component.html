@@ -1,8 +1,8 @@
 <ng-container *ngIf="userData && unit && unitTypes">
   <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="image" [hideDesktopSections]="[0,0, isCompactView]"
-    [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.terminationDate"
-    [countdownDate]="building && building.missionData.terminationDate"
+    [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.pendingMillis"
+    [countdownMillis]="building && building.missionData.pendingMillis"
   >
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
