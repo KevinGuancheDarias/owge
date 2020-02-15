@@ -1,9 +1,10 @@
 <owge-core-modal #childModal [hasCloseButton]="true" [closeOnOverlayClick]="closeOnOverlayClick" [isOpenOnLoad]="isOpenOnLoad"
   [hasCloseButton]="hasCloseButton">
+  <owge-core-loading [isReady]="deploymentConfig"></owge-core-loading>
   <div class="header">
     {{ 'APP.MISSION_MODAL.HEADER' | translate: { planetName: targetPlanet | planetDisplayName} }}
   </div>
-  <div class="body owge-base-colors">
+  <div class="body owge-base-colors" *ngIf="deploymentConfig">
     <div *ngIf="isValidSelection">
       <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
       <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType">

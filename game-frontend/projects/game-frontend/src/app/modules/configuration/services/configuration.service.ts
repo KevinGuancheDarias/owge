@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
-import {map} from 'rxjs/operators';
+import { map, distinctUntilChanged, filter } from 'rxjs/operators';
 
 import { LoggerHelper } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, UniverseStorage } from '@owge/universe';
 
 import { Configuration } from '../types/configuration.type';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
 import { Observable } from 'rxjs';
 import { ConfigurationStore } from '../store/configuration.store';
-
 
 /**
  *
@@ -23,7 +22,13 @@ export class ConfigurationService {
   private _configuration: Configuration<any>[];
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-  constructor(private _universeGameService: UniverseGameService, private _configurationStore: ConfigurationStore) { }
+  constructor(
+    private _universeGameService: UniverseGameService,
+    private _configurationStore: ConfigurationStore,
+    universeStore: UniverseStorage
+  ) {
+    universeStore.currentUniverse.pipe(distinctUntilChanged(), filter(val => !!val)).subscribe(() => this.init());
+  }
 
   /**
    *
@@ -66,6 +71,22 @@ export class ConfigurationService {
   }
 
   /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   * @template T
+   * @param name
+   * @param defaultValue
+   * @returns
+   */
+  public observeParamOrDefault<T = any>(name: string, defaultValue: T): Observable<Configuration<T>> {
+    return this.observeParam(name).pipe(
+      map(config => this._handleDefaultable(config, defaultValue))
+    );
+  }
+
+  /**
    * Finds param. if not exists returns default value
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -76,17 +97,7 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public findParamOrDefault<T = any>(name: string, defaultValue: T): Configuration<T> {
-    const configuration = this.findParam(name);
-    if (configuration) {
-      return configuration;
-    } else {
-      this._log.warn(`Configuration ${name} doesn't have a value, returning default ${defaultValue}`);
-      return {
-        name,
-        displayName: 'Not know, because default has been returned',
-        value: defaultValue
-      };
-    }
+    return this._handleDefaultable<T>(this.findParam(name), defaultValue);
   }
 
   /**
@@ -99,5 +110,41 @@ export class ConfigurationService {
    */
   public findDeploymentConfiguration(): validDeploymentValue {
     return this.findParamOrDefault<validDeploymentValue>('DEPLOYMENT_CONFIG', 'FREEDOM').value;
+  }
+
+
+  /**
+   * Observes the changes to the deployment configuration
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   * @returns
+   */
+  public observeDeploymentConfiguration(): Observable<validDeploymentValue> {
+    return this.observeParamOrDefault<validDeploymentValue>('DEPLOYMENT_CONFIG', 'FREEDOM')
+      .pipe(map(config => config.value), distinctUntilChanged());
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @private
+   * @template T
+   * @param {Configuration<T>} configuration
+   * @param {T} defaultValue
+   * @returns {Configuration<T>}
+   */
+  private _handleDefaultable<T = any>(configuration: Configuration<T>, defaultValue: T): Configuration<T> {
+    if (configuration) {
+      return configuration;
+    } else {
+      this._log.warn(`Configuration ${name} doesn't have a value, returning default ${defaultValue}`);
+      return {
+        name,
+        displayName: 'Not know, because default has been returned',
+        value: defaultValue
+      };
+    }
   }
 }

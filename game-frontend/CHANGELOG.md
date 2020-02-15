@@ -2,6 +2,8 @@
 
 v0.8.1 (latest)
 =================
+* __Improvement:__ Display a loading image, when the universe list is not available
+* __Fix:__ [Does not allow to see mission types when multiple units are available unless you refresh the browser window #160](https://github.com/KevinGuancheDarias/owge/issues/160)
 * __Fix:__ [Upgrade level doesn't get upgrade unless you change refresh browser, or move outside upgrades list and come back #165](https://github.com/KevinGuancheDarias/owge/issues/165)
 * __Fix:__ [When you click in alliances the main menu title disappears #167](https://github.com/KevinGuancheDarias/owge/issues/167)
 * __Fix:__ [If you open the cancel upgrade level up, and the upgrade finish leveling up before you close, dialog won't work, won't even close #171](https://github.com/KevinGuancheDarias/owge/issues/171)

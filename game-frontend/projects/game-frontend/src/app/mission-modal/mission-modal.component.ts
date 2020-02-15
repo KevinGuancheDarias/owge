@@ -53,6 +53,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public missionType: MissionType = null;
   public isValidSelection = false;
   public maxMissions = 1;
+  public deploymentConfig: validDeploymentValue;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
@@ -65,9 +66,11 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     private _missionStore: MissionStore
   ) {
     super();
+    (window as any).exposedShit = this;
   }
 
   public ngOnInit(): void {
+    this._configurationService.observeDeploymentConfiguration().subscribe(val => this.deploymentConfig = val);
     this._missionStore.maxMissions.subscribe(val => this.maxMissions = val);
     this._missioninformationStore.originPlanet.subscribe(sourcePlanet => this.sourcePlanet = sourcePlanet);
     this._missioninformationStore.targetPlanet.subscribe(targetPlanet => this.targetPlanet = targetPlanet);
@@ -137,8 +140,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
    * @memberof MissionModalComponent
    */
   public isDeploymentAllowed(targetPlanet: PlanetPojo): boolean {
-    const deployMentConfig: validDeploymentValue = this._configurationService.findDeploymentConfiguration();
-    switch (deployMentConfig) {
+    switch (this.deploymentConfig) {
       case 'DISALLOWED':
         return false;
       case 'FREEDOM':
@@ -147,7 +149,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
       case 'ONLY_ONCE_RETURN_DEPLOYED':
         return !this.obtainedUnits.length || !this.obtainedUnits[0].mission || this.planetIsMine(targetPlanet);
       default:
-        this._log.warn(`Invalid value for deployment config in the server: ${deployMentConfig}, defaulting to FREEDOM`);
+        this._log.warn(`Invalid value for deployment config in the server: ${this.deploymentConfig}, defaulting to FREEDOM`);
         return true;
     }
   }
