@@ -8,7 +8,6 @@ import { OwgeContentDirective } from '../directives/owge-content.directive';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class ContentTransclusionUtil
  */
 export class ContentTransclusionUtil {
 
@@ -18,11 +17,10 @@ export class ContentTransclusionUtil {
      * @see WidgetDisplayListItemComponent
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @static
      * @template C
-     * @param {QueryList<OwgeContentDirective>} list
-     * @param {string} selector
-     * @returns {TemplateRef<C>} The template, or null if none exists
+     * @param list
+     * @param selector
+     * @returns The template, or null if none exists
      */
     public static findInList<C = any>(list: QueryList<OwgeContentDirective<C>>, selector: string): TemplateRef<C> {
         const directive: OwgeContentDirective<C> = list.find(current => current.select === selector);

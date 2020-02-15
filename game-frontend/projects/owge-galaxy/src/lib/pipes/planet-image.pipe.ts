@@ -8,8 +8,6 @@ import { MEDIA_ROUTES, Config } from '@owge/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class PlanetImagePipe
- * @implements {PipeTransform}
  */
 @Pipe({
     name: 'planetImage'

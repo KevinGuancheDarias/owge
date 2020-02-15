@@ -28,8 +28,6 @@ import { ProgrammingError, ScreenDimensionsService, OwgeContentDirective, Conten
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class WidgetDisplayListItemComponent
- * @implements {OnInit}
  */
 @Component({
   selector: 'owge-widgets-display-list-item',

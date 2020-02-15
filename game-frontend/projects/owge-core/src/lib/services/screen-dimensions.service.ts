@@ -30,7 +30,6 @@ class SubjectAndExpectaction {
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class ScreenDimensionsServie
  */
 @Injectable()
 export class ScreenDimensionsService {
@@ -51,8 +50,8 @@ export class ScreenDimensionsService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @param {Object} clazz
-     * @returns {string}
+     * @param clazz
+     * @returns
      */
     public generateIdentifier(clazz: Object): string {
         const doGen = () => `${clazz.constructor.name}_${new Date().getTime()}_${Math.random().toPrecision(8)}`;
@@ -68,10 +67,10 @@ export class ScreenDimensionsService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @param {number} expectedPx
-     * @param {string} identifier Used to be able to remove the handler from the system
+     * @param expectedPx
+     * @param identifier Used to be able to remove the handler from the system
      *  (for example on a ngDestruct of a component that uses this listener)
-     * @returns {Observable<boolean>}
+     * @returns
      */
     public hasMinWidth(expectedPx: number, identifier: string): Observable<boolean> {
         return this._hasMinProp('innerWidth', expectedPx, identifier);
@@ -83,10 +82,10 @@ export class ScreenDimensionsService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @param {number} expectedPx
-     * @param {string} identifier Used to be able to remove the handler from the system
+     * @param expectedPx
+     * @param identifier Used to be able to remove the handler from the system
      *  (for example on a ngDestruct of a component that uses this listener)
-     * @returns {Observable<boolean>}
+     * @returns
      */
     public hasMinHeight(expectedPx: number, identifier: string): Observable<boolean> {
         return this._hasMinProp('innerHeight', expectedPx, identifier);
@@ -97,7 +96,7 @@ export class ScreenDimensionsService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @param {string} identifier
+     * @param identifier
      */
     public removeHandler(identifier: string): void {
         this._log.debug(`Removing handler ${identifier}`);

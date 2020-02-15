@@ -29,9 +29,8 @@ export class DateUtil {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
-     * @static
-     * @param {number} inputMilis
-     * @returns {DateRepresentation}
+     * @param inputMilis
+     * @returns
      */
     public static milisToDaysHoursMinutesSeconds(inputMilis: number): DateRepresentation {
         const unixTime = new Date(inputMilis);

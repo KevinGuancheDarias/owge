@@ -8,8 +8,6 @@ import { MEDIA_ROUTES } from '../pojos/config.pojo';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class DynamicImagePipe
- * @implements {PipeTransform}
  */
 @Pipe({
     name: 'dynamicImage'

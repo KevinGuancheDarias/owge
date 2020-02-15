@@ -9,8 +9,6 @@ import { Pipe, PipeTransform } from '@angular/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class HideDuplicatedNamePipe
- * @implements {PipeTransform}
  */
 @Pipe({
   name: 'hideDuplicatedName'

@@ -19,8 +19,6 @@ import { DateRepresentation, DateUtil } from '@owge/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  * @export
- * @class CountdownComponent
- * @implements {OnInit}
  */
 @Component({
   selector: 'owge-widgets-countdown',

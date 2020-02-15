@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ AOT compilation stopped working
 * __Fix:__ [The countdown is not properly syncing, when browser or server has wrong dates #181](https://github.com/KevinGuancheDarias/owge/issues/181)
 * __Improvement:__ Display a loading image, when the universe list is not available
 * __Fix:__ [Does not allow to see mission types when multiple units are available unless you refresh the browser window #160](https://github.com/KevinGuancheDarias/owge/issues/160)
