@@ -43,7 +43,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   @Input() public itemDescription: string;
   @Input() public hasToDisplayCountdown = false;
   @Input() public countdownDate: Date;
-  @Input() public countdownSeconds: number;
+  @Input() public countdownMillis: number;
   @Input() public desktopWidth = 767;
   @Input() public hideDesktopSections = [];
   @Input() public hideMobileSections = [];
@@ -75,7 +75,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
     this._subscription = this._screenDimensionsService.hasMinWidth(this.desktopWidth, this._sdsIdentifier).subscribe(val => {
       this.isDesktop = val;
     });
-    if (this.countdownDate && this.countdownSeconds) {
+    if (this.countdownDate && this.countdownMillis) {
       throw new ProgrammingError('You may specify countdownDate or countdownSeconds, but not both');
     }
   }

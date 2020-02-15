@@ -9,7 +9,7 @@
       <img [src]="image" alt="image of the item"/>
     </div>
     <div class="upgrading-countdown" *ngIf="hasToDisplayCountdown && !hideMobileSections[1]">
-        <owge-widgets-countdown *ngIf="countdownDate" [targetDate]="countdownDate"
+        <owge-widgets-countdown *ngIf="countdownDate || countdownMillis" [targetDate]="countdownDate" [pendingMillis]="countdownMillis"
             (timeOver)="timeOver.emit()">
         </owge-widgets-countdown>
     </div>  
@@ -43,7 +43,8 @@
           <img [src]="image" alt="image of the item"/>
         </div>
         <div class="upgrading-countdown" *ngIf="hasToDisplayCountdown">
-            <owge-widgets-countdown *ngIf="countdownDate" [targetDate]="countdownDate"
+            <owge-widgets-countdown *ngIf="countdownDate || countdownMillis"
+                [targetDate]="countdownDate" [pendingMillis]="countdownMillis"
                 (timeOver)="timeOver.emit()">
             </owge-widgets-countdown>
         </div>

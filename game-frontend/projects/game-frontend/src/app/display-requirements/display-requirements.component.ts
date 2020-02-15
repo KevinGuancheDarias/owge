@@ -12,6 +12,7 @@ import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/dat
   ]
 })
 export class DisplayRequirementsComponent extends BaseComponent implements OnInit, OnChanges {
+  private static readonly _INTENTIONAL_DELAY = 3000;
 
   public timeImage = 'ui_icons/time.png';
 
@@ -28,6 +29,9 @@ export class DisplayRequirementsComponent extends BaseComponent implements OnIni
   }
 
   public ngOnChanges(): void {
-    this.parsedRequiredTime = DateTimeUtil.milisToDaysHoursMinutesSeconds(this.requirements.requiredTime * 1000);
+    this.parsedRequiredTime =
+      DateTimeUtil.milisToDaysHoursMinutesSeconds(
+        (this.requirements.requiredTime * 1000) + DisplayRequirementsComponent._INTENTIONAL_DELAY
+      );
   }
 }

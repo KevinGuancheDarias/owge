@@ -46,11 +46,11 @@ export class MissionService {
   }
 
   public findMyRunningMissions(): Observable<AnyRunningMission[]> {
-    return this._syncDate(this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy'));
+    return this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy');
   }
 
   public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
-    return this._syncDate(this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy'));
+    return this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy');
   }
 
   /**
@@ -164,16 +164,5 @@ export class MissionService {
         this._missionStore.missionsCount.next(result.missionsCount);
       }
     }));
-  }
-
-  private _syncDate(input: Observable<AnyRunningMission[]>): Observable<AnyRunningMission[]> {
-    return input.pipe(
-      tap(current =>
-        current.forEach(
-          runningMission =>
-            runningMission.terminationDate = this._clockSyncService.computeSyncedTerminationDate(runningMission.terminationDate)
-        )
-      )
-    );
   }
 }

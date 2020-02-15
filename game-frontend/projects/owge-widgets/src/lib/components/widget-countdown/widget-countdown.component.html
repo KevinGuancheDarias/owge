@@ -1,4 +1,4 @@
-<div class="kgd-countdown" *ngIf=" targetDate && time && !done">
+<div class="kgd-countdown" *ngIf=" (targetDate || pendingMillis ) && time && !done">
   <span><i class="fa fa-clock"></i></span>
   <span *ngIf="time.days">{{ time.days }}d</span>
   <span *ngIf="time.hours">{{ time.hours }}h</span>

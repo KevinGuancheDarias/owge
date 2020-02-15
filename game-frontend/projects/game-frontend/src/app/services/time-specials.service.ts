@@ -22,7 +22,6 @@ export class TimeSpecialService extends WithReadCrudMixin<TimeSpecial, number> {
         super();
     }
 
-
     /**
      * Activates a time special
      *
