@@ -66,7 +66,6 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     private _missionStore: MissionStore
   ) {
     super();
-    (window as any).exposedShit = this;
   }
 
   public ngOnInit(): void {
