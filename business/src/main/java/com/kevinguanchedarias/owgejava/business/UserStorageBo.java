@@ -251,7 +251,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	public Double findMaxEnergy(UserStorage user) {
 		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
 		Faction faction = user.getFaction();
-		return improvementBo.computePlusPercertage(Float.valueOf(faction.getInitialEnergy()),
+		return improvementBo.computeImprovementValue(Float.valueOf(faction.getInitialEnergy()),
 				groupedImprovement.getMoreEnergyProduction());
 	}
 

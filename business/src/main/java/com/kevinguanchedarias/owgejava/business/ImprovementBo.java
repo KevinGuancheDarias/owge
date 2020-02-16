@@ -37,6 +37,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	private static final long serialVersionUID = 174646136669035809L;
 
 	private static final Logger LOG = Logger.getLogger(ImprovementBo.class);
+	private static final Double DEFAULT_STEP = 10D;
 	private static final String CACHE_KEY = "improvements_user";
 
 	@Autowired
@@ -47,6 +48,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 
 	@Autowired
 	private transient CacheManager cacheManager;
+
+	@Autowired
+	private ConfigurationBo configurationBo;
 
 	private transient List<ImprovementSource> improvementSources = new ArrayList<>();
 
@@ -243,6 +247,31 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		} else {
 			return base + (base * (percentage / 100));
 		}
+	}
+
+	/**
+	 * Calculates by using a STEP, this is intended to imitate the behavior of SGT
+	 * classic level upload
+	 * 
+	 * @param base
+	 * @param inputPercentage
+	 * @return
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	public Double computeImprovementValue(double base, double inputPercentage) {
+		double retVal = base;
+		double step = Double
+				.parseDouble(configurationBo.findOrSetDefault("IMPROVEMENT_STEP", DEFAULT_STEP.toString()).getValue());
+		double pendingPercentage = inputPercentage;
+		while (pendingPercentage > 0) {
+			if (pendingPercentage < step) {
+				step = pendingPercentage;
+			}
+			retVal += retVal * (step / 100);
+			pendingPercentage -= step;
+		}
+		return retVal;
 	}
 
 	/**

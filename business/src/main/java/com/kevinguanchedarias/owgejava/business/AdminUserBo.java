@@ -99,7 +99,7 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 		AdminUser adminUser = findById(tokenUser.getId().intValue());
 		if (adminUser == null) {
 			throw new AccessDeniedException("ERR_NO_SUCH_USER");
-		} else if (!adminUser.getEnabled()) {
+		} else if (Boolean.FALSE.equals(adminUser.getEnabled())) {
 			throw new AccessDeniedException("ERR_USER_NOT_ENABLED");
 		}
 		if (isUserChanged(tokenUser, adminUser)) {

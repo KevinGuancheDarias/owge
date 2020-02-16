@@ -78,7 +78,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 		Long retVal = 0L;
 		if (type.hasMaxCount()) {
 			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
-			retVal = (long) Math.floor(improvementBo.computePlusPercertage(type.getMaxCount(),
+			retVal = (long) Math.floor(improvementBo.computeImprovementValue(type.getMaxCount(),
 					groupedImprovement.findUnitTypeImprovement(ImprovementTypeEnum.AMOUNT, type.getId())));
 		}
 		return retVal;
