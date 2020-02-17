@@ -93,4 +93,15 @@ public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinReques
 	public void deleteByUser(Number id) {
 		repository.deleteByUserId(id);
 	}
+
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	public List<AllianceJoinRequest> findByUserId(Integer id) {
+		return repository.findByUserId(id);
+	}
 }

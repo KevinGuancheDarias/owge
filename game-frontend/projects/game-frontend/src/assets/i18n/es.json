@@ -166,7 +166,8 @@
         "REQUEST_ACTIONS": "Acciones",
         "ACCEPT_REQUEST": "Aceptar solicitud",
         "REJECT_REQUEST": "Rechazar solicitud",
-        "NO_PENDING_JOIN_REQUEST": "No hay ninguna petición de entrar pendiente"
+        "NO_PENDING_JOIN_REQUEST": "No hay ninguna petición de entrar pendiente",
+        "BTN_REQUEST_CANCEL": "Cancelar solicitud"
     },
     "TIME_SPECIAL": {
         "BTN_ACTIVATE": "Activar",

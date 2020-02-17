@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { switchMap, first, map } from 'rxjs/operators';
+import { switchMap, first, map, take, tap } from 'rxjs/operators';
 
 import { UserStorage } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
@@ -18,12 +18,14 @@ import { UserWithAlliance } from '../types/user-with-alliance.type';
  */
 @Injectable()
 export class AllianceService {
+  private _myJoinRequests: AllianceJoinRequest[];
 
   constructor(
     private _allianceStorage: AllianceStorage,
     private _userStorage: UserStorage<UserWithAlliance>,
     private _universeGameService: UniverseGameService) {
     this._loadMyAlliance();
+    this._loadMyJoinQueries();
   }
 
   /**
@@ -89,7 +91,11 @@ export class AllianceService {
    * @returns
    */
   public requestJoin(allianceId: number): Observable<AllianceJoinRequest> {
-    return this._universeGameService.postWithAuthorizationToUniverse('alliance/requestJoin', { allianceId });
+    return this._universeGameService.postWithAuthorizationToUniverse('alliance/requestJoin', { allianceId })
+      .pipe(tap(val => {
+        this._myJoinRequests.push(val);
+        this._allianceStorage.userJoinRequests.next(this._myJoinRequests);
+      }));
   }
 
   /**
@@ -128,7 +134,6 @@ export class AllianceService {
     return this._universeGameService.postWithAuthorizationToUniverse('alliance/rejectJoinRequest', { joinRequestId });
   }
 
-
   /**
    * Leaves the alliance
    *
@@ -140,6 +145,32 @@ export class AllianceService {
     return this._universeGameService.postWithAuthorizationToUniverse('alliance/leave').pipe(
       switchMap(_ => this._updateStorages(null))
     );
+  }
+
+  /**
+   * The user join alliance requests
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   * @returns
+   */
+  public findMyRequests(): Observable<AllianceJoinRequest[]> {
+    return this._allianceStorage.userJoinRequests.asObservable();
+  }
+
+  /**
+   * Cancels the user emmited join request
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   * @param joinRequest
+   */
+  public cancelMyRequests(joinRequest: AllianceJoinRequest): Observable<void> {
+    return this._universeGameService.requestWithAutorizationToContext('game', 'delete', `alliance/my-requests/${joinRequest.id}`)
+      .pipe(tap(() => {
+        this._myJoinRequests = this._myJoinRequests.filter(current => current.id !== joinRequest.id);
+        this._allianceStorage.userJoinRequests.next(this._myJoinRequests);
+      }));
   }
 
   private async _loadMyAlliance(): Promise<void> {
@@ -157,5 +188,14 @@ export class AllianceService {
         return alliance;
       })
     );
+  }
+
+  private _loadMyJoinQueries(): void {
+    this._universeGameService.requestWithAutorizationToContext('game', 'get', 'alliance/my-requests')
+      .pipe(take(1))
+      .subscribe(val => {
+        this._allianceStorage.userJoinRequests.next(val);
+        this._myJoinRequests = val;
+      });
   }
 }

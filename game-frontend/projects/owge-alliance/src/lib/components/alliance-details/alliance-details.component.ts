@@ -9,6 +9,7 @@ import { Alliance } from '../../types/alliance.type';
 import { AllianceService } from '../../services/alliance.service';
 import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
 import { UserWithAlliance } from '../../types/user-with-alliance.type';
+import { filter, map } from 'rxjs/operators';
 
 /**
  *
@@ -35,6 +36,7 @@ export class AllianceDetailsComponent implements OnInit {
   public members: UserWithAlliance[];
   public currentUser: UserWithAlliance;
   public vConfirmDeleteText: string;
+  public joinRequest: AllianceJoinRequest;
 
   public constructor(
     private _allianceService: AllianceService,
@@ -47,6 +49,9 @@ export class AllianceDetailsComponent implements OnInit {
   async ngOnInit() {
     this._userStorage.currentUser.subscribe(currentUser => this.currentUser = currentUser);
     this.members = await this._allianceService.findMembers(this.alliance.id).toPromise();
+    this._allianceService.findMyRequests().pipe(
+      map(result => result.find(current => current.alliance.id === this.alliance.id) || null),
+    ).subscribe(val => this.joinRequest = val);
   }
 
   /**
@@ -73,7 +78,17 @@ export class AllianceDetailsComponent implements OnInit {
    * @returns
    */
   public clickRequestJoin(): Promise<AllianceJoinRequest> {
-    return this._allianceService.requestJoin(this.alliance.id).toPromise();
+    return this._loadingService.addPromise(this._allianceService.requestJoin(this.alliance.id).toPromise());
+  }
+
+  /**
+   * Cancels "my" join request for given alliance
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.8.1
+   */
+  public clickRequestCancel(): void {
+    this._loadingService.addPromise(this._allianceService.cancelMyRequests(this.joinRequest).toPromise());
   }
 
   /**
