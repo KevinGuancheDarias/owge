@@ -29,4 +29,13 @@ public interface AllianceJoinRequestRepository extends JpaRepository<AllianceJoi
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	void deleteByUserId(Number id);
+
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	List<AllianceJoinRequest> findByUserId(Integer id);
 }

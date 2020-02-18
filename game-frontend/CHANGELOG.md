@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [The "Join alliance" doesn't get disabled, when you have already requested to join that alliance #166](https://github.com/KevinGuancheDarias/owge/issues/166)
 * __Improvement:__ For max units and max energy use the classic "step-based" percentage computation
 * __Improvement:__ In Alliances, style out the slected section button 
 * __Fix:__ AOT compilation stopped working

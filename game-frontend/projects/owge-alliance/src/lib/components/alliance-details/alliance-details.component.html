@@ -14,8 +14,10 @@
         *ngIf="alliance.id === currentUser.alliance?.id && alliance.owner === currentUser.id">
         {{ 'ALLIANCE.ACTION_DELETE' | translate }}
       </a>
-      <a (click)="clickRequestJoin()" class="btn btn-block" *ngIf="!currentUser.alliance">
-        {{ 'ALLIANCE.ACTION_REQUEST_JOIN' | translate }}</a>
+      <ng-container *ngIf="!currentUser.alliance && joinRequest !== undefined">
+        <a *ngIf="joinRequest" (click)="clickRequestCancel()" class="btn btn-block">{{ 'ALLIANCE.BTN_REQUEST_CANCEL' | translate }}</a>
+        <a *ngIf="!joinRequest" (click)="clickRequestJoin()" class="btn btn-block">{{ 'ALLIANCE.ACTION_REQUEST_JOIN' | translate }}</a>
+      </ng-container>
     </div>
   </ng-template>
 </owge-widgets-display-list-item>

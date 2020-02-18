@@ -112,7 +112,7 @@ public class AllianceRestService implements BaseRestServiceTrait {
 
 	@GetMapping(value = "/listRequest")
 	public List<AllianceJoinRequestDto> listRequest() {
-		UserStorage user = userStorageBo.findLoggedInWithDetails(false);
+		UserStorage user = userStorageBo.findLoggedInWithDetails();
 		Alliance alliance = user.getAlliance();
 		if (user.getAlliance() == null) {
 			throw new SgtBackendInvalidInputException("You don't have any alliance");
@@ -123,10 +123,30 @@ public class AllianceRestService implements BaseRestServiceTrait {
 				allianceJoinRequestBo.findByAlliance(alliance));
 	}
 
+	/**
+	 * Returns my list of join request
+	 * 
+	 * @return
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	@GetMapping(value = "/my-requests")
+	public List<AllianceJoinRequestDto> myRequests() {
+		UserStorage user = userStorageBo.findLoggedIn();
+		return dtoUtilService.convertEntireArray(AllianceJoinRequestDto.class,
+				allianceJoinRequestBo.findByUserId(user.getId()));
+	}
+
+	@DeleteMapping("/my-requests/{id}")
+	public void myRequestsDelete(@PathVariable Integer id) {
+		allianceJoinRequestBo.delete(id);
+	}
+
 	@PostMapping(value = "/requestJoin")
-	public void join(@RequestBody Map<String, Integer> body) {
+	public AllianceJoinRequestDto join(@RequestBody Map<String, Integer> body) {
 		checkMapEntry(body, ALLIANCE_ID_KEY);
-		allianceBo.requestJoin(body.get(ALLIANCE_ID_KEY), userStorageBo.findLoggedIn().getId());
+		return allianceJoinRequestBo
+				.toDto(allianceBo.requestJoin(body.get(ALLIANCE_ID_KEY), userStorageBo.findLoggedIn().getId()));
 	}
 
 	@PostMapping(value = "/acceptJoinRequest")

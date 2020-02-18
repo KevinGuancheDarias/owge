@@ -166,7 +166,8 @@
         "REQUEST_ACTIONS": "Actions",
         "ACCEPT_REQUEST": "Accept request",
         "REJECT_REQUEST": "Reject request",
-        "NO_PENDING_JOIN_REQUEST": "No pending join requests"
+        "NO_PENDING_JOIN_REQUEST": "No pending join requests",
+        "BTN_REQUEST_CANCEL": "Cancel request"
     },
     "TIME_SPECIAL": {
         "BTN_ACTIVATE": "Activate",
