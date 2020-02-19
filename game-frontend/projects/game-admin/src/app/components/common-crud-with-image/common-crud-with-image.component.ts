@@ -1,7 +1,7 @@
-import { Component, OnInit, ContentChild, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, ContentChild, TemplateRef } from '@angular/core';
 
 import { EntityWithImage, CommonEntity } from '@owge/core';
-import { AbstractCrudService, ImageStore, ImageSelectorComponent } from '@owge/universe';
+import { AbstractCrudService, ImageStore } from '@owge/universe';
 
 import { CommonCrudComponent } from '../common-crud/common-crud.component';
 

@@ -7,7 +7,8 @@
         "MENU_ALLIANCES": "Alianzas",
         "MENU_RANKING": "Ranking",
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
-        "MENU_UPGRADE-TYPES": "Tipos de mejora"
+        "MENU_UPGRADE_TYPES": "Tipos de mejora",
+        "MENU_UNIT_TYPES": "tipos de unidad"
     },
     "CRUD": {
         "EDIT": "Editar",

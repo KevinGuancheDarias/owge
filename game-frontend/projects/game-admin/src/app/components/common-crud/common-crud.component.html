@@ -6,9 +6,10 @@
     <div class="body">
         <div class="form-row">
             <ng-container *ngIf="newElement">
-                <div class="form-group col-md-6" *ngIf="newElement.id">
+                <div class="form-group col-md-6">
                     <label [for]="uniqueId('id')">id</label>
-                    <input [(ngModel)]="newElement.id" [id]="uniqueId('id')" class="form-control" [disabled]="true"/>
+                    <input *ngIf="newElement.id" [(ngModel)]="newElement.id" [id]="uniqueId('id')" class="form-control" [disabled]="true"/>
+                    <input *ngIf="!newElement.id" [id]="uniqueId('id')" class="form-control" [disabled]="true"/>
                 </div>  
                 <div class="form-group col-md-6">
                     <label [for]="uniqueId('name')">{{ 'CRUD.ELEMENT_NAME' | translate }}</label>

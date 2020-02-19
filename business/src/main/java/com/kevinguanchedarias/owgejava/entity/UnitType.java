@@ -15,6 +15,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 
 /**
@@ -24,7 +27,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
  */
 @Entity
 @Table(name = "unit_types")
-public class UnitType extends EntityWithImage implements EntityWithId<Integer> {
+public class UnitType implements EntityWithId<Integer> {
 	private static final long serialVersionUID = 6571633664776386521L;
 
 	@Id
@@ -42,6 +45,11 @@ public class UnitType extends EntityWithImage implements EntityWithId<Integer> {
 
 	@OneToMany(mappedBy = "parent")
 	private List<UnitType> children;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "image_id")
+	@Fetch(FetchMode.JOIN)
+	private ImageStore image;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "unitType")
 	private List<ImprovementUnitType> upgradeEnhancements;
@@ -135,6 +143,22 @@ public class UnitType extends EntityWithImage implements EntityWithId<Integer> {
 
 	public void setChildren(List<UnitType> children) {
 		this.children = children;
+	}
+
+	/**
+	 * @since 0.8.0
+	 * @return the image
+	 */
+	public ImageStore getImage() {
+		return image;
+	}
+
+	/**
+	 * @since 0.8.0
+	 * @param image the image to set
+	 */
+	public void setImage(ImageStore image) {
+		this.image = image;
 	}
 
 	public List<ImprovementUnitType> getUpgradeEnhancements() {

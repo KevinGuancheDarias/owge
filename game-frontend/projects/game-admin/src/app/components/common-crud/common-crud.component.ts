@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter } from '@angular/core';
 
 import { CommonEntity, LoadingService } from '@owge/core';
 import { AbstractCrudService } from '@owge/universe';
@@ -30,6 +30,8 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ContentChild('modalBody', { static: true }) public modalBody: TemplateRef<any>;
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
   @Input() public hasDescription = true;
+  @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
+  @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   public elements: T[];
   public newElement: T;
   public originalElement: T;
@@ -48,7 +50,10 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   ngOnInit() {
     this._randomId = (new Date()).getTime().toString();
     if (!this.elements) {
-      this._crudService.findAll().subscribe(elements => this.elements = elements);
+      this._crudService.findAll().subscribe(elements => {
+        this.elements = elements;
+        this.elementsLoaded.emit();
+      });
     }
   }
 
@@ -62,6 +67,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public edit(el: T): void {
     this.originalElement = el;
     this.newElement = { ...el };
+    this.elementSelected.emit(this.newElement);
     this._crudModal.show();
   }
 
@@ -74,6 +80,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public new(): void {
     this.newElement = <any>{};
     this.originalElement = { ...this.newElement };
+    this.elementSelected.emit(this.newElement);
     this._crudModal.show();
   }
 

@@ -3,13 +3,18 @@
  */
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
@@ -32,6 +37,16 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 
 	@Autowired
 	private AutowireCapableBeanFactory beanFactory;
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS)
+	public Optional<UnitType> beforeSave(UnitTypeDto parsedDto, UnitType entity) {
+		if (parsedDto.getImage() != null) {
+			entity.setImage(getRestCrudConfigBuilder().build().getBeanFactory().getBean(ImageStoreBo.class)
+					.findByIdOrDie(parsedDto.getImage()));
+		}
+		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
+	}
 
 	/*
 	 * (non-Javadoc)

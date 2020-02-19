@@ -27,6 +27,7 @@ import { ObjectImprovementsCrudComponent } from './components/object-improvement
 import { AdminUnitTypeService } from './services/admin-unit-type.service';
 import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
 import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
+import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
     CommonCrudWithImageComponent,
     ObjectRequirementsCrudComponent,
     ObjectImprovementsCrudComponent,
-    UpgradeTypeCrudComponent
+    UpgradeTypeCrudComponent,
+    UnitTypeCrudComponent
   ],
   imports: [
     BrowserModule,

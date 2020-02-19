@@ -33,6 +33,9 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	private ImageStoreBo imageStoreBo;
+
 	@Override
 	public JpaRepository<UnitType, Integer> getRepository() {
 		return unitTypeRepository;
@@ -126,4 +129,11 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 		return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
 	}
 
+	@Override
+	public UnitType onFind(UnitType entity) {
+		if (entity.getImage() != null) {
+			imageStoreBo.computeImageUrl(entity.getImage());
+		}
+		return entity;
+	}
 }

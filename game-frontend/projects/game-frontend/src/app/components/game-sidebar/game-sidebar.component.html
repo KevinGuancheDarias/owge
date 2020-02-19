@@ -41,7 +41,7 @@
                   </app-display-single-resource>
 
                   <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
-                        [resourceName]="unitType.name" [resourceImage]="unitType.image"
+                        [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
                         [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount"
                         [resourceMaxValue]="unitType.computedMaxCount">
 

@@ -7,6 +7,7 @@ import { LoginComponent } from './components/login/login.component';
 import { IndexComponent } from './components/index/index.component';
 import { TimeSpecialCrudComponent } from './components/time-special-crud/time-special-crud.component';
 import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
+import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,9 @@ const routes: Routes = [
   },
   {
     path: 'upgrade_types', component: UpgradeTypeCrudComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'unit_types', component: UnitTypeCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent
