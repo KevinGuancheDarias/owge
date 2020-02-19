@@ -20,7 +20,8 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
   public jwtToken: string;
   public sidebarRoutes: MenuRoute[] = [
     this._createTranslatableMenuRoute('APP.MENU_HOME', ROUTES.GAME_INDEX, 'fa fa-home'),
-    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock')
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock'),
+    this._createTranslatableMenuRoute('APP.MENU_UPGRADE_TYPES', 'upgrade_types', 'fa fa-flask')
   ];
 
   public constructor(private _userStore: UserStorage<User>, _translateService: TranslateService) {

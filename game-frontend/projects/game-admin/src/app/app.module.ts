@@ -25,6 +25,8 @@ import { AdminFactionService } from './services/admin-faction.service';
 import { AdminUpgradeService } from './services/admin-upgrade.service';
 import { ObjectImprovementsCrudComponent } from './components/object-improvements-crud/object-improvements-crud.component';
 import { AdminUnitTypeService } from './services/admin-unit-type.service';
+import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
+import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
 
 @NgModule({
   declarations: [
@@ -35,7 +37,8 @@ import { AdminUnitTypeService } from './services/admin-unit-type.service';
     TimeSpecialCrudComponent,
     CommonCrudWithImageComponent,
     ObjectRequirementsCrudComponent,
-    ObjectImprovementsCrudComponent
+    ObjectImprovementsCrudComponent,
+    UpgradeTypeCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -68,6 +71,7 @@ import { AdminUnitTypeService } from './services/admin-unit-type.service';
     AdminFactionService,
     AdminUpgradeService,
     AdminUnitTypeService,
+    AdminUpgradeTypeService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

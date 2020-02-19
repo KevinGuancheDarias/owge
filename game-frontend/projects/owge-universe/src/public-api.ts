@@ -25,5 +25,6 @@ export * from './lib/types/time-special.type';
 export * from './lib/types/image-store.type';
 export * from './lib/types/unit-type.type';
 export * from './lib/types/universe.type';
+export * from './lib/types/upgrade-type.type';
 export * from './lib/types/upgrade.type';
 export * from './lib/owge-universe.module';

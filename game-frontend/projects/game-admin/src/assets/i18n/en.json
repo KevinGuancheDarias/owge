@@ -6,7 +6,8 @@
         "MENU_NAVIGATION": "Navigation",
         "MENU_ALLIANCES": "Alliances",
         "MENU_RANKING": "Ranking",
-        "MENU_TIME_SPECIALS": "Time Specials"
+        "MENU_TIME_SPECIALS": "Time Specials",
+        "MENU_UPGRADE-TYPES": "Upgrade types"
     },
     "CRUD": {
         "EDIT": "Edit",

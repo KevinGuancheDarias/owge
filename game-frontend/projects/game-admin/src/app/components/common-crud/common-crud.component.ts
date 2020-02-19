@@ -29,6 +29,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
 
   @ContentChild('modalBody', { static: true }) public modalBody: TemplateRef<any>;
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
+  @Input() public hasDescription = true;
   public elements: T[];
   public newElement: T;
   public originalElement: T;
