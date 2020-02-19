@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 
-import { Improvement } from '@owge/core';
-import { ClockSyncService, UniverseGameService } from '@owge/universe';
+import { Improvement, DateUtil } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
 
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { ResourcesEnum } from '../shared-enum/resources-enum';
@@ -11,10 +11,6 @@ import { ResourceManagerService } from './resource-manager.service';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
-
-class WithCalculatedDateRunningUpgrade extends RunningUpgrade {
-  public terminationDate: Date;
-}
 
 @Injectable()
 export class UpgradeService {
@@ -24,14 +20,13 @@ export class UpgradeService {
   }
   private _isUpgrading: BehaviorSubject<RunningUpgrade> = new BehaviorSubject(null);
 
-  private _isUpgradingInternalData: WithCalculatedDateRunningUpgrade;
+  private _isUpgradingInternalData: RunningUpgrade;
   private _runningUpgradeCheckIntervalId: number;
 
   private _resources: AutoUpdatedResources;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
-    private _clockSyncService: ClockSyncService,
     private _universeGameService: UniverseGameService
   ) {
     this._resources = new AutoUpdatedResources(_resourceManagerService);
@@ -42,7 +37,7 @@ export class UpgradeService {
   }
 
   /**
-   * Finds obe obained upgrade by upgrade id
+   * Finds obtained upgrade by upgrade id
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.0
@@ -61,11 +56,10 @@ export class UpgradeService {
    * @author Kevin Guanche Darias
    */
   public backendRunningUpgradeCheck(): void {
-    this._universeGameService.getWithAuthorizationToUniverse('upgrade/findRunningUpgrade').subscribe(res => {
+    this._universeGameService.getWithAuthorizationToUniverse<RunningUpgrade>('upgrade/findRunningUpgrade').subscribe(res => {
       if (res && (!this._isUpgradingInternalData || this._isUpgradingInternalData.missionId !== res.missionId)) {
         this._isUpgradingInternalData = res;
-        this._isUpgradingInternalData.terminationDate = new Date(new Date().getTime() + this._isUpgradingInternalData.pendingMillis);
-        res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
+        DateUtil.computeLocalTerminationDate(res);
         this._registerInterval();
         this._isUpgrading.next(res);
       }
@@ -131,7 +125,7 @@ export class UpgradeService {
         this._registerInterval();
       }
       this._isUpgradingInternalData = res;
-      this._isUpgradingInternalData.terminationDate = new Date(new Date().getTime() + this._isUpgradingInternalData.pendingMillis);
+      DateUtil.computeLocalTerminationDate(res);
       this._isUpgrading.next(res);
     });
   }
@@ -154,7 +148,7 @@ export class UpgradeService {
   private _checkIsYetUpgrading(): void {
     let now: Date = new Date();
     now = new Date(now.getTime() - 1000);
-    if (!this._isUpgradingInternalData || now >= this._isUpgradingInternalData.terminationDate) {
+    if (!this._isUpgradingInternalData || now >= this._isUpgradingInternalData.browserComputedTerminationDate) {
       this._clearInterval();
     }
   }
