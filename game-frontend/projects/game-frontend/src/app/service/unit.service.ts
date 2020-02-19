@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, tap } from 'rxjs/operators';
 import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 
-import { ProgrammingError, UserStorage, User, Improvement } from '@owge/core';
-import { ClockSyncService, UniverseGameService } from '@owge/universe';
+import { ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil } from '@owge/core';
+import { UniverseGameService } from '@owge/universe';
 import { PlanetService, PlanetStore } from '@owge/galaxy';
 
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
@@ -23,21 +23,17 @@ export class PlanetsNotReadyError extends Error { }
 
 export class RunningUnitIntervalInformation {
   public interval: number;
-  public missionData: WithCalculatedDateRunningUnitBuild;
+  public missionData: RunningUnitPojo;
 
-  constructor(interval: number, missionData: WithCalculatedDateRunningUnitBuild) {
+  constructor(interval: number, missionData: RunningUnitPojo) {
     this.interval = interval;
     this.missionData = missionData;
   }
 }
 
-export class WithCalculatedDateRunningUnitBuild extends RunningUnitPojo {
-  public terminationDate: Date;
-}
-
 @Injectable()
 export class UnitService {
-
+  private static readonly _LOG: LoggerHelper = new LoggerHelper(UnitService.name);
   private _planetList: PlanetPojo[];
 
   /** @var {number} provides access to each interval, of running build mission (if any), the key value is like, planetId => intervalId */
@@ -68,7 +64,6 @@ export class UnitService {
     private _resourceManagerService: ResourceManagerService,
     private _planetService: PlanetService,
     private _unitTypeService: UnitTypeService,
-    private _clockSyncService: ClockSyncService,
     private _universeGameService: UniverseGameService,
     private _planetStore: PlanetStore,
     private _userStore: UserStorage<User>
@@ -152,13 +147,14 @@ export class UnitService {
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
-    this._universeGameService.postWithAuthorizationToUniverse('unit/build', '', { params }).subscribe(res => {
+    this._universeGameService.postWithAuthorizationToUniverse<RunningUnitPojo>('unit/build', '', { params }).subscribe(res => {
       this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
       this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
       this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
       this._unitTypeService.addToType(unit.typeId, count);
       if (res) {
-        res.terminationDate = this._clockSyncService.computeSyncedTerminationDate(res.terminationDate);
+        DateUtil.computeLocalTerminationDate(res);
+        this._registerInterval(this._selectedPlanet, res);
         this._refreshPlanetsLoaded();
       }
     });
@@ -254,6 +250,11 @@ export class UnitService {
     });
   }
 
+  private _registerInterval(planet: PlanetPojo, runningMission: RunningUnitPojo): void {
+    UnitService._LOG.todo(['In the future when websocket becomes available, remove that shit']);
+    this._intervals[planet.id] = new RunningUnitIntervalInformation(-1, runningMission);
+  }
+
   private _clearIntervals(): void {
     this._intervals.forEach(value => window.clearInterval(value.interval));
     this._intervals = [];
@@ -270,16 +271,14 @@ export class UnitService {
    * @memberof UnitService
    */
   private _registerIntervals(planets: PlanetPojo[]): Promise<any> {
-    return Promise.all(planets.map<Promise<void>>(currentPlanet => {
-      return new Promise(resolve => {
-        this._findRunningBuild(currentPlanet).subscribe(runningMission => {
-          if (runningMission) {
-            runningMission.terminationDate = new Date(runningMission.terminationDate);
-          }
-          resolve();
-        });
-      });
-    }));
+    return Promise.all(
+      planets.map<Promise<void>>(async currentPlanet => {
+        const runningMission: RunningUnitPojo = await this._findRunningBuild(currentPlanet).toPromise();
+        if (runningMission) {
+          this._registerInterval(currentPlanet, runningMission);
+        }
+      })
+    );
   }
 
   /**
@@ -288,10 +287,12 @@ export class UnitService {
    * @param {PlanetPojo} planet - Planet to ask for
    * @author Kevin Guanche Darias
    */
-  private _findRunningBuild(planet: PlanetPojo): Observable<WithCalculatedDateRunningUnitBuild> {
+  private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
     let params: HttpParams = new HttpParams();
     params = params.append('planetId', planet.id.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/findRunning', { params });
+    return this._universeGameService.getWithAuthorizationToUniverse<RunningUnitPojo>('unit/findRunning', { params }).pipe(
+      tap(val => val && DateUtil.computeLocalTerminationDate(val))
+    );
   }
 
   /**

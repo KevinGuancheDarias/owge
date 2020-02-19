@@ -2,6 +2,7 @@
 
 v0.8.1 (latest)
 =================
+* __Fix:__ [Countdown in units build is not displaying #197](https://github.com/KevinGuancheDarias/owge/issues/197)
 * __Fix:__ [The "Join alliance" doesn't get disabled, when you have already requested to join that alliance #166](https://github.com/KevinGuancheDarias/owge/issues/166)
 * __Improvement:__ For max units and max energy use the classic "step-based" percentage computation
 * __Improvement:__ In Alliances, style out the slected section button 

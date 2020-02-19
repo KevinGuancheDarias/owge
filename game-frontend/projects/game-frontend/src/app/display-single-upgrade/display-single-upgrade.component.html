@@ -4,7 +4,7 @@
 
 <ng-container *ngIf="userData">
   <owge-widgets-display-list-item [itemName]="upgrade.name" [itemDescription]="upgrade.description" [image]="image"
-    [hasToDisplayCountdown]="runningUpgrade && runningUpgrade.upgrade.id === upgrade.id" [countdownMillis]="runningUpgrade?.pendingMillis"
+    [hasToDisplayCountdown]="runningUpgrade && runningUpgrade.upgrade.id === upgrade.id" [countdownDate]="runningUpgrade?.browserComputedTerminationDate"
   >
     <ng-template owgeCoreContent select="extra-header">
       <div>
