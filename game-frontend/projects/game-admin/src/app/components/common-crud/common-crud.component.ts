@@ -30,6 +30,9 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ContentChild('modalBody', { static: true }) public modalBody: TemplateRef<any>;
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
   @Input() public hasDescription = true;
+  @Input() public idField: keyof T = 'id';
+  @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
+  @Input() public customSaveAction: (el: T) => Promise<T>;
   @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   public elements: T[];
@@ -94,7 +97,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public delete(el: T): void {
     this._translateService.get('CRUD.CONFIRM_DELETE', { elName: el.name }).subscribe(async val => {
       if (await this._displayService.confirm(val)) {
-        this._crudService.delete(el.id).subscribe(elements => {
+        this._crudService.delete(el[<any>this.idField]).subscribe(elements => {
           this.elements = elements;
           this._crudModal.hide();
         });
@@ -122,13 +125,11 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    */
   public save(): void {
     this._loadingService.runWithLoading(async () => {
-      if (this.newElement.id) {
-        this.newElement = await this._crudService.saveExistingOrPut(this.newElement).toPromise();
+      if (this.customSaveAction) {
+        await this.customSaveAction(this.newElement);
       } else {
-        this.newElement = await this._crudService.saveNew(this.newElement).toPromise();
+        await this._doSave();
       }
-      this.originalElement = { ...this.newElement };
-      this._crudModal.hide();
     });
   }
 
@@ -155,5 +156,24 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public detectIsChanged(): boolean {
     this.isChanged = !isEqual(this.newElement, this.originalElement);
     return this.isChanged;
+  }
+
+
+  /**
+   * Do the savings to the backend
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @protected
+   * @returns
+   * @since 0.9.0
+   */
+  protected async _doSave(): Promise<void> {
+    if (this.newElement[this.idField]) {
+      this.newElement = await this._crudService.saveExistingOrPut(this.newElement).toPromise();
+    } else {
+      this.newElement = await this._crudService.saveNew(this.newElement).toPromise();
+    }
+    this.originalElement = { ...this.newElement };
+    this._crudModal.hide();
   }
 }

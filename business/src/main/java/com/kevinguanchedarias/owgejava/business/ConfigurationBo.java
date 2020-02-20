@@ -81,6 +81,24 @@ public class ConfigurationBo implements Serializable {
 		insertMissionBaseTimeIfMissing();
 	}
 
+	/**
+	 * Finds one entity, while
+	 * {@link ConfigurationBo#findConfigurationParam(String)} works, this one may
+	 * return null, instead of throwing
+	 * 
+	 * @param name
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	public Configuration findOne(String name) {
+		if (cache.get(name) != null) {
+			return cache.get(name);
+		} else {
+			return configurationRepository.findOne(name);
+		}
+	}
+
 	public List<Configuration> findAllNonPrivileged() {
 		return configurationRepository.findByPrivilegedFalse();
 	}
@@ -104,6 +122,8 @@ public class ConfigurationBo implements Serializable {
 	 * 
 	 * @param name
 	 * @return Configuration param
+	 * @throws SgtBackendConfigurationNotFoundException when the param doesn't
+	 *                                                  exists
 	 * @author Kevin Guanche Darias
 	 */
 	public Configuration findConfigurationParam(String name) {
@@ -126,6 +146,17 @@ public class ConfigurationBo implements Serializable {
 			checkCanSaveMisisonTyme(configuration);
 		}
 		return configurationRepository.saveAndFlush(configuration);
+	}
+
+	/**
+	 * Deletes one instance
+	 * 
+	 * @param name
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	public void deleteOne(String name) {
+		configurationRepository.delete(name);
 	}
 
 	public void clearCache() {

@@ -9,6 +9,7 @@ import { TimeSpecialCrudComponent } from './components/time-special-crud/time-sp
 import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
 import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
 import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
+import { ConfigurationCrudComponent } from './components/configuration-crud/configuration-crud.component';
 
 const routes: Routes = [
   {
@@ -28,6 +29,9 @@ const routes: Routes = [
   },
   {
     path: 'factions', component: FactionCrudComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'configuration', component: ConfigurationCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

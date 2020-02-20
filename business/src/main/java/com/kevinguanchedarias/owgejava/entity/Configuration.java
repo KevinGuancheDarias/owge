@@ -61,8 +61,25 @@ public class Configuration implements Serializable {
 		this.value = value;
 	}
 
+	/**
+	 * @deprecated Use isPrivileged() instead, avoid null problems, and uses the
+	 *             "isPrivileged"
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	@Deprecated(since = "0.9.0")
 	public Boolean getPrivileged() {
 		return privileged;
+	}
+
+	/**
+	 * 
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	public boolean isPrivileged() {
+		return Boolean.TRUE.equals(privileged);
 	}
 
 	public void setPrivileged(Boolean privileged) {
