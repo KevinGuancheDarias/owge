@@ -8,6 +8,7 @@ import { IndexComponent } from './components/index/index.component';
 import { TimeSpecialCrudComponent } from './components/time-special-crud/time-special-crud.component';
 import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
 import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
+import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
 
 const routes: Routes = [
   {
@@ -24,6 +25,9 @@ const routes: Routes = [
   },
   {
     path: 'unit_types', component: UnitTypeCrudComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'factions', component: FactionCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

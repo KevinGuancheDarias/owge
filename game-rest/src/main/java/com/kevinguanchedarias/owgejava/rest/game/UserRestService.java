@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
+import com.kevinguanchedarias.owgejava.business.FactionBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
@@ -34,6 +34,9 @@ public class UserRestService {
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	private FactionBo factionBo;
+
 	@RequestMapping(value = "exists", method = RequestMethod.GET)
 	public Object exists() {
 		return userStorageBo.exists(userStorageBo.findLoggedIn().getId());
@@ -50,14 +53,14 @@ public class UserRestService {
 		return userStorageBo.subscribe(factionId);
 	}
 
-	@RequestMapping(value = "findData", method = RequestMethod.GET)
+	@GetMapping("findData")
 	public Object findData() {
 		UserStorage user = userStorageBo.findLoggedInWithDetails();
 		UserStorageDto userDto = new UserStorageDto();
 		userDto.dtoFromEntity(user);
 		userDto.setImprovements(improvementBo.findUserImprovement(user));
-		userDto.setFactionDto(EntityPojoConverterUtil.convertFromTo(FactionDto.class, user.getFaction()));
-		userDto.setHomePlanetDto(EntityPojoConverterUtil.convertFromTo(PlanetDto.class, user.getHomePlanet()));
+		userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, factionBo.handleImage(user.getFaction())));
+		userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
 		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
 
 		Galaxy galaxyData = user.getHomePlanet().getGalaxy();

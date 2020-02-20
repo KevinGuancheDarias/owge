@@ -28,6 +28,7 @@ import { AdminUnitTypeService } from './services/admin-unit-type.service';
 import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
 import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
 import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
+import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
 
 @NgModule({
   declarations: [
@@ -40,7 +41,8 @@ import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-cru
     ObjectRequirementsCrudComponent,
     ObjectImprovementsCrudComponent,
     UpgradeTypeCrudComponent,
-    UnitTypeCrudComponent
+    UnitTypeCrudComponent,
+    FactionCrudComponent
   ],
   imports: [
     BrowserModule,

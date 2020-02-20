@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.CommonEntityWithImageStore;
+import com.kevinguanchedarias.owgejava.entity.ImageStore;
 
 /**
  * Handles the image saving properly when running a save action to database
@@ -23,7 +24,7 @@ public abstract class AbstractWithImageBo<K extends Serializable, E extends Comm
 	private static final long serialVersionUID = -3656411343369973383L;
 
 	@Autowired
-	private ImageStoreBo imageStoreBo;
+	protected ImageStoreBo imageStoreBo;
 
 	/*
 	 * (non-Javadoc)
@@ -72,10 +73,18 @@ public abstract class AbstractWithImageBo<K extends Serializable, E extends Comm
 		return saved;
 	}
 
-	private E handleImage(E entity) {
-		if (entity.getImage() != null) {
-			imageStoreBo.computeImageUrl(entity.getImage());
-		}
+	/**
+	 * Handles the images on entity load (populates the transient url property of
+	 * {@link ImageStore} <br>
+	 * Override to handle entities that has multiple images
+	 * 
+	 * @param entity
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
+	 */
+	public E handleImage(E entity) {
+		imageStoreBo.computeImageUrl(entity.getImage());
 		return entity;
 	}
 }

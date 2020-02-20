@@ -1,0 +1,67 @@
+<app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="selectedEl = $event">
+    <ng-template #modalBody let-newElement>
+        <ng-container *ngIf="selectedEl">
+            <div class="form-group col-md-6">
+                <label>{{ 'CRUD.FACTION.PR_IMAGE' | translate }}</label><br>
+                <owge-widgets-removable-image [(imageUrl)]="selectedEl.primaryResourceImageUrl"></owge-widgets-removable-image>
+            </div>
+            <div class="form-group col-md-6">
+                <owge-universe-image-selector (selected)="definePrimaryResourceImage($event)"></owge-universe-image-selector>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>{{ 'CRUD.FACTION.SR_IMAGE' | translate }}</label><br>
+                <owge-widgets-removable-image [(imageUrl)]="selectedEl.secondaryResourceImageUrl"></owge-widgets-removable-image>
+            </div>
+            <div class="form-group col-md-6">
+                <owge-universe-image-selector (selected)="defineSecondaryResourceImage($event)"></owge-universe-image-selector>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>{{ 'CRUD.FACTION.ENERGY_NAME' | translate }}</label><br>
+            </div>
+            <div class="form-group col-md-6">
+                <owge-universe-image-selector (selected)="defineEnergyImage($event)"></owge-universe-image-selector>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="pr-name">{{ 'CRUD.FACTION.PR_NAME' | translate }}</label><br>
+                <input id="pr-name" class="form-control" [(ngModel)]="selectedEl.primaryResourceName"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="sr-name">{{ 'CRUD.FACTION.SR_NAME' | translate }}</label><br>
+                <input id="sr-name" class="form-control" [(ngModel)]="selectedEl.secondaryResourceName"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="initial-pr">{{ 'CRUD.FACTION.INITIAL_PR' | translate }}</label><br>
+                <input id="initial-pr" type="number" class="form-control" [(ngModel)]="selectedEl.initialPrimaryResource"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="initial-sr">{{ 'CRUD.FACTION.INITIAL_SR' | translate }}</label><br>
+                <input id="initial-sr" type="number" class="form-control" [(ngModel)]="selectedEl.initialSecondaryResource"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="pr-production">{{ 'CRUD.FACTION.PR_PRODUCTION' | translate }}</label><br>
+                <input id="pr-production" step="0.01" type="number"  class="form-control" [(ngModel)]="selectedEl.primaryResourceProduction"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="sr-production">{{ 'CRUD.FACTION.SR_PRODUCTION' | translate }}</label><br>
+                <input id="sr-production" step="0.01" type="number" class="form-control" [(ngModel)]="selectedEl.secondaryResourceProduction"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="initial-energy">{{ 'CRUD.FACTION.INITIAL_ENERGY' | translate }}</label><br>
+                <input id="initial-energy" type="number"  class="form-control" [(ngModel)]="selectedEl.initialEnergy"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="max-planets">{{ 'CRUD.FACTION.MAX_PLANETS' | translate }}</label><br>
+                <input id="max-planets" type="number" class="form-control" [(ngModel)]="selectedEl.maxPlanets"/>
+            </div>
+
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
+            <app-object-improvements-crud [service]="adminFactionService" [entityId]="selectedEl.id"></app-object-improvements-crud>
+        </ng-container>
+    </ng-template>
+</app-common-crud-with-image>
