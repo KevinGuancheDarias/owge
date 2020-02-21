@@ -31,6 +31,8 @@ import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-cru
 import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
 import { ConfigurationCrudComponent } from './components/configuration-crud/configuration-crud.component';
 import { AdminConfigurationService } from './services/admin-configuration.service';
+import { GalaxiesCrudComponent } from './components/galaxies-crud/galaxies-crud.component';
+import { AdminGalaxyService } from './services/admin-galaxy.service';
 
 @NgModule({
   declarations: [
@@ -45,7 +47,8 @@ import { AdminConfigurationService } from './services/admin-configuration.servic
     UpgradeTypeCrudComponent,
     UnitTypeCrudComponent,
     FactionCrudComponent,
-    ConfigurationCrudComponent
+    ConfigurationCrudComponent,
+    GalaxiesCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -80,6 +83,7 @@ import { AdminConfigurationService } from './services/admin-configuration.servic
     AdminUnitTypeService,
     AdminUpgradeTypeService,
     AdminConfigurationService,
+    AdminGalaxyService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',
