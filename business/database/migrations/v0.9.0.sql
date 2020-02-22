@@ -16,3 +16,8 @@ ALTER TABLE `factions` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`i
 ALTER TABLE `factions` ADD FOREIGN KEY (`primary_resource_image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `factions` ADD FOREIGN KEY (`secondary_resource_image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `factions` ADD FOREIGN KEY (`energy_image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `upgrades` ADD `image_id` BIGINT(20) UNSIGNED NULL AFTER `image`;
+ALTER TABLE `upgrades` DROP `image`;
+ALTER TABLE `upgrades` ADD INDEX(`image_id`);
+ALTER TABLE `upgrades` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

@@ -1,0 +1,23 @@
+<app-common-crud-with-image [_crudService]="adminUpgradeService" (elementSelected)="selectedEl = $event">
+    <ng-template #modalBody let-newElement>
+        <ng-container *ngIf="selectedEl">
+            <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>
+
+            <div class="form-group col-md-6">
+                <label for="upgrade-type">{{ 'CRUD.UPGRADE.TYPE' }}</label>
+                <owge-widgets-id-name-dropdown class="form-control" [inputId]="'upgrade-type'" [elementsList]="upgradeTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="level-effect">{{ 'CRUD.UPGRADE.LEVEL_EFFECT' | translate }}</label><br>
+                <input type="number" step="0.1" id="level-effect" class="form-control" [(ngModel)]="selectedEl.levelEffect"/>
+            </div>
+
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
+            <app-object-improvements-crud [service]="adminUpgradeService" [entityId]="selectedEl.id"></app-object-improvements-crud>
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.REQUIREMENTS' | translate }}</div>
+            <div class="form-group col-md-12">
+                <app-object-requirements-crud [service]="adminUpgradeService" [entityId]="selectedEl.id" ></app-object-requirements-crud>
+            </div>
+        </ng-container>
+    </ng-template>
+</app-common-crud-with-image>

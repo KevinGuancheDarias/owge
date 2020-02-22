@@ -3,9 +3,6 @@ package com.kevinguanchedarias.owgejava.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -23,16 +20,10 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table(name = "upgrades")
-public class Upgrade extends EntityWithImage implements EntityWithImprovements<Integer> {
+public class Upgrade extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = 905268542123876248L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
-
-	private String name;
 	private Integer points = 0;
-	private String description;
 	private Long time = 60L;
 
 	@Column(name = "primary_resource")
@@ -58,38 +49,12 @@ public class Upgrade extends EntityWithImage implements EntityWithImprovements<I
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
 
-	@Override
-	public Integer getId() {
-		return id;
-	}
-
-	@Override
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public Integer getPoints() {
 		return points;
 	}
 
 	public void setPoints(Integer points) {
 		this.points = points;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public Long getTime() {
@@ -156,7 +121,7 @@ public class Upgrade extends EntityWithImage implements EntityWithImprovements<I
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
 		return result;
 	}
 
@@ -169,10 +134,10 @@ public class Upgrade extends EntityWithImage implements EntityWithImprovements<I
 		if (getClass() != obj.getClass())
 			return false;
 		Upgrade other = (Upgrade) obj;
-		if (id == null) {
-			if (other.id != null)
+		if (getId() == null) {
+			if (other.getId() != null)
 				return false;
-		} else if (!id.equals(other.id))
+		} else if (!getId().equals(other.getId()))
 			return false;
 		return true;
 	}

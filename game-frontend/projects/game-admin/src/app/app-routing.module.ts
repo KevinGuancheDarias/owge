@@ -11,6 +11,7 @@ import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-cru
 import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
 import { ConfigurationCrudComponent } from './components/configuration-crud/configuration-crud.component';
 import { GalaxiesCrudComponent } from './components/galaxies-crud/galaxies-crud.component';
+import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.component';
 
 const routes: Routes = [
   {
@@ -36,6 +37,9 @@ const routes: Routes = [
   },
   {
     path: 'galaxies', component: GalaxiesCrudComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'upgrades', component: UpgradeCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

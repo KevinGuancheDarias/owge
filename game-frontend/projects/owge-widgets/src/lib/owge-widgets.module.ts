@@ -20,6 +20,8 @@ import { WidgetDisplayListItemComponent } from './components/widget-display-list
 import { WidgetCountdownComponent } from './components/widget-countdown/widget-countdown.component';
 import { WidgetCollapsableItemComponent } from './components/widget-collapsable-item/widget-collapsable-item.component';
 import { WidgetDisplaySimpleItemComponent } from './components/widget-display-simple-item/widget-display-simple-item.component';
+import { WidgetIdNameDropdownComponent } from './components/widget-id-name-dropdown/widget-id-name-dropdown.component';
+import { FormsModule } from '@angular/forms';
 
 /**
  * Has UI widgets for OWGE
@@ -33,7 +35,8 @@ import { WidgetDisplaySimpleItemComponent } from './components/widget-display-si
     CommonModule,
     CoreModule,
     RouterModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    FormsModule
   ],
   declarations: [
     WidgetConfirmationDialogComponent,
@@ -47,7 +50,8 @@ import { WidgetDisplaySimpleItemComponent } from './components/widget-display-si
     WidgetDisplayListItemComponent,
     WidgetCountdownComponent,
     WidgetCollapsableItemComponent,
-    WidgetDisplaySimpleItemComponent
+    WidgetDisplaySimpleItemComponent,
+    WidgetIdNameDropdownComponent
   ],
   providers: [
     DisplayService
@@ -64,7 +68,8 @@ import { WidgetDisplaySimpleItemComponent } from './components/widget-display-si
     WidgetDisplayListItemComponent,
     WidgetCountdownComponent,
     WidgetCollapsableItemComponent,
-    WidgetDisplaySimpleItemComponent
+    WidgetDisplaySimpleItemComponent,
+    WidgetIdNameDropdownComponent
   ]
 })
 export class OwgeWidgetsModule {

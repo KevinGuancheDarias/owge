@@ -33,6 +33,8 @@ import { ConfigurationCrudComponent } from './components/configuration-crud/conf
 import { AdminConfigurationService } from './services/admin-configuration.service';
 import { GalaxiesCrudComponent } from './components/galaxies-crud/galaxies-crud.component';
 import { AdminGalaxyService } from './services/admin-galaxy.service';
+import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.component';
+import { ResourceRequirementsCrudComponent } from './components/resource-requirements-crud/resource-requirements-crud.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +50,9 @@ import { AdminGalaxyService } from './services/admin-galaxy.service';
     UnitTypeCrudComponent,
     FactionCrudComponent,
     ConfigurationCrudComponent,
-    GalaxiesCrudComponent
+    GalaxiesCrudComponent,
+    UpgradeCrudComponent,
+    ResourceRequirementsCrudComponent
   ],
   imports: [
     BrowserModule,

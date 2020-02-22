@@ -25,7 +25,8 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
     this._createTranslatableMenuRoute('APP.MENU_UNIT_TYPES', 'unit_types', 'fa fa-male'),
     this._createTranslatableMenuRoute('APP.MENU_FACTIONS', 'factions', 'fas fa-peace'),
     this._createTranslatableMenuRoute('APP.MENU_CONFIGURATION', 'configuration', 'fas fa-cog'),
-    this._createTranslatableMenuRoute('APP.MENU_GALAXIES', 'galaxies', 'fas fa-globe')
+    this._createTranslatableMenuRoute('APP.MENU_GALAXIES', 'galaxies', 'fas fa-globe'),
+    this._createTranslatableMenuRoute('APP.MENU_UPGRADES', 'upgrades', 'fa fa-flask')
   ];
 
   public constructor(private _userStore: UserStorage<User>, _translateService: TranslateService) {

@@ -1,9 +1,19 @@
 import { Injectable } from '@angular/core';
+import { Mixin } from 'ts-mixer';
 
-import { AbstractCrudService, UniverseGameService, CrudServiceAuthControl, Upgrade } from '@owge/universe';
-import { Faction } from '@owge/faction';
+import {
+    AbstractCrudService,
+    UniverseGameService,
+    CrudServiceAuthControl,
+    Upgrade,
+    WithRequirementsCrudMixin,
+    WithImprovementsCrudMixin,
+    CrudConfig
+} from '@owge/universe';
 import { validContext } from '@owge/core';
 
+export interface AdminUpgradeService
+    extends AbstractCrudService<Upgrade, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
 
 /**
  * Has methods related with the CRUD of the Upgrade
@@ -13,10 +23,13 @@ import { validContext } from '@owge/core';
  * @export
  */
 @Injectable()
-export class AdminUpgradeService extends AbstractCrudService<Upgrade> {
+export class AdminUpgradeService extends AbstractCrudService<Upgrade, number> {
+
+    protected _crudConfig: CrudConfig;
 
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
+        this._crudConfig = this.getCrudConfig();
     }
 
     protected _getEntity(): string {
@@ -33,3 +46,4 @@ export class AdminUpgradeService extends AbstractCrudService<Upgrade> {
         };
     }
 }
+(<any>AdminUpgradeService) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, <any>AdminUpgradeService);

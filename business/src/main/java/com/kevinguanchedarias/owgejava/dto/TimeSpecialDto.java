@@ -4,15 +4,13 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
-import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
 /**
  *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial>
-		implements WithDtoFromEntityTrait<TimeSpecial>, DtoWithImprovements {
+public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial> implements DtoWithImprovements {
 
 	private Long duration;
 	private Long rechargeTime;
