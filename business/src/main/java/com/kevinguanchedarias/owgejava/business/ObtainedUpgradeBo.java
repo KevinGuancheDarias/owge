@@ -26,6 +26,9 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	private ObtainedUpgradeRepository obtainedUpgradeRepository;
 
 	@Autowired
+	private UpgradeBo upgradeBo;
+
+	@Autowired
 	private ImprovementBo improvementBo;
 
 	@PostConstruct
@@ -56,11 +59,15 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	 * @author Kevin Guanche Darias
 	 */
 	public List<ObtainedUpgrade> findByUser(Integer userId) {
-		return obtainedUpgradeRepository.findByUserIdId(userId);
+		List<ObtainedUpgrade> retVal = obtainedUpgradeRepository.findByUserIdId(userId);
+		retVal.forEach(current -> upgradeBo.handleImage(current.getUpgrade()));
+		return retVal;
 	}
 
 	public ObtainedUpgrade findByUserAndUpgrade(Integer userId, Integer upgradeId) {
-		return obtainedUpgradeRepository.findOneByUserIdIdAndUpgradeId(userId, upgradeId);
+		ObtainedUpgrade obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdIdAndUpgradeId(userId, upgradeId);
+		upgradeBo.handleImage(obtainedUpgrade.getUpgrade());
+		return obtainedUpgrade;
 	}
 
 	/**

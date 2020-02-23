@@ -1,3 +1,10 @@
+
+/**
+ *
+ * @deprecated As of 0.9.0 it's better to use the ng://OwgeUniverse/types/upgrade.type.ts
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @export
+ */
 export class Upgrade {
     public clonedImprovements: boolean;
     public description: string;

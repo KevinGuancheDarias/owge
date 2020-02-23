@@ -6,7 +6,7 @@
       <ng-template owgeCoreContent [select]="'extra-section'">
         <div class="owge-card-list">
           <div class="owge card" *ngFor="let upgradeRequirement of unit.requirements" [ngClass]="{ 'owge-green-shadow' : upgradeRequirement.reached, 'owge-red-shadow' : !upgradeRequirement.reached}">
-            <img [src]="upgradeRequirement.upgrade.image | dynamicImage" />
+            <img [src]="upgradeRequirement.upgrade.imageUrl" />
             <div class="upgrade-level">Lvl {{ upgradeRequirement.level }}</div>
           </div>
         </div>

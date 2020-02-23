@@ -3,7 +3,7 @@
 </owge-widgets-confirmation-dialog>
 
 <ng-container *ngIf="userData">
-  <owge-widgets-display-list-item [itemName]="upgrade.name" [itemDescription]="upgrade.description" [image]="image"
+  <owge-widgets-display-list-item [itemName]="upgrade.name" [itemDescription]="upgrade.description" [image]="upgrade.imageUrl"
     [hasToDisplayCountdown]="runningUpgrade && runningUpgrade.upgrade.id === upgrade.id" [countdownDate]="runningUpgrade?.browserComputedTerminationDate"
   >
     <ng-template owgeCoreContent select="extra-header">
