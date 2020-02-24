@@ -1,6 +1,6 @@
 # OWGE changelog
 
-v0.8.1 (latest)
+v0.8.1 (2020-02-24 11:33)
 =================
 * __Fix:__ [Countdown in units build is not displaying #197](https://github.com/KevinGuancheDarias/owge/issues/197)
 * __Fix:__ [The "Join alliance" doesn't get disabled, when you have already requested to join that alliance #166](https://github.com/KevinGuancheDarias/owge/issues/166)
