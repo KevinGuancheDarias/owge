@@ -68,6 +68,14 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 		return CrudRestServiceTrait.super.beforeRequestEnd(dto, savedEntity);
 	}
 
+	@Override
+	default Optional<E> beforeSave(D parsedDto, E entity) {
+		if (entity.getId() != null && entity.getImprovement() == null) {
+			entity.setImprovement(getBo().findById(entity.getId()).getImprovement());
+		}
+		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
+	}
+
 	/**
 	 * Finds the current improvement (if any)
 	 * 

@@ -69,6 +69,7 @@ public class AdminUpgradeRestService implements CrudWithFullRestService<Integer,
 		} else {
 			entity.setType(upgradeTypeBo.findByIdOrDie(parsedDto.getTypeId()));
 		}
+		CrudWithFullRestService.super.beforeSave(parsedDto, entity);
 		return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
