@@ -11,7 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 
 @Service
-public class FactionBo extends AbstractWithImageBo<Integer, Faction, FactionDto> {
+public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	private static final long serialVersionUID = -6735454832872729630L;
 
 	@Autowired
@@ -54,20 +54,6 @@ public class FactionBo extends AbstractWithImageBo<Integer, Faction, FactionDto>
 	 */
 	public boolean existsAndIsVisible(Integer id) {
 		return factionRepository.countByHiddenFalseAndId(id) == 1;
-	}
-
-	@Override
-	public Faction save(Faction faction) {
-		super.save(faction);
-		return handleImage(faction);
-	}
-
-	@Override
-	public Faction handleImage(Faction entity) {
-		imageStoreBo.computeImageUrl(entity.getPrimaryResourceImage());
-		imageStoreBo.computeImageUrl(entity.getSecondaryResourceImage());
-		imageStoreBo.computeImageUrl(entity.getEnergyImage());
-		return super.handleImage(entity);
 	}
 
 	private void handleLazyFetch(boolean lazyFetch, List<Faction> factions) {

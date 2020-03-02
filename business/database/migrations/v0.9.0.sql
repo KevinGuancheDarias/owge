@@ -21,3 +21,9 @@ ALTER TABLE `upgrades` ADD `image_id` BIGINT(20) UNSIGNED NULL AFTER `image`;
 ALTER TABLE `upgrades` DROP `image`;
 ALTER TABLE `upgrades` ADD INDEX(`image_id`);
 ALTER TABLE `upgrades` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `units` ADD `image_id` BIGINT(20) UNSIGNED NULL AFTER `image`;
+ALTER TABLE `units` DROP `image`;
+ALTER TABLE `units` ADD INDEX(`image_id`);
+ALTER TABLE `units` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+

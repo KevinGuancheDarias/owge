@@ -1,0 +1,19 @@
+<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="selectedEl = $event">
+    <ng-template #modalBody let-newElement>
+        <ng-container *ngIf="selectedEl">
+            <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>
+
+            <div class="form-group col-md-6">
+                <label for="unit-type">{{ 'CRUD.UNIT.TYPE' }}</label>
+                <owge-widgets-id-name-dropdown class="form-control" [inputId]="'unit-type'" [elementsList]="unitTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
+            </div>
+
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
+            <app-object-improvements-crud [service]="adminUnitService" [entityId]="selectedEl.id"></app-object-improvements-crud>
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.REQUIREMENTS' | translate }}</div>
+            <div class="form-group col-md-12">
+                <app-object-requirements-crud [service]="adminUnitService" [entityId]="selectedEl.id" ></app-object-requirements-crud>
+            </div>
+        </ng-container>
+    </ng-template>
+</app-common-crud-with-image>

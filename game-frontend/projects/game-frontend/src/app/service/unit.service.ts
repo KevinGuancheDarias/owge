@@ -3,21 +3,17 @@ import { HttpParams } from '@angular/common/http';
 import { filter, take, tap } from 'rxjs/operators';
 import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 
-import { ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil, ResourcesEnum } from '@owge/core';
+import { UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources } from '@owge/universe';
 import { PlanetService, PlanetStore } from '@owge/galaxy';
 
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
-import { ResourcesEnum } from '../shared-enum/resources-enum';
-import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { RunningUnitPojo } from './../shared-pojo/running-unit-build.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { UnitPojo } from './../shared-pojo/unit.pojo';
-import { ResourceManagerService } from './resource-manager.service';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { UnitTypeService } from '../services/unit-type.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
 
 export class PlanetsNotReadyError extends Error { }
 
@@ -104,7 +100,7 @@ export class UnitService {
    * @returns obtainedUpgrade with filled values
    * @author Kevin Guanche Darias
    */
-  public computeRequiredResources(unit: UnitPojo, subscribeToResources: boolean, countBehaviorSubject: BehaviorSubject<number>): UnitPojo {
+  public computeRequiredResources(unit: Unit, subscribeToResources: boolean, countBehaviorSubject: BehaviorSubject<number>): Unit {
     if (!countBehaviorSubject) {
       this._doComputeRequiredResources(unit, subscribeToResources);
     } else {
@@ -117,7 +113,7 @@ export class UnitService {
           if (unit.requirements) {
             unit.requirements.stopDynamicRunnable();
           }
-          unit.requirements = new RequirementPojo();
+          unit.requirements = new ResourceRequirements();
           unit.requirements.requiredPrimary = unit.primaryResource * newCount;
           unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
           unit.requirements.requiredTime = Math.ceil(unit.requirements.handleSustractionPercentage(
@@ -136,12 +132,12 @@ export class UnitService {
    * Will register a unit build mission <b>for selected planet</b>
    * <b>NOTICE:</b> If success auto updates the user resources based on requirements
    *
-   * @param {UnitPojo} unit to be build
-   * @param {number} count  of that unit
+   * @param unit to be build
+   * @param count  of that unit
    * @todo Finish it!
    * @author Kevin Guanche Darias
    */
-  public registerUnitBuild(unit: UnitPojo, count: number): void {
+  public registerUnitBuild(unit: Unit, count: number): void {
     let params: HttpParams = new HttpParams();
     unit = this._doComputeRequiredResources(unit, false, count);
     params = params.append('planetId', this._selectedPlanet.id.toString());
@@ -311,8 +307,8 @@ export class UnitService {
     return null;
   }
 
-  private _doComputeRequiredResources(unit: UnitPojo, subscribeToResources: boolean, count = 1): UnitPojo {
-    const requirements: RequirementPojo = new RequirementPojo();
+  private _doComputeRequiredResources(unit: Unit, subscribeToResources: boolean, count = 1): Unit {
+    const requirements: ResourceRequirements = new ResourceRequirements();
     requirements.requiredPrimary = unit.primaryResource * count;
     requirements.requiredSecondary = unit.secondaryResource * count;
     requirements.requiredTime = unit.time * count;
@@ -324,7 +320,7 @@ export class UnitService {
     return unit;
   }
 
-  private _doCheckResourcesSubscriptionForRequirements(requirements: RequirementPojo, subscribeToResources: boolean) {
+  private _doCheckResourcesSubscriptionForRequirements(requirements: ResourceRequirements, subscribeToResources: boolean) {
     if (subscribeToResources) {
       requirements.startDynamicRunnable(this._resourceManagerService);
     } else {

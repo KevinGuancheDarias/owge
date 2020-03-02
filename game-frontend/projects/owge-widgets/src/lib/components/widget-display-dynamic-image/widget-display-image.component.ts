@@ -48,7 +48,7 @@ export class WidgetDisplayImageComponent implements OnChanges {
       return MEDIA_ROUTES.STATIC_IMAGES_ROOT + image;
     } else if (this.assetsImage) {
       return `/assets/img/${image}`;
-    } else if (this._isAbsoluteUrl(image)) {
+    } else if (this._isAbsoluteUrl(image) || this._isDynamicAbsolutePath(image)) {
       return image;
     } else {
       this._log.todo([
@@ -61,6 +61,10 @@ export class WidgetDisplayImageComponent implements OnChanges {
 
   private _isAbsoluteUrl(image: string): boolean {
     return image.startsWith('https://') || image.startsWith('http://');
+  }
+
+  private _isDynamicAbsolutePath(image: string): boolean {
+    return image.startsWith('/dynamic');
   }
 
 }

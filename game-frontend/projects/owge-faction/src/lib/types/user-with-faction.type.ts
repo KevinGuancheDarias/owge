@@ -2,7 +2,6 @@ import { User } from '@owge/core';
 
 import { Faction } from './faction.type';
 
-
 /**
  * User that has a faction
  *

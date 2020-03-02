@@ -7,7 +7,7 @@
             {{ obtainedUnit.count }}
           </span>
         </div>
-        <img [src]="obtainedUnit.unit.image | dynamicImage" />
+        <img [src]="obtainedUnit.unit.imageUrl" />
       </div>
       <div class="card-block" *ngIf="selectable">
         <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>

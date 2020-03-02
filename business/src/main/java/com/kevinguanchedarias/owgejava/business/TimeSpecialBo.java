@@ -21,8 +21,7 @@ import com.kevinguanchedarias.owgejava.util.ValidationUtil;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, TimeSpecialDto>
-		implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto> {
+public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto> {
 	static final long serialVersionUID = -2736277577264790898L;
 
 	@Autowired
@@ -66,7 +65,7 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 				.requirePositiveNumber(entity.getDuration(), "duration")
 				.requirePositiveNumber(entity.getRechargeTime(), "rechargeTime");
 		improvementBo.clearCacheEntriesIfRequired(entity, activeTimeSpecialBo);
-		return super.save(entity);
+		return WithNameBo.super.save(entity);
 	}
 
 	/*
@@ -77,7 +76,7 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 	@Override
 	public void save(List<TimeSpecial> entities) {
 		improvementBo.clearCacheEntries(activeTimeSpecialBo);
-		super.save(entities);
+		WithNameBo.super.save(entities);
 	}
 
 	/*
@@ -91,7 +90,7 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 	@Transactional
 	public void delete(TimeSpecial entity) {
 		activeTimeSpecialBo.deleteByTimeSpecial(entity);
-		super.delete(entity);
+		WithNameBo.super.delete(entity);
 	}
 
 	/*
@@ -104,7 +103,7 @@ public class TimeSpecialBo extends AbstractWithImageBo<Integer, TimeSpecial, Tim
 	@Transactional
 	public void delete(Integer id) {
 		// Only adds the transaction
-		super.delete(id);
+		WithNameBo.super.delete(id);
 	}
 
 }

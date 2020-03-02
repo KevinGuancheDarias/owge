@@ -1,5 +1,4 @@
-import { UnitPojo } from '../../shared-pojo/unit.pojo';
-import { Upgrade } from '@owge/universe';
+import { Upgrade, Unit } from '@owge/universe';
 
 /**
  * Represents the pair unit, and upgrades required to build that unit
@@ -9,7 +8,7 @@ import { Upgrade } from '@owge/universe';
  * @interface UnitUpgradeRequirements
  */
 export interface UnitUpgradeRequirements {
-    unit: UnitPojo;
+    unit: Unit;
     requirements: {
         upgrade: Upgrade,
         level: number,

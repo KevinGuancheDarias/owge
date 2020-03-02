@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,10 +80,10 @@ public class UnitRestService {
 		return retVal;
 	}
 
-	@RequestMapping(value = "requirements", method = RequestMethod.GET)
+	@GetMapping("requirements")
 	public List<UnitWithRequirementInformation> requirements() {
-		return requirementBo.computeReachedLevel(findLoggedInUser(), requirementBo
-				.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails(false).getFaction()));
+		return requirementBo.computeReachedLevel(findLoggedInUser(),
+				requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction()));
 	}
 
 	@RequestMapping(value = "cancel", method = RequestMethod.GET)

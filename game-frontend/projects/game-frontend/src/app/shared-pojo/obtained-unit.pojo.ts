@@ -1,5 +1,5 @@
 import { PlanetPojo } from './planet.pojo';
-import { UnitPojo } from './unit.pojo';
+import { Unit } from '@owge/universe';
 
 /**
  * Represents an obtained unit
@@ -11,7 +11,7 @@ import { UnitPojo } from './unit.pojo';
  */
 export class ObtainedUnit {
     public id: number;
-    public unit: UnitPojo;
+    public unit: Unit;
     public count: number;
     public sourcePlanet?: PlanetPojo;
     public targetPlanet?: PlanetPojo;

@@ -1,17 +1,17 @@
 import { Subscription } from 'rxjs';
-import { LoggerHelper } from '@owge/core';
+import { ResourceManagerService } from '@owge/universe';
+import { AutoUpdatedResources } from './auto-update-resources.pojo';
 
-import { ResourceManagerService } from './../service/resource-manager.service';
-import { AutoUpdatedResources } from './../class/auto-updated-resources';
 
 /**
- * @deprecated As of 0.9.0 use ng://OwgeUniverse/pojos/resource-requirements.pojo.ts (which should have exactly the same code :O)
+ * Represents the resource requirements of an object
+ *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.9.0
  * @export
+ * @class Requirements
  */
-export class RequirementPojo {
-    private static readonly _LOG: LoggerHelper = new LoggerHelper(RequirementPojo.name);
-
+export class ResourceRequirements {
     private _resources: AutoUpdatedResources;
     private _subscription: Subscription;
 
@@ -20,10 +20,6 @@ export class RequirementPojo {
     public requiredTime: number;
     public requiredEnergy?: number;
     public runnable: boolean;
-
-    public constructor() {
-        RequirementPojo._LOG.warnDeprecated(this.constructor.name, '0.9.0', 'ng://OwgeUniverse/pojos/requirements.pojo.ts');
-    }
 
     /**
      * Fills the runnable property if possible
@@ -52,7 +48,6 @@ export class RequirementPojo {
             this._subscription.unsubscribe();
         }
     }
-
 
     /**
      * returns the sum of base and percentage <br>

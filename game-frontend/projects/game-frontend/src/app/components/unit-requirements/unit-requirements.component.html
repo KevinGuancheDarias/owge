@@ -1,6 +1,6 @@
 <div *ngIf="unitRequirements" class="owge-card-list" >
   <ng-container *ngFor="let unit of unitRequirements">
-    <owge-widgets-display-list-item *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" [itemName]="unit.unit.name" [hideDesktopSections]="[0,0,1]" [image]="unit.unit.image | dynamicImage"
+    <owge-widgets-display-list-item *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" [itemName]="unit.unit.name" [hideDesktopSections]="[0,0,1]" [image]="unit?.unit?.imageUrl"
       [classes]="{ 'owge-green-shadow' : unit.allReached, 'owge-red-shadow' : !unit.allReached}"
     >
       <ng-template owgeCoreContent [select]="'extra-section'">

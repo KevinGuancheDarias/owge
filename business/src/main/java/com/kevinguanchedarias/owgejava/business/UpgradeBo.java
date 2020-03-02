@@ -16,8 +16,7 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.UpgradeRepository;
 
 @Component
-public class UpgradeBo extends AbstractWithImageBo<Integer, Upgrade, UpgradeDto>
-		implements WithNameBo<Integer, Upgrade, UpgradeDto> {
+public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	private static final long serialVersionUID = -4559943498112928568L;
 
 	@Autowired
@@ -65,7 +64,7 @@ public class UpgradeBo extends AbstractWithImageBo<Integer, Upgrade, UpgradeDto>
 	@Override
 	public Upgrade save(Upgrade entity) {
 		improvementBo.clearCacheEntriesIfRequired(entity, obtainedUpgradeBo);
-		return super.save(entity);
+		return WithNameBo.super.save(entity);
 	}
 
 	/*

@@ -2,11 +2,10 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } fro
 import { BehaviorSubject } from 'rxjs';
 
 import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
-import { UniverseGameService, UnitType } from '@owge/universe';
+import { UniverseGameService, UnitType, Unit } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
-import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { UnitTypeService } from '../services/unit-type.service';
 
@@ -21,7 +20,7 @@ export type validViews = 'requirements' | 'attributes';
 export class DisplaySingleUnitComponent extends BaseComponent implements OnInit {
 
   @Input()
-  public unit: UnitPojo;
+  public unit: Unit;
 
   @Input() isCompactView = false;
 
@@ -74,7 +73,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
 
   public selectedView: validViews;
   public numberToDelete: number;
-  public image: string;
   public isDescriptionDisplayed = false;
   public moreAttack: number;
   public moreShield: number;
@@ -121,7 +119,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
       this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);
       this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unit.typeId);
     });
-    this.image = MEDIA_ROUTES.IMAGES_ROOT + this.unit.image;
     this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
     this.selectedView = this.defaultView;
   }
@@ -176,12 +173,12 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.0
    */
-  public async onBuildDone(unit: UnitPojo): Promise<void> {
+  public async onBuildDone(unit: Unit): Promise<void> {
     await this._reloadImprovement(unit);
     this.buildDone.emit();
   }
 
-  private async _reloadImprovement(unit: UnitPojo): Promise<void> {
+  private async _reloadImprovement(unit: Unit): Promise<void> {
     if (!unit || unit.improvement) {
       const improvement: Improvement = await this._universeGameService.reloadImprovement();
       this._log.todo(

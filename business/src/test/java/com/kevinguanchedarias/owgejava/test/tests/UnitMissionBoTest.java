@@ -414,8 +414,7 @@ public class UnitMissionBoTest extends TestCommon {
 		involvedUnits.add(obtainedUnit1);
 		involvedUnits.add(obtainedUnit2);
 
-		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet(), mission))
-				.thenReturn(involvedUnits);
+		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet())).thenReturn(involvedUnits);
 		missionReportMockitoHelper.captureMissionReportSave();
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);
 		doNothing().when(unitMissionBoSpy).adminRegisterReturnMission(mission);
@@ -470,8 +469,7 @@ public class UnitMissionBoTest extends TestCommon {
 		involvedUnits.add(obtainedUnit1);
 		involvedUnits.add(obtainedUnit2);
 
-		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet(), mission))
-				.thenReturn(involvedUnits);
+		Mockito.when(obtainedUnitBoMock.findInvolvedInAttack(mission.getTargetPlanet())).thenReturn(involvedUnits);
 		missionReportMockitoHelper.captureMissionReportSave();
 
 		UnitMissionBo unitMissionBoSpy = Mockito.spy(unitMissionBo);

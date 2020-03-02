@@ -1,12 +1,13 @@
 import { BehaviorSubject } from 'rxjs';
-import { ResourceManagerService } from './../service/resource-manager.service';
 import { LoggerHelper } from '@owge/core';
-
+import { ResourceManagerService } from '../services/resource-manager.service';
 
 /**
+ * Has the auto-updated resources
  *
- * @deprecated As of 0.9.0 should use the version from ng://OwgeUniverse/pojos/auto-updated-resources.pojo.ts
+ * @todo In the future this should be in the userStore, instead of a logicful-pojo
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.9.0
  * @export
  */
 export class AutoUpdatedResources {

@@ -12,7 +12,7 @@ import { UserPojo } from '../shared-pojo/user.pojo';
  * Thi service contains the logged in user resources <br />
  * It keeps the interface synced (adding resources each second) <br />
  *
- *
+ * @deprecated As of 0.9.0 it's better to use the ng://OwgeUniverse/services/resource-manager.service even if it has the same functionality
  * @author Kevin Guanche Darias
  */
 @Injectable()
@@ -50,7 +50,7 @@ export class ResourceManagerService {
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   constructor(private _userStore: UserStorage<UserWithFaction>) {
-
+    this._log.warnDeprecated(this.constructor.name, '0.9.0', 'ng://OwgeUniverse/services/resource-manager.service');
   }
 
   /**
