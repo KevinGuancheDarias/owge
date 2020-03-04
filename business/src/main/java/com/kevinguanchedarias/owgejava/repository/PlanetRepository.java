@@ -32,4 +32,13 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 	 * @return
 	 */
 	public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId);
+
+	/**
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param specialLocationId
+	 * @return
+	 */
+	public Planet findOneBySpecialLocationId(Integer specialLocationId);
 }

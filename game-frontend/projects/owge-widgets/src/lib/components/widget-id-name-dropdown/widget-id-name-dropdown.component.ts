@@ -17,6 +17,7 @@ import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, O
 export class WidgetIdNameDropdownComponent implements OnChanges {
 
   @Input() public inputId: string;
+  @Input() public disabled = false;
   @Input() public idField = 'id';
   @Input() public nameField = 'name';
   @Input() public elementsList: any[];

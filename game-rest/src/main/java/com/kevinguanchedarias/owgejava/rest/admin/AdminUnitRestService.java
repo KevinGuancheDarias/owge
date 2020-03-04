@@ -20,6 +20,12 @@ import com.kevinguanchedarias.owgejava.rest.trait.CrudWithFullRestService;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 
+/**
+ * 
+ * @author Kevin Guanche Darias
+ * @since 0.9.0
+ *
+ */
 @RestController
 @ApplicationScope
 @RequestMapping("admin/unit")

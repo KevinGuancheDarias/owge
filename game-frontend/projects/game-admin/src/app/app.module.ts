@@ -37,6 +37,8 @@ import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.com
 import { ResourceRequirementsCrudComponent } from './components/resource-requirements-crud/resource-requirements-crud.component';
 import { UnitCrudComponent } from './components/unit-crud/unit-crud.component';
 import { AdminUnitService } from './services/admin-unit.service';
+import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
+import { AdminSpecialLocationService } from './services/admin-special-location.service';
 
 @NgModule({
   declarations: [
@@ -55,7 +57,8 @@ import { AdminUnitService } from './services/admin-unit.service';
     GalaxiesCrudComponent,
     UpgradeCrudComponent,
     ResourceRequirementsCrudComponent,
-    UnitCrudComponent
+    UnitCrudComponent,
+    SpecialLocationCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -92,6 +95,7 @@ import { AdminUnitService } from './services/admin-unit.service';
     AdminConfigurationService,
     AdminGalaxyService,
     AdminUnitService,
+    AdminSpecialLocationService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

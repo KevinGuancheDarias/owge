@@ -13,6 +13,7 @@ import { ConfigurationCrudComponent } from './components/configuration-crud/conf
 import { GalaxiesCrudComponent } from './components/galaxies-crud/galaxies-crud.component';
 import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.component';
 import { UnitCrudComponent } from './components/unit-crud/unit-crud.component';
+import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 
 const routes: Routes = [
   {
@@ -44,6 +45,9 @@ const routes: Routes = [
   },
   {
     path: 'units', component: UnitCrudComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'special-locations', component: SpecialLocationCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

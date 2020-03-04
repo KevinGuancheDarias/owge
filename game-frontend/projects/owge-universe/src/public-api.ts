@@ -26,6 +26,7 @@ export * from './lib/types/mission-support.type';
 export * from './lib/types/requirement-information.type';
 export * from './lib/types/requirement.type';
 export * from './lib/types/time-special.type';
+export * from './lib/types/special-location.type';
 export * from './lib/types/image-store.type';
 export * from './lib/types/unit-type.type';
 export * from './lib/types/unit.type';

@@ -128,6 +128,18 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		return planetRepository.findByGalaxyIdAndSectorAndQuadrant(galaxy, sector, quadrant);
 	}
 
+	/**
+	 * 
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param specialLocationId
+	 * @return
+	 */
+	public Planet findOneBySpecialLocationId(Integer specialLocationId) {
+		return planetRepository.findOneBySpecialLocationId(specialLocationId);
+	}
+
 	public boolean isOfUserProperty(UserStorage expectedOwner, Planet planet) {
 		return isOfUserProperty(expectedOwner.getId(), planet.getId());
 	}

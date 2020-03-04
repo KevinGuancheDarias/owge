@@ -27,3 +27,11 @@ ALTER TABLE `units` DROP `image`;
 ALTER TABLE `units` ADD INDEX(`image_id`);
 ALTER TABLE `units` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
+ALTER TABLE `special_locations` ADD `image_id` BIGINT(20) UNSIGNED NULL AFTER `image`;
+ALTER TABLE `special_locations` DROP `image`;
+ALTER TABLE `special_locations` ADD INDEX(`image_id`);
+ALTER TABLE `special_locations` ADD FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `special_locations` CHANGE `improvement_id` `improvement_id` SMALLINT(6) UNSIGNED NULL;
+ALTER TABLE `special_locations` DROP FOREIGN KEY `special_locations_ibfk_1`;
+ALTER TABLE `special_locations` DROP `planet_id`;
+ALTER TABLE `special_locations` CHANGE `galaxy_id` `galaxy_id` SMALLINT(6) UNSIGNED NULL;

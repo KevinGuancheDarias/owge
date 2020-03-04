@@ -15,6 +15,12 @@ import com.kevinguanchedarias.owgejava.dto.GalaxyDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
 
+/**
+ * 
+ * @author Kevin Guanche Darias
+ * @since 0.9.0
+ *
+ */
 @RestController
 @ApplicationScope
 @RequestMapping("admin/galaxy")
