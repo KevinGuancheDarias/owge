@@ -79,7 +79,7 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	 */
 	@Override
 	public ObjectEnum getObject() {
-		return ObjectEnum.UPGRADE;
+		return ObjectEnum.UNIT;
 	}
 
 }

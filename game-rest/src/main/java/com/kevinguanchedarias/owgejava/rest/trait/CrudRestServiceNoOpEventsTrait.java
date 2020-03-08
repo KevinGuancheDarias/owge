@@ -76,4 +76,19 @@ public interface CrudRestServiceNoOpEventsTrait<D, E> {
 		return Optional.of(dto);
 	}
 
+	/**
+	 * Filters the findAll queries of {@link WithReadRestServiceTrait} <br>
+	 * <b>HINT: return false to remove an element from the result</b><br>
+	 * <b>NOTICE: </b> Runs after beforeRequestEnd
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param dto
+	 * @param savedEntity
+	 * @return
+	 */
+	public default boolean filterGetResult(D dto, E savedEntity) {
+		return true;
+	}
+
 }

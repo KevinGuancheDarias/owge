@@ -1,4 +1,7 @@
-<app-common-crud [_crudService]="viewExposedService" [hasDescription]="hasDescription" [hideSections]="hideSections" (elementsLoaded)="elementsLoaded.emit()" (elementSelected)="elementSelected.emit($event)">
+<app-common-crud [_crudService]="viewExposedService" [hasDescription]="hasDescription" [hideSections]="hideSections" [customElementsSource]="customElementsSource" (elementsLoaded)="elementsLoaded.emit()" (elementSelected)="elementSelected.emit($event)">
+    <ng-template #beforeList>
+        <ng-container *ngTemplateOutlet="innerBeforeList"></ng-container>
+    </ng-template>
     <ng-template #middleOfCard let-element>
         <img *ngIf="element.imageUrl" [src]="element.imageUrl">
     </ng-template>

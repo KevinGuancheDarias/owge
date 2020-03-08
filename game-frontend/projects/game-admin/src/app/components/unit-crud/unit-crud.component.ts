@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+
 import { Unit, UnitType } from '@owge/universe';
+
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
-
 
 /**
  *
@@ -19,6 +21,7 @@ import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 export class UnitCrudComponent implements OnInit {
 
   public selectedEl: Unit;
+  public elsObservable: Observable<Unit[]>;
   public unitTypes: UnitType[];
 
   public constructor(public adminUnitService: AdminUnitService, private _adminUnitTypeservice: AdminUnitTypeService) { }

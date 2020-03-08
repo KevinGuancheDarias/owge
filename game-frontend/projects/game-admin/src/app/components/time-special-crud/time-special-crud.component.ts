@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 
 import { TimeSpecial } from '@owge/universe';
 import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
+import { Observable } from 'rxjs';
 
 /**
  *
@@ -18,6 +19,7 @@ import { AdminTimeSpecialService } from '../../services/admin-time-special.servi
 export class TimeSpecialCrudComponent {
 
   public selectedEl: TimeSpecial;
+  public elsObservable: Observable<TimeSpecial[]>;
 
   constructor(public adminTimeSpecialService: AdminTimeSpecialService) { }
 }

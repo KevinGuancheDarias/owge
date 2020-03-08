@@ -28,6 +28,7 @@
         <button class="btn" role="button" (click)="cancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
     </div>
 </owge-core-modal>
+<ng-container *ngTemplateOutlet="beforeList"></ng-container>
 <div *ngIf="elements" class="owge-card-list">
     <div class="card owge" *ngFor="let element of elements, let i = index">
         <div class="card-block">

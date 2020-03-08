@@ -1,4 +1,9 @@
-<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="selectedEl = $event">
+<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="selectedEl = $event" [customElementsSource]="elsObservable">
+    <ng-template #beforeList>
+        <app-requirements-filter [service]="adminUnitService" (filteredSource)="elsObservable = $event">
+
+        </app-requirements-filter>
+    </ng-template>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>

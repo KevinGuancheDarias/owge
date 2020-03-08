@@ -1,0 +1,2 @@
+<owge-widgets-id-name-dropdown [elementsList]="allowedRequirementsIdNames" [model]="null" (modelChange)="onFilterOption($event)"></owge-widgets-id-name-dropdown>
+        <owge-widgets-id-name-dropdown *ngIf="secondValueOptions" [elementsList]="secondValueOptions" [model]="null" (modelChange)="applyFilter($event)"></owge-widgets-id-name-dropdown>

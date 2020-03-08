@@ -8,6 +8,7 @@ import { take, map } from 'rxjs/operators';
 import { WithReadCrudMixin } from '../mixins/services/with-read-crud.mixin';
 import { WithDeleteCrudMixin } from '../mixins/services/with-delete-crud.mixin';
 import { Mixin } from 'ts-mixer';
+import { StoreAwareService } from '../interfaces/store-aware-service.interface';
 
 /**
  * Has default methods for the target entities <br>
@@ -19,7 +20,7 @@ import { Mixin } from 'ts-mixer';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
-export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> {
+export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> implements StoreAwareService {
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
     protected _subject: Subject<T[]>;
     protected _data: T[];
@@ -101,6 +102,16 @@ export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> 
             authConfiguration: this._getAuthConfiguration(),
             findOneEntityPath: (id) => this._findOneEntityPath(id)
         };
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public getChangeObservable(): Observable<any> {
+        return this._subject.asObservable();
     }
 
 }

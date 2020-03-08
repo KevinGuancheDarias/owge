@@ -1,4 +1,4 @@
-import { Component, OnInit, ContentChild, TemplateRef } from '@angular/core';
+import { Component, OnInit, ContentChild, TemplateRef, OnChanges } from '@angular/core';
 
 import { EntityWithImage, CommonEntity } from '@owge/core';
 import { AbstractCrudService, ImageStore } from '@owge/universe';
@@ -11,13 +11,18 @@ import { CommonCrudComponent } from '../common-crud/common-crud.component';
   styleUrls: ['./common-crud-with-image.component.less']
 })
 export class CommonCrudWithImageComponent<K, T extends CommonEntity<K> & EntityWithImage> extends CommonCrudComponent<K, T>
-  implements OnInit {
+  implements OnInit, OnChanges {
 
+  @ContentChild('beforeList', { static: true }) public innerBeforeList: TemplateRef<any>;
   @ContentChild('modalBody', { static: true }) public innerModalBody: TemplateRef<any>;
   public viewExposedService: AbstractCrudService<T, K>;
 
   public ngOnInit() {
     this.viewExposedService = this._crudService;
+  }
+
+  public ngOnChanges(): void {
+    // Override CommonCrudComponent.ngOnChanges to disable it
   }
 
   /**

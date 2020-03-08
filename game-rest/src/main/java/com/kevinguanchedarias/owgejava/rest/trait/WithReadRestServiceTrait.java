@@ -43,7 +43,9 @@ public interface WithReadRestServiceTrait<N extends Number, E extends EntityWith
 		config.getBoService().findAll().forEach(currentEntity -> {
 			D dto = getDtoUtilService().dtoFromEntity(config.getDtoClass(), currentEntity);
 			dto = beforeRequestEnd(dto, currentEntity).orElse(dto);
-			retVal.add(dto);
+			if (filterGetResult(dto, currentEntity)) {
+				retVal.add(dto);
+			}
 		});
 		return retVal;
 	}

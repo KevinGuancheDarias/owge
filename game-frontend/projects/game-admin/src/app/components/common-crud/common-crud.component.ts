@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter, OnChanges, OnDestroy } from '@angular/core';
 
 import { CommonEntity, LoadingService } from '@owge/core';
 import { AbstractCrudService } from '@owge/universe';
@@ -6,6 +6,7 @@ import { ModalComponent } from '@owge/core';
 import { DisplayService } from '@owge/widgets';
 import { TranslateService } from '@ngx-translate/core';
 import { isEqual } from 'lodash-es';
+import { Observable, Subscription } from 'rxjs';
 
 /**
  * Used to handle the default Crud <br>
@@ -25,13 +26,15 @@ import { isEqual } from 'lodash-es';
   templateUrl: './common-crud.component.html',
   styleUrls: ['./common-crud.component.less']
 })
-export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit {
+export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit, OnChanges, OnDestroy {
 
+  @ContentChild('beforeList', { static: true }) public beforeList: TemplateRef<any>;
   @ContentChild('modalBody', { static: true }) public modalBody: TemplateRef<any>;
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
   @Input() public hasDescription = true;
   @Input() public idField: keyof T = 'id';
   @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
+  @Input() public customElementsSource: Observable<T[]>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
   @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
@@ -44,6 +47,8 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ViewChild('crudModal', { static: true }) protected _crudModal: ModalComponent;
   protected _randomId: string;
 
+  private _defaultSubscription: Subscription;
+  private _customSubscription: Subscription;
   constructor(
     protected _displayService: DisplayService,
     protected _translateService: TranslateService,
@@ -52,11 +57,28 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
 
   ngOnInit() {
     this._randomId = (new Date()).getTime().toString();
-    if (!this.elements) {
-      this._crudService.findAll().subscribe(elements => {
-        this.elements = elements;
-        this.elementsLoaded.emit();
-      });
+  }
+
+  public ngOnChanges(): void {
+    const onSubscribeAction = elements => {
+      this.elements = elements;
+      this.elementsLoaded.emit();
+    };
+    if (this.customElementsSource) {
+      if (this._customSubscription) {
+        this._customSubscription.unsubscribe();
+      }
+      this._customSubscription = this.customElementsSource.subscribe(onSubscribeAction);
+      if (this._defaultSubscription) {
+        this._defaultSubscription.unsubscribe();
+        delete this._defaultSubscription;
+      }
+    } else {
+      this._defaultSubscription = this._crudService.findAll().subscribe(onSubscribeAction);
+      if (this._customSubscription) {
+        this._customSubscription.unsubscribe();
+        delete this._customSubscription;
+      }
     }
   }
 
@@ -158,6 +180,19 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
     return this.isChanged;
   }
 
+
+  /**
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   */
+  public ngOnDestroy(): void {
+    if (this._customSubscription) {
+      this._customSubscription.unsubscribe();
+    } else if (this._defaultSubscription) {
+      this._defaultSubscription.unsubscribe();
+    }
+  }
 
   /**
    * Do the savings to the backend

@@ -39,6 +39,7 @@ import { UnitCrudComponent } from './components/unit-crud/unit-crud.component';
 import { AdminUnitService } from './services/admin-unit.service';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { AdminSpecialLocationService } from './services/admin-special-location.service';
+import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +59,8 @@ import { AdminSpecialLocationService } from './services/admin-special-location.s
     UpgradeCrudComponent,
     ResourceRequirementsCrudComponent,
     UnitCrudComponent,
-    SpecialLocationCrudComponent
+    SpecialLocationCrudComponent,
+    RequirementsFilterComponent
   ],
   imports: [
     BrowserModule,
