@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.1
+-- version 4.9.4
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le :  ven. 15 nov. 2019 à 10:19
+-- Généré le : lun. 09 mars 2020 à 16:26
 -- Version du serveur :  5.7.19-log
--- Version de PHP :  7.2.23
+-- Version de PHP : 7.4.1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données :  `sgalactica_java`
+-- Base de données : `new_shit`
 --
 
 -- --------------------------------------------------------
@@ -169,14 +169,17 @@ CREATE TABLE `factions` (
   `id` smallint(5) UNSIGNED NOT NULL,
   `hidden` tinyint(4) DEFAULT NULL,
   `name` varchar(30) NOT NULL,
-  `image` varchar(50) NULL,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `primary_resource_image_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `secondary_resource_image_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `energy_image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `description` text,
   `primary_resource_name` varchar(20) NOT NULL,
-  `primary_resource_image` varchar(50) NULL,
+  `primary_resource_image` varchar(50) DEFAULT NULL,
   `secondary_resource_name` varchar(20) NOT NULL,
-  `secondary_resource_image` varchar(50) NULL,
+  `secondary_resource_image` varchar(50) DEFAULT NULL,
   `energy_name` varchar(20) NOT NULL,
-  `energy_image` varchar(50) NULL,
+  `energy_image` varchar(50) DEFAULT NULL,
   `initial_primary_resource` mediumint(8) UNSIGNED NOT NULL,
   `initial_secondary_resource` mediumint(8) UNSIGNED NOT NULL,
   `initial_energy` mediumint(8) UNSIGNED NOT NULL,
@@ -652,11 +655,10 @@ CREATE TABLE `requisitosespecialesderaza` (
 CREATE TABLE `special_locations` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `name` varchar(30) NOT NULL,
-  `image` char(36) DEFAULT NULL,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `description` text NOT NULL,
-  `galaxy_id` smallint(6) UNSIGNED NOT NULL,
-  `planet_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `improvement_id` smallint(6) UNSIGNED NOT NULL,
+  `galaxy_id` smallint(6) UNSIGNED DEFAULT NULL,
+  `improvement_id` smallint(6) UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -704,7 +706,7 @@ CREATE TABLE `units` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `order_number` smallint(6) UNSIGNED DEFAULT NULL COMMENT 'El orden de la unidad',
   `name` char(40) CHARACTER SET latin1 COLLATE latin1_spanish_ci NOT NULL,
-  `image` char(36) DEFAULT NULL,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `points` int(11) UNSIGNED DEFAULT NULL,
   `description` text CHARACTER SET latin1 COLLATE latin1_spanish_ci,
   `time` int(11) DEFAULT NULL COMMENT 'El tiempo base para la mejora, en segundos',
@@ -731,7 +733,7 @@ CREATE TABLE `unit_types` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `name` varchar(20) NOT NULL,
   `max_count` bigint(20) DEFAULT NULL,
-  `image` char(36) DEFAULT NULL,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `parent_type` smallint(11) DEFAULT NULL,
   `can_explore` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_gather` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
@@ -764,7 +766,7 @@ CREATE TABLE `upgrades` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `name` varchar(70) NOT NULL,
   `points` int(11) NOT NULL DEFAULT '0',
-  `image` varchar(100) DEFAULT NULL,
+  `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `description` text,
   `time` int(11) NOT NULL DEFAULT '60',
   `primary_resource` int(11) NOT NULL DEFAULT '100',
@@ -917,7 +919,11 @@ ALTER TABLE `explored_planets`
 ALTER TABLE `factions`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
-  ADD KEY `improvement_id` (`improvement_id`);
+  ADD KEY `improvement_id` (`improvement_id`),
+  ADD KEY `image_id` (`image_id`),
+  ADD KEY `primary_resource_image_id` (`primary_resource_image_id`),
+  ADD KEY `secondary_resource_image_id` (`secondary_resource_image_id`),
+  ADD KEY `energy_image_id` (`energy_image_id`);
 
 --
 -- Index pour la table `galaxies`
@@ -1135,9 +1141,9 @@ ALTER TABLE `requisitosespecialesderaza`
 ALTER TABLE `special_locations`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
-  ADD KEY `planet_id` (`planet_id`),
   ADD KEY `improvement_id` (`improvement_id`),
-  ADD KEY `galaxy_id` (`galaxy_id`);
+  ADD KEY `galaxy_id` (`galaxy_id`),
+  ADD KEY `image_id` (`image_id`);
 
 --
 -- Index pour la table `speed_impact_groups`
@@ -1159,14 +1165,16 @@ ALTER TABLE `units`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `type` (`type`),
-  ADD KEY `improvement_id` (`improvement_id`);
+  ADD KEY `improvement_id` (`improvement_id`),
+  ADD KEY `image_id` (`image_id`);
 
 --
 -- Index pour la table `unit_types`
 --
 ALTER TABLE `unit_types`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
+  ADD UNIQUE KEY `name` (`name`),
+  ADD KEY `image_id` (`image_id`);
 
 --
 -- Index pour la table `unlocked_relation`
@@ -1183,7 +1191,8 @@ ALTER TABLE `upgrades`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `type` (`type`),
-  ADD KEY `improvements_id` (`improvement_id`);
+  ADD KEY `improvements_id` (`improvement_id`),
+  ADD KEY `image_id` (`image_id`);
 
 --
 -- Index pour la table `upgrade_types`
@@ -1452,7 +1461,11 @@ ALTER TABLE `explored_planets`
 -- Contraintes pour la table `factions`
 --
 ALTER TABLE `factions`
-  ADD CONSTRAINT `factions_ibfk_1` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`);
+  ADD CONSTRAINT `factions_ibfk_1` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
+  ADD CONSTRAINT `factions_ibfk_2` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`),
+  ADD CONSTRAINT `factions_ibfk_3` FOREIGN KEY (`primary_resource_image_id`) REFERENCES `images_store` (`id`),
+  ADD CONSTRAINT `factions_ibfk_4` FOREIGN KEY (`secondary_resource_image_id`) REFERENCES `images_store` (`id`),
+  ADD CONSTRAINT `factions_ibfk_5` FOREIGN KEY (`energy_image_id`) REFERENCES `images_store` (`id`);
 
 --
 -- Contraintes pour la table `improvements_unit_types`
@@ -1551,9 +1564,9 @@ ALTER TABLE `requirements_information`
 -- Contraintes pour la table `special_locations`
 --
 ALTER TABLE `special_locations`
-  ADD CONSTRAINT `special_locations_ibfk_1` FOREIGN KEY (`planet_id`) REFERENCES `planets` (`id`),
   ADD CONSTRAINT `special_locations_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
-  ADD CONSTRAINT `special_locations_ibfk_3` FOREIGN KEY (`galaxy_id`) REFERENCES `galaxies` (`id`);
+  ADD CONSTRAINT `special_locations_ibfk_3` FOREIGN KEY (`galaxy_id`) REFERENCES `galaxies` (`id`),
+  ADD CONSTRAINT `special_locations_ibfk_4` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --
 -- Contraintes pour la table `time_specials`
@@ -1566,7 +1579,14 @@ ALTER TABLE `time_specials`
 --
 ALTER TABLE `units`
   ADD CONSTRAINT `units_ibfk_1` FOREIGN KEY (`type`) REFERENCES `unit_types` (`id`),
-  ADD CONSTRAINT `units_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`);
+  ADD CONSTRAINT `units_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
+  ADD CONSTRAINT `units_ibfk_3` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
+
+--
+-- Contraintes pour la table `unit_types`
+--
+ALTER TABLE `unit_types`
+  ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --
 -- Contraintes pour la table `unlocked_relation`
@@ -1580,7 +1600,8 @@ ALTER TABLE `unlocked_relation`
 --
 ALTER TABLE `upgrades`
   ADD CONSTRAINT `upgrades_ibfk_1` FOREIGN KEY (`type`) REFERENCES `upgrade_types` (`id`),
-  ADD CONSTRAINT `upgrades_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`);
+  ADD CONSTRAINT `upgrades_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
+  ADD CONSTRAINT `upgrades_ibfk_3` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --
 -- Contraintes pour la table `user_storage`

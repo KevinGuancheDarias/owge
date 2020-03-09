@@ -65,11 +65,15 @@ function escapeString(MysqliProxy $connection, string $input): string {
         return $connection->real_escape_string(html_entity_decode($input, ENT_QUOTES, 'UTF-8'));
 }
 
+/**
+ * @deprecated As of 0.9.0 everything uses ImageStore
+ */
 class ImageObject {
     public $classicImageUrl;
     public $image;
     
     public function __construct(string $classicImageUrl) {
+        echo "Warning: ImageObject is deprecated" . PHP_EOL;
         $this->classicImageUrl = $classicImageUrl;
     }
     
@@ -141,6 +145,8 @@ class CommonObject {
     public $classicId;
     public $ngId;
     public $name;
+    
+    /** @var ImageStore */
     public $image;
     public $description;
     public $order;
@@ -250,11 +256,18 @@ class Unit extends WithRequirementsObject {
 class Faction extends CommonObject {
     public $hidden;
     public $prName;
+    /** @var ImageStore */
     public $prImage;
+
     public $srName;
+
+    /** @var ImageStore */
     public $srImage;
     public $energyName;
+
+    /** @var ImageStore */
     public $energyImage;
+
     public $initialPr;
     public $initialSr;
     public $initialEnergy;
@@ -279,15 +292,13 @@ class TimeSpecial extends WithRequirementsObject {
     /** @var int */
     public $rechargeTime;
 
-    /** @var ImageStore */
-    public $image;
-
     public function addRequiredUpgrade(array $upgrades, \mysqli $connection) {
         $this->doDefineRequiredUpgrade($upgrades, 'especialesderaza', 'Especial', $connection);
     }
 }
 
 class ImageStore {
+    const DEFAULT_DESCRIPTION = 'Media imported from classic u1';
     public $extension;
     public $checksum;
     public $filename;
@@ -304,7 +315,7 @@ class ImageStore {
      */
     public static function createFromImageId(int $id, mysqli $source): ImageStore {
         $instance = new self;
-        $instance->description = 'Media imported from classic u1';
+        $instance->description = self::DEFAULT_DESCRIPTION;
         $instance->localPath = TIME_SPECIALS_CLASIC_MEDIA_FOLDER . DIRECTORY_SEPARATOR . "$id.img";
         if(!file_exists($instance->localPath)) {
             echo "Unwilling to continue as ImageStore with id $id doesn't exists in the filesystem, {$instance->localPath}";
@@ -317,6 +328,23 @@ class ImageStore {
         } else {
             echo "\e[33mWarning: image with id $id doesn't exists\e[39m";
         }
+        return $instance;
+    }
+
+    public static function createFromUrl(string $url): ImageStore {
+        $instance = new self;
+        $instance->description = self::DEFAULT_DESCRIPTION;
+        $instance->download($url);
+        return $instance;
+    }
+
+    public static function createFromFile(string $filePath): ImageStore {
+        $instance = new self;
+        $instance->description = self::DEFAULT_DESCRIPTION;
+        if(!file_exists($filePath)) {
+            throw new Exception('File ' . $filePath . ' not found');
+        }
+        $instance->handleFileData($filePath);
         return $instance;
     }
 
@@ -335,6 +363,10 @@ class ImageStore {
         return $retVal;
     }
 
+    private static function findExtensionFromFilename(string $filename): string {
+        return substr($filename, strrpos($filename, '.'));
+    }
+
     private function __construct() {
 
     }
@@ -347,11 +379,57 @@ class ImageStore {
      * @author Kevin Guanche Darias
      */
     public function saveToDbAndDisk(mysqli $target): int {
+        if(!$this->checksum && !$this->filename) {
+            $this->checksum = md5_file($this->localPath);
+            $this->filename = $this->checksum . '.' . $this->extension;
+            copy($this->localPath, TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR . $this->filename);
+        }
+        $result = $target->query("SELECT id FROM images_store WHERE checksum='$this->checksum';");
+        if($row = $result->fetch_object()) {
+            return $row->id;
+        } else {
+            $target->query("REPLACE INTO `images_store` (checksum, filename, display_name, description)VALUES('$this->checksum','$this->filename','$this->displayName','$this->description')");
+            return $target->insert_id;
+        }
+    }
+
+    private function download(string $url): void {
+        $this->handleFileData($this->normalizeUrl($url));
+    }
+
+    private function handleFileData(string $localPathOrNormalizedUrl): void {
+        $fileData = file_get_contents($localPathOrNormalizedUrl);
+        if(!is_dir(TARGET_CLASSIC_IMAGES_STORAGE)) {
+            mkdir(TARGET_CLASSIC_IMAGES_STORAGE);
+        }
+        $this->displayName = $this->normalizeFilename($this->findFilename($localPathOrNormalizedUrl));
+        $this->filename = uniqid() . self::findExtensionFromFilename($this->displayName);
+        $this->localPath = TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR . $this->filename;
+        file_put_contents($this->localPath, $fileData);
         $this->checksum = md5_file($this->localPath);
-        $this->filename = $this->checksum . '.' . $this->extension;
-        copy($this->localPath, TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR . $this->filename);
-        $target->query("REPLACE INTO `images_store` (checksum, filename, display_name, description)VALUES('$this->checksum','$this->filename','$this->displayName','$this->description')");
-        return $target->insert_id;
+    }
+
+    private function normalizeUrl(string $url): string {
+        if(strpos($url, '//') === 0) {
+            return 'https:' . $url;
+        } else if(strpos($url, 'http') === 0 || strpos($url, 'https') === 0) {
+            return $url;
+        } else {
+            throw new Exception('Malformed URL!' . $url);
+        }
+    }
+    
+    private function findFilename(string $url): string {
+        return substr($url, strrpos($url, '/') + 1);
+    }
+    
+    private function normalizeFilename(string $filename): string {
+        $fileBase = basename($filename);
+        if(strrpos($fileBase, '.') !== false) {
+            return $fileBase; 
+        } else {
+            return $fileBase . DEFAULT_EXTENSION;
+        }
     }
 }
 
@@ -384,9 +462,9 @@ class ClassicExtractor {
             $currentFaction->order = $i;
             $currentFaction->hidden = $row->Oculto;
             $currentFaction->prName = $row->NRecursoPrimario;
-            $currentFaction->prImage = new ImageObject($row->ImagenRP);
+            $currentFaction->prImage = ImageStore::createFromUrl($row->ImagenRP);
             $currentFaction->srName = $row->NRecursoSecundario;
-            $currentFaction->srImage = new ImageObject($row->ImagenRS);
+            $currentFaction->srImage = ImageStore::createFromUrl($row->ImagenRS);
             $currentFaction->energyName = FACTION_ENERGY_NAME;
             $currentFaction->energyImage = FACTION_ENERGY_ICON;
             $currentFaction->initialPr = $row->RecursoPrimario;
@@ -440,10 +518,10 @@ class ClassicExtractor {
         while($row = $result->fetch_object()) {
             $timeSpecial = new TimeSpecial();
             $this->doCommonFill($timeSpecial, $row);
+            $timeSpecial->image = ImageStore::createFromImageId($row->cdImagen, $this->source);
             $timeSpecial->duration = $row->Duracion;
             $timeSpecial->rechargeTime = $row->Recarga;
             $this->handleImprovements((object)unserialize($row->Atributos), $timeSpecial);
-            $timeSpecial->image = ImageStore::createFromImageId($row->cdImagen, $this->source);
             $timeSpecial->addRequiredUpgrade($faction->upgrades, $this->source);
             $retVal[] = $timeSpecial;
         }
@@ -498,7 +576,7 @@ class ClassicExtractor {
         $target->classicId = +$row->cd;
         $target->name = $row->Nombre;
         if(isset($row->Imagen)) {
-            $target->image = new ImageObject($row->Imagen);
+            $target->image = ImageStore::createFromUrl($row->Imagen);
         }
         $target->description = $row->Descripcion;
     }
@@ -566,10 +644,14 @@ class ClassicExtractor {
 }
 
 class ImportHandler {
-    const COMMON_FIELDS = 'name, points, image, description, time, primary_resource, secondary_resource';
+    const COMMON_FIELDS = 'name, points, image_id, description, time, primary_resource, secondary_resource';
     private $connection;
     private $beenRaceRequirementId;
     private $haveUpgradeLevelRequirementId;
+
+    /** @var ImageStore */
+    private $energyImage;
+    private $energyImageId;
     
     public function __construct(mysqli $connection) {
         $this->connection = $connection;
@@ -588,6 +670,8 @@ class ImportHandler {
     public function doImport(array $factions) {
         $this->connection->query('START TRANSACTION');
         try {
+            $this->energyImage = ImageStore::createFromFile(DYNAMIC_EXTRA_SOURCE . DIRECTORY_SEPARATOR .  FACTION_ENERGY_ICON);
+            $this->energyImageId = $this->energyImage->saveToDbAndDisk($this->connection);
             foreach($factions as $faction) {
                 echo "Importing faction $faction->name with id $faction->classicId!" . PHP_EOL;
                 $this->importFaction($faction);
@@ -605,15 +689,14 @@ class ImportHandler {
         $prName = escapeString($this->connection, $faction->prName);
         $srName = escapeString($this->connection, $faction->srName);
         $energyName = escapeString($this->connection, $faction->energyName);
-        $image = $faction->image->download();
-        $prImage = $faction->prImage->download();
-        $srImage = $faction->srImage->download();
-        copy( DYNAMIC_EXTRA_SOURCE . DIRECTORY_SEPARATOR .  FACTION_ENERGY_ICON, TARGET_CLASSIC_IMAGES_STORAGE . DIRECTORY_SEPARATOR);
+        $image = $faction->image->saveToDbAndDisk($this->connection);
+        $prImage = $faction->prImage->saveToDbAndDisk($this->connection);
+        $srImage = $faction->srImage->saveToDbAndDisk($this->connection);
         $this->connection->query(
             "INSERT INTO factions " .
-            "(hidden, name, image, description, primary_resource_name, primary_resource_image, secondary_resource_name, secondary_resource_image, energy_name, energy_image, initial_primary_resource, initial_secondary_resource, initial_energy, primary_resource_production, secondary_resource_production, max_planets, cloned_improvements) VALUES"
+            "(hidden, name, image_id, description, primary_resource_name, primary_resource_image_id, secondary_resource_name, secondary_resource_image_id, energy_name, energy_image_id, initial_primary_resource, initial_secondary_resource, initial_energy, primary_resource_production, secondary_resource_production, max_planets, cloned_improvements) VALUES"
             . '(\''. implode('\',\'', [
-                $faction->hidden, $name, $image, $description, $prName, $prImage, $srName, $srImage, $energyName, $faction->energyImage, $faction->initialPr, $faction->initialSr, $faction->initialEnergy, $faction->prProduction, $faction->srProduction, $faction->maxPlanets, 0
+                $faction->hidden, $name, $image, $description, $prName, $prImage, $srName, $srImage, $energyName, $this->energyImageId, $faction->initialPr, $faction->initialSr, $faction->initialEnergy, $faction->prProduction, $faction->srProduction, $faction->maxPlanets, 0
             ]) . '\')'
         );
         $faction->ngId = $this->connection->insert_id;
@@ -678,7 +761,7 @@ class ImportHandler {
     private function insertUpgrade(Upgrade $upgrade) {
         $name = escapeString($this->connection, $upgrade->name);
         $description = escapeString($this->connection, $upgrade->description);
-        $image = $upgrade->image->download();
+        $image = $upgrade->image->saveToDbAndDisk($this->connection);
         $ngType = $this->findTypeId('upgrade_types', $upgrade->type);
         try {
             $this->connection->query(
@@ -795,7 +878,7 @@ class ImportHandler {
     private function insertUnit(Unit $unit) {
         $name = escapeString($this->connection, $unit->name);
         $description = escapeString($this->connection, $unit->description);
-        $image = $unit->image->download();
+        $image = $unit->image->saveToDbAndDisk($this->connection);
         $ngType = $this->findTypeId('unit_types', $unit->type);
         $unique = $unit->isUnique ? 1 : 0;
         try {
