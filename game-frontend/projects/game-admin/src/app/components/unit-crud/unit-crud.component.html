@@ -9,7 +9,7 @@
             <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>
 
             <div class="form-group col-md-6">
-                <label for="unit-type">{{ 'CRUD.UNIT.TYPE' }}</label>
+                <label for="unit-type">{{ 'CRUD.UNIT.TYPE' | translate }}</label>
                 <owge-widgets-id-name-dropdown class="form-control" [inputId]="'unit-type'" [elementsList]="unitTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
             </div>
 
