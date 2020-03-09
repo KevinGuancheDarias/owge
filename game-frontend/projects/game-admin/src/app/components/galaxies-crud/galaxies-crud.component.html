@@ -1,17 +1,17 @@
-<app-common-crud [hasDescription]="false" [_crudService]="adminGalaxyService" (elementSelected)="onSelected($event)">
+<app-common-crud [hasDescription]="false" [_crudService]="adminGalaxyService" (elementSelected)="onSelected($event)" [customNewFiller]="customFillerFunction">
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedGalaxy && hasPlayers !== null">
             <div class="form-group col-md-4">
                 <label for="num-sectors">{{ 'CRUD.GALAXY.SECTORS' | translate }} </label>
-                <input [disabled]="true" type="number" [(ngModel)]="selectedGalaxy.sectors" id="num-sectors" class="form-control"/>
+                <input min="1" [disabled]="selectedGalaxy.id" type="number" [(ngModel)]="selectedGalaxy.sectors" id="num-sectors" class="form-control"/>
             </div>
             <div class="form-group col-md-4">
                 <label for="num-quadrants">{{ 'CRUD.GALAXY.QUADRANTS' | translate }} </label>
-                <input [disabled]="true" type="number" [(ngModel)]="selectedGalaxy.quadrants" id="num-quadrants" class="form-control"/>
+                <input min="1" [disabled]="selectedGalaxy.id" type="number" [(ngModel)]="selectedGalaxy.quadrants" id="num-quadrants" class="form-control"/>
             </div>
             <div class="form-group col-md-4">
                 <label for="max-amount">{{ 'CRUD.GALAXY.ORDER' | translate }} </label>
-                <input  type="number" [(ngModel)]="selectedGalaxy.orderNumber" id="max-amount" class="form-control"/>
+                <input type="number" [(ngModel)]="selectedGalaxy.orderNumber" id="max-amount" class="form-control"/>
             </div>
 
         </ng-container>

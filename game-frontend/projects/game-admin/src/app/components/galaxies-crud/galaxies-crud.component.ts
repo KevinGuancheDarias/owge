@@ -20,14 +20,13 @@ import { LoggerHelper } from '@owge/core';
 export class GalaxiesCrudComponent {
 
   private static readonly _LOG: LoggerHelper = new LoggerHelper(GalaxiesCrudComponent.name);
-
   public selectedGalaxy: Galaxy;
-
   public hasPlayers: boolean = null;
+  public customFillerFunction: Function;
 
-  private _suscription: Subscription;
-
-  constructor(public adminGalaxyService: AdminGalaxyService) { }
+  constructor(public adminGalaxyService: AdminGalaxyService) {
+    this.customFillerFunction = this.customFiller.bind(this);
+  }
 
   /**
    *
@@ -49,5 +48,18 @@ export class GalaxiesCrudComponent {
     }
   }
 
-
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param galaxy
+   * @returns
+   */
+  public async customFiller(galaxy: Galaxy): Promise<Galaxy> {
+    galaxy.sectors = 1;
+    galaxy.quadrants = 1;
+    galaxy.orderNumber = 1;
+    return galaxy;
+  }
 }

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { AdminConfigurationService } from '../../services/admin-configuration.service';
 import { Configuration } from '../../types/configuration.type';
 
-
 /**
  *
  *
@@ -19,9 +18,11 @@ export class ConfigurationCrudComponent {
 
   public selectedEl: Configuration;
   public isNew: boolean;
+  public saveFunction: Function;
 
-  constructor(public adminConfigurationService: AdminConfigurationService) { }
-
+  constructor(public adminConfigurationService: AdminConfigurationService) {
+    this.saveFunction = this.save.bind(this);
+  }
 
   /**
    *

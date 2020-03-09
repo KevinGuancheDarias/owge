@@ -35,6 +35,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @Input() public idField: keyof T = 'id';
   @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
   @Input() public customElementsSource: Observable<T[]>;
+  @Input() public customNewFiller: (el: T) => Promise<T>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
   @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
@@ -74,7 +75,9 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
         delete this._defaultSubscription;
       }
     } else {
-      this._defaultSubscription = this._crudService.findAll().subscribe(onSubscribeAction);
+      if (!this._defaultSubscription) {
+        this._defaultSubscription = this._crudService.findAll().subscribe(onSubscribeAction);
+      }
       if (this._customSubscription) {
         this._customSubscription.unsubscribe();
         delete this._customSubscription;
@@ -102,8 +105,11 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.0
    */
-  public new(): void {
+  public async new(): Promise<void> {
     this.newElement = <any>{};
+    if (this.customNewFiller) {
+      this.newElement = await this.customNewFiller(this.newElement);
+    }
     this.originalElement = { ...this.newElement };
     this.elementSelected.emit(this.newElement);
     this._crudModal.show();
