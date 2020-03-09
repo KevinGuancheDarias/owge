@@ -6,7 +6,9 @@
         "MENU_NAVIGATION": "Navigation",
         "MENU_ALLIANCES": "Alliances",
         "MENU_RANKING": "Ranking",
-        "MENU_TIME_SPECIALS": "Time Specials"
+        "MENU_TIME_SPECIALS": "Time Specials",
+        "MENU_UPGRADE_TYPES": "Upgrade types",
+        "MENU_UNIT_TYPES": "Unit types"
     },
     "CRUD": {
         "EDIT": "Edit",
@@ -24,6 +26,63 @@
         "TIME_SPECIAL": {
             "DURATION": "Duration",
             "RECHARGE_TIME": "Recharge time"
+        },
+        "UNIT_TYPE": {
+            "MAX_AMOUNT_UNLIMITED": "Unlimited amount",
+            "MAX_AMOUNT": "Max amount",
+            "CAN_EXPLORE": "Can explore",
+            "CAN_GATHER": "Can gather",
+            "CAN_ESTABLISH_BASE": "Can establish bases",
+            "CAN_ATTACK": "Can attack",
+            "CAN_COUNTERATTACK": "Can counterattack",
+            "CAN_CONQUEST": "Can conquest",
+            "CAN_DEPLOY": "Can deploy",
+            "VALID_CAN": {
+                "ANY": "Any planet",
+                "OWNED_ONLY": "Owned planet",
+                "NONE": "Can't"
+            }
+        },
+        "FACTION": {
+            "PR_IMAGE": "Primary resource image",
+            "SR_IMAGE": "Secondary resource image",
+            "ENERGY_NAME": "Energy name",
+            "PR_NAME": "Primary resource name",
+            "SR_NAME": "Secondary resource name",
+            "INITIAL_PR": "Initial primary resource",
+            "INITIAL_SR": "Initial secondary resource",
+            "PR_PRODUCTION": "Primary resource production",
+            "SR_PRODUCTION": "Secondary resource production",
+            "INITIAL_ENERGY": "Initial energy",
+            "MAX_PLANETS": "Max planets"
+        },
+        "CONFIGURATION": {
+            "DISPLAY_NAME": "Display name",
+            "VALUE": "Value"
+        },
+        "GALAXY": {
+            "SECTORS": "Sectors",
+            "QUADRANTS": "Quadrants",
+            "ORDER": "Order"
+        },
+        "RESOURCE_REQUIREMENT": {
+            "PR": "Primary resource",
+            "SR": "Secondary resource",
+            "TIME": "Time",
+            "POINTS": "Points"
+        },
+        "UPGRADE": {
+            "TYPE": "Type",
+            "LEVEL_EFFECT": "Level effect"
+        },
+        "UNIT": {
+            "TYPE": "Type"
+        },
+        "SPECIAL_LOCATION": {
+            "TARGET_GALAXY": "Galaxy",
+            "SELECTED_PLANET": "Planet",
+            "UNASSIGNED_GALAXY": "Unassigned",
+            "RANDOM_GALAXY": "Random"
         },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requirements"
@@ -111,6 +170,11 @@
         },
         "com_kevinguanchedarias_owgejava_business_ImprovementUnitTypeBo": {
             "I18N_ERR_UNIT_IMPROVEMENT_DUPLICATED": "You already have one improvement of the specified type  ({{type}}) targeting the specified unit type {{unitTypeName}}"
+        }
+    },
+    "WIDGETS": {
+        "ID_NAME_DROPDOWN": {
+            "SELECT": "Plase select"
         }
     }
 }

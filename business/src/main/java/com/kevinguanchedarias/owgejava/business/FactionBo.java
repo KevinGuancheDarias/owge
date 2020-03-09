@@ -11,7 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 
 @Service
-public class FactionBo implements WithNameBo<Integer, Faction, FactionDto> {
+public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	private static final long serialVersionUID = -6735454832872729630L;
 
 	@Autowired

@@ -6,7 +6,9 @@
         "MENU_NAVIGATION": "Navigación",
         "MENU_ALLIANCES": "Alianzas",
         "MENU_RANKING": "Ranking",
-        "MENU_TIME_SPECIALS": "Especiales de tiempo"
+        "MENU_TIME_SPECIALS": "Especiales de tiempo",
+        "MENU_UPGRADE_TYPES": "Tipos de mejora",
+        "MENU_UNIT_TYPES": "tipos de unidad"
     },
     "CRUD": {
         "EDIT": "Editar",
@@ -24,6 +26,63 @@
         "TIME_SPECIAL": {
             "DURATION": "Duración",
             "RECHARGE_TIME": "Tiempo de recarga"
+        },
+        "UNIT_TYPE": {
+            "MAX_AMOUNT_UNLIMITED": "Cantidad ilimitada",
+            "MAX_AMOUNT": "Cantidad máxima",
+            "CAN_EXPLORE": "Puede explorar",
+            "CAN_GATHER": "Puede recolectar",
+            "CAN_ESTABLISH_BASE": "Puede establecer bases",
+            "CAN_ATTACK": "Puede atacar",
+            "CAN_COUNTERATTACK": "Puede contratacar",
+            "CAN_CONQUEST": "Puede conquistar",
+            "CAN_DEPLOY": "Puede desplegar",
+            "VALID_CAN": {
+                "ANY": "Cualquier planeta",
+                "OWNED_ONLY": "Planeta propio",
+                "NONE": "No puede"
+            }
+        },
+        "FACTION": {
+            "PR_IMAGE": "Imagen recurso primario",
+            "SR_IMAGE": "Imagen recurso segundario",
+            "ENERGY_NAME": "Nombre energía",
+            "PR_NAME": "Nombre recurso primario",
+            "SR_NAME": "Nombre recurso segundario",
+            "INITIAL_PR": "Recurso primario inicial",
+            "INITIAL_SR": "Recurso segundario inicial",
+            "PR_PRODUCTION": "Producción recurso primario",
+            "SR_PRODUCTION": "Producción recurso segundario",
+            "INITIAL_ENERGY": "Energía inicial",
+            "MAX_PLANETS": "Máximo de planetas"
+        },
+        "CONFIGURATION": {
+            "DISPLAY_NAME": "Nombre a mostrar",
+            "VALUE": "Valor"
+        },
+        "GALAXY": {
+            "SECTORS": "Sectores",
+            "QUADRANTS": "Cuadrantes",
+            "ORDER": "Orden"
+        },
+        "RESOURCE_REQUIREMENT": {
+            "PR": "Recurso primario",
+            "SR": "Recurso segundario",
+            "TIME": "Tiempo",
+            "POINTS": "Puntos"
+        },
+        "UPGRADE": {
+            "TYPE": "Tipo",
+            "LEVEL_EFFECT": "Efecto nivel"
+        },
+        "UNIT": {
+            "TYPE": "Tipo"
+        },
+        "SPECIAL_LOCATION": {
+            "TARGET_GALAXY": "Galaxia",
+            "SELECTED_PLANET": "Planeta",
+            "UNASSIGNED_GALAXY": "Sin asignar",
+            "RANDOM_GALAXY": "Aleatoria"
         },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requisitos"
@@ -111,6 +170,11 @@
         },
         "com_kevinguanchedarias_owgejava_business_ImprovementUnitTypeBo": {
             "I18N_ERR_UNIT_IMPROVEMENT_DUPLICATED": "Ya tienes una mejora del tipo ({{type}}) para el tipo de unidad {{unitTypeName}}"
+        }
+    },
+    "WIDGETS": {
+        "ID_NAME_DROPDOWN": {
+            "SELECT": "Seleccionar"
         }
     }
 }

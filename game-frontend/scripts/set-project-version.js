@@ -20,13 +20,13 @@ if (process.argv.length >= 3) {
         console.log(`Changing version to  file ${pomFile}`);
         const dom = await JSDOM.fromFile(pomFile);
         const versionEl = dom.window.document.querySelector('project > version');
-        replaceInFile({
+        await replaceInFile({
             files: pomFile,
             from: `<version>${versionEl.innerHTML}</version>`,
             to: `<version>${targetVersion}-SNAPSHOT</version>`
         });
         const owgeVersionEl = Array.from(dom.window.document.querySelectorAll('project > properties *')).find(el => el.tagName === 'owge.version');
-        if(owgeVersionEl) {
+        if (owgeVersionEl) {
             replaceInFile({
                 files: pomFile,
                 from: `<owge.version>${owgeVersionEl.innerHTML}</owge.version>`,

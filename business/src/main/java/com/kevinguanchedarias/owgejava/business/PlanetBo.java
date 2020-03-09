@@ -103,6 +103,18 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	}
 
 	/**
+	 * Finds all the planets that has owner in the specified galaxy id
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param galaxyId
+	 * @return
+	 */
+	public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId) {
+		return planetRepository.findByGalaxyIdAndOwnerNotNull(galaxyId);
+	}
+
+	/**
 	 * Find the planets for logged in user
 	 * 
 	 * @return
@@ -114,6 +126,18 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	public List<Planet> findByGalaxyAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant) {
 		return planetRepository.findByGalaxyIdAndSectorAndQuadrant(galaxy, sector, quadrant);
+	}
+
+	/**
+	 * 
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param specialLocationId
+	 * @return
+	 */
+	public Planet findOneBySpecialLocationId(Integer specialLocationId) {
+		return planetRepository.findOneBySpecialLocationId(specialLocationId);
 	}
 
 	public boolean isOfUserProperty(UserStorage expectedOwner, Planet planet) {

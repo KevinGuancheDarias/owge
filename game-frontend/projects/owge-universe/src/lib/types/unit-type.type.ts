@@ -9,7 +9,8 @@ import { MissionSupport } from './mission-support.type';
 export interface UnitType {
     id: number;
     name: string;
-    image: string;
+    image: number;
+    imageUrl: string;
     maxCount?: number;
     computedMaxCount?: number;
     userBuilt: number;
@@ -17,6 +18,7 @@ export interface UnitType {
     canCounterattack: MissionSupport;
     canDeploy: MissionSupport;
     canEstablishBase: MissionSupport;
+    canAttack: MissionSupport;
     canExplore: MissionSupport;
     canGather: MissionSupport;
 }

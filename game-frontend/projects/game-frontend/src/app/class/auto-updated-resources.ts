@@ -1,7 +1,17 @@
 import { BehaviorSubject } from 'rxjs';
 import { ResourceManagerService } from './../service/resource-manager.service';
+import { LoggerHelper } from '@owge/core';
 
+
+/**
+ *
+ * @deprecated As of 0.9.0 should use the version from ng://OwgeUniverse/pojos/auto-updated-resources.pojo.ts
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @export
+ */
 export class AutoUpdatedResources {
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(AutoUpdatedResources.name);
+
     public get currentPrimaryResource(): number {
         return this._currentPrimaryResource;
     }
@@ -32,6 +42,7 @@ export class AutoUpdatedResources {
      * @memberof AutoUpdatedResources
      */
     constructor(private _resourceManagerService: ResourceManagerService, startAutoUpdate = true) {
+        AutoUpdatedResources._LOG.warnDeprecated(this.constructor.name, '0.9.0', 'ng://OwgeUniverse/pojos/auto-updated-resources.pojo.ts');
         if (startAutoUpdate) {
             this.resourcesAutoUpdate();
         }

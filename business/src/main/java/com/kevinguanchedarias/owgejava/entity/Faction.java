@@ -23,7 +23,7 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table(name = "factions")
-public class Faction extends EntityWithImage implements EntityWithImprovements<Integer> {
+public class Faction extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -8190094507195501651L;
 
 	@Id
@@ -31,8 +31,6 @@ public class Faction extends EntityWithImage implements EntityWithImprovements<I
 	private Integer id;
 
 	private Boolean hidden;
-	private String name;
-	private String description;
 
 	@Column(name = "primary_resource_name")
 	private String primaryResourceName;
@@ -40,17 +38,23 @@ public class Faction extends EntityWithImage implements EntityWithImprovements<I
 	@Column(name = "secondary_resource_name")
 	private String secondaryResourceName;
 
-	@Column(name = "primary_resource_image")
-	private String primaryResourceImage;
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "primary_resource_image_id")
+	@Fetch(FetchMode.JOIN)
+	private ImageStore primaryResourceImage;
 
-	@Column(name = "secondary_resource_image")
-	private String secondaryResourceImage;
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "secondary_resource_image_id")
+	@Fetch(FetchMode.JOIN)
+	private ImageStore secondaryResourceImage;
 
 	@Column(name = "energy_name")
 	private String energyName;
 
-	@Column(name = "energy_image")
-	private String energyImage;
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "energy_image_id")
+	@Fetch(FetchMode.JOIN)
+	private ImageStore energyImage;
 
 	@Column(name = "initial_primary_resource")
 	private Integer initialPrimaryResource;
@@ -97,22 +101,6 @@ public class Faction extends EntityWithImage implements EntityWithImprovements<I
 		this.hidden = hidden;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public String getPrimaryResourceName() {
 		return primaryResourceName;
 	}
@@ -135,6 +123,23 @@ public class Faction extends EntityWithImage implements EntityWithImprovements<I
 
 	public void setEnergyName(String energyName) {
 		this.energyName = energyName;
+	}
+
+	/**
+	 * @return the energyImage
+	 * @since 0.9.0
+	 */
+	public ImageStore getEnergyImage() {
+		return energyImage;
+	}
+
+	/**
+	 * @param energyImage the energyImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setEnergyImage(ImageStore energyImage) {
+		this.energyImage = energyImage;
 	}
 
 	public Integer getInitialPrimaryResource() {
@@ -197,28 +202,38 @@ public class Faction extends EntityWithImage implements EntityWithImprovements<I
 		this.clonedImprovements = clonedImprovements;
 	}
 
-	public String getPrimaryResourceImage() {
+	/**
+	 * @return the primaryResourceImage
+	 * @since 0.9.0
+	 */
+	public ImageStore getPrimaryResourceImage() {
 		return primaryResourceImage;
 	}
 
-	public void setPrimaryResourceImage(String primaryResourceImage) {
+	/**
+	 * @param primaryResourceImage the primaryResourceImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setPrimaryResourceImage(ImageStore primaryResourceImage) {
 		this.primaryResourceImage = primaryResourceImage;
 	}
 
-	public String getSecondaryResourceImage() {
+	/**
+	 * @return the secondaryResourceImage
+	 * @since 0.9.0
+	 */
+	public ImageStore getSecondaryResourceImage() {
 		return secondaryResourceImage;
 	}
 
-	public void setSecondaryResourceImage(String secondaryResourceImage) {
+	/**
+	 * @param secondaryResourceImage the secondaryResourceImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSecondaryResourceImage(ImageStore secondaryResourceImage) {
 		this.secondaryResourceImage = secondaryResourceImage;
-	}
-
-	public String getEnergyImage() {
-		return energyImage;
-	}
-
-	public void setEnergyImage(String energyImage) {
-		this.energyImage = energyImage;
 	}
 
 	public Integer getMaxPlanets() {

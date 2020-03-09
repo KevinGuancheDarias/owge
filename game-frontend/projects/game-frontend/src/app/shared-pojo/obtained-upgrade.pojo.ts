@@ -1,5 +1,5 @@
 import { RequirementPojo } from './requirement.pojo';
-import { Upgrade } from './upgrade.pojo';
+import { Upgrade } from '@owge/universe';
 
 export class ObtainedUpgradePojo {
     public id: number;

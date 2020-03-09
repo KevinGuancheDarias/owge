@@ -36,6 +36,7 @@ public class RealizationJob extends QuartzJobBean {
 	 */
 	@Override
 	protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+		Thread.currentThread().setName("OWGE_BACKGROUND_" + missionId);
 		injectSpringBeans(context);
 		Mission mission = missionBo.findById(missionId);
 		MissionType missionType = MissionType.valueOf(mission.getType().getCode());

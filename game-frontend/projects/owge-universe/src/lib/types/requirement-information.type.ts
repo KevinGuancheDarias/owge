@@ -9,8 +9,8 @@ import { Requirement } from './requirement.type';
  * @export
  */
 export interface RequirementInformation {
-    id: number;
+    id?: number;
     requirement: Requirement;
     secondValue: number;
-    thirdValue: number;
+    thirdValue?: number;
 }

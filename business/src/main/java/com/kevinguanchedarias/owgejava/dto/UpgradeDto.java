@@ -1,15 +1,10 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UpgradeType;
 
-public class UpgradeDto implements DtoFromEntity<Upgrade>, DtoWithImprovements {
-	private Integer id;
-	private String name;
-	private String image;
+public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implements DtoWithImprovements {
 	private Integer points = 0;
-	private String description;
 	private Long time = 60L;
 	private Integer primaryResource = 100;
 	private Integer secondaryResource = 100;
@@ -21,36 +16,11 @@ public class UpgradeDto implements DtoFromEntity<Upgrade>, DtoWithImprovements {
 
 	@Override
 	public void dtoFromEntity(Upgrade entity) {
-		EntityPojoConverterUtil.convertFromTo(this, entity);
+		super.dtoFromEntity(entity);
 		UpgradeType typeEntity = entity.getType();
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
-
 		DtoWithImprovements.super.dtoFromEntity(entity);
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getImage() {
-		return image;
-	}
-
-	public void setImage(String image) {
-		this.image = image;
 	}
 
 	public Integer getPoints() {
@@ -59,14 +29,6 @@ public class UpgradeDto implements DtoFromEntity<Upgrade>, DtoWithImprovements {
 
 	public void setPoints(Integer points) {
 		this.points = points;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public Long getTime() {

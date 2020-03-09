@@ -10,7 +10,8 @@ export interface Upgrade {
     clonedImprovements: boolean;
     description: string;
     id: number;
-    image: string;
+    image: number;
+    imageUrl: string;
     improvement: any;
     levelEffect: number;
     name: string;

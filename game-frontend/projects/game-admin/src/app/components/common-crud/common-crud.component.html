@@ -1,20 +1,21 @@
 <owge-core-modal #crudModal>
     <div class="header">
-        <span *ngIf="!newElement?.id">{{ 'CRUD.MODAL_CREATE_TITLE' | translate  }}</span>
-        <span *ngIf="newElement?.id">{{ 'CRUD.MODAL_EDIT_TITLE' | translate:{elName: originalElement.name} }}</span>
+        <span *ngIf="newElement && !newElement[idField]">{{ 'CRUD.MODAL_CREATE_TITLE' | translate  }}</span>
+        <span *ngIf="newElement && newElement[idField]">{{ 'CRUD.MODAL_EDIT_TITLE' | translate:{elName: originalElement.name} }}</span>
     </div>
     <div class="body">
         <div class="form-row">
             <ng-container *ngIf="newElement">
-                <div class="form-group col-md-6" *ngIf="newElement.id">
-                    <label [for]="uniqueId('id')">id</label>
-                    <input [(ngModel)]="newElement.id" [id]="uniqueId('id')" class="form-control" [disabled]="true"/>
+                <div class="form-group col-md-6" *ngIf="!hideSections || !hideSections.id">
+                    <label [for]="uniqueId(idField)">id</label>
+                    <input *ngIf="newElement[idField]" [(ngModel)]="newElement[idField]" [id]="uniqueId('id')" class="form-control" [disabled]="true"/>
+                    <input *ngIf="!newElement[idField]" [id]="uniqueId(idField)" class="form-control" [disabled]="true"/>
                 </div>  
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-6" *ngIf="!hideSections || !hideSections.name">
                     <label [for]="uniqueId('name')">{{ 'CRUD.ELEMENT_NAME' | translate }}</label>
                     <input [(ngModel)]="newElement.name" [id]="uniqueId('name')" class="form-control"/>
                 </div>
-                <div class="form-group col-md-12">
+                <div class="form-group col-md-12" *ngIf="hasDescription && (!hideSections || !hideSections.description)">
                     <label [for]="uniqueId('description')">{{ 'CRUD.ELEMENT_DESCRIPTION' | translate }}</label>
                     <input [(ngModel)]="newElement.description" [id]="uniqueId('description')" class="form-control"/>
                 </div>
@@ -27,6 +28,7 @@
         <button class="btn" role="button" (click)="cancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
     </div>
 </owge-core-modal>
+<ng-container *ngTemplateOutlet="beforeList"></ng-container>
 <div *ngIf="elements" class="owge-card-list">
     <div class="card owge" *ngFor="let element of elements, let i = index">
         <div class="card-block">

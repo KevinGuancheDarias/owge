@@ -12,8 +12,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
@@ -68,9 +66,6 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 
 	@Autowired
 	private transient ExceptionUtilService exceptionUtilService;
-
-	@Autowired
-	private transient HttpServletRequest request;
 
 	/*
 	 * (non-Javadoc)
@@ -235,9 +230,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 	 */
 	public ImageStore computeImageUrl(ImageStore imageStore) {
 		if (imageStore != null) {
-			String schemeAndHost = StringUtils.isEmpty(imageHost)
-					? request.getScheme() + "://" + request.getHeader("Host")
-					: imageHost;
+			String schemeAndHost = StringUtils.isEmpty(imageHost) ? "" : imageHost;
 			imageStore.setUrl(schemeAndHost + "/" + dynamicUrl + "/" + imageStore.getFilename());
 		}
 		return imageStore;

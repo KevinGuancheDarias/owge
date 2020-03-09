@@ -1,17 +1,15 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 
-
-import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService } from '@owge/core';
+import { Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, Upgrade } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { Upgrade } from './../shared-pojo/upgrade.pojo';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -35,7 +33,6 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
 
   @ViewChild(WidgetConfirmationDialogComponent, { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
-  public image: string;
   public runningUpgrade: RunningUpgrade;
   public vConfirmDeleteText: string;
   public isDesktop: boolean;
@@ -67,7 +64,6 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
         this.obtainedUpgrade = this._upgradeService.computeReqiredResources(this.obtainedUpgrade, true, improvement)
       );
     }
-    this.image = MEDIA_ROUTES.IMAGES_ROOT + this.upgrade.image;
     this._syncIsUpgrading();
   }
 

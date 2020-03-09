@@ -8,7 +8,8 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 
 	private Integer id;
 	private String name;
-	private String image;
+	private Long image;
+	private String imageUrl;
 	private Long maxCount;
 	private Long computedMaxCount;
 	private Long userBuilt;
@@ -23,6 +24,10 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 	@Override
 	public void dtoFromEntity(UnitType entity) {
 		EntityPojoConverterUtil.convertFromTo(this, entity);
+		if (entity.getImage() != null) {
+			image = entity.getImage().getId();
+			imageUrl = entity.getImage().getUrl();
+		}
 	}
 
 	public Integer getId() {
@@ -41,12 +46,30 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 		this.name = name;
 	}
 
-	public String getImage() {
+	public Long getImage() {
 		return image;
 	}
 
-	public void setImage(String image) {
+	public void setImage(Long image) {
 		this.image = image;
+	}
+
+	/**
+	 * @return the imageUrl
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	public String getImageUrl() {
+		return imageUrl;
+	}
+
+	/**
+	 * @param imageUrl the imageUrl to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.8.1
+	 */
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 
 	public Long getMaxCount() {

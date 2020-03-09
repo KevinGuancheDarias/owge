@@ -23,25 +23,25 @@
             </div>
             <div *ngIf="user && resources" class="resource-data">
                   <app-display-single-resource [resourceName]="user.faction.primaryResourceName"
-                        [resourceImage]="user.faction.primaryResourceImage"
+                        [resourceImage]="user.faction.primaryResourceImageUrl"
                         [resourceValue]="resources.currentPrimaryResource">
 
                   </app-display-single-resource>
 
                   <app-display-single-resource [resourceName]="user.faction.secondaryResourceName"
-                        [resourceImage]="user.faction.secondaryResourceImage"
+                        [resourceImage]="user.faction.secondaryResourceImageUrl"
                         [resourceValue]="resources.currentSecondaryResource">
 
                   </app-display-single-resource>
 
                   <app-display-single-resource [resourceName]="user.faction.energyName"
-                        [resourceImage]="user.faction.energyImage"
+                        [resourceImage]="user.faction.energyImageUrl"
                         [resourceValue]="100-(resources.currentEnergy*100)/resources.currentMaxEnergy"
                         [resourceMaxValue]="resources.currentMaxEnergy">
                   </app-display-single-resource>
 
                   <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
-                        [resourceName]="unitType.name" [resourceImage]="unitType.image"
+                        [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
                         [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount"
                         [resourceMaxValue]="unitType.computedMaxCount">
 

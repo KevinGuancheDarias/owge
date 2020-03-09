@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +59,12 @@ public class AdminTimeSpecialRestService
 	@Override
 	public ObjectEnum getObject() {
 		return ObjectEnum.TIME_SPECIAL;
+	}
+
+	@Override
+	public Optional<TimeSpecial> beforeSave(TimeSpecialDto parsedDto, TimeSpecial entity) {
+		CrudWithFullRestService.super.beforeSave(parsedDto, entity);
+		return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
 }

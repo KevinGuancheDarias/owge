@@ -1,15 +1,10 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 
-public class UnitDto implements DtoFromEntity<Unit> {
-	private Integer id;
-	private String name;
-	private String image;
+public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements DtoWithImprovements {
 	private Integer points = 0;
-	private String description;
 	private Integer time = 60;
 	private Integer primaryResource = 100;
 	private Integer secondaryResource = 100;
@@ -26,39 +21,12 @@ public class UnitDto implements DtoFromEntity<Unit> {
 
 	@Override
 	public void dtoFromEntity(Unit entity) {
-		EntityPojoConverterUtil.convertFromTo(this, entity);
+		super.dtoFromEntity(entity);
 		UnitType typeEntity = entity.getType();
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
 
-		if (entity.getImprovement() != null) {
-			improvement = new ImprovementDto();
-			improvement.dtoFromEntity(entity.getImprovement());
-		}
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getImage() {
-		return image;
-	}
-
-	public void setImage(String image) {
-		this.image = image;
+		DtoWithImprovements.super.dtoFromEntity(entity);
 	}
 
 	public Integer getPoints() {
@@ -67,14 +35,6 @@ public class UnitDto implements DtoFromEntity<Unit> {
 
 	public void setPoints(Integer points) {
 		this.points = points;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public Integer getTime() {
@@ -165,10 +125,12 @@ public class UnitDto implements DtoFromEntity<Unit> {
 		this.isUnique = isUnique;
 	}
 
+	@Override
 	public ImprovementDto getImprovement() {
 		return improvement;
 	}
 
+	@Override
 	public void setImprovement(ImprovementDto improvement) {
 		this.improvement = improvement;
 	}

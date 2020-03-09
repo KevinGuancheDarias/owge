@@ -20,7 +20,15 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
   public jwtToken: string;
   public sidebarRoutes: MenuRoute[] = [
     this._createTranslatableMenuRoute('APP.MENU_HOME', ROUTES.GAME_INDEX, 'fa fa-home'),
-    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock')
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', 'time_specials', 'fa fa-clock'),
+    this._createTranslatableMenuRoute('APP.MENU_UPGRADE_TYPES', 'upgrade_types', 'fa fa-flask'),
+    this._createTranslatableMenuRoute('APP.MENU_UNIT_TYPES', 'unit_types', 'fa fa-male'),
+    this._createTranslatableMenuRoute('APP.MENU_FACTIONS', 'factions', 'fas fa-peace'),
+    this._createTranslatableMenuRoute('APP.MENU_CONFIGURATION', 'configuration', 'fas fa-cog'),
+    this._createTranslatableMenuRoute('APP.MENU_GALAXIES', 'galaxies', 'fas fa-globe'),
+    this._createTranslatableMenuRoute('APP.MENU_UPGRADES', 'upgrades', 'fa fa-flask'),
+    this._createTranslatableMenuRoute('APP.MENU_UNITS', 'units', 'fa fa-male'),
+    this._createTranslatableMenuRoute('APP.MENU_SPECIAL_LOCATIONS', 'special-locations', 'fas fa-globe-europe')
   ];
 
   public constructor(private _userStore: UserStorage<User>, _translateService: TranslateService) {

@@ -1,7 +1,5 @@
 import { NgModule } from '@angular/core';
 
-
-
 /**
  *
  *
@@ -12,6 +10,8 @@ import { NgModule } from '@angular/core';
 @NgModule({
   declarations: [],
   imports: [
+  ],
+  providers: [
   ],
   exports: []
 })

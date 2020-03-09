@@ -1,8 +1,17 @@
+import { Subscription } from 'rxjs';
+import { LoggerHelper } from '@owge/core';
+
 import { ResourceManagerService } from './../service/resource-manager.service';
 import { AutoUpdatedResources } from './../class/auto-updated-resources';
-import { Subscription } from 'rxjs';
 
+/**
+ * @deprecated As of 0.9.0 use ng://OwgeUniverse/pojos/resource-requirements.pojo.ts (which should have exactly the same code :O)
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @export
+ */
 export class RequirementPojo {
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(RequirementPojo.name);
+
     private _resources: AutoUpdatedResources;
     private _subscription: Subscription;
 
@@ -11,6 +20,10 @@ export class RequirementPojo {
     public requiredTime: number;
     public requiredEnergy?: number;
     public runnable: boolean;
+
+    public constructor() {
+        RequirementPojo._LOG.warnDeprecated(this.constructor.name, '0.9.0', 'ng://OwgeUniverse/pojos/requirements.pojo.ts');
+    }
 
     /**
      * Fills the runnable property if possible

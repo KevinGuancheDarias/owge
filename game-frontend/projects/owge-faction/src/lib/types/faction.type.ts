@@ -10,17 +10,22 @@ export interface Faction {
     id: number;
     hidden: boolean;
     name: string;
-    image: string;
+    image: number;
+    imageUrl: string;
     description: string;
     primaryResourceName: string;
-    primaryResourceImage: string;
+    primaryResourceImage: number;
+    primaryResourceImageUrl: string;
     secondaryResourceName: string;
-    secondaryResourceImage: string;
+    secondaryResourceImage: number;
+    secondaryResourceImageUrl: string;
     energyName: string;
-    energyImage: string;
+    energyImage: number;
+    energyImageUrl: string;
     initialPrimaryResource: number;
     initialSecondaryResource: number;
     initialEnergy: number;
     primaryResourceProduction: number;
     secondaryResourceProduction: number;
+    maxPlanets: number;
 }

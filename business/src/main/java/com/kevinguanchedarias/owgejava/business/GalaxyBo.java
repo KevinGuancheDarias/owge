@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.GalaxyDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
@@ -31,6 +32,9 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	@Autowired
 	private PlanetRepository planetRepository;
+
+	@Autowired
+	private PlanetBo planetBo;
 
 	@Override
 	public JpaRepository<Galaxy, Integer> getRepository() {
@@ -55,13 +59,19 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	 */
 	@Async
 	public Future<Galaxy> saveAsync(Galaxy galaxy) {
+		Galaxy savedGalaxy = save(galaxy);
+		return new AsyncResult<>(savedGalaxy);
+	}
+
+	@Override
+	@Transactional
+	public Galaxy save(Galaxy galaxy) {
 		canSave(galaxy);
 
 		if (galaxy.getId() == null) {
 			prepareGalaxy(galaxy);
 		}
-
-		return new AsyncResult<>(galaxyRepository.saveAndFlush(galaxy));
+		return galaxyRepository.saveAndFlush(galaxy);
 	}
 
 	/**
@@ -102,6 +112,17 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 		int selectedGalaxy = RandomUtils.nextInt(0, count);
 
 		return galaxyRepository.findAll(new PageRequest(selectedGalaxy, 1)).getContent().get(0).getId();
+	}
+
+	/**
+	 * Returns true if the specified galaxy has players
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param id Galaxy id
+	 */
+	public boolean hasPlayers(Integer id) {
+		return !planetBo.findByGalaxyIdAndOwnerNotNull(id).isEmpty();
 	}
 
 	private void checkInput(Galaxy galaxy) {

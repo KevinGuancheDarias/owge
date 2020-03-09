@@ -2,6 +2,8 @@ import { BaseComponent } from './../base/base.component';
 import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/date-time.util';
+import { UserStorage } from '@owge/core';
+import { UserWithFaction } from '@owge/faction';
 
 @Component({
   selector: 'app-display-requirements',
@@ -11,21 +13,21 @@ import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/dat
     './display-requirements.component.scss'
   ]
 })
-export class DisplayRequirementsComponent extends BaseComponent implements OnInit, OnChanges {
+export class DisplayRequirementsComponent implements OnInit, OnChanges {
   private static readonly _INTENTIONAL_DELAY = 3000;
 
+  public userData: UserWithFaction;
   public timeImage = 'ui_icons/time.png';
 
   @Input()
   public requirements: RequirementPojo;
 
   public parsedRequiredTime: MilisToDaysHoursMinutesSeconds;
-  constructor() {
-    super();
+  constructor(private _userStore: UserStorage<UserWithFaction>) {
   }
 
   public ngOnInit() {
-    this.requireUser();
+    this._userStore.currentUser.subscribe(val => this.userData = val);
   }
 
   public ngOnChanges(): void {

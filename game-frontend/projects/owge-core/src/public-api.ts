@@ -8,6 +8,7 @@ export * from './lib/components/page-not-found/page-not-found.component';
 export * from './lib/components/router-root/router-root.component';
 export * from './lib/directives/if-desktop.directive';
 export * from './lib/directives/owge-content.directive';
+export * from './lib/enums/resources.enum';
 export * from './lib/errors/programming.error';
 export * from './lib/helpers/logger.helper';
 export * from './lib/interfaces/abstact-modal-container-component';

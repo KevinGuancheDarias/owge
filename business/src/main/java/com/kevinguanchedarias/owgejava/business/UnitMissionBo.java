@@ -30,6 +30,7 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -53,6 +54,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private UnitTypeBo unitTypeBo;
+
+	@Autowired
+	private ImageStoreBo imageStoreBo;
 
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is has
@@ -556,7 +560,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void processExplore(Long missionId) {
 		Mission mission = findById(missionId);
 		UserStorage user = mission.getUser();
-		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		if (!planetBo.isExplored(user, targetPlanet)) {
 			planetBo.defineAsExplored(user, targetPlanet);
@@ -576,7 +580,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void processGather(Long missionId) {
 		Mission mission = findById(missionId);
 		UserStorage user = mission.getUser();
-		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		adminRegisterReturnMission(mission);
 		Long gathered = involvedUnits.stream()
@@ -603,7 +607,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void processEstablishBase(Long missionId) {
 		Mission mission = findById(missionId);
 		UserStorage user = mission.getUser();
-		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
 				targetPlanet, involvedUnits);
@@ -624,6 +628,22 @@ public class UnitMissionBo extends AbstractMissionBo {
 		resolveMission(mission);
 		socketIoService.sendMessage(user, "establish_base_report", builder.build());
 		emitLocalMissionChange(mission, user);
+	}
+
+	/**
+	 * Due to lack of support from Quartz to access spring context from the
+	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
+	 * computation from here
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param missionId
+	 * @return
+	 */
+	private List<ObtainedUnit> findUnitsInvolved(Long missionId) {
+		List<ObtainedUnit> retVal = obtainedUnitBo.findByMissionId(missionId);
+		retVal.forEach(current -> imageStoreBo.computeImageUrl(current.getUnit().getImage()));
+		return retVal;
 	}
 
 	@Transactional
@@ -708,7 +728,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void processConquest(Long missionId) {
 		Mission mission = findById(missionId);
 		UserStorage user = mission.getUser();
-		List<ObtainedUnit> involvedUnits = obtainedUnitBo.findByMissionId(missionId);
+		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
 				targetPlanet, involvedUnits);
@@ -735,8 +755,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessDeploy(Long missionId) {
 		Mission mission = findById(missionId);
 		if (mission != null) {
-			obtainedUnitBo.findByMissionId(missionId).forEach(current -> obtainedUnitBo.moveUnit(current,
-					mission.getUser().getId(), mission.getTargetPlanet().getId()));
+			findUnitsInvolved(missionId).forEach(current -> obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
+					mission.getTargetPlanet().getId()));
 			resolveMission(mission);
 			emitLocalMissionChange(mission, mission.getUser());
 		}
@@ -1067,7 +1087,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
 		AttackInformation retVal = new AttackInformation(attackMission);
-		obtainedUnitBo.findInvolvedInAttack(targetPlanet, attackMission).forEach(retVal::addUnitToUser);
+		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnitToUser);
 		return retVal;
 	}
 

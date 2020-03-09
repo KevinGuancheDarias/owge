@@ -3,10 +3,15 @@
  */
 package com.kevinguanchedarias.owgejava.rest.trait;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.BaseBo;
@@ -40,7 +47,8 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
-public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extends EntityWithId<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>> {
+public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extends EntityWithId<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
+		extends CrudRestServiceNoOpEventsTrait<D, E> {
 
 	public RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
 
@@ -117,11 +125,47 @@ public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extend
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
+	@Override
+	public default boolean filterGetResult(D dto, E savedEntity) {
+		HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+				.getRequest();
+		String filterByRequirementName = request.getParameter("filterByRequirementName");
+		String filterByRequirementSecondValue = request.getParameter("filterByRequirementSecondValue");
+		String filterByRequirementThirdValue = request.getParameter("filterByRequirementThirdValue");
+		if (!StringUtils.isEmpty(filterByRequirementName) && !StringUtils.isEmpty(filterByRequirementSecondValue)) {
+			Map<String, Map<String, String>> filters = converCsvToMap(filterByRequirementName,
+					filterByRequirementSecondValue, filterByRequirementThirdValue);
+			List<RequirementInformationDto> requirements = findRequirements(savedEntity.getId());
+			return requirements.stream().allMatch(current -> {
+				Map<String, String> values = filters.get(current.getRequirement().getCode());
+				return values == null || (current.getSecondValue().equals(Long.valueOf(values.get("secondValue")))
+						&& (StringUtils.isEmpty(values.get("thirdValue"))
+								|| current.getThirdValue().equals(Long.valueOf(values.get("thirdValue")))));
+			});
+		} else {
+			return true;
+		}
+	}
+
 	private S getBo() {
 		return getRestCrudConfigBuilder().build().getBoService();
 	}
 
 	private BeanFactory getBeanFactory() {
 		return getRestCrudConfigBuilder().build().getBeanFactory();
+	}
+
+	private Map<String, Map<String, String>> converCsvToMap(String names, String secondValues, String thirdValues) {
+		String[] namesSplit = names.split(",");
+		String[] secondValuesSplit = secondValues.split(",");
+		String[] thirdValuesSplit = thirdValues.split(",");
+		Map<String, Map<String, String>> retVal = new HashMap<>();
+		IntStream.range(0, namesSplit.length).forEach(index -> {
+			Map<String, String> valuesMap = new HashMap<>();
+			valuesMap.put("secondValue", secondValuesSplit[index]);
+			valuesMap.put("thirdValue", thirdValuesSplit[index]);
+			retVal.put(namesSplit[index], valuesMap);
+		});
+		return retVal;
 	}
 }

@@ -23,4 +23,22 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 	public List<Planet> findByGalaxyIdAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant);
 
 	public Planet findOneByIdAndHomeTrue(Long planetId);
+
+	/**
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param galaxyId
+	 * @return
+	 */
+	public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId);
+
+	/**
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param specialLocationId
+	 * @return
+	 */
+	public Planet findOneBySpecialLocationId(Integer specialLocationId);
 }

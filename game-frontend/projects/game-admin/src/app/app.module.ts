@@ -25,6 +25,21 @@ import { AdminFactionService } from './services/admin-faction.service';
 import { AdminUpgradeService } from './services/admin-upgrade.service';
 import { ObjectImprovementsCrudComponent } from './components/object-improvements-crud/object-improvements-crud.component';
 import { AdminUnitTypeService } from './services/admin-unit-type.service';
+import { UpgradeTypeCrudComponent } from './components/upgrade-type-crud/upgrade-type-crud.component';
+import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
+import { UnitTypeCrudComponent } from './components/unit-type-crud/unit-type-crud.component';
+import { FactionCrudComponent } from './components/faction-crud/faction-crud.component';
+import { ConfigurationCrudComponent } from './components/configuration-crud/configuration-crud.component';
+import { AdminConfigurationService } from './services/admin-configuration.service';
+import { GalaxiesCrudComponent } from './components/galaxies-crud/galaxies-crud.component';
+import { AdminGalaxyService } from './services/admin-galaxy.service';
+import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.component';
+import { ResourceRequirementsCrudComponent } from './components/resource-requirements-crud/resource-requirements-crud.component';
+import { UnitCrudComponent } from './components/unit-crud/unit-crud.component';
+import { AdminUnitService } from './services/admin-unit.service';
+import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
+import { AdminSpecialLocationService } from './services/admin-special-location.service';
+import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +50,17 @@ import { AdminUnitTypeService } from './services/admin-unit-type.service';
     TimeSpecialCrudComponent,
     CommonCrudWithImageComponent,
     ObjectRequirementsCrudComponent,
-    ObjectImprovementsCrudComponent
+    ObjectImprovementsCrudComponent,
+    UpgradeTypeCrudComponent,
+    UnitTypeCrudComponent,
+    FactionCrudComponent,
+    ConfigurationCrudComponent,
+    GalaxiesCrudComponent,
+    UpgradeCrudComponent,
+    ResourceRequirementsCrudComponent,
+    UnitCrudComponent,
+    SpecialLocationCrudComponent,
+    RequirementsFilterComponent
   ],
   imports: [
     BrowserModule,
@@ -68,6 +93,11 @@ import { AdminUnitTypeService } from './services/admin-unit-type.service';
     AdminFactionService,
     AdminUpgradeService,
     AdminUnitTypeService,
+    AdminUpgradeTypeService,
+    AdminConfigurationService,
+    AdminGalaxyService,
+    AdminUnitService,
+    AdminSpecialLocationService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

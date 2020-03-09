@@ -1,6 +1,6 @@
 <div>
-  <app-display-dynamic-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'" [staticImage]="staticImage"
-    [assetsImage]="assetsImage"></app-display-dynamic-image>
+  <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'" [staticImage]="staticImage"
+    [assetsImage]="assetsImage"></owge-widgets-display-image>
   <p #textElement>{{ resourceValue | number: '0.0-2' }}
 
     <span [title]="resourceMaxValue" *ngIf="usePercentage && resourceMaxValue"> % </span>

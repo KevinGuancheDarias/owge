@@ -1,20 +1,25 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
-public class FactionDto implements WithDtoFromEntityTrait<Faction>, DtoWithImprovements {
+public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
+		implements WithDtoFromEntityTrait<Faction>, DtoWithImprovements {
 
 	private Integer id;
 	private Boolean hidden;
 	private String name;
 	private String description;
 	private String primaryResourceName;
-	private String primaryResourceImage;
+	private Long primaryResourceImage;
+	private String primaryResourceImageUrl;
 	private String secondaryResourceName;
-	private String secondaryResourceImage;
+	private Long secondaryResourceImage;
+	private String secondaryResourceImageUrl;
 	private String energyName;
-	private String energyImage;
+	private Long energyImage;
+	private String energyImageUrl;
 	private Integer initialPrimaryResource;
 	private Integer initialSecondaryResource;
 	private Integer initialEnergy;
@@ -33,14 +38,32 @@ public class FactionDto implements WithDtoFromEntityTrait<Faction>, DtoWithImpro
 	 */
 	@Override
 	public void dtoFromEntity(Faction entity) {
-		WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+		super.dtoFromEntity(entity);
+		ImageStore primaryResourceImageEntity = entity.getPrimaryResourceImage();
+		ImageStore secondaryResourceImageEntity = entity.getSecondaryResourceImage();
+		ImageStore energyImageEntity = entity.getEnergyImage();
+		if (primaryResourceImageEntity != null) {
+			primaryResourceImage = primaryResourceImageEntity.getId();
+			primaryResourceImageUrl = primaryResourceImageEntity.getUrl();
+		}
+		if (secondaryResourceImageEntity != null) {
+			secondaryResourceImage = secondaryResourceImageEntity.getId();
+			secondaryResourceImageUrl = secondaryResourceImageEntity.getUrl();
+		}
+		if (energyImageEntity != null) {
+			energyImage = energyImageEntity.getId();
+			energyImageUrl = energyImageEntity.getUrl();
+		}
+
 		DtoWithImprovements.super.dtoFromEntity(entity);
 	}
 
+	@Override
 	public Integer getId() {
 		return id;
 	}
 
+	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -53,18 +76,22 @@ public class FactionDto implements WithDtoFromEntityTrait<Faction>, DtoWithImpro
 		this.hidden = hidden;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Override
 	public String getDescription() {
 		return description;
 	}
 
+	@Override
 	public void setDescription(String description) {
 		this.description = description;
 	}
@@ -141,28 +168,106 @@ public class FactionDto implements WithDtoFromEntityTrait<Faction>, DtoWithImpro
 		this.clonedImprovements = clonedImprovements;
 	}
 
-	public String getPrimaryResourceImage() {
+	/**
+	 * @return the primaryResourceImage
+	 * @since 0.9.0
+	 */
+	public Long getPrimaryResourceImage() {
 		return primaryResourceImage;
 	}
 
-	public void setPrimaryResourceImage(String primaryResourceImage) {
+	/**
+	 * @param primaryResourceImage the primaryResourceImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setPrimaryResourceImage(Long primaryResourceImage) {
 		this.primaryResourceImage = primaryResourceImage;
 	}
 
-	public String getSecondaryResourceImage() {
+	/**
+	 * @return the primaryResourceImageUrl
+	 * @since 0.9.0
+	 */
+	public String getPrimaryResourceImageUrl() {
+		return primaryResourceImageUrl;
+	}
+
+	/**
+	 * @param primaryResourceImageUrl the primaryResourceImageUrl to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setPrimaryResourceImageUrl(String primaryResourceImageUrl) {
+		this.primaryResourceImageUrl = primaryResourceImageUrl;
+	}
+
+	/**
+	 * @return the secondaryResourceImage
+	 * @since 0.9.0
+	 */
+	public Long getSecondaryResourceImage() {
 		return secondaryResourceImage;
 	}
 
-	public void setSecondaryResourceImage(String secondaryResourceImage) {
+	/**
+	 * @param secondaryResourceImage the secondaryResourceImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSecondaryResourceImage(Long secondaryResourceImage) {
 		this.secondaryResourceImage = secondaryResourceImage;
 	}
 
-	public String getEnergyImage() {
+	/**
+	 * @return the secondaryResourceImageUrl
+	 * @since 0.9.0
+	 */
+	public String getSecondaryResourceImageUrl() {
+		return secondaryResourceImageUrl;
+	}
+
+	/**
+	 * @param secondaryResourceImageUrl the secondaryResourceImageUrl to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSecondaryResourceImageUrl(String secondaryResourceImageUrl) {
+		this.secondaryResourceImageUrl = secondaryResourceImageUrl;
+	}
+
+	/**
+	 * @return the energyImage
+	 * @since 0.9.0
+	 */
+	public Long getEnergyImage() {
 		return energyImage;
 	}
 
-	public void setEnergyImage(String energyImage) {
+	/**
+	 * @param energyImage the energyImage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setEnergyImage(Long energyImage) {
 		this.energyImage = energyImage;
+	}
+
+	/**
+	 * @return the energyImageUrl
+	 * @since 0.9.0
+	 */
+	public String getEnergyImageUrl() {
+		return energyImageUrl;
+	}
+
+	/**
+	 * @param energyImageUrl the energyImageUrl to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setEnergyImageUrl(String energyImageUrl) {
+		this.energyImageUrl = energyImageUrl;
 	}
 
 	public Integer getMaxPlanets() {

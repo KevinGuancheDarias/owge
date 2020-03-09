@@ -8,6 +8,7 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 	private String name;
 	private Long sectors;
 	private Long quadrants;
+	private Integer orderNumber;
 
 	@Override
 	public void dtoFromEntity(Galaxy entity) {
@@ -15,6 +16,7 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 		name = entity.getName();
 		sectors = entity.getSectors();
 		quadrants = entity.getQuadrants();
+		orderNumber = entity.getOrderNumber();
 	}
 
 	public Integer getId() {
@@ -47,6 +49,25 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 
 	public void setQuadrants(Long quadrants) {
 		this.quadrants = quadrants;
+	}
+
+	/**
+	 * 
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @return
+	 */
+	public Integer getOrderNumber() {
+		return orderNumber;
+	}
+
+	/**
+	 * @param orderNumber the orderNumber to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setOrderNumber(Integer orderNumber) {
+		this.orderNumber = orderNumber;
 	}
 
 }

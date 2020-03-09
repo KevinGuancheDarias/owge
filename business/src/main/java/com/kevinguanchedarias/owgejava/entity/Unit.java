@@ -3,9 +3,6 @@ package com.kevinguanchedarias.owgejava.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -19,19 +16,14 @@ import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
 @Entity
 @Table(name = "units")
-public class Unit extends EntityWithImage implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
+public class Unit extends CommonEntityWithImageStore<Integer>
+		implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
 	private static final long serialVersionUID = -1923291486680931835L;
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
 
 	@Column(name = "order_number")
 	private Integer order;
 
-	private String name;
 	private Integer points;
-	private String description;
 	private Integer time;
 
 	@Column(name = "primary_resource")
@@ -66,16 +58,6 @@ public class Unit extends EntityWithImage implements EntityWithImprovements<Inte
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
 
-	@Override
-	public Integer getId() {
-		return id;
-	}
-
-	@Override
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
 	public Integer getOrder() {
 		return order;
 	}
@@ -84,28 +66,12 @@ public class Unit extends EntityWithImage implements EntityWithImprovements<Inte
 		this.order = order;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public Integer getPoints() {
 		return points;
 	}
 
 	public void setPoints(Integer points) {
 		this.points = points;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 
 	public Integer getTime() {

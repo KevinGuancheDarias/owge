@@ -5,11 +5,14 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
 
 /**
  * Represents an image stored in the server
@@ -19,6 +22,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "images_store")
+@EntityListeners(ImageStoreListener.class)
 public class ImageStore implements EntityWithId<Long> {
 	private static final long serialVersionUID = 2646635871850664581L;
 

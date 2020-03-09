@@ -1,11 +1,12 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
 
 @Component({
   selector: 'owge-widgets-display-image',
   templateUrl: './widget-display-image.component.html',
-  styleUrls: ['./widget-display-image.component.less']
+  styleUrls: ['./widget-display-image.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WidgetDisplayImageComponent implements OnChanges {
   /**
@@ -35,8 +36,11 @@ export class WidgetDisplayImageComponent implements OnChanges {
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
+  public constructor(private _cdr: ChangeDetectorRef) { }
+
   public ngOnChanges(): void {
     this.parsedImage = this._findFullPath(this.image);
+    this._cdr.detectChanges();
   }
 
   private _findFullPath(image: string) {
@@ -44,7 +48,7 @@ export class WidgetDisplayImageComponent implements OnChanges {
       return MEDIA_ROUTES.STATIC_IMAGES_ROOT + image;
     } else if (this.assetsImage) {
       return `/assets/img/${image}`;
-    } else if (this._isAbsoluteUrl(image)) {
+    } else if (this._isAbsoluteUrl(image) || this._isDynamicAbsolutePath(image)) {
       return image;
     } else {
       this._log.todo([
@@ -57,6 +61,10 @@ export class WidgetDisplayImageComponent implements OnChanges {
 
   private _isAbsoluteUrl(image: string): boolean {
     return image.startsWith('https://') || image.startsWith('http://');
+  }
+
+  private _isDynamicAbsolutePath(image: string): boolean {
+    return image.startsWith('/dynamic');
   }
 
 }

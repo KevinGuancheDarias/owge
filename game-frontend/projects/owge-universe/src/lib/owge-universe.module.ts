@@ -14,6 +14,7 @@ import { ImageSelectorComponent } from './components/image-selector/image-select
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { ImageStoreService } from './services/image-store.service';
 import { MissionStore } from './storages/mission.store';
+import { ResourceManagerService } from './services/resource-manager.service';
 
 /**
  *
@@ -50,7 +51,8 @@ export class OwgeUniverseModule {
         ClockInitializer,
         OwgeWidgetsModule,
         ImageStoreService,
-        MissionStore
+        MissionStore,
+        ResourceManagerService
       ]
     };
   }

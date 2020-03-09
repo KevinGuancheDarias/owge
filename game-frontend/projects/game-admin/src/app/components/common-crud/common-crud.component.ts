@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter, OnChanges, OnDestroy } from '@angular/core';
 
 import { CommonEntity, LoadingService } from '@owge/core';
 import { AbstractCrudService } from '@owge/universe';
@@ -6,6 +6,7 @@ import { ModalComponent } from '@owge/core';
 import { DisplayService } from '@owge/widgets';
 import { TranslateService } from '@ngx-translate/core';
 import { isEqual } from 'lodash-es';
+import { Observable, Subscription } from 'rxjs';
 
 /**
  * Used to handle the default Crud <br>
@@ -25,10 +26,19 @@ import { isEqual } from 'lodash-es';
   templateUrl: './common-crud.component.html',
   styleUrls: ['./common-crud.component.less']
 })
-export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit {
+export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit, OnChanges, OnDestroy {
 
+  @ContentChild('beforeList', { static: true }) public beforeList: TemplateRef<any>;
   @ContentChild('modalBody', { static: true }) public modalBody: TemplateRef<any>;
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
+  @Input() public hasDescription = true;
+  @Input() public idField: keyof T = 'id';
+  @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
+  @Input() public customElementsSource: Observable<T[]>;
+  @Input() public customNewFiller: (el: T) => Promise<T>;
+  @Input() public customSaveAction: (el: T) => Promise<T>;
+  @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
+  @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   public elements: T[];
   public newElement: T;
   public originalElement: T;
@@ -38,6 +48,8 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ViewChild('crudModal', { static: true }) protected _crudModal: ModalComponent;
   protected _randomId: string;
 
+  private _defaultSubscription: Subscription;
+  private _customSubscription: Subscription;
   constructor(
     protected _displayService: DisplayService,
     protected _translateService: TranslateService,
@@ -46,8 +58,30 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
 
   ngOnInit() {
     this._randomId = (new Date()).getTime().toString();
-    if (!this.elements) {
-      this._crudService.findAll().subscribe(elements => this.elements = elements);
+  }
+
+  public ngOnChanges(): void {
+    const onSubscribeAction = elements => {
+      this.elements = elements;
+      this.elementsLoaded.emit();
+    };
+    if (this.customElementsSource) {
+      if (this._customSubscription) {
+        this._customSubscription.unsubscribe();
+      }
+      this._customSubscription = this.customElementsSource.subscribe(onSubscribeAction);
+      if (this._defaultSubscription) {
+        this._defaultSubscription.unsubscribe();
+        delete this._defaultSubscription;
+      }
+    } else {
+      if (!this._defaultSubscription) {
+        this._defaultSubscription = this._crudService.findAll().subscribe(onSubscribeAction);
+      }
+      if (this._customSubscription) {
+        this._customSubscription.unsubscribe();
+        delete this._customSubscription;
+      }
     }
   }
 
@@ -61,6 +95,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public edit(el: T): void {
     this.originalElement = el;
     this.newElement = { ...el };
+    this.elementSelected.emit(this.newElement);
     this._crudModal.show();
   }
 
@@ -70,9 +105,13 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.0
    */
-  public new(): void {
+  public async new(): Promise<void> {
     this.newElement = <any>{};
+    if (this.customNewFiller) {
+      this.newElement = await this.customNewFiller(this.newElement);
+    }
     this.originalElement = { ...this.newElement };
+    this.elementSelected.emit(this.newElement);
     this._crudModal.show();
   }
 
@@ -86,7 +125,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public delete(el: T): void {
     this._translateService.get('CRUD.CONFIRM_DELETE', { elName: el.name }).subscribe(async val => {
       if (await this._displayService.confirm(val)) {
-        this._crudService.delete(el.id).subscribe(elements => {
+        this._crudService.delete(el[<any>this.idField]).subscribe(elements => {
           this.elements = elements;
           this._crudModal.hide();
         });
@@ -114,13 +153,11 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    */
   public save(): void {
     this._loadingService.runWithLoading(async () => {
-      if (this.newElement.id) {
-        this.newElement = await this._crudService.saveExistingOrPut(this.newElement).toPromise();
+      if (this.customSaveAction) {
+        await this.customSaveAction(this.newElement);
       } else {
-        this.newElement = await this._crudService.saveNew(this.newElement).toPromise();
+        await this._doSave();
       }
-      this.originalElement = { ...this.newElement };
-      this._crudModal.hide();
     });
   }
 
@@ -147,5 +184,37 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public detectIsChanged(): boolean {
     this.isChanged = !isEqual(this.newElement, this.originalElement);
     return this.isChanged;
+  }
+
+
+  /**
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   */
+  public ngOnDestroy(): void {
+    if (this._customSubscription) {
+      this._customSubscription.unsubscribe();
+    } else if (this._defaultSubscription) {
+      this._defaultSubscription.unsubscribe();
+    }
+  }
+
+  /**
+   * Do the savings to the backend
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @protected
+   * @returns
+   * @since 0.9.0
+   */
+  protected async _doSave(): Promise<void> {
+    if (this.newElement[this.idField]) {
+      this.newElement = await this._crudService.saveExistingOrPut(this.newElement).toPromise();
+    } else {
+      this.newElement = await this._crudService.saveNew(this.newElement).toPromise();
+    }
+    this.originalElement = { ...this.newElement };
+    this._crudModal.hide();
   }
 }

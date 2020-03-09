@@ -7,7 +7,7 @@
  * @export
  */
 export interface Requirement {
-    id: number;
+    id?: number;
     code: string;
-    description: string;
+    description?: string;
 }

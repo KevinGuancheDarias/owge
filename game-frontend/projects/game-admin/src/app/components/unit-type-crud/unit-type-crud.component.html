@@ -1,0 +1,60 @@
+<app-common-crud-with-image [hasDescription]="false" [_crudService]="adminUnitTypeService" (elementSelected)="onSelectedOrNew($event)">
+    <ng-template #modalBody let-newElement>
+        <ng-container *ngIf="unitType">
+            <div class="form-group col-md-6">
+                <label for="max-amount-unlimited">{{ 'CRUD.UNIT_TYPE.MAX_AMOUNT_UNLIMITED' | translate }} </label>
+                <input type="checkbox" [(ngModel)]="isUnlimitedMaxAmount" (ngModelChange)="onIsUnlimitedMaxAmountChange()" id="max-amount-unlimited" class="form-control"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="max-amount">{{ 'CRUD.UNIT_TYPE.MAX_AMOUNT' | translate }} </label>
+                <input [disabled]="isUnlimitedMaxAmount" type="number" [(ngModel)]="unitType.maxCount" id="max-amount" class="form-control"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="can-explore">{{ 'CRUD.UNIT_TYPE.CAN_EXPLORE' | translate }} </label>
+                <select [(ngModel)]="unitType.canExplore" id="can-explore" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="can-gather">{{ 'CRUD.UNIT_TYPE.CAN_GATHER' | translate }} </label>
+                <select [(ngModel)]="unitType.canGather" id="can-gather" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="can-establish-base">{{ 'CRUD.UNIT_TYPE.CAN_ESTABLISH_BASE' | translate }} </label>
+                <select [(ngModel)]="unitType.canEstablishBase" id="can-establish-base" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="can-attack">{{ 'CRUD.UNIT_TYPE.CAN_ATTACK' | translate }} </label>
+                <select [(ngModel)]="unitType.canAttack" id="can-attack" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="can-counterattack">{{ 'CRUD.UNIT_TYPE.CAN_COUNTERATTACK' | translate }} </label>
+                <select [(ngModel)]="unitType.canCounterattack" id="can-counterattack" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="can-conquest">{{ 'CRUD.UNIT_TYPE.CAN_CONQUEST' | translate }} </label>
+                <select [(ngModel)]="unitType.canConquest" id="can-conquest" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="can-deploy">{{ 'CRUD.UNIT_TYPE.CAN_DEPLOY' | translate }} </label>
+                <select [(ngModel)]="unitType.canDeploy" id="can-deploy" class="form-control">
+                    <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+                </select>
+            </div>
+        </ng-container>
+    </ng-template>
+</app-common-crud-with-image>

@@ -125,5 +125,4 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {
 		return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
 	}
-
 }

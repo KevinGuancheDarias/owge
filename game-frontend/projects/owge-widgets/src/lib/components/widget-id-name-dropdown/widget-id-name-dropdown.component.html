@@ -1,0 +1,4 @@
+<select [id]="inputId" class="owge-base-colors" [ngModel]="model" (ngModelChange)="onModelChange($event)" [disabled]="disabled">
+    <option *ngIf="hasNull" [ngValue]="null">{{ 'WIDGETS.ID_NAME_DROPDOWN.SELECT' | translate }}</option>
+    <option *ngFor="let element of elementsList" [ngValue]="element[idField]">{{ element[nameField] }}</option>
+</select>
