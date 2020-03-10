@@ -60,9 +60,16 @@ export class AllianceService {
    * @returns Saved alliance in the backend
    */
   public save(alliance: Alliance): Observable<Alliance> {
+    let safeAlliance: Alliance;
+    if (alliance.owner) {
+      safeAlliance = { ...alliance };
+      delete safeAlliance.owner;
+    } else {
+      safeAlliance = alliance;
+    }
     const retVal: Observable<Alliance> = alliance.id
-      ? this._universeGameService.putwithAuthorizationToUniverse('alliance', alliance)
-      : this._universeGameService.postWithAuthorizationToUniverse('alliance', alliance);
+      ? this._universeGameService.putwithAuthorizationToUniverse('alliance', safeAlliance)
+      : this._universeGameService.postWithAuthorizationToUniverse('alliance', safeAlliance);
     return retVal.pipe(
       switchMap(saved => this._updateStorages(saved))
     );

@@ -3,7 +3,14 @@
 v0.9.0 (latest)
 =================
 * [class=Admin] __Feature:__ [As an admin I want to have the same admin panel functionalities I had in v0.7.x #185](https://github.com/KevinGuancheDarias/owge/issues/185)
-* __Merge:__ v0.8.1
+* __Merge:__ v0.8.2
+
+v0.8.2 (latest)
+=================
+* __Fix:__ [Not able to edit an existing alliance name or description #210](https://github.com/KevinGuancheDarias/owge/issues/210)
+* __Improvement:__ [Allow alliance description line breaks to be respected #203](https://github.com/KevinGuancheDarias/owge/issues/203)
+* __Fix:__ [When using Chrome language translations, the game hangs #204](https://github.com/KevinGuancheDarias/owge/issues/204)
+* __Fix:__ [Some attack missions are failling due to presence of heroes, because game is using legacy improvement system #206](https://github.com/KevinGuancheDarias/owge/issues/206)
 
 v0.8.1 (2020-02-24 11:33)
 =================

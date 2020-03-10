@@ -150,6 +150,7 @@
     "ALLIANCE": {
         "NOT_IN_ALLIANCE": "You are not in an alliance",
         "CREATE": "Create new",
+        "EDIT": "Edit",
         "CREATE_AN_ALLIANCE": "Create an alliance",
         "EDIT_ALLIANCE": "Edit my alliance",
         "NAME": "Name",

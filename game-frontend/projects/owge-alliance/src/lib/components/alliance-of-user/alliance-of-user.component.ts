@@ -35,13 +35,13 @@ export class AllianceOfUserComponent implements OnInit {
 
   public createEditAlliance(): void {
     this.editingalliance = this.userAlliance
-      ? this.userAlliance
+      ? { ...this.userAlliance }
       : <any>{};
     this.modal.show();
   }
 
   public async save(): Promise<void> {
-    await this._loadingService.addPromise(this._allianceService.save(this.editingalliance).toPromise());
+    this.editingalliance = await this._loadingService.addPromise(this._allianceService.save(this.editingalliance).toPromise());
     this.modal.hide();
     this._router.navigate(['/alliance/my']);
   }
