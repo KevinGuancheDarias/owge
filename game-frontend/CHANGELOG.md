@@ -2,6 +2,7 @@
 
 v0.9.0 (latest)
 ==============
+* [class=Admin] __Feature:__ [As an admin I want to have the same admin panel functionalities I had in v0.7.x #185](https://github.com/KevinGuancheDarias/owge/issues/185)
 * __Merge:__ v0.8.1
 
 
