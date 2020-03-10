@@ -2,6 +2,7 @@
 
 v0.8.2 (latest)
 =================
+* __Improvement:__ [Allow alliance description line breaks to be respected #203](https://github.com/KevinGuancheDarias/owge/issues/203)
 * __Fix:__ [When using Chrome language translations, the game hangs #204](https://github.com/KevinGuancheDarias/owge/issues/204)
 * __Fix:__ [Some attack missions are failling due to presence of heroes, because game is using legacy improvement system #206](https://github.com/KevinGuancheDarias/owge/issues/206)
 
