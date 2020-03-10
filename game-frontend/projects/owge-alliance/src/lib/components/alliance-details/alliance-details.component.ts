@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -21,7 +21,8 @@ import { filter, map } from 'rxjs/operators';
 @Component({
   selector: 'owge-alliance-details',
   templateUrl: './alliance-details.component.html',
-  styleUrls: ['./alliance-details.component.scss']
+  styleUrls: ['./alliance-details.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AllianceDetailsComponent implements OnInit {
 
