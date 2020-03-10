@@ -286,12 +286,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 					} else {
 						current.pendingAttack = myAttack - victimHealth;
 						victimUnit.availableHealth = 0D;
-						userImprovementBo.subtractImprovements(victimUnit.obtainedUnit.getUnit().getImprovement(),
-								victimUnit.obtainedUnit.getUser(), victimUnit.obtainedUnit.getCount());
 						obtainedUnitBo.delete(victimUnit.obtainedUnit);
 						deleteMissionIfRequired(victimUnit.obtainedUnit);
 						count.decrementAndGet();
 					}
+					improvementBo.clearCacheEntriesIfRequired(victimUnit.obtainedUnit.getUnit(), obtainedUnitBo);
 				}
 				if (current.pendingAttack == 0D) {
 					unitsWithoutAttack.add(current);
