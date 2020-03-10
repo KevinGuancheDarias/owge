@@ -25,9 +25,11 @@
 </owge-core-modal>
 <owge-core-loading [isReady]="userAlliance === null || userAlliance">
   <owge-alliance-details *ngIf="userAlliance" [alliance]="userAlliance">
+
   </owge-alliance-details>
   <ng-container *ngIf="userAlliance === null">
     <h1 class="owge-title">{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
     <button (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.CREATE' | translate }}</button>
   </ng-container>
+  <button *ngIf="userAlliance" (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.EDIT' | translate }}</button>
 </owge-core-loading>
