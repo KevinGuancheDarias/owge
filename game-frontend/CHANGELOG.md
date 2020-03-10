@@ -1,12 +1,11 @@
 # OWGE changelog
 
 v0.9.0 (latest)
-==============
+=================
 * [class=Admin] __Feature:__ [As an admin I want to have the same admin panel functionalities I had in v0.7.x #185](https://github.com/KevinGuancheDarias/owge/issues/185)
 * __Merge:__ v0.8.1
 
-
-v0.8.1 (pending-date)
+v0.8.1 (2020-02-24 11:33)
 =================
 * __Fix:__ [Countdown in units build is not displaying #197](https://github.com/KevinGuancheDarias/owge/issues/197)
 * __Fix:__ [The "Join alliance" doesn't get disabled, when you have already requested to join that alliance #166](https://github.com/KevinGuancheDarias/owge/issues/166)
