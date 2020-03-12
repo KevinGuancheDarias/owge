@@ -1,11 +1,5 @@
 -- START TEMPORARY Default admin
 INSERT INTO admin_users (id,username,password,mail,enabled) VALUES(1,'KevinGuancheDarias','StrongestPaul','kevin@kevinguanchedarias.com',1);
-INSERT INTO `configuration` (`name`, `display_name`, `value`, `privileged`) VALUES
-('JWT_ALGO', NULL, 'HS256', 1),
-('JWT_DURATION_SECONDS', NULL, '604800', 1),
-('JWT_SECRET', NULL, 'REALLY_LONG_SECRET_THAT_I_USE_WHEN_IM_BORED', 1),
-('SYSTEM_EMAIL', NULL, 'owge-system@kevinguanchedarias.com', 1),
-('SYSTEM_PASSWORD', NULL, '1234', 1);
 -- END TEMPORARY Default admin
 
 
