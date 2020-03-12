@@ -1,5 +1,6 @@
 {
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "Has excedido tu límite de misiones",
+    "I18N_ERR_DEPLOY_ITSELF": "El planeta de destino no puede ser el mismo que el de origen",
     "APP": {
         "LOGIN": {
             "PLACEHOLDER_EMAIL": "Email o usuario",
