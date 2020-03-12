@@ -87,7 +87,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		int planetLocation = RandomUtils.nextInt(0, count);
 
 		List<Planet> selectedPlanetsRange = planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(
-				targetGalaxy, new PageRequest(planetLocation, 1));
+				targetGalaxy, PageRequest.of(planetLocation, 1));
 
 		return selectedPlanetsRange.get(0);
 	}

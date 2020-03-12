@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -52,15 +53,15 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	public default E findById(K id) {
-		return onFind(getRepository().findOne(id));
+		return onFind(getRepository().findById(id).get());
 	}
 
 	public default E findByIdOrDie(K id) {
-		E retVal = getRepository().findOne(id);
-		if (retVal == null) {
+		Optional<E> retVal = getRepository().findById(id);
+		if (!retVal.isPresent()) {
 			throwNotFound(id);
 		}
-		return onFind(retVal);
+		return onFind(retVal.get());
 	}
 
 	public default E save(E entity) {
@@ -68,7 +69,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	public default void save(List<E> entities) {
-		getRepository().save(entities);
+		getRepository().saveAll(entities);
 	}
 
 	public default E saveAndFlush(E entity) {
@@ -94,7 +95,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	public default boolean exists(K id) {
-		return getRepository().exists(id);
+		return getRepository().existsById(id);
 	}
 
 	/**
@@ -128,7 +129,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	 * @author Kevin Guanche Darias
 	 */
 	public default E refresh(E entity) {
-		return getRepository().findOne(entity.getId());
+		return getRepository().findById(entity.getId()).get();
 	}
 
 	public default EntityManager getEntityManager() {

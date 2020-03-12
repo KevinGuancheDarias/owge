@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -61,9 +62,10 @@ public class CustomSpringDataRepositoryFactory<R extends JpaRepository<T, I>, T,
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
-		protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
+		protected JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation repositoryInformation,
+				EntityManager em) {
 			JpaEntityInformation entityInformation = getEntityInformation(repositoryInformation.getDomainType());
-			return new GameJpaRepository<T, I>(entityInformation, entityManager);
+			return new GameJpaRepository<T, I>(entityInformation, em);
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })

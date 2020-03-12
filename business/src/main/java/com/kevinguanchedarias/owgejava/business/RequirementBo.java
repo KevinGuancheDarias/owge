@@ -164,32 +164,32 @@ public class RequirementBo implements Serializable {
 			RequirementTypeEnum requirementType) {
 		Class<?> clazz;
 		switch (requirementType) {
-		case UPGRADE_LEVEL:
-			clazz = UpgradeBo.class;
-			break;
-		case HAVE_UNIT:
-		case UNIT_AMOUNT:
-			clazz = UnitBo.class;
-			break;
-		case BEEN_RACE:
-			clazz = FactionBo.class;
-			break;
-		case HAVE_SPECIAL_LOCATION:
-			clazz = SpecialLocationBo.class;
-			break;
-		case HAVE_SPECIAL_ENABLED:
-		case HAVE_SPECIAL_AVAILABLE:
-			clazz = TimeSpecialBo.class;
-			break;
-		case HOME_GALAXY:
-			clazz = GalaxyBo.class;
-			break;
-		case WORST_PLAYER:
-			throw new ProgrammingException("Requirement " + requirementType.name()
-					+ "doesn't have a BO, you should check for it, prior to invoking this method");
-		default:
-			throw new SgtBackendNotImplementedException(
-					"Support for " + requirementType.name() + " has not been added yet");
+			case UPGRADE_LEVEL:
+				clazz = UpgradeBo.class;
+				break;
+			case HAVE_UNIT:
+			case UNIT_AMOUNT:
+				clazz = UnitBo.class;
+				break;
+			case BEEN_RACE:
+				clazz = FactionBo.class;
+				break;
+			case HAVE_SPECIAL_LOCATION:
+				clazz = SpecialLocationBo.class;
+				break;
+			case HAVE_SPECIAL_ENABLED:
+			case HAVE_SPECIAL_AVAILABLE:
+				clazz = TimeSpecialBo.class;
+				break;
+			case HOME_GALAXY:
+				clazz = GalaxyBo.class;
+				break;
+			case WORST_PLAYER:
+				throw new ProgrammingException("Requirement " + requirementType.name()
+						+ "doesn't have a BO, you should check for it, prior to invoking this method");
+			default:
+				throw new SgtBackendNotImplementedException(
+						"Support for " + requirementType.name() + " has not been added yet");
 		}
 		return (WithNameBo<K, E, D>) beanFactory.getBean(clazz);
 	}
@@ -366,24 +366,24 @@ public class RequirementBo implements Serializable {
 		for (RequirementInformation currentRequirement : objectRelation.getRequirements()) {
 			boolean status;
 			switch (RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode())) {
-			case UPGRADE_LEVEL:
-				status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
-				break;
-			case HAVE_UNIT:
-				status = checkHaveUnitRequirement(currentRequirement, user);
-				break;
-			case UNIT_AMOUNT:
-				status = checkUnitAmountRequirement(currentRequirement, user);
-				break;
-			case BEEN_RACE:
-				status = checkBeenFactionRequirement(currentRequirement, user.getId());
-				break;
-			case HOME_GALAXY:
-				status = checkBeenGalaxyRequirement(currentRequirement, user);
-				break;
-			default:
-				throw new SgtBackendNotImplementedException(
-						"Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
+				case UPGRADE_LEVEL:
+					status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
+					break;
+				case HAVE_UNIT:
+					status = checkHaveUnitRequirement(currentRequirement, user);
+					break;
+				case UNIT_AMOUNT:
+					status = checkUnitAmountRequirement(currentRequirement, user);
+					break;
+				case BEEN_RACE:
+					status = checkBeenFactionRequirement(currentRequirement, user.getId());
+					break;
+				case HOME_GALAXY:
+					status = checkBeenGalaxyRequirement(currentRequirement, user);
+					break;
+				default:
+					throw new SgtBackendNotImplementedException(
+							"Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
 			}
 			if (!status) {
 				return false;
@@ -452,7 +452,7 @@ public class RequirementBo implements Serializable {
 	private void unregisterLossedRelation(ObjectRelation relation, UserStorage user) {
 		UnlockedRelation unlockedRelation = findUnlockedObjectRelation(relation.getId(), user.getId());
 		if (unlockedRelation != null) {
-			unlockedRelationRepository.delete(unlockedRelation.getId());
+			unlockedRelationRepository.deleteById(unlockedRelation.getId());
 		}
 
 		if (RequirementTargetObject.UPGRADE.name().equals(relation.getObject().getDescription())

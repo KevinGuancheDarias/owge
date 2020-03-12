@@ -111,7 +111,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 		int selectedGalaxy = RandomUtils.nextInt(0, count);
 
-		return galaxyRepository.findAll(new PageRequest(selectedGalaxy, 1)).getContent().get(0).getId();
+		return galaxyRepository.findAll(PageRequest.of(selectedGalaxy, 1)).getContent().get(0).getId();
 	}
 
 	/**

@@ -19,6 +19,7 @@ import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 	private String dynamicUrl;
 
 	@Autowired
+	@Lazy
 	private ImageStoreRepository imageStoreRepository;
 
 	@Autowired

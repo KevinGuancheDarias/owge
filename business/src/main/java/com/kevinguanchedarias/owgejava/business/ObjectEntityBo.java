@@ -92,7 +92,7 @@ public class ObjectEntityBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public ObjectEntity findByDescription(ObjectEnum objectEnum) {
-		return objectEntityRepository.findOne(objectEnum.name());
+		return objectEntityRepository.findById(objectEnum.name()).get();
 	}
 
 	/**
@@ -104,7 +104,7 @@ public class ObjectEntityBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void existsByDescriptionOrDie(ObjectEnum target) {
-		if (!objectEntityRepository.exists(target.name())) {
+		if (!objectEntityRepository.existsById(target.name())) {
 			throw new ProgrammingException("You are requesting Object of type " + target.name()
 					+ " but, while the object exists in the enum, it doesn't exists in the objects table, insert it into the table, or remove from the ENUM and the used location");
 		}
@@ -119,7 +119,7 @@ public class ObjectEntityBo implements Serializable {
 	 */
 	@Deprecated(since = "0.8.0")
 	public ObjectEntity getByDescription(RequirementTargetObject target) {
-		return objectEntityRepository.findOne(target.name());
+		return objectEntityRepository.findById(target.name()).get();
 	}
 
 	/**
@@ -138,7 +138,7 @@ public class ObjectEntityBo implements Serializable {
 			throw new SgtBackendRequirementException("No hay ninguna entidad asociada");
 		}
 
-		if (!objectEntityRepository.exists(object.getCode())) {
+		if (!objectEntityRepository.existsById(object.getCode())) {
 			throw new SgtBackendRequirementException("La entidad objeto " + object.getCode() + " no existe");
 		}
 	}

@@ -715,7 +715,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Transactional
 	public void proccessReturnMission(Long missionId) {
-		Mission mission = missionRepository.findOne(missionId);
+		Mission mission = missionRepository.findById(missionId).get();
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
 				mission.getSourcePlanet().getId()));
@@ -954,15 +954,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 		boolean isOfUserProperty = planetBo.isOfUserProperty(missionInformation.getUserId(),
 				missionInformation.getTargetPlanetId());
 		switch (configurationBo.findDeployMissionConfiguration()) {
-		case ONLY_ONCE_RETURN_SOURCE:
-		case ONLY_ONCE_RETURN_DEPLOYED:
-			if (!isOfUserProperty && unitMissionType == MissionType.DEPLOYED
-					&& missionInformation.getMissionType() == MissionType.DEPLOY) {
-				throw new SgtBackendInvalidInputException("You can't do a deploy mission after a deploy mission");
-			}
-			break;
-		default:
-			break;
+			case ONLY_ONCE_RETURN_SOURCE:
+			case ONLY_ONCE_RETURN_DEPLOYED:
+				if (!isOfUserProperty && unitMissionType == MissionType.DEPLOYED
+						&& missionInformation.getMissionType() == MissionType.DEPLOY) {
+					throw new SgtBackendInvalidInputException("You can't do a deploy mission after a deploy mission");
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
