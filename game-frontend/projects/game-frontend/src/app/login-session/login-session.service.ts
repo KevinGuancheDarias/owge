@@ -3,13 +3,13 @@ import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from
 import { skip, map } from 'rxjs/operators';
 
 import { UserStorage, LoggerHelper, CoreHttpService, ProgrammingError, User } from '@owge/core';
-import { UniverseStorage, Universe, UniverseGameService } from '@owge/universe';
+import { UniverseStorage, Universe, UniverseGameService, ResourceManagerService } from '@owge/universe';
 
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { ResourceManagerService } from './../service/resource-manager.service';
+import { ResourceManagerService as OldResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -59,6 +59,7 @@ export class LoginSessionService implements CanActivate {
   private _lgsLog: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   constructor(private _injector: Injector,
+    private _oldResourceManagerService: OldResourceManagerService,
     private _resourceManagerService: ResourceManagerService,
     private _userStorage: UserStorage<User>,
     private _universeStorage: UniverseStorage,
@@ -327,6 +328,7 @@ export class LoginSessionService implements CanActivate {
       userData => {
         this._findSelectedPlanet.next(userData.homePlanetDto);
         this._userData.next(userData);
+        this._oldResourceManagerService.startHandling(userData);
         this._resourceManagerService.startHandling(userData);
       },
       error => alert(error)
