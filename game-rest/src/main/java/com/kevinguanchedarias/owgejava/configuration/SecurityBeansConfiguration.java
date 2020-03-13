@@ -94,15 +94,6 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
 		return filterRegistrationBean;
 	}
 
-	@Bean
-	public FilterRegistrationBean<BootJwtAuthenticationFilter> disableAdmin(
-			@Qualifier("adminBootJwtAuthenticationFilter") BootJwtAuthenticationFilter filter) {
-		FilterRegistrationBean<BootJwtAuthenticationFilter> filterRegistrationBean = new FilterRegistrationBean<>(
-				filter);
-		filterRegistrationBean.setEnabled(false);
-		return filterRegistrationBean;
-	}
-
 	public AuthenticationEntryPoint getAuthenticationEntryPoint() {
 		return authenticationEntryPoint;
 	}

@@ -31,7 +31,8 @@ class GameSecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.addFilterBefore(securityBeansConfiguration.getGameBootJwtAuthenticationFilter(),
 				BasicAuthenticationFilter.class).exceptionHandling()
 				.authenticationEntryPoint(securityBeansConfiguration.getAuthenticationEntryPoint());
-		http.antMatcher("/game/**").authorizeRequests().anyRequest().authenticated();
+		http.antMatcher("/game/**").authorizeRequests().anyRequest().authenticated()
+		.and().cors().disable();
 
 	}
 }

@@ -26,7 +26,8 @@ class CorsFilterConfiguration extends WebSecurityConfigurerAdapter {
 		CorsFilter filter = new CorsFilter();
 		filter.setCorsConfigurator(createFilterConfiguration());
 		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().securityContext()
-				.securityContextRepository(new OwgeNullSecurityContextRepository());
+				.securityContextRepository(new OwgeNullSecurityContextRepository())
+				.and().csrf().disable();
 
 	}
 
