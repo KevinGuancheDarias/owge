@@ -12,12 +12,11 @@ services:
     expose:
       - "8080"
     environment:
-      - OWGE_SQS_HOST=sqs_server
-      - OWGE_SQS_PORT=7474
-      - OWGE_SQS_QUEUE=not_used
       - OWGE_CORS_CUSTOM_ORIGIN=*
+      - OWGE_DB_URL=db:3306/owge
+      - OWGE_DB_USER=root
+      - OWGE_DB_PASS=1234
       - MYSQL_HOST=db
       - MYSQL_DB=owge
       - MYSQL_USER=root
       - MYSQL_PASSWORD=1234
-      - CATALINA_OPTS=-Dowge.databaseUrl=mysql://db:3306/owge?useSSL=false -Dowge.databaseUser=root -Dowge.databasePassword=1234
