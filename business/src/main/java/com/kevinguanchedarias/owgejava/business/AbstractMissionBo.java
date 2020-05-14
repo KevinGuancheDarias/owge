@@ -6,19 +6,9 @@ import java.util.function.Predicate;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
@@ -32,9 +22,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
-import com.kevinguanchedarias.owgejava.job.RealizationJob;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -85,9 +73,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	@Autowired
 	protected PlanetBo planetBo;
 
-	@Autowired(required = false)
-	protected transient SchedulerFactoryBean schedulerFactory;
-
 	@Autowired
 	protected transient ExceptionUtilService exceptionUtilService;
 
@@ -96,6 +81,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	@Autowired
 	private transient ApplicationContext applicationContext;
+
+	@Autowired
+	private MissionSchedulerService missionSchedulerService;
 
 	public abstract String getGroupName();
 
@@ -108,7 +96,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -145,7 +133,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Finds a <b>not resolved </b>mission by userId, mission type and target planet
-	 * 
+	 *
 	 * @param userId
 	 * @param type
 	 * @param targetPlanet
@@ -165,7 +153,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Counts the number of missions that a user has running
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @since 0.8.0
@@ -177,7 +165,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Returns the max number of missions a user can run
-	 * 
+	 *
 	 * @param user
 	 * @return
 	 * @since 0.8.0
@@ -189,7 +177,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Finds a mission by user id and mission type
-	 * 
+	 *
 	 * @param userId
 	 * @param type
 	 * @return
@@ -201,7 +189,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Checks if the user exists (in this universe), throws if not
-	 * 
+	 *
 	 * @param userId
 	 * @throws UserNotFoundException If user doesn't exists
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -214,7 +202,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Checks if the input planet exists
-	 * 
+	 *
 	 * @param planetId
 	 * @throws PlanetNotFoundException
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -240,7 +228,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Returns the date that the mission will have according to the required time
-	 * 
+	 *
 	 * @param requiredTime ammount of time required (in seconds)
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -249,35 +237,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		return (new DateTime()).plusSeconds(requiredTime.intValue()).toDate();
 	}
 
-	protected void scheduleMission(Mission mission) {
-		if (schedulerFactory != null) {
-			String jobName = mission.getId().toString();
-			Scheduler scheduler = schedulerFactory.getScheduler();
-			JobKey jobKey = new JobKey(jobName, getGroupName());
-			TriggerKey triggerKey = genTriggerKey(mission);
-			JobDataMap jobData = new JobDataMap();
-			jobData.put("missionId", mission.getId().toString());
-			JobDetail jobDetail = JobBuilder.newJob(RealizationJob.class).withIdentity(jobKey).setJobData(jobData)
-					.build();
-			SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger().withIdentity(triggerKey)
-					.forJob(jobDetail).startAt(mission.getTerminationDate()).forJob(jobKey).build();
-			try {
-				scheduler.addJob(jobDetail, true, true);
-				scheduler.scheduleJob(trigger);
-			} catch (SchedulerException e) {
-				getLogger().error(e);
-				throw new SgtBackendSchedulerException("Couldn't store job: " + jobName, e);
-			}
-		}
-	}
-
-	protected TriggerKey genTriggerKey(Mission mission) {
-		return new TriggerKey("trigger_" + mission.getId() + "_" + mission.getAttemps(), getGroupName());
-	}
-
 	/**
 	 * Defines the mission as resolved and saves it to the database
-	 * 
+	 *
 	 * @param mission Mission to persist
 	 * @return Persisted entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -289,7 +251,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Returns true if the input mission is of the expected type
-	 * 
+	 *
 	 * @param mission input mission
 	 * @param type    expected type
 	 * @return
@@ -301,11 +263,11 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/*
 	 * Saves the MissionReport to the database
-	 * 
+	 *
 	 * @param mission
-	 * 
+	 *
 	 * @param builder
-	 * 
+	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
@@ -338,7 +300,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	/**
 	 * Finds the last mission in the relation tree that is not a RETURN_MISSION
-	 * 
+	 *
 	 * @param missionId
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -352,7 +314,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	/**
 	 * Find the last mission in the relation tree that matches "false" to
 	 * <i>ignore</i> lambda
-	 * 
+	 *
 	 * @param missionId
 	 * @param ignore
 	 * @return
@@ -372,6 +334,26 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		} else {
 			throw new ProgrammingException("Passed null");
 		}
+	}
+
+	/**
+	 *
+	 * @param mission
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	protected void scheduleMission(Mission mission) {
+		missionSchedulerService.scheduleMission(getGroupName(), mission);
+	}
+
+	/**
+	 *
+	 * @param mission
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	protected void abortMissionJob(Mission mission) {
+		missionSchedulerService.abortMissionJob(getGroupName(), mission);
 	}
 
 	private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {

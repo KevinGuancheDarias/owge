@@ -57,6 +57,25 @@
 			<artifactId>junit</artifactId>
 		</dependency>
 
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-1.2-api</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-quartz</artifactId>
@@ -86,7 +105,7 @@
 		<!-- END timing features -->
 
 		<!-- Quartz support -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.google.code.maven-play-plugin.com.mchange</groupId>
 			<artifactId>c3p0-oracle-thin-extras</artifactId>
 			<version>0.9.5</version>
@@ -102,7 +121,7 @@
 			<groupId>com.mchange</groupId>
 			<artifactId>c3p0</artifactId>
 			<version>0.9.5.2</version>
-		</dependency>
+		</dependency>-->
 		<!-- END Quartz support -->
 		<!-- Test purposes -->
 		<dependency>

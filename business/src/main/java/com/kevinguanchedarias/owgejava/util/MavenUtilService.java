@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -20,7 +21,7 @@ import org.springframework.util.StringUtils;
  */
 @Service
 public class MavenUtilService {
-	private static final Logger LOG = Logger.getLogger(MavenUtilService.class);
+	private static final Logger LOG = LogManager.getLogger(MavenUtilService.class);
 
 	private String version;
 

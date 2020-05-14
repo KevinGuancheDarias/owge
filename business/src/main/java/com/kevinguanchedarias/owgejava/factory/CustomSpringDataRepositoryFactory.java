@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.factory;
 
@@ -42,22 +42,18 @@ public class CustomSpringDataRepositoryFactory<R extends JpaRepository<T, I>, T,
 
 	/**
 	 * Simple jpa executor factory
-	 * 
+	 *
 	 * @param <T>
 	 * @param <I>
 	 */
 	private static class SimpleJpaExecutorFactory<T, I extends Serializable> extends JpaRepositoryFactory {
-
-		private EntityManager entityManager;
-
 		/**
 		 * Simple jpa executor factory constructor
-		 * 
+		 *
 		 * @param entityManager entity manager
 		 */
 		public SimpleJpaExecutorFactory(EntityManager entityManager) {
 			super(entityManager);
-			this.entityManager = entityManager;
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })

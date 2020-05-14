@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +26,6 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.MissionNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
@@ -53,7 +51,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Registers a level up mission
-	 * 
+	 *
 	 * @param userId    user that has requested level up
 	 * @param upgradeId the id of the upgrade that the user wants to level up
 	 * @author Kevin Guanche Darias
@@ -96,7 +94,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Process the effects of leveling up an upgrade
-	 * 
+	 *
 	 * @param missionId Id of the mission to process
 	 * @author Kevin Guanche Darias
 	 */
@@ -120,14 +118,13 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Creates a mission of type unit build
-	 * 
+	 *
 	 * @param userId
 	 * @param planetId
 	 * @param unitId
 	 * @param finalCount
 	 * @author Kevin Guanche Darias
 	 */
-	@Transactional
 	public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
 		planetBo.myCheckIsOfUserProperty(planetId);
 		checkUnitBuildMissionDoesNotExists(userId, planetId);
@@ -212,7 +209,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Should be invoked from the context
-	 * 
+	 *
 	 * @param missionId
 	 * @author Kevin Guanche Darias
 	 */
@@ -223,7 +220,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Should be invoked from the context
-	 * 
+	 *
 	 * @param mission
 	 * @author Kevin Guanche Darias
 	 */
@@ -302,7 +299,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Returns all running missions by the logged in user
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -313,7 +310,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Returns all the running missions for the specified user
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -346,7 +343,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Finds a mission by user id, mission type, and value inside MissionInformation
-	 * 
+	 *
 	 * @param userId
 	 * @param type
 	 * @param value
@@ -360,7 +357,7 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Checks that there is not another upgrade mission running, if it's doing, will
 	 * throw an exception
-	 * 
+	 *
 	 * @param userId
 	 * @param type
 	 * @throws SgtLevelUpMissionAlreadyRunningException
@@ -375,14 +372,14 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Checks that there is not another unit recluit mission running in <b>target
 	 * planet</b>
-	 * 
+	 *
 	 * @param userId
 	 * @param planetId
 	 * @throws SgtBackendUnitBuildAlreadyRunningException
 	 * @author Kevin Guanche Darias
 	 */
 	private void checkUnitBuildMissionDoesNotExists(Integer userId, Long planetId) {
-		if (findRunningUnitBuild(userId, Double.valueOf(planetId)) != null) {
+		if (findRunningUnitBuild(userId, (double) planetId) != null) {
 			throw new SgtBackendUnitBuildAlreadyRunningException("Ya hay una unidad reclutándose en este planeta");
 		}
 	}
@@ -390,7 +387,7 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Checks that the selected obtained upgrade is available else, throws an
 	 * exception
-	 * 
+	 *
 	 * @param obtainedUpgrade
 	 * @throws SgtMissionRegistrationException target upgrade is not available
 	 * @author Kevin Guanche Darias
@@ -403,27 +400,8 @@ public class MissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Unschedules the mission<br>
-	 * 
-	 * 
-	 * @param mission
-	 * @throws SgtBackendSchedulerException
-	 * @author Kevin Guanche Darias
-	 */
-	private void abortMissionJob(Mission mission) {
-		if (schedulerFactory != null) {
-			try {
-				schedulerFactory.getScheduler().unscheduleJob(genTriggerKey(mission));
-			} catch (SchedulerException e) {
-				LOG.error("Couldn't remove job", e);
-				throw new SgtBackendSchedulerException("Couldn't remove job", e);
-			}
-		}
-	}
-
-	/**
 	 * Checks if relation is unlocked
-	 * 
+	 *
 	 * @param userId
 	 * @param relation
 	 * @author Kevin Guanche Darias
@@ -434,7 +412,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Copies resource requirements object to mission and fills the ime and date
-	 * 
+	 *
 	 * @param mission
 	 * @param requirements
 	 * @author Kevin Guanche Darias
@@ -448,7 +426,7 @@ public class MissionBo extends AbstractMissionBo {
 
 	/**
 	 * Substracts the resources of the mission to the logged in user
-	 * 
+	 *
 	 * @param user
 	 * @param mission
 	 * @author Kevin Guanche Darias

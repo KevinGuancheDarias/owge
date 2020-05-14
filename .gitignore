@@ -1,3 +1,4 @@
 # Ignore dynamic images
 /dynamic/*
 !/dynamic/.gitkeep
+.factorypath
