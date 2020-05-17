@@ -35,7 +35,9 @@ envFailureCheck 2 "$gameRestWarFile";
 envFailureCheck 4 "$owgeVersion";
 envFailureCheck 5 "$gameRestFilename";
 envFailureCheck 6 "$universeId";
-
+envFailureCheck 7 "$OWGE_DB_URL";
+envFailureCheck 8 "$OWGE_DB_USER"
+envFailureCheck 9 "$OWGE_DB_PASS"
 
 checkExists 2 f "$gameRestWarFile";
 # END check env
@@ -78,6 +80,12 @@ gameFrontendContainer="$localPath/main_reverse_proxy";
 
 test ! -d "$tomcatContainer/target" && mkdir "$tomcatContainer/target";
 cp "$gameRestWarFile" "$tomcatContainer/target/";
+cp ../dev/scripts "$tomcatContainer/target/";
+if ! [ $? -eq 0 ]; then
+	echo -e "\e[31mFailed to copy scripts to target $tomcatContainer/target/\e[39m";
+	exit 1;
+fi
+
 if [ -n "$gameFrontendNgDir" ]; then
 	echo "Copying frontend files";
 	test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target";

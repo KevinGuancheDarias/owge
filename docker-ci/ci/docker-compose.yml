@@ -1,17 +1,5 @@
 version: '3.4'
 services:
-  # Due to lack of support in docker-compose for files in multiple locations, had to copy&paste the sqs_server creation
-  sqs_server:
-    image: owge_sqs_server:${OWGE_CI_VERSION}
-    build:
-      context: ../dev/images_creation/sqs_server
-      dockerfile: ./Dockerfile
-    expose:
-      - "7474"
-    environment:
-      - SQS_HOST=127.0.0.1
-      - SQS_PORT=7474
-      - SQS_QUEUE=not_used
   main_reverse_proxy:
       # Notice main_reserve_proxy/install.sh should have been executed before docker-compose!
       image: owge_main_reverse_proxy:${OWGE_CI_VERSION}
@@ -28,15 +16,15 @@ services:
       environment:
         - OWGE_REST_WAR_FILENAME
         - CATALINA_OPTS=-Xmx200m -Xms50m -XX:MaxPermSize=64m
-        - OWGE_SQS_HOST=sqs_server
-        - OWGE_SQS_PORT=7474
-        - OWGE_SQS_QUEUE=not_used
       build:
           context: admin_panel_and_rest_game/.
           args:
             - warHolderDirectory=target
             - OWGE_REST_WAR_FILENAME
             - OWGE_UNIVERSE_ID
+            - OWGE_DB_URL
+            - OWGE_DB_USER
+            - OWGE_DB_PASS
       volumes:
           - ${STATIC_IMAGES_DIR}:/var/owge_data/static
           - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
