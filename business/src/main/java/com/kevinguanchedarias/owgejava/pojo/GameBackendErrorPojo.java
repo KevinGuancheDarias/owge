@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.pojo;
 
@@ -17,7 +17,7 @@ import com.kevinguanchedarias.owgejava.util.StackTraceUtil;
 /**
  * Kevinsuite's CommonException doesn't have a developer hint, and I'm not
  * whiling to modify the original implementation
- * 
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -52,12 +52,11 @@ public class GameBackendErrorPojo extends BackendErrorPojo {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param e
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@SuppressWarnings("unchecked")
 	public GameBackendErrorPojo(CommonException e) {
 		this((Exception) e);
 		extra = ObjectUtils.firstNonNull(e.getExtra(), extra);
@@ -88,7 +87,7 @@ public class GameBackendErrorPojo extends BackendErrorPojo {
 
 	/**
 	 * Class that reports the error
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @return the reporter
 	 */
@@ -119,7 +118,7 @@ public class GameBackendErrorPojo extends BackendErrorPojo {
 
 	/**
 	 * Extra information that anyone can add to a class
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @param extra the extra to set
 	 */

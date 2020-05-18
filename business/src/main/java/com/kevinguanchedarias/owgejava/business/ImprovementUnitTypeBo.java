@@ -170,7 +170,7 @@ public class ImprovementUnitTypeBo implements Serializable {
 
 	public void removeImprovementUnitType(Integer improvementUnitTypeId) {
 		try {
-			improvementUnitTypeRepository.delete(improvementUnitTypeId);
+			improvementUnitTypeRepository.deleteById(improvementUnitTypeId);
 		} catch (EmptyResultDataAccessException e) {
 			LOGGER.log(Level.INFO, e);
 		}

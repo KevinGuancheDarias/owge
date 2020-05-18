@@ -273,7 +273,7 @@ public class RequirementInformationDao implements Serializable {
 	@Deprecated(since = "0.8.0")
 	public void deleteAllObjectRelations(RequirementTargetObject target, Integer referenceId) {
 		ObjectRelation objectRelation = getObjectRelation(target, referenceId);
-		objectRelationsRepository.delete(objectRelation.getId());
+		objectRelationsRepository.deleteById(objectRelation.getId());
 		if (target == RequirementTargetObject.UPGRADE) {
 			Integer upgradeLevelRequirementId = requirementRepository
 					.findOneByCode(RequirementTypeEnum.UPGRADE_LEVEL.name()).getId();
@@ -303,7 +303,7 @@ public class RequirementInformationDao implements Serializable {
 
 	@Transactional(readOnly = false)
 	public void deleteRequirementInformation(RequirementInformation requirementInformation) {
-		requirementInformationRepository.delete(requirementInformation.getId());
+		requirementInformationRepository.deleteById(requirementInformation.getId());
 		requirementInformationRepository.flush();
 		objectRelationsRepository.flush();
 	}
@@ -319,24 +319,24 @@ public class RequirementInformationDao implements Serializable {
 	public String getSecondValueDescription(RequirementInformation requirementInformation) {
 		String retVal;
 		switch (requirementInformation.getRequirement().getCode()) {
-		case "HAVE_SPECIAL_LOCATION":
-			retVal = specialLocationBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-			break;
-		case "BEEN_RACE":
-			retVal = factionBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-			break;
-		case "UPGRADE_LEVEL":
-			retVal = upgradeBo.findById(requirementInformation.getSecondValue().intValue()).getName() + " nivel "
-					+ requirementInformation.getThirdValue();
-			break;
-		case "WORST_PLAYER":
-			retVal = "El tío más noob!";
-			break;
-		case "HOME_GALAXY":
-			retVal = galaxyBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-			break;
-		default:
-			throw new SgtBackendRequirementException("No existe este tipo de requisito");
+			case "HAVE_SPECIAL_LOCATION":
+				retVal = specialLocationBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+				break;
+			case "BEEN_RACE":
+				retVal = factionBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+				break;
+			case "UPGRADE_LEVEL":
+				retVal = upgradeBo.findById(requirementInformation.getSecondValue().intValue()).getName() + " nivel "
+						+ requirementInformation.getThirdValue();
+				break;
+			case "WORST_PLAYER":
+				retVal = "El tío más noob!";
+				break;
+			case "HOME_GALAXY":
+				retVal = galaxyBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+				break;
+			default:
+				throw new SgtBackendRequirementException("No existe este tipo de requisito");
 		}
 		return retVal;
 	}

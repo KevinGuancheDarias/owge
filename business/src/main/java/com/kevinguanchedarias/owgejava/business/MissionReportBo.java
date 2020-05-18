@@ -41,7 +41,7 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
 
 	public List<MissionReportDto> findPaginatedByUserId(Integer userId, Integer page) {
 		List<MissionReport> retVal = missionReportRepository.findByUserIdOrderByIdDesc(userId,
-				new PageRequest(page, DEFAULT_PAGE_SIZE));
+				PageRequest.of(page, DEFAULT_PAGE_SIZE));
 		return retVal.stream().map(current -> {
 			MissionReportDto currentDto = new MissionReportDto();
 			currentDto.dtoFromEntity(current);

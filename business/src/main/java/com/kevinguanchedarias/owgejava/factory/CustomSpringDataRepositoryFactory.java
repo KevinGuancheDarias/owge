@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.factory;
 
@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.jpa.repository.support.JpaRepositoryImplementation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
@@ -41,29 +42,26 @@ public class CustomSpringDataRepositoryFactory<R extends JpaRepository<T, I>, T,
 
 	/**
 	 * Simple jpa executor factory
-	 * 
+	 *
 	 * @param <T>
 	 * @param <I>
 	 */
 	private static class SimpleJpaExecutorFactory<T, I extends Serializable> extends JpaRepositoryFactory {
-
-		private EntityManager entityManager;
-
 		/**
 		 * Simple jpa executor factory constructor
-		 * 
+		 *
 		 * @param entityManager entity manager
 		 */
 		public SimpleJpaExecutorFactory(EntityManager entityManager) {
 			super(entityManager);
-			this.entityManager = entityManager;
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
-		protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
+		protected JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation repositoryInformation,
+				EntityManager em) {
 			JpaEntityInformation entityInformation = getEntityInformation(repositoryInformation.getDomainType());
-			return new GameJpaRepository<T, I>(entityInformation, entityManager);
+			return new GameJpaRepository<T, I>(entityInformation, em);
 		}
 
 		@SuppressWarnings({ "rawtypes", "unchecked" })

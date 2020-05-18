@@ -113,7 +113,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	public <E> E unboxObjectRelation(ObjectRelation relation) {
 		WithNameRepository<E, Number> repository = objectEntityBo.findRepository(relation.getObject());
 
-		return repository.findOne(relation.getReferenceId());
+		return repository.findById(relation.getReferenceId()).get();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -223,7 +223,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		objectEntityBo.checkValid(object);
 
 		WithNameRepository repository = objectEntityBo.findRepository(object);
-		if (!repository.exists(relation.getReferenceId())) {
+		if (!repository.existsById(relation.getReferenceId())) {
 			throw new SgtBackendRequirementException("No se encontró ninguna referencia con id "
 					+ relation.getReferenceId() + " para el repositorio " + object.getRepository());
 		}

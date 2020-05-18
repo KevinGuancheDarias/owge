@@ -84,7 +84,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 */
 	@Override
 	public boolean exists(Integer id) {
-		return userStorageRepository.exists(id);
+		return userStorageRepository.existsById(id);
 	}
 
 	/**
@@ -165,7 +165,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
 		UserStorage user = findLoggedIn();
 
-		if (userStorageRepository.exists(user.getId())) {
+		if (userStorageRepository.existsById(user.getId())) {
 			return false;
 		}
 

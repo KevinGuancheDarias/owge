@@ -73,7 +73,6 @@ public class SgtGameRestExceptionHandler extends RestExceptionHandler {
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	protected ResponseEntity<Object> handleGameException(Exception e, WebRequest request, HttpStatus status) {
 		GameBackendErrorPojo response = new GameBackendErrorPojo(e);

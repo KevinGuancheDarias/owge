@@ -4,8 +4,8 @@ import javax.persistence.PostLoad;
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
@@ -17,23 +17,21 @@ import com.kevinguanchedarias.owgejava.entity.ImageStore;
  * @since 0.9.0
  *
  */
+@Component
+@Lazy
 public class ImageStoreListener {
 	private ImageStoreBo imageStoreBo;
+
+	public ImageStoreListener(ImageStoreBo imageStoreBo) {
+		this.imageStoreBo = imageStoreBo;
+	}
 
 	@PostLoad
 	@PostPersist
 	@PostUpdate
 	public void postLoad(ImageStore imageStore) {
 		if (!Thread.currentThread().getName().startsWith("OWGE_BACKGROUND_")) {
-			findImageStoreBo().computeImageUrl(imageStore);
+			imageStoreBo.computeImageUrl(imageStore);
 		}
-	}
-
-	private ImageStoreBo findImageStoreBo() {
-		if (imageStoreBo == null) {
-			WebApplicationContext cc = ContextLoader.getCurrentWebApplicationContext();
-			imageStoreBo = cc.getAutowireCapableBeanFactory().getBean(ImageStoreBo.class);
-		}
-		return imageStoreBo;
 	}
 }

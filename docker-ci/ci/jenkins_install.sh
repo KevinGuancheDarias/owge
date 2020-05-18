@@ -17,7 +17,7 @@ source ./lib.sh
 ##
 function checkExists(){
 	if [ ! -$2 "$3" ]; then
-		echo "required element $1 = $3 doesn't exists";
+		log error "required element $1 = $3 doesn't exists";
 		exit 1;
 	fi
 }
@@ -35,7 +35,9 @@ envFailureCheck 2 "$gameRestWarFile";
 envFailureCheck 4 "$owgeVersion";
 envFailureCheck 5 "$gameRestFilename";
 envFailureCheck 6 "$universeId";
-
+envFailureCheck 7 "$OWGE_DB_URL";
+envFailureCheck 8 "$OWGE_DB_USER"
+envFailureCheck 9 "$OWGE_DB_PASS"
 
 checkExists 2 f "$gameRestWarFile";
 # END check env
@@ -64,6 +66,7 @@ checkDirectoryExists "$dynamicImgDir";
 
 COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="56000" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" docker-compose down;
 sleep 2;
+log debug "Getting target port";
 if ! owgePort=`getPortByUniverseId $universeId`; then
         echo "Error getting port: $owgePort";
         exit 1;
@@ -75,16 +78,24 @@ fi
 localPath=`dirname $0`;
 tomcatContainer="$localPath/admin_panel_and_rest_game";
 gameFrontendContainer="$localPath/main_reverse_proxy";
-
+log info "Jenkins install script started";
+log debug "copying content to rest container working directory";
 test ! -d "$tomcatContainer/target" && mkdir "$tomcatContainer/target";
 cp "$gameRestWarFile" "$tomcatContainer/target/";
+cp -rp "$localPath/../dev/images_creation/scripts" "$tomcatContainer/target/";
+if ! [ $? -eq 0 ]; then
+	echo -e "\e[31mFailed to copy scripts to target $tomcatContainer/target/\e[39m";
+	exit 1;
+fi
+
 if [ -n "$gameFrontendNgDir" ]; then
-	echo "Copying frontend files";
+	log debug "Copying frontend files";
 	test -d "$gameFrontendContainer/target" && rm -r "$gameFrontendContainer/target";
 	cp -rp "$gameFrontendNgDir" "$gameFrontendContainer/target";
 fi
 
 cd $localPath;
-COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="$owgePort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_UNIVERSE_ID="$universeId" docker-compose up -d  --build | grep -E "^(Creating|Successfully)";
+log debug "running docker-compose";
+COMPOSE_PROJECT_NAME="dc$universeId" OWGE_PORT="$owgePort" STATIC_IMAGES_DIR="$staticImgDir" DYNAMIC_IMAGES_DIR="$dynamicImgDir" OWGE_CI_VERSION="$owgeVersion" OWGE_REST_WAR_FILENAME="$gameRestFilename" OWGE_UNIVERSE_ID="$universeId" docker-compose up --build -d  |  grep -E "^(Creating|Successfully)";
 cd -;
 # END program itself

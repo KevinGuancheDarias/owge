@@ -38,8 +38,8 @@ export class AutoUpdatedResources {
      * Creates an instance of AutoUpdatedResources.
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {ResourceManagerService} _resourceManagerService
-     * @param {boolean} [startAutoUpdate=true] (as of 0.8.0) Autostart resource sync
+     * @param _resourceManagerService
+     * @param [startAutoUpdate=true] (as of 0.8.0) Autostart resource sync
      * @memberof AutoUpdatedResources
      */
     constructor(private _resourceManagerService: ResourceManagerService, startAutoUpdate = true) {

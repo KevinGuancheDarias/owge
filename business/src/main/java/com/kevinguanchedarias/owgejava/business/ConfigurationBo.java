@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import javax.annotation.PostConstruct;
 
@@ -95,7 +96,7 @@ public class ConfigurationBo implements Serializable {
 		if (cache.get(name) != null) {
 			return cache.get(name);
 		} else {
-			return configurationRepository.findOne(name);
+			return configurationRepository.findById(name).get();
 		}
 	}
 
@@ -131,7 +132,7 @@ public class ConfigurationBo implements Serializable {
 			return cache.get(name);
 		}
 
-		Configuration retVal = configurationRepository.findOne(name);
+		Configuration retVal = configurationRepository.findById(name).get();
 
 		if (retVal == null) {
 			throw new SgtBackendConfigurationNotFoundException("Configuration param " + name + " not found");
@@ -156,7 +157,7 @@ public class ConfigurationBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
 	 */
 	public void deleteOne(String name) {
-		configurationRepository.delete(name);
+		configurationRepository.deleteById(name);
 	}
 
 	public void clearCache() {
@@ -184,29 +185,30 @@ public class ConfigurationBo implements Serializable {
 	public Long findMissionBaseTimeByType(MissionType type) {
 		Long retVal;
 		switch (type) {
-		case EXPLORE:
-			retVal = findMissionExploreBaseTime();
-			break;
-		case GATHER:
-			retVal = findMissionGatherBaseTime();
-			break;
-		case ESTABLISH_BASE:
-			retVal = findMissionEstablishBaseBaseTime();
-			break;
-		case ATTACK:
-			retVal = findMissionAttackBaseTime();
-			break;
-		case COUNTERATTACK:
-			retVal = findMissionCounterattackBaseTime();
-			break;
-		case CONQUEST:
-			retVal = findMissionConquestBaseTime();
-			break;
-		case DEPLOY:
-			retVal = findMissionDeployBaseTime();
-			break;
-		default:
-			throw new SgtBackendInvalidInputException("Unsupported mission base time type, specified: " + type.name());
+			case EXPLORE:
+				retVal = findMissionExploreBaseTime();
+				break;
+			case GATHER:
+				retVal = findMissionGatherBaseTime();
+				break;
+			case ESTABLISH_BASE:
+				retVal = findMissionEstablishBaseBaseTime();
+				break;
+			case ATTACK:
+				retVal = findMissionAttackBaseTime();
+				break;
+			case COUNTERATTACK:
+				retVal = findMissionCounterattackBaseTime();
+				break;
+			case CONQUEST:
+				retVal = findMissionConquestBaseTime();
+				break;
+			case DEPLOY:
+				retVal = findMissionDeployBaseTime();
+				break;
+			default:
+				throw new SgtBackendInvalidInputException(
+						"Unsupported mission base time type, specified: " + type.name());
 		}
 		return retVal;
 	}
@@ -330,7 +332,7 @@ public class ConfigurationBo implements Serializable {
 	public Configuration findOrSetDefault(String name, String defaultValue) {
 		try {
 			return findConfigurationParam(name);
-		} catch (SgtBackendConfigurationNotFoundException e) {
+		} catch (SgtBackendConfigurationNotFoundException | NoSuchElementException e) {
 			LOCAL_LOGGER.warn("Warning, configuration not found, using default " + defaultValue
 					+ ", nested message is: " + e.getMessage());
 			return new Configuration(name, defaultValue);
