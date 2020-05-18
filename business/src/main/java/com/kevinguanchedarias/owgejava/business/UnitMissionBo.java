@@ -32,6 +32,8 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
+import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
@@ -546,6 +548,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Transactional
 	public UnitRunningMissionDto adminRegisterDeploy(UnitMissionInformation missionInformation) {
+		if (missionInformation.getSourcePlanetId().equals(missionInformation.getTargetPlanetId())) {
+			throw exceptionUtilService
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_DEPLOY_ITSELF")
+					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
+		}
 		return commonMissionRegister(missionInformation, MissionType.DEPLOY);
 	}
 

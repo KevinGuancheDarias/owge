@@ -7,6 +7,8 @@ v0.9.0 (latest)
 
 v0.8.2 (latest)
 =================
+* __Fix:__ [Do not allow self deploy #215](https://github.com/KevinGuancheDarias/owge/issues/215)
+* __Fix:__ [Units that are not in the planet are participating in attacks #216](https://github.com/KevinGuancheDarias/owge/issues/216)
 * __Fix:__ [Not able to edit an existing alliance name or description #210](https://github.com/KevinGuancheDarias/owge/issues/210)
 * __Improvement:__ [Allow alliance description line breaks to be respected #203](https://github.com/KevinGuancheDarias/owge/issues/203)
 * __Fix:__ [When using Chrome language translations, the game hangs #204](https://github.com/KevinGuancheDarias/owge/issues/204)

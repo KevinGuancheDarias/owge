@@ -29,3 +29,4 @@ FROM spring-base as game-rest-and-admin
 EXPOSE 8080
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 COPY --from=game-war-files /build/rest/target/*.jar /app/game_api.jar
+

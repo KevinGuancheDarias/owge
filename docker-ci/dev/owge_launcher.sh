@@ -325,7 +325,7 @@ function _createTestWorldIfWanted () {
         sleep 3;
         _container=`docker ps | grep ${_profileName}_db_1 | cut -d ' ' -f 1`;
         if [ -n "$_container" ]; then
-            attemps=300 waitFor "Waiting for universe database" "docker exec --env MYSQL_PWD=1234 -i "$_container" mysql -u root -e 'SELECT * FROM configuration' owge | wc -l |  xargs -I € test "€" -gt 0";
+            attemps=300 waitFor "Waiting for universe database" "docker exec --env MYSQL_PWD=1234 -i "$_container" mysql -u root -e 'SELECT * FROM objects' owge | wc -l |  xargs -I € test "€" -gt 0";
             if [ `docker exec --env MYSQL_PWD=1234 -i "$_container" mysql -u root -e "SELECT * FROM upgrade_types" owge | wc -l` -eq 0 ]; then
                 log info "Creating universe $_testWorld";
                 _worldDirectory="./test_worlds/$_testWorld";

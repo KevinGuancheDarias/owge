@@ -349,7 +349,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 */
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
-		retVal.addAll(repository.findBySourcePlanetId(attackedPlanet.getId()));
+		retVal.addAll(repository.findBySourcePlanetIdAndMissionIsNull(attackedPlanet.getId()));
 		retVal.addAll(repository.findByTargetPlanetId(attackedPlanet.getId()));
 		return retVal;
 	}
