@@ -1,16 +1,21 @@
-FROM  maven:3-jdk-11-openj9
-LABEL Autor Kevin Guanche Darias
+#FROM adoptopenjdk/openjdk11-openj9:alpine
+FROM shipilev/openjdk-shenandoah:11
+LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
+
+EXPOSE 8080
 
 ARG warHolderDirectory
 ARG OWGE_REST_WAR_FILENAME
 ARG OWGE_UNIVERSE_ID
-ARG OWGE_DB_URL
-ARG OWGE_DB_USER
-ARG OWGE_DB_PASS
 
 ENV TERM xterm
 
 COPY $warHolderDirectory /tmp/war_location_folder
 
+RUN cp -rp /tmp/war_location_folder/scripts /scripts
+RUN chmod +x /scripts/*.sh
 RUN mkdir /app
 RUN mv /tmp/war_location_folder/$OWGE_REST_WAR_FILENAME /app/rest.jar
+
+# Add "-Xlog:gc" to see the GC info
+CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseShenandoahGC","-Xmx220m", "-Xms100m", "-jar", "-Dspring.profiles.active=rsaKeys", "/app/rest.jar"]

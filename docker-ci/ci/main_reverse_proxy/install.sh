@@ -5,14 +5,16 @@
 
 dockerImageName="kevinguanchedarias/owgejava_main_proxy";
 
+source ../lib.sh;
+
 if [ -z "$1" ]; then
-        echo "No se ha especificado el directorio donde se encuentra el cdigo del frontend";
+        log error "No se ha especificado el directorio donde se encuentra el cdigo del frontend";
         exit 1;
 fi
 
 frontend="$1";
 if [ ! -f "$frontend/angular.json" ]; then
-	echo "Not a valid Angular CLI project";
+	log error "Not a valid Angular CLI project";
 	exit 1;
 fi
 
@@ -20,18 +22,18 @@ launcherPath=$PWD;
 compiledDestination="$frontend/dist";
 
 if [ ! -d "$compiledDestination" ]; then
-	echo "Compiled destination not found, should not used install.sh outside of launch_admin_rest.sh for now";
+	log error "Compiled destination not found, at $compiledDestination, should not used install.sh outside of launch_admin_rest.sh for now";
 	exit 1;
 fi
 if [ ! -d "$compiledDestination/game-frontend" ] || [ ! -d "$compiledDestination/game-admin" ]; then
-	echo "Compiled destination exists, but doesn't have game-frontend, or/nor game-admin";
+	log error "Compiled destination exists, at $compiledDestination, but doesn't have game-frontend, or/nor game-admin";
 	exit 1;
 fi
-echo "Copying compiled files to target, so is available to docker build";
+log debug "Copying compiled files to target, so is available to docker build";
 sourceDestination="$launcherPath/target";
 cd $launcherPath;
 if [  ! -d "$launcherPath/config" ]; then
-	echo "No existe el directorio ./config , lo que significa que no se está lanzando este comando en el directorio correcto";
+	log error"No existe el directorio $launcherPath/config , lo que significa que no se está lanzando este comando en el directorio correcto";
 	exit 1;
 fi
 
@@ -42,6 +44,6 @@ cp -rp "$compiledDestination/game-admin" "$sourceDestination/admin";
 
 # START docker fun if wanteed to
 if [ ! -z "$2" ]; then
-	echo "se ha solicitado compilación de Docker!";
+	log info "se ha solicitado compilación de Docker!";
 	docker build -t $dockerImageName;
 fi

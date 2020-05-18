@@ -16,15 +16,16 @@ services:
       environment:
         - OWGE_REST_WAR_FILENAME
         - CATALINA_OPTS=-Xmx200m -Xms50m -XX:MaxPermSize=64m
+        - OWGE_DB_URL
+        - OWGE_DB_USER
+        - OWGE_DB_PASS
+        - OWGE_CONTEXT_PATH=/game_api
       build:
           context: admin_panel_and_rest_game/.
           args:
             - warHolderDirectory=target
             - OWGE_REST_WAR_FILENAME
             - OWGE_UNIVERSE_ID
-            - OWGE_DB_URL
-            - OWGE_DB_USER
-            - OWGE_DB_PASS
       volumes:
           - ${STATIC_IMAGES_DIR}:/var/owge_data/static
           - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic

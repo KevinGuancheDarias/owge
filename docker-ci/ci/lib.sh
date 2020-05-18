@@ -31,7 +31,7 @@ function envFailureCheck(){
 	if [ -z "$2" ]; then
                 _hint="";
                 test -n "$3" && _hint="Hint: $3";
-		>&2 echo  ne "\e[31mError: \e[39m";
+		>&2 echo  -ne "\e[31mError: \e[39m";
                 >&2 echo "Environment is not properly configured, missing $1, $3";
 		exit 1;
 	fi
@@ -368,7 +368,7 @@ function findAbsoluteDir () {
 }
 
 ##
-# Logs a message 
+# Logs a message, if no DEBUG_LEVELS is specified, will only DEBUG errors 
 #
 # @param string $1 log level, for example  "debug"
 # @param string $2 log message
@@ -380,16 +380,19 @@ function findAbsoluteDir () {
 ##
 function log () {
         if [ -n "$DEBUG_LEVELS" ]; then
-                if echo "$DEBUG_LEVELS" | grep "$1" &> /dev/null; then
-                        if [ "$1" == "warning" ]; then
-                                _defaultColor="3";
-                        elif [ "$1" == "error" ]; then
-                                _defaultColor="1";
-                        else 
-                                _defaultColor="2";
-                        fi
-                        echo -e "\e[3${3-$_defaultColor}m$1: \e[39m$2";
+                _log_levels="$DEBUG_LEVELS";
+        else
+                _log_levels="error";
+        fi
+        if echo "$_log_levels" | grep "$1" &> /dev/null; then
+                if [ "$1" == "warning" ]; then
+                        _defaultColor="3";
+                elif [ "$1" == "error" ]; then
+                        _defaultColor="1";
+                else 
+                        _defaultColor="2";
                 fi
+                echo -e "\e[3${3-$_defaultColor}m${1^^} [`date -Ins | cut -d + -f 1`]: $2\e[39m";
         fi
 }
 
@@ -489,3 +492,93 @@ function waitForSimple () {
                 fi
         done
 }
+
+
+function ctrl_c() {
+        log debug "** Trapped CTRL-C"
+        if [ ${script_in_query-0} -eq 1 ]; then
+                log warning "An outgoing mysql query is executing, please wait"
+                script_aborted=1
+        else
+                trap INT;
+                exit 1;
+        fi
+
+}
+
+##
+# Runs a MySQL command, against the known to be the mysql connection
+# 
+# @param string $1 the command itself If not specified, will read from stdin
+# @env OWGE_DB_URL
+# @env OWGE_DB_USER
+# @env OWGE_DB_PASS
+##
+function mysql_run() {
+        if [ -n "$script_aborted" ]; then
+                log error "Can't run MySQL command as script is aborted";
+                return 1;
+        fi
+	_mysql_host_and_port=`echo "$OWGE_DB_URL" | cut -d '/' -f 1`;
+	_mysql_db=`echo "$OWGE_DB_URL" | cut -d '/' -f 2`;
+	_mysql_host=`echo "$_mysql_host_and_port" | cut -d ':' -f 1`;
+	_mysql_port=`echo "$_mysql_host_and_port" | cut -d ':' -f 2`;
+        if [ -z "$1" ]; then
+                _command='cat';
+                _filename=/tmp/`date +%s`.tmp;
+                cat > $_filename
+                _concat="< $_filename";
+        else
+                _command="echo $1";
+                _concat="";
+        fi
+	( 
+                if [ -z  "$_concat" ]; then
+                        $_command | MYSQL_PWD="$OWGE_DB_PASS" mysql -h "$_mysql_host" -P "$_mysql_port" -u "$OWGE_DB_USER" $_mysql_db;
+                else
+                        $_command | MYSQL_PWD="$OWGE_DB_PASS" mysql -h "$_mysql_host" -P "$_mysql_port" -u "$OWGE_DB_USER" $_mysql_db < $_filename;
+                fi
+        ) &
+        _pid=$!;
+        _count=0;
+        script_in_query=1;
+        while [ -d /proc/$_pid ]; do
+                _count=$(($_count + 1));
+                if [ $(($_count % 5 )) -eq 0 ]; then
+                        log warning "The mysql query is taking long time";
+                fi
+                sleep 1;
+        done
+        wait $_pid;
+        _result=$?;
+        script_in_query=0;
+        if [ ${script_aborted-0} -eq 1 ]; then
+                log debug "Killing as wanted";
+                trap INT;
+                exit 1;
+        fi
+        return $_result;
+}
+
+##
+# Returns with error if mysql query fails (empty result)
+#
+# @param string $1 The query to run
+# @param string $2 extra filter
+#
+##
+function check_mysql_query_fails() {
+	_extra_filter="${2-cat}";
+	test `mysql_run "$1" | $_extra_filter | wc -l` -eq 0;
+}
+
+export log_has_displayed_levels=${log_has_displayed_levels-0};
+(
+        if [ $log_has_displayed_levels -eq 0 ]; then
+                _levels=${DEBUG_LEVELS-error};
+                for level in ${_levels//,/ }; do
+                        log $level "Level $level is enabled";
+                done
+        fi
+)
+export log_has_displayed_levels=1;

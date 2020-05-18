@@ -1,5 +1,5 @@
 import { Subscription } from 'rxjs';
-import { ResourceManagerService } from '@owge/universe';
+import { ResourceManagerService } from '../services/resource-manager.service';
 import { AutoUpdatedResources } from './auto-update-resources.pojo';
 
 
@@ -9,7 +9,6 @@ import { AutoUpdatedResources } from './auto-update-resources.pojo';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  * @export
- * @class Requirements
  */
 export class ResourceRequirements {
     private _resources: AutoUpdatedResources;
@@ -73,9 +72,9 @@ export class ResourceRequirements {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
-     * @param {number} base
-     * @param {number} percentage
-     * @returns {number}
+     * @param base
+     * @param percentage
+     * @returns
      */
     public handleSustractionPercentage(base: number, percentage: number): number {
         return base * 2 + this.handlePercentage(-base, percentage);
