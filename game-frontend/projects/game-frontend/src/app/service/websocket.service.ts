@@ -15,6 +15,7 @@ export class WebsocketService {
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _credentialsToken: string;
   private _eventHandlers: AbstractWebsocketApplicationHandler[] = [];
+  private _isAuthenticated = false;
 
   public addEventHandler(handler: AbstractWebsocketApplicationHandler) {
     this._eventHandlers.push(handler);
@@ -49,6 +50,10 @@ export class WebsocketService {
         this._log.debug('Reconnecting to specified server');
         this._socket.on('connect', () => {
           this._log.debug('Reconnected with success');
+          if (this._isAuthenticated) {
+            this._isAuthenticated = false;
+            this.authenticate(this._credentialsToken);
+          }
           resolve();
         });
         this._socket.connect();
@@ -64,35 +69,38 @@ export class WebsocketService {
   }
 
   public async authenticate(userJwtToken?: string): Promise<void> {
-    this.setAuthenticationToken(userJwtToken);
-    await this.initSocket();
-    this._log.debug('starting authentication');
-    return await new Promise<void>((resolve, reject) => {
-      this._socket.emit('authentication', JSON.stringify({
-        value: this._credentialsToken,
-        protocol: WebsocketService.PROTOCOL_VERSION,
-      }));
-      this._socket.on('authentication', response => {
-        this._log.debug('authentication attemp response is', response);
-        if (response.status === 'ok') {
-          this._log.debug('authenticated succeeded');
-          resolve();
-        } else {
-          this._log.warn('An error occuring while trying to authenticate, response was', response);
-          reject(response);
-        }
+    if (!this._isAuthenticated) {
+      this.setAuthenticationToken(userJwtToken);
+      await this.initSocket();
+      this._log.debug('starting authentication');
+      return await new Promise<void>((resolve, reject) => {
+        this._socket.emit('authentication', JSON.stringify({
+          value: this._credentialsToken,
+          protocol: WebsocketService.PROTOCOL_VERSION,
+        }));
+        this._socket.on('authentication', response => {
+          this._log.debug('authentication attemp response is', response);
+          if (response.status === 'ok') {
+            this._log.debug('authenticated succeeded');
+            this._isAuthenticated = true;
+            resolve();
+          } else {
+            this._log.warn('An error occuring while trying to authenticate, response was', response);
+            reject(response);
+          }
+        });
       });
-    });
+    }
   }
 
   private _registerSocketHandlers(): void {
     this._socket.on('deliver_message', message => {
       this._log.debug('An event from backend server received', message);
-      if (message && message.status && message.status.eventName) {
-        const eventName = message.status.eventName;
+      if (message && message.status && message.eventName) {
+        const eventName = message.eventName;
         const handler: AbstractWebsocketApplicationHandler = this._eventHandlers.find(current => !!current.getHandlerMethod(eventName));
         if (handler) {
-          handler.execute(this._socket, eventName, message.content);
+          handler.execute(this._socket, eventName, message.value);
         } else {
           this._log.error('No handler for event ' + eventName, message);
         }

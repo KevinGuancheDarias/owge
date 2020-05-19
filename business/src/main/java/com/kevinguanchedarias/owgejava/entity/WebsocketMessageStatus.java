@@ -16,6 +16,13 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+/**
+ *
+ * @deprecated We no longer care about the message status
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ *
+ */
+@Deprecated
 @Entity
 @Table(name = "websocket_messages_status")
 public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
@@ -79,7 +86,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 
 	/**
 	 * Socket server received the ACK
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -93,7 +100,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 
 	/**
 	 * Socket server notified, that the client is not connected to a websocket
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -107,7 +114,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 
 	/**
 	 * The web browser of the client received the message
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -123,7 +130,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 	 * True if it's required to have userAck defined <br>
 	 * If required, should <b>not</b> consider message as delivered unless the user
 	 * ack is defined
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -137,7 +144,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 
 	/**
 	 * When did the user read the message, if done
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -151,7 +158,7 @@ public class WebsocketMessageStatus implements EntityWithId<BigInteger> {
 
 	/**
 	 * Gets the target user, this user can be null, if target is somehow system
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

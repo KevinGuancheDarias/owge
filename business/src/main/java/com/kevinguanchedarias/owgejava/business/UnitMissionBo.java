@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -41,7 +40,6 @@ import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
-import com.kevinguanchedarias.owgejava.pojo.DeliveryQueueEntry;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -121,7 +119,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		/**
 		 * Notice: Setter with logic, check it
-		 * 
+		 *
 		 * @param obtainedUnit
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
@@ -174,7 +172,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		/**
 		 * List of users that the current user can attack
-		 * 
+		 *
 		 * @return
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
@@ -228,9 +226,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		/**
 		 * Deletes the mission from the system, when all units involved ade death
-		 * 
+		 *
 		 * Notice, should be invoked after <b>removing the obtained unit</b>
-		 * 
+		 *
 		 * @param obtainedUnit
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
@@ -309,7 +307,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		/**
 		 * If the user has an alliance, removes all those users that are not in the user
 		 * alliance
-		 * 
+		 *
 		 * @param current
 		 * @return
 		 * @since 0.7.0
@@ -337,7 +335,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		/**
 		 * To have the expected behavior sohuld be invoked after <i>startAttack()</i>
-		 * 
+		 *
 		 * @return true if the mission has been removed from the database
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
@@ -438,7 +436,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Registers a explore mission <b>as logged in user</b>
-	 * 
+	 *
 	 * @param missionInformation <i>userId</i> is <b>ignored</b> in this method
 	 *                           <b>immutable object</b>
 	 * @return mission representation DTO
@@ -456,7 +454,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Registers a explore mission <b>as a admin</b>
-	 * 
+	 *
 	 * @param missionInformation
 	 * @return mission representation DTO
 	 * @throws SgtBackendInvalidInputException When input information is not valid
@@ -558,7 +556,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Parses the exploration of a planet
-	 * 
+	 *
 	 * @param missionId
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -578,7 +576,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.withExploredInformation(unitsInPlanet);
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
-		socketIoService.sendMessage(user, "explore_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -605,7 +602,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.withGatherInformation(primaryResource, secondaryResource);
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
-		socketIoService.sendMessage(user, "gather_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -632,7 +628,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
-		socketIoService.sendMessage(user, "establish_base_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -640,7 +635,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Due to lack of support from Quartz to access spring context from the
 	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
 	 * computation from here
-	 * 
+	 *
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 * @param missionId
@@ -674,7 +669,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Executes the counterattack logic <br>
 	 * <b>NOTICE: </b> For now the current implementation just calls the
 	 * processAttack()
-	 * 
+	 *
 	 * @param missionId
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -685,7 +680,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Creates a return mission from an existing mission
-	 * 
+	 *
 	 * @param mission Existing mission that will be returned
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -696,7 +691,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Creates a return mission from an existing mission
-	 * 
+	 *
 	 * @param mission            Existing mission that will be returned
 	 * @param customRequiredTime If not null will be used as the time for the return
 	 *                           mission, else will use source mission time
@@ -753,7 +748,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
-		socketIoService.sendMessage(user, "conquest_report", builder.build());
 		emitLocalMissionChange(mission, user);
 	}
 
@@ -781,8 +775,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			mission.setResolved(true);
 			save(mission);
 			Interval interval = new Interval(new Instant().getMillis(), mission.getTerminationDate().getTime());
-			adminRegisterReturnMission(mission,
-					Double.valueOf(mission.getRequiredTime() - (interval.toDurationMillis() / 1000D)));
+			adminRegisterReturnMission(mission, mission.getRequiredTime() - (interval.toDurationMillis() / 1000D));
 		}
 	}
 
@@ -795,7 +788,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * <br>
 	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has to
 	 * remove the firstDeploymentMission
-	 * 
+	 *
 	 * @param origin
 	 * @param unit
 	 * @return
@@ -837,7 +830,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged in
 	 * user as the sender user
-	 * 
+	 *
 	 * @param missionInformation
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -903,12 +896,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * if count is valid</li>
 	 * <li>removes DEPLOYED mission if required</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param missionInformation
 	 * @return Database list of <i>ObtainedUnit</i> with the subtraction <b>already
 	 *         applied</b>, whose key is the "unit" id (don't confuse with obtained
 	 *         unit id)
-	 * 
+	 *
 	 * @throws SgtBackendInvalidInputException when validation was not passed
 	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
 	 *                                         universe)</b>
@@ -950,7 +943,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Checks if the current obtained unit can do deploy (if already deployed in
 	 * some cases, cannot)
-	 * 
+	 *
 	 * @param currentObtainedUnit
 	 * @param missionType
 	 * @since 0.7.4
@@ -961,21 +954,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 		boolean isOfUserProperty = planetBo.isOfUserProperty(missionInformation.getUserId(),
 				missionInformation.getTargetPlanetId());
 		switch (configurationBo.findDeployMissionConfiguration()) {
-			case ONLY_ONCE_RETURN_SOURCE:
-			case ONLY_ONCE_RETURN_DEPLOYED:
-				if (!isOfUserProperty && unitMissionType == MissionType.DEPLOYED
-						&& missionInformation.getMissionType() == MissionType.DEPLOY) {
-					throw new SgtBackendInvalidInputException("You can't do a deploy mission after a deploy mission");
-				}
-				break;
-			default:
-				break;
+		case ONLY_ONCE_RETURN_SOURCE:
+		case ONLY_ONCE_RETURN_DEPLOYED:
+			if (!isOfUserProperty && unitMissionType == MissionType.DEPLOYED
+					&& missionInformation.getMissionType() == MissionType.DEPLOY) {
+				throw new SgtBackendInvalidInputException("You can't do a deploy mission after a deploy mission");
+			}
+			break;
+		default:
+			break;
 		}
 	}
 
 	/**
 	 * Checks if the DEPLOY mission is allowed
-	 * 
+	 *
 	 * @param missionType
 	 * @throws SgtBackendInvalidInputException If the deployment mission is
 	 *                                         <b>globally</b> disabled
@@ -991,7 +984,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Returns a copy of the object, used to make missionInformation immutable
-	 * 
+	 *
 	 * @param missionInformation
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -1005,7 +998,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Checks if the input Unit <i>id</i> exists, and returns the associated
 	 * ObtainedUnit
-	 * 
+	 *
 	 * @param id
 	 * @param isDeployedMission If true will search for a deployed obtained unit,
 	 *                          else for an obtained unit with a <i>null<i> mission
@@ -1028,7 +1021,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Checks if the logged in user is the creator of the mission
-	 * 
+	 *
 	 * @param invoker The creator of the mission
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -1040,7 +1033,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Prepares a mission to be scheduled
-	 * 
+	 *
 	 * @param missionInformation
 	 * @param type
 	 * @return
@@ -1068,26 +1061,26 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Calculates time required to complete the mission
-	 * 
+	 *
 	 * @todo In the future calculate the units speed
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private Double calculateRequiredTime(MissionType type) {
-		return Double.valueOf(configurationBo.findMissionBaseTimeByType(type));
+		return (double) configurationBo.findMissionBaseTimeByType(type);
 	}
 
 	/**
 	 * Emits a local mission change to the target user
-	 * 
+	 *
 	 * @param mission
 	 * @param user
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private CompletableFuture<DeliveryQueueEntry> emitLocalMissionChange(Mission mission, UserStorage user) {
-		return socketIoService.sendMessage(user, "local_mission_change",
+	private void emitLocalMissionChange(Mission mission, UserStorage user) {
+		socketIoService.sendMessage(user, "local_mission_change", MissionDto.class,
 				dtoUtilService.dtoFromEntity(MissionDto.class, mission));
 	}
 
@@ -1099,7 +1092,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 * Defines the new owner for the targetPlanet
-	 * 
+	 *
 	 * @param owner         The new owner
 	 * @param involvedUnits The units used by the owner to conquest the planet
 	 * @param targetPlanet

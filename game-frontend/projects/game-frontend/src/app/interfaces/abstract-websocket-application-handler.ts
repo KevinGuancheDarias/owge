@@ -23,9 +23,15 @@ export abstract class AbstractWebsocketApplicationHandler {
      */
     public getHandlerMethod(eventName: string): string {
         const handlerMethod = this._eventsMap[eventName];
-        return (handlerMethod && typeof handlerMethod === 'string')
-            ? handlerMethod
-            : null;
+
+        if (handlerMethod && typeof handlerMethod === 'string') {
+            if (typeof this[handlerMethod] !== 'function') {
+                throw new ProgrammingError(`${this.constructor.name}.${handlerMethod} is not a function`);
+            }
+            return handlerMethod;
+        } else {
+            return null;
+        }
     }
 
     /**

@@ -9,8 +9,10 @@ import com.kevinguanchedarias.owgejava.entity.WebsocketMessageStatus;
  * This class is used to keep trace of the delivery status of the websocket
  * messages
  *
+ * @deprecated We no longer care about the message status
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
+@Deprecated(since = "0.9.0")
 public class DeliveryQueueEntry {
 	private CompletableFuture<WebsocketMessageStatus> relatedPromise;
 	private Map<String, Object> data;
@@ -31,7 +33,7 @@ public class DeliveryQueueEntry {
 
 	/**
 	 * Returns the backend passed data to this socket message
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -45,7 +47,7 @@ public class DeliveryQueueEntry {
 
 	/**
 	 * Returns the client data (Usually browser response)
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
