@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
-import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -311,21 +309,6 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public List<UnitRunningMissionDto> myFindEnemyRunningMissions() {
 		return findEnemyRunningMissions(userStorageBo.findLoggedIn());
-	}
-
-	@Transactional
-	public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
-		List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
-		return missionRepository.findByTargetPlanetInAndResolvedFalseAndUserNot(myPlanets, user).stream()
-				.map(current -> {
-					UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
-					retVal.nullifyInvolvedUnitsPlanets();
-					if (!planetBo.isExplored(user, current.getSourcePlanet())) {
-						retVal.setSourcePlanet(null);
-						retVal.setUser(null);
-					}
-					return retVal;
-				}).collect(Collectors.toList());
 	}
 
 	/**
