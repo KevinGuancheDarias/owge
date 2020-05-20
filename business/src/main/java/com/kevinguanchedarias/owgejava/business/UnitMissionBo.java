@@ -895,6 +895,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
 		retVal.setMissionsCount(countUserMissions(user.getId()));
 		emitLocalMissionChange(mission);
+
 		return retVal;
 	}
 
@@ -1105,11 +1106,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 			@Override
 			public void afterCommit() {
 				entityManager.refresh(mission);
+				emitEnemyMissionsChange(mission);
 				List<UnitRunningMissionDto> findUserRunningMissions = findUserRunningMissions(user.getId());
 				socketIoService.sendMessage(user, "unit_mission_change", MissionWebsocketMessage.class,
 						new MissionWebsocketMessage(countUserMissions(user.getId()), findUserRunningMissions));
 			}
 		});
+	}
+
+	private void emitEnemyMissionsChange(Mission mission) {
+		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
+		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
+			List<UnitRunningMissionDto> enemyMissions = findEnemyRunningMissions(targetPlanetOwner);
+			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change", List.class, enemyMissions);
+		}
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {

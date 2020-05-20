@@ -23,7 +23,8 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
   ) {
     super();
     this._eventsMap = {
-      unit_mission_change: 'reacquireMissions'
+      unit_mission_change: 'reacquireMissions',
+      enemy_mission_change: 'onEnemyMissionChange'
     };
     _userStore.currentUserImprovements.subscribe(improvement =>
       _missionStore.maxMissions.next(improvement.moreMisions)
@@ -44,11 +45,11 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
   }
 
   public findMyRunningMissions(): Observable<UnitRunningMission[]> {
-    return this._missionStore.myUnitMissions;
+    return this._missionStore.myUnitMissions.asObservable();
   }
 
-  public findEnemyRunningMissions(): Observable<UnitRunningMissionOld[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy');
+  public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
+    return this._missionStore.enemyUnitMissions.asObservable();
   }
 
   /**
@@ -159,9 +160,19 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @param content
    */
   public reacquireMissions(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
-    this._log.debug('Updating missions count as WS required', content);
     this._missionStore.missionsCount.next(content.count);
     this._missionStore.myUnitMissions.next(content.myUnitMissions.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
+  }
+
+  /**
+   * Reacts to WS enemy_mission_change event
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param content
+   */
+  public onEnemyMissionChange(content: UnitRunningMission[]): void {
+    this._missionStore.enemyUnitMissions.next(content.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
   }
 
   /**
@@ -178,7 +189,15 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
         .pipe(
           take(1),
           map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
-        ).toPromise());
+        ).toPromise()
+    );
+    this._missionStore.enemyUnitMissions.next(
+      await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findEnemy')
+        .pipe(
+          take(1),
+          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
+        ).toPromise()
+    );
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

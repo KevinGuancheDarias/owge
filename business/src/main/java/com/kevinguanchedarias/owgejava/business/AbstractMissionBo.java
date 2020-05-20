@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -188,6 +189,21 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
 		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
 				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
+	}
+
+	@Transactional
+	public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
+		List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
+		return missionRepository.findByTargetPlanetInAndResolvedFalseAndUserNot(myPlanets, user).stream()
+				.map(current -> {
+					UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
+					retVal.nullifyInvolvedUnitsPlanets();
+					if (!planetBo.isExplored(user, current.getSourcePlanet())) {
+						retVal.setSourcePlanet(null);
+						retVal.setUser(null);
+					}
+					return retVal;
+				}).collect(Collectors.toList());
 	}
 
 	/**

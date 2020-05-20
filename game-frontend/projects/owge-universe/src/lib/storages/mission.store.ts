@@ -12,4 +12,5 @@ export class MissionStore {
     public missionsCount: Subject<number> = new ReplaySubject();
     public maxMissions: Subject<number> = new ReplaySubject();
     public myUnitMissions: Subject<UnitRunningMission[]> = new ReplaySubject();
+    public enemyUnitMissions: Subject<UnitRunningMission[]> = new ReplaySubject;
 }

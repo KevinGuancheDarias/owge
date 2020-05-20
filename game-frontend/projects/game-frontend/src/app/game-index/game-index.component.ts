@@ -3,9 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { UserStorage, User } from '@owge/core';
 
 import { BaseComponent } from '../base/base.component';
-import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionService } from '../services/mission.service';
-import { UnitRunningMission as UnitRunningMissionOld } from '../shared/types/unit-running-mission.type';
 import { UpgradeService } from '../service/upgrade.service';
 import { RunningUpgrade } from '../shared-pojo/running-upgrade.pojo';
 import { filter, take } from 'rxjs/operators';
@@ -23,7 +21,7 @@ import { UnitRunningMission } from '@owge/universe';
 export class GameIndexComponent extends BaseComponent implements OnInit {
 
   public myUnitRunningMissions: UnitRunningMission[];
-  public enemyRunningMissions: UnitRunningMissionOld[];
+  public enemyRunningMissions: UnitRunningMission[];
   public runningUpgrade: RunningUpgrade;
   public relatedObtainedUpgrade: ObtainedUpgradePojo;
 
@@ -58,7 +56,9 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
     });
   }
 
-  public async findEnemyMissions(): Promise<void> {
-    this.enemyRunningMissions = await this._missionService.findEnemyRunningMissions().toPromise();
+  public findEnemyMissions(): void {
+    this._missionService.findEnemyRunningMissions().subscribe(
+      result => this.enemyRunningMissions = result
+    );
   }
 }
