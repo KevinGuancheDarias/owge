@@ -17,8 +17,8 @@ export class WebsocketService {
   private _eventHandlers: AbstractWebsocketApplicationHandler[] = [];
   private _isAuthenticated = false;
 
-  public addEventHandler(handler: AbstractWebsocketApplicationHandler) {
-    this._eventHandlers.push(handler);
+  public addEventHandler(...handler: AbstractWebsocketApplicationHandler[]) {
+    this._eventHandlers = this._eventHandlers.concat(handler);
   }
 
   /**
@@ -29,7 +29,8 @@ export class WebsocketService {
    * @returns {Promise<void>} Solves when the socket is properly connected to the backend
    * @memberof WebsocketService
    */
-  public initSocket(targetUrl?: string): Promise<void> {
+  public initSocket(targetUrl?: string, jwtToken?: string): Promise<void> {
+    this.setAuthenticationToken(jwtToken);
     return new Promise<void>(resolve => {
       if (!this._socket) {
         if (!targetUrl) {
@@ -37,25 +38,24 @@ export class WebsocketService {
         }
         this._log.debug('Connecting to remote websocket server', targetUrl);
         this._socket = io.connect(targetUrl);
-        this._socket.on('connect', () => {
+        this._socket.on('connect', async () => {
           if (this._isFirstConnection) {
             this._log.info('Connection established with success');
-            resolve();
             this._isFirstConnection = false;
+          } else {
+            this._log.info('Reconnected');
           }
-        });
-        this._socket.on('disconnect', () => this._log.info('client disconnected'));
-        this._registerSocketHandlers();
-      } else if (!this._socket.connected) {
-        this._log.debug('Reconnecting to specified server');
-        this._socket.on('connect', () => {
-          this._log.debug('Reconnected with success');
-          if (this._isAuthenticated) {
-            this._isAuthenticated = false;
-            this.authenticate(this._credentialsToken);
-          }
+          await this.authenticate();
           resolve();
         });
+        this._socket.on('disconnect', () => {
+          this._log.info('client disconnected');
+          this._socket.removeAllListeners();
+          delete this._socket;
+          this.initSocket(targetUrl, jwtToken);
+          this._isAuthenticated = false;
+        });
+      } else if (!this._socket.connected) {
         this._socket.connect();
       } else {
         this._log.debug('It\'s already connected there is no need to reconnect again');
@@ -68,10 +68,8 @@ export class WebsocketService {
     this._credentialsToken = jwtToken;
   }
 
-  public async authenticate(userJwtToken?: string): Promise<void> {
+  public async authenticate(): Promise<void> {
     if (!this._isAuthenticated) {
-      this.setAuthenticationToken(userJwtToken);
-      await this.initSocket();
       this._log.debug('starting authentication');
       return await new Promise<void>((resolve, reject) => {
         this._socket.emit('authentication', JSON.stringify({
@@ -79,10 +77,11 @@ export class WebsocketService {
           protocol: WebsocketService.PROTOCOL_VERSION,
         }));
         this._socket.on('authentication', response => {
-          this._log.debug('authentication attemp response is', response);
+          this._socket.removeEventListener('authentication');
           if (response.status === 'ok') {
             this._log.debug('authenticated succeeded');
             this._isAuthenticated = true;
+            this._registerSocketHandlers();
             resolve();
           } else {
             this._log.warn('An error occuring while trying to authenticate, response was', response);
@@ -93,14 +92,15 @@ export class WebsocketService {
     }
   }
 
-  private _registerSocketHandlers(): void {
+  private async _registerSocketHandlers(): Promise<void> {
+    await Promise.all(this._eventHandlers.map(current => current.workaroundSync()));
     this._socket.on('deliver_message', message => {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
         const handler: AbstractWebsocketApplicationHandler = this._eventHandlers.find(current => !!current.getHandlerMethod(eventName));
         if (handler) {
-          handler.execute(this._socket, eventName, message.value);
+          handler.execute(eventName, message.value);
         } else {
           this._log.error('No handler for event ' + eventName, message);
         }

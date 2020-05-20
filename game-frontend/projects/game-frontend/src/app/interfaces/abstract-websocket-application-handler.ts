@@ -13,6 +13,18 @@ export abstract class AbstractWebsocketApplicationHandler {
 
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
+
+    /**
+     * Actions to run when connected or reconnected to websocket
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns {Promise<void>}
+     */
+    public async workaroundSync(): Promise<void> {
+        // TODO: Override to handle the sync call
+    }
+
     /**
      * Returns the name of the public function used to handle an event
      *
@@ -49,17 +61,16 @@ export abstract class AbstractWebsocketApplicationHandler {
      * Executes the action
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {SocketIOClient.Socket} socket The related socket
      * @param {string} eventName name of the event to execute
      * @param {*} content Content sent by the socket
      * @returns {Promise<any>} Promise resolved when the event has been solved inside the method handler
      * @throws {ProgrammingError} When the eventName doesn't have a hander in this websocket handler
      * @memberof WebsocketApplicationHandler
      */
-    public async execute(socket: SocketIOClient.Socket, eventName: string, content: any): Promise<any> {
+    public async execute(eventName: string, content: any): Promise<any> {
         const functionName: string = this.getHandlerMethod(eventName);
         if (functionName && typeof this[functionName] === 'function') {
-            this[functionName](socket, content);
+            this[functionName](content);
         } else {
             throw new ProgrammingError('Handler for ' + eventName + ' NOT found in ' + this.constructor.name);
         }

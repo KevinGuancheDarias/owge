@@ -1,5 +1,5 @@
-import { PlanetPojo } from './planet.pojo';
-import { Unit } from '@owge/universe';
+import { Planet } from '@owge/galaxy';
+import { Unit } from './unit.type';
 
 /**
  * Represents an obtained unit
@@ -13,8 +13,8 @@ export interface ObtainedUnit {
     id: number;
     unit: Unit;
     count: number;
-    sourcePlanet?: PlanetPojo;
-    targetPlanet?: PlanetPojo;
+    sourcePlanet?: Planet;
+    targetPlanet?: Planet;
     mission?: any;
     expiration?: Date;
 }

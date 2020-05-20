@@ -1,35 +1,34 @@
 import { Injectable } from '@angular/core';
-import { tap, map, filter } from 'rxjs/operators';
+import { map, filter, tap, take } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ProgrammingError, LoadingService, UserStorage, User } from '@owge/core';
-import { ClockSyncService, UniverseGameService, MissionStore } from '@owge/universe';
+import { ProgrammingError, LoadingService, UserStorage, User, DateUtil } from '@owge/core';
+import { UniverseGameService, MissionStore, UnitRunningMission, RunningMission } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
-import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
-import { MissionType } from '../shared/types/mission.type';
-
+import { UnitRunningMission as UnitRunningMissionOld } from '../shared/types/unit-running-mission.type';
+import { MissionType } from '@owge/core';
+import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
 
 @Injectable()
-export class MissionService {
+export class MissionService extends AbstractWebsocketApplicationHandler {
 
   public constructor(
-    private _clockSyncService: ClockSyncService,
     private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
     _userStore: UserStorage<User>,
     private _missionStore: MissionStore
   ) {
-    _userStore.currentUser.pipe(filter(user => !!user)).subscribe(() =>
-      this.loadCount()
-    );
+    super();
+    this._eventsMap = {
+      unit_mission_change: 'reacquireMissions'
+    };
     _userStore.currentUserImprovements.subscribe(improvement =>
       _missionStore.maxMissions.next(improvement.moreMisions)
     );
   }
-
 
   /**
    * Loads the count of missions in the <i>MissionStore</i>
@@ -37,19 +36,18 @@ export class MissionService {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.0
    */
-  public loadCount(): void {
-    this._universeGameService.requestWithAutorizationToContext<number>('game', 'get', 'mission/count')
-      .subscribe(count => {
+  public loadCount(): Observable<number> {
+    return this._universeGameService.requestWithAutorizationToContext<number>('game', 'get', 'mission/count')
+      .pipe(tap(count => {
         this._missionStore.missionsCount.next(count);
-        return count;
-      });
+      }));
   }
 
-  public findMyRunningMissions(): Observable<AnyRunningMission[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findMy');
+  public findMyRunningMissions(): Observable<UnitRunningMission[]> {
+    return this._missionStore.myUnitMissions;
   }
 
-  public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
+  public findEnemyRunningMissions(): Observable<UnitRunningMissionOld[]> {
     return this._universeGameService.getWithAuthorizationToUniverse<AnyRunningMission[]>('mission/findEnemy');
   }
 
@@ -132,7 +130,7 @@ export class MissionService {
     return this._universeGameService.postWithAuthorizationToUniverse(`mission/cancel?id=${missionId}`, {});
   }
 
-  public isUnitMission(mission: AnyRunningMission): boolean {
+  public isUnitMission(mission: RunningMission): boolean {
     switch (mission.type) {
       case 'RETURN_MISSION':
       case 'EXPLORE':
@@ -151,6 +149,36 @@ export class MissionService {
 
   public isBuildMission(mission: AnyRunningMission): boolean {
     return mission.type === 'BUILD_UNIT';
+  }
+
+  /**
+   * Reacts to WS unit_mission_change event
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param content
+   */
+  public reacquireMissions(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
+    this._log.debug('Updating missions count as WS required', content);
+    this._missionStore.missionsCount.next(content.count);
+    this._missionStore.myUnitMissions.next(content.myUnitMissions.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async workaroundSync(): Promise<void> {
+    await this.loadCount().pipe(take(1)).toPromise();
+    this._missionStore.myUnitMissions.next(
+      await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findMy')
+        .pipe(
+          take(1),
+          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
+        ).toPromise());
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.MissionDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -83,7 +85,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	private transient ApplicationContext applicationContext;
 
 	@Autowired
-	private MissionSchedulerService missionSchedulerService;
+	private transient MissionSchedulerService missionSchedulerService;
 
 	public abstract String getGroupName();
 
@@ -173,6 +175,19 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 */
 	public Integer findUserMaxAllowedMissions(UserStorage user) {
 		return improvementBo.findUserImprovement(user).getMoreMisions().intValue() + 1;
+	}
+
+	/**
+	 * Returns all the running missions for the specified user
+	 *
+	 * @param userId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
+		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
+				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
 	}
 
 	/**

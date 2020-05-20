@@ -349,14 +349,7 @@ export class LoginSessionService implements CanActivate {
     if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
       this._notifyGameFrontendCore();
       this.alreadyNotified = true;
-    } else if (!this._isLoginRoute(loadingRoute)) {
-      this._workaroundMissionsCount();
     }
-  }
-
-  private _workaroundMissionsCount(): void {
-    this._lgsLog.todo(['Replace workaroundMissionsCount for a websocket "Adapter" that listens for mission count changes']);
-    this._missionService.loadCount();
   }
 
   /**

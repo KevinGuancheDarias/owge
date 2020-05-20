@@ -23,6 +23,23 @@ export class DateUtil {
         return new Date(new Date().getTime() + pendingMillis + DateUtil._INTENTIONAL_DELAY);
     }
 
+
+    /**
+     * Defines the browser termination date from pendingMillis <br>
+     * Comes handy for inline map()
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @static
+     * @template T
+     * @param object
+     * @returns
+     */
+    public static computeBrowserTerminationDate<T extends { pendingMillis: number, browserComputedTerminationDate?: Date }>(object: T): T {
+        object.browserComputedTerminationDate = this.createFromPendingMillis(object.pendingMillis);
+        return object;
+    }
+
     /**
      * Converts the input millis to an object containing days, hours, minutes and seconds
      *

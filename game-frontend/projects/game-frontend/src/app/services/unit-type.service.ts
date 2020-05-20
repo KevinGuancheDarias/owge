@@ -7,7 +7,7 @@ import { camelCase, upperFirst } from 'lodash-es';
 import { ProgrammingError, Improvement, UserStorage, User, LoggerHelper } from '@owge/core';
 import { UniverseGameService, UnitType } from '@owge/universe';
 
-import { MissionType } from '../shared/types/mission.type';
+import { MissionType } from '@owge/core';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { MissionSupport } from '../../../../owge-universe/src/lib/types/mission-support.type';
 import { LoginSessionService } from '../login-session/login-session.service';

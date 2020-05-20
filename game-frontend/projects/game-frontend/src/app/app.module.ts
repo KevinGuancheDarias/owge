@@ -188,7 +188,7 @@ export const APP_ROUTES: Routes = [
     UnitTypeService,
     UpgradeTypeService,
     MissionService,
-    TimeSpecialService,
+    TimeSpecialService
   ],
   bootstrap: [AppComponent]
 })
@@ -217,11 +217,13 @@ export class AppModule {
           _oldSuscription.unsubscribe();
           _oldSuscription = null;
         }
-        this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-        this._websocketService.initSocket(conf.value);
+        this._websocketService.addEventHandler(
+          new PingWebsocketApplicationHandler(),
+          this._injector.get(MissionService)
+        );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))
-          .subscribe(token => this._websocketService.authenticate(token));
+          .subscribe(token => this._websocketService.initSocket(conf.value, token));
       });
   }
 }

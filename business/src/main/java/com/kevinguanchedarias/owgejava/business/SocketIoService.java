@@ -11,7 +11,9 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.corundumstudio.socketio.SocketIOClient;
@@ -48,10 +50,14 @@ public class SocketIoService implements Serializable {
 
 	@PostConstruct
 	public void init() {
-		LOCAL_LOGGER.info("Starting websocket at ws://" + websocketConfiguration.getHostname() + ":"
-				+ websocketConfiguration.getPort());
 		server = new SocketIOServer(websocketConfiguration);
 		registerUnauthenticatedEvents();
+	}
+
+	@EventListener(ApplicationReadyEvent.class)
+	public void onContextReady() {
+		LOCAL_LOGGER.info("Starting websocket at ws://" + websocketConfiguration.getHostname() + ":"
+				+ websocketConfiguration.getPort());
 		server.start();
 	}
 

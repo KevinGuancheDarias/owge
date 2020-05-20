@@ -7,7 +7,7 @@ import { UnitType, MissionStore } from '@owge/universe';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { MissionType } from '../shared/types/mission.type';
+import { MissionType } from '@owge/core';
 import { MissionService } from '../services/mission.service';
 import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';

@@ -66,7 +66,6 @@ export class LoginComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   private onLoginSuccess(token: string): void {
-    this._websocketService.authenticate(token);
     this._router.navigate(['/universe-selection']);
   }
 

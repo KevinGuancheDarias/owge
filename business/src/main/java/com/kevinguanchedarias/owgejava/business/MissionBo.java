@@ -308,19 +308,6 @@ public class MissionBo extends AbstractMissionBo {
 		return findUserRunningMissions(userStorageBo.findLoggedIn().getId());
 	}
 
-	/**
-	 * Returns all the running missions for the specified user
-	 *
-	 * @param userId
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
-		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
-				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
-	}
-
 	@Transactional
 	public List<UnitRunningMissionDto> myFindEnemyRunningMissions() {
 		return findEnemyRunningMissions(userStorageBo.findLoggedIn());

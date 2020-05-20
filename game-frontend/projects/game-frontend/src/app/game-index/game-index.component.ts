@@ -5,11 +5,12 @@ import { UserStorage, User } from '@owge/core';
 import { BaseComponent } from '../base/base.component';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionService } from '../services/mission.service';
-import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
+import { UnitRunningMission as UnitRunningMissionOld } from '../shared/types/unit-running-mission.type';
 import { UpgradeService } from '../service/upgrade.service';
 import { RunningUpgrade } from '../shared-pojo/running-upgrade.pojo';
 import { filter, take } from 'rxjs/operators';
 import { ObtainedUpgradePojo } from '../shared-pojo/obtained-upgrade.pojo';
+import { UnitRunningMission } from '@owge/universe';
 
 @Component({
   selector: 'app-game-index',
@@ -21,8 +22,8 @@ import { ObtainedUpgradePojo } from '../shared-pojo/obtained-upgrade.pojo';
 })
 export class GameIndexComponent extends BaseComponent implements OnInit {
 
-  public myUnitRunningMissions: AnyRunningMission[];
-  public enemyRunningMissions: UnitRunningMission[];
+  public myUnitRunningMissions: UnitRunningMission[];
+  public enemyRunningMissions: UnitRunningMissionOld[];
   public runningUpgrade: RunningUpgrade;
   public relatedObtainedUpgrade: ObtainedUpgradePojo;
 

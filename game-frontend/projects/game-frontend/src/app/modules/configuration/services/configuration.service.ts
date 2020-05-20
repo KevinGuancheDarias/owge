@@ -20,7 +20,9 @@ import { ConfigurationStore } from '../store/configuration.store';
 @Injectable()
 export class ConfigurationService {
   private _configuration: Configuration<any>[];
+  private _otherConfiguration: Configuration<any>[];
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  foo: string;
 
   constructor(
     private _universeGameService: UniverseGameService,
@@ -39,8 +41,12 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public async init(): Promise<void> {
-    this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
-    this._configurationStore.currentConfiguration.next(this._configuration);
+    if (!this._configuration) {
+      this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
+      this._otherConfiguration = this._configuration;
+      this.foo = '1234;';
+      this._configurationStore.currentConfiguration.next(this._configuration);
+    }
   }
 
   /**

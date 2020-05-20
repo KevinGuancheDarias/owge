@@ -34,6 +34,7 @@ export * from './lib/types/http-options.type';
 export * from './lib/types/improvement-unit-type.type';
 export * from './lib/types/improvement.type';
 export * from './lib/types/menu-route.type';
+export * from './lib/types/mission.type';
 export * from './lib/types/router-data.type';
 export * from './lib/types/user.type';
 export * from './lib/utils/content-transclusion.util';

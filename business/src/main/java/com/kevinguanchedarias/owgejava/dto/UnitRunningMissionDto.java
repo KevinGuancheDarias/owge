@@ -25,7 +25,9 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 
 	public UnitRunningMissionDto(Mission mission, List<ObtainedUnit> involvedUnits) {
 		super(mission);
-		this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);
+		if (involvedUnits != null) {
+			this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);
+		}
 		sourcePlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getSourcePlanet());
 		targetPlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getTargetPlanet());
 		UserStorage userEntity = mission.getUser();
@@ -35,16 +37,17 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 	}
 
 	/**
-	 * Defines as undefined the source and the target planet, of each involved
-	 * unit
-	 * 
+	 * Defines as undefined the source and the target planet, of each involved unit
+	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public UnitRunningMissionDto nullifyInvolvedUnitsPlanets() {
-		this.involvedUnits.forEach(current -> {
-			current.setSourcePlanet(null);
-			current.setTargetPlanet(null);
-		});
+		if (involvedUnits != null) {
+			involvedUnits.forEach(current -> {
+				current.setSourcePlanet(null);
+				current.setTargetPlanet(null);
+			});
+		}
 		return this;
 	}
 

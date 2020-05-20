@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { MEDIA_ROUTES, Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
+import { Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
 import { UniverseGameService, UnitType, Unit } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
