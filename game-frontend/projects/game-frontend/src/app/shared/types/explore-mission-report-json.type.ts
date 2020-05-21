@@ -1,5 +1,5 @@
 import { MissionReportJson } from './mission-report-json.type';
-import { UnitPojo } from '../../shared-pojo/unit.pojo';
+import { Unit } from '@owge/universe';
 
 
 /**
@@ -11,5 +11,5 @@ import { UnitPojo } from '../../shared-pojo/unit.pojo';
  * @extends {MissionReportJson}
  */
 export interface ExploreMissionReportJson extends MissionReportJson {
-    unitsInPlanet?: UnitPojo[];
+    unitsInPlanet?: Unit[];
 }

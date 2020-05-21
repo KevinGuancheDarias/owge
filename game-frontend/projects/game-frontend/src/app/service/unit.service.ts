@@ -10,7 +10,6 @@ import { PlanetService, PlanetStore } from '@owge/galaxy';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { RunningUnitPojo } from './../shared-pojo/running-unit-build.pojo';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
-import { UnitPojo } from './../shared-pojo/unit.pojo';
 import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
 import { UnitTypeService } from '../services/unit-type.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
@@ -75,7 +74,7 @@ export class UnitService {
    *
    * @author Kevin Guanche Darias
    */
-  public findUnlocked(): Observable<UnitPojo[]> {
+  public findUnlocked(): Observable<Unit[]> {
     return this._universeGameService.getWithAuthorizationToUniverse('unit/findUnlocked');
   }
 

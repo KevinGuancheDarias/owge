@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip } from 'rxjs/operators';
 
-import { Improvement, UserStorage, LoggerHelper, ResourcesEnum } from '@owge/core';
+import { Improvement, UserStorage, LoggerHelper, ResourcesEnum, User } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 
 /**
@@ -31,56 +31,60 @@ export class ResourceManagerService {
     }
 
     private _intervalId: number;
+    private _currentUser: UserWithFaction;
 
     private _currentPrimaryResource: number;
     private _currentPrimaryResourcePerSecond: number;
     private _currentSecondaryResource: number;
     private _currentSecondaryResourcePerSecond: number;
-    private _currentEnergy: number;
+    private _currentConsumedEnergy: number;
     private _currentMaxEnergy: number;
     private _lastDate: Date;
+    private _currentUserImprovementsSubscription: Subscription;
+    private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
     private _currentPrimaryResourceFloor: BehaviorSubject<number> = new BehaviorSubject(0);
     private _currentSecondaryResourceFloor: BehaviorSubject<number> = new BehaviorSubject(0);
     private _currentEnergyFloor: BehaviorSubject<number> = new BehaviorSubject(0);
     private _currentMaxEnergyFloor: BehaviorSubject<number> = new BehaviorSubject(0);
-    private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
     constructor(private _userStore: UserStorage<UserWithFaction>) {
-
+        _userStore.currentUser.subscribe(user => {
+            this._setResources(user);
+            this._currentUser = user;
+        });
     }
 
     /**
      *
-     * @param userPojo
+     * @param user
      * @author Kevin Guanche Darias
      */
-    public startHandling(userPojo?: UserWithFaction) {
+    public startHandling() {
         this.stopHandling();
         this._lastDate = new Date();
-        if (userPojo) {
-            this._setResources(userPojo);
-        }
         this._intervalId = window.setInterval(() => {
-            const currentDate: Date = new Date();
+            if (this._currentUser) {
+                const currentDate: Date = new Date();
 
-            this._currentPrimaryResource = this._calculateSum(
-                currentDate,
-                this._lastDate,
-                this._currentPrimaryResourcePerSecond,
-                this._currentPrimaryResource
-            );
-            this._currentPrimaryResourceFloor.next(Math.floor(this._currentPrimaryResource));
+                this._currentPrimaryResource = this._calculateSum(
+                    currentDate,
+                    this._lastDate,
+                    this._currentPrimaryResourcePerSecond,
+                    this._currentPrimaryResource
+                );
+                this._currentPrimaryResourceFloor.next(Math.floor(this._currentPrimaryResource));
 
-            this._currentSecondaryResource = this._calculateSum(
-                currentDate,
-                this._lastDate,
-                this._currentSecondaryResourcePerSecond,
-                this._currentSecondaryResource
-            );
-            this._currentSecondaryResourceFloor.next(Math.floor(this._currentSecondaryResource));
+                this._currentSecondaryResource = this._calculateSum(
+                    currentDate,
+                    this._lastDate,
+                    this._currentSecondaryResourcePerSecond,
+                    this._currentSecondaryResource
+                );
+                this._currentSecondaryResourceFloor.next(Math.floor(this._currentSecondaryResource));
 
-            this._lastDate = currentDate;
+                this._lastDate = currentDate;
+            }
         }, 1000);
     }
 
@@ -108,8 +112,8 @@ export class ResourceManagerService {
                 this._currentSecondaryResource = this._currentSecondaryResource < 0 ? 0 : this._currentSecondaryResource;
                 break;
             case ResourcesEnum.CONSUMED_ENERGY:
-                this._currentEnergy += value;
-                this._currentEnergyFloor.next(Math.floor(this._currentEnergy));
+                this._currentConsumedEnergy += value;
+                this._currentEnergyFloor.next(Math.floor(this._currentConsumedEnergy));
                 break;
             default:
                 throw new Error('Unexpected type ' + resourceType);
@@ -132,19 +136,22 @@ export class ResourceManagerService {
         this._setPrimaryValue(user.primaryResource);
         this._setSecondaryValue(user.secondaryResource);
 
-
         this._definePerSecondVariables(user, user.improvements);
-        this._userStore.currentUserImprovements.pipe(skip(1)).subscribe(improvement => {
+        if (this._currentUserImprovementsSubscription) {
+            this._currentUserImprovementsSubscription.unsubscribe();
+        }
+        this._currentUserImprovementsSubscription = this._userStore.currentUserImprovements.pipe(skip(1)).subscribe(improvement => {
             const oldPerSecond = this._findPerSecondVariables();
             this._definePerSecondVariables(user, improvement);
             const newPerSecond = this._findPerSecondVariables();
             this._log.debug('Recalculating per second values from old', oldPerSecond, 'to', newPerSecond);
         });
 
-        this._currentEnergy = user.consumedEnergy;
+
+        this._currentConsumedEnergy = user.consumedEnergy;
         this._currentMaxEnergy = user.maxEnergy;
 
-        this._currentEnergyFloor.next(Math.floor(this._currentEnergy));
+        this._currentEnergyFloor.next(Math.floor(this._currentConsumedEnergy));
         this._currentMaxEnergyFloor.next(Math.floor(this._currentMaxEnergy));
     }
 
@@ -167,7 +174,7 @@ export class ResourceManagerService {
             user.faction.secondaryResourceProduction,
             improvement && improvement.moreSecondaryResourceProduction
         );
-        console.log('maxEnergy', user.faction.initialEnergy + (user.faction.initialEnergy * (improvement.moreEnergyProduction / 100)));
+        this._log.debug('maxEnergy', user.faction.initialEnergy + (user.faction.initialEnergy * (improvement.moreEnergyProduction / 100)));
     }
 
     /**

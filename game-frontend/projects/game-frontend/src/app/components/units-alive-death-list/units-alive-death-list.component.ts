@@ -1,6 +1,5 @@
 import { Component, Input, AfterViewInit, QueryList, ElementRef, ViewChildren } from '@angular/core';
 import { AliveDeathObtainedUnit } from '../../shared/pojos/alive-death-obtained-unit.pojo';
-import { UnitPojo } from '../../shared-pojo/unit.pojo';
 import { BaseComponent } from '../../base/base.component';
 
 @Component({
@@ -27,10 +26,6 @@ export class UnitsAliveDeathListComponent extends BaseComponent implements After
     this.autoSpanCard(this._components, '.card-title span', el => {
       return el.parentElement.parentElement.parentElement;
     });
-  }
-
-  public findUnitImageUrl(unit: UnitPojo): string {
-    return UnitPojo.findImagePath(unit);
   }
 
   public calculateDeathUnits(unit: AliveDeathObtainedUnit): number {

@@ -24,6 +24,7 @@ export class SessionService implements CanActivate {
   public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
 
   public constructor(private _router: Router, private _accountConfig: OwgeCoreConfig, private _userStore: UserStorage<User>) {
+
   }
 
   /**
@@ -37,7 +38,6 @@ export class SessionService implements CanActivate {
     const token = this._findTokenIfNotExpired();
     if (token) {
       this._userStore.currentToken.next(this.getRawToken());
-      this._userStore.currentUser.next(token.data);
     }
   }
 

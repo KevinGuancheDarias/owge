@@ -70,12 +70,6 @@ export class TimeSpecialsComponent implements OnInit {
       if (serverTimeSpecial.activeTimeSpecialDto.state === 'RECHARGE') {
         const timeSpecial = this._findById(serverTimeSpecial.id);
         timeSpecial.activeTimeSpecialDto = serverTimeSpecial.activeTimeSpecialDto;
-        const improvement: Improvement = await this._universeGameService.reloadImprovement();
-        this._log.debug(
-          'As active countdown has end, we reloaded the improvement, ' +
-          '(in the future will be done by websocket messaging, and will be responsability of the TimeSpecial service',
-          <any>improvement
-        );
       } else {
         this._log.warn(
           `Backend state for time special ${serverTimeSpecial.id} should have been RECHARGE,

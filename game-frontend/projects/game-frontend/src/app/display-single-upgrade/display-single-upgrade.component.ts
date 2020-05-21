@@ -3,11 +3,10 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService, ObservableSubscriptionsHelper } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { UniverseGameService, Upgrade, UpgradeRunningMission } from '@owge/universe';
+import { UniverseGameService, Upgrade, UpgradeRunningMission, ObtainedUpgrade } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
-import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -24,7 +23,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   public upgrade: Upgrade;
 
   @Input()
-  public obtainedUpgrade: ObtainedUpgradePojo;
+  public obtainedUpgrade: ObtainedUpgrade;
 
   @ViewChild(WidgetConfirmationDialogComponent, { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
@@ -66,7 +65,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
     super.ngOnDestroy();
   }
 
-  public updateSelectedUpgrade(selected: ObtainedUpgradePojo): void {
+  public updateSelectedUpgrade(selected: ObtainedUpgrade): void {
     this._upgradeService.registerLevelUp(selected);
   }
 
@@ -96,16 +95,6 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   }
 
   private _notifyCaller(): void {
-    setTimeout(async () => {
-      const improvement: Improvement = await this._universeGameService.reloadImprovement();
-      this._log.todo(
-        [
-          'AS upgrade has end, or unit has been deleted, ' +
-          'will reload improvements, when websocket becomes available, this should be removed from here',
-          improvement
-        ]
-      );
-    }, 5000);
     this.confirmDialog.hide();
   }
 

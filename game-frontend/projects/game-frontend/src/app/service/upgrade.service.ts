@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Improvement, ProgrammingError, DateUtil } from '@owge/core';
-import { UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission } from '@owge/universe';
+import { Improvement, DateUtil } from '@owge/core';
+import {
+  UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
+  AutoUpdatedResources, ResourceManagerService, ResourceRequirements
+} from '@owge/universe';
 
-import { ResourceManagerService } from './resource-manager.service';
-import { RequirementPojo } from './../shared-pojo/requirement.pojo';
-import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { map } from 'rxjs/operators';
 
 @Injectable()
@@ -70,7 +69,7 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   /**
    * Computes required resources by the next upgrade level
    *
-   * @param {ObtainedUpgradePojo} ObtainedUpgradePojo
+   * @param {ObtainedUpgrade} ObtainedUpgrade
    *          - Notice: this function alters this object
    * @param {boolean} subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
@@ -79,12 +78,12 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
    * @author Kevin Guanche Darias
    */
   public computeReqiredResources(
-    obtainedUpgrade: ObtainedUpgradePojo,
+    obtainedUpgrade: ObtainedUpgrade,
     subscribeToResources = false,
     userImprovement?: Improvement
-  ): ObtainedUpgradePojo {
+  ): ObtainedUpgrade {
     const upgradeRef = obtainedUpgrade.upgrade;
-    const requirements: RequirementPojo = new RequirementPojo();
+    const requirements: ResourceRequirements = new ResourceRequirements;
     requirements.requiredPrimary = upgradeRef.primaryResource;
     requirements.requiredSecondary = upgradeRef.secondaryResource;
     requirements.requiredTime = upgradeRef.time;
@@ -116,7 +115,7 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
    *
    * @author Kevin Guanche Darias
    */
-  public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
+  public registerLevelUp(obtainedUpgrade: ObtainedUpgrade): void {
     let params: HttpParams = new HttpParams();
     params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
     this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', { params }).subscribe(res => {

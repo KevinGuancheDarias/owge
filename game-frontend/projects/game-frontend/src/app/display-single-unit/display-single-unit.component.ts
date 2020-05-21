@@ -135,7 +135,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
     if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
       this.obtainedUnit.count = this.numberToDelete;
       await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit));
-      await this._reloadImprovement(this.obtainedUnit.unit);
       this.delete.emit();
     }
   }
@@ -174,20 +173,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    * @since 0.8.0
    */
   public async onBuildDone(unit: Unit): Promise<void> {
-    await this._reloadImprovement(unit);
     this.buildDone.emit();
   }
 
-  private async _reloadImprovement(unit: Unit): Promise<void> {
-    if (!unit || unit.improvement) {
-      const improvement: Improvement = await this._universeGameService.reloadImprovement();
-      this._log.todo(
-        [
-          'AS unit build has end, or unit has been deleted, ' +
-          'will reload improvements, when websocket becomes available, this should be removed from here',
-          improvement
-        ]
-      );
-    }
-  }
 }

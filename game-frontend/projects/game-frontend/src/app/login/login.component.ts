@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { ROUTES, LoginService, SessionService } from '@owge/core';
@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
       if (!this._sessionService.isLoggedIn()) {
         window.location.href = `//${environment.loginDomain}`;
       } else {
-        this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
+        this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status), take(1)).subscribe(() => {
           this._router.navigate([ROUTES.GAME_INDEX]);
         });
       }

@@ -20,7 +20,6 @@ import { LoginSessionService } from './login-session/login-session.service';
 import { NavigationService } from './service/navigation.service';
 import { UnitService } from './service/unit.service';
 import { UpgradeService } from './service/upgrade.service';
-import { ResourceManagerService } from './service/resource-manager.service';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -74,6 +73,7 @@ import { Subscription } from 'rxjs';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
 import { TimeSpecialService } from './services/time-specials.service';
+import { Log, Level } from 'ng2-logger/browser';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -177,7 +177,6 @@ export const APP_ROUTES: Routes = [
   ],
   providers: [
     LoginSessionService,
-    ResourceManagerService,
     UpgradeService,
     UnitService,
     NavigationService,
@@ -202,6 +201,14 @@ export class AppModule {
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();
+    ((<any>window).owgeDebug = isEnabled => {
+      if (!isEnabled || environment.production) {
+        Log.onlyLevel(Level.INFO, Level.WARN, Level.ERROR);
+      } else if (!isEnabled && !environment.production) {
+        console.log('OWGE started without debug, run owgeDebug() in devtools for debug');
+      }
+      localStorage.setItem('owge_debug', isEnabled);
+    })(localStorage.getItem('owge_debug'));
     const supportedLanguages = ['en', 'es'];
     const browserLang = this._translateService.getBrowserLang();
     const targetLang = supportedLanguages.some(current => current === browserLang) ? browserLang : 'en';
@@ -220,7 +227,7 @@ export class AppModule {
         this._websocketService.addEventHandler(
           new PingWebsocketApplicationHandler(),
           this._injector.get(MissionService),
-          this._injector.get(UpgradeService)
+          this._injector.get(UpgradeService),
         );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))

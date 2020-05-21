@@ -1,15 +1,13 @@
 import { QueryList, ElementRef, OnDestroy } from '@angular/core';
 
-import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
+import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper, User, UserStorage, SessionService } from '@owge/core';
 
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { ResourceManagerService } from './../service/resource-manager.service';
-import { UserPojo } from '../shared-pojo/user.pojo';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
+import { ResourceManagerService, AutoUpdatedResources, UniverseGameService } from '@owge/universe';
 
-export class BaseComponent implements OnDestroy {
+export class BaseComponent<U extends User = User> implements OnDestroy {
 
   public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';
   protected loginSessionService: LoginSessionService;
@@ -18,16 +16,18 @@ export class BaseComponent implements OnDestroy {
 
   private _loadingService: LoadingService;
 
-  public get userData(): UserPojo {
+  public get userData(): U {
     return this._userData;
   }
 
-  private _userData: UserPojo;
+  private _userData: U;
   private _bcLog: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _baseUniverseGameService: UniverseGameService;
 
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
     this._loadingService = ServiceLocator.injector.get(LoadingService);
+    this._baseUniverseGameService = ServiceLocator.injector.get(UniverseGameService);
   }
 
 
@@ -119,12 +119,14 @@ export class BaseComponent implements OnDestroy {
   }
 
   /**
-   * Will wait for user to be available, and fills the protected userData property
+   *  fills the protected userData property
    *
    * @author Kevin Guanche Darias
    */
-  protected requireUser() {
-    this.loginSessionService.userData.subscribe((userData) => this._userData = userData);
+  protected requireUser(): void {
+    this._baseUniverseGameService.findLoggedInUserData<U>().subscribe(
+      user => this._userData = user
+    );
   }
 
   /**

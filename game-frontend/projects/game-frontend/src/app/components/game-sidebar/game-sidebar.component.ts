@@ -5,12 +5,10 @@ import { Planet, PlanetService, PlanetStore } from '@owge/galaxy';
 import { MenuRoute, ROUTES, UserStorage, ModalComponent } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import { UnitType, MissionStore } from '@owge/universe';
+import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, UniverseGameService } from '@owge/universe';
 
 import { version } from '../../../version';
-import { ResourceManagerService } from '../../service/resource-manager.service';
 import { UnitTypeService } from '../../services/unit-type.service';
-import { AutoUpdatedResources } from '../../class/auto-updated-resources';
 import { LoginSessionService } from '../../login-session/login-session.service';
 
 /**
@@ -57,7 +55,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
 
   constructor(
     _translateService: TranslateService,
-    private _userStorage: UserStorage<UserWithFaction>,
+    private _universeGameService: UniverseGameService,
     private _planetService: PlanetService,
     private _displayService: DisplayService,
     private _resourceManagerService: ResourceManagerService,
@@ -70,7 +68,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   }
 
   public ngOnInit() {
-    this._userStorage.currentUser.subscribe(user => this.user = user);
+    this._universeGameService.findLoggedInUserData<UserWithFaction>().subscribe(user => this.user = user);
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
     this.resources = new AutoUpdatedResources(this._resourceManagerService);
     this._planetStore.selectedPlanet.subscribe(selectedPlanet => {

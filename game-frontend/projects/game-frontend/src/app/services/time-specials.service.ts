@@ -37,12 +37,7 @@ export class TimeSpecialService extends WithReadCrudMixin<TimeSpecial, number> {
             'game',
             'post',
             `${this._getEntity()}/activate`, timeSpecialId
-        ).pipe(map(activatedTimeSpecial => {
-            this._universeGameService.reloadImprovement().then(improvement =>
-                this._log.debug('As you have activated a time special the improvements has been reloaded', <any>improvement)
-            );
-            return activatedTimeSpecial;
-        }));
+        );
     }
 
     /**

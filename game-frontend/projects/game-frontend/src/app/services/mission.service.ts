@@ -9,7 +9,7 @@ import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionType } from '@owge/core';
-import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 @Injectable()
 export class MissionService extends AbstractWebsocketApplicationHandler {

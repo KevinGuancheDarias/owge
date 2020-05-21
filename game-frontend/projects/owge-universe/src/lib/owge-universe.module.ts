@@ -1,4 +1,4 @@
-import { NgModule, ModuleWithProviders } from '@angular/core';
+import { NgModule, ModuleWithProviders, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -15,6 +15,7 @@ import { OwgeWidgetsModule } from '@owge/widgets';
 import { ImageStoreService } from './services/image-store.service';
 import { MissionStore } from './storages/mission.store';
 import { ResourceManagerService } from './services/resource-manager.service';
+import { WebsocketService } from 'projects/game-frontend/src/app/service/websocket.service';
 
 /**
  *
@@ -55,5 +56,11 @@ export class OwgeUniverseModule {
         ResourceManagerService
       ]
     };
+  }
+
+  public constructor(_injector: Injector, private _websocketService: WebsocketService) {
+    _websocketService.addEventHandler(
+      _injector.get(UniverseGameService)
+    );
   }
 }

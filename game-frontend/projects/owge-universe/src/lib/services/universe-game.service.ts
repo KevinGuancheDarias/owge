@@ -16,6 +16,7 @@ import {
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -26,19 +27,36 @@ import { Universe } from '../types/universe.type';
  * @export
  */
 @Injectable()
-export class UniverseGameService {
-
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
-
+export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
     private _sessionStore: SessionStore,
     private _userStore: UserStorage<User>
-  ) { }
+  ) {
+    super();
+    this._eventsMap = {
+      user_data_change: '_onUserDataChange'
+    };
+  }
+
+  public async workaroundSync(): Promise<void> {
+    const token = await this._userStore.currentToken.pipe(take(1)).toPromise();
+    if (token) {
+      this._userStore.currentUser.next(
+        await this.requestWithAutorizationToContext('game', 'get', 'user/findData')
+          .pipe(
+            take(1),
+            map(current =>
+              this._handleUserLoad(current)
+            )
+          ).toPromise()
+      );
+    }
+  }
 
   /**
-   * Finds the logged in current user
+   * Finds the logged in current user data
    * <b>NOTICE:</b>, Will set PlanetStore.selectedPlanet to user home planet
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -47,32 +65,7 @@ export class UniverseGameService {
    * @returns
    */
   public findLoggedInUserData<T extends User>(): Observable<T> {
-    return this.getWithAuthorizationToUniverse<T>('user/findData').pipe(
-      map(current => {
-        if (!current.consumedEnergy) {
-          current.consumedEnergy = 0;
-        }
-        this._workaroundFactionFix(current);
-        this._userStore.currentUserImprovements.next(current.improvements);
-        this._sessionStore.next('selectedPlanet', (<any>current).homePlanetDto);
-        return current;
-      })
-    );
-  }
-
-  /**
-   * Invokes a reloading of the improvements in the UserStorage
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.8.0
-   * @returns The loaded improvement (may not even be used... but it's nice to return something :P)
-   */
-  public async reloadImprovement(): Promise<Improvement> {
-    this._log.debug('Reloading improvements as requested');
-    const improvement: Improvement = await this._getDeleteWithAuthorizationToContext<Improvement>('game', 'get', 'user/improvements')
-      .pipe(take(1)).toPromise();
-    this._userStore.currentUserImprovements.next(improvement);
-    return improvement;
+    return <any>this._userStore.currentUser.asObservable();
   }
 
   /**
@@ -191,6 +184,10 @@ export class UniverseGameService {
     );
   }
 
+  protected _onUserDataChange(user: User) {
+    this._userStore.currentUser.next(this._handleUserLoad(user));
+  }
+
   /**
    *
    *
@@ -256,5 +253,15 @@ export class UniverseGameService {
     if (backendUser.factionDto && !backendUser.faction) {
       backendUser.faction = backendUser.factionDto;
     }
+  }
+
+  private _handleUserLoad(user: User): User {
+    if (!user.consumedEnergy) {
+      user.consumedEnergy = 0;
+    }
+    this._workaroundFactionFix(user);
+    this._userStore.currentUserImprovements.next(user.improvements);
+    this._sessionStore.next('selectedPlanet', (<any>user).homePlanetDto);
+    return user;
   }
 }

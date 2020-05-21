@@ -3,7 +3,7 @@ import * as io from 'socket.io-client';
 
 import { LoggerHelper, ProgrammingError } from '@owge/core';
 
-import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 @Injectable()
 export class WebsocketService {
@@ -93,14 +93,26 @@ export class WebsocketService {
   }
 
   private async _registerSocketHandlers(): Promise<void> {
-    await Promise.all(this._eventHandlers.map(current => current.workaroundSync()));
+    try {
+      await Promise.all(this._eventHandlers.map(current => current.workaroundSync()));
+    } catch (e) {
+      this._log.error('Workaround WS sync failed ', e);
+    }
     this._socket.on('deliver_message', message => {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
-        const handler: AbstractWebsocketApplicationHandler = this._eventHandlers.find(current => !!current.getHandlerMethod(eventName));
-        if (handler) {
-          handler.execute(eventName, message.value);
+        const handlers: AbstractWebsocketApplicationHandler[] = this._eventHandlers.filter(
+          current => !!current.getHandlerMethod(eventName)
+        );
+        if (handlers.length) {
+          handlers.forEach(async handler => {
+            try {
+              await handler.execute(eventName, message.value);
+            } catch (e) {
+              this._log.error(`Handler ${handler.constructor.name} failed for eent ${eventName}`, e);
+            }
+          });
         } else {
           this._log.error('No handler for event ' + eventName, message);
         }

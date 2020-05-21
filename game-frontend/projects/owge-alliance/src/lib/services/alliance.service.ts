@@ -190,7 +190,6 @@ export class AllianceService {
       first(),
       map(user => {
         user.alliance = alliance;
-        this._userStorage.currentUser.next(user);
         this._allianceStorage.userAlliance.next(alliance);
         return alliance;
       })

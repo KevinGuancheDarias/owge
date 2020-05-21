@@ -4,7 +4,8 @@ import { filter } from 'rxjs/operators';
 import { PlanetStore } from '@owge/galaxy';
 
 import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
-import { UnitPojo } from './../shared-pojo/unit.pojo'; import { BaseUnitComponent } from '../shared/base-unit.component';
+import { BaseUnitComponent } from '../shared/base-unit.component';
+import { Unit } from '@owge/universe';
 
 @Component({
   selector: 'app-build-units',
@@ -13,10 +14,10 @@ import { UnitPojo } from './../shared-pojo/unit.pojo'; import { BaseUnitComponen
 })
 export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
 
-  public get unlockedUnits(): UnitPojo[] {
+  public get unlockedUnits(): Unit[] {
     return this._unlockedUnits;
   }
-  private _unlockedUnits: UnitPojo[];
+  private _unlockedUnits: Unit[];
 
   public buildingUnit: RunningUnitIntervalInformation;
 
