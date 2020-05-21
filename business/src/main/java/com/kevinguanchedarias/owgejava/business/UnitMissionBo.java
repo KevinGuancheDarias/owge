@@ -20,8 +20,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
@@ -46,6 +44,7 @@ import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
@@ -1102,15 +1101,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	private void emitLocalMissionChange(Mission mission) {
 		UserStorage user = mission.getUser();
-		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-			@Override
-			public void afterCommit() {
-				entityManager.refresh(mission);
-				emitEnemyMissionsChange(mission);
-				List<UnitRunningMissionDto> findUserRunningMissions = findUserRunningMissions(user.getId());
-				socketIoService.sendMessage(user, "unit_mission_change", MissionWebsocketMessage.class,
-						new MissionWebsocketMessage(countUserMissions(user.getId()), findUserRunningMissions));
-			}
+		TransactionUtil.doAfterCommit(() -> {
+			entityManager.refresh(mission);
+			emitEnemyMissionsChange(mission);
+			List<UnitRunningMissionDto> findUserRunningMissions = findUserRunningMissions(user.getId());
+			socketIoService.sendMessage(user, "unit_mission_change",
+					new MissionWebsocketMessage(countUserMissions(user.getId()), findUserRunningMissions));
 		});
 	}
 
@@ -1118,7 +1114,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
 		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
 			List<UnitRunningMissionDto> enemyMissions = findEnemyRunningMissions(targetPlanetOwner);
-			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change", List.class, enemyMissions);
+			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change", enemyMissions);
 		}
 	}
 

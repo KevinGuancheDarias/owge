@@ -11,6 +11,7 @@ export * from './lib/directives/owge-content.directive';
 export * from './lib/enums/resources.enum';
 export * from './lib/errors/programming.error';
 export * from './lib/helpers/logger.helper';
+export * from './lib/helpers/observable-subscriptions.helper';
 export * from './lib/interfaces/abstact-modal-container-component';
 export * from './lib/interfaces/abstract-modal-component';
 export * from './lib/pipes/hide-duplicated-name.pipe';

@@ -1,13 +1,11 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
 
-import { Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService } from '@owge/core';
+import { Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService, ObservableSubscriptionsHelper } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { UniverseGameService, Upgrade } from '@owge/universe';
+import { UniverseGameService, Upgrade, UpgradeRunningMission } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
-import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
 import { UpgradeService } from './../service/upgrade.service';
 import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
 import { distinctUntilChanged } from 'rxjs/operators';
@@ -28,19 +26,15 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   @Input()
   public obtainedUpgrade: ObtainedUpgradePojo;
 
-  @Output()
-  public runningUpgradeDone: EventEmitter<{}> = new EventEmitter();
-
   @ViewChild(WidgetConfirmationDialogComponent, { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
-  public runningUpgrade: RunningUpgrade;
+  public runningUpgrade: UpgradeRunningMission;
   public vConfirmDeleteText: string;
   public isDesktop: boolean;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _sdsIdentifier: string;
-  private _subscription: Subscription;
-  private _oldValueRunningUpgrade: RunningUpgrade;
+  private _oldValueRunningUpgrade: UpgradeRunningMission;
 
   constructor(
     private _upgradeService: UpgradeService,
@@ -55,21 +49,21 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   }
 
   public ngOnInit() {
-    this._subscription = this._screenDimensionsService.hasMinWidth(767, this._sdsIdentifier).subscribe(val => {
+    this._subscriptions.add(this._screenDimensionsService.hasMinWidth(767, this._sdsIdentifier).subscribe(val => {
       this.isDesktop = val;
-    });
+    }));
     if (this.obtainedUpgrade) {
       this.upgrade = this.obtainedUpgrade.upgrade;
-      this._userStore.currentUserImprovements.subscribe(improvement =>
+      this._subscriptions.add(this._userStore.currentUserImprovements.subscribe(improvement =>
         this.obtainedUpgrade = this._upgradeService.computeReqiredResources(this.obtainedUpgrade, true, improvement)
-      );
+      ));
     }
-    this._syncIsUpgrading();
+    this._handleRunningMission();
   }
 
   public ngOnDestroy(): void {
     this._screenDimensionsService.removeHandler(this._sdsIdentifier);
-    this._subscription.unsubscribe();
+    super.ngOnDestroy();
   }
 
   public updateSelectedUpgrade(selected: ObtainedUpgradePojo): void {
@@ -101,12 +95,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
     this.displayError('Ya hay una mejora en curso');
   }
 
-  /**
-   * When a it's the running upgrade an it's done, will fire an event
-   *
-   * @author Kevin Guanche Darias
-   */
-  public _notifyCaller(): void {
+  private _notifyCaller(): void {
     setTimeout(async () => {
       const improvement: Improvement = await this._universeGameService.reloadImprovement();
       this._log.todo(
@@ -117,21 +106,16 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
         ]
       );
     }, 5000);
-    setTimeout(() => this.obtainedUpgrade.level++, 1000);
     this.confirmDialog.hide();
-    this.runningUpgradeDone.emit();
   }
 
-  private _syncIsUpgrading(): void {
-    this._upgradeService.isUpgrading.pipe(
-      distinctUntilChanged()
-    ).subscribe(runningUpgrade => {
+  private _handleRunningMission(): void {
+    this._subscriptions.add(this._upgradeService.findRunningLevelUp().pipe(distinctUntilChanged()).subscribe(runningUpgrade => {
       this.runningUpgrade = runningUpgrade;
       if (this._oldValueRunningUpgrade && this._oldValueRunningUpgrade.upgrade.id === this.upgrade.id) {
         this._notifyCaller();
       }
       this._oldValueRunningUpgrade = runningUpgrade;
-    });
+    }));
   }
-
 }

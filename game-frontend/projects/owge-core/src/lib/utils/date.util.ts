@@ -36,7 +36,9 @@ export class DateUtil {
      * @returns
      */
     public static computeBrowserTerminationDate<T extends { pendingMillis: number, browserComputedTerminationDate?: Date }>(object: T): T {
-        object.browserComputedTerminationDate = this.createFromPendingMillis(object.pendingMillis);
+        if (object) {
+            object.browserComputedTerminationDate = this.createFromPendingMillis(object.pendingMillis);
+        }
         return object;
     }
 

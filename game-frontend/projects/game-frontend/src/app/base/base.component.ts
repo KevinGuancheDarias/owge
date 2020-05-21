@@ -1,6 +1,6 @@
-import { QueryList, ElementRef } from '@angular/core';
+import { QueryList, ElementRef, OnDestroy } from '@angular/core';
 
-import { LoadingService, MEDIA_ROUTES, LoggerHelper } from '@owge/core';
+import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
 
 import { AutoUpdatedResources } from '../class/auto-updated-resources';
 import { ResourceManagerService } from './../service/resource-manager.service';
@@ -9,11 +9,13 @@ import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 
-export class BaseComponent {
+export class BaseComponent implements OnDestroy {
 
   public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';
   protected loginSessionService: LoginSessionService;
   protected resources: AutoUpdatedResources;
+  protected _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
+
   private _loadingService: LoadingService;
 
   public get userData(): UserPojo {
@@ -26,6 +28,17 @@ export class BaseComponent {
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
     this._loadingService = ServiceLocator.injector.get(LoadingService);
+  }
+
+
+  /**
+   * Ensures subscriptions are removed
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   */
+  public ngOnDestroy(): void {
+    this._subscriptions.unsubscribeAll();
   }
 
   /**

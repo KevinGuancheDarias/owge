@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -28,9 +28,9 @@ import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
 
 @Service
-public class SocketIoService implements Serializable {
-	private static final long serialVersionUID = 8523658662096226104L;
+public class SocketIoService {
 
+	private static final String AUTHENTICATION = "authentication";
 	private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
 	private static final String USER_TOKEN_KEY = "user_token";
 
@@ -78,36 +78,46 @@ public class SocketIoService implements Serializable {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(UserStorage targetUser, String eventName, Class<T> clazz, T messageContent) {
-		server.getAllClients().stream()
-				.filter(client -> client.get(USER_TOKEN_KEY) != null
-						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUser.getId()))
-				.forEach(client -> {
+	public <T> void sendMessage(Integer targetUserId, String eventName, T messageContent) {
+		server.getAllClients().stream().filter(client -> client.get(USER_TOKEN_KEY) != null
+				&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)).forEach(client -> {
 					LOCAL_LOGGER.trace("Sending message to socket");
 					client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, messageContent));
 				});
 	}
 
+	/**
+	 * Sends a message to all sockets from related target user, if any
+	 *
+	 * @param <T>
+	 * @param user
+	 * @param eventName
+	 * @param messageContent
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <T> void sendMessage(UserStorage user, String eventName, T messageContent) {
+		sendMessage(user.getId(), eventName, messageContent);
+	}
+
 	private void registerUnauthenticatedEvents() {
-		server.addConnectListener(client -> {
-			LOCAL_LOGGER.debug("Client connected from " + client.getRemoteAddress().toString());
-		});
-		server.addEventListener("authentication", String.class, (client, data, ack) -> {
+		server.addConnectListener(
+				client -> LOCAL_LOGGER.debug("Client connected from " + client.getRemoteAddress().toString()));
+		server.addEventListener(AUTHENTICATION, String.class, (client, data, ack) -> {
 			String token = mapper.readValue(data, new TypeReference<Map<String, String>>() {
 			}).get("value");
 			if (StringUtils.isEmpty(token)) {
-				sendError(client, "authentication", "invalid token sent from client", true);
+				sendError(client, AUTHENTICATION, "invalid token sent from client", true);
 			} else {
 				LOCAL_LOGGER.trace("Authenticating using token " + token);
 				Optional<TokenUser> authenticatedToken = authenticationFilters.stream()
-						.map(current -> current.findUserFromToken(token)).filter(current -> current != null)
-						.findFirst();
+						.map(current -> current.findUserFromToken(token)).filter(Objects::nonNull).findFirst();
 				if (authenticatedToken.isPresent()) {
 					TokenUser tokenUser = authenticatedToken.get();
 					client.set(USER_TOKEN_KEY, tokenUser);
-					sendOk(client, "authentication");
+					sendOk(client, AUTHENTICATION);
 				} else {
-					sendError(client, "authentication", "Invalid credentials", true);
+					sendError(client, AUTHENTICATION, "Invalid credentials", true);
 				}
 			}
 		});

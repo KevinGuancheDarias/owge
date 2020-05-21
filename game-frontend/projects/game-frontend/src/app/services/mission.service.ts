@@ -8,7 +8,6 @@ import { UniverseGameService, MissionStore, UnitRunningMission, RunningMission }
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
-import { UnitRunningMission as UnitRunningMissionOld } from '../shared/types/unit-running-mission.type';
 import { MissionType } from '@owge/core';
 import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
 
@@ -24,6 +23,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     super();
     this._eventsMap = {
       unit_mission_change: 'reacquireMissions',
+      missions_count_change: '_onMissionsCountChange',
       enemy_mission_change: 'onEnemyMissionChange'
     };
     _userStore.currentUserImprovements.subscribe(improvement =>
@@ -160,7 +160,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @param content
    */
   public reacquireMissions(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
-    this._missionStore.missionsCount.next(content.count);
+    this._onMissionsCountChange(content.count);
     this._missionStore.myUnitMissions.next(content.myUnitMissions.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
   }
 
@@ -198,6 +198,10 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
           map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
         ).toPromise()
     );
+  }
+
+  protected _onMissionsCountChange(content: number) {
+    this._missionStore.missionsCount.next(content);
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

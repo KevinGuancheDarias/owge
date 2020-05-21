@@ -3,7 +3,10 @@ package com.kevinguanchedarias.owgejava.business;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunni
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class MissionBo extends AbstractMissionBo {
@@ -35,7 +39,15 @@ public class MissionBo extends AbstractMissionBo {
 
 	private static final Logger LOG = Logger.getLogger(MissionBo.class);
 	private static final String JOB_GROUP_NAME = "Missions";
+	private static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
 	private static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
+	private static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
+
+	@Autowired
+	private transient EntityManager entityManager;
+
+	@Autowired
+	private transient SocketIoService socketIoService;
 
 	@Override
 	public String getGroupName() {
@@ -88,6 +100,11 @@ public class MissionBo extends AbstractMissionBo {
 		userStorageBo.save(user);
 		missionRepository.save(mission);
 		scheduleMission(mission);
+		TransactionUtil.doAfterCommit(() -> {
+			entityManager.refresh(mission);
+			socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, findRunningLevelUpMission(userId));
+			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
+		});
 	}
 
 	/**
@@ -102,13 +119,22 @@ public class MissionBo extends AbstractMissionBo {
 		if (mission != null) {
 			MissionInformation missionInformation = mission.getMissionInformation();
 			Upgrade upgrade = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
-			ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(mission.getUser().getId(),
-					upgrade.getId());
+			UserStorage user = mission.getUser();
+			Integer userId = user.getId();
+			ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
 			obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
 			obtainedUpgradeBo.save(obtainedUpgrade);
-			requirementBo.triggerLevelUpCompleted(mission.getUser());
-			improvementBo.clearSourceCache(mission.getUser(), obtainedUpgradeBo);
+			requirementBo.triggerLevelUpCompleted(user);
+			improvementBo.clearSourceCache(user, obtainedUpgradeBo);
 			delete(mission);
+			List<ObtainedUpgrade> userObtainedUpgrades = obtainedUpgradeBo.findByUser(userId);
+			TransactionUtil.doAfterCommit(() -> {
+				entityManager.refresh(obtainedUpgrade);
+				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, null);
+				socketIoService.sendMessage(user, "obtained_upgrades_change",
+						obtainedUpgradeBo.toDto(userObtainedUpgrades));
+				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
+			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}
@@ -263,6 +289,8 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public void cancelUpgradeMission(Integer userId) {
 		cancelMission(findByUserIdAndTypeCode(userId, MissionType.LEVEL_UP));
+		socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, null);
+		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
 	}
 
 	@Transactional

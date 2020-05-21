@@ -1,6 +1,6 @@
 <div *ngIf="userData" class="game-index">
   <app-display-single-upgrade *ngIf="runningUpgrade && relatedObtainedUpgrade"
-    [obtainedUpgrade]="relatedObtainedUpgrade" (runningUpgradeDone)="runningUpgrade = null"></app-display-single-upgrade>
+    [obtainedUpgrade]="relatedObtainedUpgrade"></app-display-single-upgrade>
   <owge-core-loading [isReady]="myUnitRunningMissions">
     <h1 class="owge-title">{{ 'APP.INDEX.TITLE_MY_MISSIONS' | translate }}</h1>
     <div *ngIf="myUnitRunningMissions" class="owge-card-list">
