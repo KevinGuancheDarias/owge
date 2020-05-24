@@ -1,8 +1,8 @@
 <ng-container *ngIf="userData && unit && unitTypes">
-  <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" 
+  <owge-widgets-display-list-item [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="unit.imageUrl" [hideDesktopSections]="[0,0, isCompactView]"
-    [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.pendingMillis"
-    [countdownDate]="building && building.missionData.browserComputedTerminationDate"
+    [hasToDisplayCountdown]="building && building.unit.id === unit.id && building.pendingMillis"
+    [countdownDate]="building && building.browserComputedTerminationDate"
   >
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
@@ -25,8 +25,8 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a class="btn btn-block" *ngIf="building && building.missionData.unit.id === unit.id" role="button" (click)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
-        <a *ngIf="building && building.missionData.unit.id !== unit.id" class="btn btn-block" role="button"
+        <a class="btn btn-block" *ngIf="building && building.unit.id === unit.id" role="button" (click)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
+        <a *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
           (click)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
           <input type="number" id="count" name="count" [(ngModel)]="count" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.BUILD.COUNT' | translate" min="0" />

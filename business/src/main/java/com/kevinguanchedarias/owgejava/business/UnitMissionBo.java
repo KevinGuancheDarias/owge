@@ -402,6 +402,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		private void updatePoints() {
+			Set<Integer> alteredUsers = new HashSet<>();
 			users.forEach(current -> {
 				List<AttackObtainedUnit> units = current.findAllUnits();
 				userStorageBo.addPointsToUser(current.getUser(), current.earnedPoints);
@@ -411,8 +412,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
 								.map(currentUnit -> {
 									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
+									alteredUsers.add(current.getUser().getId());
 									return currentUnit.obtainedUnit;
 								}).collect(Collectors.toList()));
+			});
+			alteredUsers.forEach(current -> {
+				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
+						() -> unitTypeBo.findUnitTypesWithUserInfo(current));
+				socketIoService.sendMessage(current, UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
+
 			});
 		}
 
@@ -422,7 +431,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private ConfigurationBo configurationBo;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Autowired
 	private EntityManager entityManager;
@@ -1104,17 +1113,17 @@ public class UnitMissionBo extends AbstractMissionBo {
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(mission);
 			emitEnemyMissionsChange(mission);
-			List<UnitRunningMissionDto> findUserRunningMissions = findUserRunningMissions(user.getId());
 			socketIoService.sendMessage(user, "unit_mission_change",
-					new MissionWebsocketMessage(countUserMissions(user.getId()), findUserRunningMissions));
+					() -> new MissionWebsocketMessage(countUserMissions(user.getId()),
+							findUserRunningMissions(user.getId())));
 		});
 	}
 
 	private void emitEnemyMissionsChange(Mission mission) {
 		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
 		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
-			List<UnitRunningMissionDto> enemyMissions = findEnemyRunningMissions(targetPlanetOwner);
-			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change", enemyMissions);
+			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change",
+					() -> findEnemyRunningMissions(targetPlanetOwner));
 		}
 	}
 

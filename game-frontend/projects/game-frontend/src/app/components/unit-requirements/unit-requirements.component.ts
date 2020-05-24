@@ -1,12 +1,9 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 
 import { UnitService } from '../../service/unit.service';
-import { UnitUpgradeRequirements } from '../../shared/types/unit-upgrade-requirements.type';
 import { BaseUnitComponent } from '../../shared/base-unit.component';
-
-interface WithAllReachedUnitUpgradeRequirements extends UnitUpgradeRequirements {
-  allReached?: boolean;
-}
+import { UnitUpgradeRequirements } from '@owge/universe';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-unit-requirements',
@@ -14,16 +11,13 @@ interface WithAllReachedUnitUpgradeRequirements extends UnitUpgradeRequirements 
   styleUrls: ['./unit-requirements.component.scss']
 })
 export class UnitRequirementsComponent extends BaseUnitComponent implements OnInit {
-  public unitRequirements: WithAllReachedUnitUpgradeRequirements[];
+  public unitRequirements: UnitUpgradeRequirements[];
 
   constructor(private _unitService: UnitService) {
     super();
   }
 
-  async ngOnInit(): Promise<void> {
-    this.unitRequirements = await this._unitService.findUnitUpgradeRequirements().toPromise();
-    this.unitRequirements.forEach(current => {
-      current.allReached = current.requirements.every(requirement => requirement.reached);
-    });
+  ngOnInit(): void {
+    this._subscriptions.add(this._unitService.findUnitUpgradeRequirements().subscribe(result => this.unitRequirements = result));
   }
 }

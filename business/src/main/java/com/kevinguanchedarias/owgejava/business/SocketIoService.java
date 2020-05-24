@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -71,19 +73,24 @@ public class SocketIoService {
 	 * Sends a message to all sockets from related target user, if any
 	 *
 	 * @param <T>
-	 * @param targetUser
-	 * @param eventNamepost
-	 * @param clazz
+	 * @param targetUserId
+	 * @param eventName
 	 * @param messageContent
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(Integer targetUserId, String eventName, T messageContent) {
-		server.getAllClients().stream().filter(client -> client.get(USER_TOKEN_KEY) != null
-				&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)).forEach(client -> {
-					LOCAL_LOGGER.trace("Sending message to socket");
-					client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, messageContent));
-				});
+	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent) {
+		List<SocketIOClient> userSockets = server.getAllClients().stream()
+				.filter(client -> client.get(USER_TOKEN_KEY) != null
+						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId))
+				.collect(Collectors.toList());
+		if (!userSockets.isEmpty()) {
+			T sendValue = messageContent.get();
+			userSockets.forEach(client -> {
+				LOCAL_LOGGER.trace("Sending message to socket");
+				client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, sendValue));
+			});
+		}
 	}
 
 	/**
@@ -96,7 +103,7 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(UserStorage user, String eventName, T messageContent) {
+	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
 		sendMessage(user.getId(), eventName, messageContent);
 	}
 

@@ -21,6 +21,16 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	@Query("SELECT m.id as id, m.terminationDate as date FROM Mission m WHERE m.report.id = ?1")
 	public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId);
 
+	/**
+	 *
+	 * @param userId
+	 * @param name
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Mission> findByUserIdAndTypeCodeAndResolvedFalse(Integer userId, String name);
+
 	public List<Mission> findByUserIdAndResolvedFalse(Integer userId);
 
 	public List<Mission> findByTargetPlanetInAndResolvedFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
@@ -42,7 +52,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 
 	/**
 	 * Counts the number of missions that a user has running
-	 * 
+	 *
 	 * @param userId
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

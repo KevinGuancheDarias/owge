@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,10 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
+	public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
+
+	protected static final String UNIT_TYPE_CHANGE = "unit_type_change";
+
 	private static final long serialVersionUID = 3252246009672348672L;
 
 	private static final Integer MAX_ATTEMPS = 3;
@@ -78,6 +83,10 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
 	@Autowired
 	protected transient ExceptionUtilService exceptionUtilService;
+
+	@Autowired
+	@Lazy
+	protected UnitTypeBo unitTypeBo;
 
 	@Autowired
 	private MissionReportBo missionReportBo;

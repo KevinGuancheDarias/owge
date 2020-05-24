@@ -1,25 +1,26 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { filter } from 'rxjs/operators';
 
 import { PlanetStore } from '@owge/galaxy';
 
-import { UnitService, RunningUnitIntervalInformation } from './../service/unit.service';
+import { UnitService } from './../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
-import { Unit } from '@owge/universe';
+import { Unit, UnitBuildRunningMission } from '@owge/universe';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-build-units',
   templateUrl: './build-units.component.html',
   styleUrls: ['./build-units.component.scss']
 })
-export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
+export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, OnDestroy {
+  public building: UnitBuildRunningMission;
 
   public get unlockedUnits(): Unit[] {
     return this._unlockedUnits;
   }
   private _unlockedUnits: Unit[];
-
-  public buildingUnit: RunningUnitIntervalInformation;
+  private _buildingSubscription: Subscription;
 
   constructor(private _unitService: UnitService, private _planetStore: PlanetStore) {
     super();
@@ -29,13 +30,25 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit {
     this.requireUser();
     this.findUnlocked();
 
-    this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(() => {
-      this._unitService.planetsLoaded.pipe(filter(value => !!value))
-        .subscribe(() => this.buildingUnit = this._unitService.findIsRunningInSelectedPlanet());
-    });
+    this._subscriptions.add(this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
+      if (this._buildingSubscription) {
+        this._buildingSubscription.unsubscribe();
+        delete this._buildingSubscription;
+      }
+      this._buildingSubscription = this._unitService.findBuildingMissionInMyPlanet(planet.id).subscribe(
+        buildingMission => this.building = buildingMission
+      );
+    }));
+  }
+
+  public ngOnDestroy(): void {
+    super.ngOnDestroy();
+    if (this._buildingSubscription) {
+      this._buildingSubscription.unsubscribe();
+    }
   }
 
   private findUnlocked(): void {
-    this._unitService.findUnlocked().subscribe(unlockedUnits => this._unlockedUnits = unlockedUnits);
+    this._subscriptions.add(this._unitService.findUnlocked().subscribe(unlockedUnits => this._unlockedUnits = unlockedUnits));
   }
 }

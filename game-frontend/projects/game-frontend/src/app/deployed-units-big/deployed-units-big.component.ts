@@ -30,9 +30,9 @@ export class DeployedUnitsBigComponent extends BaseUnitComponent implements OnIn
   }
 
   private _findInMyPlanet(): void {
-    this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
-      this._unitService.findInMyPlanet(planet.id).subscribe(units => this.obtainedUnits = units);
-    });
+    this._subscriptions.add(this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
+      this._subscriptions.add(this._unitService.findInMyPlanet(planet.id).subscribe(units => this.obtainedUnits = units));
+    }));
   }
 
 }

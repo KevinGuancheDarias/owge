@@ -1,105 +1,81 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { filter, take, tap } from 'rxjs/operators';
-import { Observable, BehaviorSubject, Subscription } from 'rxjs';
+import { take, map, tap } from 'rxjs/operators';
+import { Observable, Subscription, Subject } from 'rxjs';
 
-import { ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil, ResourcesEnum } from '@owge/core';
-import { UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources } from '@owge/universe';
-import { PlanetService, PlanetStore } from '@owge/galaxy';
+import {
+  ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler
+} from '@owge/core';
+import {
+  UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
+  UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation
+} from '@owge/universe';
+import { PlanetStore, Planet } from '@owge/galaxy';
 
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
-import { RunningUnitPojo } from './../shared-pojo/running-unit-build.pojo';
-import { PlanetPojo } from './../shared-pojo/planet.pojo';
-import { UnitUpgradeRequirements } from '../shared/types/unit-upgrade-requirements.type';
+import { UnitUpgradeRequirements } from '../../../../owge-universe/src/lib/types/unit-upgrade-requirements.type';
 import { UnitTypeService } from '../services/unit-type.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 
-export class PlanetsNotReadyError extends Error { }
-
-export class RunningUnitIntervalInformation {
-  public interval: number;
-  public missionData: RunningUnitPojo;
-
-  constructor(interval: number, missionData: RunningUnitPojo) {
-    this.interval = interval;
-    this.missionData = missionData;
-  }
-}
-
 @Injectable()
-export class UnitService {
+export class UnitService extends AbstractWebsocketApplicationHandler {
   private static readonly _LOG: LoggerHelper = new LoggerHelper(UnitService.name);
-  private _planetList: PlanetPojo[];
 
-  /** @var {number} provides access to each interval, of running build mission (if any), the key value is like, planetId => intervalId */
-  private _intervals: RunningUnitIntervalInformation[] = [];
-
-  /**
-   * Some functions MUST only be invoked when the planets has been loaded <br>
-   * For example: Asking if there is a running unit recluit mission, can't be done <br />
-   * This behavior subject value is true when the list has been loaded
-   *
-   * @author Kevin Guanche Darias
-   */
-  public get planetsLoaded(): BehaviorSubject<boolean> {
-    return this._planetsLoaded;
-  }
-  private _planetsLoaded: BehaviorSubject<boolean> = new BehaviorSubject(false);
-
-  public get ready(): Observable<boolean> {
-    return this._ready.asObservable();
-  }
-  private _ready: BehaviorSubject<boolean> = new BehaviorSubject(false);
-
-  private _selectedPlanet: PlanetPojo;
+  private _selectedPlanet: Planet;
   private _resources: AutoUpdatedResources;
   private _improvement: Improvement;
+  private _unitStore: UnitStore = new UnitStore;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
-    private _planetService: PlanetService,
-    private _unitTypeService: UnitTypeService,
     private _universeGameService: UniverseGameService,
     private _planetStore: PlanetStore,
     private _userStore: UserStorage<User>
   ) {
+    super();
+    this._eventsMap = {
+      unit_unlocked_change: '_onUnlockedChange',
+      unit_obtained_change: '_onObtainedChange',
+      unit_build_mission_change: '_onBuildMissionChange'
+    };
     this._userStore.currentUserImprovements.pipe(take(1)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
-    this._subscribeToPlanetChanges();
     this._planetStore.selectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
   }
 
   /**
-   * Returns the list of unlocked units!
+   * Workarounds the syncing of unit related stuff
    *
-   * @author Kevin Guanche Darias
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
    */
-  public findUnlocked(): Observable<Unit[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/findUnlocked');
+  public async workaroundSync(): Promise<void> {
+    this._onUnlockedChange(
+      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/findUnlocked')
+        .pipe(take(1)).toPromise()
+    );
+    this._onObtainedChange(
+      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/find-in-my-planets')
+        .pipe(take(1)).toPromise()
+    );
+    this._onBuildMissionChange(
+      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/build-missions')
+        .pipe(take(1)).toPromise()
+    );
   }
 
   /**
-   * Checks if there is a unit building in the selected planet<br>
-   * <b>IMPORTANT:</b> Can only be used after planets has been loaded
+   * Computes required resources
    *
-   * @author Kevin Guanche Darias
-   */
-  public findIsRunningInSelectedPlanet(): RunningUnitIntervalInformation {
-    return this._findRunningBuildWithData(this._selectedPlanet.id);
-  }
-
-  /**
-   * Computes required resources by the next upgrade level
-   *
-   * @param {UnitPojo} unit
+   * @param unit
    *          - Notice: this function alters this object
-   * @param {boolean} subscribeToResources true if want to recompute the runnable field of RequirementPojo,
+   * @param subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
-   * @param {BehaviorSubject<number>} countBehabiorSubject - Specify it to automatically update resource requirements on changes to count
-   * @returns obtainedUpgrade with filled values
+   * @param countBehabiorSubject - Specify it to automatically update resource requirements on changes to count
+   * @returns Unit with filled values
    * @author Kevin Guanche Darias
    */
-  public computeRequiredResources(unit: Unit, subscribeToResources: boolean, countBehaviorSubject: BehaviorSubject<number>): Unit {
+  public computeRequiredResources(unit: Unit, subscribeToResources: boolean, countBehaviorSubject: Subject<number>): Unit {
     if (!countBehaviorSubject) {
       this._doComputeRequiredResources(unit, subscribeToResources);
     } else {
@@ -133,7 +109,6 @@ export class UnitService {
    *
    * @param unit to be build
    * @param count  of that unit
-   * @todo Finish it!
    * @author Kevin Guanche Darias
    */
   public registerUnitBuild(unit: Unit, count: number): void {
@@ -142,15 +117,9 @@ export class UnitService {
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
-    this._universeGameService.postWithAuthorizationToUniverse<RunningUnitPojo>('unit/build', '', { params }).subscribe(res => {
-      this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, unit.requirements.requiredPrimary);
-      this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, unit.requirements.requiredSecondary);
-      this._resourceManagerService.addResources(ResourcesEnum.CONSUMED_ENERGY, unit.requirements.requiredEnergy);
-      this._unitTypeService.addToType(unit.typeId, count);
+    this._universeGameService.postWithAuthorizationToUniverse<UnitBuildRunningMission>('unit/build', '', { params }).subscribe(res => {
       if (res) {
         DateUtil.computeLocalTerminationDate(res);
-        this._registerInterval(this._selectedPlanet, res);
-        this._refreshPlanetsLoaded();
       }
     });
   }
@@ -158,19 +127,14 @@ export class UnitService {
   /**
    * Cancels a unit build mission
    *
-   * @todo https://trello.com/c/WPx0qaXR/23-unitservicecancel-should-not-call-thissubscribetoplanetchanges
    * @param {RunningUnitPojo} missionData
    * @memberof UnitService
    * @author Kevin Guanche Darias
    */
-  public cancel(missionData: RunningUnitPojo) {
+  public cancel(missionData: UnitBuildRunningMission) {
     let params: HttpParams = new HttpParams();
     params = params.append('missionId', missionData.missionId);
     this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params }).subscribe(() => {
-      this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, missionData.requiredPrimary);
-      this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, missionData.requiredSecondary);
-      this._resourceManagerService.minusResources(ResourcesEnum.CONSUMED_ENERGY, missionData.unit.energy * missionData.count);
-      this._subscribeToPlanetChanges();
     });
   }
 
@@ -184,40 +148,43 @@ export class UnitService {
    * @memberof UnitService
    */
   public findInMyPlanet(planetId: number): Observable<ObtainedUnit[]> {
-    let params: HttpParams = new HttpParams();
-    params = params.append('planetId', planetId.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/findInMyPlanet', { params });
+    return this._unitStore.obtained.pipe(
+      map(content => content.planets[planetId] || [])
+    );
   }
 
 
   /**
-   * Find unit upgrade requirements for given logged user faction
+   * Finds the building mission for the given planet, if any
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns {Observable<UnitUpgradeRequirements[]>}
-   * @memberof UnitService
+   * @since 0.9.0
+   * @param planetId
+   * @returns
    */
-  public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse('unit/requirements');
+  public findBuildingMissionInMyPlanet(planetId: number): Observable<UnitBuildRunningMission> {
+    return this._unitStore.runningBuildMissions.pipe(
+      map(content => content.find(current => current.sourcePlanet.id === planetId) || null)
+    );
   }
-
 
   /**
    * Deletes specified obtainedUnit, if count is exactly the totally available, will completely remove the obtainedUnit
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {ObtainedUnit} unit Should contain at least the id, and the count to delete
+   * @param count
    * @returns {Promise<void>}
    * @throws {ProgrammingError} Invalid unit was passed
    * @memberof UnitService
    */
-  public async deleteObtainedUnit(unit: ObtainedUnit): Promise<void> {
-    if (!unit.id || !unit.count) {
+  public async deleteObtainedUnit(unit: ObtainedUnit, count: number): Promise<void> {
+    if (!unit.id || !count) {
       throw new ProgrammingError('ObtainedUnit MUST have an id, and the count MUST be specified');
     }
-    const { id, count } = unit;
-    await this._universeGameService.postWithAuthorizationToUniverse('unit/delete', { id, count }).toPromise();
-    this._unitTypeService.sustractToType(unit.unit.typeId, count);
+    const { id } = unit;
+    await this._universeGameService.requestWithAutorizationToContext('game', 'post', 'unit/delete', { id, count })
+      .pipe(take(1)).toPromise();
   }
 
   public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
@@ -230,80 +197,45 @@ export class UnitService {
   }
 
   /**
-   * Will listen to planet changes, that the planet service has emmited! <br />
-   * And clears and register new intervals (Asking the server if there is a new mission)
-   *
-   * @author Kevin Guanche Darias
-   */
-  private _subscribeToPlanetChanges(): void {
-    this.planetsLoaded.next(false);
-    this._planetService.myPlanets.pipe(filter(myPlanets => !!myPlanets)).subscribe(async myPlanets => {
-      this._clearIntervals();
-      this._planetList = myPlanets;
-      await this._registerIntervals(myPlanets);
-      this._planetsLoaded.next(true);
-    });
-  }
-
-  private _registerInterval(planet: PlanetPojo, runningMission: RunningUnitPojo): void {
-    UnitService._LOG.todo(['In the future when websocket becomes available, remove that shit']);
-    this._intervals[planet.id] = new RunningUnitIntervalInformation(-1, runningMission);
-  }
-
-  private _clearIntervals(): void {
-    this._intervals.forEach(value => window.clearInterval(value.interval));
-    this._intervals = [];
-  }
-
-  /**
-   * This method will resolve when all planets has been queried
+   * Find unit upgrade requirements for given logged user faction
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @private
-   * @todo In the future refactor this method, NOT TO BE SO COMPREX
-   * @param {PlanetPojo[]} planets
-   * @returns {Promise<any>}
+   * @returns {Observable<UnitUpgradeRequirements[]>}
    * @memberof UnitService
    */
-  private _registerIntervals(planets: PlanetPojo[]): Promise<any> {
-    return Promise.all(
-      planets.map<Promise<void>>(async currentPlanet => {
-        const runningMission: RunningUnitPojo = await this._findRunningBuild(currentPlanet).toPromise();
-        if (runningMission) {
-          this._registerInterval(currentPlanet, runningMission);
-        }
-      })
+  public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
+    return this._unitStore.upgradeRequirements.pipe(
+      tap(result => result.forEach(current => {
+        current.allReached = current.allReached = current.requirements.every(requirement => requirement.reached);
+      }))
     );
   }
 
   /**
-   * Will ask the server if the selected planet has a unit build mission going!
+   * Returns the list of unlocked units!
    *
-   * @param {PlanetPojo} planet - Planet to ask for
    * @author Kevin Guanche Darias
    */
-  private _findRunningBuild(planet: PlanetPojo): Observable<RunningUnitPojo> {
-    let params: HttpParams = new HttpParams();
-    params = params.append('planetId', planet.id.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse<RunningUnitPojo>('unit/findRunning', { params }).pipe(
-      tap(val => val && DateUtil.computeLocalTerminationDate(val))
+  public findUnlocked(): Observable<Unit[]> {
+    return this._unitStore.unlocked.asObservable();
+  }
+
+  protected _onUnlockedChange(content: Unit[]): void {
+    this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/requirements').pipe(take(1)).subscribe(result =>
+      this._unitStore.upgradeRequirements.next(result)
+    );
+    this._unitStore.unlocked.next(content);
+  }
+
+  protected _onObtainedChange(content: ObtainedUnit[]): void {
+    this._unitStore.obtained.next(
+      this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id, true)
     );
   }
 
-  /**
-   * From the registered intervals, returns the data
-   */
-  private _findRunningBuildWithData(planetId: number): RunningUnitIntervalInformation {
-    if (!this.planetsLoaded.value) {
-      throw new PlanetsNotReadyError('Can\'t invoke this method when planets has not been loaded!');
-    }
-
-    for (const currentPlanetId in this._intervals) {
-      if (currentPlanetId === planetId.toString()) {
-        return this._intervals[currentPlanetId];
-      }
-    }
-    return null;
+  protected _onBuildMissionChange(content: UnitBuildRunningMission[]): void {
+    content.forEach(current => DateUtil.computeBrowserTerminationDate(current));
+    this._unitStore.runningBuildMissions.next(content);
   }
 
   private _doComputeRequiredResources(unit: Unit, subscribeToResources: boolean, count = 1): Unit {
@@ -327,15 +259,20 @@ export class UnitService {
     }
   }
 
-  /**
-   * When a planet change his conditions, for example because it's now recluiting, this will force BehaviorSubject to fire again
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @private
-   * @memberof UnitService
-   */
-  private _refreshPlanetsLoaded(): void {
-    this._planetsLoaded.next(false);
-    this._planetsLoaded.next(true);
+  private _createPlanetsRepresentation<T>(units: T[], keyGetter: (unit: T) => any, isMultiple = true): PlanetsUnitsRepresentation<T[]> {
+    const unitsMap: Map<string, T[]> = new Map();
+    units.forEach(unit => {
+      const planetId: string = keyGetter(unit);
+      const collection: T[] = unitsMap.get(planetId);
+      if (!collection) {
+        unitsMap.set(planetId, [unit]);
+      } else {
+        collection.push(unit);
+      }
+    });
+    const planetUnitsRepresentation: PlanetsUnitsRepresentation<T[]> = <any>{ planets: {} };
+    unitsMap.forEach((value, key) => planetUnitsRepresentation.planets[key] = value);
+    return planetUnitsRepresentation;
   }
+
 }

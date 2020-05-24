@@ -331,7 +331,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		if (emitChange && user.getId() != null) {
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(savedUser);
-				socketIoService.sendMessage(savedUser, "user_data_change", findData(savedUser));
+				socketIoService.sendMessage(savedUser, "user_data_change", () -> findData(savedUser));
 			});
 		}
 		return savedUser;

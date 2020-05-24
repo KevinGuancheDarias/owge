@@ -1,4 +1,5 @@
-import { Upgrade, Unit } from '@owge/universe';
+import { Upgrade } from './upgrade.type';
+import { Unit } from './unit.type';
 
 /**
  * Represents the pair unit, and upgrades required to build that unit
@@ -14,4 +15,9 @@ export interface UnitUpgradeRequirements {
         level: number,
         reached: boolean
     }[];
+
+    /**
+     * Frontend computed property meaning, all requirements has been reached
+     */
+    allReached?: boolean;
 }

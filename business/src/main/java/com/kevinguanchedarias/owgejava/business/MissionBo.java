@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
@@ -19,6 +20,7 @@ import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -35,6 +37,9 @@ import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class MissionBo extends AbstractMissionBo {
+
+	private static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
+
 	private static final long serialVersionUID = 5505953709078785322L;
 
 	private static final Logger LOG = Logger.getLogger(MissionBo.class);
@@ -102,8 +107,8 @@ public class MissionBo extends AbstractMissionBo {
 		scheduleMission(mission);
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(mission);
-			socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, findRunningLevelUpMission(userId));
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
+			socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> findRunningLevelUpMission(userId));
+			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 		});
 	}
 
@@ -127,13 +132,12 @@ public class MissionBo extends AbstractMissionBo {
 			requirementBo.triggerLevelUpCompleted(user);
 			improvementBo.clearSourceCache(user, obtainedUpgradeBo);
 			delete(mission);
-			List<ObtainedUpgrade> userObtainedUpgrades = obtainedUpgradeBo.findByUser(userId);
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(obtainedUpgrade);
-				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, null);
+				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
 				socketIoService.sendMessage(user, "obtained_upgrades_change",
-						obtainedUpgradeBo.toDto(userObtainedUpgrades));
-				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
+						() -> obtainedUpgradeBo.toDto(obtainedUpgradeBo.findByUser(userId)));
+				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
@@ -149,6 +153,7 @@ public class MissionBo extends AbstractMissionBo {
 	 * @param finalCount
 	 * @author Kevin Guanche Darias
 	 */
+	@Transactional
 	public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
 		planetBo.myCheckIsOfUserProperty(planetId);
 		checkUnitBuildMissionDoesNotExists(userId, planetId);
@@ -193,7 +198,15 @@ public class MissionBo extends AbstractMissionBo {
 
 		scheduleMission(mission);
 
-		return new RunningUnitBuildDto(unit, mission, finalCount);
+		TransactionUtil.doAfterCommit(() -> {
+			entityManager.refresh(obtainedUnit);
+			entityManager.refresh(mission);
+			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+			socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> unitTypeBo.findUnitTypesWithUserInfo(user));
+		});
+
+		return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);
 	}
 
 	public RunningUpgradeDto findRunningLevelUpMission(Integer userId) {
@@ -212,11 +225,42 @@ public class MissionBo extends AbstractMissionBo {
 		if (mission != null) {
 			MissionInformation missionInformation = mission.getMissionInformation();
 			Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
-			return new RunningUnitBuildDto(unit, mission,
+			return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId.longValue()),
 					obtainedUnitBo.findByMissionId(mission.getId()).get(0).getCount());
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * Finds all build missions for logged user
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<RunningUnitBuildDto> findMyBuildMissions() {
+		return findBuildMissions(userStorageBo.findLoggedIn().getId());
+	}
+
+	/**
+	 * Finds all build missions for given user
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<RunningUnitBuildDto> findBuildMissions(Integer userId) {
+		return missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(userId, MissionType.BUILD_UNIT.name()).stream()
+				.map(mission -> {
+					MissionInformation missionInformation = mission.getMissionInformation();
+					Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+					Planet planet = planetBo.findById(missionInformation.getValue().longValue());
+					List<ObtainedUnit> findByMissionId = obtainedUnitBo.findByMissionId(mission.getId());
+					return new RunningUnitBuildDto(unit, mission, planet,
+							findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
+				}).collect(Collectors.toList());
 	}
 
 	public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId) {
@@ -269,6 +313,10 @@ public class MissionBo extends AbstractMissionBo {
 				missionUser.addtoPrimary(mission.getPrimaryResource());
 				missionUser.addToSecondary(mission.getSecondaryResource());
 				userStorageBo.save(missionUser);
+				TransactionUtil.doAfterCommit(() -> {
+					socketIoService.sendMessage(missionUser, UNIT_BUILD_MISSION_CHANGE,
+							() -> findBuildMissions(missionUser.getId()));
+				});
 				break;
 			case LEVEL_UP:
 				missionUser.addtoPrimary(mission.getPrimaryResource());
@@ -289,8 +337,8 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public void cancelUpgradeMission(Integer userId) {
 		cancelMission(findByUserIdAndTypeCode(userId, MissionType.LEVEL_UP));
-		socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, null);
-		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, countUserMissions(userId));
+		socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, () -> null);
+		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 	}
 
 	@Transactional
@@ -300,19 +348,25 @@ public class MissionBo extends AbstractMissionBo {
 		shouldClearImprovementsCache.add(false);
 		if (mission != null) {
 			Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
+			UserStorage user = mission.getUser();
+			Integer userId = user.getId();
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
 				if (current.getUnit().getImprovement() != null) {
 					shouldClearImprovementsCache.remove(0);
 					shouldClearImprovementsCache.add(true);
 				}
 				current.setSourcePlanet(planetBo.findById(sourcePlanetId));
-				obtainedUnitBo.moveUnit(current, mission.getUser().getId(), sourcePlanetId);
-				requirementBo.triggerUnitBuildCompleted(mission.getUser(), current.getUnit());
+				obtainedUnitBo.moveUnit(current, userId, sourcePlanetId);
+				requirementBo.triggerUnitBuildCompleted(user, current.getUnit());
 			});
 			delete(mission);
 			if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
-				improvementBo.clearSourceCache(mission.getUser(), obtainedUnitBo);
+				improvementBo.clearSourceCache(user, obtainedUnitBo);
 			}
+			socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+					() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}
@@ -320,7 +374,14 @@ public class MissionBo extends AbstractMissionBo {
 
 	@Transactional
 	public void cancelBuildUnit(Long missionId) {
+		UserStorage user = findById(missionId).getUser();
+		Integer userId = user.getId();
 		cancelMission(missionId);
+		TransactionUtil.doAfterCommit(() -> {
+			socketIoService.sendMessage(user.getId(), UNIT_TYPE_CHANGE,
+					() -> unitTypeBo.findUnitTypesWithUserInfo(user));
+			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+		});
 	}
 
 	/**

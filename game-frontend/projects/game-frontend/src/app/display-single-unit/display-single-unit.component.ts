@@ -1,12 +1,11 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-import { Improvement, LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
-import { UniverseGameService, UnitType, Unit } from '@owge/universe';
+import { LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
+import { UniverseGameService, UnitType, Unit, UnitBuildRunningMission, ObtainedUnit } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
-import { RunningUnitIntervalInformation, UnitService } from './../service/unit.service';
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
+import { UnitService } from './../service/unit.service';
 import { UnitTypeService } from '../services/unit-type.service';
 
 export type validViews = 'requirements' | 'attributes';
@@ -25,14 +24,13 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   @Input() isCompactView = false;
 
   @Input()
-  public building: RunningUnitIntervalInformation;
+  public building: UnitBuildRunningMission;
 
   @Input()
   public withBuildMode = false;
 
   @Input()
   public withInPlanetMode = false;
-
 
   /**
    * If specified, allows deleting the specified obtained unit
@@ -64,9 +62,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    */
   @Input()
   public defaultView: validViews = 'attributes';
-
-  @Output()
-  public buildDone: EventEmitter<void> = new EventEmitter();
 
   @Output()
   public delete: EventEmitter<void> = new EventEmitter();
@@ -104,7 +99,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   constructor(
     private _unitService: UnitService,
     private _unitTypeService: UnitTypeService,
-    private _universeGameService: UniverseGameService,
     private _userStore: UserStorage<User>
   ) {
     super();
@@ -128,14 +122,12 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   }
 
   public cancelUnit(): void {
-    this._unitService.cancel(this.building.missionData);
+    this._unitService.cancel(this.building);
   }
 
   public async deleteUnits(): Promise<void> {
     if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
-      this.obtainedUnit.count = this.numberToDelete;
-      await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit));
-      this.delete.emit();
+      await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit, this.numberToDelete));
     }
   }
 
@@ -164,16 +156,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
    */
   public isValidCount(): boolean {
     return (this.unit.isUnique && this.count === 1) || !this.unit.isUnique;
-  }
-
-  /**
-   * Runs when the build of the unit is done
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.8.0
-   */
-  public async onBuildDone(unit: Unit): Promise<void> {
-    this.buildDone.emit();
   }
 
 }

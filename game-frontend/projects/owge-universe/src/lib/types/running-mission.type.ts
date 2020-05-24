@@ -2,7 +2,6 @@ import { MissionType } from '@owge/core';
 
 /**
  *
- * @deprecated As of 0.9.0 this is in @owge/universe
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  * @export

@@ -228,6 +228,8 @@ export class AppModule {
           new PingWebsocketApplicationHandler(),
           this._injector.get(MissionService),
           this._injector.get(UpgradeService),
+          this._injector.get(UnitService),
+          this._injector.get(UnitTypeService)
         );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))

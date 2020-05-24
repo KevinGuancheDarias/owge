@@ -2,9 +2,11 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,13 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	@Lazy
+	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
+	private UserStorageBo userStorageBo;
+
 	@Override
 	public JpaRepository<UnitType, Integer> getRepository() {
 		return unitTypeRepository;
@@ -40,7 +49,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -52,7 +61,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * Finds the max amount of a certain unit type the given user can have <br>
 	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
 	 * find the improvement</b>
-	 * 
+	 *
 	 * @param user
 	 * @param typeId
 	 * @return
@@ -67,7 +76,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * Finds the max amount of a certain unit type the given user can have <br>
 	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
 	 * find the improvement</b>
-	 * 
+	 *
 	 * @param user
 	 * @param type
 	 * @return
@@ -86,7 +95,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	/**
 	 * Test if the specified unit type can run the specified mission
-	 * 
+	 *
 	 * @param user         user that is going to run the mission (used to test
 	 *                     planet ownership... if required)
 	 * @param targetPlanet Target mission planet (used to test planet ownership...
@@ -124,5 +133,35 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {
 		return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<UnitTypeDto> findUnitTypesWithUserInfo(Integer userId) {
+		return findUnitTypesWithUserInfo(userStorageBo.findById(userId));
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<UnitTypeDto> findUnitTypesWithUserInfo(UserStorage user) {
+		return findAll().stream().map(current -> {
+			UnitTypeDto currentDto = new UnitTypeDto();
+			currentDto.dtoFromEntity(current);
+			currentDto.setComputedMaxCount(findUniTypeLimitByUser(user, current));
+			if (current.hasMaxCount()) {
+				currentDto.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current));
+			}
+			return currentDto;
+		}).collect(Collectors.toList());
 	}
 }
