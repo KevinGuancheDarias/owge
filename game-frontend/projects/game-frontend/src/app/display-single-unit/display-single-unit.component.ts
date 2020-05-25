@@ -1,8 +1,8 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
-import { UniverseGameService, UnitType, Unit, UnitBuildRunningMission, ObtainedUnit } from '@owge/universe';
+import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
@@ -16,7 +16,7 @@ export type validViews = 'requirements' | 'attributes';
   styleUrls: ['./display-single-unit.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class DisplaySingleUnitComponent extends BaseComponent implements OnInit {
+export class DisplaySingleUnitComponent extends BaseComponent implements OnInit, OnDestroy {
 
   @Input()
   public unit: Unit;
@@ -51,7 +51,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
 
   @Input()
   public obtainedUnit: ObtainedUnit;
-
 
   /**
    * What to display by default?, requirements?, or attributes? <br>
@@ -94,7 +93,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   }
   private _count: BehaviorSubject<number> = new BehaviorSubject(1);
 
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _improvementsSubscription: Subscription;
 
   constructor(
     private _unitService: UnitService,
@@ -105,14 +104,15 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit 
   }
 
   public ngOnInit() {
-    this.requireUser();
-    this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);
-    this._userStore.currentUserImprovements.subscribe(improvement => {
-      this.moreCharge = improvement.moreChargeCapacity;
-      this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
-      this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);
-      this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unit.typeId);
+    this.requireUser(() => {
+      this._userStore.currentUserImprovements.subscribe(improvement => {
+        this.moreCharge = improvement.moreChargeCapacity;
+        this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
+        this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);
+        this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unit.typeId);
+      });
     });
+    this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);
     this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
     this.selectedView = this.defaultView;
   }

@@ -36,7 +36,8 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   ) {
     super();
     this._eventsMap = {
-      user_data_change: '_onUserDataChange'
+      user_data_change: '_onUserDataChange',
+      user_improvements_change: '_onUserImprovementsChange'
     };
   }
 
@@ -188,6 +189,11 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     this._userStore.currentUser.next(this._handleUserLoad(user));
   }
 
+  protected _onUserImprovementsChange(content: Improvement): void {
+    console.log('Changed!!!!!!', content.unitTypesUpgrades[2].value);
+    this._userStore.currentUserImprovements.next(content);
+  }
+
   /**
    *
    *
@@ -260,7 +266,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
       user.consumedEnergy = 0;
     }
     this._workaroundFactionFix(user);
-    this._userStore.currentUserImprovements.next(user.improvements);
+    this._onUserImprovementsChange(user.improvements);
     this._sessionStore.next('selectedPlanet', (<any>user).homePlanetDto);
     return user;
   }

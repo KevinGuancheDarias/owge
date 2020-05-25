@@ -123,10 +123,13 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    *
    * @author Kevin Guanche Darias
    */
-  protected requireUser(): void {
-    this._baseUniverseGameService.findLoggedInUserData<U>().subscribe(
-      user => this._userData = user
-    );
+  protected requireUser(onloadOrReload?: () => void): void {
+    this._baseUniverseGameService.findLoggedInUserData<U>().subscribe(user => {
+      this._userData = user;
+      if (typeof onloadOrReload === 'function') {
+        onloadOrReload();
+      }
+    });
   }
 
   /**
