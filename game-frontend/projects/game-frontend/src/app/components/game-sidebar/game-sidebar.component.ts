@@ -60,7 +60,6 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _displayService: DisplayService,
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
-    private _planetStore: PlanetStore,
     private _loginSessionService: LoginSessionService,
     private _missionStore: MissionStore
   ) {
@@ -68,13 +67,13 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   }
 
   public ngOnInit() {
+    this._planetService.findMyPlanets().subscribe(planets => this.myPlanets = planets);
     this._universeGameService.findLoggedInUserData<UserWithFaction>().subscribe(user => this.user = user);
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
     this.resources = new AutoUpdatedResources(this._resourceManagerService);
-    this._planetStore.selectedPlanet.subscribe(selectedPlanet => {
+    this._planetService.findCurrentPlanet().subscribe(selectedPlanet => {
       this.selectedPlanet = selectedPlanet;
     });
-    this._loadMyPlanets();
     this._missionStore.missionsCount.subscribe(count => this.missionsCount = count);
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
   }
@@ -89,19 +88,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
 
   public async leavePlanet(planet: Planet): Promise<void> {
     if (await this._displayService.confirm('Leave the planet ' + planet.name + '?')) {
-      this._planetService.leavePlanet(planet).subscribe(
-        async () => {
-          await this._loadMyPlanets();
-          if (this.selectedPlanet.id === planet.id) {
-            this._planetService.defineSelectedPlanet(this.myPlanets.find(current => current.home));
-          }
-        },
-        error => this._displayService.error(error)
-      );
+      this._planetService.leavePlanet(planet).subscribe(() => { });
     }
-  }
-
-  private async _loadMyPlanets(): Promise<void> {
-    this.myPlanets = await this._planetService.findMyPlanets();
   }
 }

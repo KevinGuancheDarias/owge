@@ -48,6 +48,8 @@ import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
+	private static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
+
 	private static final long serialVersionUID = 344402831344882216L;
 
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
@@ -735,11 +737,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public void proccessReturnMission(Long missionId) {
 		Mission mission = missionRepository.findById(missionId).get();
+		Integer userId = mission.getUser().getId();
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
-		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
-				mission.getSourcePlanet().getId()));
+		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChange(mission);
+		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
 	}
 
 	@Transactional
@@ -762,8 +766,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 		} else {
 			obtainedUnitBo.deleteBySourcePlanetIdAndMissionIdNull(targetPlanet);
+			UserStorage oldOwner = targetPlanet.getOwner();
 			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 			builder.withConquestInformation(true);
+			if (oldOwner != null) {
+				planetBo.emitPlanetOwnedChange(oldOwner);
+				emitEnemyMissionsChange(oldOwner);
+			}
 		}
 		hanleMissionReportSave(mission, builder);
 		resolveMission(mission);
@@ -776,10 +785,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessDeploy(Long missionId) {
 		Mission mission = findById(missionId);
 		if (mission != null) {
-			findUnitsInvolved(missionId).forEach(current -> obtainedUnitBo.moveUnit(current, mission.getUser().getId(),
-					mission.getTargetPlanet().getId()));
+			Integer userId = mission.getUser().getId();
+			List<ObtainedUnit> alteredUnits = new ArrayList<>();
+			findUnitsInvolved(missionId).forEach(current -> {
+				alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()));
+			});
 			resolveMission(mission);
 			emitLocalMissionChange(mission);
+			TransactionUtil.doAfterCommit(() -> {
+				alteredUnits.forEach(entityManager::refresh);
+				socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+			});
 		}
 	}
 
@@ -870,9 +887,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = userStorageBo.findLoggedIn();
 		checkCanDoMisison(user);
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
-		targetMissionInformation.setUserId(user.getId());
+		Integer userId = user.getId();
+		targetMissionInformation.setUserId(userId);
 		if (missionType != MissionType.EXPLORE
-				&& !planetBo.isExplored(user.getId(), missionInformation.getTargetPlanetId())) {
+				&& !planetBo.isExplored(userId, missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"Can't send this mission, because target planet is not explored ");
 		}
@@ -901,9 +919,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		save(mission);
 		scheduleMission(mission);
 		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
-		retVal.setMissionsCount(countUserMissions(user.getId()));
+		retVal.setMissionsCount(countUserMissions(userId));
 		emitLocalMissionChange(mission);
-
+		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
 		return retVal;
 	}
 
@@ -1122,9 +1141,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private void emitEnemyMissionsChange(Mission mission) {
 		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
 		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
-			socketIoService.sendMessage(targetPlanetOwner, "enemy_mission_change",
-					() -> findEnemyRunningMissions(targetPlanetOwner));
+			emitEnemyMissionsChange(targetPlanetOwner);
 		}
+	}
+
+	private void emitEnemyMissionsChange(UserStorage user) {
+		socketIoService.sendMessage(user, ENEMY_MISSION_CHANGE, () -> findEnemyRunningMissions(user));
+
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
@@ -1148,5 +1171,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 			current.setTargetPlanet(null);
 			current.setMission(null);
 		});
+		planetBo.emitPlanetOwnedChange(owner);
+		socketIoService.sendMessage(owner, UNIT_OBTAINED_CHANGE,
+				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
 	}
 }

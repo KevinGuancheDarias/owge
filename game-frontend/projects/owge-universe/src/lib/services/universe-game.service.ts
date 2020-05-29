@@ -267,7 +267,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     }
     this._workaroundFactionFix(user);
     this._onUserImprovementsChange(user.improvements);
-    this._sessionStore.next('selectedPlanet', (<any>user).homePlanetDto);
     return user;
   }
 }

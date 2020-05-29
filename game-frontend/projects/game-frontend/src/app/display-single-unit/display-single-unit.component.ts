@@ -62,9 +62,6 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
   @Input()
   public defaultView: validViews = 'attributes';
 
-  @Output()
-  public delete: EventEmitter<void> = new EventEmitter();
-
   public selectedView: validViews;
   public numberToDelete: number;
   public isDescriptionDisplayed = false;

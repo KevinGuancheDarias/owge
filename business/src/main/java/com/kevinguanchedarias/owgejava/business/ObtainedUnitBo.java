@@ -394,25 +394,28 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	@Transactional(propagation = Propagation.MANDATORY)
-	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
+	public ObtainedUnit moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
 		Planet planet = planetBo.findById(planetId);
+		ObtainedUnit savedUnit;
 		unit.setSourcePlanet(unit.getSourcePlanet());
 		unit.setTargetPlanet(planet);
 		if (planetBo.isOfUserProperty(userId, planetId)) {
 			unit.setSourcePlanet(planet);
-			saveWithAdding(userId, unit, planetId);
+			savedUnit = saveWithAdding(userId, unit, planetId);
 			unit.setMission(null);
 			unit.setTargetPlanet(null);
 			unit.setFirstDeploymentMission(null);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
-			save(unit);
+			savedUnit = save(unit);
 		} else {
 			unit = saveWithAdding(userId, unit, planetId);
+			savedUnit = unit;
 			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
 				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(unit));
-				save(unit);
+				savedUnit = save(unit);
 			}
 		}
+		return savedUnit;
 	}
 
 	public Double findConsumeEnergyByUser(UserStorage user) {

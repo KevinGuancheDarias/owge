@@ -10,7 +10,6 @@ import { PlanetImagePipe } from './pipes/planet-image.pipe';
   imports: [
   ],
   providers: [
-    PlanetStore,
     PlanetService
   ],
   exports: [

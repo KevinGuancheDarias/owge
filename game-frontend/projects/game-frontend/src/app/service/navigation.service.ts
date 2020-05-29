@@ -8,6 +8,7 @@ import { NavigationConfig } from '../shared/types/navigation-config.type';
 import { NavigationData } from '../shared/types/navigation-data.type';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { HttpParams } from '@angular/common/http';
+import { take } from 'rxjs/operators';
 
 @Injectable()
 export class NavigationService {
@@ -18,9 +19,8 @@ export class NavigationService {
   constructor(
     private _universeGameService: UniverseGameService,
     private _planetService: PlanetService,
-    private _planetStore: PlanetStore
   ) {
-    this._planetStore.selectedPlanet.subscribe(selectedPlanet => this._selectedPlanet = selectedPlanet);
+
   }
 
   /**
@@ -32,7 +32,7 @@ export class NavigationService {
    */
   public async findCurrentNavigationConfig(): Promise<NavigationConfig> {
     if (!this._lastNavigationPosition) {
-      await this._checkSelectedPlanet();
+      this._selectedPlanet = await this._planetService.findCurrentPlanet().pipe(take(1)).toPromise();
       this._lastNavigationPosition = {
         galaxy: this._selectedPlanet.galaxyId,
         sector: this._selectedPlanet.sector,
@@ -43,36 +43,18 @@ export class NavigationService {
   }
 
   public async navigate(targetPosition: NavigationConfig): Promise<NavigationData> {
-    const navigationData = await this._universeGameService.getWithAuthorizationToUniverse('galaxy/navigate', {
+    const navigationData = await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'galaxy/navigate', null, {
       params: this._genUrlParams(targetPosition)
     }).toPromise();
     this._lastNavigationPosition = targetPosition;
     return navigationData;
   }
 
-  /**
-   * Check if the <b>_selectedPlanet</b> property is defined
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @throws {ProgrammingError} If not defined
-   * @private
-   * @memberof NavigationService
-   */
-  private async _checkSelectedPlanet(): Promise<void> {
-    if (!this._selectedPlanet) {
-      await this._planetService.findSelectedPlanet();
-      if (!this._selectedPlanet) {
-        throw new ProgrammingError('Selected planet is undefined, SHOULD NEVER, NEVER happend');
-      }
-    }
-
-  }
-
   private _genUrlParams(targetPosition: NavigationConfig): HttpParams {
     let retVal: HttpParams = new HttpParams();
     retVal = retVal.append('galaxyId', targetPosition.galaxy.toString());
     retVal = retVal.append('sector', targetPosition.sector.toString());
-    retVal =  retVal.append('quadrant', targetPosition.quadrant.toString());
+    retVal = retVal.append('quadrant', targetPosition.quadrant.toString());
     return retVal;
   }
 }

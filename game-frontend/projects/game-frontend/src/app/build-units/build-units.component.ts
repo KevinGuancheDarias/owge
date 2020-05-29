@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { filter } from 'rxjs/operators';
 
-import { PlanetStore } from '@owge/galaxy';
+import { PlanetService } from '@owge/galaxy';
 
 import { UnitService } from './../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
@@ -22,7 +22,7 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, On
   private _unlockedUnits: Unit[];
   private _buildingSubscription: Subscription;
 
-  constructor(private _unitService: UnitService, private _planetStore: PlanetStore) {
+  constructor(private _unitService: UnitService, private _planetService: PlanetService) {
     super();
   }
 
@@ -30,7 +30,7 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, On
     this.requireUser();
     this.findUnlocked();
 
-    this._subscriptions.add(this._planetStore.selectedPlanet.pipe(filter(planet => !!planet)).subscribe(planet => {
+    this._subscriptions.add(this._planetService.findCurrentPlanet().subscribe(planet => {
       if (this._buildingSubscription) {
         this._buildingSubscription.unsubscribe();
         delete this._buildingSubscription;

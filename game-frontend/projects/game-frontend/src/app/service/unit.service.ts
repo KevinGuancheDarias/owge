@@ -10,10 +10,9 @@ import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
   UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation
 } from '@owge/universe';
-import { PlanetStore, Planet } from '@owge/galaxy';
+import { Planet, PlanetService } from '@owge/galaxy';
 
 import { UnitUpgradeRequirements } from '../../../../owge-universe/src/lib/types/unit-upgrade-requirements.type';
-import { UnitTypeService } from '../services/unit-type.service';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 
 @Injectable()
@@ -28,8 +27,8 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _universeGameService: UniverseGameService,
-    private _planetStore: PlanetStore,
-    private _userStore: UserStorage<User>
+    private _userStore: UserStorage<User>,
+    private _planetService: PlanetService
   ) {
     super();
     this._eventsMap = {
@@ -39,7 +38,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     };
     this._userStore.currentUserImprovements.pipe(take(1)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
-    this._planetStore.selectedPlanet.subscribe(currentSelected => this._selectedPlanet = currentSelected);
+    this._planetService.findCurrentPlanet().subscribe(currentSelected => this._selectedPlanet = currentSelected);
   }
 
   /**

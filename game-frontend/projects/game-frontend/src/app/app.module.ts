@@ -12,7 +12,7 @@ import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, 
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
 import { OwgeUniverseModule } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
-import { OwgeGalaxyModule } from '@owge/galaxy';
+import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
 
 import { environment } from '../environments/environment';
 import { ServiceLocator } from './service-locator/service-locator';
@@ -229,7 +229,8 @@ export class AppModule {
           this._injector.get(MissionService),
           this._injector.get(UpgradeService),
           this._injector.get(UnitService),
-          this._injector.get(UnitTypeService)
+          this._injector.get(UnitTypeService),
+          this._injector.get(PlanetService)
         );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))
