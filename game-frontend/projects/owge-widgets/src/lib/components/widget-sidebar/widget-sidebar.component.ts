@@ -1,6 +1,9 @@
-import { Component, Input, OnInit, OnChanges, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component, Input, OnInit, OnChanges, ViewChild, ElementRef,
+  AfterContentInit, TemplateRef, ContentChildren, QueryList
+} from '@angular/core';
 
-import { MenuRoute, ScreenDimensionsService } from '@owge/core';
+import { MenuRoute, ScreenDimensionsService, ContentTransclusionUtil, OwgeContentDirective } from '@owge/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
 import { fromEvent, Subject, combineLatest } from 'rxjs';
@@ -17,7 +20,7 @@ import { fromEvent, Subject, combineLatest } from 'rxjs';
   templateUrl: './widget-sidebar.component.html',
   styleUrls: ['./widget-sidebar.component.scss']
 })
-export class WidgetSideBarComponent implements OnInit, OnChanges {
+export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentInit {
   private static readonly _ICON_WIDTH = 40;
 
   @Input() public sidebarRoutes: MenuRoute[];
@@ -28,8 +31,10 @@ export class WidgetSideBarComponent implements OnInit, OnChanges {
   public computedTitleWidth: number;
   public isGreaterThanViewportWidth: boolean;
   public isDesktop: boolean;
+  public extraButtonContent: TemplateRef<any>;
 
   @ViewChild('largestRouteEl', { static: false }) private _largestRouteEl: ElementRef;
+  @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   private _changedSubject: Subject<void>;
   private _sdsWidthId: string;
@@ -60,6 +65,10 @@ export class WidgetSideBarComponent implements OnInit, OnChanges {
 
   public ngOnChanges(): void {
     this._calculateComputedTitleWidth();
+  }
+
+  public ngAfterContentInit(): void {
+    this.extraButtonContent = ContentTransclusionUtil.findInList(this._templatesList, 'extra-button-content');
   }
 
   private _calculateSvgLength(): void {

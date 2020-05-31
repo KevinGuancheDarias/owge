@@ -49,14 +49,14 @@
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.GATHER' | translate"
               *ngIf="report.parsedJson?.gatheredPrimary !== undefined && report.parsedJson?.gatheredSecondary !== undefined">
               <h5>{{ 'APP.REPORTS.BODY.GATHER.TITLE' | translate }}</h5>
-              <app-display-single-resource [resourceName]="userData.factionDto.primaryResourceName"
-                [resourceImage]="userData.factionDto.primaryResourceImage"
+              <app-display-single-resource [resourceName]="userData.faction.primaryResourceName"
+                [resourceImage]="userData.faction.primaryResourceImage"
                 [resourceValue]="report.parsedJson?.gatheredPrimary">
     
               </app-display-single-resource>
     
-              <app-display-single-resource [resourceName]="userData.factionDto.secondaryResourceName"
-                [resourceImage]="userData.factionDto.secondaryResourceImage"
+              <app-display-single-resource [resourceName]="userData.faction.secondaryResourceName"
+                [resourceImage]="userData.faction.secondaryResourceImage"
                 [resourceValue]="report.parsedJson?.gatheredSecondary">
     
               </app-display-single-resource>
@@ -65,5 +65,6 @@
         </ng-template>
       </owge-widgets-display-list-item>
     </div>
+    <button (click)="downloadNextPage()" class="owge-base-colors btn btn-block" style="margin: 10px auto;">{{ 'APP.REPORTS.SHOW_OLDER' | translate }} </button>
   </ng-container>
 </owge-core-loading>

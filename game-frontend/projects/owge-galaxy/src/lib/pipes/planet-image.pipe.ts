@@ -14,12 +14,16 @@ import { MEDIA_ROUTES, Config } from '@owge/core';
 })
 export class PlanetImagePipe implements PipeTransform {
     public transform(planet: Planet): string {
-        if (planet.specialLocationId) {
-            throw new Error('Unsupported feature for now');
-        } else if (Planet.isExplored(planet)) {
-            return MEDIA_ROUTES.PLANET_RICHNESS_IMAGES + (planet.richness / 10) + Config.PLANET_RICHNESS_IMAGE_EXTENSION;
+        if (planet) {
+            if (planet.specialLocationId) {
+                throw new Error('Unsupported feature for now');
+            } else if (Planet.isExplored(planet)) {
+                return MEDIA_ROUTES.PLANET_RICHNESS_IMAGES + (planet.richness / 10) + Config.PLANET_RICHNESS_IMAGE_EXTENSION;
+            } else {
+                return MEDIA_ROUTES.PLANET_IMAGES + Config.PLANET_NOT_EXPLORED_IMAGE;
+            }
         } else {
-            return MEDIA_ROUTES.PLANET_IMAGES + Config.PLANET_NOT_EXPLORED_IMAGE;
+            return '';
         }
     }
 }

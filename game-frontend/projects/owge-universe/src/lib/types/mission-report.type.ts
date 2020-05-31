@@ -1,5 +1,5 @@
 import { MissionReportJson } from './mission-report-json.type';
-import { AnyMissionReportJson } from './any-mission-report-json.type';
+import { MissionReportAnyJson } from './mission-report-any-json.type';
 
 /**
  * Represents a common mission report
@@ -7,12 +7,13 @@ import { AnyMissionReportJson } from './any-mission-report-json.type';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
  * @template T extends MissionReportJson, type of mission
- * @interface MissionReport
  */
-export interface MissionReport<T extends MissionReportJson = AnyMissionReportJson> {
+export interface MissionReport<T extends MissionReportJson = MissionReportAnyJson> {
+    id: number;
     missionId?: number;
     missionDate?: Date;
     reportDate: Date;
-    id: number;
+    userReadDate: Date;
+    isEnemy: boolean;
     parsedJson: T;
 }

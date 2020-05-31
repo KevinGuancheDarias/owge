@@ -92,6 +92,7 @@
         },
         "REPORTS": {
             "NO_REPORTS": "No mission reports are available for now",
+            "SHOW_MORE": "Download older reports",
             "SOURCE_PLANET": "Source planet",
             "SENT_UNITS": "Sent units",
             "RESULTS": {

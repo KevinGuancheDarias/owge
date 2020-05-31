@@ -92,6 +92,7 @@
         },
         "REPORTS": {
             "NO_REPORTS": "No hay reportes de misión aún",
+            "SHOW_MORE": "Mostrar más",
             "SOURCE_PLANET": "Planeta origen",
             "SENT_UNITS": "Misionarios",
             "RESULTS": {

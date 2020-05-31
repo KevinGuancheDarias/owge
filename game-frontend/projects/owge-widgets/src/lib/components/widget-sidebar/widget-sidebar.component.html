@@ -11,13 +11,16 @@
                   <span #largestRouteEl *ngIf="largestRouteName && !computedTitleWidth" class="hidden-magic-computation">{{ largestRouteName.text }}</span>
             </a>
             <ng-container *ngFor="let route of sidebarRoutes">
-                  <a *ngIf="route.path" class="owge-sidebar-btn-menu" role="button" routerLink="{{ route.path }}"
-                  routerLinkActive="selected-menu-link">
-                        <span><i [class]="route.icon"></i></span>
-                  </a>
-                  <button *ngIf="route.action" class="owge-sidebar-btn-menu" role="button" (click)="route.action()">
-                        <span><i [class]="route.icon"></i></span>
-                  </button>
+                  <div class="owge-sidebar-option">
+                        <a *ngIf="route.path" class="owge-sidebar-btn-menu" role="button" routerLink="{{ route.path }}"
+                        routerLinkActive="selected-menu-link">
+                              <span><i [class]="route.icon"></i></span>
+                        </a>
+                        <a *ngIf="route.action" class="owge-sidebar-btn-menu" role="button" href="javascript:void(0)" (click)="route.action()">
+                              <span><i [class]="route.icon"></i></span>
+                        </a>
+                        <ng-container *ngTemplateOutlet="extraButtonContent; context: {$implicit: route}"></ng-container>
+                  </div>
             </ng-container>
       </div>
       <ng-content select=".body"></ng-content>

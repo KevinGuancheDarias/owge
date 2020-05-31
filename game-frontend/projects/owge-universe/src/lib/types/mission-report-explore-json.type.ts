@@ -7,9 +7,7 @@ import { Unit } from '@owge/universe';
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @interface ExploreMissionReportJson
- * @extends {MissionReportJson}
  */
-export interface ExploreMissionReportJson extends MissionReportJson {
+export interface MissionReportExploreJson extends MissionReportJson {
     unitsInPlanet?: Unit[];
 }

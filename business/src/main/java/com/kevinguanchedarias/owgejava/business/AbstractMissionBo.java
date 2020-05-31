@@ -137,7 +137,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		} else {
 			mission.setAttemps(mission.getAttemps() + 1);
 			mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
-			hanleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
+			handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
 			scheduleMission(mission);
 			save(mission);
 		}
@@ -310,24 +310,30 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
 		MissionReport missionReport = new MissionReport("{}", mission);
 		missionReport.setUser(mission.getUser());
 		missionReport = missionReportBo.save(missionReport);
 		missionReport.setReportDate(new Date());
 		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		missionReport.setIsEnemy(false);
 		mission.setReport(missionReport);
 	}
 
-	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
-		users.forEach(currentUser -> {
-			MissionReport missionReport = new MissionReport("{}", mission);
-			missionReport.setUser(currentUser);
-			missionReport = missionReportBo.save(missionReport);
-			missionReport.setReportDate(new Date());
-			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-			mission.setReport(missionReport);
-		});
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
+			List<UserStorage> users) {
+		users.forEach(currentUser -> handleMissionReportSave(mission, builder, isEnemy, currentUser));
+	}
+
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
+			UserStorage user) {
+		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport.setUser(user);
+		missionReport = missionReportBo.save(missionReport);
+		missionReport.setReportDate(new Date());
+		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		missionReport.setIsEnemy(isEnemy);
+		mission.setReport(missionReport);
 	}
 
 	protected void checkCanDoMisison(UserStorage user) {

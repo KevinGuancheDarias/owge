@@ -7,3 +7,11 @@
 .owge-sidebar-btn-menu.selected-menu .selected-route-text {
     left: 40px;
 }
+
+.owge-sidebar-option {
+    position: relative;
+    .owge-sidebar-btn-menu{
+        width: 100%;
+        margin-left: 10%;
+    }
+}

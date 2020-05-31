@@ -10,6 +10,7 @@ import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, U
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { LoginSessionService } from '../../login-session/login-session.service';
+import { ReportService } from '../../services/report.service';
 
 /**
  *
@@ -53,6 +54,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public missionsCount: number;
   public maxMissions: number;
 
+  public userUnreadReports = 0;
+  public enemyUnreadReports = 0;
+
   constructor(
     _translateService: TranslateService,
     private _universeGameService: UniverseGameService,
@@ -61,7 +65,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
     private _loginSessionService: LoginSessionService,
-    private _missionStore: MissionStore
+    private _missionStore: MissionStore,
+    private _reportService: ReportService
   ) {
     super(_translateService);
   }
@@ -76,6 +81,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     });
     this._missionStore.missionsCount.subscribe(count => this.missionsCount = count);
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
+    this._reportService.findUserUnreadCount().subscribe(result => this.userUnreadReports = result);
+    this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
   }
 
   public displayPlanetSelectionModal(): void {

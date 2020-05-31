@@ -588,7 +588,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
 				.withExploredInformation(unitsInPlanet);
-		hanleMissionReportSave(mission, builder);
+		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
 	}
 
@@ -613,7 +613,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
 				.withGatherInformation(primaryResource, secondaryResource);
-		hanleMissionReportSave(mission, builder);
+		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
 	}
 
@@ -640,7 +640,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			builder.withEstablishBaseInformation(true);
 			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 		}
-		hanleMissionReportSave(mission, builder);
+		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
 		if (!areUnitsHavingtoReturn) {
 			emitLocalMissionChange(mission);
@@ -676,8 +676,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, new ArrayList<>())
 				.withAttackInformation(attackInformation);
-		hanleMissionReportSave(mission, builder,
-				attackInformation.users.stream().map(current -> current.user).collect(Collectors.toList()));
+		UserStorage invoker = mission.getUser();
+		handleMissionReportSave(mission, builder, true, attackInformation.users.stream().map(current -> current.user)
+				.filter(user -> !user.getId().equals(invoker.getId())).collect(Collectors.toList()));
+		handleMissionReportSave(mission, builder, false, invoker);
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChange(mission);
 		}
@@ -772,9 +774,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 			if (oldOwner != null) {
 				planetBo.emitPlanetOwnedChange(oldOwner);
 				emitEnemyMissionsChange(oldOwner);
+				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
+						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+						.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
+				handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
 			}
 		}
-		hanleMissionReportSave(mission, builder);
+		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
 		if (!areUnitsHavingToReturn) {
 			emitLocalMissionChange(mission);

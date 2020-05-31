@@ -1,5 +1,5 @@
 import { MissionReportJson } from './mission-report-json.type';
 
-export interface ErrorMissionReportJson extends MissionReportJson {
+export interface MissionReportErrorJson extends MissionReportJson {
     errorText: string;
 }

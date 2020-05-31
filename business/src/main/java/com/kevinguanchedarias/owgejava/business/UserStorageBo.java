@@ -149,6 +149,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return dbFullUser;
 	}
 
+	@Transactional
 	public UserStorage findLoggedInWithDetails() {
 		UserStorage tokenSimpleUser = findLoggedIn();
 		UserStorage dbFullUser = findById(tokenSimpleUser.getId());

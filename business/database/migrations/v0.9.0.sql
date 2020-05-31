@@ -35,3 +35,6 @@ ALTER TABLE `special_locations` CHANGE `improvement_id` `improvement_id` SMALLIN
 ALTER TABLE `special_locations` DROP FOREIGN KEY `special_locations_ibfk_1`;
 ALTER TABLE `special_locations` DROP `planet_id`;
 ALTER TABLE `special_locations` CHANGE `galaxy_id` `galaxy_id` SMALLINT(6) UNSIGNED NULL;
+
+ALTER TABLE `mission_reports` DROP `user_aware_date`;
+ALTER TABLE `mission_reports` ADD `is_enemy` TINYINT(1) NULL DEFAULT '0' AFTER `report_date`;
