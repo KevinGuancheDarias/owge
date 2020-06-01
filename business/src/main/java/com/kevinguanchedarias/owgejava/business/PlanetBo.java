@@ -203,6 +203,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		exploredPlanet.setUser(user);
 		exploredPlanet.setPlanet(targetPlanet);
 		exploredPlanetRepository.save(exploredPlanet);
+		socketIoService.sendMessage(user, "planet_explored_event", () -> toDto(findById(targetPlanet.getId())));
 	}
 
 	public void myDefineAsExplored(Planet targetPlanet) {

@@ -57,9 +57,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
 
 	@Autowired
-	private UnitTypeBo unitTypeBo;
-
-	@Autowired
 	private ImageStoreBo imageStoreBo;
 
 	/**

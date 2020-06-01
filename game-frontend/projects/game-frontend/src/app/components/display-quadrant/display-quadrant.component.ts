@@ -7,6 +7,7 @@ import { MissionModalComponent } from '../../mission-modal/mission-modal.compone
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
+import { PlanetService, Planet } from '@owge/galaxy';
 
 @Component({
   selector: 'app-display-quadrant',
@@ -24,13 +25,25 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   @ViewChild('missionModal', { static: true })
   private _missionModal: MissionModalComponent;
 
-  constructor(private _navigationService: NavigationService, private _missioninformationStore: MissionInformationStore) {
+  constructor(
+    private _navigationService: NavigationService,
+    private _missionInformationStore: MissionInformationStore,
+    private _planetService: PlanetService
+  ) {
     super();
   }
 
   public async ngOnInit() {
     this.navigationConfig = await this._navigationService.findCurrentNavigationConfig();
     this.navigationData = await this._navigationService.navigate(this.navigationConfig);
+    this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(explored => {
+      if (this.navigationData.planets.some(current => !current.richness && current.id === explored.id)) {
+        this.navigationData.planets = this.navigationData.planets.filter(current => current.id !== explored.id);
+        this.navigationData.planets.push(explored);
+      }
+
+
+    }));
   }
 
   public async changePosition(newPosition: NavigationConfig): Promise<void> {
@@ -50,7 +63,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   }
 
   public sendMission(targetPlanet: PlanetPojo) {
-    this._missioninformationStore.targetPlanet.next(targetPlanet);
+    this._missionInformationStore.targetPlanet.next(targetPlanet);
     this._missionModal.show();
   }
 }

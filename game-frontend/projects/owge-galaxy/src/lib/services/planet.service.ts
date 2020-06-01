@@ -22,7 +22,8 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   ) {
     super();
     this._eventsMap = {
-      planet_owned_change: '_onPlanetOwnedChange'
+      planet_owned_change: '_onPlanetOwnedChange',
+      planet_explored_event: '_onPlanetExploredEvent'
     };
     this._planeStore = new PlanetStore(_sessionStore);
     this._userStorage.currentUser.subscribe(user => this._user = user);
@@ -91,6 +92,17 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    *
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returnss
+   */
+  public onPlanetExplored(): Observable<Planet> {
+    return this._planeStore.exploredEvent.asObservable();
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @protected
    * @param content
    */
@@ -104,5 +116,9 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
       this.defineSelectedPlanet(home);
     }
     this._planeStore.ownedPlanetList.next(content);
+  }
+
+  protected _onPlanetExploredEvent(content: Planet): void {
+    this._planeStore.exploredEvent.next(content);
   }
 }
