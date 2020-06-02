@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
 
 import { BaseComponent } from '../../base/base.component';
 import { NavigationData } from '../../shared/types/navigation-data.type';
@@ -37,12 +37,11 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
     this.navigationConfig = await this._navigationService.findCurrentNavigationConfig();
     this.navigationData = await this._navigationService.navigate(this.navigationConfig);
     this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(explored => {
-      if (this.navigationData.planets.some(current => !current.richness && current.id === explored.id)) {
-        this.navigationData.planets = this.navigationData.planets.filter(current => current.id !== explored.id);
-        this.navigationData.planets.push(explored);
+      const exploredPlanedWithoutProps: Planet = this.navigationData.planets
+        .find(current => !current.richness && current.id === explored.id);
+      if (exploredPlanedWithoutProps) {
+        Object.assign(exploredPlanedWithoutProps, explored);
       }
-
-
     }));
   }
 
