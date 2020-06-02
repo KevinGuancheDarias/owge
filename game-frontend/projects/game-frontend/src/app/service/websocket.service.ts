@@ -37,7 +37,9 @@ export class WebsocketService {
           throw new ProgrammingError('targetUrl MUST be specified at least in first executions');
         }
         this._log.debug('Connecting to remote websocket server', targetUrl);
-        this._socket = io.connect(targetUrl);
+        this._socket = io.connect({
+          path: targetUrl
+        });
         this._socket.on('connect', async () => {
           if (this._isFirstConnection) {
             this._log.info('Connection established with success');

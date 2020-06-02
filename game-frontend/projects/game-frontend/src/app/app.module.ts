@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
@@ -218,7 +218,11 @@ export class AppModule {
   private _initWebsocket(): void {
     let _oldSuscription: Subscription;
     this._configurationService.observeParam('WEBSOCKET_ENDPOINT')
-      .pipe(filter(configurationEntry => !!configurationEntry))
+      .pipe(map(
+        configurationEntry => configurationEntry || {
+          value: '/websocket/socket.io'
+        }
+      ))
       .subscribe(conf => {
         if (_oldSuscription) {
           _oldSuscription.unsubscribe();

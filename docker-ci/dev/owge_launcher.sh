@@ -97,6 +97,7 @@ function _menu () {
         2)
             (
                 export OWGE_BACKEND_SERVER="rest_and_admin:8080";
+                export OWGE_WS_SERVER="rest_and_admin:7474";
                 _doLaunch "owge_frontend_developer" _withFrontend _withBackend _withDatabase;
             )
             ;;
@@ -268,6 +269,7 @@ function _doLaunch() {
 
 function _withAllDockerized() {
     export OWGE_BACKEND_SERVER="rest_and_admin:8080";
+    export OWGE_WS_SERVER="rest_and_admin:7474";
     export OWGE_FRONTEND_SERVER="frontend:4200";
     _withFrontend;
     _withBackend;
@@ -298,6 +300,8 @@ function _withBackend() {
         dockerFindHostIp;
         promptWithDefault "Backend Server" "$output:8080";
         export OWGE_BACKEND_SERVER="$_output";
+        promptWithDefault "WS server" "`echo $OWGE_BACKEND_SERVER | cut -d ':' -f 1 `:7474";
+        export OWGE_WS_SERVER="$_output";
         promptWithDefault "Backend contextpath" "owgejava-game-rest";
         export OWGE_REST_CONTEXT_PATH="$_output";
         promptWithDefault "Admin contextpath" "owgejava-admin";
