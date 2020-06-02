@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
-import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithId;
@@ -89,7 +88,11 @@ public class RequirementBo implements Serializable {
 	private SocketIoService socketIoService;
 
 	@Autowired
-	private UnlockedRelationBo unlockedRelationBo;
+	private TimeSpecialBo timeSpecialBo;
+
+	@Autowired
+	private UnitBo unitBo;
+
 	@Autowired
 	private transient EntityManager entityManager;
 
@@ -461,8 +464,9 @@ public class RequirementBo implements Serializable {
 				}
 				break;
 			case UNIT:
+				emitUnlockedChange(unlockedRelation, object, unitBo);
 			case TIME_SPECIAL:
-				emitUnlockedChange(unlockedRelation, object);
+				emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
 				break;
 			}
 		}
@@ -479,7 +483,7 @@ public class RequirementBo implements Serializable {
 			alterObtainedUpgradeAvailability(
 					obtainedUpgradeBo.findUserObtainedUpgrade(user.getId(), relation.getReferenceId()), false);
 		} else if (unlockedRelation != null) {
-			emitUnlockedChange(unlockedRelation, object);
+			emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unitBo : timeSpecialBo);
 		}
 	}
 
@@ -520,24 +524,15 @@ public class RequirementBo implements Serializable {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object) {
+	private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object, WithUnlockableBo bo) {
 		Integer userId = unlockedRelation.getUser().getId();
 		String eventPrefix = object.name().toLowerCase();
-		Class dtoClass;
-		if (object == ObjectEnum.UNIT) {
-			dtoClass = UnitDto.class;
-		} else if (object == ObjectEnum.TIME_SPECIAL) {
-			dtoClass = TimeSpecialDto.class;
-		} else {
-			throw new ProgrammingException("Not implemented!");
-		}
 		TransactionUtil.doAfterCommit(() -> {
 			if (entityManager.contains(unlockedRelation)) {
 				entityManager.refresh(unlockedRelation);
 			}
 			socketIoService.sendMessage(userId, eventPrefix + "_unlocked_change",
-					() -> dtoUtilService.convertEntireArray(dtoClass, unlockedRelationBo
-							.unboxToTargetEntity(unlockedRelationBo.findByUserIdAndObjectType(userId, object))));
+					() -> dtoUtilService.convertEntireArray(bo.getDtoClass(), bo.findUnlocked(userId)));
 		});
 	}
 }

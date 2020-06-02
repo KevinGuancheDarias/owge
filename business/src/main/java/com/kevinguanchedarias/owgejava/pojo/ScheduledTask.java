@@ -4,21 +4,21 @@ import java.io.Serializable;
 
 /**
  * Represents a scheduled task
- * 
+ *
  * @param <T>
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  */
-public class ScheduledTask<T extends Serializable> implements Serializable {
+public class ScheduledTask implements Serializable {
 	private static final long serialVersionUID = -6405371104931890932L;
 
 	private String id;
 	private String type;
-	private T content;
+	private Object content;
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
@@ -32,7 +32,7 @@ public class ScheduledTask<T extends Serializable> implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
-	public ScheduledTask(String type, T content) {
+	public ScheduledTask(String type, Object content) {
 		super();
 		this.type = type;
 		this.content = content;
@@ -40,7 +40,7 @@ public class ScheduledTask<T extends Serializable> implements Serializable {
 
 	/**
 	 * The id in the Schedule system
-	 * 
+	 *
 	 * @return the id
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
@@ -60,7 +60,7 @@ public class ScheduledTask<T extends Serializable> implements Serializable {
 
 	/**
 	 * Type of event
-	 * 
+	 *
 	 * @return the type
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
@@ -80,12 +80,12 @@ public class ScheduledTask<T extends Serializable> implements Serializable {
 
 	/**
 	 * The body of the event
-	 * 
+	 *
 	 * @return the content
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
-	public T getContent() {
+	public Object getContent() {
 		return content;
 	}
 
@@ -94,7 +94,7 @@ public class ScheduledTask<T extends Serializable> implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
-	public void setContent(T content) {
+	public void setContent(Object content) {
 		this.content = content;
 	}
 

@@ -231,7 +231,8 @@ export class AppModule {
           this._injector.get(UnitService),
           this._injector.get(UnitTypeService),
           this._injector.get(PlanetService),
-          this._injector.get(ReportService)
+          this._injector.get(ReportService),
+          this._injector.get(TimeSpecialService)
         );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))

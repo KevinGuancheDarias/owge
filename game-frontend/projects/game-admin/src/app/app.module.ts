@@ -40,6 +40,7 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { AdminSpecialLocationService } from './services/admin-special-location.service';
 import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
+import { WebsocketService } from 'projects/game-frontend/src/app/service/websocket.service';
 
 @NgModule({
   declarations: [
@@ -99,6 +100,7 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
     AdminUnitService,
     AdminSpecialLocationService,
     LoadingService,
+    WebsocketService,
     {
       provide: 'APPLICATION_CONTEXT',
       useValue: 'admin'

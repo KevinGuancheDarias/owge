@@ -18,6 +18,7 @@ export * from './lib/services/universe-game.service';
 export * from './lib/services/universe.service';
 export * from './lib/storages/mission.store';
 export * from './lib/storages/report.store';
+export * from './lib/storages/time-special.store';
 export * from './lib/storages/unit-type.store';
 export * from './lib/storages/unit.store';
 export * from './lib/storages/universe.storage';

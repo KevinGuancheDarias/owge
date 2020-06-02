@@ -168,14 +168,14 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 
 	/**
 	 * Converts an entire entity list to DTO list
-	 * 
+	 *
 	 * @param entities
 	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	default List<D> toDto(List<E> entities) {
-		return entities.stream().map(current -> toDto(current)).collect(Collectors.toList());
+		return entities.stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	/**

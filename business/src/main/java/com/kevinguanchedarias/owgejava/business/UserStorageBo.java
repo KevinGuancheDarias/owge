@@ -125,7 +125,8 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * @author Kevin Guanche Darias
 	 */
 	public UserStorage findLoggedIn() {
-		return convertTokenUserToUserStorage(authenticationBo.findTokenUser());
+		TokenUser token = authenticationBo.findTokenUser();
+		return token != null ? convertTokenUserToUserStorage(token) : null;
 	}
 
 	/**
@@ -141,6 +142,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * @author Kevin Guanche Darias
 	 */
 	@Deprecated(since = "0.8.0")
+	@Transactional
 	public UserStorage findLoggedInWithDetails(boolean populateTransient) {
 		UserStorage dbFullUser = findLoggedInWithDetails();
 		if (populateTransient) {
@@ -152,15 +154,19 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	@Transactional
 	public UserStorage findLoggedInWithDetails() {
 		UserStorage tokenSimpleUser = findLoggedIn();
-		UserStorage dbFullUser = findById(tokenSimpleUser.getId());
+		if (tokenSimpleUser != null) {
+			UserStorage dbFullUser = findById(tokenSimpleUser.getId());
 
-		if (!tokenSimpleUser.getEmail().equals(dbFullUser.getEmail())
-				|| !tokenSimpleUser.getUsername().equals(dbFullUser.getUsername())) {
-			dbFullUser.setEmail(tokenSimpleUser.getEmail());
-			dbFullUser.setUsername(tokenSimpleUser.getUsername());
-			save(dbFullUser);
+			if (!tokenSimpleUser.getEmail().equals(dbFullUser.getEmail())
+					|| !tokenSimpleUser.getUsername().equals(dbFullUser.getUsername())) {
+				dbFullUser.setEmail(tokenSimpleUser.getEmail());
+				dbFullUser.setUsername(tokenSimpleUser.getUsername());
+				save(dbFullUser);
+			}
+			return dbFullUser;
+		} else {
+			return null;
 		}
-		return dbFullUser;
 	}
 
 	public UserStorage findOneByMission(Mission mission) {

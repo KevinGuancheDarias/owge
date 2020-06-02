@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 
 @Component
-public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
+public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockableBo<Integer, Unit, UnitDto> {
 	private static final long serialVersionUID = 8956360591688432113L;
 
 	@Autowired
@@ -38,7 +38,7 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -46,9 +46,19 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 		return UnitDto.class;
 	}
 
+	@Override
+	public UnlockedRelationBo getUnlockedRelationBo() {
+		return unlockedRelationBo;
+	}
+
+	@Override
+	public ObjectEnum getObject() {
+		return ObjectEnum.UNIT;
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
 	 * owgejava.entity.EntityWithId)
@@ -61,7 +71,7 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
 	 */
 	@Override
@@ -72,7 +82,7 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
 	 */
@@ -82,14 +92,9 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 		WithNameBo.super.delete(unit);
 	}
 
-	public List<Unit> findUnlocked(UserStorage user) {
-		return unlockedRelationBo.unboxToTargetEntity(
-				unlockedRelationBo.findByUserIdAndObjectType(user.getId(), RequirementTargetObject.UNIT));
-	}
-
 	/**
 	 * Calculates the requirements according to the count to operate!
-	 * 
+	 *
 	 * @param unitId
 	 * @param count
 	 * @return
@@ -101,7 +106,7 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 
 	/**
 	 * Calculates the requirements according to the count to operate!
-	 * 
+	 *
 	 * @param unit
 	 * @param count
 	 * @return
@@ -127,7 +132,7 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto> {
 
 	/**
 	 * Checks if the unique unit has been build by the user
-	 * 
+	 *
 	 * @param user
 	 * @param unit
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

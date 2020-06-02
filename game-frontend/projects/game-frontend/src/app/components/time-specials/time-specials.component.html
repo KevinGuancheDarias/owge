@@ -1,7 +1,7 @@
 <div class="owge-card-list">
     <owge-widgets-display-list-item *ngFor="let element of elements" [itemName]="element.name" [itemDescription]="element.description"  [image]="element.imageUrl"
         [hasToDisplayCountdown]="element.activeTimeSpecialDto?.state === 'ACTIVE' || element.activeTimeSpecialDto?.state === 'RECHARGE'"
-        [countdownMillis]="element.activeTimeSpecialDto?.pendingTime" (timeOver)="onTimeOver(element)"
+        [countdownDate]="element.activeTimeSpecialDto?.browserComputedTerminationDate"
     >
         <ng-template owgeCoreContent select="extra-header">
             <div class="ts-state" *ngIf="element.activeTimeSpecialDto">
