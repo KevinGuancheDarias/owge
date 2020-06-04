@@ -14,6 +14,12 @@ import { Planet } from '../pojos/planet.pojo';
 export class PlanetStore {
     public readonly selectedPlanet: Subject<Planet> = new ReplaySubject(1);
     public readonly ownedPlanetList: Subject<Planet[]> = new ReplaySubject(1);
+
+    /**
+     * If changed while was offline, the value will be null
+     *
+     * @since 0.9.0
+     */
     public readonly exploredEvent: Subject<Planet> = new Subject;
 
     public constructor(private _sessionStore: SessionStore) {

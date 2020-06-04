@@ -7,6 +7,7 @@ import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { UnitService } from '../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
 import { Subscription } from 'rxjs';
+import { cloneDeep } from 'lodash-es';
 
 @Component({
   selector: 'app-deployed-units-big',
@@ -35,7 +36,8 @@ export class DeployedUnitsBigComponent extends BaseUnitComponent implements OnIn
   private _findInMyPlanet(): void {
     this._subscriptions.add(this._planetService.findCurrentPlanet().subscribe(planet => {
       this._clearFindInMyPlanetSubscription();
-      this._findInMyPlanetSubscription = this._unitService.findInMyPlanet(planet.id).subscribe(units => this.obtainedUnits = units);
+      this._findInMyPlanetSubscription = this._unitService.findInMyPlanet(planet.id)
+        .subscribe(units => this.obtainedUnits = cloneDeep(units));
     }));
   }
 

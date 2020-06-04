@@ -1,32 +1,36 @@
-
 import { Injectable } from '@angular/core';
-import { filter } from 'rxjs/operators';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
+import { isEqual } from 'lodash-es';
 
-import { User, UserStorage, AbstractWebsocketApplicationHandler, SessionStore } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { User, UserStorage, AbstractWebsocketApplicationHandler, SessionStore, StorageOfflineHelper } from '@owge/core';
+import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
 
 import { Planet } from '../pojos/planet.pojo';
 import { PlanetStore } from '../stores/planet.store';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable()
 export class PlanetService extends AbstractWebsocketApplicationHandler {
   private _user: User;
   private _currentPlanet: Planet;
   private _planeStore: PlanetStore;
+  private _offlinePlanetOwnedChange: StorageOfflineHelper<Planet[]>;
 
   constructor(
     private _universeGameService: UniverseGameService,
     private _userStorage: UserStorage<User>,
-    _sessionStore: SessionStore,
+    private _wsEventCacheService: WsEventCacheService,
+    sessionStore: SessionStore,
+    universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       planet_owned_change: '_onPlanetOwnedChange',
       planet_explored_event: '_onPlanetExploredEvent'
     };
-    this._planeStore = new PlanetStore(_sessionStore);
+    this._planeStore = new PlanetStore(sessionStore);
     this._userStorage.currentUser.subscribe(user => this._user = user);
+    this._offlinePlanetOwnedChange = universeCacheManagerService.getStore('planet.owned_list');
   }
 
   /**
@@ -37,13 +41,20 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public async workaroundSync(): Promise<void> {
-    this._onPlanetOwnedChange(
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'planet/findMyPlanets').toPromise()
-    );
+    this._onPlanetOwnedChange(await this._wsEventCacheService.findFromCacheOrRun('planet_owned_change', this._offlinePlanetOwnedChange,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'planet/findMyPlanets').toPromise()
+    ));
+    if (this._wsEventCacheService.hasChanged('planet_explored_event')) {
+      this._onPlanetExploredEvent(null);
+    }
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlinePlanetOwnedChange.doIfNotNull(content => this._onPlanetOwnedChange(content));
   }
 
   public findMyPlanets(): Observable<Planet[]> {
-    return this._planeStore.ownedPlanetList.asObservable();
+    return this._planeStore.ownedPlanetList.asObservable().pipe(distinctUntilChanged(isEqual));
   }
 
   /**
@@ -85,11 +96,12 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    * @returns {Observable<Planet>}
    */
   public findCurrentPlanet(): Observable<Planet> {
-    return this._planeStore.selectedPlanet.asObservable();
+    return this._planeStore.selectedPlanet.asObservable().pipe(distinctUntilChanged((a, b) => a.id === b.id));
   }
 
   /**
    *
+   * Fires when the ws emits an explored event, or <b>with null</b> if the socket was offline, but a value was emitted
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.0

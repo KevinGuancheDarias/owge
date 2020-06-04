@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { UniverseGameService, MissionReport, MissionReportResponse, ReportStore } from '@owge/universe';
-import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import {
+  UniverseGameService, MissionReport, MissionReportResponse, ReportStore,
+  UniverseCacheManagerService, WsEventCacheService
+} from '@owge/universe';
+import { AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
 import { map, take } from 'rxjs/operators';
 
 @Injectable()
@@ -11,13 +14,21 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   private _currentReports: MissionReport[] = [];
   private _alreadyDownloadedReports: Set<number> = new Set();
   private _reportStore: ReportStore = new ReportStore;
+  private _offlineChangeCache: StorageOfflineHelper<MissionReportResponse>;
+  private _offlineCountChangeCache: StorageOfflineHelper<MissionReportResponse>;
 
-  public constructor(private _universeGameService: UniverseGameService) {
+  public constructor(
+    private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService,
+    universeCacheManagerService: UniverseCacheManagerService
+  ) {
     super();
     this._eventsMap = {
       mission_report_change: '_onChange',
       mission_report_count_change: '_onCountChange'
     };
+    this._offlineChangeCache = universeCacheManagerService.getStore('reports.change');
+    this._offlineCountChangeCache = universeCacheManagerService.getStore('reports.count_change');
   }
 
   public findReports<T extends MissionReport = MissionReport>(): Observable<T[]> {
@@ -31,7 +42,18 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    */
   public async workaroundSync(): Promise<void> {
-    this._onChange(await this._doDownloadPage().toPromise());
+    this._onChange(
+      await this._wsEventCacheService.findFromCacheOrRun(
+        'mission_report_change',
+        this._offlineChangeCache,
+        async () => await this._doDownloadPage().toPromise()
+      )
+    );
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineChangeCache.doIfNotNull(content => this._onChange(content));
+    this._offlineCountChangeCache.doIfNotNull(content => this._onCountChange(content));
   }
 
   /**
@@ -48,7 +70,6 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     ).toPromise(), page !== 1);
     this._reportStore.reports.next(this._currentReports);
   }
-
 
   /**
    * Marks the reports as read
@@ -93,11 +114,13 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     this._onCountChange(content);
     this._handleReportsDownload(content.reports);
     this._reportStore.reports.next(this._currentReports);
+    this._offlineChangeCache.save(content);
   }
 
   protected _onCountChange(content: MissionReportResponse): void {
     this._reportStore.userUnread.next(content.userUnread);
     this._reportStore.enemyUnread.next(content.enemyUnread);
+    this._offlineCountChangeCache.save(content);
   }
 
   private _handleReportsDownload(reports: MissionReport[], isPush = false): void {

@@ -48,4 +48,11 @@ export interface MenuRoute {
      * @since 0.7.0
      */
     isNgIfOk?: boolean;
+
+    /**
+     * If Internet connection is required to use this section
+     *
+     * @since 0.9.0
+     */
+    isConnectionRequired?: boolean;
 }

@@ -2,6 +2,11 @@
 <div class="app-container">
     <router-outlet></router-outlet>
 </div>
+<div *ngIf="isInGame" class="is-connected" [ngClass]="isConnected ? 'connected' : 'not-connected'" [@toggleConnected]="hasToShow ? 'show' : 'hide'">
+    <ng-container *ngIf="isConnected">{{ 'APP.CONNECTED' | translate }}</ng-container>
+    <ng-container *ngIf="!isConnected">{{ 'APP.NOT_CONNECTED' | translate }}</ng-container>
+</div>
+
 <div *ngIf="isLoading" class="is-loading">
     <div>
 

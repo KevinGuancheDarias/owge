@@ -346,7 +346,8 @@
                 "glob": "**/*",
                 "input": "./libs/shared-assets/",
                 "output": "./assets"
-              }
+              },
+              "projects/game-frontend/src/manifest.webmanifest"
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.css",
@@ -414,7 +415,9 @@
                   "maximumWarning": "6kb",
                   "maximumError": "10kb"
                 }
-              ]
+              ],
+              "serviceWorker": true,
+              "ngswConfigPath": "projects/game-frontend/ngsw-config.json"
             }
           }
         },
@@ -453,7 +456,8 @@
             "karmaConfig": "projects/game-frontend/karma.conf.js",
             "assets": [
               "projects/game-frontend/src/favicon.ico",
-              "projects/game-frontend/src/assets"
+              "projects/game-frontend/src/assets",
+              "projects/game-frontend/src/manifest.webmanifest"
             ],
             "styles": [
               "projects/game-frontend/src/styles.css"

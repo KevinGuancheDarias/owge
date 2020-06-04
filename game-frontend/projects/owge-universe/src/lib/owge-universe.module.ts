@@ -7,15 +7,16 @@ import { CoreModule } from '@owge/core';
 import { UniverseStorage } from './storages/universe.storage';
 import { UniverseInitializer } from './initializers/universe.initializer';
 import { UniverseService } from './services/universe.service';
-import { ClockInitializer } from './initializers/clock.initializer';
-import { ClockSyncService } from './services/clock-sync.service';
 import { UniverseGameService } from './services/universe-game.service';
 import { ImageSelectorComponent } from './components/image-selector/image-selector.component';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { ImageStoreService } from './services/image-store.service';
 import { MissionStore } from './storages/mission.store';
 import { ResourceManagerService } from './services/resource-manager.service';
-import { WebsocketService } from 'projects/game-frontend/src/app/service/websocket.service';
+import { UniverseCacheManagerService } from './services/universe-cache-manager.service';
+import { OnClickIfWsConnectedDirective } from './directives/on-click-if-ws-conected.directive';
+import { WebsocketService } from './services/websocket.service';
+import { WsEventCacheService } from './services/ws-event-cache.service';
 
 /**
  *
@@ -31,12 +32,13 @@ import { WebsocketService } from 'projects/game-frontend/src/app/service/websock
     OwgeWidgetsModule,
     TranslateModule.forChild()
   ],
-  declarations: [ImageSelectorComponent],
+  declarations: [ImageSelectorComponent, OnClickIfWsConnectedDirective],
   providers: [
     ImageStoreService
   ],
   exports: [
-    ImageSelectorComponent
+    ImageSelectorComponent,
+    OnClickIfWsConnectedDirective
   ]
 })
 export class OwgeUniverseModule {
@@ -47,13 +49,14 @@ export class OwgeUniverseModule {
         UniverseStorage,
         UniverseGameService,
         UniverseService,
-        ClockSyncService,
         UniverseInitializer,
-        ClockInitializer,
         OwgeWidgetsModule,
         ImageStoreService,
         MissionStore,
-        ResourceManagerService
+        ResourceManagerService,
+        UniverseCacheManagerService,
+        WebsocketService,
+        WsEventCacheService
       ]
     };
   }

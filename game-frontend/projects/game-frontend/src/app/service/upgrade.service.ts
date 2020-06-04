@@ -2,24 +2,28 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Improvement, DateUtil } from '@owge/core';
+import { Improvement, DateUtil, StorageOfflineHelper } from '@owge/core';
 import {
   UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
-  AutoUpdatedResources, ResourceManagerService, ResourceRequirements
+  AutoUpdatedResources, ResourceManagerService, ResourceRequirements, UniverseCacheManagerService, WsEventCacheService
 } from '@owge/universe';
 
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
-import { map } from 'rxjs/operators';
+import { map, distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable()
 export class UpgradeService extends AbstractWebsocketApplicationHandler {
 
   private _upgradeStore: UpgradeStore = new UpgradeStore;
   private _resources: AutoUpdatedResources;
+  private _offlineObtainedStore: StorageOfflineHelper<ObtainedUpgrade[]>;
+  private _offlineRunningStore: StorageOfflineHelper<UpgradeRunningMission>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService,
+    _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._resources = new AutoUpdatedResources(_resourceManagerService);
@@ -27,6 +31,8 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
       obtained_upgrades_change: '_onObtainedChange',
       running_upgrade_change: '_onRunningChange'
     };
+    this._offlineObtainedStore = _universeCacheManagerService.getStore('upgrade.obtained');
+    this._offlineRunningStore = _universeCacheManagerService.getStore('upgrade.running');
   }
 
   /**
@@ -37,15 +43,23 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public async workaroundSync(): Promise<void> {
-    this._upgradeStore.obtained.next(
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/findObtained').toPromise()
-    );
-    this._upgradeStore.runningLevelUpMission.next(
-      await this._universeGameService.requestWithAutorizationToContext<UpgradeRunningMission>('game', 'get', 'upgrade/findRunningUpgrade')
-        .pipe(
-          map(result => DateUtil.computeBrowserTerminationDate(result))
-        ).toPromise()
-    );
+    this._onObtainedChange(await this._wsEventCacheService.findFromCacheOrRun('obtained_upgrades_change', this._offlineObtainedStore,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/findObtained').toPromise()
+    ));
+    this._onRunningChange(await this._wsEventCacheService.findFromCacheOrRun(
+      'running_upgrade_change',
+      this._offlineRunningStore,
+      async () =>
+        await this._universeGameService.requestWithAutorizationToContext<UpgradeRunningMission>('game', 'get', 'upgrade/findRunningUpgrade')
+          .pipe(
+            map(result => DateUtil.computeBrowserTerminationDate(result))
+          ).toPromise()
+    ));
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineObtainedStore.doIfNotNull(content => this._onObtainedChange(content));
+    this._offlineRunningStore.doIfNotNull(content => this._onRunningChange(content));
   }
 
   public findObtained(): Observable<ObtainedUpgrade[]> {
@@ -139,10 +153,12 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   }
 
   protected _onObtainedChange(content: ObtainedUpgrade[]): void {
+    this._offlineObtainedStore.save(content);
     this._upgradeStore.obtained.next(content);
   }
 
   protected _onRunningChange(content: UpgradeRunningMission): void {
+    this._offlineRunningStore.save(content);
     this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
   }
 }

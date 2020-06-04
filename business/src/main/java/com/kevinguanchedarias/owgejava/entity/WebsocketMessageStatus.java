@@ -22,7 +22,7 @@ import org.hibernate.annotations.FetchMode;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  *
  */
-@Deprecated
+@Deprecated(since = "0.9.0")
 @Entity
 @Table(name = "websocket_messages_status")
 public class WebsocketMessageStatus implements EntityWithId<BigInteger> {

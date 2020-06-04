@@ -102,8 +102,7 @@ public class UnitRestService {
 
 	@GetMapping("requirements")
 	public List<UnitWithRequirementInformation> requirements() {
-		return requirementBo.computeReachedLevel(findLoggedInUser(),
-				requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction()));
+		return requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction());
 	}
 
 	@GetMapping("cancel")

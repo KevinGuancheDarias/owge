@@ -3,7 +3,6 @@
  */
 
 export * from './lib/components/image-selector/image-selector.component';
-export * from './lib/initializers/clock.initializer';
 export * from './lib/initializers/universe.initializer';
 export * from './lib/mixins/services/with-improvements-crud.mixin';
 export * from './lib/mixins/services/with-read-crud.mixin';
@@ -11,17 +10,20 @@ export * from './lib/mixins/services/with-requirements-crud.mixin';
 export * from './lib/pojos/auto-update-resources.pojo';
 export * from './lib/pojos/resource-requirements.pojo';
 export * from './lib/services/abstract-crud.service';
-export * from './lib/services/clock-sync.service';
 export * from './lib/services/image-store.service';
 export * from './lib/services/resource-manager.service';
+export * from './lib/services/universe-cache-manager.service';
 export * from './lib/services/universe-game.service';
 export * from './lib/services/universe.service';
+export * from './lib/services/websocket.service';
+export * from './lib/services/ws-event-cache.service';
 export * from './lib/storages/mission.store';
 export * from './lib/storages/report.store';
 export * from './lib/storages/time-special.store';
 export * from './lib/storages/unit-type.store';
 export * from './lib/storages/unit.store';
 export * from './lib/storages/universe.storage';
+export * from './lib/storages/upgrade-type.store';
 export * from './lib/storages/upgrade.store';
 export * from './lib/types/active-time-special.type';
 export * from './lib/types/crud-config.type';

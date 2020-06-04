@@ -25,6 +25,15 @@ export interface SubjectAndSource {
     providedIn: 'root'
 })
 export class SessionStore {
+
+    /**
+     * Allows modules that can't use @owge/universe to access the connection state <br>
+     * For example @owge/widgets is used by @owge/universe
+     *
+     * @since 0.9.0
+     */
+    public readonly isConnected: Subject<boolean> = new ReplaySubject(1);
+
     private _replaySubjectsStore: { [key: string]: SubjectAndSource } = {};
     private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 

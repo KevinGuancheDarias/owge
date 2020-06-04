@@ -102,7 +102,11 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
 
   public ngOnInit() {
     this.requireUser(() => {
-      this._userStore.currentUserImprovements.subscribe(improvement => {
+      if (this._improvementsSubscription) {
+        this._improvementsSubscription.unsubscribe();
+        delete this._improvementsSubscription;
+      }
+      this._improvementsSubscription = this._userStore.currentUserImprovements.subscribe(improvement => {
         this.moreCharge = improvement.moreChargeCapacity;
         this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
         this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);

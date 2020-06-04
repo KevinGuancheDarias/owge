@@ -35,8 +35,7 @@ export class UpgradesComponent extends BaseComponent implements OnInit, OnDestro
 
   private _findObtained(): void {
     this._subscriptions.add(this._upgradeService.findObtained().subscribe(
-      obtainedUpgrades => this.obtainedUpgrades = obtainedUpgrades,
-      error => this.displayError(error)
+      obtainedUpgrades => this.obtainedUpgrades = obtainedUpgrades
     ));
   }
 }

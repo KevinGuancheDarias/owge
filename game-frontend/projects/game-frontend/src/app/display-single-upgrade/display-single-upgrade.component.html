@@ -18,11 +18,11 @@
         ---
       </a>
       <ng-container *ngIf="!runningUpgrade">
-        <a *ngIf="obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button"
-          (click)="updateSelectedUpgrade(obtainedUpgrade)">{{ 'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
-        <a *ngIf="!obtainedUpgrade.requirements.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected *ngIf="obtainedUpgrade?.requirements?.runnable" class="btn btn-block" role="button"
+          (clickAndConnected)="updateSelectedUpgrade(obtainedUpgrade)">{{ 'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
+        <a *ngIf="!obtainedUpgrade?.requirements?.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
       </ng-container>
-      <a class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (click)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
+      <a owgeUniverseOnClickIfWsConnected class="btn btn-block" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (clickAndConnected)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
     </ng-template>
     <ng-template owgeCoreContent select="extra-section">
       <div *ngIf="obtainedUpgrade.requirements">

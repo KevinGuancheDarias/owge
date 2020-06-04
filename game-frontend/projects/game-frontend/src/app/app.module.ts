@@ -1,4 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { filter, map } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +11,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
 
@@ -43,7 +44,6 @@ import { NavigationComponent } from './components/navigation/navigation.componen
 import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
 import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
 import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
-import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
 import { MissionService } from './services/mission.service';
@@ -74,6 +74,7 @@ import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.com
 import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
 import { TimeSpecialService } from './services/time-specials.service';
 import { Log, Level } from 'ng2-logger/browser';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -146,6 +147,7 @@ export const APP_ROUTES: Routes = [
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     FormsModule,
     Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
@@ -173,7 +175,8 @@ export const APP_ROUTES: Routes = [
         useFactory: findHttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
     LoginSessionService,
@@ -217,12 +220,7 @@ export class AppModule {
 
   private _initWebsocket(): void {
     let _oldSuscription: Subscription;
-    this._configurationService.observeParam('WEBSOCKET_ENDPOINT')
-      .pipe(map(
-        configurationEntry => configurationEntry || {
-          value: '/websocket/socket.io'
-        }
-      ))
+    this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
         if (_oldSuscription) {
           _oldSuscription.unsubscribe();
@@ -236,7 +234,8 @@ export class AppModule {
           this._injector.get(UnitTypeService),
           this._injector.get(PlanetService),
           this._injector.get(ReportService),
-          this._injector.get(TimeSpecialService)
+          this._injector.get(TimeSpecialService),
+          this._injector.get(UpgradeTypeService)
         );
         _oldSuscription = this._userStorage.currentToken
           .pipe(filter(token => !!token))

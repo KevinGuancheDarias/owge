@@ -93,7 +93,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {...Promise<any>[]} promises
-   * @returns {Promise<any>}
+   * @returns If one single promise is executed, will return its value
    * @memberof BaseComponent
    */
   protected _doWithLoading(...promises: Promise<any>[]): Promise<any> {

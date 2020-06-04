@@ -2,7 +2,7 @@ import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 
 import { ROUTES, ModalComponent } from '@owge/core';
-import { ClockSyncService, Universe, UniverseService } from '@owge/universe';
+import { Universe, UniverseService } from '@owge/universe';
 
 import { UserService } from './../service/user.service';
 import { BaseComponent } from '../base/base.component';
@@ -34,7 +34,6 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
     private _universeServiceOld: UniverseServiceOld,
     private _router: Router,
     private _sanitizeService: SanitizeService,
-    private _clockSyncService: ClockSyncService,
     private _universeService: UniverseService
   ) {
     super();
@@ -93,7 +92,6 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   private async _redirectToGameIndex(): Promise<void> {
     if (!this.selectedUniverse.frontendUrl) {
       this._universeService.setSelectedUniverse(this.selectedUniverse);
-      await this._clockSyncService.init();
       if (this._modal) {
         this._modal.hide();
       }

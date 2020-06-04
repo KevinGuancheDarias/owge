@@ -16,20 +16,11 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
 public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>>
-		extends Serializable {
+		extends Serializable, WithToDtoTrait<E, D> {
 	JpaRepository<E, K> getRepository();
-
-	/**
-	 *
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	Class<D> getDtoClass();
 
 	default List<E> findAll() {
 		return getRepository().findAll().stream().map(this::onFind).collect(Collectors.toList());
@@ -148,34 +139,6 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 		if (!getEntityManager().contains(entity)) {
 			throw new ProgrammingException("Method requires a persisted entity, transient passed");
 		}
-	}
-
-	/**
-	 * Converts the entity to a DTO
-	 *
-	 * @param entity
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	default D toDto(E entity) {
-		if (entity == null) {
-			return null;
-		} else {
-			return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
-		}
-	}
-
-	/**
-	 * Converts an entire entity list to DTO list
-	 *
-	 * @param entities
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	default List<D> toDto(List<E> entities) {
-		return entities.stream().map(this::toDto).collect(Collectors.toList());
 	}
 
 	/**

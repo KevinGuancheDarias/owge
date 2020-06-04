@@ -36,11 +36,15 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   public async ngOnInit() {
     this.navigationConfig = await this._navigationService.findCurrentNavigationConfig();
     this.navigationData = await this._navigationService.navigate(this.navigationConfig);
-    this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(explored => {
-      const exploredPlanedWithoutProps: Planet = this.navigationData.planets
-        .find(current => !current.richness && current.id === explored.id);
-      if (exploredPlanedWithoutProps) {
-        Object.assign(exploredPlanedWithoutProps, explored);
+    this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(async explored => {
+      if (explored) {
+        const exploredPlanedWithoutProps: Planet = this.navigationData.planets
+          .find(current => !current.richness && current.id === explored.id);
+        if (exploredPlanedWithoutProps) {
+          Object.assign(exploredPlanedWithoutProps, explored);
+        }
+      } else {
+        this.navigationData = await this._doWithLoading(this._navigationService.navigate(this.navigationConfig));
       }
     }));
   }

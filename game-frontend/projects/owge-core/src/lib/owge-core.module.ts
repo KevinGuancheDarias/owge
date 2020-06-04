@@ -37,7 +37,7 @@ import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe
+    DynamicImagePipe,
   ],
   providers: [
     ScreenDimensionsService,
@@ -51,7 +51,7 @@ import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe
+    DynamicImagePipe,
   ],
 })
 export class CoreModule {

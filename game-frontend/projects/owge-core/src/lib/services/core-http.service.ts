@@ -328,7 +328,7 @@ export class CoreHttpService {
     } else {
       const errString = this._translateServerError(err);
       this._translateService.get(errString).subscribe(val => {
-        alert(`Error!\n ${val}`);
+        console.error(`Error!\n ${val}`, err);
       });
       return empty;
     }

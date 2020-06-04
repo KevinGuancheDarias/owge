@@ -1,9 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
-import { CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService } from '@owge/core';
+import {
+  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService,
+  WebsocketService, WsEventCacheService
+} from '@owge/core';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeUniverseModule } from '@owge/universe';
 
@@ -40,7 +44,6 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { AdminSpecialLocationService } from './services/admin-special-location.service';
 import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
-import { WebsocketService } from 'projects/game-frontend/src/app/service/websocket.service';
 
 @NgModule({
   declarations: [
@@ -65,6 +68,7 @@ import { WebsocketService } from 'projects/game-frontend/src/app/service/websock
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
@@ -101,6 +105,7 @@ import { WebsocketService } from 'projects/game-frontend/src/app/service/websock
     AdminSpecialLocationService,
     LoadingService,
     WebsocketService,
+    WsEventCacheService,
     {
       provide: 'APPLICATION_CONTEXT',
       useValue: 'admin'

@@ -1,19 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { take, map, tap } from 'rxjs/operators';
+import { map, tap, distinctUntilChanged } from 'rxjs/operators';
 import { Observable, Subscription, Subject } from 'rxjs';
+import { isEqual } from 'lodash-es';
 
 import {
-  ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler
+  ProgrammingError, UserStorage, User, Improvement, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, StorageOfflineHelper
 } from '@owge/core';
 import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
-  UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation
+  UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
+  ObtainedUpgrade, UniverseCacheManagerService, WsEventCacheService
 } from '@owge/universe';
 import { Planet, PlanetService } from '@owge/galaxy';
 
 import { UnitUpgradeRequirements } from '../../../../owge-universe/src/lib/types/unit-upgrade-requirements.type';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
+import { UpgradeService } from './upgrade.service';
 
 @Injectable()
 export class UnitService extends AbstractWebsocketApplicationHandler {
@@ -23,12 +26,19 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   private _resources: AutoUpdatedResources;
   private _improvement: Improvement;
   private _unitStore: UnitStore = new UnitStore;
+  private _onUnlockedChangeSubscription: Subscription;
+  private _offlineUnlockedCache: StorageOfflineHelper<Unit[]>;
+  private _offlineObtainedCache: StorageOfflineHelper<ObtainedUnit[]>;
+  private _offlineBuildMissionCache: StorageOfflineHelper<UnitBuildRunningMission[]>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _universeGameService: UniverseGameService,
     private _userStore: UserStorage<User>,
-    private _planetService: PlanetService
+    private _planetService: PlanetService,
+    private _upgradeService: UpgradeService,
+    private _universeCacheManagerService: UniverseCacheManagerService,
+    private _wsEventCacheService: WsEventCacheService
   ) {
     super();
     this._eventsMap = {
@@ -36,9 +46,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unit_obtained_change: '_onObtainedChange',
       unit_build_mission_change: '_onBuildMissionChange'
     };
-    this._userStore.currentUserImprovements.pipe(take(1)).subscribe(improvement => this._improvement = improvement);
+    this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._planetService.findCurrentPlanet().subscribe(currentSelected => this._selectedPlanet = currentSelected);
+    this._initOfflineCaches();
   }
 
   /**
@@ -49,18 +60,27 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public async workaroundSync(): Promise<void> {
-    this._onUnlockedChange(
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/findUnlocked')
-        .pipe(take(1)).toPromise()
-    );
-    this._onObtainedChange(
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/find-in-my-planets')
-        .pipe(take(1)).toPromise()
-    );
-    this._onBuildMissionChange(
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/build-missions')
-        .pipe(take(1)).toPromise()
-    );
+    this._onUnlockedChange(await this._wsEventCacheService.findFromCacheOrRun('unit_unlocked_change', this._offlineUnlockedCache,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/findUnlocked')
+        .toPromise()
+    ));
+    this._onObtainedChange(await this._wsEventCacheService.findFromCacheOrRun('unit_obtained_change', this._offlineObtainedCache,
+      async () =>
+        await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/find-in-my-planets')
+          .toPromise()
+    ));
+    this._onBuildMissionChange(await this._wsEventCacheService.findFromCacheOrRun(
+      'unit_build_mission_change',
+      this._offlineBuildMissionCache,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/build-missions')
+        .toPromise()
+    ));
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineUnlockedCache.doIfNotNull(content => this._onUnlockedChange(content));
+    this._offlineObtainedCache.doIfNotNull(content => this._onObtainedChange(content));
+    this._offlineBuildMissionCache.doIfNotNull(content => this._onBuildMissionChange(content));
   }
 
   /**
@@ -79,11 +99,11 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       this._doComputeRequiredResources(unit, subscribeToResources);
     } else {
       let improvementSuscription: Subscription;
-      countBehaviorSubject.subscribe(newCount => {
+      countBehaviorSubject.pipe(distinctUntilChanged((a, b) => a === b)).subscribe(newCount => {
         if (improvementSuscription) {
           improvementSuscription.unsubscribe();
         }
-        improvementSuscription = this._userStore.currentUserImprovements.subscribe(improvement => {
+        improvementSuscription = this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => {
           if (unit.requirements) {
             unit.requirements.stopDynamicRunnable();
           }
@@ -139,7 +159,9 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
 
   /**
    * Finds unit in selected planet <br>
-   * <b>NOTICE:</b> Backend should throw if you do not own the planet
+   * <b>NOTICE:</b> Backend should throw if you do not own the planet<br>
+   * <b>Returns a copy as unit alterarion may affect the distinctUntilChanged</b>
+   *
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {number} planetId
@@ -147,11 +169,12 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @memberof UnitService
    */
   public findInMyPlanet(planetId: number): Observable<ObtainedUnit[]> {
+    (<any>window).exposedIsEqual = isEqual;
     return this._unitStore.obtained.pipe(
-      map(content => content.planets[planetId] || [])
+      map(content => content.planets[planetId] || []),
+      distinctUntilChanged((a, b) => isEqual(a, b))
     );
   }
-
 
   /**
    * Finds the building mission for the given planet, if any
@@ -183,7 +206,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     }
     const { id } = unit;
     await this._universeGameService.requestWithAutorizationToContext('game', 'post', 'unit/delete', { id, count })
-      .pipe(take(1)).toPromise();
+      .toPromise();
   }
 
   public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
@@ -219,10 +242,27 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     return this._unitStore.unlocked.asObservable();
   }
 
-  protected _onUnlockedChange(content: Unit[]): void {
-    this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/requirements').pipe(take(1)).subscribe(result =>
-      this._unitStore.upgradeRequirements.next(result)
-    );
+  protected async _onUnlockedChange(content: Unit[]): Promise<void> {
+    const cache: StorageOfflineHelper<UnitUpgradeRequirements[]> = this._universeCacheManagerService.getStore('unit.requirements');
+    const cachedValue = cache.find();
+    let unitUpgradeRequirements;
+    if (cachedValue) {
+      unitUpgradeRequirements = cachedValue;
+    } else {
+      unitUpgradeRequirements = await this._universeGameService.requestWithAutorizationToContext<UnitUpgradeRequirements[]>(
+        'game', 'get', 'unit/requirements'
+      ).toPromise();
+      cache.save(unitUpgradeRequirements);
+    }
+    if (this._onUnlockedChangeSubscription) {
+      this._onUnlockedChangeSubscription.unsubscribe();
+      delete this._onUnlockedChangeSubscription;
+    }
+    this._onUnlockedChangeSubscription = this._upgradeService.findObtained().subscribe(upgrades => {
+      unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
+      this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);
+    });
+    this._offlineUnlockedCache.save(content);
     this._unitStore.unlocked.next(content);
   }
 
@@ -230,9 +270,11 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     this._unitStore.obtained.next(
       this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id, true)
     );
+    this._offlineObtainedCache.save(content);
   }
 
   protected _onBuildMissionChange(content: UnitBuildRunningMission[]): void {
+    this._offlineBuildMissionCache.save(content);
     content.forEach(current => DateUtil.computeBrowserTerminationDate(current));
     this._unitStore.runningBuildMissions.next(content);
   }
@@ -274,4 +316,17 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     return planetUnitsRepresentation;
   }
 
+  private _computeRequirementsReached(unitRequirement: UnitUpgradeRequirements, obtainedUpgrades: ObtainedUpgrade[]): void {
+    unitRequirement.requirements.forEach(currentRequirement => {
+      currentRequirement.reached = obtainedUpgrades.some(
+        upgrade => upgrade.upgrade.id === currentRequirement.upgrade.id && upgrade.level >= currentRequirement.level
+      );
+    });
+  }
+
+  private _initOfflineCaches(): void {
+    this._offlineUnlockedCache = this._universeCacheManagerService.getStore('unit.unlocked');
+    this._offlineObtainedCache = this._universeCacheManagerService.getStore('unit.obtained');
+    this._offlineBuildMissionCache = this._universeCacheManagerService.getStore('unit.build_missions');
+  }
 }

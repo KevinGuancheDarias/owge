@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { map, filter, tap, take } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ProgrammingError, LoadingService, UserStorage, User, DateUtil } from '@owge/core';
-import { UniverseGameService, MissionStore, UnitRunningMission, RunningMission } from '@owge/universe';
+import { ProgrammingError, LoadingService, UserStorage, User, DateUtil, StorageOfflineHelper } from '@owge/core';
+import {
+  UniverseGameService, MissionStore, UnitRunningMission, RunningMission,
+  UniverseCacheManagerService, WsEventCacheService
+} from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
@@ -14,34 +17,80 @@ import { AbstractWebsocketApplicationHandler } from '@owge/core';
 @Injectable()
 export class MissionService extends AbstractWebsocketApplicationHandler {
 
+  private _offlineMyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
+  private _offlineEnemyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
+  private _offlineCountUnitMissionsStore: StorageOfflineHelper<number>;
+
   public constructor(
     private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
-    _userStore: UserStorage<User>,
-    private _missionStore: MissionStore
+    userStore: UserStorage<User>,
+    private _missionStore: MissionStore,
+    universeCacheManagerService: UniverseCacheManagerService,
+    private _wsEventCacheService: WsEventCacheService
   ) {
     super();
     this._eventsMap = {
-      unit_mission_change: 'reacquireMissions',
+      unit_mission_change: '_onMyUnitMissionsChange',
       missions_count_change: '_onMissionsCountChange',
-      enemy_mission_change: 'onEnemyMissionChange'
+      enemy_mission_change: '_onEnemyMissionChange'
     };
-    _userStore.currentUserImprovements.subscribe(improvement =>
+    userStore.currentUserImprovements.subscribe(improvement =>
       _missionStore.maxMissions.next(improvement.moreMisions)
+    );
+    this._offlineMyUnitMissionsStore = universeCacheManagerService.getStore('mission.my');
+    this._offlineEnemyUnitMissionsStore = universeCacheManagerService.getStore('mission.enemy');
+    this._offlineCountUnitMissionsStore = universeCacheManagerService.getStore('mission.count');
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async workaroundSync(): Promise<void> {
+    const count: number = await this._wsEventCacheService.findFromCacheOrRun(
+      'missions_count_change',
+      this._offlineCountUnitMissionsStore,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'mission/count').toPromise()
+    );
+    this._onMyUnitMissionsChange({
+      count,
+      myUnitMissions: await this._wsEventCacheService.findFromCacheOrRun(
+        'unit_mission_change',
+        this._offlineMyUnitMissionsStore,
+        () => this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findMy').pipe(
+          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
+        ).toPromise()
+      )
+    });
+    this._onMissionsCountChange(count);
+    this._onEnemyMissionChange(
+      await this._wsEventCacheService.findFromCacheOrRun('enemy_mission_change', this._offlineEnemyUnitMissionsStore,
+        async () =>
+          await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findEnemy')
+            .pipe(
+              map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
+            ).toPromise()
+      )
     );
   }
 
   /**
-   * Loads the count of missions in the <i>MissionStore</i>
+   *
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.8.0
+   * @since 0.9.0
+   * @returns
    */
-  public loadCount(): Observable<number> {
-    return this._universeGameService.requestWithAutorizationToContext<number>('game', 'get', 'mission/count')
-      .pipe(tap(count => {
-        this._missionStore.missionsCount.next(count);
-      }));
+  public async workaroundInitialOffline(): Promise<void> {
+    const count: number = this._offlineCountUnitMissionsStore.find();
+    if (typeof count === 'number') {
+      this._offlineMyUnitMissionsStore.doIfNotNull(content => this._onMyUnitMissionsChange({ count, myUnitMissions: content }));
+    }
+    this._offlineEnemyUnitMissionsStore.doIfNotNull(content => this._onEnemyMissionChange(content));
   }
 
   public findMyRunningMissions(): Observable<UnitRunningMission[]> {
@@ -159,9 +208,12 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    * @param content
    */
-  public reacquireMissions(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
+  protected _onMyUnitMissionsChange(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
     this._onMissionsCountChange(content.count);
-    this._missionStore.myUnitMissions.next(content.myUnitMissions.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
+    const withBrowserDateContent: UnitRunningMission[] = content.myUnitMissions
+      .map(mission => DateUtil.computeBrowserTerminationDate(mission));
+    this._missionStore.myUnitMissions.next(withBrowserDateContent);
+    this._offlineMyUnitMissionsStore.save(withBrowserDateContent);
   }
 
   /**
@@ -171,37 +223,15 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    * @param content
    */
-  public onEnemyMissionChange(content: UnitRunningMission[]): void {
-    this._missionStore.enemyUnitMissions.next(content.map(mission => DateUtil.computeBrowserTerminationDate(mission)));
-  }
-
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundSync(): Promise<void> {
-    await this.loadCount().pipe(take(1)).toPromise();
-    this._missionStore.myUnitMissions.next(
-      await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findMy')
-        .pipe(
-          take(1),
-          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
-        ).toPromise()
-    );
-    this._missionStore.enemyUnitMissions.next(
-      await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findEnemy')
-        .pipe(
-          take(1),
-          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
-        ).toPromise()
-    );
+  protected _onEnemyMissionChange(content: UnitRunningMission[]): void {
+    const withBrowserDateContent: UnitRunningMission[] = content.map(mission => DateUtil.computeBrowserTerminationDate(mission));
+    this._missionStore.enemyUnitMissions.next(withBrowserDateContent);
+    this._offlineEnemyUnitMissionsStore.save(withBrowserDateContent);
   }
 
   protected _onMissionsCountChange(content: number) {
     this._missionStore.missionsCount.next(content);
+    this._offlineCountUnitMissionsStore.save(content);
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

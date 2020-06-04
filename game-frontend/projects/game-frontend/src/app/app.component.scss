@@ -1,0 +1,17 @@
+.is-connected {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: white;
+    font-size: 14pt;
+    text-shadow: 1px 1px 1px black;
+
+    &.connected {
+        background-color: green;
+    }
+
+    &.not-connected {
+        background-color: red;
+    }
+}

@@ -14,7 +14,6 @@ export abstract class AbstractWebsocketApplicationHandler {
 
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
-
     /**
      * Actions to run when connected or reconnected to websocket
      *
@@ -23,7 +22,18 @@ export abstract class AbstractWebsocketApplicationHandler {
      * @returns {Promise<void>}
      */
     public async workaroundSync(): Promise<void> {
-        // TODO: Override to handle the sync call
+        // NOTICE: Override to handle the sync call
+    }
+
+    /**
+     * Actions to run when the system is offline (in the initial load of the socket connection)
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns {Promise<void>}
+     */
+    public async workaroundInitialOffline(): Promise<void> {
+        // NOTICE: Override to handle the sync call
     }
 
     /**

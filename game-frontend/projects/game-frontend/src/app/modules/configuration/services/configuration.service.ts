@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { map, distinctUntilChanged, filter } from 'rxjs/operators';
 
-import { LoggerHelper } from '@owge/core';
-import { UniverseGameService, UniverseStorage } from '@owge/universe';
+import { LoggerHelper, StorageOfflineHelper } from '@owge/core';
+import { UniverseGameService, UniverseStorage, UniverseCacheManagerService } from '@owge/universe';
 
 import { Configuration } from '../types/configuration.type';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
@@ -27,6 +27,7 @@ export class ConfigurationService {
   constructor(
     private _universeGameService: UniverseGameService,
     private _configurationStore: ConfigurationStore,
+    private _universeCacheManagerService: UniverseCacheManagerService,
     universeStore: UniverseStorage
   ) {
     universeStore.currentUniverse.pipe(distinctUntilChanged(), filter(val => !!val)).subscribe(() => this.init());
@@ -42,7 +43,14 @@ export class ConfigurationService {
    */
   public async init(): Promise<void> {
     if (!this._configuration) {
-      this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
+      const cache: StorageOfflineHelper<Configuration<any>[]> = this._universeCacheManagerService.getStore('configuration.data');
+      const cachedValue = cache.find();
+      if (cachedValue) {
+        this._configuration = cachedValue;
+      } else {
+        this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
+        cache.save(this._configuration);
+      }
       this._otherConfiguration = this._configuration;
       this.foo = '1234;';
       this._configurationStore.currentConfiguration.next(this._configuration);
@@ -73,7 +81,9 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public observeParam<T = any>(name: string): Observable<Configuration<T>> {
-    return this._configurationStore.currentConfiguration.pipe(map(configuration => configuration.find(current => current.name === name)));
+    return this._configurationStore.currentConfiguration.pipe(map(
+      configuration => configuration ? configuration.find(current => current.name === name) : null
+    ));
   }
 
   /**

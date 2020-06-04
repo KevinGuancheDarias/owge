@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { camelCase, upperFirst } from 'lodash-es';
 
-import { ProgrammingError, Improvement, AbstractWebsocketApplicationHandler } from '@owge/core';
-import { UniverseGameService, UnitType, UnitTypeStore } from '@owge/universe';
+import { ProgrammingError, Improvement, AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
+import { UniverseGameService, UnitType, UnitTypeStore, UniverseCacheManagerService, WsEventCacheService } from '@owge/universe';
 
 import { MissionType } from '@owge/core';
 import { MissionSupport } from '../../../../owge-universe/src/lib/types/mission-support.type';
@@ -17,21 +17,29 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
   private _oldCount = 0;
   private _unitTypeStore: UnitTypeStore = new UnitTypeStore;
   private _currentValue: UnitType[];
+  private _offlineUnitTypes: StorageOfflineHelper<UnitType[]>;
 
   public constructor(
     private _loginSessionService: LoginSessionService,
     private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService,
+    universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       unit_type_change: '_onUnitTypeChange'
     };
+    this._offlineUnitTypes = universeCacheManagerService.getStore('unit_type.values');
   }
 
   public async workaroundSync(): Promise<void> {
-    this._onUnitTypeChange(
+    this._onUnitTypeChange(await this._wsEventCacheService.findFromCacheOrRun('unit_type_change', this._offlineUnitTypes, async () =>
       await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unitType/').toPromise()
-    );
+    ));
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineUnitTypes.doIfNotNull(content => this._onUnitTypeChange(content));
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
@@ -117,6 +125,7 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     });
     this._currentValue = content;
     this._unitTypeStore.userValues.next(content);
+    this._offlineUnitTypes.save(content);
   }
 
   private _findTypeById(id: number): UnitType {
@@ -125,19 +134,5 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
       throw new ProgrammingError(`No UnitType with id ${id} was found`);
     }
     return retVal;
-  }
-
-  private _isQuantityChanged(newImprovement: Improvement): boolean {
-    if (newImprovement.unitTypesUpgrades) {
-      const newCount: number = newImprovement.unitTypesUpgrades
-        .filter(current => current.type === 'AMOUNT')
-        .map(current => current.value)
-        .reduce((sum, current) => sum + current, 0);
-      const retVal: boolean = newCount !== this._oldCount;
-      this._oldCount = newCount;
-      return retVal;
-    } else {
-      return false;
-    }
   }
 }

@@ -6,13 +6,12 @@ import {
   CoreHttpService,
   HttpOptions,
   User,
-  SessionStore,
   validContext,
   validNonDataMethod,
   validWriteMethod,
-  LoggerHelper,
   UserStorage,
-  Improvement
+  Improvement,
+  StorageOfflineHelper
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
@@ -28,10 +27,11 @@ import { AbstractWebsocketApplicationHandler } from '@owge/core';
  */
 @Injectable()
 export class UniverseGameService extends AbstractWebsocketApplicationHandler {
+  private _offlineUserStore: StorageOfflineHelper<User> = new StorageOfflineHelper('universe_game.user');
+
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
-    private _sessionStore: SessionStore,
     private _userStore: UserStorage<User>
   ) {
     super();
@@ -44,16 +44,22 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   public async workaroundSync(): Promise<void> {
     const token = await this._userStore.currentToken.pipe(take(1)).toPromise();
     if (token) {
-      this._userStore.currentUser.next(
-        await this.requestWithAutorizationToContext('game', 'get', 'user/findData')
-          .pipe(
-            take(1),
-            map(current =>
-              this._handleUserLoad(current)
-            )
-          ).toPromise()
+      this._onUserDataChange(
+        await this.requestWithAutorizationToContext('game', 'get', 'user/findData').toPromise()
       );
     }
+  }
+
+
+  /**
+   * <b>MUST be the first handler in the websocket</b>
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineUserStore.doIfNotNull(user => this._userStore.currentUser.next(this._handleUserLoad(user)));
   }
 
   /**
@@ -187,10 +193,10 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
 
   protected _onUserDataChange(user: User) {
     this._userStore.currentUser.next(this._handleUserLoad(user));
+    this._offlineUserStore.save(user);
   }
 
   protected _onUserImprovementsChange(content: Improvement): void {
-    console.log('Changed!!!!!!', content.unitTypesUpgrades[2].value);
     this._userStore.currentUserImprovements.next(content);
   }
 

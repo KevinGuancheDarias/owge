@@ -6,7 +6,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { ROUTES, LoginService, SessionService } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
 
-import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -25,7 +24,6 @@ export class LoginComponent implements OnInit {
     private _translateService: TranslateService,
     private _loginService: LoginService,
     private _sessionService: SessionService,
-    private _websocketService: WebsocketService,
     private _router: Router,
     private _universeGameService: UniverseGameService
   ) { }

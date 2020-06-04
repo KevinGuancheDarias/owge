@@ -25,7 +25,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.owgejava.configurations.WebsocketConfiguration;
+import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
 
@@ -38,6 +40,9 @@ public class SocketIoService {
 
 	@Autowired
 	private WebsocketConfiguration websocketConfiguration;
+
+	@Autowired
+	private WebsocketEventsInformationBo websocketEventsInformationBo;
 
 	@Autowired
 	@Lazy
@@ -84,6 +89,7 @@ public class SocketIoService {
 				.filter(client -> client.get(USER_TOKEN_KEY) != null
 						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId))
 				.collect(Collectors.toList());
+		websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, targetUserId));
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
 			userSockets.forEach(client -> {
@@ -122,7 +128,9 @@ public class SocketIoService {
 				if (authenticatedToken.isPresent()) {
 					TokenUser tokenUser = authenticatedToken.get();
 					client.set(USER_TOKEN_KEY, tokenUser);
-					sendOk(client, AUTHENTICATION);
+					List<WebsocketEventsInformationDto> eventsInfo = websocketEventsInformationBo
+							.toDto(websocketEventsInformationBo.findByUserId((Integer) tokenUser.getId()));
+					client.sendEvent(AUTHENTICATION, new WebsocketMessage<>(AUTHENTICATION, eventsInfo));
 				} else {
 					sendError(client, AUTHENTICATION, "Invalid credentials", true);
 				}
@@ -132,14 +140,10 @@ public class SocketIoService {
 
 	private void sendError(SocketIOClient client, String event, String text, boolean close) {
 		LOCAL_LOGGER.warn(text);
-		client.sendEvent(event, new WebsocketMessage<String>(text, null, "error"));
+		client.sendEvent(event, new WebsocketMessage<>(event, text, "error"));
 		if (close) {
 			client.disconnect();
 		}
 	}
 
-	private void sendOk(SocketIOClient client, String event) {
-		LOCAL_LOGGER.trace("Sending ok to event " + event);
-		client.sendEvent(event, new WebsocketMessage<String>());
-	}
 }

@@ -3,10 +3,11 @@ import {
   AfterContentInit, TemplateRef, ContentChildren, QueryList
 } from '@angular/core';
 
-import { MenuRoute, ScreenDimensionsService, ContentTransclusionUtil, OwgeContentDirective } from '@owge/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { MenuRoute, ScreenDimensionsService, ContentTransclusionUtil, OwgeContentDirective, SessionStore } from '@owge/core';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
 import { fromEvent, Subject, combineLatest } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Creates a displayable sidebar
@@ -32,6 +33,7 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
   public isGreaterThanViewportWidth: boolean;
   public isDesktop: boolean;
   public extraButtonContent: TemplateRef<any>;
+  public isConnected = true;
 
   @ViewChild('largestRouteEl', { static: false }) private _largestRouteEl: ElementRef;
   @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
@@ -39,13 +41,24 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
   private _changedSubject: Subject<void>;
   private _sdsWidthId: string;
   private _sdsHeightId: string;
+  private _disconnectedMessage: string;
 
-  constructor(private _router: Router, private _screenDimensionsService: ScreenDimensionsService) {
-
+  constructor(
+    private _router: Router,
+    private _activeRoute: ActivatedRoute,
+    private _screenDimensionsService: ScreenDimensionsService,
+    private _sessionStore: SessionStore,
+    translateService: TranslateService
+  ) {
+    translateService.get('APP.NOT_CONNECTED_CLICK_ERROR').subscribe(val => this._disconnectedMessage = val);
   }
 
   public ngOnInit(): void {
     this._calculateComputedTitleWidth();
+    setTimeout(() => this._sessionStore.isConnected.subscribe(val => {
+      this.isConnected = val;
+      setTimeout(() => this._router.navigate(this._activeRoute.snapshot.url), 1000);
+    }), 2000);
     this._sdsWidthId = this._screenDimensionsService.generateIdentifier(this.constructor.name);
     this._sdsHeightId = this._screenDimensionsService.generateIdentifier(this.constructor.name);
     combineLatest([
@@ -53,7 +66,6 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
       this._screenDimensionsService.hasMinHeight(760, this._sdsHeightId)
     ]).subscribe(results => {
       this.isDesktop = results.every(current => current);
-      console.log('Fired that shit', this.isDesktop);
     });
     this.selectedRoute = this.sidebarRoutes.find(current => this._router.url.startsWith(current.path));
     this._router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((route: NavigationEnd) => {
@@ -69,6 +81,14 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
 
   public ngAfterContentInit(): void {
     this.extraButtonContent = ContentTransclusionUtil.findInList(this._templatesList, 'extra-button-content');
+  }
+
+  public checkRequiredConnection(e: Event, route: MenuRoute): void {
+    if (route.isConnectionRequired && !this.isConnected) {
+      alert(this._disconnectedMessage);
+      e.preventDefault();
+      e.stopPropagation();
+    }
   }
 
   private _calculateSvgLength(): void {

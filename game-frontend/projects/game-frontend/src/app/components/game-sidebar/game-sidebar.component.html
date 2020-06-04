@@ -9,7 +9,7 @@
                       <a class="owge-btn btn-block" (click)="selectPlanet(planet)">Select</a>
                 </div>
                 <div class="card-block">
-                      <a *ngIf="!planet.home" class="owge-btn btn-block" (click)="leavePlanet(planet)">Leave</a>
+                      <a owgeUniverseOnClickIfWsConnected *ngIf="!planet.home" class="owge-btn btn-block" (clickAndConnected)="leavePlanet(planet)">Leave</a>
                 </div>
           </div>
     </div>

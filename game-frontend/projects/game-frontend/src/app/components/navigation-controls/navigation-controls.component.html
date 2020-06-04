@@ -26,6 +26,6 @@
     </div>    
   </ng-container>
   <div class="col-xs-3 form-group">
-    <button class="btn btn-primary" [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (click)="navigate()">{{ 'APP.NAVIGATION_CONTROLS.BTN_NAVIGATE' | translate }}</button>
+    <button owgeUniverseOnClickIfWsConnected class="btn btn-primary" [disabled]="!(selectedGalaxy && selectedSector && selectedQuadrant) && !changed" (clickAndConnected)="navigate()">{{ 'APP.NAVIGATION_CONTROLS.BTN_NAVIGATE' | translate }}</button>
   </div>
 </div>

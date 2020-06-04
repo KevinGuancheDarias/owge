@@ -1,24 +1,54 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 
-import { LoggerHelper, ProgrammingError } from '@owge/core';
-
-import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import { Observable, Subject, ReplaySubject } from 'rxjs';
+import { WsEventCacheService } from './ws-event-cache.service';
+import { LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore, SessionService } from '@owge/core';
 
 @Injectable()
 export class WebsocketService {
 
   private static readonly PROTOCOL_VERSION = '0.1.0';
 
+  /**
+   *
+   * @readonly
+   * @since 0.9.0
+   */
+  public get isConnected(): Observable<boolean> {
+    return this._isConnected.asObservable();
+  }
   private _socket: SocketIOClient.Socket;
   private _isFirstConnection = true;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _credentialsToken: string;
   private _eventHandlers: AbstractWebsocketApplicationHandler[] = [];
   private _isAuthenticated = false;
+  private _isConnected: Subject<boolean> = new ReplaySubject(1);
+  private _hasTriggeredFirtsOffline = false;
+
+  public constructor(
+    private _wsEventCacheService: WsEventCacheService,
+    private _sessionService: SessionService,
+    sessionStore: SessionStore
+  ) {
+    this._isConnected.next(false);
+    this._isConnected.subscribe(sessionStore.isConnected.next.bind(sessionStore.isConnected));
+  }
 
   public addEventHandler(...handler: AbstractWebsocketApplicationHandler[]) {
     this._eventHandlers = this._eventHandlers.concat(handler);
+  }
+
+  /**
+   * Preprends to the beggining
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param handler
+   */
+  public preprendEventHandler(handler: AbstractWebsocketApplicationHandler): void {
+    this._eventHandlers = [handler, ...this._eventHandlers];
   }
 
   /**
@@ -40,6 +70,12 @@ export class WebsocketService {
         this._socket = io.connect({
           path: targetUrl
         });
+        this._socket.io.on('connect_error', async () => {
+          if (this._isFirstConnection && !this._hasTriggeredFirtsOffline) {
+            await Promise.all(this._eventHandlers.map(current => current.workaroundInitialOffline()));
+            this._hasTriggeredFirtsOffline = true;
+          }
+        });
         this._socket.on('connect', async () => {
           if (this._isFirstConnection) {
             this._log.info('Connection established with success');
@@ -47,15 +83,18 @@ export class WebsocketService {
           } else {
             this._log.info('Reconnected');
           }
+
           await this.authenticate();
           resolve();
+          this._isConnected.next(true);
         });
         this._socket.on('disconnect', () => {
           this._log.info('client disconnected');
+          this._isAuthenticated = false;
+          this._isConnected.next(false);
           this._socket.removeAllListeners();
           delete this._socket;
           this.initSocket(targetUrl, jwtToken);
-          this._isAuthenticated = false;
         });
       } else if (!this._socket.connected) {
         this._socket.connect();
@@ -82,9 +121,13 @@ export class WebsocketService {
           this._socket.removeEventListener('authentication');
           if (response.status === 'ok') {
             this._log.debug('authenticated succeeded');
+            this._wsEventCacheService.setEventsInformation(response.value);
             this._isAuthenticated = true;
             this._registerSocketHandlers();
             resolve();
+          } else if (response.value === 'Invalid Credentails') {
+            this.close();
+            this._sessionService.logout();
           } else {
             this._log.warn('An error occuring while trying to authenticate, response was', response);
             reject(response);
@@ -92,6 +135,20 @@ export class WebsocketService {
         });
       });
     }
+  }
+
+  /**
+   * Closes the socket
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   */
+  public close(): void {
+    this._socket.close();
+    this._socket.removeAllListeners();
+    this._isFirstConnection = true;
+    this._isAuthenticated = false;
+    this._hasTriggeredFirtsOffline = false;
   }
 
   private async _registerSocketHandlers(): Promise<void> {

@@ -1,6 +1,5 @@
 import { MissionReportJson } from './mission-report-json.type';
-import { Unit } from '@owge/universe';
-
+import { Unit } from './unit.type';
 
 /**
  * Represents a explore mission
