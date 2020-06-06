@@ -1,6 +1,6 @@
 import { ObtainedUnit } from './obtained-unit.type';
 import { User } from '@owge/core';
-import { Planet } from '@owge/galaxy';
+import { Planet } from '../pojos/planet.pojo';
 
 /**
  * Represents the JSON content of a mission report

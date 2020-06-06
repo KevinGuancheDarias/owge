@@ -5,7 +5,7 @@ import { isEqual } from 'lodash-es';
 import { User, UserStorage, AbstractWebsocketApplicationHandler, SessionStore, StorageOfflineHelper } from '@owge/core';
 import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
 
-import { Planet } from '../pojos/planet.pojo';
+import { Planet } from '@owge/universe';
 import { PlanetStore } from '../stores/planet.store';
 import { distinctUntilChanged } from 'rxjs/operators';
 
@@ -93,7 +93,7 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.0
-   * @returns {Observable<Planet>}
+   * @returns
    */
   public findCurrentPlanet(): Observable<Planet> {
     return this._planeStore.selectedPlanet.asObservable().pipe(distinctUntilChanged((a, b) => a.id === b.id));

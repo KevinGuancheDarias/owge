@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Planet, PlanetService } from '@owge/galaxy';
+import { PlanetService } from '@owge/galaxy';
 import { MenuRoute, ROUTES, ModalComponent } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, UniverseGameService } from '@owge/universe';
+import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, Planet, UniverseGameService } from '@owge/universe';
 
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';

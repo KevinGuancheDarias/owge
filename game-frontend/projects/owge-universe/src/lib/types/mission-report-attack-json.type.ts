@@ -1,5 +1,5 @@
 import { MissionReportJson } from './mission-report-json.type';
-import { AliveDeathObtainedUnit } from '../../../../game-frontend/src/app/shared/pojos/alive-death-obtained-unit.pojo';
+import { AliveDeathObtainedUnit } from './alive-death-obtained-unit.type';
 
 export interface MissionReportAttackJson extends MissionReportJson {
     attackInformation: {

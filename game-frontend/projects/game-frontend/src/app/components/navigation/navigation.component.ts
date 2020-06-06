@@ -1,11 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { first, filter } from 'rxjs/operators';
 
 import { MissionInformationStore } from '../../store/mission-information.store';
-import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
 import { UnitService } from '../../service/unit.service';
 import { BaseComponent } from '../../base/base.component';
-import { PlanetService, Planet } from '@owge/galaxy';
+import { PlanetService } from '@owge/galaxy';
 import { Subscription } from 'rxjs';
 
 @Component({

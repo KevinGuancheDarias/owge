@@ -1,5 +1,5 @@
-import { Planet } from '@owge/galaxy';
 import { Unit } from './unit.type';
+import { Planet } from '../pojos/planet.pojo';
 
 /**
  * Represents an obtained unit

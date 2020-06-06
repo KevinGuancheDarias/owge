@@ -27,7 +27,6 @@ export class DateUtil {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @static
      * @template T
      * @param object
      * @returns

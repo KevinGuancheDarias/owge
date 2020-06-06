@@ -6,7 +6,6 @@ import { Unit } from './unit.type';
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @interface UnitUpgradeRequirements
  */
 export interface UnitUpgradeRequirements {
     unit: Unit;

@@ -10,11 +10,10 @@ import {
 import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
   UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
-  ObtainedUpgrade, UniverseCacheManagerService, WsEventCacheService
+  ObtainedUpgrade, UniverseCacheManagerService, WsEventCacheService, Planet, UnitUpgradeRequirements
 } from '@owge/universe';
-import { Planet, PlanetService } from '@owge/galaxy';
+import { PlanetService } from '@owge/galaxy';
 
-import { UnitUpgradeRequirements } from '../../../../owge-universe/src/lib/types/unit-upgrade-requirements.type';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { UpgradeService } from './upgrade.service';
 

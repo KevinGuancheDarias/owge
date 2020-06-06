@@ -6,8 +6,6 @@ import { ProgrammingError } from '../errors/programming.error';
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @abstract
- * @class AbstractWebsocketApplicationHandler
  */
 export abstract class AbstractWebsocketApplicationHandler {
     protected _eventsMap: { [eventName: string]: string } = {};
@@ -19,7 +17,7 @@ export abstract class AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @returns {Promise<void>}
+     * @returns
      */
     public async workaroundSync(): Promise<void> {
         // NOTICE: Override to handle the sync call
@@ -30,7 +28,7 @@ export abstract class AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @returns {Promise<void>}
+     * @returns
      */
     public async workaroundInitialOffline(): Promise<void> {
         // NOTICE: Override to handle the sync call
@@ -40,9 +38,8 @@ export abstract class AbstractWebsocketApplicationHandler {
      * Returns the name of the public function used to handle an event
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {string} eventName Name of the event
-     * @returns {string} string name of the local public function
-     * @memberof AbstractWebsocketApplicationHandler
+     * @param eventName Name of the event
+     * @returns string name of the local public function
      */
     public getHandlerMethod(eventName: string): string {
         const handlerMethod = this._eventsMap[eventName];
@@ -61,8 +58,7 @@ export abstract class AbstractWebsocketApplicationHandler {
      * Returns the map of events
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @returns {{ [eventName: string]: string; }} Key is the eventName, and the value is the method name
-     * @memberof WebsocketApplicationHandler
+     * @returns Key is the eventName, and the value is the method name
      */
     public getEventsMap(): { [eventName: string]: string; } {
         return this._eventsMap;
@@ -72,11 +68,10 @@ export abstract class AbstractWebsocketApplicationHandler {
      * Executes the action
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {string} eventName name of the event to execute
-     * @param {*} content Content sent by the socket
-     * @returns {Promise<any>} Promise resolved when the event has been solved inside the method handler
+     * @param eventName name of the event to execute
+     * @param content Content sent by the socket
+     * @returns Promise resolved when the event has been solved inside the method handler
      * @throws {ProgrammingError} When the eventName doesn't have a hander in this websocket handler
-     * @memberof WebsocketApplicationHandler
      */
     public async execute(eventName: string, content: any): Promise<any> {
         const functionName: string = this.getHandlerMethod(eventName);

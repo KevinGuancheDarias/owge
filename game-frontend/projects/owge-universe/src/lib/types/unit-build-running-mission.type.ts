@@ -1,6 +1,6 @@
 import { Unit } from './unit.type';
 import { RunningMission } from './running-mission.type';
-import { Planet } from '@owge/galaxy';
+import { Planet } from '../pojos/planet.pojo';
 
 /**
  * Represents an unit build running mission
@@ -8,7 +8,6 @@ import { Planet } from '@owge/galaxy';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  * @export
- * @interface UnitBuildRunningMission
  */
 export interface UnitBuildRunningMission extends RunningMission {
     unit: Unit;

@@ -1,9 +1,8 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 import { UnitService } from '../../service/unit.service';
 import { BaseUnitComponent } from '../../shared/base-unit.component';
 import { UnitUpgradeRequirements } from '@owge/universe';
-import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-unit-requirements',

@@ -2,7 +2,7 @@ import { ReplaySubject, Subject } from 'rxjs';
 
 import { SessionStore } from '@owge/core';
 
-import { Planet } from '../pojos/planet.pojo';
+import { Planet } from '@owge/universe';
 
 /**
  *

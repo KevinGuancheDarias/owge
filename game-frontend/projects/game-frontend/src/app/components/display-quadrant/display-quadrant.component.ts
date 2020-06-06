@@ -7,7 +7,8 @@ import { MissionModalComponent } from '../../mission-modal/mission-modal.compone
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
-import { PlanetService, Planet } from '@owge/galaxy';
+import { PlanetService } from '@owge/galaxy';
+import { Planet } from '@owge/universe';
 
 @Component({
   selector: 'app-display-quadrant',

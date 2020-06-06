@@ -6,6 +6,17 @@
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "routing": {
+    "index": "index.html",
+    "routes": {
+      "/": {
+        "prefix": false
+      },
+      "/login": {
+        "prefix": false
+      }
+    }
+  },
   "icons": [
     {
       "src": "assets/icons/icon-72x72.png",

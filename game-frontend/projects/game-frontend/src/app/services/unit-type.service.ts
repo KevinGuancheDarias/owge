@@ -1,15 +1,16 @@
 
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { camelCase, upperFirst } from 'lodash-es';
 
-import { ProgrammingError, Improvement, AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
-import { UniverseGameService, UnitType, UnitTypeStore, UniverseCacheManagerService, WsEventCacheService } from '@owge/universe';
+import { ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
+import {
+  UniverseGameService, Planet, UnitType, UnitTypeStore, UniverseCacheManagerService,
+  WsEventCacheService, MissionSupport
+} from '@owge/universe';
 
 import { MissionType } from '@owge/core';
-import { MissionSupport } from '../../../../owge-universe/src/lib/types/mission-support.type';
 import { LoginSessionService } from '../login-session/login-session.service';
-import { Planet } from '@owge/galaxy';
 
 @Injectable()
 export class UnitTypeService extends AbstractWebsocketApplicationHandler {

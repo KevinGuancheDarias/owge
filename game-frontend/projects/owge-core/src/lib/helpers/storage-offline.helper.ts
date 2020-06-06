@@ -5,27 +5,24 @@ import * as LZString from 'lz-string';
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
- * @export
  */
 export class StorageOfflineHelper<T> {
     private static readonly _PREFIX = 'owge_';
 
     private _browserStore: Storage;
 
-
     /**
      * Gets the prefix used for indexding the content
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @static
      * @returns
      */
     public static getStartingPrefix(): string {
-        return this._PREFIX;
+        return StorageOfflineHelper._PREFIX;
     }
-
     /**
+
      * Creates an instance of StorageOfflineHelper.
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

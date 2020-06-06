@@ -1,7 +1,7 @@
 import { RunningMission } from './running-mission.type';
-import { Planet } from '@owge/galaxy';
 import { User } from '@owge/core';
 import { ObtainedUnit } from './obtained-unit.type';
+import { Planet } from '../pojos/planet.pojo';
 
 /**
  * Represents a running unit involved missions

@@ -55,9 +55,8 @@ export class WebsocketService {
    * Inits the websocket <br>
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {string} [targetUrl] Only required if connecting for the first time
-   * @returns {Promise<void>} Solves when the socket is properly connected to the backend
-   * @memberof WebsocketService
+   * @param [targetUrl] Only required if connecting for the first time
+   * @returns Solves when the socket is properly connected to the backend
    */
   public initSocket(targetUrl?: string, jwtToken?: string): Promise<void> {
     this.setAuthenticationToken(jwtToken);

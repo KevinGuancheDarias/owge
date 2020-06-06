@@ -1,5 +1,5 @@
 import { PipeTransform, Pipe } from '@angular/core';
-import { Planet } from '../pojos/planet.pojo';
+import { Planet } from '@owge/universe';
 import { MEDIA_ROUTES, Config } from '@owge/core';
 
 /**
