@@ -20,7 +20,7 @@
             "main": "projects/game-admin/src/main.ts",
             "polyfills": "projects/game-admin/src/polyfills.ts",
             "tsConfig": "projects/game-admin/tsconfig.with-libs.json",
-            "aot": false,
+            "aot": true,
             "assets": [
               "projects/game-admin/src/favicon.ico",
               "projects/game-admin/src/assets",
@@ -42,6 +42,12 @@
           },
           "configurations": {
             "localDrupal": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "projects/game-admin/src/environments/environment.ts",
@@ -62,7 +68,6 @@
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
-              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
@@ -160,7 +165,12 @@
             "tsConfig": "projects/owge-core/tsconfig.lib.json",
             "project": "projects/owge-core/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-core/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -195,7 +205,12 @@
             "tsConfig": "projects/owge-universe/tsconfig.lib.json",
             "project": "projects/owge-universe/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-universe/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -230,7 +245,12 @@
             "tsConfig": "projects/owge-user/tsconfig.lib.json",
             "project": "projects/owge-user/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-user/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -265,7 +285,12 @@
             "tsConfig": "projects/owge-alliance/tsconfig.lib.json",
             "project": "projects/owge-alliance/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-alliance/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -300,7 +325,12 @@
             "tsConfig": "projects/owge-widgets/tsconfig.lib.json",
             "project": "projects/owge-widgets/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-widgets/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -338,7 +368,8 @@
             "main": "projects/game-frontend/src/main.ts",
             "polyfills": "projects/game-frontend/src/polyfills.ts",
             "tsConfig": "projects/game-frontend/tsconfig.with-libs.json",
-            "aot": false,
+            "aot": true,
+            "serviceWorker": true,
             "assets": [
               "projects/game-frontend/src/favicon.ico",
               "projects/game-frontend/src/assets",
@@ -364,6 +395,12 @@
           },
           "configurations": {
             "publicAccount": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "projects/game-frontend/src/environments/environment.ts",
@@ -372,6 +409,12 @@
               ]
             },
             "localDrupal": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "projects/game-frontend/src/environments/environment.ts",
@@ -380,6 +423,12 @@
               ]
             },
             "becariaccount": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "fileReplacements": [
                 {
                   "replace": "projects/game-frontend/src/environments/environment.ts",
@@ -400,7 +449,6 @@
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
-              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
@@ -504,7 +552,12 @@
             "tsConfig": "projects/owge-galaxy/tsconfig.lib.json",
             "project": "projects/owge-galaxy/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-galaxy/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -539,7 +592,12 @@
             "tsConfig": "projects/owge-faction/tsconfig.lib.json",
             "project": "projects/owge-faction/ng-package.json"
           }
-        },
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/owge-faction/tsconfig.lib.prod.json"
+            }
+          }
+},
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -567,7 +625,7 @@
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "app",
-      "styleext": "scss"
+      "style": "scss"
     },
     "@schematics/angular:directive": {
       "prefix": "app"

@@ -21,7 +21,7 @@ import { ConfigurationStore } from './store/configuration.store';
   ]
 })
 export class ConfigurationModule {
-  public static forRoot(): ModuleWithProviders {
+  public static forRoot(): ModuleWithProviders<ConfigurationModule> {
     return {
       ngModule: ConfigurationModule,
       providers: [ConfigurationStore, ConfigurationService]

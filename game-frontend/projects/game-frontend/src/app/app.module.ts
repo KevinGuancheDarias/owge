@@ -4,7 +4,6 @@ import { filter, map } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
-import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome';
 import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -149,7 +148,6 @@ export const APP_ROUTES: Routes = [
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
-    Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
     HttpClientModule,
     NgbModule,
@@ -176,7 +174,7 @@ export const APP_ROUTES: Routes = [
         deps: [HttpClient]
       }
     }),
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: true, registrationStrategy: 'registerImmediately' })
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: false, registrationStrategy: 'registerImmediately' })
   ],
   providers: [
     LoginSessionService,

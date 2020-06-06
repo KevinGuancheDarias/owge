@@ -27,7 +27,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
 
   @ViewChild(ModalComponent, { static: true }) private _modal: ModalComponent;
 
-  @ViewChild('credentialsFrame', { static: false })
+  @ViewChild('credentialsFrame')
   private _credentialsFrame: ElementRef;
 
   constructor(

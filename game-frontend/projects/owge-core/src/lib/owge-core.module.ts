@@ -63,7 +63,7 @@ export class CoreModule {
    * @param accountConfig
    * @returns
    */
-  public static forRoot(accountConfig: OwgeCoreConfig): ModuleWithProviders {
+  public static forRoot(accountConfig: OwgeCoreConfig): ModuleWithProviders<CoreModule> {
     return {
       ngModule: CoreModule,
       providers: [

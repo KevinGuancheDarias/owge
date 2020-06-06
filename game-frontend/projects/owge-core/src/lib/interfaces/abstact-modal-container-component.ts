@@ -1,5 +1,5 @@
 import { ModalComponent } from '../components/modal/modal.component';
-import { ViewChild } from '@angular/core';
+import { ViewChild, Directive } from '@angular/core';
 import { AbstractModalComponent } from './abstract-modal-component';
 
 
@@ -11,6 +11,7 @@ import { AbstractModalComponent } from './abstract-modal-component';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
  */
+@Directive()
 export abstract class AbstractModalContainerComponent extends AbstractModalComponent {
     @ViewChild('childModal', { static: true })
     public _childModal: ModalComponent;

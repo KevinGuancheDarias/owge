@@ -42,7 +42,7 @@ import { WsEventCacheService } from './services/ws-event-cache.service';
   ]
 })
 export class OwgeUniverseModule {
-  public static forRoot(): ModuleWithProviders {
+  public static forRoot(): ModuleWithProviders<OwgeUniverseModule> {
     return {
       ngModule: OwgeUniverseModule,
       providers: [

@@ -5,12 +5,12 @@
       <div class="col-sm-12 col-md-offset-1">
         <form (ngSubmit)="onLoginFormSubmit()" #loginForm="ngForm">
           <div class="input-group">
-            <span class="input-group-addon"> <i fa [name]="'envelope-open'"></i></span>
+            <span class="input-group-addon"> <i class="fa fa-envelope-open-o"></i></span>
             <input [(ngModel)]="email" required class="form-control" type="email" name='email'
           placeholder="{{ 'APP.LOGIN.PLACEHOLDER_EMAIL' | translate }}"/>
           </div>
           <div class="input-group">
-            <span class="input-group-addon"><i fa [name]="'lock'" [size]=1></i></span>
+            <span class="input-group-addon"><i class="fa fa-lock"></i></span>
             <input [(ngModel)]="password" required class="form-control" type="password" name='password'
               placeholder="{{ 'APP.LOGIN.PLACEHOLDER_PASS' | translate }}" />
           </div>

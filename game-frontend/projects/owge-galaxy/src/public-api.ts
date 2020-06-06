@@ -2,6 +2,7 @@
  * Public API Surface of owge-galaxy
  */
 
+export * from './lib/pipes/planet-image.pipe';
 export * from './lib/services/planet.service';
 export * from './lib/stores/planet.store';
 export * from './lib/types/galaxy.type';

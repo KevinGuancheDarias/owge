@@ -35,7 +35,7 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
   public extraButtonContent: TemplateRef<any>;
   public isConnected = true;
 
-  @ViewChild('largestRouteEl', { static: false }) private _largestRouteEl: ElementRef;
+  @ViewChild('largestRouteEl') private _largestRouteEl: ElementRef;
   @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   private _changedSubject: Subject<void>;

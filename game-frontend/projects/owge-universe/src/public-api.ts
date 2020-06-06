@@ -3,6 +3,7 @@
  */
 
 export * from './lib/components/image-selector/image-selector.component';
+export * from './lib/directives/on-click-if-ws-conected.directive';
 export * from './lib/initializers/universe.initializer';
 export * from './lib/mixins/services/with-improvements-crud.mixin';
 export * from './lib/mixins/services/with-read-crud.mixin';

@@ -37,7 +37,7 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   @Output()
   public missionDone: EventEmitter<void> = new EventEmitter();
 
-  @ViewChild('tooltipPlanet', { read: ElementRef, static: false })
+  @ViewChild('tooltipPlanet', { read: ElementRef })
   public tooltipPlanetComponent: ElementRef;
 
   public tooltipPlanet: PlanetPojo;

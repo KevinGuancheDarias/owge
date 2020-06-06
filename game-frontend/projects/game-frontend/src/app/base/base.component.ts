@@ -1,4 +1,4 @@
-import { QueryList, ElementRef, OnDestroy } from '@angular/core';
+import { QueryList, ElementRef, OnDestroy, Directive } from '@angular/core';
 
 import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper, User, UserStorage, SessionService } from '@owge/core';
 
@@ -7,6 +7,7 @@ import { ServiceLocator } from '../service-locator/service-locator';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ResourceManagerService, AutoUpdatedResources, UniverseGameService } from '@owge/universe';
 
+@Directive()
 export class BaseComponent<U extends User = User> implements OnDestroy {
 
   public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';

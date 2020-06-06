@@ -19,7 +19,7 @@ export class VersionInformationComponent implements OnInit {
   public htmlContent = 'Loading...';
   public classesInformation: ClassInformation[] = [];
 
-  @ViewChild('changelogContent', { read: ElementRef, static: false })
+  @ViewChild('changelogContent', { read: ElementRef })
   private _ref: ElementRef;
 
   constructor(private _http: HttpClient, private _translateService: TranslateService) { }

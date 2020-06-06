@@ -17,6 +17,7 @@ export * from './lib/interfaces/abstact-modal-container-component';
 export * from './lib/interfaces/abstract-modal-component';
 export * from './lib/interfaces/abstract-websocket-application-handler';
 export * from './lib/pipes/hide-duplicated-name.pipe';
+export * from './lib/pipes/dynamic-image.pipe';
 export * from './lib/pojos/calculated-fields-wrapper.pojo';
 export * from './lib/pojos/owge-core-config';
 export * from './lib/pojos/config.pojo';
