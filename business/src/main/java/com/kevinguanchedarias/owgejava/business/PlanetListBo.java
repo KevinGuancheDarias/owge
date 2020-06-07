@@ -59,4 +59,15 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 		socketIoService.sendMessage(user, "planet_user_list_change", () -> findByUserId(user.getId()));
 
 	}
+
+	/**
+	 *
+	 * @param planetId
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void myDelete(Long planetId) {
+		repository
+				.deleteById(new PlanetUser(userStorageBo.findLoggedInWithDetails(), planetBo.findByIdOrDie(planetId)));
+	}
 }
