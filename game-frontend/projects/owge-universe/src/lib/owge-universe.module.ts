@@ -1,6 +1,7 @@
 import { NgModule, ModuleWithProviders, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
+import { ToastrModule } from 'ngx-toastr';
 
 import { CoreModule } from '@owge/core';
 
@@ -30,7 +31,8 @@ import { WsEventCacheService } from './services/ws-event-cache.service';
     CommonModule,
     CoreModule,
     OwgeWidgetsModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    ToastrModule.forRoot()
   ],
   declarations: [ImageSelectorComponent, OnClickIfWsConnectedDirective],
   providers: [

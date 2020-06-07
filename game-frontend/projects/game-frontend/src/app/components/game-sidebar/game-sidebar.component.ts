@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
-import { MenuRoute, ROUTES, ModalComponent } from '@owge/core';
+import { MenuRoute, ROUTES, ModalComponent, SessionService } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
 import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, Planet, UniverseGameService } from '@owge/universe';
@@ -49,7 +49,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       path: ROUTES.VERSION,
       icon: 'fa fa-info'
     },
-    this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._loginSessionService.logout(), 'fa fa-times')
+    this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._universeGameService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
   public maxMissions: number;
@@ -64,7 +64,6 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _displayService: DisplayService,
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
-    private _loginSessionService: LoginSessionService,
     private _missionStore: MissionStore,
     private _reportService: ReportService
   ) {

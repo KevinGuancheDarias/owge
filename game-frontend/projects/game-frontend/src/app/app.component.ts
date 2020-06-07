@@ -2,9 +2,8 @@ import { Component, OnInit } from '@angular/core';
 
 import { LoadingService } from '@owge/core';
 
-import { LoginSessionService } from './login-session/login-session.service';
 import { state, style, trigger, transition, animate } from '@angular/animations';
-import { WebsocketService } from '@owge/universe';
+import { WebsocketService, UniverseGameService } from '@owge/universe';
 
 @Component({
   selector: 'app-root',
@@ -29,6 +28,7 @@ import { WebsocketService } from '@owge/universe';
 export class AppComponent implements OnInit {
 
   public isInGame: boolean;
+
   /**
    * Represents a global version of the loading state, any service can force to disable all the interface, by using <i>LoadingService</i>
    *
@@ -43,7 +43,7 @@ export class AppComponent implements OnInit {
   private timeoutId: number;
 
   public constructor(
-    private _loginSessionService: LoginSessionService,
+    private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
     websocketService: WebsocketService
   ) {
@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
   }
 
   public ngOnInit() {
-    this._loginSessionService.isInGame.subscribe(isInGame => this.isInGame = isInGame);
+    this._universeGameService.isInGame().subscribe(isInGame => this.isInGame = isInGame);
     this._loadingService.observeLoading().subscribe(current => this.isLoading = current);
   }
 }

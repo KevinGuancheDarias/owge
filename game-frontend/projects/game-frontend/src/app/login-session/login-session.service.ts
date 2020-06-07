@@ -31,6 +31,9 @@ export class LoginSessionService implements CanActivate {
 
   private alreadyNotified = false;
 
+  /**
+   * @deprecated Since 0.9.0 it's better to use the UniverseGameService.isInGame() method
+   */
   public get isInGame(): Observable<boolean> {
     return this._isInGame.asObservable();
   }

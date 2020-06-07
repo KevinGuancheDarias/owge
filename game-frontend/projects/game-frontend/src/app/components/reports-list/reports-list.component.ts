@@ -54,13 +54,14 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
           const markAsReadReports: MissionReport[] = result
             .filter(current => !current.userReadDate)
             .filter(current => !this._alreadyTaggedAsReaded.has(current.id));
-          this._reportService.markAsRead(markAsReadReports).subscribe();
-          this._doWithLoading(new Promise(resolve => {
-            window.setTimeout(() => {
-              window.scrollTo(0, this._scrollPosition);
-              resolve();
-            }, 250);
-          }));
+          this._doWithLoading(
+            this._reportService.markAsRead(markAsReadReports),
+            new Promise(resolve => {
+              window.setTimeout(() => {
+                window.scrollTo(0, this._scrollPosition);
+                resolve();
+              }, 250);
+            }));
           markAsReadReports.forEach(current => this._alreadyTaggedAsReaded.add(current.id));
         }));
       }

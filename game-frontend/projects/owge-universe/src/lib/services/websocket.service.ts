@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
+import { ToastrService } from 'ngx-toastr';
 
 import { Observable, Subject, ReplaySubject } from 'rxjs';
 import { WsEventCacheService } from './ws-event-cache.service';
-import { LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore, SessionService } from '@owge/core';
+import {
+  LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
+  SessionService, LoadingService
+} from '@owge/core';
 
 @Injectable()
 export class WebsocketService {
@@ -26,10 +30,13 @@ export class WebsocketService {
   private _isAuthenticated = false;
   private _isConnected: Subject<boolean> = new ReplaySubject(1);
   private _hasTriggeredFirtsOffline = false;
+  private _isWantedDisconnection: boolean;
 
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
     private _sessionService: SessionService,
+    private _toastrService: ToastrService,
+    private _loadingService: LoadingService,
     sessionStore: SessionStore
   ) {
     this._isConnected.next(false);
@@ -59,6 +66,7 @@ export class WebsocketService {
    * @returns Solves when the socket is properly connected to the backend
    */
   public initSocket(targetUrl?: string, jwtToken?: string): Promise<void> {
+    this._isWantedDisconnection = false;
     this.setAuthenticationToken(jwtToken);
     return new Promise<void>(resolve => {
       if (!this._socket) {
@@ -67,7 +75,11 @@ export class WebsocketService {
         }
         this._log.debug('Connecting to remote websocket server', targetUrl);
         this._socket = io.connect({
-          path: targetUrl
+          path: targetUrl,
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 3000,
+          reconnectionAttempts: Number.MAX_SAFE_INTEGER
         });
         this._socket.io.on('connect_error', async () => {
           if (this._isFirstConnection && !this._hasTriggeredFirtsOffline) {
@@ -88,12 +100,17 @@ export class WebsocketService {
           this._isConnected.next(true);
         });
         this._socket.on('disconnect', () => {
-          this._log.info('client disconnected');
-          this._isAuthenticated = false;
-          this._isConnected.next(false);
-          this._socket.removeAllListeners();
-          delete this._socket;
-          this.initSocket(targetUrl, jwtToken);
+          if (this._isWantedDisconnection) {
+            this._log.info('client voluntary disconnected');
+          } else {
+            this._log.info('client unexpedctly disconnected');
+            this._isAuthenticated = false;
+            this._isConnected.next(false);
+            this._socket.removeAllListeners();
+            this._socket.close();
+            delete this._socket;
+            this.initSocket(targetUrl, jwtToken);
+          }
         });
       } else if (!this._socket.connected) {
         this._socket.connect();
@@ -143,19 +160,33 @@ export class WebsocketService {
    * @since 0.9.0
    */
   public close(): void {
-    this._socket.close();
-    this._socket.removeAllListeners();
-    this._isFirstConnection = true;
-    this._isAuthenticated = false;
-    this._hasTriggeredFirtsOffline = false;
+    if (this._socket) {
+      this._isWantedDisconnection = true;
+      this._socket.close();
+      this._socket.removeAllListeners();
+      this._isFirstConnection = true;
+      this._isAuthenticated = false;
+      this._hasTriggeredFirtsOffline = false;
+      delete this._socket;
+    }
   }
 
   private async _registerSocketHandlers(): Promise<void> {
     try {
-      await Promise.all(this._eventHandlers.map(current => current.workaroundSync()));
+      this._log.debug('Invoking workaroundSync');
+      await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
+        const result = await this._timeoutPromise(current.workaroundSync());
+        if (result === 'timeout') {
+          const errorMsg = `${current.constructor.name}.workaroundSync ()timed out`;
+          this._log.error(errorMsg);
+          this._toastrService.error(errorMsg);
+        }
+        return result;
+      })));
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
     }
+    this._log.debug('Subscribing to message events');
     this._socket.on('deliver_message', message => {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
@@ -178,5 +209,12 @@ export class WebsocketService {
         this._log.warn('Bad message from backend', message);
       }
     });
+  }
+
+  private _timeoutPromise(inputPromise: Promise<any>): Promise<any> {
+    return Promise.race([
+      inputPromise,
+      new Promise(resolve => window.setTimeout(() => resolve('timeout'), 3000))
+    ]);
   }
 }

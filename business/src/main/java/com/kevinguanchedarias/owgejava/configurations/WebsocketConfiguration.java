@@ -15,6 +15,12 @@ public class WebsocketConfiguration extends Configuration {
 	@Value("${OWGE_WS_PORT:7474}")
 	private String port;
 
+	@Value("${OWGE_WS_PING_TIMEOUT:5000}")
+	private String pingTimeout;
+
+	@Value("${OWGE_WS_PING_INTERVAL:2500}")
+	private String pingInterval;
+
 	@PostConstruct
 	public void init() {
 		setHostname(host);

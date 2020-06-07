@@ -6,12 +6,14 @@ import {
   UniverseCacheManagerService, WsEventCacheService
 } from '@owge/universe';
 import { AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
-import { map, take } from 'rxjs/operators';
+import { map, take, tap } from 'rxjs/operators';
 
 @Injectable()
 export class ReportService extends AbstractWebsocketApplicationHandler {
 
   private _currentReports: MissionReport[] = [];
+  private _currentCounts: MissionReportResponse;
+
   private _alreadyDownloadedReports: Set<number> = new Set();
   private _reportStore: ReportStore = new ReportStore;
   private _offlineChangeCache: StorageOfflineHelper<MissionReportResponse>;
@@ -79,9 +81,17 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
    * @param reports
    * @returns
    */
-  public markAsRead(reports: MissionReport[]): Observable<void> {
+  public async markAsRead(reports: MissionReport[]): Promise<void> {
     const reportsIds: number[] = reports.map(current => current.id);
-    return this._universeGameService.requestWithAutorizationToContext('game', 'post', 'report/mark-as-read', reportsIds);
+    await this._universeGameService.requestWithAutorizationToContext('game', 'post', 'report/mark-as-read', reportsIds).toPromise();
+    reportsIds.forEach(current => {
+      const reportWithThatID = this._currentReports.find(report => report.id === current);
+      if (reportWithThatID) {
+        reportWithThatID.userReadDate = new Date();
+      }
+    });
+    this._reportStore.reports.next(this._currentReports);
+    this._offlineChangeCache.save({ ...this._currentCounts, reports: this._currentReports });
   }
 
   /**
@@ -118,6 +128,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   }
 
   protected _onCountChange(content: MissionReportResponse): void {
+    this._currentCounts = content;
     this._reportStore.userUnread.next(content.userUnread);
     this._reportStore.enemyUnread.next(content.enemyUnread);
     this._offlineCountChangeCache.save(content);

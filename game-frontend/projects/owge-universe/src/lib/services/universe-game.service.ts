@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { first, switchMap, map, take } from 'rxjs/operators';
+import { first, switchMap, map, take, combineLatest } from 'rxjs/operators';
 
 import {
   CoreHttpService,
@@ -11,7 +11,8 @@ import {
   validWriteMethod,
   UserStorage,
   Improvement,
-  StorageOfflineHelper
+  StorageOfflineHelper,
+  SessionService
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
@@ -27,11 +28,14 @@ import { AbstractWebsocketApplicationHandler } from '@owge/core';
  */
 @Injectable()
 export class UniverseGameService extends AbstractWebsocketApplicationHandler {
+  private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
+
   private _offlineUserStore: StorageOfflineHelper<User> = new StorageOfflineHelper('universe_game.user');
 
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
+    private _sessionService: SessionService,
     private _userStore: UserStorage<User>
   ) {
     super();
@@ -50,9 +54,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-
   /**
-   * <b>MUST be the first handler in the websocket</b>
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.0
@@ -73,6 +75,27 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
    */
   public findLoggedInUserData<T extends User>(): Observable<T> {
     return <any>this._userStore.currentUser.asObservable();
+  }
+
+  /**
+   * If universe is selected and player token is valid
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public isInGame(): Observable<boolean> {
+    return this._universeStorage.currentUniverse.pipe(
+      combineLatest(this._userStore.currentToken, (universe, token) =>
+        !!universe && !!token
+      )
+    );
+  }
+
+  public logout(): void {
+    this._sessionService.logout();
+    sessionStorage.removeItem(UniverseGameService._LOCAL_STORAGE_SELECTED_UNIVERSE);
+    this._universeStorage.currentUniverse.next(null);
   }
 
   /**

@@ -1,16 +1,15 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, take } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
 
@@ -150,7 +149,6 @@ export const APP_ROUTES: Routes = [
     FormsModule,
     RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
     HttpClientModule,
-    NgbModule,
     OwgeUserModule,
     AllianceModule.forRoot(),
     OwgeUniverseModule.forRoot(),
@@ -198,7 +196,8 @@ export class AppModule {
     private _websocketService: WebsocketService,
     private _translateService: TranslateService,
     private _configurationService: ConfigurationService,
-    private _userStorage: UserStorage<User>
+    private _userStorage: UserStorage<User>,
+    private _universeGameService: UniverseGameService
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();
@@ -217,13 +216,8 @@ export class AppModule {
   }
 
   private _initWebsocket(): void {
-    let _oldSuscription: Subscription;
     this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
-        if (_oldSuscription) {
-          _oldSuscription.unsubscribe();
-          _oldSuscription = null;
-        }
         this._websocketService.addEventHandler(
           new PingWebsocketApplicationHandler(),
           this._injector.get(MissionService),
@@ -235,9 +229,14 @@ export class AppModule {
           this._injector.get(TimeSpecialService),
           this._injector.get(UpgradeTypeService)
         );
-        _oldSuscription = this._userStorage.currentToken
-          .pipe(filter(token => !!token))
-          .subscribe(token => this._websocketService.initSocket(conf.value, token));
+        this._universeGameService.isInGame().subscribe(async isInGame => {
+          const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
+          if (isInGame) {
+            this._websocketService.initSocket(conf.value, token);
+          } else {
+            this._websocketService.close();
+          }
+        });
       });
   }
 }

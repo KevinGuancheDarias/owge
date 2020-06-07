@@ -129,6 +129,7 @@ export class SessionService implements CanActivate {
 
   private _clearSessionData() {
     sessionStorage.removeItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
+    this._userStore.currentToken.next(null);
   }
 
   private _isLoginRoute(route: string): boolean {
