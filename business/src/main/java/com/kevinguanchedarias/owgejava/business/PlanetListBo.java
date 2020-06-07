@@ -56,7 +56,7 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 		planetList.setPlanetUser(new PlanetUser(user, planetBo.findByIdOrDie(planetId)));
 		planetList.setName(name);
 		repository.save(planetList);
-		socketIoService.sendMessage(user, "planet_user_list_change", () -> findByUserId(user.getId()));
+		emitChangeToUser(user);
 
 	}
 
@@ -67,7 +67,12 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void myDelete(Long planetId) {
-		repository
-				.deleteById(new PlanetUser(userStorageBo.findLoggedInWithDetails(), planetBo.findByIdOrDie(planetId)));
+		UserStorage user = userStorageBo.findLoggedInWithDetails();
+		repository.deleteById(new PlanetUser(user, planetBo.findByIdOrDie(planetId)));
+		emitChangeToUser(user);
+	}
+
+	private void emitChangeToUser(UserStorage user) {
+		socketIoService.sendMessage(user, "planet_user_list_change", () -> toDto(findByUserId(user.getId())));
 	}
 }
