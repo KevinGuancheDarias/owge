@@ -18,6 +18,11 @@ import { UniverseCacheManagerService } from './services/universe-cache-manager.s
 import { OnClickIfWsConnectedDirective } from './directives/on-click-if-ws-conected.directive';
 import { WebsocketService } from './services/websocket.service';
 import { WsEventCacheService } from './services/ws-event-cache.service';
+import { PlanetListService } from './services/planet-list.service';
+import { PlanetDescriptionPipe } from './pipes/planet-description.pipe';
+import { PlanetListAddEditModalComponent } from './components/planet-list-add-edit-modal/planet-list-add-edit-modal.component';
+import { FormsModule } from '@angular/forms';
+import { PlanetOwnerPipe } from './pipes/planet-owner.pipe';
 
 /**
  *
@@ -29,18 +34,25 @@ import { WsEventCacheService } from './services/ws-event-cache.service';
 @NgModule({
   imports: [
     CommonModule,
+    FormsModule,
     CoreModule,
     OwgeWidgetsModule,
     TranslateModule.forChild(),
     ToastrModule.forRoot()
   ],
-  declarations: [ImageSelectorComponent, OnClickIfWsConnectedDirective],
+  declarations: [
+    ImageSelectorComponent, OnClickIfWsConnectedDirective, PlanetDescriptionPipe,
+    PlanetListAddEditModalComponent, PlanetOwnerPipe
+  ],
   providers: [
     ImageStoreService
   ],
   exports: [
     ImageSelectorComponent,
-    OnClickIfWsConnectedDirective
+    OnClickIfWsConnectedDirective,
+    PlanetDescriptionPipe,
+    PlanetListAddEditModalComponent,
+    PlanetOwnerPipe
   ]
 })
 export class OwgeUniverseModule {
@@ -58,7 +70,8 @@ export class OwgeUniverseModule {
         ResourceManagerService,
         UniverseCacheManagerService,
         WebsocketService,
-        WsEventCacheService
+        WsEventCacheService,
+        PlanetListService
       ]
     };
   }

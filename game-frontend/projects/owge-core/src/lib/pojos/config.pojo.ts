@@ -16,6 +16,7 @@ export const ROUTES = {
     UPGRADES: '/upgrades',
     UNITS: '/units',
     NAVIGATE: '/navigate',
+    PLANET_LIST: '/planet-list',
     REPORTS: '/reports',
     ALLIANCE: '/alliance',
     RANKING: '/ranking',

@@ -9,7 +9,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService, PlanetListService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
 
@@ -73,6 +73,7 @@ import { TimeSpecialsComponent } from './components/time-specials/time-specials.
 import { TimeSpecialService } from './services/time-specials.service';
 import { Log, Level } from 'ng2-logger/browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { PlanetListComponent } from './components/planet-list/planet-list.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -85,6 +86,7 @@ export const APP_ROUTES: Routes = [
   { path: 'units/deployed', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'units/requirements', component: UnitsComponent, canActivate: [LoginSessionService] },
   { path: 'navigate', component: NavigationComponent, canActivate: [LoginSessionService] },
+  { path: 'planet-list', component: PlanetListComponent, canActivate: [LoginSessionService] },
   { path: 'reports', component: ReportsListComponent, canActivate: [LoginSessionService] },
   { path: 'version', component: VersionInformationComponent, canActivate: [LoginSessionService] },
   {
@@ -142,6 +144,7 @@ export const APP_ROUTES: Routes = [
     MissionModalComponent,
     GameSidebarComponent,
     TimeSpecialsComponent,
+    PlanetListComponent,
   ],
   imports: [
     BrowserModule,
@@ -227,7 +230,8 @@ export class AppModule {
           this._injector.get(PlanetService),
           this._injector.get(ReportService),
           this._injector.get(TimeSpecialService),
-          this._injector.get(UpgradeTypeService)
+          this._injector.get(UpgradeTypeService),
+          this._injector.get(PlanetListService)
         );
         this._universeGameService.isInGame().subscribe(async isInGame => {
           const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
