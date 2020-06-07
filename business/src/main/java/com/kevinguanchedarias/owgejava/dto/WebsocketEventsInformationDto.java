@@ -21,6 +21,7 @@ public class WebsocketEventsInformationDto implements DtoFromEntity<WebsocketEve
 		EventNameUserId eventNameAndUserId = entity.getEventNameUserId();
 		eventName = eventNameAndUserId.getEventName();
 		userId = eventNameAndUserId.getUserId();
+		lastSent = entity.getLastSenT();
 	}
 
 	/**

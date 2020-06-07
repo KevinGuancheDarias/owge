@@ -164,13 +164,13 @@
           "options": {
             "tsConfig": "projects/owge-core/tsconfig.lib.json",
             "project": "projects/owge-core/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-core/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -204,13 +204,13 @@
           "options": {
             "tsConfig": "projects/owge-universe/tsconfig.lib.json",
             "project": "projects/owge-universe/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-universe/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -244,13 +244,13 @@
           "options": {
             "tsConfig": "projects/owge-user/tsconfig.lib.json",
             "project": "projects/owge-user/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-user/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -284,13 +284,13 @@
           "options": {
             "tsConfig": "projects/owge-alliance/tsconfig.lib.json",
             "project": "projects/owge-alliance/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-alliance/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -324,13 +324,13 @@
           "options": {
             "tsConfig": "projects/owge-widgets/tsconfig.lib.json",
             "project": "projects/owge-widgets/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-widgets/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -369,7 +369,6 @@
             "polyfills": "projects/game-frontend/src/polyfills.ts",
             "tsConfig": "projects/game-frontend/tsconfig.with-libs.json",
             "aot": true,
-            "serviceWorker": true,
             "assets": [
               "projects/game-frontend/src/favicon.ico",
               "projects/game-frontend/src/assets",
@@ -464,8 +463,7 @@
                   "maximumError": "10kb"
                 }
               ],
-              "serviceWorker": true,
-              "ngswConfigPath": "projects/game-frontend/ngsw-config.json"
+              "serviceWorker": true
             }
           }
         },
@@ -551,13 +549,13 @@
           "options": {
             "tsConfig": "projects/owge-galaxy/tsconfig.lib.json",
             "project": "projects/owge-galaxy/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-galaxy/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
@@ -591,13 +589,13 @@
           "options": {
             "tsConfig": "projects/owge-faction/tsconfig.lib.json",
             "project": "projects/owge-faction/ng-package.json"
-          }
-        ,          "configurations": {
+          },
+          "configurations": {
             "production": {
               "tsConfig": "projects/owge-faction/tsconfig.lib.prod.json"
             }
           }
-},
+        },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {

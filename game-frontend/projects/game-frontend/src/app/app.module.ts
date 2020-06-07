@@ -174,7 +174,7 @@ export const APP_ROUTES: Routes = [
         deps: [HttpClient]
       }
     }),
-    ServiceWorkerModule.register('ngsw-worker.js', { enabled: false, registrationStrategy: 'registerImmediately' })
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production, registrationStrategy: 'registerImmediately' })
   ],
   providers: [
     LoginSessionService,
