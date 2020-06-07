@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -42,6 +43,7 @@ import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 
 @Component
@@ -82,9 +84,21 @@ public class RequirementBo implements Serializable {
 	@Autowired
 	private transient AutowireCapableBeanFactory beanFactory;
 
+	@Autowired
+	private SocketIoService socketIoService;
+
+	@Autowired
+	private TimeSpecialBo timeSpecialBo;
+
+	@Autowired
+	private UnitBo unitBo;
+
+	@Autowired
+	private transient EntityManager entityManager;
+
 	/**
 	 * Checks that the {@link RequirementTypeEnum} enum matches the database values
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -113,7 +127,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Will return requirement for specified object type with the given referenceId
-	 * 
+	 *
 	 * @deprecated Use {@link RequirementBo#findRequirements(ObjectEnum, Integer)}
 	 * @param targetObject - Type of object
 	 * @param referenceId  - Id on the target entity, for example id of an upgrade,
@@ -127,8 +141,8 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Will return requirement for specified object type with the given referenceId
-	 * 
-	 * 
+	 *
+	 *
 	 * @param objectEnum  Type of object
 	 * @param referenceId Id on the target entity, for example id of an upgrade, or
 	 *                    an unit
@@ -152,7 +166,7 @@ public class RequirementBo implements Serializable {
 	/**
 	 * Finds a Bo by the requirement (useful for example to test for second, or
 	 * third value of the requirement)
-	 * 
+	 *
 	 * @param <E>
 	 * @param requirementType
 	 * @return
@@ -164,32 +178,32 @@ public class RequirementBo implements Serializable {
 			RequirementTypeEnum requirementType) {
 		Class<?> clazz;
 		switch (requirementType) {
-			case UPGRADE_LEVEL:
-				clazz = UpgradeBo.class;
-				break;
-			case HAVE_UNIT:
-			case UNIT_AMOUNT:
-				clazz = UnitBo.class;
-				break;
-			case BEEN_RACE:
-				clazz = FactionBo.class;
-				break;
-			case HAVE_SPECIAL_LOCATION:
-				clazz = SpecialLocationBo.class;
-				break;
-			case HAVE_SPECIAL_ENABLED:
-			case HAVE_SPECIAL_AVAILABLE:
-				clazz = TimeSpecialBo.class;
-				break;
-			case HOME_GALAXY:
-				clazz = GalaxyBo.class;
-				break;
-			case WORST_PLAYER:
-				throw new ProgrammingException("Requirement " + requirementType.name()
-						+ "doesn't have a BO, you should check for it, prior to invoking this method");
-			default:
-				throw new SgtBackendNotImplementedException(
-						"Support for " + requirementType.name() + " has not been added yet");
+		case UPGRADE_LEVEL:
+			clazz = UpgradeBo.class;
+			break;
+		case HAVE_UNIT:
+		case UNIT_AMOUNT:
+			clazz = UnitBo.class;
+			break;
+		case BEEN_RACE:
+			clazz = FactionBo.class;
+			break;
+		case HAVE_SPECIAL_LOCATION:
+			clazz = SpecialLocationBo.class;
+			break;
+		case HAVE_SPECIAL_ENABLED:
+		case HAVE_SPECIAL_AVAILABLE:
+			clazz = TimeSpecialBo.class;
+			break;
+		case HOME_GALAXY:
+			clazz = GalaxyBo.class;
+			break;
+		case WORST_PLAYER:
+			throw new ProgrammingException("Requirement " + requirementType.name()
+					+ "doesn't have a BO, you should check for it, prior to invoking this method");
+		default:
+			throw new SgtBackendNotImplementedException(
+					"Support for " + requirementType.name() + " has not been added yet");
 		}
 		return (WithNameBo<K, E, D>) beanFactory.getBean(clazz);
 	}
@@ -197,7 +211,7 @@ public class RequirementBo implements Serializable {
 	/**
 	 * Checks if requirements are met for all objects, and fills the
 	 * unlocked_relation table <b>EXPENSIVE METHOD!</b>
-	 * 
+	 *
 	 * @param userId user to which the requirements are going to be checked
 	 */
 	@Transactional
@@ -207,7 +221,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Checks requirements when race has been selected
-	 * 
+	 *
 	 * @param user
 	 * @author Kevin Guanche Darias
 	 */
@@ -219,7 +233,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Chacks requirements when galaxy has been assigned
-	 * 
+	 *
 	 * @param user
 	 * @author Kevin Guanche Darias
 	 */
@@ -231,7 +245,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Checks requirements when level up mission has been completed!
-	 * 
+	 *
 	 * @param user
 	 * @author Kevin Guanche Darias
 	 */
@@ -248,7 +262,7 @@ public class RequirementBo implements Serializable {
 	 * <li>HAVE_UNIT</li>
 	 * <li>UNIT_AMOUNT</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param user
 	 * @param unit
 	 * @author Kevin Guanche Darias
@@ -264,7 +278,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Checks if all users met the new requirements of the changed relation
-	 * 
+	 *
 	 * @param relation
 	 * @author Kevin Guanche Darias
 	 */
@@ -280,7 +294,7 @@ public class RequirementBo implements Serializable {
 	/**
 	 * Checks if the input user has reached the level of the upgrades, and fills the
 	 * property <i>reached</i>, which is false by default
-	 * 
+	 *
 	 * @param user
 	 * @param listToFill
 	 * @return
@@ -300,7 +314,7 @@ public class RequirementBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param input
 	 * @return
 	 * @since 0.8.0
@@ -328,7 +342,7 @@ public class RequirementBo implements Serializable {
 	/**
 	 * Process the list of relations, and add or remove then from unlocked_relation
 	 * table if requirements are met or not
-	 * 
+	 *
 	 * @param relations
 	 * @param user
 	 * @author Kevin Guanche Darias
@@ -341,7 +355,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Process single relation change
-	 * 
+	 *
 	 * @param relation relation persisted entity
 	 * @param user
 	 * @author Kevin Guanche Darias
@@ -356,7 +370,7 @@ public class RequirementBo implements Serializable {
 
 	/**
 	 * Will check that all requirements are met for given relation and user
-	 * 
+	 *
 	 * @param objectRelation
 	 * @param user
 	 * @return True if object can be used
@@ -366,24 +380,24 @@ public class RequirementBo implements Serializable {
 		for (RequirementInformation currentRequirement : objectRelation.getRequirements()) {
 			boolean status;
 			switch (RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode())) {
-				case UPGRADE_LEVEL:
-					status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
-					break;
-				case HAVE_UNIT:
-					status = checkHaveUnitRequirement(currentRequirement, user);
-					break;
-				case UNIT_AMOUNT:
-					status = checkUnitAmountRequirement(currentRequirement, user);
-					break;
-				case BEEN_RACE:
-					status = checkBeenFactionRequirement(currentRequirement, user.getId());
-					break;
-				case HOME_GALAXY:
-					status = checkBeenGalaxyRequirement(currentRequirement, user);
-					break;
-				default:
-					throw new SgtBackendNotImplementedException(
-							"Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
+			case UPGRADE_LEVEL:
+				status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
+				break;
+			case HAVE_UNIT:
+				status = checkHaveUnitRequirement(currentRequirement, user);
+				break;
+			case UNIT_AMOUNT:
+				status = checkUnitAmountRequirement(currentRequirement, user);
+				break;
+			case BEEN_RACE:
+				status = checkBeenFactionRequirement(currentRequirement, user.getId());
+				break;
+			case HOME_GALAXY:
+				status = checkBeenGalaxyRequirement(currentRequirement, user);
+				break;
+			default:
+				throw new SgtBackendNotImplementedException(
+						"Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
 			}
 			if (!status) {
 				return false;
@@ -427,24 +441,33 @@ public class RequirementBo implements Serializable {
 	 * <b>NOTICE: If relation already exists in unlocked_relation table will just do
 	 * nothing</b><br />
 	 * If relation is an upgrade, will save it to the ObtainedUpgrades!
-	 * 
+	 *
 	 * @param relation
 	 * @param user
 	 * @author Kevin Guanche Darias
 	 */
 	private void registerObtainedRelation(ObjectRelation relation, UserStorage user) {
-		if (findUnlockedObjectRelation(relation.getId(), user.getId()) == null) {
+		Integer userId = user.getId();
+		if (findUnlockedObjectRelation(relation.getId(), userId) == null) {
 			UnlockedRelation unlockedRelation = new UnlockedRelation();
 			unlockedRelation.setRelation(relation);
 			unlockedRelation.setUser(user);
 			unlockedRelationRepository.save(unlockedRelation);
-			if (RequirementTargetObject.UPGRADE.name().equals(relation.getObject().getDescription())) {
-				if (obtainedUpgradeBo.userHasUpgrade(user.getId(), relation.getReferenceId())) {
+			ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
+			switch (object) {
+			case UPGRADE:
+				if (obtainedUpgradeBo.userHasUpgrade(userId, relation.getReferenceId())) {
 					alterObtainedUpgradeAvailability(
-							obtainedUpgradeBo.findUserObtainedUpgrade(user.getId(), relation.getReferenceId()), true);
+							obtainedUpgradeBo.findUserObtainedUpgrade(userId, relation.getReferenceId()), true);
 				} else {
 					registerObtainedUpgrade(user, relation.getReferenceId());
 				}
+				break;
+			case UNIT:
+				emitUnlockedChange(unlockedRelation, object, unitBo);
+			case TIME_SPECIAL:
+				emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
+				break;
 			}
 		}
 	}
@@ -455,10 +478,12 @@ public class RequirementBo implements Serializable {
 			unlockedRelationRepository.deleteById(unlockedRelation.getId());
 		}
 
-		if (RequirementTargetObject.UPGRADE.name().equals(relation.getObject().getDescription())
-				&& obtainedUpgradeBo.userHasUpgrade(user.getId(), relation.getReferenceId())) {
+		ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
+		if (object == ObjectEnum.UPGRADE && obtainedUpgradeBo.userHasUpgrade(user.getId(), relation.getReferenceId())) {
 			alterObtainedUpgradeAvailability(
 					obtainedUpgradeBo.findUserObtainedUpgrade(user.getId(), relation.getReferenceId()), false);
+		} else if (unlockedRelation != null) {
+			emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unitBo : timeSpecialBo);
 		}
 	}
 
@@ -496,5 +521,18 @@ public class RequirementBo implements Serializable {
 					return unitUpgradeRequirements;
 				}).collect(Collectors.toList()));
 		return retVal;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object, WithUnlockableBo bo) {
+		Integer userId = unlockedRelation.getUser().getId();
+		String eventPrefix = object.name().toLowerCase();
+		TransactionUtil.doAfterCommit(() -> {
+			if (entityManager.contains(unlockedRelation)) {
+				entityManager.refresh(unlockedRelation);
+			}
+			socketIoService.sendMessage(userId, eventPrefix + "_unlocked_change",
+					() -> dtoUtilService.convertEntireArray(bo.getDtoClass(), bo.findUnlocked(userId)));
+		});
 	}
 }

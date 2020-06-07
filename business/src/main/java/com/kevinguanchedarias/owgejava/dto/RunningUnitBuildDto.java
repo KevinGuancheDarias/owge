@@ -1,18 +1,22 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 
 public class RunningUnitBuildDto extends AbstractRunningMissionDto {
 
 	private UnitDto unit;
 	private Long count;
+	private PlanetDto sourcePlanet;
 
-	public RunningUnitBuildDto(Unit unit, Mission mission, Long count) {
+	public RunningUnitBuildDto(Unit unit, Mission mission, Planet planet, Long count) {
 		super(mission);
 		this.unit = new UnitDto();
 		this.unit.dtoFromEntity(unit);
 		this.count = count;
+		sourcePlanet = new PlanetDto();
+		sourcePlanet.dtoFromEntity(planet);
 	}
 
 	public UnitDto getUnit() {
@@ -25,6 +29,24 @@ public class RunningUnitBuildDto extends AbstractRunningMissionDto {
 
 	public Long getCount() {
 		return count;
+	}
+
+	/**
+	 * @return the sourcePlanet
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public PlanetDto getSourcePlanet() {
+		return sourcePlanet;
+	}
+
+	/**
+	 * @param sourcePlanet the sourcePlanet to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSourcePlanet(PlanetDto sourcePlanet) {
+		this.sourcePlanet = sourcePlanet;
 	}
 
 }

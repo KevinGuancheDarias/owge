@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.business;
 
@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 
@@ -21,7 +23,8 @@ import com.kevinguanchedarias.owgejava.util.ValidationUtil;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto> {
+public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto>,
+		WithUnlockableBo<Integer, TimeSpecial, TimeSpecialDto> {
 	static final long serialVersionUID = -2736277577264790898L;
 
 	@Autowired
@@ -31,11 +34,17 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 	private ActiveTimeSpecialBo activeTimeSpecialBo;
 
 	@Autowired
+	private UnlockedRelationBo unlockedRelationBo;
+
+	@Autowired
+	private UserStorageBo userStorageBo;
+
+	@Autowired
 	private transient TimeSpecialRepository repository;
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
@@ -45,7 +54,7 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -53,9 +62,19 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 		return TimeSpecialDto.class;
 	}
 
+	@Override
+	public ObjectEnum getObject() {
+		return ObjectEnum.TIME_SPECIAL;
+	}
+
+	@Override
+	public UnlockedRelationBo getUnlockedRelationBo() {
+		return unlockedRelationBo;
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.AbstractWithImageBo#save(com.
 	 * kevinguanchedarias.owgejava.entity.CommonEntityWithImageStore)
 	 */
@@ -70,7 +89,7 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
 	 */
 	@Override
@@ -81,7 +100,7 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(com.kevinguanchedarias
 	 * .owgejava.entity.EntityWithId)
@@ -95,15 +114,25 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
 	 */
 	@Override
 	@Transactional
 	public void delete(Integer id) {
-		// Only adds the transaction
 		WithNameBo.super.delete(id);
+	}
+
+	@Override
+	public TimeSpecialDto toDto(TimeSpecial entity) {
+		TimeSpecialDto timeSpecialDto = WithNameBo.super.toDto(entity);
+		UserStorage loggedUser = userStorageBo.findLoggedIn();
+		if (loggedUser != null) {
+			timeSpecialDto.setActiveTimeSpecialDto(activeTimeSpecialBo
+					.toDto(activeTimeSpecialBo.findOneByTimeSpecial(entity.getId(), loggedUser.getId())));
+		}
+		return timeSpecialDto;
 	}
 
 }

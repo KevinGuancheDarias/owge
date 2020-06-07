@@ -1,39 +1,69 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 
-import { Improvement, DateUtil } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { Improvement, DateUtil, StorageOfflineHelper } from '@owge/core';
+import {
+  UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
+  AutoUpdatedResources, ResourceManagerService, ResourceRequirements, UniverseCacheManagerService, WsEventCacheService
+} from '@owge/universe';
 
-import { RunningUpgrade } from './../shared-pojo/running-upgrade.pojo';
-import { ResourcesEnum } from '../shared-enum/resources-enum';
-import { ResourceManagerService } from './resource-manager.service';
-import { RequirementPojo } from './../shared-pojo/requirement.pojo';
-import { ObtainedUpgradePojo } from './../shared-pojo/obtained-upgrade.pojo';
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import { map, distinctUntilChanged } from 'rxjs/operators';
 
 @Injectable()
-export class UpgradeService {
+export class UpgradeService extends AbstractWebsocketApplicationHandler {
 
-  public get isUpgrading(): Observable<RunningUpgrade> {
-    return this._isUpgrading.asObservable();
-  }
-  private _isUpgrading: BehaviorSubject<RunningUpgrade> = new BehaviorSubject(null);
-
-  private _isUpgradingInternalData: RunningUpgrade;
-  private _runningUpgradeCheckIntervalId: number;
-
+  private _upgradeStore: UpgradeStore = new UpgradeStore;
   private _resources: AutoUpdatedResources;
+  private _offlineObtainedStore: StorageOfflineHelper<ObtainedUpgrade[]>;
+  private _offlineRunningStore: StorageOfflineHelper<UpgradeRunningMission>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService,
+    _universeCacheManagerService: UniverseCacheManagerService
   ) {
+    super();
     this._resources = new AutoUpdatedResources(_resourceManagerService);
+    this._eventsMap = {
+      obtained_upgrades_change: '_onObtainedChange',
+      running_upgrade_change: '_onRunningChange'
+    };
+    this._offlineObtainedStore = _universeCacheManagerService.getStore('upgrade.obtained');
+    this._offlineRunningStore = _universeCacheManagerService.getStore('upgrade.running');
   }
 
-  public findObtained(): Observable<ObtainedUpgradePojo[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse('upgrade/findObtained');
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async workaroundSync(): Promise<void> {
+    this._onObtainedChange(await this._wsEventCacheService.findFromCacheOrRun('obtained_upgrades_change', this._offlineObtainedStore,
+      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/findObtained').toPromise()
+    ));
+    this._onRunningChange(await this._wsEventCacheService.findFromCacheOrRun(
+      'running_upgrade_change',
+      this._offlineRunningStore,
+      async () =>
+        await this._universeGameService.requestWithAutorizationToContext<UpgradeRunningMission>('game', 'get', 'upgrade/findRunningUpgrade')
+          .pipe(
+            map(result => DateUtil.computeBrowserTerminationDate(result))
+          ).toPromise()
+    ));
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineObtainedStore.doIfNotNull(content => this._onObtainedChange(content));
+    this._offlineRunningStore.doIfNotNull(content => this._onRunningChange(content));
+  }
+
+  public findObtained(): Observable<ObtainedUpgrade[]> {
+    return this._upgradeStore.obtained.asObservable();
   }
 
   /**
@@ -44,32 +74,16 @@ export class UpgradeService {
    * @param upgradeId
    * @returns
    */
-  public findOneObtained(upgradeId: number): Observable<ObtainedUpgradePojo> {
-    return this._universeGameService.requestWithAutorizationToContext('game', 'get', `upgrade/findObtained/${upgradeId}`);
-  }
-
-  /**
-   * Checks in the backend if there is an upgrade mission going <br />
-   * Will flush result to isUpgrading observable
-   *
-   * @todo In the future set next(null) on upgrade mission timeout
-   * @author Kevin Guanche Darias
-   */
-  public backendRunningUpgradeCheck(): void {
-    this._universeGameService.getWithAuthorizationToUniverse<RunningUpgrade>('upgrade/findRunningUpgrade').subscribe(res => {
-      if (res && (!this._isUpgradingInternalData || this._isUpgradingInternalData.missionId !== res.missionId)) {
-        this._isUpgradingInternalData = res;
-        DateUtil.computeLocalTerminationDate(res);
-        this._registerInterval();
-        this._isUpgrading.next(res);
-      }
-    });
+  public findOneObtained(upgradeId: number): Observable<ObtainedUpgrade> {
+    return this._upgradeStore.obtained.pipe(
+      map(obtaineds => obtaineds.find(current => current.upgrade.id === upgradeId))
+    );
   }
 
   /**
    * Computes required resources by the next upgrade level
    *
-   * @param {ObtainedUpgradePojo} ObtainedUpgradePojo
+   * @param {ObtainedUpgrade} ObtainedUpgrade
    *          - Notice: this function alters this object
    * @param {boolean} subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
@@ -78,12 +92,12 @@ export class UpgradeService {
    * @author Kevin Guanche Darias
    */
   public computeReqiredResources(
-    obtainedUpgrade: ObtainedUpgradePojo,
+    obtainedUpgrade: ObtainedUpgrade,
     subscribeToResources = false,
     userImprovement?: Improvement
-  ): ObtainedUpgradePojo {
+  ): ObtainedUpgrade {
     const upgradeRef = obtainedUpgrade.upgrade;
-    const requirements: RequirementPojo = new RequirementPojo();
+    const requirements: ResourceRequirements = new ResourceRequirements;
     requirements.requiredPrimary = upgradeRef.primaryResource;
     requirements.requiredSecondary = upgradeRef.secondaryResource;
     requirements.requiredTime = upgradeRef.time;
@@ -115,61 +129,36 @@ export class UpgradeService {
    *
    * @author Kevin Guanche Darias
    */
-  public registerLevelUp(obtainedUpgrade: ObtainedUpgradePojo): void {
+  public registerLevelUp(obtainedUpgrade: ObtainedUpgrade): void {
     let params: HttpParams = new HttpParams();
     params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
     this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', { params }).subscribe(res => {
-      this._resourceManagerService.minusResources(ResourcesEnum.PRIMARY, obtainedUpgrade.requirements.requiredPrimary);
-      this._resourceManagerService.minusResources(ResourcesEnum.SECONDARY, obtainedUpgrade.requirements.requiredSecondary);
-      if (res) {
-        this._registerInterval();
-      }
-      this._isUpgradingInternalData = res;
-      DateUtil.computeLocalTerminationDate(res);
-      this._isUpgrading.next(res);
-    });
-  }
 
-  public cancelUpgrade(): void {
-    this._universeGameService.getWithAuthorizationToUniverse('upgrade/cancelUpgrade').subscribe(() => {
-      this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, this._isUpgradingInternalData.requiredPrimary);
-      this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, this._isUpgradingInternalData.requiredSecondary);
-      this._isUpgradingInternalData = null;
-      this._isUpgrading.next(null);
     });
   }
 
   /**
-   * Checks if upgrade termination date has end
-   * If it has done will publish isUpgrading as null
    *
-   * @author Kevin Guanche Darias
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
    */
-  private _checkIsYetUpgrading(): void {
-    let now: Date = new Date();
-    now = new Date(now.getTime() - 1000);
-    if (!this._isUpgradingInternalData || now >= this._isUpgradingInternalData.browserComputedTerminationDate) {
-      this._clearInterval();
-    }
+  public findRunningLevelUp(): Observable<UpgradeRunningMission> {
+    return this._upgradeStore.runningLevelUpMission.asObservable();
   }
 
-  private _registerInterval(): void {
-    if (!this._runningUpgradeCheckIntervalId) {
-      this._runningUpgradeCheckIntervalId = window.setInterval(() => this._checkIsYetUpgrading(), 1000);
-    }
+  public cancelUpgrade(): Promise<void> {
+    return this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/cancelUpgrade').toPromise();
   }
 
-  /**
-   * Clears the interval if required and sets isUpgrading as null
-   *
-   * @author Kevin Guanche Darias
-   */
-  private _clearInterval(): void {
-    if (this._runningUpgradeCheckIntervalId) {
-      clearInterval(this._runningUpgradeCheckIntervalId);
-      this._runningUpgradeCheckIntervalId = null;
-      delete this._isUpgradingInternalData;
-      this._isUpgrading.next(null);
-    }
+  protected _onObtainedChange(content: ObtainedUpgrade[]): void {
+    this._offlineObtainedStore.save(content);
+    this._upgradeStore.obtained.next(content);
+  }
+
+  protected _onRunningChange(content: UpgradeRunningMission): void {
+    this._offlineRunningStore.save(content);
+    this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
   }
 }

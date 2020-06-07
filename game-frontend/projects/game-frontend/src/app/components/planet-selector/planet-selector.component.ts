@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, TemplateRef, ContentChild } from '@angular/core';
+import { Component, Input, TemplateRef, ContentChild } from '@angular/core';
 import { NavigationData } from '../../shared/types/navigation-data.type';
 import { BaseComponent } from '../../base/base.component';
 
@@ -7,16 +7,11 @@ import { BaseComponent } from '../../base/base.component';
   templateUrl: './planet-selector.component.html',
   styleUrls: ['./planet-selector.component.less']
 })
-export class PlanetSelectorComponent extends BaseComponent implements OnInit {
+export class PlanetSelectorComponent extends BaseComponent {
 
   @Input()
   public navigationData: NavigationData;
 
-  @ContentChild(TemplateRef, { static: true})
+  @ContentChild(TemplateRef, { static: true })
   templateRef: TemplateRef<any>;
-
-  ngOnInit() {
-
-  }
-
 }

@@ -10,14 +10,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
-import com.kevinguanchedarias.owgejava.dto.AllianceDto;
-import com.kevinguanchedarias.owgejava.dto.FactionDto;
-import com.kevinguanchedarias.owgejava.dto.PlanetDto;
-import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
-import com.kevinguanchedarias.owgejava.entity.Galaxy;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
 @RequestMapping("game/user")
@@ -26,9 +19,6 @@ public class UserRestService {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
-
-	@Autowired
-	private DtoUtilService dtoUtilService;
 
 	@Autowired
 	private ImprovementBo improvementBo;
@@ -40,7 +30,7 @@ public class UserRestService {
 
 	/**
 	 * Will subscribe the user to this universe
-	 * 
+	 *
 	 * @return If everything well ok, returns true
 	 * @author Kevin Guanche Darias
 	 */
@@ -51,20 +41,7 @@ public class UserRestService {
 
 	@GetMapping("findData")
 	public Object findData() {
-		UserStorage user = userStorageBo.findLoggedInWithDetails();
-		UserStorageDto userDto = new UserStorageDto();
-		userDto.dtoFromEntity(user);
-		userDto.setImprovements(improvementBo.findUserImprovement(user));
-		userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, user.getFaction()));
-		userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
-		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
-
-		Galaxy galaxyData = user.getHomePlanet().getGalaxy();
-		userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
-		userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
-		userDto.setConsumedEnergy(userStorageBo.findConsumedEnergy(user));
-		userDto.setMaxEnergy(userStorageBo.findMaxEnergy(user));
-		return userDto;
+		return userStorageBo.findData(userStorageBo.findLoggedInWithDetails());
 	}
 
 	@GetMapping("improvements")

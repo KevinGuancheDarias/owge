@@ -17,7 +17,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	public List<ObtainedUnit> findBySourcePlanetId(Long planetId);
 
 	/**
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -29,7 +29,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	/**
 	 * Finds all user units that are not of a specified mission type
-	 * 
+	 *
 	 * @param userId
 	 * @param code
 	 * @return
@@ -84,7 +84,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	public Long sumByUserAndImprovementUnitTypeImprovementType(UserStorage user, String name);
 
 	/**
-	 * 
+	 *
 	 * @param userId
 	 * @param unitId
 	 * @param planetId
@@ -96,7 +96,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 			Long planetId);
 
 	/**
-	 * 
+	 *
 	 * @param userId
 	 * @param unitId
 	 * @param planetId
@@ -106,5 +106,14 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 */
 	public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(Integer userId, Integer unitId,
 			Long planetId, String missionCode);
+
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findBySourcePlanetNotNullAndMissionNullAndUserId(Integer userId);
 
 }

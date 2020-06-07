@@ -1,9 +1,8 @@
-import { BaseComponent } from './../base/base.component';
-import { RequirementPojo } from './../shared-pojo/requirement.pojo';
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/date-time.util';
 import { UserStorage } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
+import { ResourceRequirements } from '@owge/universe';
 
 @Component({
   selector: 'app-display-requirements',
@@ -20,7 +19,7 @@ export class DisplayRequirementsComponent implements OnInit, OnChanges {
   public timeImage = 'ui_icons/time.png';
 
   @Input()
-  public requirements: RequirementPojo;
+  public requirements: ResourceRequirements;
 
   public parsedRequiredTime: MilisToDaysHoursMinutesSeconds;
   constructor(private _userStore: UserStorage<UserWithFaction>) {

@@ -1,8 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.log4j.Logger;
 import org.quartz.JobBuilder;
@@ -22,13 +23,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.google.gson.Gson;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 
 /**
  * Quartz based task scheduling
- * 
+ *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.1
  */
@@ -37,8 +41,25 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
 
 	private static final Logger LOG = Logger.getLogger(QuartzScheduledTaskManagerService.class);
 
+	private Gson gson;
+
 	public static class JobHandler extends QuartzJobBean {
-		@SuppressWarnings("unchecked")
+		private String task;
+
+		/**
+		 * @return the task
+		 */
+		public String getTask() {
+			return task;
+		}
+
+		/**
+		 * @param task the task to set
+		 */
+		public void setTask(String task) {
+			this.task = task;
+		}
+
 		@Override
 		protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
 			try {
@@ -46,8 +67,7 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
 				ApplicationContext applicationContext = (ApplicationContext) schedulercontext.get("applicationContext");
 				QuartzScheduledTaskManagerService service = applicationContext
 						.getBean(QuartzScheduledTaskManagerService.class);
-				service.fireHandlersForEvent(
-						(ScheduledTask<Serializable>) context.getJobDetail().getJobDataMap().get("task"));
+				service.fireHandlersForEvent(new Gson().fromJson(task, ScheduledTask.class));
 			} catch (SchedulerException e) {
 				throw new SgtBackendSchedulerException("Could not get application context inside job parser", e);
 			}
@@ -58,10 +78,15 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
 	@Autowired(required = false)
 	protected SchedulerFactoryBean schedulerFactory;
 
-	@SuppressWarnings("unchecked")
+	@PostConstruct
+	public void init() {
+		gson = new Gson();
+	}
+
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	@Override
-	public <T extends Serializable> String registerEvent(ScheduledTask<T> task, long deliverAfterSeconds) {
-		return doSchedule((ScheduledTask<Serializable>) task, deliverAfterSeconds);
+	public String registerEvent(ScheduledTask task, long deliverAfterSeconds) {
+		return doSchedule(task, deliverAfterSeconds);
 	}
 
 	@Override
@@ -73,7 +98,7 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
 		}
 	}
 
-	private String doSchedule(ScheduledTask<Serializable> task, long deliverAfterSeconds) {
+	private String doSchedule(ScheduledTask task, long deliverAfterSeconds) {
 		if (schedulerFactory != null) {
 			String jobName = UUID.randomUUID().toString();
 			Scheduler scheduler = schedulerFactory.getScheduler();
@@ -82,7 +107,7 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
 			JobDataMap jobData = new JobDataMap();
 			task.setId(jobName);
 			jobData.put("eventUuid", jobName);
-			jobData.put("task", task);
+			jobData.put("task", gson.toJson(task));
 			LOG.debug("Scheduling event with id " + jobName + " and of type " + task.getType());
 			JobDetail jobDetail = JobBuilder.newJob(JobHandler.class).withIdentity(jobKey).setJobData(jobData).build();
 			Date startAt = new Date(new Date().getTime() + (deliverAfterSeconds * 1000));

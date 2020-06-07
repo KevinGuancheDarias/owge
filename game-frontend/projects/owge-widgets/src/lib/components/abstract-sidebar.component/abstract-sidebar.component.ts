@@ -13,11 +13,18 @@ export abstract class AbstractSidebarComponent {
   * @param textIndex The name of the translation in the file
   * @param pathOrAction
   * @param icon
+  * @param isConnectionRequired
   */
-  protected _createTranslatableMenuRoute(textIndex: string, pathOrAction: string | Function, icon: string): MenuRoute {
+  protected _createTranslatableMenuRoute(
+    textIndex: string,
+    pathOrAction: string | Function,
+    icon: string,
+    isConnectionRequired = false
+  ): MenuRoute {
     const retVal: MenuRoute = {
       text: 'Loading...',
-      icon
+      icon,
+      isConnectionRequired
     };
     if (typeof pathOrAction === 'function') {
       retVal.action = pathOrAction;

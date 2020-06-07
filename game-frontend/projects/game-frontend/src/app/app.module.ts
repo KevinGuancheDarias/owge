@@ -1,18 +1,17 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { filter } from 'rxjs/operators';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { filter, map, take } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
-import { Angular2FontawesomeModule } from 'angular2-fontawesome/angular2-fontawesome';
 import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
-import { OwgeGalaxyModule } from '@owge/galaxy';
+import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
 
 import { environment } from '../environments/environment';
 import { ServiceLocator } from './service-locator/service-locator';
@@ -20,7 +19,6 @@ import { LoginSessionService } from './login-session/login-session.service';
 import { NavigationService } from './service/navigation.service';
 import { UnitService } from './service/unit.service';
 import { UpgradeService } from './service/upgrade.service';
-import { ResourceManagerService } from './service/resource-manager.service';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -44,7 +42,6 @@ import { NavigationComponent } from './components/navigation/navigation.componen
 import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
 import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
 import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
-import { WebsocketService } from './service/websocket.service';
 import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
 import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
 import { MissionService } from './services/mission.service';
@@ -74,6 +71,8 @@ import { Subscription } from 'rxjs';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
 import { TimeSpecialService } from './services/time-specials.service';
+import { Log, Level } from 'ng2-logger/browser';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -146,11 +145,10 @@ export const APP_ROUTES: Routes = [
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     FormsModule,
-    Angular2FontawesomeModule,
     RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
     HttpClientModule,
-    NgbModule,
     OwgeUserModule,
     AllianceModule.forRoot(),
     OwgeUniverseModule.forRoot(),
@@ -173,11 +171,11 @@ export const APP_ROUTES: Routes = [
         useFactory: findHttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production, registrationStrategy: 'registerImmediately' })
   ],
   providers: [
     LoginSessionService,
-    ResourceManagerService,
     UpgradeService,
     UnitService,
     NavigationService,
@@ -188,7 +186,7 @@ export const APP_ROUTES: Routes = [
     UnitTypeService,
     UpgradeTypeService,
     MissionService,
-    TimeSpecialService,
+    TimeSpecialService
   ],
   bootstrap: [AppComponent]
 })
@@ -198,10 +196,19 @@ export class AppModule {
     private _websocketService: WebsocketService,
     private _translateService: TranslateService,
     private _configurationService: ConfigurationService,
-    private _userStorage: UserStorage<User>
+    private _userStorage: UserStorage<User>,
+    private _universeGameService: UniverseGameService
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();
+    ((<any>window).owgeDebug = isEnabled => {
+      if (!isEnabled || environment.production) {
+        Log.onlyLevel(Level.INFO, Level.WARN, Level.ERROR);
+      } else if (!isEnabled && !environment.production) {
+        console.log('OWGE started without debug, run owgeDebug() in devtools for debug');
+      }
+      localStorage.setItem('owge_debug', isEnabled);
+    })(localStorage.getItem('owge_debug'));
     const supportedLanguages = ['en', 'es'];
     const browserLang = this._translateService.getBrowserLang();
     const targetLang = supportedLanguages.some(current => current === browserLang) ? browserLang : 'en';
@@ -209,19 +216,27 @@ export class AppModule {
   }
 
   private _initWebsocket(): void {
-    let _oldSuscription: Subscription;
-    this._configurationService.observeParam('WEBSOCKET_ENDPOINT')
-      .pipe(filter(configurationEntry => !!configurationEntry))
+    this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
-        if (_oldSuscription) {
-          _oldSuscription.unsubscribe();
-          _oldSuscription = null;
-        }
-        this._websocketService.addEventHandler(new PingWebsocketApplicationHandler());
-        this._websocketService.initSocket(conf.value);
-        _oldSuscription = this._userStorage.currentToken
-          .pipe(filter(token => !!token))
-          .subscribe(token => this._websocketService.authenticate(token));
+        this._websocketService.addEventHandler(
+          new PingWebsocketApplicationHandler(),
+          this._injector.get(MissionService),
+          this._injector.get(UpgradeService),
+          this._injector.get(UnitService),
+          this._injector.get(UnitTypeService),
+          this._injector.get(PlanetService),
+          this._injector.get(ReportService),
+          this._injector.get(TimeSpecialService),
+          this._injector.get(UpgradeTypeService)
+        );
+        this._universeGameService.isInGame().subscribe(async isInGame => {
+          const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
+          if (isInGame) {
+            this._websocketService.initSocket(conf.value, token);
+          } else {
+            this._websocketService.close();
+          }
+        });
       });
   }
 }

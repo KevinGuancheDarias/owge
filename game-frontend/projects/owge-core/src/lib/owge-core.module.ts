@@ -37,7 +37,7 @@ import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe
+    DynamicImagePipe,
   ],
   providers: [
     ScreenDimensionsService,
@@ -51,7 +51,7 @@ import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe
+    DynamicImagePipe,
   ],
 })
 export class CoreModule {
@@ -63,7 +63,7 @@ export class CoreModule {
    * @param accountConfig
    * @returns
    */
-  public static forRoot(accountConfig: OwgeCoreConfig): ModuleWithProviders {
+  public static forRoot(accountConfig: OwgeCoreConfig): ModuleWithProviders<CoreModule> {
     return {
       ngModule: CoreModule,
       providers: [

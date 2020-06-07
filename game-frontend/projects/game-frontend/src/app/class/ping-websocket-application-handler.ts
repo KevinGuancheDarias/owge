@@ -1,4 +1,4 @@
-import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 export class PingWebsocketApplicationHandler extends AbstractWebsocketApplicationHandler {
 

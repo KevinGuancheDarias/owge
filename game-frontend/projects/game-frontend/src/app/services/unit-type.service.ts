@@ -1,56 +1,51 @@
 
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { camelCase, upperFirst } from 'lodash-es';
 
-import { ProgrammingError, Improvement, UserStorage, User, LoggerHelper } from '@owge/core';
-import { UniverseGameService, UnitType } from '@owge/universe';
+import { ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
+import {
+  UniverseGameService, Planet, UnitType, UnitTypeStore, UniverseCacheManagerService,
+  WsEventCacheService, MissionSupport
+} from '@owge/universe';
 
-import { MissionType } from '../shared/types/mission.type';
-import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { MissionSupport } from '../../../../owge-universe/src/lib/types/mission-support.type';
+import { MissionType } from '@owge/core';
 import { LoginSessionService } from '../login-session/login-session.service';
 
 @Injectable()
-export class UnitTypeService {
+export class UnitTypeService extends AbstractWebsocketApplicationHandler {
 
-  private _loadableBehaviorSubject: BehaviorSubject<UnitType[]> = new BehaviorSubject(null);
   private _oldCount = 0;
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _unitTypeStore: UnitTypeStore = new UnitTypeStore;
+  private _currentValue: UnitType[];
+  private _offlineUnitTypes: StorageOfflineHelper<UnitType[]>;
 
   public constructor(
     private _loginSessionService: LoginSessionService,
     private _universeGameService: UniverseGameService,
-    private _userStore: UserStorage<User>
+    private _wsEventCacheService: WsEventCacheService,
+    universeCacheManagerService: UniverseCacheManagerService
   ) {
-    this._loadTypes();
+    super();
+    this._eventsMap = {
+      unit_type_change: '_onUnitTypeChange'
+    };
+    this._offlineUnitTypes = universeCacheManagerService.getStore('unit_type.values');
+  }
+
+  public async workaroundSync(): Promise<void> {
+    this._onUnitTypeChange(await this._wsEventCacheService.findFromCacheOrRun('unit_type_change', this._offlineUnitTypes, async () =>
+      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unitType/').toPromise()
+    ));
+  }
+
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineUnitTypes.doIfNotNull(content => this._onUnitTypeChange(content));
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
-    return this._loadableBehaviorSubject.asObservable().pipe(filter(value => value !== null));
+    return this._unitTypeStore.userValues.asObservable();
   }
-
-  private _loadTypes(): void {
-    this._userStore.currentUserImprovements
-      .pipe(
-        filter(improvement => this._isQuantityChanged(improvement))
-      )
-      .subscribe(() => {
-        if (this._oldCount) {
-          this._log.debug('Max Quantity count changed, updating unit types');
-        }
-        this._universeGameService.getWithAuthorizationToUniverse('unitType/').subscribe(result => {
-          this._loadableBehaviorSubject.next(result.map(current => {
-            if (!current.userBuilt) {
-              current.userBuilt = 0;
-            }
-            return current;
-          }));
-        });
-      });
-  }
-
 
   /**
    * Returns the available number that the user can build of a given unit type
@@ -65,38 +60,6 @@ export class UnitTypeService {
     const type: UnitType = this._findTypeById(id);
     return type.computedMaxCount - type.userBuilt;
   }
-
-
-  /**
-   * Adds to userbuilt count of the specified type <br>
-   * <b>NOTICE:</b> Will trigger a new value to observers
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {number} id
-   * @param {number} count
-   * @throws {ProgrammingError} If type doesn't exists
-   * @memberof UnitTypeService
-   */
-  public addToType(id: number, count: number): void {
-    const type: UnitType = this._findTypeById(id);
-    type.userBuilt += count;
-    this._loadableBehaviorSubject.next(this._loadableBehaviorSubject.value);
-  }
-
-  /**
-   * Sustract to userbuilt count of the specified type <br>
-   * <b>NOTICE:</b> Will trigger a new value to observers
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {number} id
-   * @param {number} count
-   * @throws {ProgrammingError} If type doesn't exists
-   * @memberof UnitTypeService
-   */
-  public sustractToType(id: number, count: number): void {
-    this.addToType(id, -count);
-  }
-
 
   /**
    * Returns true, if user has enough avaiable for the given unit type
@@ -122,7 +85,7 @@ export class UnitTypeService {
    * @returns {boolean}
    * @memberof UnitTypeService
    */
-  public canDoMission(planet: PlanetPojo, unitTypes: UnitType[], missionType: MissionType): boolean {
+  public canDoMission(planet: Planet, unitTypes: UnitType[], missionType: MissionType): boolean {
     return unitTypes.every(current => {
       const status: MissionSupport = current[`can${upperFirst(camelCase(missionType))}`];
       switch (status) {
@@ -137,7 +100,6 @@ export class UnitTypeService {
       }
     });
   }
-
 
   /**
    * Converts an array of ids to an array of unitTypes
@@ -155,25 +117,23 @@ export class UnitTypeService {
     });
   }
 
+  protected _onUnitTypeChange(content: UnitType[]): void {
+    content.map(current => {
+      if (!current.userBuilt) {
+        current.userBuilt = 0;
+      }
+      return current;
+    });
+    this._currentValue = content;
+    this._unitTypeStore.userValues.next(content);
+    this._offlineUnitTypes.save(content);
+  }
+
   private _findTypeById(id: number): UnitType {
-    const retVal: UnitType = this._loadableBehaviorSubject.value.find(current => current.id === id);
+    const retVal: UnitType = this._currentValue.find(current => current.id === id);
     if (!retVal) {
       throw new ProgrammingError(`No UnitType with id ${id} was found`);
     }
     return retVal;
-  }
-
-  private _isQuantityChanged(newImprovement: Improvement): boolean {
-    if (newImprovement.unitTypesUpgrades) {
-      const newCount: number = newImprovement.unitTypesUpgrades
-        .filter(current => current.type === 'AMOUNT')
-        .map(current => current.value)
-        .reduce((sum, current) => sum + current, 0);
-      const retVal: boolean = newCount !== this._oldCount;
-      this._oldCount = newCount;
-      return retVal;
-    } else {
-      return false;
-    }
   }
 }

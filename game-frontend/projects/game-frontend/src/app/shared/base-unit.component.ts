@@ -1,10 +1,10 @@
-import { Input } from '@angular/core';
+import { Input, Directive } from '@angular/core';
 
-import { UnitType } from '@owge/universe';
+import { UnitType, Unit } from '@owge/universe';
 
 import { BaseComponent } from '../base/base.component';
-import { UnitPojo } from '../shared-pojo/unit.pojo';
 
+@Directive()
 export class BaseUnitComponent extends BaseComponent {
 
     /**
@@ -22,10 +22,9 @@ export class BaseUnitComponent extends BaseComponent {
      * Returns true if the unit is of the same type, of it's null
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {UnitPojo} unit
-     * @memberof BaseUnitComponent
+     * @param  unit
      */
-    public isOfUnitTypeOrNullFilter(unit: UnitPojo): boolean {
+    public isOfUnitTypeOrNullFilter(unit: Unit): boolean {
         return this.isOfTypeOrNullFilter(unit, 'unitType');
     }
 

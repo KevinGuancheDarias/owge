@@ -34,7 +34,7 @@ public class MissionSchedulerService {
 	private static final Logger LOG = Logger.getLogger(MissionSchedulerService.class);
 
 	@Autowired(required = false)
-	protected transient SchedulerFactoryBean schedulerFactory;
+	protected SchedulerFactoryBean schedulerFactory;
 
 	/**
 	 * Schedules a mission <br>

@@ -3,18 +3,22 @@ package com.kevinguanchedarias.owgejava.business;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.MissionDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -33,6 +37,10 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
+	public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
+
+	protected static final String UNIT_TYPE_CHANGE = "unit_type_change";
+
 	private static final long serialVersionUID = 3252246009672348672L;
 
 	private static final Integer MAX_ATTEMPS = 3;
@@ -77,13 +85,17 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	protected transient ExceptionUtilService exceptionUtilService;
 
 	@Autowired
+	@Lazy
+	protected UnitTypeBo unitTypeBo;
+
+	@Autowired
 	private MissionReportBo missionReportBo;
 
 	@Autowired
 	private transient ApplicationContext applicationContext;
 
 	@Autowired
-	private MissionSchedulerService missionSchedulerService;
+	private transient MissionSchedulerService missionSchedulerService;
 
 	public abstract String getGroupName();
 
@@ -125,7 +137,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		} else {
 			mission.setAttemps(mission.getAttemps() + 1);
 			mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
-			hanleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
+			handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
 			scheduleMission(mission);
 			save(mission);
 		}
@@ -173,6 +185,34 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 */
 	public Integer findUserMaxAllowedMissions(UserStorage user) {
 		return improvementBo.findUserImprovement(user).getMoreMisions().intValue() + 1;
+	}
+
+	/**
+	 * Returns all the running missions for the specified user
+	 *
+	 * @param userId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
+		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
+				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
+	}
+
+	@Transactional
+	public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
+		List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
+		return missionRepository.findByTargetPlanetInAndResolvedFalseAndUserNot(myPlanets, user).stream()
+				.map(current -> {
+					UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
+					retVal.nullifyInvolvedUnitsPlanets();
+					if (!planetBo.isExplored(user, current.getSourcePlanet())) {
+						retVal.setSourcePlanet(null);
+						retVal.setUser(null);
+					}
+					return retVal;
+				}).collect(Collectors.toList());
 	}
 
 	/**
@@ -270,24 +310,30 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
 		MissionReport missionReport = new MissionReport("{}", mission);
 		missionReport.setUser(mission.getUser());
 		missionReport = missionReportBo.save(missionReport);
 		missionReport.setReportDate(new Date());
 		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		missionReport.setIsEnemy(false);
 		mission.setReport(missionReport);
 	}
 
-	protected void hanleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, List<UserStorage> users) {
-		users.forEach(currentUser -> {
-			MissionReport missionReport = new MissionReport("{}", mission);
-			missionReport.setUser(currentUser);
-			missionReport = missionReportBo.save(missionReport);
-			missionReport.setReportDate(new Date());
-			missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-			mission.setReport(missionReport);
-		});
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
+			List<UserStorage> users) {
+		users.forEach(currentUser -> handleMissionReportSave(mission, builder, isEnemy, currentUser));
+	}
+
+	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
+			UserStorage user) {
+		MissionReport missionReport = new MissionReport("{}", mission);
+		missionReport.setUser(user);
+		missionReport = missionReportBo.save(missionReport);
+		missionReport.setReportDate(new Date());
+		missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
+		missionReport.setIsEnemy(isEnemy);
+		mission.setReport(missionReport);
 	}
 
 	protected void checkCanDoMisison(UserStorage user) {

@@ -1,15 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { UserStorage, User } from '@owge/core';
+import { UserStorage, User, ObservableSubscriptionsHelper } from '@owge/core';
 
 import { BaseComponent } from '../base/base.component';
-import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionService } from '../services/mission.service';
-import { UnitRunningMission } from '../shared/types/unit-running-mission.type';
 import { UpgradeService } from '../service/upgrade.service';
-import { RunningUpgrade } from '../shared-pojo/running-upgrade.pojo';
-import { filter, take } from 'rxjs/operators';
-import { ObtainedUpgradePojo } from '../shared-pojo/obtained-upgrade.pojo';
+import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade } from '@owge/universe';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-game-index',
@@ -21,10 +18,10 @@ import { ObtainedUpgradePojo } from '../shared-pojo/obtained-upgrade.pojo';
 })
 export class GameIndexComponent extends BaseComponent implements OnInit {
 
-  public myUnitRunningMissions: AnyRunningMission[];
+  public myUnitRunningMissions: UnitRunningMission[];
   public enemyRunningMissions: UnitRunningMission[];
-  public runningUpgrade: RunningUpgrade;
-  public relatedObtainedUpgrade: ObtainedUpgradePojo;
+  public runningUpgrade: UpgradeRunningMission;
+  public relatedObtainedUpgrade: ObtainedUpgrade;
 
   public constructor(
     private _missionService: MissionService,
@@ -36,14 +33,17 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
 
   public ngOnInit() {
     this.requireUser();
-    this._upgradeService.backendRunningUpgradeCheck();
-    this._upgradeService.isUpgrading
-      .pipe(filter(result => !!result))
+    this._subscriptions.add(this._upgradeService.findRunningLevelUp()
       .subscribe(result => {
         this.runningUpgrade = result;
-        this._upgradeService.findOneObtained(result.upgrade.id)
-          .pipe(take(1)).subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
-      });
+        if (result) {
+          this._upgradeService.findOneObtained(result.upgrade.id)
+            .pipe(take(1)).subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
+        } else {
+          this.relatedObtainedUpgrade = null;
+        }
+      })
+    );
     this._userStore.currentUser
       .subscribe(async () => {
         this.findMyMissions();
@@ -52,12 +52,14 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   }
 
   public findMyMissions(): void {
-    this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
+    this._subscriptions.add(this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
       this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
-    });
+    }));
   }
 
-  public async findEnemyMissions(): Promise<void> {
-    this.enemyRunningMissions = await this._missionService.findEnemyRunningMissions().toPromise();
+  public findEnemyMissions(): void {
+    this._subscriptions.add(this._missionService.findEnemyRunningMissions().subscribe(
+      result => this.enemyRunningMissions = result
+    ));
   }
 }

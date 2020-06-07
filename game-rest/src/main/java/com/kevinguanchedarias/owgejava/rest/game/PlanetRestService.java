@@ -1,8 +1,11 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -22,15 +25,14 @@ public class PlanetRestService {
 	@Autowired
 	private UserStorageBo userStorageBo;
 
-	@RequestMapping(value = "findMyPlanets", method = RequestMethod.GET)
-	public Object findMyPlanets() {
-		PlanetDto planetDto = new PlanetDto();
-		return planetDto.dtoFromEntity(PlanetDto.class, planetBo.findMyPlanets());
+	@GetMapping("findMyPlanets")
+	public List<PlanetDto> findMyPlanets() {
+		return planetBo.toDto(planetBo.findMyPlanets());
 	}
 
-	@RequestMapping(value = "leave", method = RequestMethod.POST)
+	@PostMapping("leave")
 	public String leave(@RequestParam("planetId") Long planetId) {
 		planetBo.doLeavePlanet(userStorageBo.findLoggedIn().getId(), planetId);
-		return "OK";
+		return "\"OK\"";
 	}
 }

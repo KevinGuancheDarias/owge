@@ -1,31 +1,45 @@
-import { QueryList, ElementRef } from '@angular/core';
+import { QueryList, ElementRef, OnDestroy, Directive } from '@angular/core';
 
-import { LoadingService, MEDIA_ROUTES, LoggerHelper } from '@owge/core';
+import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper, User, UserStorage, SessionService } from '@owge/core';
 
-import { AutoUpdatedResources } from '../class/auto-updated-resources';
-import { ResourceManagerService } from './../service/resource-manager.service';
-import { UserPojo } from '../shared-pojo/user.pojo';
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
+import { ResourceManagerService, AutoUpdatedResources, UniverseGameService } from '@owge/universe';
 
-export class BaseComponent {
+@Directive()
+export class BaseComponent<U extends User = User> implements OnDestroy {
 
   public commonDateFormat = 'yyyy-MM-dd HH:mm:ss';
   protected loginSessionService: LoginSessionService;
   protected resources: AutoUpdatedResources;
+  protected _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
+
   private _loadingService: LoadingService;
 
-  public get userData(): UserPojo {
+  public get userData(): U {
     return this._userData;
   }
 
-  private _userData: UserPojo;
+  private _userData: U;
   private _bcLog: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _baseUniverseGameService: UniverseGameService;
 
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
     this._loadingService = ServiceLocator.injector.get(LoadingService);
+    this._baseUniverseGameService = ServiceLocator.injector.get(UniverseGameService);
+  }
+
+
+  /**
+   * Ensures subscriptions are removed
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   */
+  public ngOnDestroy(): void {
+    this._subscriptions.unsubscribeAll();
   }
 
   /**
@@ -80,7 +94,7 @@ export class BaseComponent {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param {...Promise<any>[]} promises
-   * @returns {Promise<any>}
+   * @returns If one single promise is executed, will return its value
    * @memberof BaseComponent
    */
   protected _doWithLoading(...promises: Promise<any>[]): Promise<any> {
@@ -106,12 +120,17 @@ export class BaseComponent {
   }
 
   /**
-   * Will wait for user to be available, and fills the protected userData property
+   *  fills the protected userData property
    *
    * @author Kevin Guanche Darias
    */
-  protected requireUser() {
-    this.loginSessionService.userData.subscribe((userData) => this._userData = userData);
+  protected requireUser(onloadOrReload?: () => void): void {
+    this._baseUniverseGameService.findLoggedInUserData<U>().subscribe(user => {
+      this._userData = user;
+      if (typeof onloadOrReload === 'function') {
+        onloadOrReload();
+      }
+    });
   }
 
   /**

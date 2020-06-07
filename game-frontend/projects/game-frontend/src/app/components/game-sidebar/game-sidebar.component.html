@@ -9,12 +9,18 @@
                       <a class="owge-btn btn-block" (click)="selectPlanet(planet)">Select</a>
                 </div>
                 <div class="card-block">
-                      <a *ngIf="!planet.home" class="owge-btn btn-block" (click)="leavePlanet(planet)">Leave</a>
+                      <a owgeUniverseOnClickIfWsConnected *ngIf="!planet.home" class="owge-btn btn-block" (clickAndConnected)="leavePlanet(planet)">Leave</a>
                 </div>
           </div>
     </div>
 </owge-core-modal>
 <owge-widgets-sidebar [sidebarRoutes]="menuRoutes">
+      <ng-template owgeCoreContent select="extra-button-content" let-route>
+            <ng-container *ngIf="route.path === '/reports'">
+                  <a *ngIf="userUnreadReports" class="owge-sidebar-menu-btn-overlay-top-left" role="button" routerLink="{{ route.path }}">{{ userUnreadReports }} </a>
+                  <a *ngIf="enemyUnreadReports" class="owge-sidebar-menu-btn-overlay-bottom-right" style="color: #F33" role="button" routerLink="{{ route.path }}">{{ enemyUnreadReports }} </a>
+            </ng-container>
+      </ng-template>
       <div class="body">
             <div class="selected-planet">
                   <app-display-single-planet [planet]="selectedPlanet">

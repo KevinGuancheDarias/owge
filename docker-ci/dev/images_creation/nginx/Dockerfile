@@ -9,6 +9,8 @@ ENV CONF_PATH /tmp/config
 ENV WWW_PATH /tmp/target
 ENV TERM xterm
 
+RUN mkdir /var/www;
+
 COPY config $CONF_PATH
 COPY target $WWW_PATH
 COPY scripts/docker-entrypoint.sh  /

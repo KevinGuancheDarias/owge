@@ -1,21 +1,22 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { first, switchMap, map, take } from 'rxjs/operators';
+import { first, switchMap, map, take, combineLatest } from 'rxjs/operators';
 
 import {
   CoreHttpService,
   HttpOptions,
   User,
-  SessionStore,
   validContext,
   validNonDataMethod,
   validWriteMethod,
-  LoggerHelper,
   UserStorage,
-  Improvement
+  Improvement,
+  StorageOfflineHelper,
+  SessionService
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
+import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -26,19 +27,45 @@ import { Universe } from '../types/universe.type';
  * @export
  */
 @Injectable()
-export class UniverseGameService {
+export class UniverseGameService extends AbstractWebsocketApplicationHandler {
+  private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
 
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _offlineUserStore: StorageOfflineHelper<User> = new StorageOfflineHelper('universe_game.user');
 
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
-    private _sessionStore: SessionStore,
+    private _sessionService: SessionService,
     private _userStore: UserStorage<User>
-  ) { }
+  ) {
+    super();
+    this._eventsMap = {
+      user_data_change: '_onUserDataChange',
+      user_improvements_change: '_onUserImprovementsChange'
+    };
+  }
+
+  public async workaroundSync(): Promise<void> {
+    const token = await this._userStore.currentToken.pipe(take(1)).toPromise();
+    if (token) {
+      this._onUserDataChange(
+        await this.requestWithAutorizationToContext('game', 'get', 'user/findData').toPromise()
+      );
+    }
+  }
 
   /**
-   * Finds the logged in current user
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async workaroundInitialOffline(): Promise<void> {
+    this._offlineUserStore.doIfNotNull(user => this._userStore.currentUser.next(this._handleUserLoad(user)));
+  }
+
+  /**
+   * Finds the logged in current user data
    * <b>NOTICE:</b>, Will set PlanetStore.selectedPlanet to user home planet
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -47,32 +74,28 @@ export class UniverseGameService {
    * @returns
    */
   public findLoggedInUserData<T extends User>(): Observable<T> {
-    return this.getWithAuthorizationToUniverse<T>('user/findData').pipe(
-      map(current => {
-        if (!current.consumedEnergy) {
-          current.consumedEnergy = 0;
-        }
-        this._workaroundFactionFix(current);
-        this._userStore.currentUserImprovements.next(current.improvements);
-        this._sessionStore.next('selectedPlanet', (<any>current).homePlanetDto);
-        return current;
-      })
-    );
+    return <any>this._userStore.currentUser.asObservable();
   }
 
   /**
-   * Invokes a reloading of the improvements in the UserStorage
+   * If universe is selected and player token is valid
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.8.0
-   * @returns The loaded improvement (may not even be used... but it's nice to return something :P)
+   * @since 0.9.0
+   * @returns
    */
-  public async reloadImprovement(): Promise<Improvement> {
-    this._log.debug('Reloading improvements as requested');
-    const improvement: Improvement = await this._getDeleteWithAuthorizationToContext<Improvement>('game', 'get', 'user/improvements')
-      .pipe(take(1)).toPromise();
-    this._userStore.currentUserImprovements.next(improvement);
-    return improvement;
+  public isInGame(): Observable<boolean> {
+    return this._universeStorage.currentUniverse.pipe(
+      combineLatest(this._userStore.currentToken, (universe, token) =>
+        !!universe && !!token
+      )
+    );
+  }
+
+  public logout(): void {
+    this._sessionService.logout();
+    sessionStorage.removeItem(UniverseGameService._LOCAL_STORAGE_SELECTED_UNIVERSE);
+    this._universeStorage.currentUniverse.next(null);
   }
 
   /**
@@ -191,6 +214,15 @@ export class UniverseGameService {
     );
   }
 
+  protected _onUserDataChange(user: User) {
+    this._userStore.currentUser.next(this._handleUserLoad(user));
+    this._offlineUserStore.save(user);
+  }
+
+  protected _onUserImprovementsChange(content: Improvement): void {
+    this._userStore.currentUserImprovements.next(content);
+  }
+
   /**
    *
    *
@@ -256,5 +288,14 @@ export class UniverseGameService {
     if (backendUser.factionDto && !backendUser.faction) {
       backendUser.faction = backendUser.factionDto;
     }
+  }
+
+  private _handleUserLoad(user: User): User {
+    if (!user.consumedEnergy) {
+      user.consumedEnergy = 0;
+    }
+    this._workaroundFactionFix(user);
+    this._onUserImprovementsChange(user.improvements);
+    return user;
   }
 }

@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,23 +32,15 @@ public class UpgradeRestService {
 	@Autowired
 	private MissionBo missionBo;
 
-	@RequestMapping(value = "findObtained", method = RequestMethod.GET)
-	public Object findObtained() {
+	@GetMapping("findObtained")
+	public List<ObtainedUpgradeDto> findObtained() {
 		List<ObtainedUpgrade> obtainedUpgradeList = obtainedUpgradeBo.findByUser(userStorageBo.findLoggedIn().getId());
-		List<ObtainedUpgradeDto> obtainedUpgradeDtoList = new ArrayList<>();
-
-		for (ObtainedUpgrade current : obtainedUpgradeList) {
-			ObtainedUpgradeDto currentDto = new ObtainedUpgradeDto();
-			currentDto.dtoFromEntity(current);
-			obtainedUpgradeDtoList.add(currentDto);
-		}
-
-		return obtainedUpgradeDtoList;
+		return obtainedUpgradeBo.toDto(obtainedUpgradeList);
 	}
 
 	/**
 	 * Finds one single obtained unit by user and upgrade id
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 * @since 0.8.0
@@ -61,15 +52,9 @@ public class UpgradeRestService {
 				.toDto(obtainedUpgradeBo.findByUserAndUpgrade(userStorageBo.findLoggedIn().getId(), id));
 	}
 
-	@RequestMapping(value = "findRunningUpgrade", method = RequestMethod.GET)
-	public Object findRunningUpgrade() {
-		RunningUpgradeDto retVal = missionBo.findRunningLevelUpMission(userStorageBo.findLoggedIn().getId());
-
-		if (retVal == null) {
-			return "";
-		}
-
-		return retVal;
+	@GetMapping("findRunningUpgrade")
+	public RunningUpgradeDto findRunningUpgrade() {
+		return missionBo.findRunningLevelUpMission(userStorageBo.findLoggedIn().getId());
 	}
 
 	@GetMapping("registerLevelUp")

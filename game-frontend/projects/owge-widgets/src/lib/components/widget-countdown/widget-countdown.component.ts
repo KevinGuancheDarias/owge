@@ -73,6 +73,7 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.intervalId) {
       this.intervalId = window.setInterval(() => this._counterRun(), 1000);
     }
+    this._counterRun();
   }
 
   /**

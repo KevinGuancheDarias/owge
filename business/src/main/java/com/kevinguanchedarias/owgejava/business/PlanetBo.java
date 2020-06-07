@@ -22,6 +22,8 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 
 @Component
 public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
+	private static final String PLANET_OWNED_CHANGE = "planet_owned_change";
+
 	private static final long serialVersionUID = 3000986169771610777L;
 
 	@Autowired
@@ -42,6 +44,9 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Autowired
 	private MissionBo missionBo;
 
+	@Autowired
+	private SocketIoService socketIoService;
+
 	@PersistenceContext
 	private transient EntityManager entityManager;
 
@@ -52,7 +57,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -93,7 +98,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param user the owner of the planets
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -104,7 +109,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	/**
 	 * Finds all the planets that has owner in the specified galaxy id
-	 * 
+	 *
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 * @param galaxyId
@@ -116,7 +121,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	/**
 	 * Find the planets for logged in user
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
@@ -129,8 +134,8 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 * @param specialLocationId
@@ -198,6 +203,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		exploredPlanet.setUser(user);
 		exploredPlanet.setPlanet(targetPlanet);
 		exploredPlanetRepository.save(exploredPlanet);
+		socketIoService.sendMessage(user, "planet_explored_event", () -> toDto(findById(targetPlanet.getId())));
 	}
 
 	public void myDefineAsExplored(Planet targetPlanet) {
@@ -206,7 +212,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	/**
 	 * Checks if the user, has already the max planets he/she can have
-	 * 
+	 *
 	 * @param user
 	 * @return True, if the user has already the max planets he/she can have
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -230,6 +236,21 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		Planet planet = findById(planetId);
 		planet.setOwner(null);
 		save(planet);
+		emitPlanetOwnedChange(invokerId);
+	}
+
+	/**
+	 * Emits the owned planet for the given target user
+	 *
+	 * @param user
+	 */
+	public void emitPlanetOwnedChange(UserStorage user) {
+		emitPlanetOwnedChange(user.getId());
+	}
+
+	public void emitPlanetOwnedChange(Integer userId) {
+		socketIoService.sendMessage(userId, PLANET_OWNED_CHANGE,
+				() -> toDto(findPlanetsByUser(userStorageBo.findById(userId))));
 	}
 
 	public boolean canLeavePlanet(UserStorage invoker, Planet planet) {
@@ -239,7 +260,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	public boolean canLeavePlanet(Integer invokerId, Long planetId) {
 		return !isHomePlanet(planetId) && isOfUserProperty(invokerId, planetId)
 				&& !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
-				&& missionBo.findRunningUnitBuild(invokerId, Double.valueOf(planetId)) == null;
+				&& missionBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
 	}
 
 }

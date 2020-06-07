@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.rest.game;
 
@@ -20,12 +20,11 @@ import com.kevinguanchedarias.owgejava.business.TimeSpecialBo;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.rest.trait.WithReadRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
 
 /**
- * 
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -41,6 +40,7 @@ public class TimeSpecialRestService
 
 	@Autowired
 	private ActiveTimeSpecialBo activeTimeSpecialBo;
+
 	@Autowired
 	private AutowireCapableBeanFactory beanFactory;
 
@@ -51,7 +51,7 @@ public class TimeSpecialRestService
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceNoOpEventsTrait#
 	 * beforeRequestEnd(java.lang.Object, java.lang.Object)
@@ -60,19 +60,6 @@ public class TimeSpecialRestService
 	public Optional<TimeSpecialDto> beforeRequestEnd(TimeSpecialDto dto, TimeSpecial savedEntity) {
 		dto = alterDto(dto);
 		return WithReadRestServiceTrait.super.beforeRequestEnd(dto, savedEntity);
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait#
-	 * alterDto(com.kevinguanchedarias.owgejava.dto.DtoFromEntity)
-	 */
-	@Override
-	public TimeSpecialDto alterDto(TimeSpecialDto input) {
-		input.setActiveTimeSpecialDto(
-				activeTimeSpecialBo.toDto(activeTimeSpecialBo.findOneByTimeSpecial(input.getId())));
-		return input;
 	}
 
 	@Override
@@ -84,14 +71,4 @@ public class TimeSpecialRestService
 				.withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait#
-	 * getObject()
-	 */
-	@Override
-	public ObjectEnum getObject() {
-		return ObjectEnum.TIME_SPECIAL;
-	}
 }

@@ -4,17 +4,17 @@ import { Unit } from '@owge/universe';
 /**
  * Represents an obtained unit
  *
+ * @deprecated As Of 0.9.0 use the version in @owge/universe
  * @todo Change mission by mission pojo
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
- * @class ObtainedUnit
  */
-export class ObtainedUnit {
-    public id: number;
-    public unit: Unit;
-    public count: number;
-    public sourcePlanet?: PlanetPojo;
-    public targetPlanet?: PlanetPojo;
-    public mission?: any;
-    public expiration?: Date;
+export interface ObtainedUnit {
+    id: number;
+    unit: Unit;
+    count: number;
+    sourcePlanet?: PlanetPojo;
+    targetPlanet?: PlanetPojo;
+    mission?: any;
+    expiration?: Date;
 }

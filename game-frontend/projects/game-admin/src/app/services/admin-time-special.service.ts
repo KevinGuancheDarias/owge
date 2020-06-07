@@ -13,7 +13,6 @@ import {
     CrudConfig
 } from '@owge/universe';
 import { DisplayService } from '@owge/widgets';
-import { StoreAwareService } from 'projects/owge-universe/src/lib/interfaces/store-aware-service.interface';
 
 export interface AdminTimeSpecialService
     extends AbstractCrudService<TimeSpecial, number>, WithRequirementsCrudMixin<TimeSpecial, number>, WithImprovementsCrudMixin<number> { }

@@ -1,4 +1,9 @@
 @import './partials/colors';
+@import './modules/owge-widgets/widget-sidebar.scss';
+
+.app-container {
+    margin-bottom: 30px;
+}
 
 input {
     padding: 5px 10px;
@@ -66,4 +71,14 @@ select {
 }
 .owge-card-list {
     flex-wrap: wrap;
+}
+
+.disabled-for-offline {
+    background-color: lighten($color: $bgColorAlpha, $amount: 100);
+    background-image: none;
+    cursor: not-allowed;
+
+    &.selected-menu-link {
+        color: white;
+    }
 }

@@ -10,7 +10,8 @@ import { PlanetPojo } from '../../shared-pojo/planet.pojo';
  * @implements {PipeTransform}
  */
 @Pipe({
-  name: 'planetDisplayName'
+  name: 'planetDisplayName',
+  pure: false
 })
 export class PlanetDisplayNamePipe implements PipeTransform {
 

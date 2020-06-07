@@ -3,7 +3,6 @@ import { Component, Input, OnChanges, OnInit, Output, EventEmitter } from '@angu
 import { UnitType } from '@owge/universe';
 
 import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
-import { UnitPojo } from '../../shared-pojo/unit.pojo';
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
 import { UnitTypeService } from '../../services/unit-type.service';
 
@@ -61,10 +60,6 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     if (this.obtainedUnits) {
       this.selectedCounts = this.obtainedUnits.map(() => null);
     }
-  }
-
-  public findUnitImageUrl(unit: UnitPojo): string {
-    return UnitPojo.findImagePath(unit);
   }
 
   public async selectionChanged(): Promise<void> {

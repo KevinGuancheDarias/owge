@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
 import { SpecialLocation } from '@owge/universe';
-import { AdminGalaxyService } from '../../services/admin-galaxy.service';
-import { Galaxy } from 'projects/game-frontend/src/app/shared/pojos/galaxy.pojo';
-import { TranslateService } from '@ngx-translate/core';
-
+import { AdminGalaxyService } from '../../services/admin-galaxy.service'; import { TranslateService } from '@ngx-translate/core';
+import { Galaxy } from '@owge/galaxy';
 
 /**
  *

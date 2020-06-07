@@ -1,8 +1,8 @@
 <ng-container *ngIf="userData && unit && unitTypes">
-  <owge-widgets-display-list-item (timeOver)="onBuildDone(building.missionData.unit)" [itemName]="unit.name" [itemDescription]="unit.description" 
+  <owge-widgets-display-list-item [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="unit.imageUrl" [hideDesktopSections]="[0,0, isCompactView]"
-    [hasToDisplayCountdown]="building && building.missionData.unit.id === unit.id && building.missionData.pendingMillis"
-    [countdownDate]="building && building.missionData.browserComputedTerminationDate"
+    [hasToDisplayCountdown]="building && building.unit.id === unit.id && building.pendingMillis"
+    [countdownDate]="building && building.browserComputedTerminationDate"
   >
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
@@ -25,16 +25,16 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a class="btn btn-block" *ngIf="building && building.missionData.unit.id === unit.id" role="button" (click)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
-        <a *ngIf="building && building.missionData.unit.id !== unit.id" class="btn btn-block" role="button"
-          (click)="otherUnitAlreadyRunning()">---</a>
+        <a owgeUniverseOnClickIfWsConnected class="btn btn-block" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
+          (clickAndConnected)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
           <input type="number" id="count" name="count" [(ngModel)]="count" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.BUILD.COUNT' | translate" min="0" />
-          <a *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block" role="button"
-            (click)="buildSelectedUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.BTN_BUILD' | translate }}</a>
-          <a *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (click)="count = 1">Error (report it!)</a>
-          <a *ngIf="!count" class="btn btn-block" role="button" (click)="count = 1">{{ 'APP.UNITS.DISPLAY_SINGLE.MIN_ONE' | translate }}</a>
-          <a *ngIf="!canBuild()" class="btn btn-block" role="button" (click)="noResources()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.NO_RESOURCES' | translate }}</a>
+          <a owgeUniverseOnClickIfWsConnected *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block" role="button"
+            (clickAndConnected)="buildSelectedUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.BTN_BUILD' | translate }}</a>
+          <a owgeUniverseOnClickIfWsConnected *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (clickAndConnected)="count = 1">Error (report it!)</a>
+          <a owgeUniverseOnClickIfWsConnected *ngIf="!count" class="btn btn-block" role="button" (clickAndConnected)="count = 1">{{ 'APP.UNITS.DISPLAY_SINGLE.MIN_ONE' | translate }}</a>
+          <a owgeUniverseOnClickIfWsConnected *ngIf="!canBuild()" class="btn btn-block" role="button" (clickAndConnected)="noResources()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.NO_RESOURCES' | translate }}</a>
         </ng-container>
       </ng-container>
     
@@ -47,7 +47,7 @@
         </ng-template>
         <input class="number-to-delete" type="number" [(ngModel)]="numberToDelete" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate" [min]="0"
           [max]="inPlanetCount" />
-        <a class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (click)="deleteUnits()">{{ 'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (clickAndConnected)="deleteUnits()">{{ 'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate }}</a>
       </ng-container>
     </ng-template>
 

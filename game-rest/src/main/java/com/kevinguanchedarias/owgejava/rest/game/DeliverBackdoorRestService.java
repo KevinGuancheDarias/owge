@@ -22,7 +22,7 @@ public class DeliverBackdoorRestService {
 	public boolean pingUser(@RequestParam("targetUser") Integer targetUserId) {
 		UserStorage targetUser = new UserStorage();
 		targetUser.setId(targetUserId);
-		socketIoService.sendMessage(targetUser, "ping", "Hello World");
+		socketIoService.sendMessage(targetUser, "ping", () -> "Hello World");
 		return true;
 	}
 }

@@ -9,6 +9,7 @@ services:
       - ${OWGE_FRONTEND_ROOT}:/app
     environment: 
       - OWGE_BACKEND_SERVER
+      - OWGE_WS_SERVER
       - OWGE_FRONTEND_SERVER
       - OWGE_ADMIN_FRONTEND_SERVER
       - OWGE_ACCOUNT_SERVER

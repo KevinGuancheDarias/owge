@@ -13,5 +13,12 @@ export interface ActiveTimeSpecialType {
     activationDate: number;
     expiringDate: number;
     readyDate: number;
+
+    /**
+     * @deprecated As of 0.9.0 the prop name should be pendingMillis
+     */
     pendingTime: number;
+
+    pendingMillis: number;
+    browserComputedTerminationDate: Date;
 }

@@ -41,7 +41,7 @@ import { OwgeWidgetsModule } from '@owge/widgets';
   ]
 })
 export class AllianceModule {
-  public static forRoot(): ModuleWithProviders {
+  public static forRoot(): ModuleWithProviders<AllianceModule> {
     return {
       ngModule: AllianceModule,
       providers: [AllianceStorage, AllianceService]

@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { CoreModule } from '@owge/core';
 
 import { ConfigurationService } from './services/configuration.service';
-import { ConfigurationInitializer } from './initializers/configuration.initializer';
 import { ConfigurationStore } from './store/configuration.store';
 
 /**
@@ -16,16 +15,16 @@ import { ConfigurationStore } from './store/configuration.store';
  * @class ConfigurationModule
  */
 @NgModule({
-    imports: [
-      CommonModule,
-      CoreModule,
-    ]
-  })
+  imports: [
+    CommonModule,
+    CoreModule,
+  ]
+})
 export class ConfigurationModule {
-    public static forRoot(): ModuleWithProviders {
-        return {
-          ngModule: ConfigurationModule,
-          providers: [ConfigurationStore, ConfigurationService, ConfigurationInitializer]
-        };
-    }
+  public static forRoot(): ModuleWithProviders<ConfigurationModule> {
+    return {
+      ngModule: ConfigurationModule,
+      providers: [ConfigurationStore, ConfigurationService]
+    };
+  }
 }

@@ -9,7 +9,6 @@ import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { ResourceManagerService as OldResourceManagerService } from './../service/resource-manager.service';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -32,20 +31,9 @@ export class LoginSessionService implements CanActivate {
 
   private alreadyNotified = false;
 
-
   /**
-   * Represents the user data, for logged in user, loaded after method invocation!
-   *
-   * @deprecated As of 0.7 it's better to use UserModule/UserStorage.currentUser instead
-   * @readonly
-   * @type {BehaviorSubject<UserPojo>}
-   * @memberof LoginSessionService
+   * @deprecated Since 0.9.0 it's better to use the UniverseGameService.isInGame() method
    */
-  public get userData(): BehaviorSubject<UserPojo> {
-    return this._userData;
-  }
-  private _userData: BehaviorSubject<UserPojo> = new BehaviorSubject(null);
-
   public get isInGame(): Observable<boolean> {
     return this._isInGame.asObservable();
   }
@@ -59,12 +47,9 @@ export class LoginSessionService implements CanActivate {
   private _lgsLog: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   constructor(private _injector: Injector,
-    private _oldResourceManagerService: OldResourceManagerService,
-    private _resourceManagerService: ResourceManagerService,
     private _userStorage: UserStorage<User>,
     private _universeStorage: UniverseStorage,
     private _universeGameService: UniverseGameService,
-    private _missionService: MissionService
   ) {
     this._workaroundUserStorage();
     this._workaroundUniverseStorage();
@@ -313,26 +298,6 @@ export class LoginSessionService implements CanActivate {
    */
   private _notifyGameFrontendCore() {
     this._isInGame.next(true);
-    this._findUserData();
-  }
-
-  /**
-   * Will obtain the logged in user data <br />
-   * Such as resources, planets, etc!<br />
-   * IMPORTANT: It notifies the AppComponent
-   *
-   * @author Kevin Guanche Darias
-   */
-  private _findUserData(): void {
-    this._universeGameService.findLoggedInUserData<any>().subscribe(
-      userData => {
-        this._findSelectedPlanet.next(userData.homePlanetDto);
-        this._userData.next(userData);
-        this._oldResourceManagerService.startHandling(userData);
-        this._resourceManagerService.startHandling(userData);
-      },
-      error => alert(error)
-    );
   }
 
   private _clearSessionData() {
@@ -349,14 +314,7 @@ export class LoginSessionService implements CanActivate {
     if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
       this._notifyGameFrontendCore();
       this.alreadyNotified = true;
-    } else if (!this._isLoginRoute(loadingRoute)) {
-      this._workaroundMissionsCount();
     }
-  }
-
-  private _workaroundMissionsCount(): void {
-    this._lgsLog.todo(['Replace workaroundMissionsCount for a websocket "Adapter" that listens for mission count changes']);
-    this._missionService.loadCount();
   }
 
   /**
@@ -368,7 +326,6 @@ export class LoginSessionService implements CanActivate {
    * @memberof LoginSessionService
    */
   private _workaroundUserStorage(): void {
-    this._userData.pipe(skip(1)).subscribe(value => this._userStorage.currentUser.next(<any>value));
     const currentToken: string = this.getRawToken();
     if (currentToken) {
       this._userStorage.currentToken.next(currentToken);

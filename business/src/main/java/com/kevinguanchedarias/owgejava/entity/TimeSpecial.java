@@ -13,7 +13,7 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 /**
- * 
+ *
  *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -39,7 +39,7 @@ public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements 
 
 	/**
 	 * Duration <b>in seconds</b> of the time special
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @return the duration
 	 */
@@ -49,7 +49,7 @@ public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements 
 
 	/**
 	 * Duration <b>in seconds</b> of the time special
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @param duration the duration to set
 	 */
@@ -59,7 +59,7 @@ public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements 
 
 	/**
 	 * Time to wait <b>in seconds</b> to be able to use the time special again
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @return the rechargeTime
 	 */
@@ -69,7 +69,7 @@ public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements 
 
 	/**
 	 * Time to wait <b>in seconds</b> to be able to use the time special again
-	 * 
+	 *
 	 * @since 0.8.0
 	 * @param rechargeTime the rechargeTime to set
 	 */

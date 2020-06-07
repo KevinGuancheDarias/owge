@@ -16,7 +16,7 @@ export class AllianceOfUserComponent implements OnInit {
 
   @ViewChild(ModalComponent, { static: true }) public modal: ModalComponent;
 
-  @ViewChild('form', { static: false }) public form: NgForm;
+  @ViewChild('form') public form: NgForm;
 
   public userAlliance: Alliance;
 

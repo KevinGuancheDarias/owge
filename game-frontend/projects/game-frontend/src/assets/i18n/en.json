@@ -2,6 +2,9 @@
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "You have exceeded your missions limit",
     "I18N_ERR_DEPLOY_ITSELF": "Target planet can't be origin planet",
     "APP": {
+        "CONNECTED": "Connected",
+        "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",
+        "NOT_CONNECTED_CLICK_ERROR": "You don't have Internet, or server is down, you can't run this action",
         "LOGIN": {
             "PLACEHOLDER_EMAIL": "Email or username",
             "PLACEHOLDER_PASS": "Password",
@@ -92,6 +95,7 @@
         },
         "REPORTS": {
             "NO_REPORTS": "No mission reports are available for now",
+            "SHOW_MORE": "Download older reports",
             "SOURCE_PLANET": "Source planet",
             "SENT_UNITS": "Sent units",
             "RESULTS": {

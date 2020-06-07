@@ -1,4 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
+import { UnitRunningMission } from '../types/unit-running-mission.type';
 
 /**
  * Stores missions information
@@ -8,6 +9,8 @@ import { Subject, ReplaySubject } from 'rxjs';
  * @export
  */
 export class MissionStore {
-    public missionsCount: Subject<number> = new ReplaySubject();
-    public maxMissions: Subject<number> = new ReplaySubject();
+    public missionsCount: Subject<number> = new ReplaySubject(1);
+    public maxMissions: Subject<number> = new ReplaySubject(1);
+    public myUnitMissions: Subject<UnitRunningMission[]> = new ReplaySubject(1);
+    public enemyUnitMissions: Subject<UnitRunningMission[]> = new ReplaySubject(1);
 }

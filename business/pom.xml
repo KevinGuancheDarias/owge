@@ -45,7 +45,14 @@
 			<artifactId>socket.io-client</artifactId>
 			<version>${socketio.version}</version>
 		</dependency>
-
+		
+		<!-- https://mvnrepository.com/artifact/com.corundumstudio.socketio/netty-socketio -->
+		<dependency>
+		    <groupId>com.corundumstudio.socketio</groupId>
+		    <artifactId>netty-socketio</artifactId>
+		    <version>1.7.18</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-json-org</artifactId>
@@ -104,30 +111,17 @@
 		</dependency>
 		<!-- END timing features -->
 
-		<!-- Quartz support -->
-		<!-- <dependency>
-			<groupId>com.google.code.maven-play-plugin.com.mchange</groupId>
-			<artifactId>c3p0-oracle-thin-extras</artifactId>
-			<version>0.9.5</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.mchange</groupId>
-			<artifactId>mchange-commons-java</artifactId>
-			<version>0.2.11</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.mchange</groupId>
-			<artifactId>c3p0</artifactId>
-			<version>0.9.5.2</version>
-		</dependency>-->
-		<!-- END Quartz support -->
 		<!-- Test purposes -->
 		<dependency>
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 			<version>1.4</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-all -->

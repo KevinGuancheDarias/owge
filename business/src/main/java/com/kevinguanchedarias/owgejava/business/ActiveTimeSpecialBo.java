@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.business;
 
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
+import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
@@ -30,7 +31,7 @@ import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
- * 
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -65,11 +66,14 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	@Autowired
 	private DtoUtilService dtoUtilService;
 
+	@Autowired
+	private transient SocketIoService socketIoService;
+
 	@PostConstruct
 	public void init() {
 		improvementBo.addImprovementSource(this);
 		scheduledTasksManagerService.addHandler("TIME_SPECIAL_EFFECT_END", task -> {
-			Long id = (Long) task.getContent();
+			Long id = ((Double) task.getContent()).longValue();
 			LOG.debug("Time special effect end" + id);
 			ActiveTimeSpecial activeTimeSpecial = findById(id);
 			if (activeTimeSpecial != null) {
@@ -77,24 +81,30 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 				Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
 				activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
 				save(activeTimeSpecial);
-				improvementBo.clearSourceCache(activeTimeSpecial.getUser(), this);
+				UserStorage user = activeTimeSpecial.getUser();
+				improvementBo.clearSourceCache(user, this);
 				task.setType("TIME_SPECIAL_IS_READY");
 				scheduledTasksManagerService.registerEvent(task, rechargeTime);
+				emitTimeSpecialChange(user);
 			} else {
 				LOG.debug(
 						"ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
 			}
 		});
 		scheduledTasksManagerService.addHandler("TIME_SPECIAL_IS_READY", task -> {
-			Long id = (Long) task.getContent();
+			Long id = ((Double) task.getContent()).longValue();
 			LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
-			delete(id);
+			ActiveTimeSpecial forDelete = findById(id);
+			if (forDelete != null) {
+				delete(id);
+				emitTimeSpecialChange(forDelete.getUser());
+			}
 		});
 	}
 
 	/**
 	 * Find by user
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @since 0.8.0
@@ -106,7 +116,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	/**
 	 * Finds active specials with the given state
-	 * 
+	 *
 	 * @param userId
 	 * @param state
 	 * @return
@@ -118,7 +128,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	}
 
 	/**
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @since 0.8.0
@@ -129,22 +139,23 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	}
 
 	/**
-	 * Finds one active by its time special id, will be null, if not active
-	 * 
+	 * Finds one active by its time special id and the target user, will be null, if
+	 * not active
+	 *
 	 * @param timeSpecialId
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public ActiveTimeSpecial findOneByTimeSpecial(Integer timeSpecialId) {
-		return onFind(repository.findOneByTimeSpecialId(timeSpecialId));
+	public ActiveTimeSpecial findOneByTimeSpecial(Integer timeSpecialId, Integer userId) {
+		return onFind(repository.findOneByTimeSpecialIdAndUserId(timeSpecialId, userId));
 	}
 
 	/**
 	 * Deletes all active time specials <br>
 	 * <b>Has Propagation.MANDATORY as should not be run by controllers, this action
 	 * is reserved to another service
-	 * 
+	 *
 	 * @param timeSpecial
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -156,7 +167,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	/**
 	 * Activates a TimeSpecial
-	 * 
+	 *
 	 * @param timeSpecialId
 	 * @return
 	 * @since 0.8.0
@@ -167,8 +178,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 		TimeSpecial timeSpecial = timeSpecialBo.findByIdOrDie(timeSpecialId);
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL,
 				timeSpecial.getId());
-		objectRelationBo.checkIsUnlocked(userStorageBo.findLoggedIn(), relation);
-		ActiveTimeSpecial currentlyActive = findOneByTimeSpecial(timeSpecial.getId());
+		UserStorage loggedUser = userStorageBo.findLoggedIn();
+		objectRelationBo.checkIsUnlocked(loggedUser, relation);
+		ActiveTimeSpecial currentlyActive = findOneByTimeSpecial(timeSpecial.getId(), loggedUser.getId());
 		if (currentlyActive == null) {
 			ActiveTimeSpecial newActive = new ActiveTimeSpecial();
 			newActive.setActivationDate(new Date());
@@ -176,12 +188,13 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 			newActive.setState(TimeSpecialStateEnum.ACTIVE);
 			definePendingTime(newActive);
 			newActive.setTimeSpecial(timeSpecial);
-			UserStorage user = userStorageBo.findLoggedInWithDetails(false);
+			UserStorage user = userStorageBo.findLoggedInWithDetails();
 			newActive.setUser(user);
-			improvementBo.clearSourceCache(user, this);
 			newActive = save(newActive);
-			ScheduledTask<Long> task = new ScheduledTask<>("TIME_SPECIAL_EFFECT_END", newActive.getId());
+			improvementBo.clearSourceCache(user, this);
+			ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
 			scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
+			emitTimeSpecialChange(user);
 			return newActive;
 		} else {
 			LOG.warn("The specified time special, is already active, doing nothing");
@@ -191,7 +204,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
@@ -201,7 +214,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -217,7 +230,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
 	 * calculateImprovement(com.kevinguanchedarias.owgejava.entity.UserStorage)
 	 */
@@ -242,5 +255,23 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 				activeTimeSpecial.setPendingTime(activeTimeSpecial.getReadyDate().getTime() - new Date().getTime());
 			}
 		}
+	}
+
+	/**
+	 * Please note, as we are outside of request, we can't get the user for obvious
+	 * reasons <br>
+	 * So we have to manually fill the activeTimeSpecialDto prop
+	 *
+	 * @param user
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private void emitTimeSpecialChange(UserStorage user) {
+		socketIoService.sendMessage(user, "time_special_change", () -> {
+			List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user));
+			unlockeds.forEach(current -> current
+					.setActiveTimeSpecialDto(toDto(findOneByTimeSpecial(current.getId(), user.getId()))));
+			return unlockeds;
+		});
 	}
 }

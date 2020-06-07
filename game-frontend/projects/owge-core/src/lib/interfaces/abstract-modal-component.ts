@@ -1,4 +1,4 @@
-import { Input } from '@angular/core';
+import { Input, Directive } from '@angular/core';
 
 /**
  * Represents a component that has a modal, and has input to that modal and methods to open/close the modal
@@ -7,6 +7,7 @@ import { Input } from '@angular/core';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
  */
+@Directive()
 export abstract class AbstractModalComponent {
     @Input()
     public closeOnOverlayClick = true;

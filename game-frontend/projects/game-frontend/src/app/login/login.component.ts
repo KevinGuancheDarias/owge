@@ -1,12 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { ROUTES, LoginService, SessionService } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
 
-import { WebsocketService } from '../service/websocket.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -25,7 +24,6 @@ export class LoginComponent implements OnInit {
     private _translateService: TranslateService,
     private _loginService: LoginService,
     private _sessionService: SessionService,
-    private _websocketService: WebsocketService,
     private _router: Router,
     private _universeGameService: UniverseGameService
   ) { }
@@ -39,7 +37,7 @@ export class LoginComponent implements OnInit {
       if (!this._sessionService.isLoggedIn()) {
         window.location.href = `//${environment.loginDomain}`;
       } else {
-        this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status)).subscribe(() => {
+        this._universeGameService.findLoggedInUserData().pipe(filter(status => !!status), take(1)).subscribe(() => {
           this._router.navigate([ROUTES.GAME_INDEX]);
         });
       }
@@ -66,7 +64,6 @@ export class LoginComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   private onLoginSuccess(token: string): void {
-    this._websocketService.authenticate(token);
     this._router.navigate(['/universe-selection']);
   }
 

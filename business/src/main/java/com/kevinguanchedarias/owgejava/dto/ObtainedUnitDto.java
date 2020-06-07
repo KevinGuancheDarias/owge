@@ -13,6 +13,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 	private PlanetDto targetPlanet;
 	private MissionDto mission;
 	private Date expiration;
+	private Integer userId;
 
 	@Override
 	public void dtoFromEntity(ObtainedUnit entity) {
@@ -24,6 +25,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 		targetPlanet = DtoUtilService.staticDtoFromEntity(PlanetDto.class, entity.getTargetPlanet());
 		mission = DtoUtilService.staticDtoFromEntity(MissionDto.class, entity.getMission());
 		expiration = entity.getExpiration();
+		userId = entity.getUser().getId();
 	}
 
 	public Long getId() {
@@ -82,4 +84,21 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 		this.expiration = expiration;
 	}
 
+	/**
+	 * @return the userId
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Integer getUserId() {
+		return userId;
+	}
+
+	/**
+	 * @param userId the userId to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setUserId(Integer userId) {
+		this.userId = userId;
+	}
 }

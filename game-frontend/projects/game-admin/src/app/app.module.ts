@@ -1,9 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
-import { CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService } from '@owge/core';
+import {
+  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService,
+  WebsocketService, WsEventCacheService
+} from '@owge/core';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeUniverseModule } from '@owge/universe';
 
@@ -64,6 +68,7 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     AppRoutingModule,
     FormsModule,
     HttpClientModule,
@@ -99,6 +104,8 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
     AdminUnitService,
     AdminSpecialLocationService,
     LoadingService,
+    WebsocketService,
+    WsEventCacheService,
     {
       provide: 'APPLICATION_CONTEXT',
       useValue: 'admin'

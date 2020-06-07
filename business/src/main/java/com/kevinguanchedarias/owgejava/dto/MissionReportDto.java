@@ -15,8 +15,8 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 	private Long missionId;
 	private Date missionDate;
 	private Date reportDate;
-	private Date userAwareDate;
 	private Date userReadDate;
+	private Boolean isEnemy;
 
 	@Override
 	public void dtoFromEntity(MissionReport entity) {
@@ -78,14 +78,6 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 		this.reportDate = reportDate;
 	}
 
-	public Date getUserAwareDate() {
-		return userAwareDate;
-	}
-
-	public void setUserAwareDate(Date userAwareDate) {
-		this.userAwareDate = userAwareDate;
-	}
-
 	public Date getUserReadDate() {
 		return userReadDate;
 	}
@@ -94,4 +86,21 @@ public class MissionReportDto implements DtoFromEntity<MissionReport> {
 		this.userReadDate = userReadDate;
 	}
 
+	/**
+	 * @return the isEnemy
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getIsEnemy() {
+		return isEnemy;
+	}
+
+	/**
+	 * @param isEnemy the isEnemy to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setIsEnemy(Boolean isEnemy) {
+		this.isEnemy = isEnemy;
+	}
 }

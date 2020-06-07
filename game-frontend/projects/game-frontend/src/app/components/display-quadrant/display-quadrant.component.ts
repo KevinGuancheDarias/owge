@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, Input, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
 
 import { BaseComponent } from '../../base/base.component';
 import { NavigationData } from '../../shared/types/navigation-data.type';
@@ -7,6 +7,8 @@ import { MissionModalComponent } from '../../mission-modal/mission-modal.compone
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
+import { PlanetService } from '@owge/galaxy';
+import { Planet } from '@owge/universe';
 
 @Component({
   selector: 'app-display-quadrant',
@@ -24,13 +26,28 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   @ViewChild('missionModal', { static: true })
   private _missionModal: MissionModalComponent;
 
-  constructor(private _navigationService: NavigationService, private _missioninformationStore: MissionInformationStore) {
+  constructor(
+    private _navigationService: NavigationService,
+    private _missionInformationStore: MissionInformationStore,
+    private _planetService: PlanetService
+  ) {
     super();
   }
 
   public async ngOnInit() {
     this.navigationConfig = await this._navigationService.findCurrentNavigationConfig();
     this.navigationData = await this._navigationService.navigate(this.navigationConfig);
+    this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(async explored => {
+      if (explored) {
+        const exploredPlanedWithoutProps: Planet = this.navigationData.planets
+          .find(current => !current.richness && current.id === explored.id);
+        if (exploredPlanedWithoutProps) {
+          Object.assign(exploredPlanedWithoutProps, explored);
+        }
+      } else {
+        this.navigationData = await this._doWithLoading(this._navigationService.navigate(this.navigationConfig));
+      }
+    }));
   }
 
   public async changePosition(newPosition: NavigationConfig): Promise<void> {
@@ -50,7 +67,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
   }
 
   public sendMission(targetPlanet: PlanetPojo) {
-    this._missioninformationStore.targetPlanet.next(targetPlanet);
+    this._missionInformationStore.targetPlanet.next(targetPlanet);
     this._missionModal.show();
   }
 }

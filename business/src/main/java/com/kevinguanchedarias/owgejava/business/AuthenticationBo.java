@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.business;
 
@@ -16,7 +16,7 @@ import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 
 /**
  * Has methods to interact with the authentication system
- * 
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -40,12 +40,14 @@ public class AuthenticationBo implements Serializable {
 
 	/**
 	 * Finds the currently logged in user token
-	 * 
+	 *
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public TokenUser findTokenUser() {
-		return (TokenUser) securityContextService.getAuthentication().getDetails();
+		return securityContextService != null && securityContextService.getAuthentication() != null
+				? (TokenUser) securityContextService.getAuthentication().getDetails()
+				: null;
 	}
 }

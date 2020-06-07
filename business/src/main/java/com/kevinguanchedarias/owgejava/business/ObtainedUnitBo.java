@@ -49,6 +49,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	private SocketIoService socketIoService;
+
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
 		return repository;
@@ -56,7 +59,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -66,7 +69,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
 	 * calculateImprovement(com.kevinguanchedarias.owgejava.entity.UserStorage)
 	 */
@@ -84,7 +87,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	/**
 	 * Finds all the user obtained units that are <b>not</b> in a building state
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @since 0.8.0
@@ -101,7 +104,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Note: Takes into account also the units involved in missions that originate
 	 * from this planet, even if they are outside now
-	 * 
+	 *
 	 * @param userId
 	 * @param planetId
 	 * @return
@@ -139,7 +142,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * 
+	 *
 	 * @since 0.8.1
 	 * @param userId
 	 * @param unitId
@@ -156,7 +159,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * 
+	 *
 	 * @param userId
 	 * @param id
 	 * @param id2
@@ -180,7 +183,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * 
+	 *
 	 * @param user
 	 * @param type
 	 * @return
@@ -194,7 +197,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Returns the units in the <i>targetPlanet</i> that are not in mission <br>
 	 * Ideally used to explore a planet
-	 * 
+	 *
 	 * @param exploreMission mission that is executing the explore
 	 * @param targetPlanet
 	 * @return
@@ -208,7 +211,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * Saves the obtained unit to the database <br>
 	 * <b>IMPORTANT:</b> it may change the id, use the resultant value <br>
 	 * Will add the count to existing one, <b>if it exists in the planet</b>
-	 * 
+	 *
 	 * @param userId
 	 * @param obtainedUnit <b>NOTICE:</b> Won't be changed from inside
 	 * @param targetPlanet Planet to where you are adding the units
@@ -244,12 +247,16 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		} else {
 			retVal = null;
 		}
+		socketIoService.sendMessage(obtainedUnitDto.getUserId(), "unit_type_change",
+				() -> unitTypeBo.findUnitTypesWithUserInfo(obtainedUnitDto.getUserId()));
+		socketIoService.sendMessage(obtainedUnitDto.getUserId(), UnitMissionBo.UNIT_OBTAINED_CHANGE,
+				() -> toDto(findMyDeployedInUserOwnedPlanets()));
 		return retVal;
 	}
 
 	/**
 	 * Saves the Obtained unit with subtraction
-	 * 
+	 *
 	 * @param obtainedUnit       Target obtained unit
 	 * @param substractionCount  Count to subtract
 	 * @param handleImprovements If specified will sustract the improvements too
@@ -279,7 +286,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Searches an ObtainedUnit in <i>storage</i> having an unit with the <b>same
 	 * id</b> than <i>searchValue</i>
-	 * 
+	 *
 	 * @param storage     List that will be searched through
 	 * @param searchValue Value that is going to be search inside <i>storage</i>
 	 * @return ObtainedUnit found or <b>null if NOT found</b>
@@ -294,7 +301,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Deletes obtained units involved in passed mission <br>
 	 * <b>NOTICE: </b> By default will subtract improvements
-	 * 
+	 *
 	 * @param missionId
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -311,7 +318,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * <b>NOTICE: </b> As of 0.7.3, the param <i>subtractImprovements</i> can be
 	 * specified, for example to avoid removing improvements of a unit that has not
 	 * been even built
-	 * 
+	 *
 	 * @deprecated Use the version without the <i>subtractImprovements</i> param, as
 	 *             it's not longer required
 	 * @param missionId
@@ -340,8 +347,32 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
+	 * Finds all units that belong to logged user and are not involved in any
+	 * mission
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findMyDeployedInUserOwnedPlanets() {
+		return findDeployedInUserOwnedPlanets(userStorageBo.findLoggedIn().getId());
+	}
+
+	/**
+	 * Finds all units that belong to given user and are not involved in any mission
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findDeployedInUserOwnedPlanets(Integer userId) {
+		return repository.findBySourcePlanetNotNullAndMissionNullAndUserId(userId);
+	}
+
+	/**
 	 * Finds the involved units in an attack
-	 * 
+	 *
 	 * @param attackedPlanet
 	 * @param attackMission
 	 * @return
@@ -363,25 +394,28 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	@Transactional(propagation = Propagation.MANDATORY)
-	public void moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
+	public ObtainedUnit moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
 		Planet planet = planetBo.findById(planetId);
+		ObtainedUnit savedUnit;
 		unit.setSourcePlanet(unit.getSourcePlanet());
 		unit.setTargetPlanet(planet);
 		if (planetBo.isOfUserProperty(userId, planetId)) {
 			unit.setSourcePlanet(planet);
-			saveWithAdding(userId, unit, planetId);
+			savedUnit = saveWithAdding(userId, unit, planetId);
 			unit.setMission(null);
 			unit.setTargetPlanet(null);
 			unit.setFirstDeploymentMission(null);
 		} else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
-			save(unit);
+			savedUnit = save(unit);
 		} else {
 			unit = saveWithAdding(userId, unit, planetId);
+			savedUnit = unit;
 			if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
 				unit.setMission(unitMissionBo.findDeployedMissionOrCreate(unit));
-				save(unit);
+				savedUnit = save(unit);
 			}
 		}
+		return savedUnit;
 	}
 
 	public Double findConsumeEnergyByUser(UserStorage user) {
@@ -391,7 +425,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Returns the total sum of the value for the specified improvement type for
 	 * user obtained unit
-	 * 
+	 *
 	 * @param user
 	 * @param type The expected type
 	 * @return
@@ -409,7 +443,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * 
+	 *
 	 * @param user
 	 * @param typeId
 	 * @param count  Count to test if would exceed the unit type limit
@@ -424,7 +458,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	/**
 	 * Checks if the specified count would be over the expected count
-	 * 
+	 *
 	 * @param user
 	 * @param typeId
 	 * @param count
@@ -440,7 +474,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	/**
 	 * Gets the ENUM value of the unit mission type (or null )
-	 * 
+	 *
 	 * @param unit
 	 * @return
 	 * @since 0.7.4

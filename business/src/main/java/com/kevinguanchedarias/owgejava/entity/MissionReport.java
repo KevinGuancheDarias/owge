@@ -35,11 +35,11 @@ public class MissionReport implements EntityWithId<Long> {
 	@Column(name = "report_date")
 	private Date reportDate;
 
-	@Column(name = "user_aware_date")
-	private Date userAwareDate;
-
 	@Column(name = "user_read_date")
 	private Date userReadDate;
+
+	@Column(name = "is_enemy")
+	private Boolean isEnemy = false;
 
 	public MissionReport() {
 
@@ -87,14 +87,6 @@ public class MissionReport implements EntityWithId<Long> {
 		this.reportDate = reportDate;
 	}
 
-	public Date getUserAwareDate() {
-		return userAwareDate;
-	}
-
-	public void setUserAwareDate(Date userWareDate) {
-		this.userAwareDate = userWareDate;
-	}
-
 	public Date getUserReadDate() {
 		return userReadDate;
 	}
@@ -108,4 +100,21 @@ public class MissionReport implements EntityWithId<Long> {
 		this.id = id;
 	}
 
+	/**
+	 * @return the isEnemy
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getIsEnemy() {
+		return Boolean.TRUE.equals(isEnemy);
+	}
+
+	/**
+	 * @param isEnemy the isEnemy to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setIsEnemy(Boolean isEnemy) {
+		this.isEnemy = isEnemy;
+	}
 }

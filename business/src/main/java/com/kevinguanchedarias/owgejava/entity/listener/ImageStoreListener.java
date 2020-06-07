@@ -12,7 +12,7 @@ import com.kevinguanchedarias.owgejava.entity.ImageStore;
 
 /**
  * Fills the transient properties of ImageStore
- * 
+ *
  * @author Kevin Guanche Darias
  * @since 0.9.0
  *
@@ -30,8 +30,7 @@ public class ImageStoreListener {
 	@PostPersist
 	@PostUpdate
 	public void postLoad(ImageStore imageStore) {
-		if (!Thread.currentThread().getName().startsWith("OWGE_BACKGROUND_")) {
-			imageStoreBo.computeImageUrl(imageStore);
-		}
+		imageStoreBo.computeImageUrl(imageStore);
+
 	}
 }

@@ -23,6 +23,7 @@ import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
@@ -49,8 +50,8 @@ public class UnitRestService {
 	@Autowired
 	private DtoUtilService dtoUtilService;
 
-	@RequestMapping(value = "findUnlocked", method = RequestMethod.GET)
-	public Object findUnlocked() {
+	@GetMapping("findUnlocked")
+	public List<UnitDto> findUnlocked() {
 		List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
 				unlockedRelationBo.findByUserIdAndObjectType(findLoggedInUser().getId(), RequirementTargetObject.UNIT));
 
@@ -58,14 +59,33 @@ public class UnitRestService {
 		return convert.dtoFromEntity(UnitDto.class, units);
 	}
 
-	@RequestMapping(value = "findRunning", method = RequestMethod.GET)
+	/**
+	 *
+	 * @deprecated Find in all planets instead
+	 * @param planetId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
+	@GetMapping("findRunning")
 	public Object findRunning(@RequestParam("planetId") Double planetId) {
 		RunningUnitBuildDto retVal = missionBo.findRunningUnitBuild(findLoggedInUser().getId(), planetId);
 		if (retVal == null) {
 			return "";
 		}
 
-		return retVal;
+		return new DeprecationRestResponse<>("0.9.0", "/unit/build-missions", retVal);
+	}
+
+	/**
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping("build-missions")
+	public List<RunningUnitBuildDto> findBuildMissions() {
+		return missionBo.findMyBuildMissions();
 	}
 
 	@PostMapping(value = "build")
@@ -82,25 +102,45 @@ public class UnitRestService {
 
 	@GetMapping("requirements")
 	public List<UnitWithRequirementInformation> requirements() {
-		return requirementBo.computeReachedLevel(findLoggedInUser(),
-				requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction()));
+		return requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction());
 	}
 
-	@RequestMapping(value = "cancel", method = RequestMethod.GET)
-	public Object cancel(@RequestParam("missionId") Long missionId) {
+	@GetMapping("cancel")
+	public String cancel(@RequestParam("missionId") Long missionId) {
 		missionBo.cancelBuildUnit(missionId);
-		return "OK";
+		return "\"OK\"";
 	}
 
-	@RequestMapping(value = "findInMyPlanet", method = RequestMethod.GET)
-	public List<ObtainedUnitDto> findInMyPlanet(@RequestParam("planetId") Long planetId) {
-		return dtoUtilService.convertEntireArray(ObtainedUnitDto.class, obtainedUnitBo.findInMyPlanet(planetId));
+	/**
+	 *
+	 * @deprecated
+	 * @param planetId
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
+	@GetMapping("findInMyPlanet")
+	public List<DeprecationRestResponse<ObtainedUnitDto>> findInMyPlanet(@RequestParam("planetId") Long planetId) {
+		return DeprecationRestResponse.fromList("0.9.0", "/unit/find-in-my-planets",
+				dtoUtilService.convertEntireArray(ObtainedUnitDto.class, obtainedUnitBo.findInMyPlanet(planetId)));
+	}
+
+	/**
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping("find-in-my-planets")
+	public List<ObtainedUnitDto> findInMyPlanets() {
+		return obtainedUnitBo.toDto(obtainedUnitBo.findMyDeployedInUserOwnedPlanets());
 	}
 
 	@RequestMapping(value = "delete", method = RequestMethod.POST)
 	public String delete(@RequestBody ObtainedUnitDto obtainedUnitDto) {
+		obtainedUnitDto.setUserId(userStorageBo.findLoggedIn().getId());
 		obtainedUnitBo.saveWithSubtraction(obtainedUnitDto, true);
-		return "OK";
+		return "\"OK\"";
 	}
 
 	private UserStorage findLoggedInUser() {
