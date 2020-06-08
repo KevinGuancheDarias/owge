@@ -1,19 +1,18 @@
-import { Component, OnInit, ViewEncapsulation, Input, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, Input, ViewChild } from '@angular/core';
 
 import { BaseComponent } from '../../base/base.component';
 import { NavigationData } from '../../shared/types/navigation-data.type';
-import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { MissionModalComponent } from '../../mission-modal/mission-modal.component';
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
 import { PlanetService } from '@owge/galaxy';
-import { Planet } from '@owge/universe';
+import { Planet, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent } from '@owge/universe';
 
 @Component({
   selector: 'app-display-quadrant',
   templateUrl: './display-quadrant.component.html',
-  styleUrls: ['./display-quadrant.component.less'],
+  styleUrls: ['./display-quadrant.component.less', './display-quadrant.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
 export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
@@ -22,14 +21,20 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
 
   public navigationData: NavigationData;
   public navigationConfig: NavigationConfig;
+  public addingOrEditing: PlanetListItem;
+  public planetList: { [key: number]: PlanetListItem } = {};
 
   @ViewChild('missionModal', { static: true })
   private _missionModal: MissionModalComponent;
 
+  @ViewChild('addEditModal')
+  private _addEditModal: PlanetListAddEditModalComponent;
+
   constructor(
     private _navigationService: NavigationService,
     private _missionInformationStore: MissionInformationStore,
-    private _planetService: PlanetService
+    private _planetService: PlanetService,
+    private _planetListService: PlanetListService
   ) {
     super();
   }
@@ -48,6 +53,12 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
         this.navigationData = await this._doWithLoading(this._navigationService.navigate(this.navigationConfig));
       }
     }));
+    this._subscriptions.add(this._planetListService.findAll()
+      .subscribe(list => {
+        this.planetList = {};
+        list.forEach(current => this.planetList[current.planet.id] = current);
+      })
+    );
   }
 
   public async changePosition(newPosition: NavigationConfig): Promise<void> {
@@ -66,7 +77,20 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit {
     return this.navigationData.galaxies.find(current => current.id === this.navigationConfig.galaxy).name;
   }
 
-  public sendMission(targetPlanet: PlanetPojo) {
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param [selected]
+   */
+  public addEdit(planet: Planet): void {
+    const selected: PlanetListItem = this.planetList[planet.id];
+    this.addingOrEditing = selected ? { ...selected } : <any>{ planet };
+    this._addEditModal.show();
+  }
+
+  public sendMission(targetPlanet: Planet) {
     this._missionInformationStore.targetPlanet.next(targetPlanet);
     this._missionModal.show();
   }

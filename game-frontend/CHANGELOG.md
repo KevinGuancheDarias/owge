@@ -2,6 +2,7 @@
 
 v0.9.0 (latest)
 =================
+* __Feature:__ [As a player I want to be able to create a list of planets #7](https://github.com/KevinGuancheDarias/owge/issues/7)
 * __Feature:__ [As a player I want to be able to be sinced with the backend (get events of what's going on in realtime), for example current improvements change, current units count change, and more #124](https://github.com/KevinGuancheDarias/owge/issues/124)
 * [class=Admin] __Feature:__ [As an admin I want to have the same admin panel functionalities I had in v0.7.x #185](https://github.com/KevinGuancheDarias/owge/issues/185)
 * __Merge:__ v0.8.2

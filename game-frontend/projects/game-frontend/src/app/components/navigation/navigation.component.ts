@@ -17,7 +17,7 @@ export class NavigationComponent extends BaseComponent implements OnInit, OnDest
   private _findInMyPlanetSubscription: Subscription;
 
   constructor(
-    private _missioninformationStore: MissionInformationStore,
+    private _missionInformationStore: MissionInformationStore,
     private _unitService: UnitService,
     private _planetService: PlanetService
   ) {
@@ -26,10 +26,10 @@ export class NavigationComponent extends BaseComponent implements OnInit, OnDest
 
   public ngOnInit(): void {
     this._subscriptions.add(this._planetService.findCurrentPlanet().subscribe(selectedPlanet => {
-      this._missioninformationStore.originPlanet.next(selectedPlanet);
+      this._missionInformationStore.originPlanet.next(selectedPlanet);
       this._clearFindInMyPlanets();
       this._findInMyPlanetSubscription = this._unitService.findInMyPlanet(selectedPlanet.id).subscribe(units => {
-        this._missioninformationStore.availableUnits.next(units);
+        this._missionInformationStore.availableUnits.next(units);
       });
     }));
   }

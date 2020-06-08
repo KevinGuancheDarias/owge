@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : lun. 09 mars 2020 à 16:26
+-- Généré le : Dim 07 juin 2020 à 13:51
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `new_shit`
+-- Base de données : `other_shit`
 --
 
 -- --------------------------------------------------------
@@ -317,7 +317,7 @@ CREATE TABLE `mission_reports` (
   `json_body` mediumtext NOT NULL,
   `user_id` int(11) UNSIGNED NOT NULL,
   `report_date` datetime DEFAULT NULL,
-  `user_aware_date` datetime DEFAULT NULL,
+  `is_enemy` tinyint(1) DEFAULT '0',
   `user_read_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -406,6 +406,18 @@ CREATE TABLE `planets` (
   `richness` smallint(6) UNSIGNED NOT NULL,
   `home` tinyint(4) DEFAULT '0',
   `special_location_id` smallint(5) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `planet_list`
+--
+
+CREATE TABLE `planet_list` (
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `planet_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(150) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -833,6 +845,18 @@ CREATE TABLE `user_storage` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `websocket_events_information`
+--
+
+CREATE TABLE `websocket_events_information` (
+  `event_name` varchar(100) NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `last_sent` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `websocket_messages_status`
 --
 
@@ -1029,6 +1053,13 @@ ALTER TABLE `planets`
   ADD KEY `special_location_id` (`special_location_id`);
 
 --
+-- Index pour la table `planet_list`
+--
+ALTER TABLE `planet_list`
+  ADD PRIMARY KEY (`user_id`,`planet_id`),
+  ADD KEY `fk_planet_list_planet` (`planet_id`);
+
+--
 -- Index pour la table `qrtz_blob_triggers`
 --
 ALTER TABLE `qrtz_blob_triggers`
@@ -1216,6 +1247,13 @@ ALTER TABLE `user_storage`
   ADD KEY `faction` (`faction`),
   ADD KEY `home_planet` (`home_planet`),
   ADD KEY `alliance_id` (`alliance_id`);
+
+--
+-- Index pour la table `websocket_events_information`
+--
+ALTER TABLE `websocket_events_information`
+  ADD PRIMARY KEY (`event_name`,`user_id`),
+  ADD KEY `fk_user` (`user_id`);
 
 --
 -- Index pour la table `websocket_messages_status`
@@ -1524,6 +1562,13 @@ ALTER TABLE `planets`
   ADD CONSTRAINT `planets_ibfk_3` FOREIGN KEY (`owner`) REFERENCES `user_storage` (`id`);
 
 --
+-- Contraintes pour la table `planet_list`
+--
+ALTER TABLE `planet_list`
+  ADD CONSTRAINT `fk_panet_list_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`),
+  ADD CONSTRAINT `fk_planet_list_planet` FOREIGN KEY (`planet_id`) REFERENCES `planets` (`id`);
+
+--
 -- Contraintes pour la table `qrtz_blob_triggers`
 --
 ALTER TABLE `qrtz_blob_triggers`
@@ -1610,6 +1655,12 @@ ALTER TABLE `user_storage`
   ADD CONSTRAINT `user_storage_ibfk_1` FOREIGN KEY (`home_planet`) REFERENCES `planets` (`id`),
   ADD CONSTRAINT `user_storage_ibfk_2` FOREIGN KEY (`faction`) REFERENCES `factions` (`id`),
   ADD CONSTRAINT `user_storage_ibfk_3` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`);
+
+--
+-- Contraintes pour la table `websocket_events_information`
+--
+ALTER TABLE `websocket_events_information`
+  ADD CONSTRAINT `fk_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
 -- Contraintes pour la table `websocket_messages_status`

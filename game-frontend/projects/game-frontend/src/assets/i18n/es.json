@@ -47,6 +47,21 @@
             "CURRENT_COORDINATES": "Coordenadas actuales",
             "TOOLTIP_SEND_MISSION": "Enviar misión"
         },
+        "PLANET": {
+            "SUMMARY": "Nombre: {{name}}, Coordenadas: Galaxia: {{galaxyName}}, sector {{sector}}, cuadrante {{quadrant}}, número {{planetNumber}}",
+            "OWNED_BY": "Propiedad de. {{username}}"
+        },
+        "PLANET_LIST": {
+            "ADD": "Añadir nuevo",
+            "EDIT": "Editando {{el}}",
+            "LABEL_NAME": "Nombre (Opcional):",
+            "PLACEHOLDER": "Nombre a mostrar",
+            "OWNED_ONLY": "Mostrar sólo planetas con propietario",
+            "BTN_SAVE": "Guardar",
+            "BTN_CANCEL": "Cancelar",
+            "BTN_DELETE": "Eliminar",
+            "CONFIRM_DELETE": "¿Estás seguro de que deseas eliminar {{el}}?"
+        },
         "MISSION_MODAL": {
             "HEADER": "Enviar misión a {{planetName}}",
             "MISSION_TYPE": "Tipo misión",
@@ -124,6 +139,7 @@
         "MENU_UPGRADES": "Mejoras",
         "MENU_UNITS": "Unidades",
         "MENU_NAVIGATION": "Navegación",
+        "MENU_PLANET_LIST": "Lista personal",
         "MENU_REPORTS": "Reportes",
         "MENU_ALLIANCES": "Alianzas",
         "MENU_TIME_SPECIALS": "Especiales de tiempo",

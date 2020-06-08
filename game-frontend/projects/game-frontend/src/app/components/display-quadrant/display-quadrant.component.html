@@ -1,4 +1,7 @@
 <app-mission-modal #missionModal></app-mission-modal>
+<owge-universe-planet-list-add-edit-modal #addEditModal [addingOrEditing]="addingOrEditing">
+
+</owge-universe-planet-list-add-edit-modal>
 <owge-core-loading [isReady]="navigationData && navigationConfig">
   <div class="owge-base-colors navigation-controls">
     <app-navigation-controls *ngIf="navigationData" [navigationData]="navigationData" [navigationConfig]="navigationConfig"
@@ -15,6 +18,7 @@
     <app-planet-selector [navigationData]="navigationData" [class]="isFullWidth ? 'full-width' : 'in-content'">
       <ng-template let-planet="planet">
         <img [src]="'mission.png' | uiIcon" [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate" (click)="sendMission(planet)" />
+        <a href="javascript:void()"(click)="addEdit(planet)" ><i class="fa action" [class.fa-pen]="planetList[planet.id]" [class.fa-plus-circle]="!planetList[planet.id]"></i></a>
       </ng-template>
     </app-planet-selector>
   </div>

@@ -2,7 +2,12 @@
   <div class="card owge-planet-card" *ngFor="let planet of navigationData.planets">
     <div class="card-block">
       <h5 class="card-title">
-        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet | planetDisplayName }}</h5>
+        <i *ngIf="planet.home" class="fa fa-home"></i> 
+        {{ planet | planetDisplayName }}
+        <br/>
+        {{ planet.ownerName }}
+        <br *ngIf="!planet.ownerId"/>
+      </h5>
     </div>
     <img class="card-img-top planet-image" src="{{ findPlanetImage(planet) }}" alt="image of the planet">
     <div class="card-block">

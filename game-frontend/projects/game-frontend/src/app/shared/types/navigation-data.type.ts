@@ -1,7 +1,7 @@
-import { PlanetPojo } from '../../shared-pojo/planet.pojo';
-import { Galaxy } from '../pojos/galaxy.pojo';
+import { Planet } from '@owge/universe';
+import { Galaxy } from '@owge/galaxy';
 
 export interface NavigationData {
     galaxies: Galaxy[];
-    planets: PlanetPojo[];
+    planets: Planet[];
 }

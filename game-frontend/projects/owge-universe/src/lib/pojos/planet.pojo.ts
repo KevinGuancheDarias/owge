@@ -19,6 +19,7 @@ export class Planet {
     public quadrant: number;
     public planetNumber: number;
     public ownerId: number;
+    public ownerName?: number;
     public richness: number;
     public home: boolean;
     public specialLocationId: number;

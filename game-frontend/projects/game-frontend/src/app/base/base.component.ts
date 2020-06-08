@@ -14,8 +14,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
   protected loginSessionService: LoginSessionService;
   protected resources: AutoUpdatedResources;
   protected _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
-
-  private _loadingService: LoadingService;
+  protected _loadingService: LoadingService;
 
   public get userData(): U {
     return this._userData;
