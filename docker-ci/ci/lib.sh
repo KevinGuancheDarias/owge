@@ -417,7 +417,7 @@ function dockerFindHostIp () {
 
                 else
                         log debug "The user is using Linux native docker";
-                        export output="`dockerNetTools bash -c 'ip route show | grep ^default' | cut -d ' ' -f 3;`";
+                        export output="`dockerNetTools 'ip route show' | grep default | cut -d \  -f 3;`";
                 fi
         else
                 log debug "The user is using docker toolbox";
