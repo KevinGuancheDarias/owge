@@ -22,7 +22,7 @@ export class UpgradeTypeService extends AbstractWebsocketApplicationHandler {
     this._eventsMap = {
       upgrade_types_change: '_onChange'
     };
-    this._offlineStore = universeCacheManagerService.getStore('upgrade_types.available');
+    this._offlineStore = universeCacheManagerService.getStore('upgrade_types.available', false);
   }
 
   public async workaroundSync(): Promise<void> {

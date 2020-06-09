@@ -9,6 +9,8 @@ import * as LZString from 'lz-string';
 export class StorageOfflineHelper<T> {
     private static readonly _PREFIX = 'owge_';
 
+    public isUserDependant = false;
+
     private _browserStore: Storage;
 
     /**

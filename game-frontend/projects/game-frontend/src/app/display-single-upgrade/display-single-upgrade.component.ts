@@ -31,14 +31,12 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   public vConfirmDeleteText: string;
   public isDesktop: boolean;
 
-  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _sdsIdentifier: string;
   private _oldValueRunningUpgrade: UpgradeRunningMission;
 
   constructor(
     private _upgradeService: UpgradeService,
     private _translateService: TranslateService,
-    private _universeGameService: UniverseGameService,
     private _userStore: UserStorage<User>,
     private _screenDimensionsService: ScreenDimensionsService
   ) {

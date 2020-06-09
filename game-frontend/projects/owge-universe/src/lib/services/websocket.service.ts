@@ -32,6 +32,8 @@ export class WebsocketService {
   private _hasTriggeredFirtsOffline = false;
   private _isWantedDisconnection: boolean;
 
+  private _onBeforeWorkaroundSyncHandlers: Array<() => Promise<void>> = [];
+
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
     private _sessionService: SessionService,
@@ -171,8 +173,24 @@ export class WebsocketService {
     }
   }
 
+
+  /**
+   * Adds an async action to run before the workaroundSync takes place
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param action
+   */
+  public onBeforeWorkaroundSync(action: () => Promise<void>): void {
+    this._onBeforeWorkaroundSyncHandlers.push(action);
+  }
+
   private async _registerSocketHandlers(): Promise<void> {
     try {
+      await Promise.all([
+        ...this._eventHandlers.map(handler => handler.beforeWorkaroundSync()),
+        ...this._onBeforeWorkaroundSyncHandlers.map(action => action())
+      ]);
       this._log.debug('Invoking workaroundSync');
       await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
         const result = await this._timeoutPromise(current.workaroundSync());

@@ -5,8 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import {
-  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService,
-  WebsocketService, WsEventCacheService
+  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService
 } from '@owge/core';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeUniverseModule } from '@owge/universe';
@@ -104,8 +103,6 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
     AdminUnitService,
     AdminSpecialLocationService,
     LoadingService,
-    WebsocketService,
-    WsEventCacheService,
     {
       provide: 'APPLICATION_CONTEXT',
       useValue: 'admin'
@@ -116,7 +113,6 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
 export class AppModule {
   public constructor(
     sessionService: SessionService,
-    adminUserStore: AdminUserStore,
     adminLoginService: AdminLoginService,
     translateService: TranslateService) {
     sessionService.initStore();
