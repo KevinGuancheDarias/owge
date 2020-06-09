@@ -6,6 +6,7 @@ import { FactionService } from '../faction/faction.service';
 import { BaseComponent } from '../base/base.component';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { UniverseService } from '../universe/universe.service';
+import { UniverseCacheManagerService } from '@owge/universe';
 
 @Component({
   selector: 'app-faction-selector',
@@ -26,7 +27,7 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
   constructor(
     private factionService: FactionService,
     private universeService: UniverseService,
-    private _router: Router
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
   }
@@ -42,6 +43,10 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
     this.selectedFaction = this.factionsList[this.selectedFactionIndex];
   }
 
+  public hide(): void {
+    this._modal.hide();
+  }
+
   /**
    * Run When the universe selection fires
    * @author Kevin Guanche Darias
@@ -54,13 +59,13 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
     );
   }
 
-  private redirectToGameIfSubscritionSucceeded(serverMessage: boolean) {
+  private async redirectToGameIfSubscritionSucceeded(serverMessage: boolean) {
     if (serverMessage) {
       if (this._modal) {
         this._modal.hide();
+        await this._universeCacheManagerService.clearCache();
         this.selected.emit();
       }
-      this._router.navigate([ROUTES.GAME_INDEX]);
     } else {
       this.displayError('Error fatal que no tiene sentido, \
         el administrador de este proyecto seguramente se querrá pegar un tiro al descubrirlo!');

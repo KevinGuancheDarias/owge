@@ -12,6 +12,11 @@ export abstract class AbstractWebsocketApplicationHandler {
 
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
+    public async beforeWorkaroundSync(): Promise<void> {
+        // NOTICE: Override when have to do something before syncing. Note
+        // You can too use the method in WesocketService to register a handler
+    }
+
     /**
      * Actions to run when connected or reconnected to websocket
      *

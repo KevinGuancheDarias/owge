@@ -15,6 +15,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
   protected resources: AutoUpdatedResources;
   protected _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
   protected _loadingService: LoadingService;
+  protected _universeGameService: UniverseGameService;
 
   public get userData(): U {
     return this._userData;
@@ -22,12 +23,11 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
 
   private _userData: U;
   private _bcLog: LoggerHelper = new LoggerHelper(this.constructor.name);
-  private _baseUniverseGameService: UniverseGameService;
 
   public constructor() {
     this.loginSessionService = ServiceLocator.injector.get(LoginSessionService);
     this._loadingService = ServiceLocator.injector.get(LoadingService);
-    this._baseUniverseGameService = ServiceLocator.injector.get(UniverseGameService);
+    this._universeGameService = ServiceLocator.injector.get(UniverseGameService);
   }
 
 
@@ -124,7 +124,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    * @author Kevin Guanche Darias
    */
   protected requireUser(onloadOrReload?: () => void): void {
-    this._baseUniverseGameService.findLoggedInUserData<U>().subscribe(user => {
+    this._universeGameService.findLoggedInUserData<U>().subscribe(user => {
       this._userData = user;
       if (typeof onloadOrReload === 'function') {
         onloadOrReload();

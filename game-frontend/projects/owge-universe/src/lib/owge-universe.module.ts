@@ -78,7 +78,8 @@ export class OwgeUniverseModule {
 
   public constructor(_injector: Injector, private _websocketService: WebsocketService) {
     _websocketService.addEventHandler(
-      _injector.get(UniverseGameService)
+      _injector.get(UniverseGameService),
+      _injector.get(UniverseCacheManagerService)
     );
   }
 }

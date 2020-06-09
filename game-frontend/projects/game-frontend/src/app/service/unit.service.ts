@@ -29,6 +29,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   private _offlineUnlockedCache: StorageOfflineHelper<Unit[]>;
   private _offlineObtainedCache: StorageOfflineHelper<ObtainedUnit[]>;
   private _offlineBuildMissionCache: StorageOfflineHelper<UnitBuildRunningMission[]>;
+  private _offlineRequirementsCache: StorageOfflineHelper<UnitUpgradeRequirements[]>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
@@ -242,8 +243,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onUnlockedChange(content: Unit[]): Promise<void> {
-    const cache: StorageOfflineHelper<UnitUpgradeRequirements[]> = this._universeCacheManagerService.getStore('unit.requirements');
-    const cachedValue = cache.find();
+    const cachedValue = this._offlineRequirementsCache.find();
     let unitUpgradeRequirements;
     if (cachedValue) {
       unitUpgradeRequirements = cachedValue;
@@ -251,7 +251,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unitUpgradeRequirements = await this._universeGameService.requestWithAutorizationToContext<UnitUpgradeRequirements[]>(
         'game', 'get', 'unit/requirements'
       ).toPromise();
-      cache.save(unitUpgradeRequirements);
+      this._offlineRequirementsCache.save(unitUpgradeRequirements);
     }
     if (this._onUnlockedChangeSubscription) {
       this._onUnlockedChangeSubscription.unsubscribe();
@@ -327,5 +327,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     this._offlineUnlockedCache = this._universeCacheManagerService.getStore('unit.unlocked');
     this._offlineObtainedCache = this._universeCacheManagerService.getStore('unit.obtained');
     this._offlineBuildMissionCache = this._universeCacheManagerService.getStore('unit.build_missions');
+    this._offlineRequirementsCache = this._universeCacheManagerService.getStore('unit.requirements');
   }
 }

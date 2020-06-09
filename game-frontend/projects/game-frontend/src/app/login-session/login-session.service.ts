@@ -29,8 +29,6 @@ export class LoginSessionService implements CanActivate {
   public static readonly LOCAL_STORAGE_SELECTED_FACTION = 'owge_faction';
   public static readonly LOGIN_ROUTE = '/login';
 
-  private alreadyNotified = false;
-
   /**
    * @deprecated Since 0.9.0 it's better to use the UniverseGameService.isInGame() method
    */
@@ -44,6 +42,7 @@ export class LoginSessionService implements CanActivate {
   }
   private _findSelectedPlanet: BehaviorSubject<PlanetPojo> = new BehaviorSubject(null);
 
+  private _alreadyNotified = false;
   private _lgsLog: LoggerHelper = new LoggerHelper(this.constructor.name);
 
   constructor(private _injector: Injector,
@@ -216,7 +215,7 @@ export class LoginSessionService implements CanActivate {
 
   public logout(): any {
     this._clearSessionData();
-    this.alreadyNotified = false;
+    this._alreadyNotified = false;
     this._redirectIfNotLoggedIn();
   }
 
@@ -311,9 +310,9 @@ export class LoginSessionService implements CanActivate {
   }
 
   private _handleLoginLogic(loadingRoute: string): void {
-    if (!this._isLoginRoute(loadingRoute) && !this.alreadyNotified) {
+    if (!this._isLoginRoute(loadingRoute) && !this._alreadyNotified) {
       this._notifyGameFrontendCore();
-      this.alreadyNotified = true;
+      this._alreadyNotified = true;
     }
   }
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { first, switchMap, map, take, combineLatest } from 'rxjs/operators';
+import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
+import { first, switchMap, take } from 'rxjs/operators';
 
 import {
   CoreHttpService,
@@ -17,6 +17,7 @@ import {
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import { UniverseCacheManagerService } from './universe-cache-manager.service';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -30,19 +31,22 @@ import { AbstractWebsocketApplicationHandler } from '@owge/core';
 export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
 
-  private _offlineUserStore: StorageOfflineHelper<User> = new StorageOfflineHelper('universe_game.user');
+  private _offlineUserStore: StorageOfflineHelper<User>;
+  private _outsideUniverse: Subject<boolean> = new BehaviorSubject(false);
 
   constructor(
     private _coreHttpService: CoreHttpService,
     private _universeStorage: UniverseStorage,
     private _sessionService: SessionService,
-    private _userStore: UserStorage<User>
+    private _userStore: UserStorage<User>,
+    universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       user_data_change: '_onUserDataChange',
       user_improvements_change: '_onUserImprovementsChange'
     };
+    this._offlineUserStore = universeCacheManagerService.getStore('universe_game.user');
   }
 
   public async workaroundSync(): Promise<void> {
@@ -85,11 +89,25 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public isInGame(): Observable<boolean> {
-    return this._universeStorage.currentUniverse.pipe(
-      combineLatest(this._userStore.currentToken, (universe, token) =>
-        !!universe && !!token
-      )
+    return combineLatest(
+      this._universeStorage.currentUniverse,
+      this._userStore.currentToken,
+      this._outsideUniverse,
+      (universe, token, outsideUniverse) => !!universe && !!token && !outsideUniverse
     );
+
+  }
+
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param value
+   */
+  public setOutsideUniverse(value: boolean): void {
+    this._outsideUniverse.next(value);
   }
 
   public logout(): void {

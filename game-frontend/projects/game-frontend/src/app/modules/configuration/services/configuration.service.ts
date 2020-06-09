@@ -43,7 +43,9 @@ export class ConfigurationService {
    */
   public async init(): Promise<void> {
     if (!this._configuration) {
-      const cache: StorageOfflineHelper<Configuration<any>[]> = this._universeCacheManagerService.getStore('configuration.data');
+      const cache: StorageOfflineHelper<Configuration<any>[]> = this._universeCacheManagerService.getStore(
+        'configuration.data', false
+      );
       const cachedValue = cache.find();
       if (cachedValue) {
         this._configuration = cachedValue;
