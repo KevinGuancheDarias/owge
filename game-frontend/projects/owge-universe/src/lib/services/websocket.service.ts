@@ -8,6 +8,7 @@ import {
   LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
   SessionService, LoadingService
 } from '@owge/core';
+import { UniverseCacheManagerService } from './universe-cache-manager.service';
 
 @Injectable()
 export class WebsocketService {
@@ -39,6 +40,7 @@ export class WebsocketService {
     private _sessionService: SessionService,
     private _toastrService: ToastrService,
     private _loadingService: LoadingService,
+    private _universeCacheManager: UniverseCacheManagerService,
     sessionStore: SessionStore
   ) {
     this._isConnected.next(false);
@@ -135,11 +137,13 @@ export class WebsocketService {
           value: this._credentialsToken,
           protocol: WebsocketService.PROTOCOL_VERSION,
         }));
-        this._socket.on('authentication', response => {
+        this._socket.on('authentication', async response => {
           this._socket.removeEventListener('authentication');
           if (response.status === 'ok') {
             this._log.debug('authenticated succeeded');
-            this._wsEventCacheService.setEventsInformation(response.value);
+            await this._universeCacheManager.loadUser();
+            await this._wsEventCacheService.createStores();
+            await this._wsEventCacheService.setEventsInformation(response.value);
             this._isAuthenticated = true;
             this._registerSocketHandlers();
             resolve();
@@ -191,6 +195,7 @@ export class WebsocketService {
         ...this._eventHandlers.map(handler => handler.beforeWorkaroundSync()),
         ...this._onBeforeWorkaroundSyncHandlers.map(action => action())
       ]);
+      await Promise.all(this._eventHandlers.map(handler => handler.createStores()));
       this._log.debug('Invoking workaroundSync');
       await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
         const result = await this._timeoutPromise(current.workaroundSync());
@@ -232,7 +237,7 @@ export class WebsocketService {
   private _timeoutPromise(inputPromise: Promise<any>): Promise<any> {
     return Promise.race([
       inputPromise,
-      new Promise(resolve => window.setTimeout(() => resolve('timeout'), 3000))
+      new Promise(resolve => window.setTimeout(() => resolve('timeout'), 10000))
     ]);
   }
 }

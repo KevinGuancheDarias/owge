@@ -28,14 +28,17 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
     public constructor(
         protected _universeGameService: UniverseGameService,
         private _wsEventCacheService: WsEventCacheService,
-        universeCacheManagerService: UniverseCacheManagerService
+        private _universeCacheManagerService: UniverseCacheManagerService
     ) {
         super();
         this._eventsMap = {
             time_special_change: '_onTimeSpecialChange',
             time_special_unlocked_change: '_onTimeSpecialChange'
         };
-        this._offlineUnlocked = universeCacheManagerService.getStore('time_special.unlocked');
+    }
+
+    public async createStores(): Promise<void> {
+        this._offlineUnlocked = this._universeCacheManagerService.getStore('time_special.unlocked');
     }
 
     /**
@@ -58,7 +61,7 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
     }
 
     public async workaroundInitialOffline(): Promise<void> {
-        this._offlineUnlocked.doIfNotNull(content => this._onTimeSpecialChange(content));
+        await this._offlineUnlocked.doIfNotNull(content => this._onTimeSpecialChange(content));
     }
 
     /**
@@ -79,7 +82,7 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
         );
     }
 
-    protected _onTimeSpecialChange(content: TimeSpecial[]): void {
+    protected async _onTimeSpecialChange(content: TimeSpecial[]): Promise<void> {
         content.forEach(current => {
             if (current.activeTimeSpecialDto) {
                 current.activeTimeSpecialDto.pendingMillis = current.activeTimeSpecialDto.pendingMillis
@@ -89,6 +92,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
             }
         });
         this._timeSpecialStore.unlocked.next(content);
-        this._offlineUnlocked.save(content);
+        await this._offlineUnlocked.save(content);
     }
 }

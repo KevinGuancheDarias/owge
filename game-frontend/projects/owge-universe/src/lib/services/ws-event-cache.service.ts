@@ -24,14 +24,23 @@ interface WebsocketEventInformation {
  */
 @Injectable()
 export class WsEventCacheService {
-    private static readonly _NULL_LIKE_VALUE = '\u19fa__boundary__\u14af__\u1111';
     private _eventsInformation: { [key: string]: WebsocketEventInformation };
     private _offlineStore: StorageOfflineHelper<{ [key: string]: WebsocketEventInformation }>;
 
-    public constructor(universeCacheManagerService: UniverseCacheManagerService) {
-        this._offlineStore = universeCacheManagerService.getStore('ws_event_cache.entries');
+    public constructor(private _universeCacheManagerService: UniverseCacheManagerService) {
         this._eventsInformation = {};
-        this._offlineStore.doIfNotNull(data => this._eventsInformation = data);
+    }
+
+    /**
+     * Creates the store, make sure to use it in WebsocketService before settings eventsInformation
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns
+     */
+    public async createStores(): Promise<void> {
+        this._offlineStore = this._universeCacheManagerService.getStore('ws_event_cache.entries');
+        await this._offlineStore.doIfNotNull(data => this._eventsInformation = data);
     }
 
     /**
@@ -41,7 +50,7 @@ export class WsEventCacheService {
      * @since 0.9.0
      * @param content
      */
-    public setEventsInformation(content: WebsocketEventInformation[]): void {
+    public async setEventsInformation(content: WebsocketEventInformation[]): Promise<void> {
         Object.keys(this._eventsInformation).forEach(key => {
             if (!content.some(current => current.eventName === key)) {
                 delete this._eventsInformation[key];
@@ -82,14 +91,12 @@ export class WsEventCacheService {
      */
     public async findFromCacheOrRun<T>(eventName: string, cacheStore: StorageOfflineHelper<T>, action: () => Promise<T>): Promise<T> {
         const entry = this._eventsInformation[eventName];
-        const storedValue = cacheStore.find();
-        if ((!entry || !entry.changed) && storedValue) {
-            return <any>storedValue === WsEventCacheService._NULL_LIKE_VALUE
-                ? null
-                : storedValue;
+        const storedValue = await cacheStore.find();
+        if ((!entry || !entry.changed) && await cacheStore.isPresent()) {
+            return storedValue;
         } else {
             const retVal: T = await action();
-            cacheStore.save(retVal || <any>WsEventCacheService._NULL_LIKE_VALUE);
+            await cacheStore.save(retVal);
             if (this._eventsInformation[eventName]) {
                 this._eventsInformation[eventName].changed = false;
             } else {
@@ -100,8 +107,9 @@ export class WsEventCacheService {
                     userId: -1
                 };
             }
-            this._offlineStore.save(this._eventsInformation);
+            await this._offlineStore.save(this._eventsInformation);
             return retVal;
         }
     }
+
 }

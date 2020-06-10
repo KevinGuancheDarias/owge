@@ -22,15 +22,18 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   public constructor(
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       mission_report_change: '_onChange',
       mission_report_count_change: '_onCountChange'
     };
-    this._offlineChangeCache = universeCacheManagerService.getStore('reports.change');
-    this._offlineCountChangeCache = universeCacheManagerService.getStore('reports.count_change');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineChangeCache = this._universeCacheManagerService.getStore('reports.change');
+    this._offlineCountChangeCache = this._universeCacheManagerService.getStore('reports.count_change');
   }
 
   public findReports<T extends MissionReport = MissionReport>(): Observable<T[]> {
@@ -54,8 +57,8 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineChangeCache.doIfNotNull(content => this._onChange(content));
-    this._offlineCountChangeCache.doIfNotNull(content => this._onCountChange(content));
+    await this._offlineChangeCache.doIfNotNull(content => this._onChange(content));
+    await this._offlineCountChangeCache.doIfNotNull(content => this._onCountChange(content));
   }
 
   /**
@@ -91,7 +94,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
       }
     });
     this._reportStore.reports.next(this._currentReports);
-    this._offlineChangeCache.save({ ...this._currentCounts, reports: this._currentReports });
+    await this._offlineChangeCache.save({ ...this._currentCounts, reports: this._currentReports });
   }
 
   /**
@@ -120,18 +123,18 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     return this._universeGameService.requestWithAutorizationToContext<MissionReportResponse>('game', 'get', `report/findMy?page=${page}`);
   }
 
-  protected _onChange(content: MissionReportResponse): void {
+  protected async _onChange(content: MissionReportResponse): Promise<void> {
     this._onCountChange(content);
     this._handleReportsDownload(content.reports);
     this._reportStore.reports.next(this._currentReports);
-    this._offlineChangeCache.save(content);
+    await this._offlineChangeCache.save(content);
   }
 
-  protected _onCountChange(content: MissionReportResponse): void {
+  protected async _onCountChange(content: MissionReportResponse): Promise<void> {
     this._currentCounts = content;
     this._reportStore.userUnread.next(content.userUnread);
     this._reportStore.enemyUnread.next(content.enemyUnread);
-    this._offlineCountChangeCache.save(content);
+    await this._offlineCountChangeCache.save(content);
   }
 
   private _handleReportsDownload(reports: MissionReport[], isPush = false): void {

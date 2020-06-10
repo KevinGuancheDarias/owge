@@ -18,6 +18,7 @@ import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { ToastrService } from 'ngx-toastr';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -30,7 +31,6 @@ import { UniverseCacheManagerService } from './universe-cache-manager.service';
 @Injectable()
 export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
-
   private _offlineUserStore: StorageOfflineHelper<User>;
   private _outsideUniverse: Subject<boolean> = new BehaviorSubject(false);
 
@@ -39,14 +39,17 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     private _universeStorage: UniverseStorage,
     private _sessionService: SessionService,
     private _userStore: UserStorage<User>,
-    universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       user_data_change: '_onUserDataChange',
       user_improvements_change: '_onUserImprovementsChange'
     };
-    this._offlineUserStore = universeCacheManagerService.getStore('universe_game.user');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineUserStore = this._universeCacheManagerService.getStore('universe_game.user');
   }
 
   public async workaroundSync(): Promise<void> {
@@ -65,7 +68,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineUserStore.doIfNotNull(user => this._userStore.currentUser.next(this._handleUserLoad(user)));
+    await this._offlineUserStore.doIfNotNull(user => this._userStore.currentUser.next(this._handleUserLoad(user)));
   }
 
   /**

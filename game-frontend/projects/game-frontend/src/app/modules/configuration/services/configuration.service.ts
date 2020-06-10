@@ -42,16 +42,17 @@ export class ConfigurationService {
    * @memberof ConfigurationService
    */
   public async init(): Promise<void> {
+    await this._universeCacheManagerService.loadUser();
     if (!this._configuration) {
       const cache: StorageOfflineHelper<Configuration<any>[]> = this._universeCacheManagerService.getStore(
-        'configuration.data', false
+        'configuration.data'
       );
-      const cachedValue = cache.find();
+      const cachedValue = await cache.find();
       if (cachedValue) {
         this._configuration = cachedValue;
       } else {
         this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
-        cache.save(this._configuration);
+        await cache.save(this._configuration);
       }
       this._otherConfiguration = this._configuration;
       this.foo = '1234;';

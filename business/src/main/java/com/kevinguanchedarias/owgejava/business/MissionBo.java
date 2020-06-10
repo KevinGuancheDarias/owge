@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 
 import org.apache.log4j.Logger;
@@ -24,6 +25,8 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
@@ -53,6 +56,17 @@ public class MissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private transient SocketIoService socketIoService;
+
+	@PostConstruct
+	public void init() {
+		improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
+			if (improvement.getUnitTypesUpgrades().stream()
+					.anyMatch(current -> ImprovementTypeEnum.AMOUNT.name().equals(current.getType()))) {
+				socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE,
+						() -> unitTypeBo.findUnitTypesWithUserInfo(userId));
+			}
+		});
+	}
 
 	@Override
 	public String getGroupName() {
@@ -131,6 +145,7 @@ public class MissionBo extends AbstractMissionBo {
 			obtainedUpgradeBo.save(obtainedUpgrade);
 			requirementBo.triggerLevelUpCompleted(user);
 			improvementBo.clearSourceCache(user, obtainedUpgradeBo);
+			improvementBo.triggerChange(userId, obtainedUpgrade.getUpgrade().getImprovement());
 			delete(mission);
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(obtainedUpgrade);

@@ -23,7 +23,7 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
     private _resourceManagerService: ResourceManagerService,
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    _universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._resources = new AutoUpdatedResources(_resourceManagerService);
@@ -31,8 +31,11 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
       obtained_upgrades_change: '_onObtainedChange',
       running_upgrade_change: '_onRunningChange'
     };
-    this._offlineObtainedStore = _universeCacheManagerService.getStore('upgrade.obtained');
-    this._offlineRunningStore = _universeCacheManagerService.getStore('upgrade.running');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineObtainedStore = this._universeCacheManagerService.getStore('upgrade.obtained');
+    this._offlineRunningStore = this._universeCacheManagerService.getStore('upgrade.running');
   }
 
   /**
@@ -58,8 +61,8 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineObtainedStore.doIfNotNull(content => this._onObtainedChange(content));
-    this._offlineRunningStore.doIfNotNull(content => this._onRunningChange(content));
+    await this._offlineObtainedStore.doIfNotNull(content => this._onObtainedChange(content));
+    await this._offlineRunningStore.doIfNotNull(content => this._onRunningChange(content));
   }
 
   public findObtained(): Observable<ObtainedUpgrade[]> {
@@ -152,13 +155,13 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
     return this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/cancelUpgrade').toPromise();
   }
 
-  protected _onObtainedChange(content: ObtainedUpgrade[]): void {
-    this._offlineObtainedStore.save(content);
+  protected async _onObtainedChange(content: ObtainedUpgrade[]): Promise<void> {
+    await this._offlineObtainedStore.save(content);
     this._upgradeStore.obtained.next(content);
   }
 
-  protected _onRunningChange(content: UpgradeRunningMission): void {
-    this._offlineRunningStore.save(content);
+  protected async _onRunningChange(content: UpgradeRunningMission): Promise<void> {
+    await this._offlineRunningStore.save(content);
     this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
   }
 }

@@ -25,5 +25,6 @@ public class WebsocketConfiguration extends Configuration {
 	public void init() {
 		setHostname(host);
 		setPort(Integer.valueOf(port));
+		setRandomSession(true);
 	}
 }

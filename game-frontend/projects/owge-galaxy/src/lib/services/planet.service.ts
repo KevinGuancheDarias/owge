@@ -20,8 +20,8 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
     private _universeGameService: UniverseGameService,
     private _userStorage: UserStorage<User>,
     private _wsEventCacheService: WsEventCacheService,
-    sessionStore: SessionStore,
-    universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService,
+    sessionStore: SessionStore
   ) {
     super();
     this._eventsMap = {
@@ -30,7 +30,10 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
     };
     this._planeStore = new PlanetStore(sessionStore);
     this._userStorage.currentUser.subscribe(user => this._user = user);
-    this._offlinePlanetOwnedChange = universeCacheManagerService.getStore('planet.owned_list');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlinePlanetOwnedChange = this._universeCacheManagerService.getStore('planet.owned_list');
   }
 
   /**
@@ -50,7 +53,7 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlinePlanetOwnedChange.doIfNotNull(content => this._onPlanetOwnedChange(content));
+    await this._offlinePlanetOwnedChange.doIfNotNull(content => this._onPlanetOwnedChange(content));
   }
 
   public findMyPlanets(): Observable<Planet[]> {

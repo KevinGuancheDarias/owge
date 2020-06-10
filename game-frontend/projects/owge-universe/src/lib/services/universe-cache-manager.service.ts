@@ -23,40 +23,46 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
         this._eventsMap = {
             cache_full_clear_event: '_onCacheFullClearEvent'
         };
-        this._userId = +localStorage.getItem(this._universePrefix + 'cache_manager.user');
+        this._userId = +sessionStorage.getItem('cache_manager.user');
     }
 
-    public async beforeWorkaroundSync(): Promise<void> {
+    public async loadUser(): Promise<void> {
         const user: UserWithFaction = await Promise.race([
             this._userStore.currentToken.pipe(filter(val => !!val), map(val => JwtTokenUtil.parseToken(val).data), take(1)).toPromise(),
-            new Promise<any>(resolve => window.setTimeout(resolve, 1000))
+            new Promise<any>(resolve => window.setTimeout(resolve, 3000))
         ]);
         if (user) {
-            if (user.id !== this._userId) {
-                this._stores.filter(current => current.isUserDependant).forEach(current => current.delete());
-                this._userId = user.id;
-                localStorage.setItem(this._universePrefix + 'cache_manager.user', user.id.toString());
-            }
+            this._userId = user.id;
+            sessionStorage.setItem('cache_manager.user', user.id.toString());
         }
     }
 
+    public async beforeWorkaroundSync(): Promise<void> {
+        await this.loadUser();
+    }
+
     public async clearCache(): Promise<void> {
-        this._stores.forEach(current => current.delete());
+        await Promise.all(this._stores.map(current => current.delete()));
     }
 
     /**
-     * Notice. if invoked after or during the workaroundSync unexpected behavior may occur. It's best recommended to use in constructors
+     * Notice. if invoked before or during the workaroundSync unexpected behavior may occur. It's best recommended to use in constructors
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      * @template T
      * @param storeName
-     * @param [isUserDependant=true] If the cache should be clear in case of other user login
+     * @see AbstractWebsocketApplicationHandler::createStores()
      * @returns
      */
-    public getStore<T>(storeName: string, isUserDependant = true): StorageOfflineHelper<T> {
-        const retVal: StorageOfflineHelper<T> = new StorageOfflineHelper(this._universePrefix + storeName, 'local');
-        retVal.isUserDependant = isUserDependant;
+    public getStore<T>(storeName: string): StorageOfflineHelper<T> {
+        if (!this._userId) {
+            this._log.warn('Getting user shared cache, maybe invoking before workaroundSync');
+        }
+        const retVal: StorageOfflineHelper<T> = new StorageOfflineHelper(
+            this._universePrefix + this._userId + '_' + storeName,
+            'indexeddb'
+        );
         this._stores.push(retVal);
         return retVal;
     }
