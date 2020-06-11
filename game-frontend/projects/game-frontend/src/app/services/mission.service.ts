@@ -26,7 +26,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     private _loadingService: LoadingService,
     userStore: UserStorage<User>,
     private _missionStore: MissionStore,
-    universeCacheManagerService: UniverseCacheManagerService,
+    private _universeCacheManagerService: UniverseCacheManagerService,
     private _wsEventCacheService: WsEventCacheService
   ) {
     super();
@@ -38,9 +38,12 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     userStore.currentUserImprovements.subscribe(improvement =>
       _missionStore.maxMissions.next(improvement.moreMisions)
     );
-    this._offlineMyUnitMissionsStore = universeCacheManagerService.getStore('mission.my');
-    this._offlineEnemyUnitMissionsStore = universeCacheManagerService.getStore('mission.enemy');
-    this._offlineCountUnitMissionsStore = universeCacheManagerService.getStore('mission.count');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineMyUnitMissionsStore = this._universeCacheManagerService.getStore('mission.my');
+    this._offlineEnemyUnitMissionsStore = this._universeCacheManagerService.getStore('mission.enemy');
+    this._offlineCountUnitMissionsStore = this._universeCacheManagerService.getStore('mission.count');
   }
 
   /**
@@ -86,11 +89,11 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public async workaroundInitialOffline(): Promise<void> {
-    const count: number = this._offlineCountUnitMissionsStore.find();
+    const count: number = await this._offlineCountUnitMissionsStore.find();
     if (typeof count === 'number') {
-      this._offlineMyUnitMissionsStore.doIfNotNull(content => this._onMyUnitMissionsChange({ count, myUnitMissions: content }));
+      await this._offlineMyUnitMissionsStore.doIfNotNull(content => this._onMyUnitMissionsChange({ count, myUnitMissions: content }));
     }
-    this._offlineEnemyUnitMissionsStore.doIfNotNull(content => this._onEnemyMissionChange(content));
+    await this._offlineEnemyUnitMissionsStore.doIfNotNull(content => this._onEnemyMissionChange(content));
   }
 
   public findMyRunningMissions(): Observable<UnitRunningMission[]> {
@@ -208,12 +211,12 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    * @param content
    */
-  protected _onMyUnitMissionsChange(content: { count: number, myUnitMissions: UnitRunningMission[] }): void {
+  protected async _onMyUnitMissionsChange(content: { count: number, myUnitMissions: UnitRunningMission[] }): Promise<void> {
     this._onMissionsCountChange(content.count);
     const withBrowserDateContent: UnitRunningMission[] = content.myUnitMissions
       .map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.myUnitMissions.next(withBrowserDateContent);
-    this._offlineMyUnitMissionsStore.save(withBrowserDateContent);
+    await this._offlineMyUnitMissionsStore.save(withBrowserDateContent);
   }
 
   /**
@@ -223,15 +226,15 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    * @param content
    */
-  protected _onEnemyMissionChange(content: UnitRunningMission[]): void {
+  protected async _onEnemyMissionChange(content: UnitRunningMission[]): Promise<void> {
     const withBrowserDateContent: UnitRunningMission[] = content.map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.enemyUnitMissions.next(withBrowserDateContent);
-    this._offlineEnemyUnitMissionsStore.save(withBrowserDateContent);
+    await this._offlineEnemyUnitMissionsStore.save(withBrowserDateContent);
   }
 
-  protected _onMissionsCountChange(content: number) {
+  protected async _onMissionsCountChange(content: number) {
     this._missionStore.missionsCount.next(content);
-    this._offlineCountUnitMissionsStore.save(content);
+    await this._offlineCountUnitMissionsStore.save(content);
   }
 
   private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {

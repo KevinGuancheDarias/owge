@@ -49,7 +49,13 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._planetService.findCurrentPlanet().subscribe(currentSelected => this._selectedPlanet = currentSelected);
-    this._initOfflineCaches();
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineUnlockedCache = this._universeCacheManagerService.getStore('unit.unlocked');
+    this._offlineObtainedCache = this._universeCacheManagerService.getStore('unit.obtained');
+    this._offlineBuildMissionCache = this._universeCacheManagerService.getStore('unit.build_missions');
+    this._offlineRequirementsCache = this._universeCacheManagerService.getStore('unit.requirements');
   }
 
   /**
@@ -78,9 +84,11 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineUnlockedCache.doIfNotNull(content => this._onUnlockedChange(content));
-    this._offlineObtainedCache.doIfNotNull(content => this._onObtainedChange(content));
-    this._offlineBuildMissionCache.doIfNotNull(content => this._onBuildMissionChange(content));
+    await Promise.all([
+      this._offlineUnlockedCache.doIfNotNull(content => this._onUnlockedChange(content)),
+      this._offlineObtainedCache.doIfNotNull(content => this._onObtainedChange(content)),
+      this._offlineBuildMissionCache.doIfNotNull(content => this._onBuildMissionChange(content))
+    ]);
   }
 
   /**
@@ -243,7 +251,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onUnlockedChange(content: Unit[]): Promise<void> {
-    const cachedValue = this._offlineRequirementsCache.find();
+    const cachedValue = await this._offlineRequirementsCache.find();
     let unitUpgradeRequirements;
     if (cachedValue) {
       unitUpgradeRequirements = cachedValue;
@@ -251,7 +259,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unitUpgradeRequirements = await this._universeGameService.requestWithAutorizationToContext<UnitUpgradeRequirements[]>(
         'game', 'get', 'unit/requirements'
       ).toPromise();
-      this._offlineRequirementsCache.save(unitUpgradeRequirements);
+      await this._offlineRequirementsCache.save(unitUpgradeRequirements);
     }
     if (this._onUnlockedChangeSubscription) {
       this._onUnlockedChangeSubscription.unsubscribe();
@@ -261,19 +269,19 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
       this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);
     });
-    this._offlineUnlockedCache.save(content);
+    await this._offlineUnlockedCache.save(content);
     this._unitStore.unlocked.next(content);
   }
 
-  protected _onObtainedChange(content: ObtainedUnit[]): void {
+  protected async _onObtainedChange(content: ObtainedUnit[]): Promise<void> {
     this._unitStore.obtained.next(
       this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id, true)
     );
-    this._offlineObtainedCache.save(content);
+    await this._offlineObtainedCache.save(content);
   }
 
-  protected _onBuildMissionChange(content: UnitBuildRunningMission[]): void {
-    this._offlineBuildMissionCache.save(content);
+  protected async _onBuildMissionChange(content: UnitBuildRunningMission[]): Promise<void> {
+    await this._offlineBuildMissionCache.save(content);
     content.forEach(current => DateUtil.computeBrowserTerminationDate(current));
     this._unitStore.runningBuildMissions.next(content);
   }
@@ -321,12 +329,5 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
         upgrade => upgrade.upgrade.id === currentRequirement.upgrade.id && upgrade.level >= currentRequirement.level
       );
     });
-  }
-
-  private _initOfflineCaches(): void {
-    this._offlineUnlockedCache = this._universeCacheManagerService.getStore('unit.unlocked');
-    this._offlineObtainedCache = this._universeCacheManagerService.getStore('unit.obtained');
-    this._offlineBuildMissionCache = this._universeCacheManagerService.getStore('unit.build_missions');
-    this._offlineRequirementsCache = this._universeCacheManagerService.getStore('unit.requirements');
   }
 }

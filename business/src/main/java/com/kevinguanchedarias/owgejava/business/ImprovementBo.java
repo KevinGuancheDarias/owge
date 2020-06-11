@@ -4,9 +4,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
@@ -23,6 +25,7 @@ import com.kevinguanchedarias.owgejava.dto.ImprovementDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
@@ -54,11 +57,15 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	private ConfigurationBo configurationBo;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Autowired
 	private transient BeanFactory beanFactory;
+
 	private transient List<ImprovementSource> improvementSources = new ArrayList<>();
+
+	private transient Map<ImprovementChangeEnum, List<BiConsumer<Integer, Improvement>>> improvementChangeListeners = new EnumMap<>(
+			ImprovementChangeEnum.class);
 
 	/*
 	 * (non-Javadoc)
@@ -90,6 +97,24 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	 */
 	public void addImprovementSource(ImprovementSource improvementSource) {
 		improvementSources.add(improvementSource);
+	}
+
+	/**
+	 * Adds a change listener
+	 *
+	 * @param change
+	 * @param listener
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void addChangeListener(ImprovementChangeEnum change, BiConsumer<Integer, Improvement> listener) {
+		if (improvementChangeListeners.get(change) == null) {
+			List<BiConsumer<Integer, Improvement>> actions = new ArrayList<>();
+			actions.add(listener);
+			improvementChangeListeners.put(change, actions);
+		} else {
+			improvementChangeListeners.get(change).add(listener);
+		}
 	}
 
 	/**
@@ -129,6 +154,40 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 			cacheManager.getCache(CACHE_KEY).evictIfPresent(sourceCacheName);
 			return beanFactory.getBean(getClass()).findUserImprovement(user);
 		});
+	}
+
+	/**
+	 * Triggers a change detection
+	 *
+	 * @param improvement
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void triggerChange(Integer userId, Improvement improvement) {
+		if (improvement.getMorePrimaryResourceProduction() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_PRIMARY_PRODUCTION, userId, improvement);
+		}
+		if (improvement.getMoreSecondaryResourceProduction() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_SECONDARY_PRODUCTION, userId, improvement);
+		}
+		if (improvement.getMoreEnergyProduction() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_ENERGY, userId, improvement);
+		}
+		if (improvement.getMoreChargeCapacity() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_CHARGE, userId, improvement);
+		}
+		if (improvement.getMoreMisions() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_MISSIONS, userId, improvement);
+		}
+		if (improvement.getMoreUpgradeResearchSpeed() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_UPGRADE_RESEARCH_SPEED, userId, improvement);
+		}
+		if (improvement.getMoreUnitBuildSpeed() > 0.0000F) {
+			doTrigger(ImprovementChangeEnum.MORE_UNIT_BUILD_SPEED, userId, improvement);
+		}
+		if (!improvement.getUnitTypesUpgrades().isEmpty()) {
+			doTrigger(ImprovementChangeEnum.UNIT_IMPROVEMENTS, userId, improvement);
+		}
 	}
 
 	/**
@@ -332,5 +391,12 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 
 	private String findSourceCacheName(UserStorage user, ImprovementSource improvementSource) {
 		return findSourceServiceName(improvementSource) + '/' + user.getId();
+	}
+
+	private void doTrigger(ImprovementChangeEnum name, Integer userId, Improvement improvement) {
+		List<BiConsumer<Integer, Improvement>> actions = improvementChangeListeners.get(name);
+		if (actions != null) {
+			actions.forEach(action -> action.accept(userId, improvement));
+		}
 	}
 }

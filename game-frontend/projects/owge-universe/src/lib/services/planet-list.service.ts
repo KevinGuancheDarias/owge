@@ -23,13 +23,16 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
     public constructor(
         private _universeGameService: UniverseGameService,
         private _wsEventCacheService: WsEventCacheService,
-        universeCacheManagerService: UniverseCacheManagerService
+        private _universeCacheManagerService: UniverseCacheManagerService
     ) {
         super();
         this._eventsMap = {
             planet_user_list_change: '_onPlanetUserListChange'
         };
-        this._offlineStore = universeCacheManagerService.getStore('planet_list.list');
+    }
+
+    public async createStores(): Promise<void> {
+        this._offlineStore = this._universeCacheManagerService.getStore('planet_list.list');
     }
 
     /**
@@ -76,11 +79,11 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
     }
 
     public async workaroundInitialOffline(): Promise<void> {
-        this._offlineStore.doIfNotNull(content => this._onPlanetUserListChange(content));
+        await this._offlineStore.doIfNotNull(content => this._onPlanetUserListChange(content));
     }
 
-    protected _onPlanetUserListChange(content: PlanetListItem[]): void {
-        this._offlineStore.save(content);
+    protected async _onPlanetUserListChange(content: PlanetListItem[]): Promise<void> {
+        await this._offlineStore.save(content);
         this._store.list.next(content);
     }
 }

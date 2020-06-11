@@ -17,6 +17,10 @@ export abstract class AbstractWebsocketApplicationHandler {
         // You can too use the method in WesocketService to register a handler
     }
 
+    public async createStores(): Promise<void> {
+        // The ideal moment to create the used offline stores, as the service is aware of the user
+    }
+
     /**
      * Actions to run when connected or reconnected to websocket
      *

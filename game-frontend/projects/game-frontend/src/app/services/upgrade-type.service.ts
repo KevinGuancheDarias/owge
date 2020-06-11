@@ -16,13 +16,16 @@ export class UpgradeTypeService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       upgrade_types_change: '_onChange'
     };
-    this._offlineStore = universeCacheManagerService.getStore('upgrade_types.available', false);
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineStore = this._universeCacheManagerService.getStore('upgrade_types.available');
   }
 
   public async workaroundSync(): Promise<void> {
@@ -32,7 +35,7 @@ export class UpgradeTypeService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineStore.doIfNotNull(content => this._onChange(content));
+    await this._offlineStore.doIfNotNull(content => this._onChange(content));
   }
 
   public getUpgradeTypes(): Observable<UpgradeType[]> {

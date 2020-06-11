@@ -24,13 +24,16 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     private _loginSessionService: LoginSessionService,
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
     this._eventsMap = {
       unit_type_change: '_onUnitTypeChange'
     };
-    this._offlineUnitTypes = universeCacheManagerService.getStore('unit_type.values');
+  }
+
+  public async createStores(): Promise<void> {
+    this._offlineUnitTypes = this._universeCacheManagerService.getStore('unit_type.values');
   }
 
   public async workaroundSync(): Promise<void> {
@@ -40,7 +43,7 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
   }
 
   public async workaroundInitialOffline(): Promise<void> {
-    this._offlineUnitTypes.doIfNotNull(content => this._onUnitTypeChange(content));
+    await this._offlineUnitTypes.doIfNotNull(content => this._onUnitTypeChange(content));
   }
 
   public getUnitTypes(): Observable<UnitType[]> {
@@ -117,7 +120,7 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     });
   }
 
-  protected _onUnitTypeChange(content: UnitType[]): void {
+  protected async _onUnitTypeChange(content: UnitType[]): Promise<void> {
     content.map(current => {
       if (!current.userBuilt) {
         current.userBuilt = 0;
@@ -126,7 +129,7 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     });
     this._currentValue = content;
     this._unitTypeStore.userValues.next(content);
-    this._offlineUnitTypes.save(content);
+    await this._offlineUnitTypes.save(content);
   }
 
   private _findTypeById(id: number): UnitType {
