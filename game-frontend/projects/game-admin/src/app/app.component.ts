@@ -3,6 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { UserStorage, User, MenuRoute, ROUTES } from '@owge/core';
 import { AbstractSidebarComponent } from '@owge/widgets';
 import { TranslateService } from '@ngx-translate/core';
+import { AdminUser } from './types/admin-user.type';
+import { AdminUserStore } from './store/admin-user.store';
+import { map } from 'rxjs/operators';
 
 /**
  *
@@ -31,8 +34,11 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
     this._createTranslatableMenuRoute('APP.MENU_SPECIAL_LOCATIONS', 'special-locations', 'fas fa-globe-europe')
   ];
 
-  public constructor(private _userStore: UserStorage<User>, _translateService: TranslateService) {
-    super(_translateService);
+  public constructor(private _userStore: UserStorage<User>, adminUserStore: AdminUserStore, translateService: TranslateService) {
+    super(translateService);
+    const adminUserRoute: MenuRoute = this._createTranslatableMenuRoute('APP.MENU_ADMIN_USERS', 'admin-users', 'fa fa-user');
+    adminUserRoute.shouldDisplay = adminUserStore.adminUser.pipe(map(adminUser => adminUser.canAddAdmins));
+    this.sidebarRoutes.push(adminUserRoute);
   }
 
   public ngOnInit(): void {

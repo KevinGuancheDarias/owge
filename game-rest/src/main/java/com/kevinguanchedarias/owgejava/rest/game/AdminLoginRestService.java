@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.rest.game;
 
@@ -25,7 +25,7 @@ public class AdminLoginRestService {
 	@Autowired
 	private AdminUserBo adminUserBo;
 
-	@PostMapping(value = "adminLogin")
+	@PostMapping("adminLogin")
 	public TokenPojo login() {
 		return adminUserBo.login();
 	}

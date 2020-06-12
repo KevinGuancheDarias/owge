@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { ReplaySubject } from 'rxjs';
+import { ReplaySubject, Subject } from 'rxjs';
 
-import { User, SessionStore } from '@owge/core';
+import { SessionStore } from '@owge/core';
+import { AdminUser } from '../types/admin-user.type';
 
 /**
  * Stores admin user related info
@@ -10,7 +11,7 @@ import { User, SessionStore } from '@owge/core';
  * @since 0.8.0
  * @export
  */
-@Injectable({ providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class AdminUserStore {
 
     /**
@@ -18,7 +19,7 @@ export class AdminUserStore {
      *
      * @since 0.8.0
      */
-    public readonly adminUser: ReplaySubject<User> = new ReplaySubject(1);
+    public readonly adminUser: ReplaySubject<AdminUser> = new ReplaySubject(1);
 
     /**
      * Currently logged admin token
@@ -26,6 +27,20 @@ export class AdminUserStore {
      * @since 0.8.0
      */
     public readonly adminToken: ReplaySubject<string> = new ReplaySubject(1);
+
+    /**
+     * Represents the admin users of this universe
+     *
+     * @since 0.9.0
+     */
+    public readonly added: Subject<AdminUser[]> = new ReplaySubject(1);
+
+    /**
+     * Represents the users that can be added as admins
+     *
+     * @since 0.9.0
+     */
+    public readonly available: Subject<AdminUser[]> = new ReplaySubject(1);
 
     public constructor(private _sessionStore: SessionStore) {
         this._sessionStore.addSubject('adminUser', this.adminUser);

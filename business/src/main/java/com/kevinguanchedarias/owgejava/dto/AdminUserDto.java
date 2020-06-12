@@ -1,80 +1,69 @@
-/**
- *
- */
-package com.kevinguanchedarias.owgejava.entity;
+package com.kevinguanchedarias.owgejava.dto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import com.kevinguanchedarias.owgejava.entity.AdminUser;
+import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
 /**
  *
- * @since 0.8.0
+ * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ *
  */
-@Entity
-@Table(name = "admin_users")
-public class AdminUser implements EntityWithId<Integer> {
-	private static final long serialVersionUID = 7181807205260800042L;
-
-	@Id
+public class AdminUserDto implements WithDtoFromEntityTrait<AdminUser> {
 	private Integer id;
-
-	@Column(nullable = false)
 	private String username;
-
-	@Column(nullable = false)
 	private Boolean enabled;
-
-	@Column(name = "can_add_admins", nullable = false)
-	private Boolean canAddAdmins = false;
+	private Boolean canAddAdmins;
 
 	/**
-	 * @since 0.8.0
 	 * @return the id
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Override
 	public Integer getId() {
 		return id;
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @param id the id to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
 	 */
-	@Override
 	public void setId(Integer id) {
 		this.id = id;
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @return the username
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public String getUsername() {
 		return username;
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @param username the username to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
 	 */
 	public void setUsername(String username) {
 		this.username = username;
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @return the enabled
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Boolean getEnabled() {
 		return enabled;
 	}
 
 	/**
-	 * @since 0.8.0
 	 * @param enabled the enabled to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
 	 */
 	public void setEnabled(Boolean enabled) {
 		this.enabled = enabled;
@@ -97,4 +86,5 @@ public class AdminUser implements EntityWithId<Integer> {
 	public void setCanAddAdmins(Boolean canAddAdmins) {
 		this.canAddAdmins = canAddAdmins;
 	}
+
 }

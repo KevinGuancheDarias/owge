@@ -43,6 +43,8 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { AdminSpecialLocationService } from './services/admin-special-location.service';
 import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
+import { AdminUsersComponent } from './components/admin-users/admin-users.component';
+import { AdminUserService } from './services/admin-user.service';
 
 @NgModule({
   declarations: [
@@ -63,7 +65,8 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
     ResourceRequirementsCrudComponent,
     UnitCrudComponent,
     SpecialLocationCrudComponent,
-    RequirementsFilterComponent
+    RequirementsFilterComponent,
+    AdminUsersComponent
   ],
   imports: [
     BrowserModule,
@@ -102,6 +105,7 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
     AdminGalaxyService,
     AdminUnitService,
     AdminSpecialLocationService,
+    AdminUserService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

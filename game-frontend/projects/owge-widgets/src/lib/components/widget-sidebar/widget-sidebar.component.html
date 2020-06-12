@@ -11,7 +11,7 @@
                   <span #largestRouteEl *ngIf="largestRouteName && !computedTitleWidth" class="hidden-magic-computation">{{ largestRouteName.text }}</span>
             </a>
             <ng-container *ngFor="let route of sidebarRoutes">
-                  <div class="owge-sidebar-option">
+                  <div class="owge-sidebar-option" *ngIf="!route.shouldDisplay || (route.shouldDisplay | async)">
                         <a *ngIf="route.path" class="owge-sidebar-btn-menu" [ngClass]="!isConnected && route.isConnectionRequired ? 'disabled-for-offline' : ''" role="button" [routerLink]="(isConnected || !route.isConnectionRequired) ? route.path : undefined"
                         routerLinkActive="selected-menu-link" (click)="checkRequiredConnection($event, route)">
                               <span><i [class]="route.icon"></i></span>

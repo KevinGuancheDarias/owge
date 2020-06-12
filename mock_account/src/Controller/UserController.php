@@ -29,6 +29,7 @@ class UserController implements RouterAwareController {
     public function defineRoutes(Router $router): void {
         $router->group('/user', function (RouteGroup $routeGroup) {
             $routeGroup->post('login',[$this, 'login']);
+            $routeGroup->get('public', [$this, 'public']);
         });
     }
 
@@ -45,5 +46,15 @@ class UserController implements RouterAwareController {
             'token' => $userData->token,
             'userId' => $userData->id
         ];
+    }
+
+    /**
+     * Finds the users that are publicly available, in this mock implementation, just returns all
+     * 
+     * @since 0.9.0
+     * @author Kevin Guanche Darias
+     */
+    public function public(ServerRequestInterface $request): array {
+        return $this->userService->findAll();
     }
 }

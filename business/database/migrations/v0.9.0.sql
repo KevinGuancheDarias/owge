@@ -42,3 +42,7 @@ ALTER TABLE `mission_reports` ADD `is_enemy` TINYINT(1) NULL DEFAULT '0' AFTER `
 CREATE TABLE `websocket_events_information` ( `event_name` VARCHAR(100) NOT NULL , `user_id`  INT(11) UNSIGNED NOT NULL , `last_sent` DATETIME NOT NULL ) ENGINE = InnoDB;
 ALTER TABLE `websocket_events_information` ADD PRIMARY KEY( `event_name`, `user_id`);
 ALTER TABLE `websocket_events_information` ADD CONSTRAINT `fk_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `admin_users` DROP `password`, DROP `mail`;
+ALTER TABLE `admin_users` ADD `can_add_admins` TINYINT UNSIGNED NOT NULL AFTER `enabled`;
+ALTER TABLE `admin_users` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL;

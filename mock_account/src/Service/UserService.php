@@ -47,6 +47,21 @@ class UserService {
     }
 
     /**
+     * Returns all the users, note only returns the username and the id
+     *  
+     * @since 0.8.0
+     * @author Kevin Guanche Darias
+     */
+    public function findAll(): array {
+        $connection = $this->dbHandler->getConnection();
+        $result = $connection->query('SELECT id, username FROM users');
+        return array_map(function($current) {
+            $current['id'] = +$current['id'];
+            return $current;
+        },$result->fetch_all(MYSQLI_ASSOC));
+    }
+
+    /**
      * 
      * Creates the user into the database
      * 
