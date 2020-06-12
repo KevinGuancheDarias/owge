@@ -3,7 +3,6 @@
  */
 
 export * from './lib/components/image-selector/image-selector.component';
-export * from './lib/components/planet-list-add-edit-modal/planet-list-add-edit-modal.component';
 export * from './lib/directives/on-click-if-ws-conected.directive';
 export * from './lib/initializers/universe.initializer';
 export * from './lib/mixins/services/with-improvements-crud.mixin';
@@ -16,7 +15,6 @@ export * from './lib/pojos/auto-update-resources.pojo';
 export * from './lib/pojos/resource-requirements.pojo';
 export * from './lib/services/abstract-crud.service';
 export * from './lib/services/image-store.service';
-export * from './lib/services/planet-list.service';
 export * from './lib/services/resource-manager.service';
 export * from './lib/services/universe-cache-manager.service';
 export * from './lib/services/universe-game.service';
@@ -39,7 +37,6 @@ export * from './lib/types/image-store.type';
 export * from './lib/types/mission-support.type';
 export * from './lib/types/obtained-unit.type';
 export * from './lib/types/obtained-upgrade.type';
-export * from './lib/types/planet-list-item.type';
 export * from './lib/types/planet-units-representation.type';
 export * from './lib/types/requirement-information.type';
 export * from './lib/types/requirement.type';

@@ -1,7 +1,7 @@
 <app-mission-modal #missionModal></app-mission-modal>
-<owge-universe-planet-list-add-edit-modal #addEditModal [addingOrEditing]="addingOrEditing">
+<owge-galaxy-planet-list-add-edit-modal #addEditModal [addingOrEditing]="addingOrEditing">
 
-</owge-universe-planet-list-add-edit-modal>
+</owge-galaxy-planet-list-add-edit-modal>
 
 <div class="filters use-compact owge-base-colors">
     <input #checkbox type="checkbox" [(ngModel)]="wantOwnedOnly" (ngModelChange)="onChange()"/>
@@ -9,7 +9,7 @@
 </div>
 <span *ngIf="filteredList && !filteredList.length" class="owge-base-colors">{{ 'APP.PLANET_LIST.EMPTY' | translate }}</span>
 <ng-container *ngFor="let item of filteredList">
-    <owge-widgets-display-list-item [itemName]="item.name || item.planet.name" [itemDescription]="item.planet | planetDescription | async" [image]="item.planet | planetImage">
+    <owge-widgets-display-list-item [itemName]="item.name || (item.planet | planetDisplayName)" [itemDescription]="item.planet | planetDescription | async" [image]="item.planet | planetImage">
         <ng-template owgeCoreContent select="action-buttons">
             <img [src]="'mission.png' | uiIcon" [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate" (click)="sendMission(item.planet)" />
         <a href="javascript:void()"(click)="addEdit(item)" ><i class="fa action fa-pen"></i></a>

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 	}
 
 	/**
+	 * Handles unexplored, if it's unexplored planet
 	 *
 	 * @param userId
 	 * @return
@@ -39,7 +41,10 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<PlanetList> findByUserId(Integer userId) {
-		return repository.findByPlanetUserUserId(userId);
+		List<PlanetList> retVal = repository.findByPlanetUserUserId(userId);
+		planetBo.cleanUpUnexplored(userId,
+				retVal.stream().map(current -> current.getPlanetUser().getPlanet()).collect(Collectors.toList()));
+		return retVal;
 	}
 
 	/**

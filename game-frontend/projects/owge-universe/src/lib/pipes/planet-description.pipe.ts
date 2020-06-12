@@ -19,7 +19,6 @@ export class PlanetDescriptionPipe implements PipeTransform {
 
     }
 
-
     /**
      *
      *
@@ -29,9 +28,18 @@ export class PlanetDescriptionPipe implements PipeTransform {
      * @returns
      */
     public transform(planet: Planet): Observable<string> {
-        const { sector, quadrant, galaxyName, ownerName, planetNumber, name } = planet;
+        const { sector, quadrant, galaxyName, ownerName, planetNumber } = planet;
+        const name = planet.name || this._createNameFromCoordinates(planet);
         return this._translateService.get('APP.PLANET.SUMMARY', {
             sector, quadrant, galaxyName, ownerName, planetNumber, name
         });
     }
+
+    private _createNameFromCoordinates(planet: Planet): string {
+        const formattedSector: number = planet.sector;
+        const formattedQuadrant: number = planet.quadrant;
+        const formattedPlanetNumber: number = planet.planetNumber;
+        return `${planet.galaxyName.substr(0, 1)}S${formattedSector}C${formattedQuadrant}N${formattedPlanetNumber}`;
+    }
+
 }

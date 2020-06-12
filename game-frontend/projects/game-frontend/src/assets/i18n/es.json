@@ -52,6 +52,7 @@
             "OWNED_BY": "Propiedad de. {{username}}"
         },
         "PLANET_LIST": {
+            "PLANET_LIST": "Tu lista está vacía",
             "ADD": "Añadir nuevo",
             "EDIT": "Editando {{el}}",
             "LABEL_NAME": "Nombre (Opcional):",

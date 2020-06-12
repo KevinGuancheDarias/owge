@@ -1,12 +1,11 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
-import { PlanetListItem, PlanetListService, PlanetListAddEditModalComponent, Planet } from '@owge/universe';
+import { Planet } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
 import { MissionModalComponent } from '../../mission-modal/mission-modal.component';
 import { MissionInformationStore } from '../../store/mission-information.store';
-import { PlanetService } from '@owge/galaxy';
+import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent, } from '@owge/galaxy';
 import { Subscription } from 'rxjs';
 import { UnitService } from '../../service/unit.service';
-
 
 /**
  *

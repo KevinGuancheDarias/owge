@@ -1,4 +1,4 @@
-import { Planet } from '../pojos/planet.pojo';
+import { Planet } from '@owge/universe';
 
 /**
  * Represents an item of the uset planet list
