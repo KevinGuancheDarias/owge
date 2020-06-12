@@ -369,6 +369,16 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 		return (float) findAsRational((double) inputPercentage);
 	}
 
+	/**
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ImprovementSource> getImprovementSources() {
+		return improvementSources;
+	}
+
 	private GroupedImprovement findFromCacheOrBo(UserStorage user, ImprovementSource improvementSource) {
 		String childCacheKey = findSourceCacheName(user, improvementSource);
 		ValueWrapper cached = cacheManager.getCache(CACHE_KEY).get(childCacheKey);

@@ -20,9 +20,6 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
     public constructor(private _userStore: UserStorage<UserWithFaction>) {
         super();
         this._universePrefix = window.document.baseURI + '_';
-        this._eventsMap = {
-            cache_full_clear_event: '_onCacheFullClearEvent'
-        };
         this._userId = +sessionStorage.getItem('cache_manager.user');
     }
 
@@ -65,11 +62,5 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
         );
         this._stores.push(retVal);
         return retVal;
-    }
-
-    protected _onCacheFullClearEvent(): void {
-        Object.keys(localStorage)
-            .filter(key => key.indexOf(StorageOfflineHelper.getStartingPrefix() + this._universePrefix) === 0)
-            .forEach(key => localStorage.removeItem(key));
     }
 }
