@@ -52,6 +52,7 @@
             "OWNED_BY": "Owned by: {{username}} "
         },
         "PLANET_LIST": {
+            "EMPTY": "Your list is empty",
             "ADD": "Add new",
             "EDIT": "Editing {{el}}",
             "LABEL_NAME": "Name (Optional):",

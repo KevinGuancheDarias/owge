@@ -9,9 +9,9 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService, PlanetListService } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
-import { OwgeGalaxyModule, PlanetService } from '@owge/galaxy';
+import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
 
 import { environment } from '../environments/environment';
 import { ServiceLocator } from './service-locator/service-locator';
@@ -67,7 +67,6 @@ import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
 import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
-import { Subscription } from 'rxjs';
 import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
 import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
 import { TimeSpecialService } from './services/time-specials.service';

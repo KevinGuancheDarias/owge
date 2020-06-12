@@ -263,4 +263,35 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 				&& missionBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
 	}
 
+	/**
+	 *
+	 * @param planets
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Planet> myCleanUpUnexplored(List<Planet> planets) {
+		return cleanUpUnexplored(userStorageBo.findLoggedIn().getId(), planets);
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param planets
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Planet> cleanUpUnexplored(Integer userId, List<Planet> planets) {
+		planets.forEach(current -> {
+			if (!isExplored(userId, current.getId())) {
+				current.setName(null);
+				current.setRichness(null);
+				current.setHome(null);
+				current.setOwner(null);
+				current.setSpecialLocation(null);
+			}
+		});
+		return planets;
+	}
 }

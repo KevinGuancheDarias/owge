@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { PlanetPojo } from '../../shared-pojo/planet.pojo';
+import { Planet } from '@owge/universe';
 
 /**
  * This pipe displays the planet name or not explored, if the planet is not explored
@@ -15,7 +15,7 @@ import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 })
 export class PlanetDisplayNamePipe implements PipeTransform {
 
-  transform(planet: PlanetPojo): string {
+  transform(planet: Planet): string {
     if (!planet) {
       return 'Unexplored :(';
     } else if (planet.name) {
@@ -25,16 +25,10 @@ export class PlanetDisplayNamePipe implements PipeTransform {
     }
   }
 
-  private _createNameFromCoordinates(planet: PlanetPojo): string {
-    const formattedSector: string = this._addLeadingZeroIfRequired(planet.sector);
-    const formattedQuadrant: string = this._addLeadingZeroIfRequired(planet.quadrant);
-    const formattedPlanetNumber: string = this._addLeadingZeroIfRequired(planet.planetNumber);
+  private _createNameFromCoordinates(planet: Planet): string {
+    const formattedSector: number = planet.sector;
+    const formattedQuadrant: number = planet.quadrant;
+    const formattedPlanetNumber: number = planet.planetNumber;
     return `${planet.galaxyName.substr(0, 1)}S${formattedSector}C${formattedQuadrant}N${formattedPlanetNumber}`;
-  }
-
-  private _addLeadingZeroIfRequired(input: number): string {
-    return input < 10
-      ? '0' + input
-      : input.toString();
   }
 }

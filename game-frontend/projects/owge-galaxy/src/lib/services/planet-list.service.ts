@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import { UniverseGameService } from './universe-game.service';
-import { UniverseCacheManagerService } from './universe-cache-manager.service';
-import { WsEventCacheService } from './ws-event-cache.service';
 import { StorageOfflineHelper, AbstractWebsocketApplicationHandler } from '@owge/core';
+import { Observable, Subscription } from 'rxjs';
+import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
+import { PlanetListStore } from '../stores/planet-list.store';
 import { PlanetListItem } from '../types/planet-list-item.type';
-import { PlanetListStore } from '../storages/planet-list.store';
-import { Observable } from 'rxjs';
-
+import { PlanetService } from './planet.service';
 
 /**
  *
@@ -19,16 +17,20 @@ import { Observable } from 'rxjs';
 export class PlanetListService extends AbstractWebsocketApplicationHandler {
     private _store: PlanetListStore = new PlanetListStore;
     private _offlineStore: StorageOfflineHelper<PlanetListItem[]>;
+    private _list: PlanetListItem[] = [];
+    private _planetExploredSubscription: Subscription;
 
     public constructor(
         private _universeGameService: UniverseGameService,
         private _wsEventCacheService: WsEventCacheService,
-        private _universeCacheManagerService: UniverseCacheManagerService
+        private _universeCacheManagerService: UniverseCacheManagerService,
+        private _planetService: PlanetService
     ) {
         super();
         this._eventsMap = {
             planet_user_list_change: '_onPlanetUserListChange'
         };
+        this._store.list.subscribe(list => this._list = list);
     }
 
     public async createStores(): Promise<void> {
@@ -74,7 +76,7 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
         this._onPlanetUserListChange(await this._wsEventCacheService.findFromCacheOrRun(
             'planet_user_list_change',
             this._offlineStore,
-            async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'planet-list').toPromise()
+            async () => await this._getFromBackend()
         ));
     }
 
@@ -83,7 +85,28 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
     }
 
     protected async _onPlanetUserListChange(content: PlanetListItem[]): Promise<void> {
+        if (this._planetExploredSubscription) {
+            this._planetExploredSubscription.unsubscribe();
+            delete this._planetExploredSubscription;
+        }
+        this._planetExploredSubscription = this._planetService.onPlanetExplored().subscribe(async planet => {
+            if (planet) {
+                const index = this._list.findIndex(current => current.planet.id === planet.id);
+                if (index !== -1) {
+                    this._list[index].planet = planet;
+                }
+            } else {
+                this._list = await this._getFromBackend();
+            }
+            await this._offlineStore.save(this._list);
+            this._store.list.next(this._list);
+        });
         await this._offlineStore.save(content);
         this._store.list.next(content);
+
+    }
+
+    private _getFromBackend(): Promise<PlanetListItem[]> {
+        return this._universeGameService.requestWithAutorizationToContext('game', 'get', 'planet-list').toPromise();
     }
 }

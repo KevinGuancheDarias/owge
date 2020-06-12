@@ -1,8 +1,8 @@
 import { Component, Input, OnChanges, ViewChild } from '@angular/core';
 import { AbstractModalContainerComponent, LoadingService } from '@owge/core';
+import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { PlanetListItem } from '../../types/planet-list-item.type';
 import { PlanetListService } from '../../services/planet-list.service';
-import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 
 /**
  *
@@ -12,7 +12,7 @@ import { WidgetConfirmationDialogComponent } from '@owge/widgets';
  * @export
  */
 @Component({
-  selector: 'owge-universe-planet-list-add-edit-modal',
+  selector: 'owge-galaxy-planet-list-add-edit-modal',
   templateUrl: './planet-list-add-edit-modal.component.html',
   styleUrls: ['./planet-list-add-edit-modal.component.scss']
 })
@@ -29,7 +29,9 @@ export class PlanetListAddEditModalComponent extends AbstractModalContainerCompo
   }
 
   public ngOnChanges(): void {
-    this.originalName = this.addingOrEditing.name || this.addingOrEditing.planet.name;
+    if (this.addingOrEditing) {
+      this.originalName = this.addingOrEditing.name || this.addingOrEditing.planet.name || '';
+    }
   }
 
   public async savePlanetList(): Promise<void> {
