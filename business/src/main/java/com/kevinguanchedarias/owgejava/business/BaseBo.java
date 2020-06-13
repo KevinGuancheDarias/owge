@@ -44,7 +44,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	default E findById(K id) {
-		return onFind(getRepository().findById(id).get());
+		return onFind(getRepository().findById(id).orElse(null));
 	}
 
 	default E findByIdOrDie(K id) {

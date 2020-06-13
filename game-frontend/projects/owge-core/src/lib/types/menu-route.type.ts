@@ -1,4 +1,5 @@
 import { Injector } from '@angular/core';
+import { Observable } from 'rxjs';
 
 /**
  * Represents a "Menu button"
@@ -39,15 +40,19 @@ export interface MenuRoute {
     /**
      * Action to run to check if should display the route or not
      *
+     * @deprecated As of 0.9.0 Use shouldDisplay
      * @since 0.7.0
      */
     ngIf?: (injector: Injector) => Promise<boolean>;
 
     /**
      *
+     * @deprecated As of 0.9.0 It's better to use shouldDisplay
      * @since 0.7.0
      */
     isNgIfOk?: boolean;
+
+    shouldDisplay?: Observable<boolean>;
 
     /**
      * If Internet connection is required to use this section

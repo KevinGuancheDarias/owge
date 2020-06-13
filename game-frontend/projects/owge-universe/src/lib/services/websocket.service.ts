@@ -196,16 +196,7 @@ export class WebsocketService {
         ...this._onBeforeWorkaroundSyncHandlers.map(action => action())
       ]);
       await Promise.all(this._eventHandlers.map(handler => handler.createStores()));
-      this._log.debug('Invoking workaroundSync');
-      await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
-        const result = await this._timeoutPromise(current.workaroundSync());
-        if (result === 'timeout') {
-          const errorMsg = `${current.constructor.name}.workaroundSync ()timed out`;
-          this._log.error(errorMsg);
-          this._toastrService.error(errorMsg);
-        }
-        return result;
-      })));
+      await this._invokeWorkaroundSync();
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
     }
@@ -232,6 +223,12 @@ export class WebsocketService {
         this._log.warn('Bad message from backend', message);
       }
     });
+
+    this._socket.on('cache_clear', async () => {
+      this._log.info('Full cache clear, just wanted');
+      await this._universeCacheManager.clearCache();
+      await this._invokeWorkaroundSync();
+    });
   }
 
   private _timeoutPromise(inputPromise: Promise<any>): Promise<any> {
@@ -239,5 +236,18 @@ export class WebsocketService {
       inputPromise,
       new Promise(resolve => window.setTimeout(() => resolve('timeout'), 10000))
     ]);
+  }
+
+  private async _invokeWorkaroundSync(): Promise<void> {
+    this._log.debug('Invoking workaroundSync');
+    await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
+      const result = await this._timeoutPromise(current.workaroundSync());
+      if (result === 'timeout') {
+        const errorMsg = `${current.constructor.name}.workaroundSync ()timed out`;
+        this._log.error(errorMsg);
+        this._toastrService.error(errorMsg);
+      }
+      return result;
+    })));
   }
 }

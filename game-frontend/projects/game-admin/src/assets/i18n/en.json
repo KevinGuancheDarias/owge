@@ -8,7 +8,16 @@
         "MENU_RANKING": "Ranking",
         "MENU_TIME_SPECIALS": "Time Specials",
         "MENU_UPGRADE_TYPES": "Upgrade types",
-        "MENU_UNIT_TYPES": "Unit types"
+        "MENU_UNIT_TYPES": "Unit types",
+        "ADMIN_USERS": {
+            "MODAL": {
+                "TITLE": "Add admin",
+                "SELECT_NULL": "Please choose",
+                "BTN_ADD": "Do add admin"
+            },
+            "BTN_ADD_ADMIN": "Add admin",
+            "BTN_DELETE": "Delete"
+        }
     },
     "CRUD": {
         "EDIT": "Edit",

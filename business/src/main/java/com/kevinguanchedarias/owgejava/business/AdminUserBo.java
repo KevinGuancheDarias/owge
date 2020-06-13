@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.business;
 
@@ -16,10 +16,9 @@ import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenConfigLoader;
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
-import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.dto.AdminUserDto;
 import com.kevinguanchedarias.owgejava.entity.AdminUser;
 import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.pojo.TokenPojo;
 import com.kevinguanchedarias.owgejava.repository.AdminUserRepository;
 
@@ -31,7 +30,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
-public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<AdminUser>> {
+public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
 	private static final long serialVersionUID = -5545554818842439920L;
 
 	public static final String JWT_SECRET_DB_CODE = "ADMIN_JWT_SECRET";
@@ -68,7 +67,7 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
@@ -78,18 +77,18 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
-	public Class<DtoFromEntity<AdminUser>> getDtoClass() {
-		throw new SgtBackendNotImplementedException("For now AdminUser doesn't have a DTO");
+	public Class<AdminUserDto> getDtoClass() {
+		return AdminUserDto.class;
 	}
 
 	/**
 	 * Login by using the Game credentials <br>
 	 * <b>NOTICE: </b> If username or email is different will update it
-	 * 
+	 *
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -103,7 +102,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 			throw new AccessDeniedException("ERR_USER_NOT_ENABLED");
 		}
 		if (isUserChanged(tokenUser, adminUser)) {
-			adminUser.setEmail(tokenUser.getEmail());
 			adminUser.setUsername(tokenUser.getUsername());
 			save(adminUser);
 		}
@@ -111,8 +109,31 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 	}
 
 	/**
+	 * Adds a admin user to the system
+	 *
+	 * @param accountUserId
+	 * @param username
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public AdminUser addAdmin(Integer accountUserId, String username) {
+		AdminUser existing = findById(accountUserId);
+		if (existing == null) {
+			AdminUser adminUser = new AdminUser();
+			adminUser.setId(accountUserId);
+			adminUser.setUsername(username);
+			adminUser.setEnabled(true);
+			save(adminUser);
+			return adminUser;
+		} else {
+			return existing;
+		}
+	}
+
+	/**
 	 * Will generate the token
-	 * 
+	 *
 	 * @param userId
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -135,7 +156,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, DtoFromEntity<Adm
 	}
 
 	private boolean isUserChanged(TokenUser tokenUser, AdminUser adminUser) {
-		return !tokenUser.getUsername().equals(adminUser.getUsername())
-				|| !tokenUser.getEmail().equals(adminUser.getEmail());
+		return !tokenUser.getUsername().equals(adminUser.getUsername());
 	}
 }

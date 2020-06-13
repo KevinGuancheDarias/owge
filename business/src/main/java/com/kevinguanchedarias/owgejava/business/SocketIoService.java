@@ -113,6 +113,19 @@ public class SocketIoService {
 		sendMessage(user.getId(), eventName, messageContent);
 	}
 
+	/**
+	 * Removes all the cache entries
+	 *
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void clearCache() {
+		websocketEventsInformationBo.clear();
+		server.getAllClients().forEach(client -> {
+			client.sendEvent("cache_clear", "null");
+		});
+	}
+
 	private void registerUnauthenticatedEvents() {
 		server.addConnectListener(
 				client -> LOCAL_LOGGER.debug("Client connected from " + client.getRemoteAddress().toString()));

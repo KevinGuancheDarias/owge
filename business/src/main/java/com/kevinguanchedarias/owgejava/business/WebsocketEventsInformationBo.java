@@ -42,6 +42,17 @@ public class WebsocketEventsInformationBo
 	}
 
 	/**
+	 * Removes all entries
+	 *
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void clear() {
+		repository.truncateTable();
+	}
+
+	/**
 	 *
 	 * @param websocketEventsInformation
 	 * @since 0.9.0
