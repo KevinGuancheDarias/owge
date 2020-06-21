@@ -25,7 +25,6 @@ import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
-import com.kevinguanchedarias.owgejava.repository.WithNameRepository;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 
 @Component
@@ -49,7 +48,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -70,7 +69,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @param referenceId
 	 * @return
@@ -83,7 +82,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/**
 	 * Finds one or throws {@link NotFoundException}
-	 * 
+	 *
 	 * @param type
 	 * @param referenceId
 	 * @return
@@ -103,7 +102,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/**
 	 * Extracts the object target object entity from the relation
-	 * 
+	 *
 	 * @param relation
 	 * @return An instance of: Upgrade.class , Unit.class depending on to what
 	 *         connection is doing the relation
@@ -111,8 +110,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	 */
 	@SuppressWarnings("unchecked")
 	public <E> E unboxObjectRelation(ObjectRelation relation) {
-		WithNameRepository<E, Number> repository = objectEntityBo.findRepository(relation.getObject());
-
+		JpaRepository<E, Number> repository = objectEntityBo.findRepository(relation.getObject());
 		return repository.findById(relation.getReferenceId()).get();
 	}
 
@@ -129,7 +127,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/**
 	 * Finds by type and ref id
-	 * 
+	 *
 	 * @param objectEnum
 	 * @param referenceId
 	 * @return
@@ -140,6 +138,21 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		return objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(objectEnum.name(), referenceId);
 	}
 
+	/**
+	 *
+	 * @param target
+	 * @param referenceId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObjectRelation create(ObjectEnum target, Integer referenceId) {
+		ObjectRelation objectRelation = new ObjectRelation();
+		objectRelation.setObject(objectEntityBo.findByDescription(target));
+		objectRelation.setReferenceId(referenceId);
+		return save(objectRelation);
+	}
+
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public ObjectRelation findObjectRelationOrCreate(ObjectEnum target, Integer referenceId) {
 		ObjectRelation objectRelation = findOne(target, referenceId);
@@ -148,16 +161,13 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		} else {
 			LOG.debug("No object relation of type " + target.name() + " with refId " + referenceId
 					+ " exists in the target db, will create one");
-			objectRelation = new ObjectRelation();
-			objectRelation.setObject(objectEntityBo.findByDescription(target));
-			objectRelation.setReferenceId(referenceId);
-			return save(objectRelation);
+			return create(target, referenceId);
 		}
 
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @return
 	 * @since 0.8.0
@@ -168,7 +178,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @param requirementType
 	 * @return
@@ -182,7 +192,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	}
 
 	/**
-	 * 
+	 *
 	 * @param type
 	 * @param secondValue
 	 * @return
@@ -198,7 +208,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	 * Finds by type, secondValue, and where thirdValue is greater or equal to x<br>
 	 * Example resultant SQL: WHERE type = '$type' AND secondValue = '$secondValue'
 	 * AND thirdValue >= '$thidValue'
-	 * 
+	 *
 	 * @param type
 	 * @param secondValue
 	 * @param thirdValue
@@ -222,7 +232,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		ObjectEntity object = relation.getObject();
 		objectEntityBo.checkValid(object);
 
-		WithNameRepository repository = objectEntityBo.findRepository(object);
+		JpaRepository repository = objectEntityBo.findRepository(object);
 		if (!repository.existsById(relation.getReferenceId())) {
 			throw new SgtBackendRequirementException("No se encontró ninguna referencia con id "
 					+ relation.getReferenceId() + " para el repositorio " + object.getRepository());
@@ -232,7 +242,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/**
 	 * Checks if the relation is unlocked
-	 * 
+	 *
 	 * @param user
 	 * @param relation
 	 * @since 0.8.0
@@ -244,7 +254,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
 	/**
 	 * Checks if the relation is unlocked
-	 * 
+	 *
 	 * @param userId
 	 * @param relationId
 	 * @since 0.8.0
@@ -255,4 +265,5 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 			throw new SgtBackendTargetNotUnlocked("The target object relation has not been unlocked");
 		}
 	}
+
 }

@@ -174,7 +174,7 @@ public class RequirementBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@SuppressWarnings("unchecked")
-	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> WithNameBo<K, E, D> findBoByRequirement(
+	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> BaseBo<K, E, D> findBoByRequirement(
 			RequirementTypeEnum requirementType) {
 		Class<?> clazz;
 		switch (requirementType) {
@@ -205,7 +205,7 @@ public class RequirementBo implements Serializable {
 			throw new SgtBackendNotImplementedException(
 					"Support for " + requirementType.name() + " has not been added yet");
 		}
-		return (WithNameBo<K, E, D>) beanFactory.getBean(clazz);
+		return (BaseBo<K, E, D>) beanFactory.getBean(clazz);
 	}
 
 	/**
@@ -467,6 +467,10 @@ public class RequirementBo implements Serializable {
 				emitUnlockedChange(unlockedRelation, object, unitBo);
 			case TIME_SPECIAL:
 				emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
+				break;
+
+			case REQUIREMENT_GROUP:
+			case SPEED_IMPACT_GROUP:
 				break;
 			}
 		}

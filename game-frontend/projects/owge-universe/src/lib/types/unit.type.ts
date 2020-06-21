@@ -1,5 +1,5 @@
 import { ResourceRequirements } from '../pojos/resource-requirements.pojo';
-
+import { SpeedImpactGroup } from './speed-impact-group.type';
 
 /**
  * Represents an unit
@@ -28,4 +28,5 @@ export interface Unit {
     typeId: number;
     typeName?: string;
     requirements?: ResourceRequirements;
+    speedImpactGroup: SpeedImpactGroup;
 }

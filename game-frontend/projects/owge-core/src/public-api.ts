@@ -41,6 +41,7 @@ export * from './lib/types/menu-route.type';
 export * from './lib/types/mission.type';
 export * from './lib/types/router-data.type';
 export * from './lib/types/user.type';
+export * from './lib/utils/async-collection.util';
 export * from './lib/utils/content-transclusion.util';
 export * from './lib/utils/date.util';
 export * from './lib/utils/improvement.util';

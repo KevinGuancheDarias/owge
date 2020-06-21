@@ -41,7 +41,8 @@
                 "ANY": "Cualquier planeta",
                 "OWNED_ONLY": "Planeta propio",
                 "NONE": "No puede"
-            }
+            },
+            "SPEED_IMPACT_GROUP": "Grupo de velocidad"
         },
         "FACTION": {
             "PR_IMAGE": "Imagen recurso primario",
@@ -84,6 +85,16 @@
             "UNASSIGNED_GALAXY": "Sin asignar",
             "RANDOM_GALAXY": "Aleatoria"
         },
+        "SPEED_IMPACT_GROUP": {
+            "IS_FIXED": "Velocidad fija",
+            "EXPLORE": "Tiempo exploración",
+            "GATHER": "Tiempo recolección",
+            "ESTABLISH_BASE": "Tiempo establecer base",
+            "ATTACK": "Tiempo ataque",
+            "COUNTERATTACK": "Tiempo contraataque",
+            "CONQUEST": "Tiempo conquista",
+            "DEPLOY": "Tiempo despliegue"
+        },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requisitos"
     },
@@ -99,6 +110,13 @@
         },
         "MODAL": {
             "TITLE": "Añadir requisito"
+        }
+    },
+    "OBJECT_REQUIREMENT_GROUPS": {
+        "BTN_ADD": "Añadir grupo",
+        "GROUP": "Grupo: {{name}}",
+        "MODAL": {
+            "TITLE": "Creación de grupo"
         }
     },
     "OBJECT_IMPROVEMENTS_CRUD": {
@@ -126,7 +144,7 @@
         "ONLY_ON_SAVED": "Sólo puedes modificar requisitos en un elemento guardado",
         "DESCRIPTIONS": {
             "BEEN_RACE": "Pertenecer a facción",
-            "UPGRADE_LEVEL": "Tener una mejorar a un nivel determinado"
+            "UPGRADE_LEVEL": "Tener mejora a nivel {{thirdValue}}"
         },
         "TARGETS": {
             "BEEN_RACE": "Facción necesaria",
@@ -173,8 +191,20 @@
         }
     },
     "WIDGETS": {
+        "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Confirmar eliminación",
+        "CONFIRMATION_DIALOG_CANCEL": "Cancelar",
+        "CONFIRMATION_DIALOG_CONFIRM": "Confirmar",
         "ID_NAME_DROPDOWN": {
             "SELECT": "Seleccionar"
+        },
+        "FILTRABLE_SELECT": {
+            "MODAL": {
+                "TITLE": "Filtros",
+                "BTN_OK": "Ok"
+            }
         }
+    },
+    "FILTER": {
+        "BY_FACTION": "Facción"
     }
 }

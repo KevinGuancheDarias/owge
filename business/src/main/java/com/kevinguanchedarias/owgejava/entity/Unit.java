@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -12,10 +13,12 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
 @Entity
 @Table(name = "units")
+@EntityListeners(UnitListener.class)
 public class Unit extends CommonEntityWithImageStore<Integer>
 		implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
 	private static final long serialVersionUID = -1923291486680931835L;
@@ -57,6 +60,11 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "speed_impact_group_id")
+	@Fetch(FetchMode.JOIN)
+	private SpeedImpactGroup speedImpactGroup;
 
 	public Integer getOrder() {
 		return order;
@@ -172,6 +180,24 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	@Override
 	public void setClonedImprovements(Boolean clonedImprovements) {
 		this.clonedImprovements = clonedImprovements;
+	}
+
+	/**
+	 * @return the speedImpactGroup
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SpeedImpactGroup getSpeedImpactGroup() {
+		return speedImpactGroup;
+	}
+
+	/**
+	 * @param speedImpactGroup the speedImpactGroup to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpeedImpactGroup(SpeedImpactGroup speedImpactGroup) {
+		this.speedImpactGroup = speedImpactGroup;
 	}
 
 }

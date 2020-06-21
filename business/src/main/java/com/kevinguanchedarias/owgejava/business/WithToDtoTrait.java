@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
@@ -38,6 +39,17 @@ public interface WithToDtoTrait<E, D extends DtoFromEntity<E>> {
 		} else {
 			return DtoUtilService.staticDtoFromEntity(getDtoClass(), entity);
 		}
+	}
+
+	/**
+	 *
+	 * @param dto
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	default E save(D dto) {
+		throw new SgtBackendNotImplementedException("This bo service doesn't have a save from DTO");
 	}
 
 	/**

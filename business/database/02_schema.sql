@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : Dim 07 juin 2020 à 13:51
+-- Généré le : Dim 21 juin 2020 à 07:42
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -47,9 +47,8 @@ CREATE TABLE `active_time_specials` (
 CREATE TABLE `admin_users` (
   `id` int(10) UNSIGNED NOT NULL,
   `username` varchar(20) NOT NULL,
-  `password` varchar(30) NOT NULL,
-  `mail` varchar(100) NOT NULL,
-  `enabled` tinyint(1) NOT NULL
+  `enabled` tinyint(1) NOT NULL,
+  `can_add_admins` tinyint(3) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -341,7 +340,7 @@ CREATE TABLE `mission_types` (
 --
 
 CREATE TABLE `objects` (
-  `description` varchar(12) NOT NULL,
+  `description` varchar(18) NOT NULL,
   `repository` varchar(100) NOT NULL COMMENT 'Spring Data Repository related to this object'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Used to match objects with requirements';
 
@@ -353,9 +352,21 @@ CREATE TABLE `objects` (
 
 CREATE TABLE `object_relations` (
   `id` smallint(6) UNSIGNED NOT NULL,
-  `object_description` varchar(12) NOT NULL,
+  `object_description` varchar(18) NOT NULL,
   `reference_id` smallint(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the mapping between objects table and the referenced tb';
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `object_relation__object_relation`
+--
+
+CREATE TABLE `object_relation__object_relation` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `master_relation_id` smallint(6) UNSIGNED NOT NULL,
+  `slave_relation_id` smallint(6) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -649,6 +660,17 @@ CREATE TABLE `requirements_information` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `requirement_group`
+--
+
+CREATE TABLE `requirement_group` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `requisitosespecialesderaza`
 --
 
@@ -683,6 +705,7 @@ CREATE TABLE `special_locations` (
 CREATE TABLE `speed_impact_groups` (
   `id` smallint(5) UNSIGNED NOT NULL,
   `name` varchar(50) NOT NULL,
+  `is_fixed` tinyint(4) NOT NULL,
   `mission_explore` double NOT NULL,
   `mission_gather` double NOT NULL,
   `mission_establish_base` double NOT NULL,
@@ -732,7 +755,8 @@ CREATE TABLE `units` (
   `charge` smallint(6) UNSIGNED DEFAULT NULL,
   `is_unique` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
-  `cloned_improvements` tinyint(4) NOT NULL
+  `cloned_improvements` tinyint(4) NOT NULL,
+  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -753,7 +777,8 @@ CREATE TABLE `unit_types` (
   `can_attack` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_counterattack` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_conquest` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
-  `can_deploy` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY'
+  `can_deploy` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
+  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1028,6 +1053,14 @@ ALTER TABLE `object_relations`
   ADD UNIQUE KEY `id_object` (`object_description`,`reference_id`);
 
 --
+-- Index pour la table `object_relation__object_relation`
+--
+ALTER TABLE `object_relation__object_relation`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `master_relation_id` (`master_relation_id`,`slave_relation_id`),
+  ADD KEY `fk_object_relation__object_relation_slave` (`slave_relation_id`);
+
+--
 -- Index pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
@@ -1161,6 +1194,12 @@ ALTER TABLE `requirements_information`
   ADD KEY `requirement_id` (`requirement_id`);
 
 --
+-- Index pour la table `requirement_group`
+--
+ALTER TABLE `requirement_group`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Index pour la table `requisitosespecialesderaza`
 --
 ALTER TABLE `requisitosespecialesderaza`
@@ -1197,7 +1236,8 @@ ALTER TABLE `units`
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `type` (`type`),
   ADD KEY `improvement_id` (`improvement_id`),
-  ADD KEY `image_id` (`image_id`);
+  ADD KEY `image_id` (`image_id`),
+  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`);
 
 --
 -- Index pour la table `unit_types`
@@ -1205,7 +1245,8 @@ ALTER TABLE `units`
 ALTER TABLE `unit_types`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
-  ADD KEY `image_id` (`image_id`);
+  ADD KEY `image_id` (`image_id`),
+  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`);
 
 --
 -- Index pour la table `unlocked_relation`
@@ -1271,12 +1312,6 @@ ALTER TABLE `websocket_messages_status`
 --
 ALTER TABLE `active_time_specials`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT pour la table `admin_users`
---
-ALTER TABLE `admin_users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `alliances`
@@ -1375,6 +1410,12 @@ ALTER TABLE `object_relations`
   MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `object_relation__object_relation`
+--
+ALTER TABLE `object_relation__object_relation`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
@@ -1403,6 +1444,12 @@ ALTER TABLE `requirements`
 --
 ALTER TABLE `requirements_information`
   MODIFY `id` smallint(6) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `requirement_group`
+--
+ALTER TABLE `requirement_group`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `special_locations`
@@ -1541,6 +1588,13 @@ ALTER TABLE `object_relations`
   ADD CONSTRAINT `object_relations_ibfk_1` FOREIGN KEY (`object_description`) REFERENCES `objects` (`description`);
 
 --
+-- Contraintes pour la table `object_relation__object_relation`
+--
+ALTER TABLE `object_relation__object_relation`
+  ADD CONSTRAINT `fk_object_relation__object_relation_master` FOREIGN KEY (`master_relation_id`) REFERENCES `object_relations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_object_relation__object_relation_slave` FOREIGN KEY (`slave_relation_id`) REFERENCES `object_relations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Contraintes pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
@@ -1623,6 +1677,7 @@ ALTER TABLE `time_specials`
 -- Contraintes pour la table `units`
 --
 ALTER TABLE `units`
+  ADD CONSTRAINT `units__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
   ADD CONSTRAINT `units_ibfk_1` FOREIGN KEY (`type`) REFERENCES `unit_types` (`id`),
   ADD CONSTRAINT `units_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
   ADD CONSTRAINT `units_ibfk_3` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
@@ -1631,6 +1686,7 @@ ALTER TABLE `units`
 -- Contraintes pour la table `unit_types`
 --
 ALTER TABLE `unit_types`
+  ADD CONSTRAINT `unit_types__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
   ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --

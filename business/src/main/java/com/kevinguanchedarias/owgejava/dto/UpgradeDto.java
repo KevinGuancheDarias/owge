@@ -1,5 +1,8 @@
 package com.kevinguanchedarias.owgejava.dto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UpgradeType;
 
@@ -13,6 +16,7 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
 	private Float levelEffect = 20f;
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
+	private List<RequirementInformationDto> requirements;
 
 	@Override
 	public void dtoFromEntity(Upgrade entity) {
@@ -21,6 +25,13 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
 		DtoWithImprovements.super.dtoFromEntity(entity);
+		if (entity.getRequirements() != null) {
+			requirements = entity.getRequirements().stream().map(current -> {
+				RequirementInformationDto dto = new RequirementInformationDto();
+				dto.dtoFromEntity(current);
+				return dto;
+			}).collect(Collectors.toList());
+		}
 	}
 
 	public Integer getPoints() {
@@ -95,6 +106,24 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
 
 	public void setClonedImprovements(Boolean clonedImprovements) {
 		this.clonedImprovements = clonedImprovements;
+	}
+
+	/**
+	 * @return the requirements
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<RequirementInformationDto> getRequirements() {
+		return requirements;
+	}
+
+	/**
+	 * @param requirements the requirements to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setRequirements(List<RequirementInformationDto> requirements) {
+		this.requirements = requirements;
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
@@ -17,7 +18,6 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.repository.ObjectEntityRepository;
-import com.kevinguanchedarias.owgejava.repository.WithNameRepository;
 import com.kevinguanchedarias.owgejava.util.ProxyUtil;
 
 @Service
@@ -34,18 +34,18 @@ public class ObjectEntityBo implements Serializable {
 
 	/**
 	 * gets the repository for given {@link ObjectEntity}
-	 * 
+	 *
 	 * @param object
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public WithNameRepository findRepository(ObjectEntity object) {
+	public JpaRepository findRepository(ObjectEntity object) {
 		Class entityRepositoryClass;
-		WithNameRepository repository;
+		JpaRepository repository;
 		try {
 			entityRepositoryClass = Class.forName(object.getRepository());
-			repository = (WithNameRepository) beanFactory.getBean(entityRepositoryClass);
+			repository = (JpaRepository) beanFactory.getBean(entityRepositoryClass);
 		} catch (ClassNotFoundException e) {
 			LOGGER.fatal(e);
 			throw new SgtBackendRequirementException("No existe el repositorio " + object.getRepository());
@@ -55,7 +55,7 @@ public class ObjectEntityBo implements Serializable {
 
 	/**
 	 * Can be used to find the BO associated with a repository
-	 * 
+	 *
 	 * @param <E>
 	 * @param object
 	 * @return
@@ -85,7 +85,7 @@ public class ObjectEntityBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param objectEnum
 	 * @return
 	 * @since 0.8.0
@@ -96,7 +96,7 @@ public class ObjectEntityBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @throws ProgrammingException If doesn't exists in the table, but it exists in
 	 *                              the enum
 	 * @param target
@@ -111,7 +111,7 @@ public class ObjectEntityBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use {@link ObjectEntityBo#findByDescription(ObjectEnum)} instead
 	 * @param target
 	 * @return
@@ -124,7 +124,7 @@ public class ObjectEntityBo implements Serializable {
 
 	/**
 	 * Checks if the object is valid
-	 * 
+	 *
 	 * @param object
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

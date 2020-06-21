@@ -1,3 +1,4 @@
+import { RequirementInformation } from './requirement-information.type';
 
 /**
  * Represents an upgrade as backend knows it
@@ -21,4 +22,5 @@ export interface Upgrade {
     time: number;
     typeId: number;
     typeName: string;
+    requirements: RequirementInformation[];
 }

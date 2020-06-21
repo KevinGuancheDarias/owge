@@ -18,6 +18,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private Boolean isUnique = false;
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
+	private SpeedImpactGroupDto speedImpactGroup;
 
 	@Override
 	public void dtoFromEntity(Unit entity) {
@@ -25,7 +26,10 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 		UnitType typeEntity = entity.getType();
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
-
+		if (entity.getSpeedImpactGroup() != null) {
+			speedImpactGroup = new SpeedImpactGroupDto();
+			speedImpactGroup.dtoFromEntity(entity.getSpeedImpactGroup());
+		}
 		DtoWithImprovements.super.dtoFromEntity(entity);
 	}
 
@@ -141,6 +145,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 
 	public void setClonedImprovements(Boolean clonedImprovements) {
 		this.clonedImprovements = clonedImprovements;
+	}
+
+	/**
+	 * @return the speedImpactGroup
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SpeedImpactGroupDto getSpeedImpactGroup() {
+		return speedImpactGroup;
+	}
+
+	/**
+	 * @param speedImpactGroup the speedImpactGroup to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpeedImpactGroup(SpeedImpactGroupDto speedImpactGroup) {
+		this.speedImpactGroup = speedImpactGroup;
 	}
 
 }

@@ -29,7 +29,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
 	 */
 	@Override
@@ -39,7 +39,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -50,7 +50,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 	/**
 	 * Deletes a requirement information from database<br />
 	 * <b>NOTICE: Triggers a unlocked relations update</b>
-	 * 
+	 *
 	 * @param requirementInformation
 	 * @author Kevin Guanche Darias
 	 */
@@ -61,14 +61,28 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 		requirementBo.triggerRelationChanged(affectedRelation);
 	}
 
+	/**
+	 * Deletes all requirement informations <br>
+	 * <b>IMPORTANT:</b> Doesn't trigger relation changed, as we are probably going
+	 * to delete the relation
+	 *
+	 * @param relation
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void deleteByRelation(ObjectRelation relation) {
+		repository.deleteByRelation(relation);
+	}
+
 	public String getSecondValueDescription(RequirementInformation requirementInformation) {
 		return requirementInformationDao.getSecondValueDescription(requirementInformation);
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use {@link ObjectRelationBo} instead
-	 * 
+	 *
 	 * @param targetObject
 	 * @param referenceId
 	 * @return
@@ -81,7 +95,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/**
 	 * Saves to database and <b>triggers relation changed!</b>
-	 * 
+	 *
 	 * @param requirementInformation
 	 * @author Kevin Guanche Darias
 	 */
@@ -97,7 +111,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/**
 	 * Checks if the specified second value id exists
-	 * 
+	 *
 	 * @param requirementInformation
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -113,7 +127,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.lang.Number)
 	 */
 	@Transactional
@@ -124,7 +138,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(com.kevinguanchedarias
 	 * .kevinsuite.commons.entity.EntityWithId)

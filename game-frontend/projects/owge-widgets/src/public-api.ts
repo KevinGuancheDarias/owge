@@ -8,9 +8,11 @@ export * from './lib/components/widget-display-dynamic-image/widget-display-imag
 export * from './lib/components/widget-display-improved-attribute/widget-display-improved-attribute.component';
 export * from './lib/components/widget-display-list-item/widget-display-list-item.component';
 export * from './lib/components/widget-display-simple-item/widget-display-simple-item.component';
+export * from './lib/components/widget-filtrable-select/widget-filtrable-select.component';
 export * from './lib/components/widget-id-name-dropdown/widget-id-name-dropdown.component';
 export * from './lib/components/widget-sidebar/widget-sidebar.component';
 export * from './lib/components/widget-span-with-placeholder/widget-span-with-placeholder.component';
 export * from './lib/owge-widgets.module';
 export * from './lib/pipes/ui-icon.pipe';
 export * from './lib/services/display.service';
+export * from './lib/types/widget-filter.type';

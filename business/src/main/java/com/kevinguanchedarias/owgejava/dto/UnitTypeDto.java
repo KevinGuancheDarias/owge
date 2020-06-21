@@ -20,6 +20,7 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 	private MissionSupportEnum canCounterattack = MissionSupportEnum.ANY;
 	private MissionSupportEnum canConquest = MissionSupportEnum.ANY;
 	private MissionSupportEnum canDeploy = MissionSupportEnum.ANY;
+	private SpeedImpactGroupDto speedImpactGroup;
 
 	@Override
 	public void dtoFromEntity(UnitType entity) {
@@ -27,6 +28,10 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 		if (entity.getImage() != null) {
 			image = entity.getImage().getId();
 			imageUrl = entity.getImage().getUrl();
+		}
+		if (entity.getSpeedImpactGroup() != null) {
+			speedImpactGroup = new SpeedImpactGroupDto();
+			speedImpactGroup.dtoFromEntity(entity.getSpeedImpactGroup());
 		}
 	}
 
@@ -83,7 +88,7 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 	/**
 	 * Transient property, when defined, represents the maxCount with all user
 	 * improvements applied
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -97,7 +102,7 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 
 	/**
 	 * Represents the amount built by the user
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -163,6 +168,24 @@ public class UnitTypeDto implements DtoFromEntity<UnitType> {
 
 	public void setCanDeploy(MissionSupportEnum canDeploy) {
 		this.canDeploy = canDeploy;
+	}
+
+	/**
+	 * @return the speedImpactGroup
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SpeedImpactGroupDto getSpeedImpactGroup() {
+		return speedImpactGroup;
+	}
+
+	/**
+	 * @param speedImpactGroup the speedImpactGroup to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpeedImpactGroup(SpeedImpactGroupDto speedImpactGroup) {
+		this.speedImpactGroup = speedImpactGroup;
 	}
 
 }

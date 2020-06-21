@@ -21,7 +21,7 @@ import org.hibernate.annotations.FetchMode;
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 
 /**
- * 
+ *
  * @author Kevin Guanche Darias
  *
  */
@@ -82,6 +82,11 @@ public class UnitType implements EntityWithId<Integer> {
 	@Column(name = "can_deploy", nullable = false)
 	private MissionSupportEnum canDeploy = MissionSupportEnum.ANY;
 
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "speed_impact_group_id")
+	@Fetch(FetchMode.JOIN)
+	private SpeedImpactGroup speedImpactGroup;
+
 	public UnitType() {
 		super();
 	}
@@ -117,7 +122,7 @@ public class UnitType implements EntityWithId<Integer> {
 	/**
 	 * Specifies the maximum units of this type that a user can have <br>
 	 * <b>NOTICE: Null value means unlimited</b>
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -223,6 +228,24 @@ public class UnitType implements EntityWithId<Integer> {
 
 	public void setCanDeploy(MissionSupportEnum canDeploy) {
 		this.canDeploy = canDeploy;
+	}
+
+	/**
+	 * @return the speedImpactGroup
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SpeedImpactGroup getSpeedImpactGroup() {
+		return speedImpactGroup;
+	}
+
+	/**
+	 * @param speedImpactGroup the speedImpactGroup to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpeedImpactGroup(SpeedImpactGroup speedImpactGroup) {
+		this.speedImpactGroup = speedImpactGroup;
 	}
 
 	@Override

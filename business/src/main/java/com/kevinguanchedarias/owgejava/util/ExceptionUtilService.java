@@ -1,9 +1,10 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.util;
 
-import org.hibernate.exception.ConstraintViolationException;
+import java.sql.SQLIntegrityConstraintViolationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class ExceptionUtilService {
 
 	/**
 	 * Is the input exception a duplicated key exception?
-	 * 
+	 *
 	 * @param e
 	 * @return
 	 * @since 0.8.0
@@ -32,12 +33,12 @@ public class ExceptionUtilService {
 	 */
 	public static boolean isSqlDuplicatedKey(Exception e) {
 		return e.getCause() != null && e.getCause().getCause() != null
-				&& ConstraintViolationException.class.isInstance(e.getCause().getCause());
+				&& SQLIntegrityConstraintViolationException.class.isInstance(e.getCause().getCause());
 	}
 
 	/**
 	 * Creates and exception builder with the {@link MavenUtilService} availaable
-	 * 
+	 *
 	 * @param exceptionClass
 	 * @return
 	 * @since 0.8.0
@@ -49,7 +50,7 @@ public class ExceptionUtilService {
 
 	/**
 	 * Creates and exception builder with the {@link MavenUtilService} availaable
-	 * 
+	 *
 	 * @param exceptionClass
 	 * @param message
 	 * @return

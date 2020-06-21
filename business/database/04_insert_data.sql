@@ -4,9 +4,12 @@ INSERT INTO admin_users (id,username,password,mail,enabled) VALUES(1,'KevinGuanc
 
 
 -- START Prepare  objects
-INSERT INTO objects (description, repository) VALUES ('TIME_SPECIAL', 'com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository');
-INSERT INTO objects (description, repository) VALUES ('UNIT', 'com.kevinguanchedarias.owgejava.repository.UnitRepository');
-INSERT INTO objects (description, repository) VALUES ('UPGRADE', 'com.kevinguanchedarias.owgejava.repository.UpgradeRepository');
+INSERT INTO `objects` (`description`, `repository`) VALUES
+                        ('REQUIREMENT_GROUP', 'com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository'),
+                        ('SPEED_IMPACT_GROUP', 'com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository'),
+                        ('TIME_SPECIAL', 'com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository'),
+                        ('UNIT', 'com.kevinguanchedarias.owgejava.repository.UnitRepository'),
+                        ('UPGRADE', 'com.kevinguanchedarias.owgejava.repository.UpgradeRepository');
 -- END Prepare objects
 
 -- START Prepare requirements

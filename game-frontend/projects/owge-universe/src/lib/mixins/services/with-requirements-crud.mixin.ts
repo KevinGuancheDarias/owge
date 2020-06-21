@@ -6,7 +6,8 @@ import { CrudConfig } from '../../types/crud-config.type';
 import { RequirementInformation } from '../../types/requirement-information.type';
 import { HttpParams } from '@angular/common/http';
 import { StoreAwareService } from '../../interfaces/store-aware-service.interface';
-import { repeatWhen, take, finalize } from 'rxjs/operators';
+import { take, finalize } from 'rxjs/operators';
+import { RequirementGroup } from '../../types/requirement-group.type';
 
 /**
  * Add requirements handling to an existing crud service
@@ -36,6 +37,22 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
             'admin',
             'get',
             `${this._crudConfig.findOneEntityPath(id)}/requirements`
+        );
+    }
+
+    /**
+     * Finds requirement group
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param {K} id
+     * @returns {Observable<RequirementGroup>}
+     */
+    public findRequirementGroups(id: K): Observable<RequirementGroup> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'get',
+            `${this._crudConfig.findOneEntityPath(id)}/requirement-group`
         );
     }
 
@@ -100,6 +117,51 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
         );
     }
 
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param ownerId
+     * @param name
+     * @returns
+     */
+    public addGroup(ownerId: number, name: string): Observable<RequirementGroup> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'post',
+            `${this._crudConfig.findOneEntityPath(ownerId)}/requirement-group`,
+            { name }
+        );
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param id
+     * @param groupId
+     * @param requirementInformation
+     * @returns
+     */
+    public addRequirementToGroup(
+        id: K,
+        groupId:
+            number, requirementInformation: RequirementInformation
+    ): Observable<RequirementInformation> {
+        if (requirementInformation.id) {
+            throw new ProgrammingError(`Can't save a requirement with has an id: ${requirementInformation.id}`);
+        }
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'post',
+            this._findRequirementGroupUrl(id, groupId),
+            requirementInformation
+        );
+    }
+
     /**
      * Deletes the specified requirement
      *
@@ -118,7 +180,42 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
     }
 
     /**
-     *Returns the store, the implementer should override this method, and return the Observable thay may contain the collection of entities
+     * Delete a requirement
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param id
+     * @param groupId
+     * @param requirementId
+     * @returns
+     */
+    public deleteRequirementByGroupAndId(id: K, groupId: number, requirementId: number): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'delete',
+            `${this._findRequirementGroupUrl(id, groupId)}/${requirementId}`
+        );
+    }
+
+    /**
+     * Deletes a group
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param id
+     * @param groupId
+     * @returns
+     */
+    public deleteRequirementGroup(id: K, groupId: number): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'delete',
+            `${this._crudConfig.findOneEntityPath(id)}/requirement-group/${groupId}`
+        );
+    }
+
+    /**
+     * Returns the store, the implementer should override this method, and return the Observable thay may contain the collection of entities
      * If not overriden, while will work, the requirements won't update
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -130,5 +227,9 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
 
     private _findRequirementUrl(id: K): string {
         return `${this._crudConfig.findOneEntityPath(id)}/requirements`;
+    }
+
+    private _findRequirementGroupUrl(id: K, groupId: number) {
+        return `${this._crudConfig.findOneEntityPath(id)}/requirement-group/${groupId}/requirement`;
     }
 }

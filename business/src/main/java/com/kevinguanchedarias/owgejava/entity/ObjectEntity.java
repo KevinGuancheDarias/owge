@@ -7,10 +7,12 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+
 /**
  * Due to entity name, in order to avoid confusions and having to manually put
  * java.lang.Object, this class name is ObjectEntity
- * 
+ *
  * @author Kevin Guanche Darias
  */
 @Entity
@@ -27,7 +29,7 @@ public class ObjectEntity implements Serializable {
 	private String repository;
 
 	/**
-	 * 
+	 *
 	 * @deprecated To avoid confusions use {@link ObjectEntity#getCode()}
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -38,7 +40,7 @@ public class ObjectEntity implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated To avoid confusions use {@link ObjectEntity#setCode(String)}
 	 * @param description
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -74,4 +76,14 @@ public class ObjectEntity implements Serializable {
 		this.repository = entity;
 	}
 
+	/**
+	 * Finds the code as enum, (to avoid having to clone that too many times)
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObjectEnum findCodeAsEnum() {
+		return ObjectEnum.valueOf(getCode());
+	}
 }
