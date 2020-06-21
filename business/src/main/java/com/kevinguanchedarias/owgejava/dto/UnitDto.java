@@ -16,6 +16,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private Integer shield;
 	private Integer charge;
 	private Boolean isUnique = false;
+	private Double speed;
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
 	private SpeedImpactGroupDto speedImpactGroup;
@@ -127,6 +128,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 
 	public void setIsUnique(Boolean isUnique) {
 		this.isUnique = isUnique;
+	}
+
+	/**
+	 * @return the speed
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double getSpeed() {
+		return speed;
+	}
+
+	/**
+	 * @param speed the speed to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpeed(Double speed) {
+		this.speed = speed;
 	}
 
 	@Override

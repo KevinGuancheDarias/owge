@@ -25,6 +25,7 @@ export interface Unit {
     shield?: number;
     charge?: number;
     isUnique?: boolean;
+    speed: number;
     typeId: number;
     typeName?: string;
     requirements?: ResourceRequirements;

@@ -72,3 +72,5 @@ ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types__speed_impact` FOREIGN KEY (
 ALTER TABLE `units` ADD `speed_impact_group_id` SMALLINT(5) UNSIGNED NULL AFTER `cloned_improvements`;
 ALTER TABLE `units` ADD INDEX( `speed_impact_group_id`);
 ALTER TABLE `units` ADD CONSTRAINT `units__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `units` ADD `speed` DOUBLE NULL AFTER `is_unique`;
+
