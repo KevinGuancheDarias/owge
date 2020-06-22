@@ -12,7 +12,7 @@
     <owge-widgets-display-list-item [itemName]="item.name || (item.planet | planetDisplayName)" [itemDescription]="item.planet | planetDescription | async" [image]="item.planet | planetImage">
         <ng-template owgeCoreContent select="action-buttons">
             <img [src]="'mission.png' | uiIcon" [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate" (click)="sendMission(item.planet)" />
-        <a href="javascript:void()"(click)="addEdit(item)" ><i class="fa action fa-pen"></i></a>
+        <a href="javascript:void(0)"(click)="addEdit(item)" ><i class="fa action fa-pen"></i></a>
         </ng-template>
 
         <ng-template owgeCoreContent select="extra-description">

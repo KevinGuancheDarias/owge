@@ -41,6 +41,8 @@ export class WidgetDisplayImprovedAttributeComponent implements OnInit, AfterVie
   @Input()
   public assetsImage = false;
 
+  @Input() public icon: string;
+
   public numberFormat = '0.0-2';
   public improvementAdd: number;
   public isMouseOver = false;

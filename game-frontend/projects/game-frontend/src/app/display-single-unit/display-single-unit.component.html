@@ -20,6 +20,7 @@
           [assetsImage]="true" [image]="'sword.png'" [improvementPercentage]="moreAttack"></owge-widgets-display-improved-attribute>
         <owge-widgets-display-improved-attribute *ngIf="unit.charge" [name]="'Charge'" [value]="unit.charge"
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge"></owge-widgets-display-improved-attribute>
+        <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed"></owge-widgets-display-improved-attribute>
       </ng-container>
     </ng-template>
     
