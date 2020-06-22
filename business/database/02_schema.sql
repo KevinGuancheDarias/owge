@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : Dim 21 juin 2020 à 07:42
+-- Généré le : mar. 23 juin 2020 à 13:20
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -754,6 +754,7 @@ CREATE TABLE `units` (
   `shield` smallint(6) UNSIGNED DEFAULT NULL,
   `charge` smallint(6) UNSIGNED DEFAULT NULL,
   `is_unique` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `speed` double DEFAULT '0',
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
   `cloned_improvements` tinyint(4) NOT NULL,
   `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL
