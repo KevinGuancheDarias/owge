@@ -31,6 +31,7 @@
         "BTN_SAVE": "Save",
         "BTN_CANCEL": "Cancel",
         "BTN_CLOSE": "Close",
+        "SELECT": "Please select...",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
         "TIME_SPECIAL": {
             "DURATION": "Duration",
@@ -50,7 +51,8 @@
                 "ANY": "Any planet",
                 "OWNED_ONLY": "Owned planet",
                 "NONE": "Can't"
-            }
+            },
+            "SPEED_IMPACT_GROUP": "Speed group"
         },
         "FACTION": {
             "PR_IMAGE": "Primary resource image",
@@ -93,6 +95,16 @@
             "UNASSIGNED_GALAXY": "Unassigned",
             "RANDOM_GALAXY": "Random"
         },
+        "SPEED_IMPACT_GROUP": {
+            "IS_FIXED": "Fixed speed",
+            "EXPLORE": "Fixed explore time",
+            "GATHER": "Fixed gather time",
+            "ESTABLISH_BASE": "Fixed establish base time",
+            "ATTACK": "Fixed attack time",
+            "COUNTERATTACK": "Fixed counterattack time",
+            "CONQUEST": "Fixed conquest time",
+            "DEPLOY": "Fixed deploy time"
+        },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requirements"
     },
@@ -111,6 +123,13 @@
         },
         "MODAL": {
             "TITLE": "Add requirement"
+        }
+    },
+    "OBJECT_REQUIREMENT_GROUPS": {
+        "BTN_ADD": "Add group",
+        "GROUP": "Group: {{name}}",
+        "MODAL": {
+            "TITLE": "Group creation"
         }
     },
     "OBJECT_IMPROVEMENTS_CRUD": {
@@ -138,7 +157,7 @@
         "ONLY_ON_SAVED": "You can only modify requirements on a saved item",
         "DESCRIPTIONS": {
             "BEEN_RACE": "Is of faction",
-            "UPGRADE_LEVEL": "Have upgrade to level"
+            "UPGRADE_LEVEL": "Have upgrade to level {{thirdValue}}"
         },
         "TARGETS": {
             "BEEN_RACE": "Required faction",
@@ -182,8 +201,23 @@
         }
     },
     "WIDGETS": {
+        "CONFIRMATION_DIALOG_DEFAULT_TITLE": "Delete item confirmation",
+        "CONFIRMATION_DIALOG_CANCEL": "Cancel",
+        "CONFIRMATION_DIALOG_CONFIRM": "Confirm",
+        "DISPLAY_IMPROVED_ATTRIBUTE": {
+            "PLACEHOLDER": "Base + Improvement"
+        },
         "ID_NAME_DROPDOWN": {
             "SELECT": "Plase select"
+        },
+        "FILTRABLE_SELECT": {
+            "MODAL": {
+                "TITLE": "Filters",
+                "BTN_OK": "Ok"
+            }
         }
+    },
+    "FILTER": {
+        "BY_FACTION": "Faction"
     }
 }

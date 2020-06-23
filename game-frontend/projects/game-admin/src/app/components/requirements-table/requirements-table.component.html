@@ -1,0 +1,22 @@
+<table class="table table-dark">
+    <thead>
+        <tr>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.DESCRIPTION' | translate }}</th>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.VALUE' | translate }}</th>
+        <th class="col">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.ACTIONS' | translate }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let requirement of requirements">
+            <td>{{  requirement.translatedDescription }}</td>
+            <td>{{  requirement.resolvedName }}</td>
+            <td><button class="btn" (click)="clickDelete.emit(requirement)">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.BTN_DELETE' | translate }} </button></td>
+        </tr>
+        <tr *ngIf="!requirements || !requirements.length">
+            <th class="row" colspan="3">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.EMPTY' | translate }}</th>
+        </tr>
+    </tbody>
+    <caption class="table-dark owge-table-caption">
+        {{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.CAPTION' | translate }} <button class="btn" (click)="clickAdd.emit()">{{ 'OBJECT_REQUIREMENTS_CRUD.TABLE.BTN_ADD' | translate }}</button>
+    </caption>
+</table>

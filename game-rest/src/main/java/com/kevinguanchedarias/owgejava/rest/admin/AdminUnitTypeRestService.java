@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.rest.admin;
 
@@ -15,6 +15,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
+import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
@@ -22,8 +23,8 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
 
 /**
- * 
- * 
+ *
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -38,6 +39,9 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 	@Autowired
 	private AutowireCapableBeanFactory beanFactory;
 
+	@Autowired
+	private SpeedImpactGroupBo speedImpactGroupBo;
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public Optional<UnitType> beforeSave(UnitTypeDto parsedDto, UnitType entity) {
@@ -45,12 +49,15 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 			entity.setImage(getRestCrudConfigBuilder().build().getBeanFactory().getBean(ImageStoreBo.class)
 					.findByIdOrDie(parsedDto.getImage()));
 		}
+		if (parsedDto.getSpeedImpactGroup() != null && parsedDto.getSpeedImpactGroup().getId() != null) {
+			entity.setSpeedImpactGroup(speedImpactGroupBo.findByIdOrDie(parsedDto.getSpeedImpactGroup().getId()));
+		}
 		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait#
 	 * getRestCrudConfigBuilder()
 	 */

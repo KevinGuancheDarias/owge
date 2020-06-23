@@ -2,12 +2,13 @@
 
 v0.9.0 (latest)
 =================
+* __Feature:__ [As a player I want to have the concept of units speed (internally known as "speed group") #195](https://github.com/KevinGuancheDarias/owge/issues/195)
 * __Feature:__ [As a player I want to be able to create a list of planets #7](https://github.com/KevinGuancheDarias/owge/issues/7)
 * __Feature:__ [As a player I want to be able to be sinced with the backend (get events of what's going on in realtime), for example current improvements change, current units count change, and more #124](https://github.com/KevinGuancheDarias/owge/issues/124)
 * [class=Admin] __Feature:__ [As an admin I want to have the same admin panel functionalities I had in v0.7.x #185](https://github.com/KevinGuancheDarias/owge/issues/185)
 * __Merge:__ v0.8.2
 
-v0.8.2 (latest)
+v0.8.2 (2020-03-12 15:24)
 =================
 * __Fix:__ [Do not allow self deploy #215](https://github.com/KevinGuancheDarias/owge/issues/215)
 * __Fix:__ [Units that are not in the planet are participating in attacks #216](https://github.com/KevinGuancheDarias/owge/issues/216)

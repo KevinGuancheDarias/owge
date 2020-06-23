@@ -15,6 +15,8 @@ import { UpgradeCrudComponent } from './components/upgrade-crud/upgrade-crud.com
 import { UnitCrudComponent } from './components/unit-crud/unit-crud.component';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
+import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-group.service';
+import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
 
 const routes: Routes = [
   {
@@ -52,6 +54,9 @@ const routes: Routes = [
   },
   {
     path: 'admin-users', component: AdminUsersComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'speed-impact-groups', component: SpeedImpactGroupCrudComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

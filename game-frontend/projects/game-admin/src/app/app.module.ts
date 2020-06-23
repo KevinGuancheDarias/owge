@@ -45,6 +45,12 @@ import { AdminSpecialLocationService } from './services/admin-special-location.s
 import { RequirementsFilterComponent } from './components/requirements-filter/requirements-filter.component';
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
 import { AdminUserService } from './services/admin-user.service';
+import { ObjectRequirementGroupsCrudComponent } from './components/object-requirement-groups-crud/object-requirement-groups-crud.component';
+import { RequirementsTableComponent } from './components/requirements-table/requirements-table.component';
+import { RequirementsModalComponent } from './components/requirements-modal/requirements-modal.component';
+import { AdminRequirementService } from './services/admin-requirement.service';
+import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
+import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-group.service';
 
 @NgModule({
   declarations: [
@@ -66,7 +72,11 @@ import { AdminUserService } from './services/admin-user.service';
     UnitCrudComponent,
     SpecialLocationCrudComponent,
     RequirementsFilterComponent,
-    AdminUsersComponent
+    AdminUsersComponent,
+    ObjectRequirementGroupsCrudComponent,
+    RequirementsTableComponent,
+    RequirementsModalComponent,
+    SpeedImpactGroupCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -106,6 +116,8 @@ import { AdminUserService } from './services/admin-user.service';
     AdminUnitService,
     AdminSpecialLocationService,
     AdminUserService,
+    AdminRequirementService,
+    AdminSpeedImpactGroupService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

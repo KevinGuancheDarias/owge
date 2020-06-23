@@ -22,6 +22,7 @@ import { WidgetCollapsableItemComponent } from './components/widget-collapsable-
 import { WidgetDisplaySimpleItemComponent } from './components/widget-display-simple-item/widget-display-simple-item.component';
 import { WidgetIdNameDropdownComponent } from './components/widget-id-name-dropdown/widget-id-name-dropdown.component';
 import { FormsModule } from '@angular/forms';
+import { WidgetFiltrableSelectComponent } from './components/widget-filtrable-select/widget-filtrable-select.component';
 
 /**
  * Has UI widgets for OWGE
@@ -51,7 +52,8 @@ import { FormsModule } from '@angular/forms';
     WidgetCountdownComponent,
     WidgetCollapsableItemComponent,
     WidgetDisplaySimpleItemComponent,
-    WidgetIdNameDropdownComponent
+    WidgetIdNameDropdownComponent,
+    WidgetFiltrableSelectComponent
   ],
   providers: [
     DisplayService
@@ -69,7 +71,8 @@ import { FormsModule } from '@angular/forms';
     WidgetCountdownComponent,
     WidgetCollapsableItemComponent,
     WidgetDisplaySimpleItemComponent,
-    WidgetIdNameDropdownComponent
+    WidgetIdNameDropdownComponent,
+    WidgetFiltrableSelectComponent
   ]
 })
 export class OwgeWidgetsModule {

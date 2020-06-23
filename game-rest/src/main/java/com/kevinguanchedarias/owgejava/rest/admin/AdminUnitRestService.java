@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.UnitBo;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
@@ -21,7 +22,7 @@ import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 
 /**
- * 
+ *
  * @author Kevin Guanche Darias
  * @since 0.9.0
  *
@@ -44,9 +45,12 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	@Autowired
 	private ExceptionUtilService exceptionUtilService;
 
+	@Autowired
+	private SpeedImpactGroupBo speedImpactGroupBo;
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.rest.trait.
 	 * CrudWithRequirementsRestServiceTrait#getRestCrudConfigBuilder()
 	 */
@@ -67,13 +71,16 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 		} else {
 			entity.setType(unitTypeBo.findByIdOrDie(parsedDto.getTypeId()));
 		}
+		if (parsedDto.getSpeedImpactGroup() != null && parsedDto.getSpeedImpactGroup().getId() != null) {
+			entity.setSpeedImpactGroup(speedImpactGroupBo.findByIdOrDie(parsedDto.getSpeedImpactGroup().getId()));
+		}
 		CrudWithFullRestService.super.beforeSave(parsedDto, entity);
 		return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.rest.trait.
 	 * CrudWithRequirementsRestServiceTrait#getObject()
 	 */

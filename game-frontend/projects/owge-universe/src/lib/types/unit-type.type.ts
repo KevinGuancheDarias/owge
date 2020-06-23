@@ -1,4 +1,5 @@
 import { MissionSupport } from './mission-support.type';
+import { SpeedImpactGroup } from './speed-impact-group.type';
 
 /**
  * Represents a UnitType as sent by backend
@@ -21,4 +22,5 @@ export interface UnitType {
     canAttack: MissionSupport;
     canExplore: MissionSupport;
     canGather: MissionSupport;
+    speedImpactGroup: SpeedImpactGroup;
 }

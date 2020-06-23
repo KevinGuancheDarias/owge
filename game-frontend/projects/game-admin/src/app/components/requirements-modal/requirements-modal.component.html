@@ -1,0 +1,37 @@
+<owge-core-modal #childModal>
+    <div class="header">
+        <span>{{ 'OBJECT_REQUIREMENTS_CRUD.MODAL.TITLE' | translate  }}</span>
+    </div>
+    <div class="body">
+        <div class="form-row">
+            <ng-container *ngIf="newRequirement">
+                <div class="form-group col-md-12">
+                    <label for="requirement-code">Requirement</label>
+                    <select [(ngModel)]="newRequirement.requirement.code" id="requirement-code" class="form-control" (change)="loadSecondValue()">
+                        <option [ngValue]="undefined">Please select</option>
+                        <option value="BEEN_RACE">{{ findRequirementDescription('BEEN_RACE') | async }}</option>
+                        <option value="UPGRADE_LEVEL">{{ findRequirementDescription('UPGRADE_LEVEL') | async }}</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-12" *ngIf="newRequirement.targetSecondValueTranslation">
+                    <label for="second-value">{{ newRequirement.targetSecondValueTranslation }}</label>
+                    <owge-widgets-filtrable-select *ngIf="secondValueList" [collection]="secondValueList" [filters]="secondValueFilters" (filteredcollection)="secondValueListFiltered = $event"></owge-widgets-filtrable-select>
+                    <select *ngIf="secondValueListFiltered" [(ngModel)]="newRequirement.secondValue" id="second-value" class="form-control">
+                        <option [ngValue]="undefined">Please select</option>
+                        <option *ngFor="let current of secondValueListFiltered" [ngValue]="current.id">
+                            {{ current.name }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group col-md-12" *ngIf="newRequirement.targetThirdValueTranslation">
+                    <label for="third-value">{{ newRequirement.targetThirdValueTranslation }}</label>
+                    <input type="number" [(ngModel)]="newRequirement.thirdValue" id="third-value" class="form-control" />
+                </div>
+            </ng-container>
+        </div>
+    </div>
+    <div class="footer" *ngIf="newRequirement">
+        <button class="btn btn-primary" role="button" (click)="clickSave()" [disabled]="!canAdd()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="cancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>

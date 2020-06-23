@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -919,6 +920,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 					"At least one unit type doesn't support the specified mission.... don't try it dear hacker, you can't defeat the system, but don't worry nobody can");
 		}
 		obtainedUnitBo.save(obtainedUnits);
+		if (obtainedUnits.stream().noneMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
+				&& obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
+			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(obtainedUnit -> obtainedUnit.getUnit())
+					.filter(unit -> unit.getSpeed() != null
+							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
+					.map(unit -> unit.getSpeed()).reduce((a, b) -> a > b ? b : a);
+			if (lowestSpeedOptional.isPresent()) {
+				Double lowestSpeed = lowestSpeedOptional.get() / 70;
+				Double missionTypeTime = calculateRequiredTime(missionType);
+				long moveCost = calculateMoveCost(mission.getSourcePlanet(), mission.getTargetPlanet());
+				Double withMoveCost = missionTypeTime + (missionTypeTime * (moveCost * 0.01));
+				mission.setRequiredTime(withMoveCost / lowestSpeed);
+				mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+			}
+		}
 		save(mission);
 		scheduleMission(mission);
 		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
@@ -1108,7 +1124,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	/**
 	 * Calculates time required to complete the mission
 	 *
-	 * @todo In the future calculate the units speed
 	 *
 	 * @param type
 	 * @return
@@ -1177,5 +1192,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 		planetBo.emitPlanetOwnedChange(owner);
 		socketIoService.sendMessage(owner, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
+	}
+
+	private long calculateMoveCost(Planet sourcePlanet, Planet targetPlanet) {
+		long quadrants = Math.abs(sourcePlanet.getQuadrant() - targetPlanet.getQuadrant());
+		long sectors = Math.abs(sourcePlanet.getSector() - targetPlanet.getSector());
+		boolean isDifferentGalaxy = sourcePlanet.getGalaxy().equals(targetPlanet.getGalaxy());
+		return (quadrants + (sectors * 2) + (isDifferentGalaxy ? 10 : 0));
 	}
 }

@@ -6,11 +6,14 @@ import {
     CrudServiceAuthControl,
     WithRequirementsCrudMixin,
     WithImprovementsCrudMixin,
-    CrudConfig
+    CrudConfig,
+    RequirementInformation
 } from '@owge/universe';
 import { Faction } from '@owge/faction';
-import { validContext } from '@owge/core';
+import { validContext, ProgrammingError } from '@owge/core';
 import { Mixin } from 'ts-mixer';
+import { take } from 'rxjs/operators';
+import { WidgetFilter } from '@owge/widgets';
 
 
 export interface AdminFactionService
@@ -33,6 +36,30 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
+    }
+
+
+    /**
+     * Will filter the input by the been faction requirement
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns
+     */
+    public async buildFilter(): Promise<WidgetFilter<Faction>> {
+        return {
+            name: 'FILTER.BY_FACTION',
+            data: await this.findAll().pipe(take(1)).toPromise(),
+            filterAction: async (input, selectedFaction) => {
+                const requirements: RequirementInformation[] = input.requirements;
+                if (!requirements) {
+                    throw new ProgrammingError('Can NOT filter when the input has not requirements');
+                }
+                return requirements.some(requirement =>
+                    requirement.requirement.code === 'BEEN_RACE' && requirement.secondValue === selectedFaction.id
+                );
+            }
+        };
     }
 
     protected _getEntity(): string {

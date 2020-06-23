@@ -1,0 +1,16 @@
+h2 {
+    position: relative;
+    margin-top: 5px;
+    margin-bottom: 0px;
+    padding: 8px;
+    padding-right: 25px;
+}
+i.fa-times {
+    position: absolute;
+    right: 5px;
+    cursor: pointer;
+    
+    &:hover {
+        color: red;
+    }
+}

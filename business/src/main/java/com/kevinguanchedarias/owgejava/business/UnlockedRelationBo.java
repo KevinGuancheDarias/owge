@@ -36,7 +36,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use the same method but with {@link ObjectEnum} instead of
 	 *             {@link RequirementTargetObject}
 	 * @param userId
@@ -50,7 +50,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	}
 
 	/**
-	 * 
+	 *
 	 * @param userId
 	 * @param type
 	 * @return
@@ -63,7 +63,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 
 	/**
 	 * Converts a list of unlocked relations into a list of relations
-	 * 
+	 *
 	 * @param unlockedRelations list of unlocked relations
 	 * @return list of relations
 	 * @author Kevin Guanche Darias
@@ -76,7 +76,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 
 	/**
 	 * Unbox to target entity, for example will return a list of Units
-	 * 
+	 *
 	 * @param unlockedRelations
 	 * @return List of Object Entities
 	 * @author Kevin Guanche Darias
@@ -87,7 +87,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 
 	/**
 	 * Unbox to target dto
-	 * 
+	 *
 	 * @param <E>               Entity class
 	 * @param <D>               Dto class
 	 * @param dtoClass          Dto class
@@ -101,6 +101,16 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 		return dtoUtilService.convertEntireArray(dtoClass, unboxToTargetEntity(unlockedRelations));
 	}
 
+	/**
+	 *
+	 * @param objectRelation
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void deleteByRelation(ObjectRelation objectRelation) {
+		repository.deleteByRelation(objectRelation);
+	}
+
 	@Override
 	public JpaRepository<UnlockedRelation, Long> getRepository() {
 		return repository;
@@ -108,7 +118,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
