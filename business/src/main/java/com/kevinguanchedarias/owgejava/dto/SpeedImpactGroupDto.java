@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.dto;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.kevinguanchedarias.owgejava.dto.base.DtoWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
@@ -12,7 +13,7 @@ import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  *
  */
-public class SpeedImpactGroupDto implements WithDtoFromEntityTrait<SpeedImpactGroup> {
+public class SpeedImpactGroupDto extends DtoWithMissionLimitation implements WithDtoFromEntityTrait<SpeedImpactGroup> {
 	private Integer id;
 	private String name;
 	private Boolean isFixed = false;
@@ -27,6 +28,7 @@ public class SpeedImpactGroupDto implements WithDtoFromEntityTrait<SpeedImpactGr
 	@Override
 	public void dtoFromEntity(SpeedImpactGroup entity) {
 		WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+		id = entity.getId();
 		if (entity.getRequirementGroups() != null) {
 			requirementsGroups = entity.getRequirementGroups().stream().map(current -> {
 				RequirementGroupDto dto = new RequirementGroupDto();

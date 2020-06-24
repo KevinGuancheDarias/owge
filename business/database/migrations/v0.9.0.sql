@@ -55,6 +55,13 @@ INSERT INTO `objects` (`description`, `repository`)
                         ('SPEED_IMPACT_GROUP', 'com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository');
 
 ALTER TABLE `speed_impact_groups` ADD `is_fixed` TINYINT NOT NULL AFTER `name`;
+ALTER TABLE `speed_impact_groups` ADD `can_explore` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_gather` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_establish_base` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_attack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_counterattack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_conquest` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+ALTER TABLE `speed_impact_groups` ADD `can_deploy` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY'
 
 CREATE TABLE `object_relation__object_relation` ( `id` INT UNSIGNED NOT NULL , `master_relation_id` SMALLINT(6) UNSIGNED NOT NULL , `slave_relation_id` SMALLINT(6) UNSIGNED NOT NULL ) ENGINE = InnoDB;
 ALTER TABLE `object_relation__object_relation` ADD PRIMARY KEY(`id`);

@@ -20,4 +20,13 @@ public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelati
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void deleteByRelation(ObjectRelation objectRelation);
+
+	/**
+	 *
+	 * @param relation
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean existsByRelation(ObjectRelation relation);
 }

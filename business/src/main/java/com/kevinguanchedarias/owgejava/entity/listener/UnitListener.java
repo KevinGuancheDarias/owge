@@ -5,6 +5,8 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
@@ -26,6 +28,7 @@ public class UnitListener {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostLoad
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void loadSpeedImpactImprovement(Unit unit) {
 		if (unit.getSpeedImpactGroup() == null) {
 			unit.setSpeedImpactGroup(unit.getType().getSpeedImpactGroup());

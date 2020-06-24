@@ -23,11 +23,6 @@ export class UnitTypeCrudComponent implements OnInit {
 
   public unitType: UnitType;
   public isUnlimitedMaxAmount: boolean;
-  public validCanMissionOptions: MissionSupport[] = [
-    'NONE',
-    'OWNED_ONLY',
-    'ANY'
-  ];
   public speedImpactGroups: SpeedImpactGroup[] = [];
 
   constructor(public adminUnitTypeService: AdminUnitTypeService, private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService) { }

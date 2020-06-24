@@ -1,3 +1,5 @@
+import { Unit } from '@owge/universe';
+
 /**
  * Represents the selection of the unit
  *
@@ -12,7 +14,7 @@ export interface SelectedUnit {
      * @type {number}
      * @memberof SelectedUnit
      */
-    id: number;
+    unit: Unit;
 
     /**
      * Selected count

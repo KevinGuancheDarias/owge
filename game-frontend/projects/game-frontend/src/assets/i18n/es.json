@@ -66,6 +66,8 @@
         "MISSION_MODAL": {
             "HEADER": "Enviar misión a {{planetName}}",
             "MISSION_TYPE": "Tipo misión",
+            "NO_CROSS_GALAXY": "Al menos una de tus unidades no puede salir de la galaxia",
+            "MISSION_NOT_ALLOWED_CROSS_GALAXY": "Al menos una de tus unidades no puede hacer esta misión fuera de tu galaxia",
             "CHOOSE_UNITS_FIRST": "Selecciona unidades para poder escoger tipo de misión",
             "BTN_SEND_MISSION": "Enviar misión"
         },

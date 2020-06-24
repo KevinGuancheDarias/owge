@@ -9,7 +9,7 @@ import {
 } from '@owge/universe';
 
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
-import { map, distinctUntilChanged } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class UpgradeService extends AbstractWebsocketApplicationHandler {

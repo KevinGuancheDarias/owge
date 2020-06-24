@@ -66,6 +66,8 @@
         "MISSION_MODAL": {
             "HEADER": "Send mission to {{planetName}}",
             "MISSION_TYPE": "Mission type",
+            "NO_CROSS_GALAXY": "At least one unit can't go outside the galaxy",
+            "MISSION_NOT_ALLOWED_CROSS_GALAXY": "At least one unit can't run this mission type outside the galaxy",
             "CHOOSE_UNITS_FIRST": "You have to select units before you can choose mission type",
             "BTN_SEND_MISSION": "Send mission"
         },

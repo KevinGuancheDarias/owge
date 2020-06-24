@@ -16,8 +16,6 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.26.RELEASE</spring.version>
-		<hibernate.version>5.2.17.Final</hibernate.version>
 		<dbh2.version>1.4.187</dbh2.version>
 		<quartz.version>2.2.3</quartz.version>
 		<socketio.version>1.0.0</socketio.version>

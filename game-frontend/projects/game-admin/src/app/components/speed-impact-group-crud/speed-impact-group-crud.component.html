@@ -32,7 +32,14 @@
                 </div>
             </div>
             <div class="form-row">
-                <ng-container *ngIf="selectedEl.requirementsGroups">
+                <h2 class="owge-base-colors">{{ 'CRUD.SPEED_IMPACT_GROUP.MISSIONS_OUTSIDE_GALAXY' | translate }}</h2>
+            </div>
+            <app-can-do-missions-crud class="form-row" [element]="selectedEl"></app-can-do-missions-crud>
+            <div class="form-row">
+                <h2 class="owge-base-colors">{{ 'CRUD.SPEED_IMPACT_GROUP.REQUIREMENT_GROUPS' | translate}}</h2>
+            </div>
+            <div class="form-row">
+                <ng-container *ngIf="selectedEl.id">
                     <app-object-requirement-groups-crud [entityId]="selectedEl.id" [service]="adminSpeedImpactGroupService">
 
                     </app-object-requirement-groups-crud>

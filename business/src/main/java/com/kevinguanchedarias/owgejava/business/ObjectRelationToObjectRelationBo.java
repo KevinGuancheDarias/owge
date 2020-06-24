@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
@@ -60,4 +61,27 @@ public class ObjectRelationToObjectRelationBo
 		repository.deleteBySlaveId(relationId);
 	}
 
+	/**
+	 *
+	 * @param currentRelation
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObjectRelationToObjectRelation findBySlave(ObjectRelation currentRelation) {
+		return repository.findBySlaveId(currentRelation.getId());
+	}
+
+	/**
+	 * If the input relation is master (known because it's not a requirement group,
+	 * and has requirement groups
+	 * 
+	 * @param relation
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isMaster(ObjectRelation relation) {
+		return repository.existsByMaster(relation);
+	}
 }

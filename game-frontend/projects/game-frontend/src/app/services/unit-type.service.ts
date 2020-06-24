@@ -11,20 +11,20 @@ import {
 
 import { MissionType } from '@owge/core';
 import { LoginSessionService } from '../login-session/login-session.service';
+import { MissionService } from './mission.service';
 
 @Injectable()
 export class UnitTypeService extends AbstractWebsocketApplicationHandler {
 
-  private _oldCount = 0;
   private _unitTypeStore: UnitTypeStore = new UnitTypeStore;
   private _currentValue: UnitType[];
   private _offlineUnitTypes: StorageOfflineHelper<UnitType[]>;
 
   public constructor(
-    private _loginSessionService: LoginSessionService,
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    private _universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService,
+    private _missionService: MissionService
   ) {
     super();
     this._eventsMap = {
@@ -89,19 +89,7 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * @memberof UnitTypeService
    */
   public canDoMission(planet: Planet, unitTypes: UnitType[], missionType: MissionType): boolean {
-    return unitTypes.every(current => {
-      const status: MissionSupport = current[`can${upperFirst(camelCase(missionType))}`];
-      switch (status) {
-        case 'ANY':
-          return true;
-        case 'NONE':
-          return false;
-        case 'OWNED_ONLY':
-          return planet.ownerId === this._loginSessionService.findTokenData().id;
-        default:
-          throw new ProgrammingError(`Unsupported MissionSupport ${status}`);
-      }
-    });
+    return this._missionService.canDoMission(planet, unitTypes, missionType);
   }
 
   /**

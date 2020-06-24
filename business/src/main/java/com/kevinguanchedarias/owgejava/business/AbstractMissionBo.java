@@ -286,7 +286,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 */
 	protected Mission resolveMission(Mission mission) {
 		mission.setResolved(true);
-		return missionRepository.saveAndFlush(mission);
+		return missionRepository.save(mission);
 	}
 
 	/**

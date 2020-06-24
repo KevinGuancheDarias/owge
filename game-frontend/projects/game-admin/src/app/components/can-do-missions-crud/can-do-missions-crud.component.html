@@ -1,0 +1,47 @@
+<ng-container *ngIf="element">
+    <div class="form-group col-md-6">
+        <label for="can-explore">{{ 'CRUD.UNIT_TYPE.CAN_EXPLORE' | translate }} </label>
+        <select [(ngModel)]="element.canExplore" id="can-explore" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="can-gather">{{ 'CRUD.UNIT_TYPE.CAN_GATHER' | translate }} </label>
+        <select [(ngModel)]="element.canGather" id="can-gather" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="can-establish-base">{{ 'CRUD.UNIT_TYPE.CAN_ESTABLISH_BASE' | translate }} </label>
+        <select [(ngModel)]="element.canEstablishBase" id="can-establish-base" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="can-attack">{{ 'CRUD.UNIT_TYPE.CAN_ATTACK' | translate }} </label>
+        <select [(ngModel)]="element.canAttack" id="can-attack" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="can-counterattack">{{ 'CRUD.UNIT_TYPE.CAN_COUNTERATTACK' | translate }} </label>
+        <select [(ngModel)]="element.canCounterattack" id="can-counterattack" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+    <div class="form-group col-md-6">
+        <label for="can-conquest">{{ 'CRUD.UNIT_TYPE.CAN_CONQUEST' | translate }} </label>
+        <select [(ngModel)]="element.canConquest" id="can-conquest" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label for="can-deploy">{{ 'CRUD.UNIT_TYPE.CAN_DEPLOY' | translate }} </label>
+        <select [(ngModel)]="element.canDeploy" id="can-deploy" class="form-control">
+            <option *ngFor="let validCan of validCanMissionOptions" [value]="validCan">{{ 'CRUD.UNIT_TYPE.VALID_CAN.' + validCan | translate }}</option>
+        </select>
+    </div>
+</ng-container>

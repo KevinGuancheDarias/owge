@@ -51,6 +51,7 @@ import { RequirementsModalComponent } from './components/requirements-modal/requ
 import { AdminRequirementService } from './services/admin-requirement.service';
 import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
 import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-group.service';
+import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/can-do-missions-crud.component';
 
 @NgModule({
   declarations: [
@@ -76,7 +77,8 @@ import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-grou
     ObjectRequirementGroupsCrudComponent,
     RequirementsTableComponent,
     RequirementsModalComponent,
-    SpeedImpactGroupCrudComponent
+    SpeedImpactGroupCrudComponent,
+    CanDoMissionsCrudComponent
   ],
   imports: [
     BrowserModule,

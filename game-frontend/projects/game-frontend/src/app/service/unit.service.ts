@@ -220,7 +220,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
     return obtainedUnits.map(current => {
       return {
-        id: current.unit.id,
+        unit: current.unit,
         count: current.count
       };
     });
