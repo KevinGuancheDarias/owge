@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.joda.time.Interval;
@@ -25,9 +27,12 @@ import org.springframework.util.CollectionUtils;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -36,11 +41,14 @@ import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEn
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
@@ -870,6 +878,41 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
+	 * Test if the given entity with mission limitations can do the mission
+	 *
+	 * @param user
+	 * @param targetPlanet
+	 * @param entityWithMissionLimitation
+	 * @param missionType
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean canDoMission(UserStorage user, Planet targetPlanet,
+			EntityWithMissionLimitation<Integer> entityWithMissionLimitation, MissionType missionType) {
+		String targetMethod = "getCan" + WordUtils.capitalizeFully(missionType.name(), '_').replaceAll("_", "");
+		try {
+			MissionSupportEnum missionSupport = ((MissionSupportEnum) entityWithMissionLimitation.getClass()
+					.getMethod(targetMethod).invoke(entityWithMissionLimitation));
+			switch (missionSupport) {
+			case ANY:
+				return true;
+			case OWNED_ONLY:
+				return planetBo.isOfUserProperty(user, targetPlanet);
+			case NONE:
+				return false;
+			default:
+				throw new SgtCorruptDatabaseException(
+						"unsupported mission support was specified: " + missionSupport.name());
+			}
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+				| SecurityException e) {
+			throw new SgtBackendInvalidInputException(
+					"Could not invoke method " + targetMethod + " maybe it is not supported mission", e);
+		}
+	}
+
+	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged in
 	 * user as the sender user
 	 *
@@ -919,13 +962,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 			throw new SgtBackendInvalidInputException(
 					"At least one unit type doesn't support the specified mission.... don't try it dear hacker, you can't defeat the system, but don't worry nobody can");
 		}
+		checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
 		obtainedUnitBo.save(obtainedUnits);
 		if (obtainedUnits.stream().noneMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
 				&& obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
-			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(obtainedUnit -> obtainedUnit.getUnit())
+			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
 					.filter(unit -> unit.getSpeed() != null
 							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
-					.map(unit -> unit.getSpeed()).reduce((a, b) -> a > b ? b : a);
+					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {
 				Double lowestSpeed = lowestSpeedOptional.get() / 70;
 				Double missionTypeTime = calculateRequiredTime(missionType);
@@ -1199,5 +1243,30 @@ public class UnitMissionBo extends AbstractMissionBo {
 		long sectors = Math.abs(sourcePlanet.getSector() - targetPlanet.getSector());
 		boolean isDifferentGalaxy = sourcePlanet.getGalaxy().equals(targetPlanet.getGalaxy());
 		return (quadrants + (sectors * 2) + (isDifferentGalaxy ? 10 : 0));
+	}
+
+	private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
+			Planet targetPlanet) {
+		UserStorage user = units.get(0).getUser();
+		if (!sourcePlanet.getGalaxy().getId().equals(targetPlanet.getGalaxy().getId())) {
+			units.forEach(unit -> {
+				SpeedImpactGroup speedGroup = unit.getUnit().getSpeedImpactGroup();
+				speedGroup = speedGroup == null ? unit.getUnit().getType().getSpeedImpactGroup() : speedGroup;
+				if (speedGroup != null) {
+					if (!canDoMission(user, targetPlanet, speedGroup, missionType)) {
+						throw new SgtBackendInvalidInputException(
+								"This speed group doesn't support this mission outside of the galaxy");
+					}
+					ObjectRelation relation = objectRelationBo
+							.findOneByObjectTypeAndReferenceId(ObjectEnum.SPEED_IMPACT_GROUP, speedGroup.getId());
+					if (relation == null) {
+						LOG.warn("Unexpected null objectRelation for SPEED_IMPACT_GROUP with id " + speedGroup.getId());
+					} else if (!unlockedRelationBo.isUnlocked(user, relation)) {
+						throw new SgtBackendInvalidInputException(
+								"Don't try it.... you can't do cross galaxy missions, and you know it");
+					}
+				}
+			});
+		}
 	}
 }

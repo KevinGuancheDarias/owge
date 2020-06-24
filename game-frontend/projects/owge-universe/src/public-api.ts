@@ -41,6 +41,7 @@ export * from './lib/types/planet-units-representation.type';
 export * from './lib/types/requirement-information.type';
 export * from './lib/types/requirement.type';
 export * from './lib/types/time-special.type';
+export * from './lib/types/type-with-mission-limitation.type';
 export * from './lib/types/running-mission.type';
 export * from './lib/types/special-location.type';
 export * from './lib/types/speed-impact-group.type';

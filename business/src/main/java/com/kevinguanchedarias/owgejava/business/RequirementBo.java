@@ -2,14 +2,17 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
@@ -23,6 +26,7 @@ import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Requirement;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
@@ -41,7 +45,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.pojo.UnitUpgradeRequirements;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
-import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
@@ -50,6 +53,8 @@ import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 @Transactional
 public class RequirementBo implements Serializable {
 	private static final long serialVersionUID = -7069590234333605969L;
+
+	private static final Logger LOG = Logger.getLogger(RequirementBo.class);
 
 	@Autowired
 	private UserStorageBo userStorageBo;
@@ -61,7 +66,7 @@ public class RequirementBo implements Serializable {
 	private RequirementInformationDao requirementDao;
 
 	@Autowired
-	private UnlockedRelationRepository unlockedRelationRepository;
+	private UnlockedRelationBo unlockedRelationBo;
 
 	@Autowired
 	private ObtainedUpgradeBo obtainedUpgradeBo;
@@ -71,6 +76,9 @@ public class RequirementBo implements Serializable {
 
 	@Autowired
 	private ObjectRelationBo objectRelationBo;
+
+	@Autowired
+	private ObjectRelationToObjectRelationBo objectRelationToObjectRelationBo;
 
 	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
@@ -92,6 +100,9 @@ public class RequirementBo implements Serializable {
 
 	@Autowired
 	private UnitBo unitBo;
+
+	@Autowired
+	private SpeedImpactGroupBo speedImpactGroupBo;
 
 	@Autowired
 	private transient EntityManager entityManager;
@@ -348,9 +359,34 @@ public class RequirementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	private void processRelationList(List<ObjectRelation> relations, UserStorage user) {
-		for (ObjectRelation currentRelation : relations) {
-			processRelation(currentRelation, user);
-		}
+		Set<ObjectRelation> affectedMasters = new HashSet<>();
+		relations.forEach(currentRelation -> {
+			boolean isSlaveOrHasNotSlaves = false;
+			if (currentRelation.getObject().findCodeAsEnum() == ObjectEnum.REQUIREMENT_GROUP) {
+				ObjectRelationToObjectRelation relationWithMaster = objectRelationToObjectRelationBo
+						.findBySlave(currentRelation);
+				if (relationWithMaster != null) {
+					affectedMasters.add(relationWithMaster.getMaster());
+				} else {
+					LOG.warn("Orphan group with id " + currentRelation.getId());
+				}
+				isSlaveOrHasNotSlaves = true;
+			} else {
+				isSlaveOrHasNotSlaves = !objectRelationToObjectRelationBo.isMaster(currentRelation);
+			}
+			if (isSlaveOrHasNotSlaves) {
+				processRelation(currentRelation, user);
+			}
+		});
+		affectedMasters.forEach(master -> {
+			List<ObjectRelation> slaves = objectRelationToObjectRelationBo.findByMasterId(master.getId()).stream()
+					.map(current -> current.getSlave()).collect(Collectors.toList());
+			if (slaves.stream().anyMatch(slave -> unlockedRelationBo.isUnlocked(user, slave))) {
+				registerObtainedRelation(master, user);
+			} else {
+				unregisterLossedRelation(master, user);
+			}
+		});
 	}
 
 	/**
@@ -452,7 +488,7 @@ public class RequirementBo implements Serializable {
 			UnlockedRelation unlockedRelation = new UnlockedRelation();
 			unlockedRelation.setRelation(relation);
 			unlockedRelation.setUser(user);
-			unlockedRelationRepository.save(unlockedRelation);
+			unlockedRelationBo.save(unlockedRelation);
 			ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
 			switch (object) {
 			case UPGRADE:
@@ -470,29 +506,38 @@ public class RequirementBo implements Serializable {
 				break;
 
 			case REQUIREMENT_GROUP:
+				break;
 			case SPEED_IMPACT_GROUP:
+				emitUnlockedSpeedImpactGroups(user);
 				break;
 			}
 		}
 	}
 
+	private void emitUnlockedSpeedImpactGroups(UserStorage user) {
+		socketIoService.sendMessage(user.getId(), "speed_impact_group_unlocked_change",
+				() -> speedImpactGroupBo.findCrossGalaxyUnlocked(user));
+	}
+
 	private void unregisterLossedRelation(ObjectRelation relation, UserStorage user) {
 		UnlockedRelation unlockedRelation = findUnlockedObjectRelation(relation.getId(), user.getId());
 		if (unlockedRelation != null) {
-			unlockedRelationRepository.deleteById(unlockedRelation.getId());
+			unlockedRelationBo.delete(unlockedRelation.getId());
 		}
 
 		ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
 		if (object == ObjectEnum.UPGRADE && obtainedUpgradeBo.userHasUpgrade(user.getId(), relation.getReferenceId())) {
 			alterObtainedUpgradeAvailability(
 					obtainedUpgradeBo.findUserObtainedUpgrade(user.getId(), relation.getReferenceId()), false);
+		} else if (object == ObjectEnum.SPEED_IMPACT_GROUP) {
+			emitUnlockedSpeedImpactGroups(user);
 		} else if (unlockedRelation != null) {
 			emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unitBo : timeSpecialBo);
 		}
 	}
 
 	private UnlockedRelation findUnlockedObjectRelation(Integer relationId, Integer userId) {
-		return unlockedRelationRepository.findOneByUserIdAndRelationId(userId, relationId);
+		return unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId);
 	}
 
 	private void registerObtainedUpgrade(UserStorage user, Integer upgradeId) {

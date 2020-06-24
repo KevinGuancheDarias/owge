@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
+import { camelCase, upperFirst } from 'lodash-es';
+
 
 import { ProgrammingError, LoadingService, UserStorage, User, DateUtil, StorageOfflineHelper } from '@owge/core';
 import {
   UniverseGameService, MissionStore, UnitRunningMission, RunningMission,
-  UniverseCacheManagerService, WsEventCacheService
+  UniverseCacheManagerService, WsEventCacheService, TypeWithMissionLimitation, Planet, MissionSupport
 } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
@@ -16,6 +18,8 @@ import { AbstractWebsocketApplicationHandler } from '@owge/core';
 
 @Injectable()
 export class MissionService extends AbstractWebsocketApplicationHandler {
+
+  private _currentUser: User;
 
   private _offlineMyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
   private _offlineEnemyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
@@ -35,6 +39,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
       missions_count_change: '_onMissionsCountChange',
       enemy_mission_change: '_onEnemyMissionChange'
     };
+    userStore.currentUser.subscribe(user => this._currentUser = user);
     userStore.currentUserImprovements.subscribe(improvement =>
       _missionStore.maxMissions.next(improvement.moreMisions)
     );
@@ -94,6 +99,33 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
       await this._offlineMyUnitMissionsStore.doIfNotNull(content => this._onMyUnitMissionsChange({ count, myUnitMissions: content }));
     }
     await this._offlineEnemyUnitMissionsStore.doIfNotNull(content => this._onEnemyMissionChange(content));
+  }
+
+
+  /**
+   * Check if the specified type with mission limitation can do the mission
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param planet
+   * @param typeWithMissionLimitation
+   * @param missionType
+   * @returns
+   */
+  public canDoMission(planet: Planet, typeWithMissionLimitation: TypeWithMissionLimitation[], missionType: MissionType): boolean {
+    return typeWithMissionLimitation.filter(current => current).every(current => {
+      const status: MissionSupport = current[`can${upperFirst(camelCase(missionType))}`];
+      switch (status) {
+        case 'ANY':
+          return true;
+        case 'NONE':
+          return false;
+        case 'OWNED_ONLY':
+          return planet.ownerId === (this._currentUser && this._currentUser.id);
+        default:
+          throw new ProgrammingError(`Unsupported MissionSupport ${status}`);
+      }
+    });
   }
 
   public findMyRunningMissions(): Observable<UnitRunningMission[]> {
@@ -242,7 +274,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
       url, {
       sourcePlanetId: sourcePlanet.id,
       targetPlanetId: targetPlanet.id,
-      involvedUnits
+      involvedUnits: involvedUnits.map(involvedUnit => ({ id: involvedUnit.unit.id, count: involvedUnit.count }))
     }).pipe(map(result => {
       if (result) {
         this._missionStore.missionsCount.next(result.missionsCount);

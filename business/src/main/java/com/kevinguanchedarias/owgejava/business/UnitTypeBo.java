@@ -1,10 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.text.WordUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +13,6 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
@@ -30,14 +27,15 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	private UnitTypeRepository unitTypeRepository;
 
 	@Autowired
-	private PlanetBo planetBo;
-
-	@Autowired
 	private ImprovementBo improvementBo;
 
 	@Autowired
 	@Lazy
 	private ObtainedUnitBo obtainedUnitBo;
+
+	@Autowired
+	@Lazy
+	private UnitMissionBo unitMissionBo;
 
 	@Autowired
 	private UserStorageBo userStorageBo;
@@ -103,32 +101,16 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * @param unitType     Unit type to test
 	 * @param type         Mission to execute
 	 * @return
+	 * @deprecated Please Use
+	 *             {@link UnitMissionBo#canDoMission(UserStorage, Planet, com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation, MissionType)}
 	 * @throws SgtCorruptDatabaseException     Value in unit types database table is
 	 *                                         not an accepted value
 	 * @throws SgtBackendInvalidInputException Mission is not supported
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.0")
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, UnitType unitType, MissionType type) {
-		String targetMethod = "getCan" + WordUtils.capitalizeFully(type.name(), '_').replaceAll("_", "");
-		try {
-			MissionSupportEnum missionSupport = ((MissionSupportEnum) unitType.getClass().getMethod(targetMethod)
-					.invoke(unitType));
-			switch (missionSupport) {
-			case ANY:
-				return true;
-			case OWNED_ONLY:
-				return planetBo.isOfUserProperty(user, targetPlanet);
-			case NONE:
-				return false;
-			default:
-				throw new SgtCorruptDatabaseException(
-						"unsupported mission support was specified: " + missionSupport.name());
-			}
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-				| SecurityException e) {
-			throw new SgtBackendInvalidInputException(
-					"Could not invoke method " + targetMethod + " maybe it is not supported mission", e);
-		}
+		return unitMissionBo.canDoMission(user, targetPlanet, unitType, type);
 	}
 
 	public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
@@ -109,6 +110,18 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	 */
 	public void deleteByRelation(ObjectRelation objectRelation) {
 		repository.deleteByRelation(objectRelation);
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @param relation
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isUnlocked(UserStorage user, ObjectRelation relation) {
+		return repository.existsByRelation(relation);
 	}
 
 	@Override

@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { AbstractModalContainerComponent, LoggerHelper } from '@owge/core';
+import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { UnitType, MissionStore } from '@owge/universe';
+import { UnitType, MissionStore, Unit } from '@owge/universe';
 
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
@@ -13,6 +13,8 @@ import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
+import { SpeedImpactGroupService } from 'projects/owge-universe/src/lib/services/speed-impact-group.service';
+import { Observable } from 'rxjs';
 
 /**
  * Modal to send a mission to a planet
@@ -28,7 +30,7 @@ import { ConfigurationService } from '../modules/configuration/services/configur
   templateUrl: './mission-modal.component.html',
   styleUrls: ['./mission-modal.component.scss']
 })
-export class MissionModalComponent extends AbstractModalContainerComponent implements OnInit {
+export class MissionModalComponent extends AbstractModalContainerComponent implements OnInit, OnDestroy {
 
   /**
    * Planet to which mission is going to be send
@@ -48,14 +50,19 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
    */
   public obtainedUnits: ObtainedUnit[];
 
+  public unlockedSpeedImpactGroups: number[] = [];
+
   public selectedUnits: SelectedUnit[];
   public selectedUnitsTypes: UnitType[];
   public missionType: MissionType = null;
   public isValidSelection = false;
   public maxMissions = 1;
   public deploymentConfig: validDeploymentValue;
+  public canCrossGalaxy = true;
+  public canDoMissionOutsideGalaxy = true;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
 
   constructor(
     private _missionService: MissionService,
@@ -63,7 +70,8 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     private _unitTypeService: UnitTypeService,
     private _missioninformationStore: MissionInformationStore,
     private _configurationService: ConfigurationService,
-    private _missionStore: MissionStore
+    private _missionStore: MissionStore,
+    private _speedImpactGroupService: SpeedImpactGroupService
   ) {
     super();
   }
@@ -71,9 +79,14 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public ngOnInit(): void {
     this._configurationService.observeDeploymentConfiguration().subscribe(val => this.deploymentConfig = val);
     this._missionStore.maxMissions.subscribe(val => this.maxMissions = val);
-    this._missioninformationStore.originPlanet.subscribe(sourcePlanet => this.sourcePlanet = sourcePlanet);
-    this._missioninformationStore.targetPlanet.subscribe(targetPlanet => this.targetPlanet = targetPlanet);
-    this._missioninformationStore.availableUnits.subscribe(availableUnits => this.obtainedUnits = availableUnits);
+    this._triggerChange(this._missioninformationStore.originPlanet, sourcePlanet => this.sourcePlanet = sourcePlanet);
+    this._triggerChange(this._missioninformationStore.targetPlanet, targetPlanet => this.targetPlanet = targetPlanet);
+    this._triggerChange(this._missioninformationStore.availableUnits, availableUnits => this.obtainedUnits = availableUnits);
+    this._triggerChange(this._speedImpactGroupService.findunlockedIds(), result => this.unlockedSpeedImpactGroups = result);
+  }
+
+  public ngOnDestroy(): void {
+    this._subscriptions.unsubscribeAll();
   }
 
   public areUnitsSelected(): boolean {
@@ -103,7 +116,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
 
   public hasSelectedMoreThanPossible(): boolean {
     return this.selectedUnits.some(current => {
-      const obtainedUnit = this.obtainedUnits.find(currentObtainedUnit => currentObtainedUnit.unit.id === current.id);
+      const obtainedUnit = this.obtainedUnits.find(currentObtainedUnit => currentObtainedUnit.unit.id === current.unit.id);
       return !current || !obtainedUnit || current.count > obtainedUnit.count;
     });
   }
@@ -129,6 +142,29 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     }
   }
 
+  public onUnitSelection(selectedUnits: SelectedUnit[]): void {
+    this.selectedUnits = selectedUnits;
+    if (this.sourcePlanet.galaxyId !== this.targetPlanet.galaxyId) {
+      this.canCrossGalaxy = selectedUnits.map(selectedUnit => selectedUnit.unit.speedImpactGroup)
+        .every(speedGroup => !speedGroup || this.unlockedSpeedImpactGroups.some(id => id === speedGroup.id));
+      this.onMissionTypeChange();
+    } else {
+      this.canCrossGalaxy = true;
+    }
+  }
+
+  public onMissionTypeChange(): void {
+    if (this.sourcePlanet.galaxyId !== this.targetPlanet.galaxyId && this.missionType) {
+      this.canDoMissionOutsideGalaxy = this._missionService.canDoMission(
+        this.targetPlanet,
+        this.selectedUnits.map(selectedUnit => selectedUnit.unit.speedImpactGroup),
+        this.missionType
+      );
+    } else {
+      this.canDoMissionOutsideGalaxy = true;
+    }
+  }
+
   /**
    *
    *
@@ -151,5 +187,14 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
         this._log.warn(`Invalid value for deployment config in the server: ${this.deploymentConfig}, defaulting to FREEDOM`);
         return true;
     }
+  }
+
+  private _triggerChange<T>(observable: Observable<T>, subscribeAction: (val: T) => void): void {
+    this._subscriptions.add(observable.subscribe(val => {
+      subscribeAction(val);
+      if (this.selectedUnits) {
+        this.onUnitSelection(this.selectedUnits);
+      }
+    }));
   }
 }

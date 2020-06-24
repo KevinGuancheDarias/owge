@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : mar. 23 juin 2020 à 13:20
+-- Généré le : mer. 24 juin 2020 à 17:44
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -711,7 +711,14 @@ CREATE TABLE `speed_impact_groups` (
   `mission_establish_base` double NOT NULL,
   `mission_attack` double NOT NULL,
   `mission_conquest` double NOT NULL,
-  `mission_counterattack` double NOT NULL
+  `mission_counterattack` double NOT NULL,
+  `can_explore` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_gather` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_establish_base` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_attack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_counterattack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_conquest` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `can_deploy` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

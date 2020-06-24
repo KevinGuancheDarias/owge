@@ -1,4 +1,5 @@
 import { RequirementGroup } from './requirement-group.type';
+import { TypeWithMissionLimitation } from './type-with-mission-limitation.type';
 
 /**
  *
@@ -7,7 +8,7 @@ import { RequirementGroup } from './requirement-group.type';
  * @since 0.9.0
  * @export
  */
-export interface SpeedImpactGroup {
+export interface SpeedImpactGroup extends TypeWithMissionLimitation {
     id: number;
     name: string;
     isFixed: boolean;

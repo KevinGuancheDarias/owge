@@ -103,7 +103,9 @@
             "ATTACK": "Fixed attack time",
             "COUNTERATTACK": "Fixed counterattack time",
             "CONQUEST": "Fixed conquest time",
-            "DEPLOY": "Fixed deploy time"
+            "DEPLOY": "Fixed deploy time",
+            "MISSIONS_OUTSIDE_GALAXY": "Allowed missions outside galaxy",
+            "REQUIREMENT_GROUPS": "Can go outside galaxy requirement groups"
         },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requirements"

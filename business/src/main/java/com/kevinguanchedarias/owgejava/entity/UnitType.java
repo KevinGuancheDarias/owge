@@ -4,8 +4,6 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -18,8 +16,6 @@ import javax.persistence.Table;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
-
 /**
  *
  * @author Kevin Guanche Darias
@@ -27,7 +23,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
  */
 @Entity
 @Table(name = "unit_types")
-public class UnitType implements EntityWithId<Integer> {
+public class UnitType extends EntityWithMissionLimitation<Integer> {
 	private static final long serialVersionUID = 6571633664776386521L;
 
 	@Id
@@ -53,34 +49,6 @@ public class UnitType implements EntityWithId<Integer> {
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "unitType")
 	private List<ImprovementUnitType> upgradeEnhancements;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_explore", nullable = false)
-	private MissionSupportEnum canExplore = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_gather", nullable = false)
-	private MissionSupportEnum canGather = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_establish_base", nullable = false)
-	private MissionSupportEnum canEstablishBase = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_attack", nullable = false)
-	private MissionSupportEnum canAttack = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_counterattack", nullable = false)
-	private MissionSupportEnum canCounterattack = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_conquest", nullable = false)
-	private MissionSupportEnum canConquest = MissionSupportEnum.ANY;
-
-	@Enumerated(EnumType.STRING)
-	@Column(name = "can_deploy", nullable = false)
-	private MissionSupportEnum canDeploy = MissionSupportEnum.ANY;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "speed_impact_group_id")
@@ -172,62 +140,6 @@ public class UnitType implements EntityWithId<Integer> {
 
 	public void setUpgradeEnhancements(List<ImprovementUnitType> upgradeEnhancements) {
 		this.upgradeEnhancements = upgradeEnhancements;
-	}
-
-	public MissionSupportEnum getCanExplore() {
-		return canExplore;
-	}
-
-	public void setCanExplore(MissionSupportEnum canExplore) {
-		this.canExplore = canExplore;
-	}
-
-	public MissionSupportEnum getCanGather() {
-		return canGather;
-	}
-
-	public void setCanGather(MissionSupportEnum canGather) {
-		this.canGather = canGather;
-	}
-
-	public MissionSupportEnum getCanEstablishBase() {
-		return canEstablishBase;
-	}
-
-	public void setCanEstablishBase(MissionSupportEnum canEstablishBase) {
-		this.canEstablishBase = canEstablishBase;
-	}
-
-	public MissionSupportEnum getCanAttack() {
-		return canAttack;
-	}
-
-	public void setCanAttack(MissionSupportEnum canAttack) {
-		this.canAttack = canAttack;
-	}
-
-	public MissionSupportEnum getCanCounterattack() {
-		return canCounterattack;
-	}
-
-	public void setCanCounterattack(MissionSupportEnum canCounterattack) {
-		this.canCounterattack = canCounterattack;
-	}
-
-	public MissionSupportEnum getCanConquest() {
-		return canConquest;
-	}
-
-	public void setCanConquest(MissionSupportEnum canConquest) {
-		this.canConquest = canConquest;
-	}
-
-	public MissionSupportEnum getCanDeploy() {
-		return canDeploy;
-	}
-
-	public void setCanDeploy(MissionSupportEnum canDeploy) {
-		this.canDeploy = canDeploy;
 	}
 
 	/**

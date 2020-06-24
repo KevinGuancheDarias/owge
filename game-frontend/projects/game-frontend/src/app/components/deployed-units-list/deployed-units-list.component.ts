@@ -66,7 +66,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     this.selection.emit(
       this.selectedCounts.map<SelectedUnit>((current, index) => {
         return {
-          id: this.obtainedUnits[index].unit.id,
+          unit: this.obtainedUnits[index].unit,
           count: current
         };
       }).filter(current => current.count)

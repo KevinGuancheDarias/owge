@@ -21,6 +21,7 @@ import { WsEventCacheService } from './services/ws-event-cache.service';
 import { PlanetDescriptionPipe } from './pipes/planet-description.pipe';
 import { FormsModule } from '@angular/forms';
 import { PlanetOwnerPipe } from './pipes/planet-owner.pipe';
+import { SpeedImpactGroupService } from './services/speed-impact-group.service';
 
 /**
  *
@@ -67,7 +68,8 @@ export class OwgeUniverseModule {
         ResourceManagerService,
         UniverseCacheManagerService,
         WebsocketService,
-        WsEventCacheService
+        WsEventCacheService,
+        SpeedImpactGroupService
       ]
     };
   }
@@ -75,7 +77,8 @@ export class OwgeUniverseModule {
   public constructor(_injector: Injector, private _websocketService: WebsocketService) {
     _websocketService.addEventHandler(
       _injector.get(UniverseGameService),
-      _injector.get(UniverseCacheManagerService)
+      _injector.get(UniverseCacheManagerService),
+      _injector.get(SpeedImpactGroupService)
     );
   }
 }

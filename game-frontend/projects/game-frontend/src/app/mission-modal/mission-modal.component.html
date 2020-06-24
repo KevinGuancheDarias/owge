@@ -5,28 +5,38 @@
     {{ 'APP.MISSION_MODAL.HEADER' | translate: { planetName: targetPlanet | planetDisplayName} }}
   </div>
   <div class="body owge-base-colors" *ngIf="deploymentConfig">
-    <div *ngIf="isValidSelection">
-      <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
-      <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType">
-      <option [ngValue]="null">{{ 'APP.MISSION_TYPES.PLEASE_SELECT' | translate }}</option>
-        <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">{{ 'APP.MISSION_TYPES.EXPLORE' | translate }}</option>
-        <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">{{ 'APP.MISSION_TYPES.GATHER' | translate }}</option>
-        <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">{{ 'APP.MISSION_TYPES.ESTABLISH_BASE' | translate }}</option>
-        <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">{{ 'APP.MISSION_TYPES.ATTACK' | translate }}</option>
-        <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">{{ 'APP.MISSION_TYPES.COUNTERATTACK' | translate }}</option>
-        <option *ngIf="maxMissions > 1 && isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">{{ 'APP.MISSION_TYPES.DEPLOY' | translate }}</option>
-        <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home" value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">{{ 'APP.MISSION_TYPES.CONQUEST' | translate }}</option>
-      </select>
-    </div>
-    <div *ngIf="!isValidSelection">
-      {{ 'APP.MISSION_MODAL.CHOOSE_UNITS_FIRST' | translate }}
-    </div>
-    <div class="unit-selection">
-      <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="selectedUnits = $event"
-        (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
-    </div>
+    <ng-container *ngIf="sourcePlanet && targetPlanet">
+      <div *ngIf="isValidSelection">
+        <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
+        <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType" (ngModelChange)="onMissionTypeChange()">
+        <option [ngValue]="null">{{ 'APP.MISSION_TYPES.PLEASE_SELECT' | translate }}</option>
+          <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">{{ 'APP.MISSION_TYPES.EXPLORE' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">{{ 'APP.MISSION_TYPES.GATHER' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">{{ 'APP.MISSION_TYPES.ESTABLISH_BASE' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">{{ 'APP.MISSION_TYPES.ATTACK' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">{{ 'APP.MISSION_TYPES.COUNTERATTACK' | translate }}</option>
+          <option *ngIf="maxMissions > 1 && isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">{{ 'APP.MISSION_TYPES.DEPLOY' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home" value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">{{ 'APP.MISSION_TYPES.CONQUEST' | translate }}</option>
+        </select>
+      </div>
+      <div *ngIf="!isValidSelection">
+        {{ 'APP.MISSION_MODAL.CHOOSE_UNITS_FIRST' | translate }}
+      </div>
+      <div class="owge-errors" *ngIf="sourcePlanet.galaxyId !== targetPlanet.galaxyId">
+        <div *ngIf="!canCrossGalaxy">
+          {{ 'APP.MISSION_MODAL.NO_CROSS_GALAXY' | translate }}
+        </div>
+        <div *ngIf="!canDoMissionOutsideGalaxy">
+          {{ 'APP.MISSION_MODAL.MISSION_NOT_ALLOWED_CROSS_GALAXY' | translate }}
+        </div>
+      </div>
+      <div class="unit-selection">
+        <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="onUnitSelection($event)"
+          (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
+      </div>
+    </ng-container>
   </div>
   <div class="footer">
-    <button owgeUniverseOnClickIfWsConnected (clickAndConnected)="sendMission()" [disabled]="!isValidSelection || !missionType || hasSelectedMoreThanPossible()" class="btn-primary btn-send-mission">{{ 'APP.MISSION_MODAL.BTN_SEND_MISSION' | translate}}</button>
+    <button owgeUniverseOnClickIfWsConnected (clickAndConnected)="sendMission()" [disabled]="!isValidSelection || !missionType || !canCrossGalaxy || !canDoMissionOutsideGalaxy || hasSelectedMoreThanPossible()" class="btn-primary btn-send-mission">{{ 'APP.MISSION_MODAL.BTN_SEND_MISSION' | translate}}</button>
   </div>
 </owge-core-modal>

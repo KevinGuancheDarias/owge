@@ -24,7 +24,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 @Entity
 @Table(name = "requirement_group")
 @EntityListeners(RequirementGroupListener.class)
-public class RequirementGroup extends EntityWithRelation {
+public class RequirementGroup extends EntityWithRelationImp {
 	private static final long serialVersionUID = 6503065882978157947L;
 
 	@Id

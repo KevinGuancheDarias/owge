@@ -93,7 +93,9 @@
             "ATTACK": "Tiempo ataque",
             "COUNTERATTACK": "Tiempo contraataque",
             "CONQUEST": "Tiempo conquista",
-            "DEPLOY": "Tiempo despliegue"
+            "DEPLOY": "Tiempo despliegue",
+            "MISSIONS_OUTSIDE_GALAXY": "Misiones intergalácticas permitidas",
+            "REQUIREMENT_GROUPS": "Grupos de requisitos para poder salir de la galaxía"
         },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requisitos"

@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +14,7 @@ import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
@@ -41,6 +44,9 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 
 	@Autowired
 	private ObjectRelationBo objectRelationBo;
+
+	@Autowired
+	private UnlockedRelationBo unlockedRelationBo;
 
 	@Autowired
 	private DtoUtilService dtoUtilService;
@@ -107,6 +113,20 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 		}
 		target.setRequirementGroups(new ArrayList<>());
 		return BaseBo.super.save(target);
+	}
+
+	/**
+	 * Finds the ids of the unlocked cross galaxy speed impact
+	 *
+	 * @param user
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Integer> findCrossGalaxyUnlocked(UserStorage user) {
+		List<SpeedImpactGroup> speedImpactGroups = unlockedRelationBo.unboxToTargetEntity(
+				unlockedRelationBo.findByUserIdAndObjectType(user.getId(), ObjectEnum.SPEED_IMPACT_GROUP));
+		return speedImpactGroups.stream().map(current -> current.getId()).collect(Collectors.toList());
 	}
 
 }

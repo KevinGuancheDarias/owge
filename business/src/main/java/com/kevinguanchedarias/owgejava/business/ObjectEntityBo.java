@@ -63,7 +63,7 @@ public class ObjectEntityBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@SuppressWarnings("unchecked")
-	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> WithNameBo<K, E, D> findBo(
+	public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> BaseBo<K, E, D> findBo(
 			ObjectEntity object) {
 		String repositoryName = ProxyUtil.resolveProxy(findRepository(object)).getName();
 		String[] repositoryNameParts = repositoryName.split("\\.");
@@ -71,7 +71,7 @@ public class ObjectEntityBo implements Serializable {
 		repositoryNameParts[4] = repositoryNameParts[4].replaceFirst("Repository", "Bo");
 		String boName = String.join(".", repositoryNameParts);
 		try {
-			Class<? extends WithNameBo<K, E, D>> clazz = (Class<? extends WithNameBo<K, E, D>>) Class.forName(boName);
+			Class<? extends BaseBo<K, E, D>> clazz = (Class<? extends BaseBo<K, E, D>>) Class.forName(boName);
 			return beanFactory.getBean(clazz);
 		} catch (ClassNotFoundException e) {
 			throw new ProgrammingException(

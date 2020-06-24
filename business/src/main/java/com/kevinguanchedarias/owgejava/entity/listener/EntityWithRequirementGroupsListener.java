@@ -6,6 +6,8 @@ import javax.persistence.PostLoad;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.business.ObjectRelationToObjectRelationBo;
@@ -37,6 +39,7 @@ public class EntityWithRequirementGroupsListener {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostLoad
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void loadRequirements(EntityWithRequirementGroups entityWithGroupRequirements) {
 		entityWithGroupRequirements
 				.setRequirementGroups(

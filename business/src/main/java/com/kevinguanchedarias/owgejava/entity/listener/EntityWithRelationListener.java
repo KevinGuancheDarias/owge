@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.business.UnlockedRelationBo;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRelation;
+import com.kevinguanchedarias.owgejava.entity.EntityWithRelationImp;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 
 /**
@@ -45,8 +46,11 @@ public class EntityWithRelationListener {
 	 * @param entityWithRelation
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @see To understand the REQUIRES_NEW see:
+	 *      https://stackoverflow.com/a/62539018/1922558
 	 */
 	@PostLoad
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void defineRelation(EntityWithRelation entityWithRelation) {
 		entityWithRelation.setRelation(objectRelationBo
 				.findOneByObjectTypeAndReferenceId(entityWithRelation.getObject(), entityWithRelation.getId()));
@@ -73,7 +77,7 @@ public class EntityWithRelationListener {
 	 */
 	@PreRemove
 	@Transactional(propagation = Propagation.MANDATORY)
-	public void removeRelation(EntityWithRelation entityWithRelation) {
+	public void removeRelation(EntityWithRelationImp entityWithRelation) {
 		ObjectRelation relation = entityWithRelation.getRelation();
 		requirementInformationBo.deleteByRelation(relation);
 		unlockedRelationBo.deleteByRelation(relation);
