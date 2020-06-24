@@ -967,7 +967,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (obtainedUnits.stream().noneMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
 				&& obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
 			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
-					.filter(unit -> unit.getSpeed() != null
+					.filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
 							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
 					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -15,6 +16,8 @@ import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import com.kevinguanchedarias.owgejava.entity.listener.UpgradeListener;
+
 /**
  * All more* are percentages excluding moreMissions
  *
@@ -23,6 +26,7 @@ import org.hibernate.annotations.FetchMode;
  */
 @Entity
 @Table(name = "upgrades")
+@EntityListeners(UpgradeListener.class)
 public class Upgrade extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = 905268542123876248L;
 
@@ -151,18 +155,23 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Upgrade other = (Upgrade) obj;
 		if (getId() == null) {
-			if (other.getId() != null)
+			if (other.getId() != null) {
 				return false;
-		} else if (!getId().equals(other.getId()))
+			}
+		} else if (!getId().equals(other.getId())) {
 			return false;
+		}
 		return true;
 	}
 
