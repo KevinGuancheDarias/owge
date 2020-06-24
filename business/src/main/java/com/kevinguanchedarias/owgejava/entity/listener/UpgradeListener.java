@@ -4,6 +4,8 @@ import javax.persistence.PostLoad;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
@@ -25,6 +27,7 @@ public class UpgradeListener {
 	}
 
 	@PostLoad
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void loadRequirements(Upgrade upgrade) {
 		upgrade.setRequirements(requirementBo.findRequirements(ObjectEnum.UPGRADE, upgrade.getId()));
 	}

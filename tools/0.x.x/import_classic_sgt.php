@@ -244,6 +244,7 @@ class Unit extends WithRequirementsObject {
     public $health = 0;
     public $shield = 0;
     public $charge = 0;
+    public $speed = 0;
     
     public function addRequiredUpgrade(array $upgrades, mysqli $connection) {
         $cdType = $this->type === 'Tropas'
@@ -566,10 +567,11 @@ class ClassicExtractor {
         return $units;
     }
     private function fillUnitAttributes(Unit $unit, $row, string $indexIndicator) {
-            $unit->attack = @$row->{"a$indexIndicator" . 'v'} ?? 0;
-            $unit->health = @$row->{"r$indexIndicator" . 'v'} ?? 0;
-            $unit->shield = @$row->{"e$indexIndicator" . 'v'} ?? 0;
-            $unit->charge = @$row->{"c$indexIndicator" . 'v'} ?? 0;
+        $unit->attack = @$row->{"a$indexIndicator" . 'v'} ?? 0;
+        $unit->health = @$row->{"r$indexIndicator" . 'v'} ?? 0;
+        $unit->shield = @$row->{"e$indexIndicator" . 'v'} ?? 0;
+        $unit->charge = @$row->{"c$indexIndicator" . 'v'} ?? 0;
+        $unit->speed = @$row->{"v$indexIndicator" . 'v'} ?? 0;
     }
     
     private function doCommonFill(CommonObject $target, $row ) {
@@ -884,8 +886,8 @@ class ImportHandler {
         try {
             $this->connection->query(
                 'INSERT INTO units ' .
-                '(' . self::COMMON_FIELDS . ', type, energy, attack, health, shield, charge, is_unique, improvement_id, cloned_improvements) VALUES ' .
-                "('$name',$unit->points, '$image','$description', $unit->time, $unit->pr, $unit->sr, $ngType, $unit->energy, $unit->attack, $unit->health, $unit->shield, $unit->charge, $unique, $unit->improvementId, 0)"
+                '(' . self::COMMON_FIELDS . ', type, energy, attack, health, shield, charge, speed, is_unique, improvement_id, cloned_improvements) VALUES ' .
+                "('$name',$unit->points, '$image','$description', $unit->time, $unit->pr, $unit->sr, $ngType, $unit->energy, $unit->attack, $unit->health, $unit->shield, $unit->charge, $unit->speed, $unique, $unit->improvementId, 0)"
             );
             $unit->ngId = $this->connection->insert_id;
         } catch (mysqli_sql_exception $e) {

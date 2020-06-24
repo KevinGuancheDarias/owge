@@ -1,4 +1,4 @@
-<app-common-crud [hasDescription]="false" [_crudService]="adminSpeedImpactGroupService" (elementSelected)="selectedEl = $event" >
+<app-common-crud [hasDescription]="false" [_crudService]="adminSpeedImpactGroupService" (elementSelected)="onSelected($event)" >
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <div class="form-row">

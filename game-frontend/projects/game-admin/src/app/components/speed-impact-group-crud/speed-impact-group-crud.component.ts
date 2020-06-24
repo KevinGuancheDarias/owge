@@ -24,4 +24,17 @@ export class SpeedImpactGroupCrudComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  public onSelected(el: SpeedImpactGroup): void {
+    this.selectedEl = el;
+    if (!el.id) {
+      el.canExplore = 'ANY';
+      el.canGather = 'ANY';
+      el.canEstablishBase = 'ANY';
+      el.canAttack = 'ANY';
+      el.canCounterattack = 'ANY';
+      el.canConquest = 'ANY';
+      el.canDeploy = 'ANY';
+    }
+  }
+
 }
