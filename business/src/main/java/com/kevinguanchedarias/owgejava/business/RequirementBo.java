@@ -380,7 +380,7 @@ public class RequirementBo implements Serializable {
 		});
 		affectedMasters.forEach(master -> {
 			List<ObjectRelation> slaves = objectRelationToObjectRelationBo.findByMasterId(master.getId()).stream()
-					.map(current -> current.getSlave()).collect(Collectors.toList());
+					.map(ObjectRelationToObjectRelation::getSlave).collect(Collectors.toList());
 			if (slaves.stream().anyMatch(slave -> unlockedRelationBo.isUnlocked(user, slave))) {
 				registerObtainedRelation(master, user);
 			} else {
@@ -515,8 +515,8 @@ public class RequirementBo implements Serializable {
 	}
 
 	private void emitUnlockedSpeedImpactGroups(UserStorage user) {
-		socketIoService.sendMessage(user.getId(), "speed_impact_group_unlocked_change",
-				() -> speedImpactGroupBo.findCrossGalaxyUnlocked(user));
+		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user.getId(),
+				"speed_impact_group_unlocked_change", () -> speedImpactGroupBo.findCrossGalaxyUnlocked(user)));
 	}
 
 	private void unregisterLossedRelation(ObjectRelation relation, UserStorage user) {

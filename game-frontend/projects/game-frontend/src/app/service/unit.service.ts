@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { map, tap, distinctUntilChanged } from 'rxjs/operators';
+import { map, tap, distinctUntilChanged, filter, take } from 'rxjs/operators';
 import { Observable, Subscription, Subject } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
@@ -265,6 +265,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       this._onUnlockedChangeSubscription.unsubscribe();
       delete this._onUnlockedChangeSubscription;
     }
+    await this._upgradeService.isSynced.pipe(filter(isSynced => isSynced), take(1)).toPromise();
     this._onUnlockedChangeSubscription = this._upgradeService.findObtained().subscribe(upgrades => {
       unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
       this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);

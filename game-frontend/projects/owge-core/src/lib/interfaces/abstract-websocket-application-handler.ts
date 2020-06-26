@@ -1,5 +1,6 @@
 import { LoggerHelper } from '../helpers/logger.helper';
 import { ProgrammingError } from '../errors/programming.error';
+import { Subject, ReplaySubject } from 'rxjs';
 
 /**
  * Represents classes that are used to handle deliver_message websocket events
@@ -8,6 +9,15 @@ import { ProgrammingError } from '../errors/programming.error';
  * @export
  */
 export abstract class AbstractWebsocketApplicationHandler {
+    /**
+     * Allows to wait till WebsocketService marks the service as synce <br>
+     * Can be useful to allow two serices that run a workaroundSync where one depends on other <br>
+     * BECAREFULL with circular dependencies, if a A waits for B, and B waits for C which waits for A, surprise will ... not... show up
+     *
+     * @since 0.9.0
+     */
+    public isSynced: Subject<boolean> = new ReplaySubject(1);
+
     protected _eventsMap: { [eventName: string]: string } = {};
 
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
