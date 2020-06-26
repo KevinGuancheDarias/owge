@@ -241,12 +241,14 @@ export class WebsocketService {
   private async _invokeWorkaroundSync(): Promise<void> {
     this._log.debug('Invoking workaroundSync');
     await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
+      current.isSynced.next(false);
       const result = await this._timeoutPromise(current.workaroundSync());
       if (result === 'timeout') {
         const errorMsg = `${current.constructor.name}.workaroundSync ()timed out`;
         this._log.error(errorMsg);
         this._toastrService.error(errorMsg);
       }
+      current.isSynced.next(true);
       return result;
     })));
   }
