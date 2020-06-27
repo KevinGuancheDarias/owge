@@ -45,6 +45,9 @@ public class SocketIoService {
 	private WebsocketEventsInformationBo websocketEventsInformationBo;
 
 	@Autowired
+	private ConfigurationBo configurationBo;
+
+	@Autowired
 	@Lazy
 	private List<OwgeJwtAuthenticationFilter> authenticationFilters;
 
@@ -143,6 +146,10 @@ public class SocketIoService {
 					client.set(USER_TOKEN_KEY, tokenUser);
 					List<WebsocketEventsInformationDto> eventsInfo = websocketEventsInformationBo
 							.toDto(websocketEventsInformationBo.findByUserId((Integer) tokenUser.getId()));
+					WebsocketEventsInformationDto universeIdInfo = new WebsocketEventsInformationDto();
+					universeIdInfo.setEventName(
+							"_universe_id:" + configurationBo.findConfigurationParam("UNIVERSE_ID").getValue());
+					eventsInfo.add(universeIdInfo);
 					client.sendEvent(AUTHENTICATION, new WebsocketMessage<>(AUTHENTICATION, eventsInfo));
 				} else {
 					sendError(client, AUTHENTICATION, "Invalid credentials", true);

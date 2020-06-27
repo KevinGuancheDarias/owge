@@ -63,6 +63,7 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
      */
     public async clearCachesForUser(): Promise<void> {
         const storePrefix: string = this._universePrefix + this._userId;
+        await this.clearOpenStores();
         const dbs: string[] = await Dexie.getDatabaseNames();
         await Promise.all(
             dbs
@@ -79,16 +80,17 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
      * @since 0.9.0
      * @template T
      * @param storeName
+     * @param [storetype=indexeddb]
      * @see AbstractWebsocketApplicationHandler::createStores()
      * @returns
      */
-    public getStore<T>(storeName: string): StorageOfflineHelper<T> {
+    public getStore<T>(storeName: string, storeType: 'local' | 'indexeddb' | 'session' = 'indexeddb'): StorageOfflineHelper<T> {
         if (!this._userId) {
             this._log.warn('Getting user shared cache, maybe invoking before workaroundSync');
         }
         const retVal: StorageOfflineHelper<T> = new StorageOfflineHelper(
             this._universePrefix + this._userId + '_' + storeName,
-            'indexeddb'
+            storeType
         );
         this._stores.push(retVal);
         return retVal;

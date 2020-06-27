@@ -6,7 +6,7 @@ import { Observable, Subject, ReplaySubject } from 'rxjs';
 import { WsEventCacheService } from './ws-event-cache.service';
 import {
   LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
-  SessionService, LoadingService
+  SessionService, LoadingService, StorageOfflineHelper
 } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 
@@ -145,6 +145,16 @@ export class WebsocketService {
           if (response.status === 'ok') {
             this._log.debug('authenticated succeeded');
             await this._universeCacheManager.loadUser();
+            const universeIdStore: StorageOfflineHelper<string> = this._universeCacheManager.getStore('ws.universe_id', 'local');
+            const universeId = response.value.find(entry => entry.eventName.startsWith('_universe_id:')).eventName.split(':')[1];
+            const storedUniverseId: string = await universeIdStore.find();
+            if (storedUniverseId && storedUniverseId !== universeId) {
+              this._universeCacheManager.clearCachesForUser();
+              this._log.warn('Universe changed, even if the origin is the same');
+              universeIdStore.save(universeId);
+              // TODO: Remove the workaround with window reload, as the Dexie databases don't want to recreate after deletion
+              window.location.reload();
+            }
             await this._wsEventCacheService.createStores();
             await this._wsEventCacheService.setEventsInformation(response.value);
             this._isAuthenticated = true;

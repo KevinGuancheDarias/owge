@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,7 +23,7 @@ import com.kevinguanchedarias.owgejava.pojo.GameBackendErrorPojo;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 /**
- * 
+ *
  * @author kevin
  * @since 0.9.0
  *
@@ -40,7 +41,7 @@ public class AdminConfigurationRestService {
 
 	/**
 	 * Finds all <b>un</b>privileged configuration properties
-	 * 
+	 *
 	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
@@ -59,8 +60,8 @@ public class AdminConfigurationRestService {
 
 	@PostMapping
 	public ConfigurationDto saveNew(@RequestBody ConfigurationDto configurationDto) {
-		Configuration configuration = configurationBo.findOne(configurationDto.getName());
-		if (configuration != null) {
+		Optional<Configuration> configuration = configurationBo.findOne(configurationDto.getName());
+		if (configuration.isPresent()) {
 			throw new SgtBackendInvalidInputException(
 					new GameBackendErrorPojo("I18N_DUPLICATED_KEY", "Key in use", getClass()));
 		} else {
@@ -71,8 +72,8 @@ public class AdminConfigurationRestService {
 
 	@PutMapping("{name}")
 	public ConfigurationDto saveExisting(@PathVariable String name, @RequestBody ConfigurationDto configurationDto) {
-		Configuration configuration = configurationBo.findOne(configurationDto.getName());
-		if (configuration == null || configuration.isPrivileged()) {
+		Optional<Configuration> configuration = configurationBo.findOne(configurationDto.getName());
+		if (!configuration.isPresent() || configuration.get().isPrivileged()) {
 			throw NotFoundException.fromAffected(getClass(), configurationDto.getName());
 		} else if (!name.equals(configurationDto.getName())) {
 			throw new SgtBackendInvalidInputException(new GameBackendErrorPojo("I18N_PATH_AND_BODY_NOT_MATCH",

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
@@ -80,23 +82,31 @@ public class ConfigurationBo implements Serializable {
 	@PostConstruct
 	public void init() {
 		insertMissionBaseTimeIfMissing();
+		if (!findOne("UNIVERSE_ID").isPresent()) {
+			LOCAL_LOGGER.info("Adding UNIVERSE_ID as it's missing");
+			Configuration configuration = new Configuration();
+			configuration.setName("UNIVERSE_ID");
+			configuration.setValue(UUID.randomUUID().toString());
+			configuration.setPrivileged(true);
+			save(configuration);
+		}
 	}
 
 	/**
 	 * Finds one entity, while
 	 * {@link ConfigurationBo#findConfigurationParam(String)} works, this one may
 	 * return null, instead of throwing
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
 	 */
-	public Configuration findOne(String name) {
+	public Optional<Configuration> findOne(String name) {
 		if (cache.get(name) != null) {
-			return cache.get(name);
+			return Optional.of(cache.get(name));
 		} else {
-			return configurationRepository.findById(name).get();
+			return configurationRepository.findById(name);
 		}
 	}
 
@@ -107,7 +117,7 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 * Returns privileged properties that may be read from outside systems, ex:
 	 * WEBSOCKET_ENDPOINT
-	 * 
+	 *
 	 * @return
 	 * @since 0.7.5
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -120,7 +130,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Will find the configuration param from cache, else from database
-	 * 
+	 *
 	 * @param name
 	 * @return Configuration param
 	 * @throws SgtBackendConfigurationNotFoundException when the param doesn't
@@ -151,7 +161,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Deletes one instance
-	 * 
+	 *
 	 * @param name
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
@@ -174,7 +184,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Finds the base time by enumeration
-	 * 
+	 *
 	 * @deprecated Use findmissionBaseTime(String)
 	 * @param type mission base time enum
 	 * @return the computed base time value
@@ -185,37 +195,36 @@ public class ConfigurationBo implements Serializable {
 	public Long findMissionBaseTimeByType(MissionType type) {
 		Long retVal;
 		switch (type) {
-			case EXPLORE:
-				retVal = findMissionExploreBaseTime();
-				break;
-			case GATHER:
-				retVal = findMissionGatherBaseTime();
-				break;
-			case ESTABLISH_BASE:
-				retVal = findMissionEstablishBaseBaseTime();
-				break;
-			case ATTACK:
-				retVal = findMissionAttackBaseTime();
-				break;
-			case COUNTERATTACK:
-				retVal = findMissionCounterattackBaseTime();
-				break;
-			case CONQUEST:
-				retVal = findMissionConquestBaseTime();
-				break;
-			case DEPLOY:
-				retVal = findMissionDeployBaseTime();
-				break;
-			default:
-				throw new SgtBackendInvalidInputException(
-						"Unsupported mission base time type, specified: " + type.name());
+		case EXPLORE:
+			retVal = findMissionExploreBaseTime();
+			break;
+		case GATHER:
+			retVal = findMissionGatherBaseTime();
+			break;
+		case ESTABLISH_BASE:
+			retVal = findMissionEstablishBaseBaseTime();
+			break;
+		case ATTACK:
+			retVal = findMissionAttackBaseTime();
+			break;
+		case COUNTERATTACK:
+			retVal = findMissionCounterattackBaseTime();
+			break;
+		case CONQUEST:
+			retVal = findMissionConquestBaseTime();
+			break;
+		case DEPLOY:
+			retVal = findMissionDeployBaseTime();
+			break;
+		default:
+			throw new SgtBackendInvalidInputException("Unsupported mission base time type, specified: " + type.name());
 		}
 		return retVal;
 	}
 
 	/**
 	 * Finds the mission base time, if not set will return the default
-	 * 
+	 *
 	 * @since 0.8.1
 	 * @param key The mission KEY, should use one of the constants available here
 	 * @return
@@ -231,7 +240,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -242,7 +251,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -253,7 +262,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -264,7 +273,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -275,7 +284,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -286,7 +295,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -297,7 +306,7 @@ public class ConfigurationBo implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use findMissionBaseTime(String)
 	 * @return
 	 */
@@ -309,7 +318,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Checks if the input email is system Email
-	 * 
+	 *
 	 * @param email
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -320,7 +329,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Checks if the password is the admin password
-	 * 
+	 *
 	 * @param password
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -341,7 +350,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Finds the current value for DEPLOYMENT_CONFIG
-	 * 
+	 *
 	 * @return
 	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -396,7 +405,7 @@ public class ConfigurationBo implements Serializable {
 
 	/**
 	 * Checks if the configuration refers to the base time of a mission
-	 * 
+	 *
 	 * @param configuration
 	 * @throws SgtBackendInvalidInputException Number is below the expected value
 	 * @return
