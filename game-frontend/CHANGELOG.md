@@ -2,7 +2,7 @@
 
 v0.9.0 (latest)
 =================
-
+* __Feature:__ [As a player I want to be able to choose all units to send to the mission, with a single button, or all of a certain type #16](https://github.com/KevinGuancheDarias/owge/issues/16)
 * __Feature:__ [As a player I dont want to be able to send missions to planets outside my galaxy, unless I have reached the requirements for a specified speed group #12](https://github.com/KevinGuancheDarias/owge/issues/12)
 * __Feature:__ [As a player I want to have the concept of units speed (internally known as "speed group") #195](https://github.com/KevinGuancheDarias/owge/issues/195)
 * __Feature:__ [As a player I want to be able to create a list of planets #7](https://github.com/KevinGuancheDarias/owge/issues/7)

@@ -99,7 +99,8 @@
                 }
             },
             "IN_PLANET": {
-                "NO_UNITS": "No hay unidades en este planeta"
+                "NO_UNITS": "No hay unidades en este planeta",
+                "CHOOSE_TYPE": "Todas"
             }
         },
         "DEPLOYED_UNIT_LIST": {
