@@ -122,15 +122,17 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    * @param content
    */
   protected _onPlanetOwnedChange(content: Planet[]): void {
-    if (!this._currentPlanet) {
-      this._currentPlanet = content.find(current => current.home);
-      this.defineSelectedPlanet(this._currentPlanet);
+    if (!this._isCachePanic(content)) {
+      if (!this._currentPlanet) {
+        this._currentPlanet = content.find(current => current.home);
+        this.defineSelectedPlanet(this._currentPlanet);
+      }
+      if (!content.some(current => current.id === this._currentPlanet.id)) {
+        const home: Planet = content.find(current => current.home);
+        this.defineSelectedPlanet(home);
+      }
+      this._planeStore.ownedPlanetList.next(content);
     }
-    if (!content.some(current => current.id === this._currentPlanet.id)) {
-      const home: Planet = content.find(current => current.home);
-      this.defineSelectedPlanet(home);
-    }
-    this._planeStore.ownedPlanetList.next(content);
   }
 
   protected _onPlanetExploredEvent(content: Planet): void {

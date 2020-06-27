@@ -32,6 +32,7 @@ export class WebsocketService {
   private _isConnected: Subject<boolean> = new ReplaySubject(1);
   private _hasTriggeredFirtsOffline = false;
   private _isWantedDisconnection: boolean;
+  private _isCachePanic = false;
 
   private _onBeforeWorkaroundSyncHandlers: Array<() => Promise<void>> = [];
 
@@ -47,8 +48,9 @@ export class WebsocketService {
     this._isConnected.subscribe(sessionStore.isConnected.next.bind(sessionStore.isConnected));
   }
 
-  public addEventHandler(...handler: AbstractWebsocketApplicationHandler[]) {
-    this._eventHandlers = this._eventHandlers.concat(handler);
+  public addEventHandler(...handlers: AbstractWebsocketApplicationHandler[]) {
+    handlers.forEach(handler => handler.onCachePanic(() => this._isCachePanic = true));
+    this._eventHandlers = this._eventHandlers.concat(handlers);
   }
 
   /**
@@ -59,6 +61,7 @@ export class WebsocketService {
    * @param handler
    */
   public preprendEventHandler(handler: AbstractWebsocketApplicationHandler): void {
+    handler.onCachePanic(() => this._isCachePanic = true);
     this._eventHandlers = [handler, ...this._eventHandlers];
   }
 
@@ -226,7 +229,7 @@ export class WebsocketService {
 
     this._socket.on('cache_clear', async () => {
       this._log.info('Full cache clear, just wanted');
-      await this._universeCacheManager.clearCache();
+      await this._universeCacheManager.clearOpenStores();
       await this._invokeWorkaroundSync();
     });
   }
@@ -240,6 +243,7 @@ export class WebsocketService {
 
   private async _invokeWorkaroundSync(): Promise<void> {
     this._log.debug('Invoking workaroundSync');
+    this._isCachePanic = false;
     await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
       current.isSynced.next(false);
       const result = await this._timeoutPromise(current.workaroundSync());
@@ -251,5 +255,10 @@ export class WebsocketService {
       current.isSynced.next(true);
       return result;
     })));
+    if (this._isCachePanic) {
+      await this._universeCacheManager.clearCachesForUser();
+      window.location.reload();
+      this._isCachePanic = false;
+    }
   }
 }

@@ -22,6 +22,20 @@ export abstract class AbstractWebsocketApplicationHandler {
 
     protected _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 
+    protected _cachePanicHandler: Function;
+
+
+    /**
+     * Thrown when a service thinks the cache is corrupt
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param action
+     */
+    public onCachePanic(action: Function): void {
+        this._cachePanicHandler = action;
+    }
+
     public async beforeWorkaroundSync(): Promise<void> {
         // NOTICE: Override when have to do something before syncing. Note
         // You can too use the method in WesocketService to register a handler
@@ -98,6 +112,33 @@ export abstract class AbstractWebsocketApplicationHandler {
             this[functionName](content);
         } else {
             throw new ProgrammingError('Handler for ' + eventName + ' NOT found in ' + this.constructor.name);
+        }
+    }
+
+    /**
+     * Triggers cache panic if content is null or undefined <br>
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param content
+     * @returns True if panic
+     */
+    protected _isCachePanic(content: any): boolean {
+        if (content === undefined || content === null) {
+            this._triggerCachePanic();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    /**
+     * Triggers the cache panic action
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    protected _triggerCachePanic(): void {
+        if (this._cachePanicHandler) {
+            this._log.warn('Cache panic D:');
+            this._cachePanicHandler();
         }
     }
 }

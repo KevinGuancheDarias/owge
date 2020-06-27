@@ -63,7 +63,7 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
     if (serverMessage) {
       if (this._modal) {
         this._modal.hide();
-        await this._universeCacheManagerService.clearCache();
+        await this._universeCacheManagerService.clearCachesForUser();
         this.selected.emit();
       }
     } else {

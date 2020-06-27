@@ -83,7 +83,8 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
     }
 
     protected async _onTimeSpecialChange(content: TimeSpecial[]): Promise<void> {
-        content.forEach(current => {
+        const contentOrEmpty = content || [];
+        contentOrEmpty.forEach(current => {
             if (current.activeTimeSpecialDto) {
                 current.activeTimeSpecialDto.pendingMillis = current.activeTimeSpecialDto.pendingMillis
                     ? current.activeTimeSpecialDto.pendingMillis
@@ -91,7 +92,7 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
                 current.activeTimeSpecialDto = DateUtil.computeBrowserTerminationDate(current.activeTimeSpecialDto);
             }
         });
-        this._timeSpecialStore.unlocked.next(content);
-        await this._offlineUnlocked.save(content);
+        this._timeSpecialStore.unlocked.next(contentOrEmpty);
+        await this._offlineUnlocked.save(contentOrEmpty);
     }
 }

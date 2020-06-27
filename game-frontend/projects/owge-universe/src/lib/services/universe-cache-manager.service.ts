@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, UserStorage, User, JwtTokenUtil } from '@owge/core';
 import { filter, map, take } from 'rxjs/operators';
-import { WebsocketService } from './websocket.service';
 import { UserWithFaction } from '@owge/faction';
+
+import Dexie from 'dexie';
+
 
 /**
  * Holds cached resources for the current universe
@@ -38,8 +40,36 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
         await this.loadUser();
     }
 
-    public async clearCache(): Promise<void> {
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns
+     */
+    public async clearOpenStores(): Promise<void> {
         await Promise.all(this._stores.map(current => current.delete()));
+    }
+
+
+    /**
+     * Clears all the stores for the given user <br>
+     * This is required when a universe reset is done in the same subdomain
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @returns
+     */
+    public async clearCachesForUser(): Promise<void> {
+        const storePrefix: string = this._universePrefix + this._userId;
+        const dbs: string[] = await Dexie.getDatabaseNames();
+        await Promise.all(
+            dbs
+                .filter(db => db.indexOf(storePrefix) === 0)
+                .map(db => Dexie.delete(db))
+        );
+        Object.keys(localStorage).filter(key => key.indexOf(storePrefix) === 0).forEach(key => localStorage.removeItem(key));
     }
 
     /**

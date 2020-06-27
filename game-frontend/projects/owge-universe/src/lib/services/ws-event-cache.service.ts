@@ -92,7 +92,7 @@ export class WsEventCacheService {
     public async findFromCacheOrRun<T>(eventName: string, cacheStore: StorageOfflineHelper<T>, action: () => Promise<T>): Promise<T> {
         const entry = this._eventsInformation[eventName];
         const storedValue = await cacheStore.find();
-        if ((entry && !entry.changed) && await cacheStore.isPresent()) {
+        if ((!entry || !entry.changed) && await cacheStore.isPresent()) {
             return storedValue;
         } else {
             const retVal: T = await action();

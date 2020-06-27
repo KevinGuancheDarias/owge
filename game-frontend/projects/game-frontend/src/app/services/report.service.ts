@@ -124,17 +124,21 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onChange(content: MissionReportResponse): Promise<void> {
-    this._onCountChange(content);
-    this._handleReportsDownload(content.reports);
-    this._reportStore.reports.next(this._currentReports);
-    await this._offlineChangeCache.save(content);
+    if (!this._isCachePanic(content)) {
+      this._onCountChange(content);
+      this._handleReportsDownload(content.reports);
+      this._reportStore.reports.next(this._currentReports);
+      await this._offlineChangeCache.save(content);
+    }
   }
 
   protected async _onCountChange(content: MissionReportResponse): Promise<void> {
-    this._currentCounts = content;
-    this._reportStore.userUnread.next(content.userUnread);
-    this._reportStore.enemyUnread.next(content.enemyUnread);
-    await this._offlineCountChangeCache.save(content);
+    if (!this._isCachePanic(content)) {
+      this._currentCounts = content;
+      this._reportStore.userUnread.next(content.userUnread);
+      this._reportStore.enemyUnread.next(content.enemyUnread);
+      await this._offlineCountChangeCache.save(content);
+    }
   }
 
   private _handleReportsDownload(reports: MissionReport[], isPush = false): void {
