@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : mer. 24 juin 2020 à 17:44
+-- Généré le : lun. 20 juil. 2020 à 17:41
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `other_shit`
+-- Base de données : `new_shit`
 --
 
 -- --------------------------------------------------------
@@ -99,6 +99,31 @@ CREATE TABLE `aranking` (
   `Imagen320x240` char(255) NOT NULL,
   `Imagen640x240` char(255) NOT NULL
 ) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `attack_rules`
+--
+
+CREATE TABLE `attack_rules` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `attack_rule_entries`
+--
+
+CREATE TABLE `attack_rule_entries` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `attack_rule_id` smallint(5) UNSIGNED NOT NULL,
+  `target` enum('UNIT','UNIT_TYPE') NOT NULL,
+  `reference_id` smallint(5) UNSIGNED NOT NULL,
+  `can_attack` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -748,6 +773,7 @@ CREATE TABLE `units` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `order_number` smallint(6) UNSIGNED DEFAULT NULL COMMENT 'El orden de la unidad',
   `name` char(40) CHARACTER SET latin1 COLLATE latin1_spanish_ci NOT NULL,
+  `attack_rule_id` smallint(5) UNSIGNED DEFAULT NULL,
   `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `points` int(11) UNSIGNED DEFAULT NULL,
   `description` text CHARACTER SET latin1 COLLATE latin1_spanish_ci,
@@ -776,6 +802,7 @@ CREATE TABLE `units` (
 CREATE TABLE `unit_types` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `name` varchar(20) NOT NULL,
+  `attack_rule_id` smallint(5) UNSIGNED DEFAULT NULL,
   `max_count` bigint(20) DEFAULT NULL,
   `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `parent_type` smallint(11) DEFAULT NULL,
@@ -943,6 +970,19 @@ ALTER TABLE `alliance_join_request`
 --
 ALTER TABLE `aranking`
   ADD KEY `PosicionMejoras` (`PosicionMejoras`);
+
+--
+-- Index pour la table `attack_rules`
+--
+ALTER TABLE `attack_rules`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `attack_rule_entries`
+--
+ALTER TABLE `attack_rule_entries`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `attack_rule_id` (`attack_rule_id`);
 
 --
 -- Index pour la table `carpetas`
@@ -1245,7 +1285,8 @@ ALTER TABLE `units`
   ADD KEY `type` (`type`),
   ADD KEY `improvement_id` (`improvement_id`),
   ADD KEY `image_id` (`image_id`),
-  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`);
+  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`),
+  ADD KEY `units__attack_rules` (`attack_rule_id`);
 
 --
 -- Index pour la table `unit_types`
@@ -1254,7 +1295,8 @@ ALTER TABLE `unit_types`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `image_id` (`image_id`),
-  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`);
+  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`),
+  ADD KEY `unit_types__attack_rules` (`attack_rule_id`);
 
 --
 -- Index pour la table `unlocked_relation`
@@ -1332,6 +1374,18 @@ ALTER TABLE `alliances`
 --
 ALTER TABLE `alliance_join_request`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `attack_rules`
+--
+ALTER TABLE `attack_rules`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `attack_rule_entries`
+--
+ALTER TABLE `attack_rule_entries`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `carpetas`
@@ -1544,6 +1598,12 @@ ALTER TABLE `alliance_join_request`
   ADD CONSTRAINT `alliance_join_request_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
+-- Contraintes pour la table `attack_rule_entries`
+--
+ALTER TABLE `attack_rule_entries`
+  ADD CONSTRAINT `fk_attack_rule` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`);
+
+--
 -- Contraintes pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
@@ -1685,6 +1745,7 @@ ALTER TABLE `time_specials`
 -- Contraintes pour la table `units`
 --
 ALTER TABLE `units`
+  ADD CONSTRAINT `units__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`),
   ADD CONSTRAINT `units__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
   ADD CONSTRAINT `units_ibfk_1` FOREIGN KEY (`type`) REFERENCES `unit_types` (`id`),
   ADD CONSTRAINT `units_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
@@ -1694,6 +1755,7 @@ ALTER TABLE `units`
 -- Contraintes pour la table `unit_types`
 --
 ALTER TABLE `unit_types`
+  ADD CONSTRAINT `unit_types__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`),
   ADD CONSTRAINT `unit_types__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
   ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 

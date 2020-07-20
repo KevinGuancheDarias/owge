@@ -108,7 +108,11 @@
             "REQUIREMENT_GROUPS": "Can go outside galaxy requirement groups"
         },
         "IMPROVEMENTS": "Improvements",
-        "REQUIREMENTS": "Requirements"
+        "REQUIREMENTS": "Requirements",
+        "ATTACK_RULE": {
+            "LABEL": "Attack rule",
+            "NULL_VALUE": "Inherited"
+        }
     },
     "CRUD_WITH_IMAGE": {
         "IMAGE": "Image"

@@ -55,6 +55,11 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	@Fetch(FetchMode.JOIN)
 	private SpeedImpactGroup speedImpactGroup;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "attack_rule_id", nullable = true)
+	@Fetch(FetchMode.JOIN)
+	private AttackRule attackRule;
+
 	public UnitType() {
 		super();
 	}
@@ -107,7 +112,7 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	}
 
 	public void setParent(UnitType parentType) {
-		this.parent = parentType;
+		parent = parentType;
 	}
 
 	public List<UnitType> getChildren() {
@@ -160,6 +165,24 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 		this.speedImpactGroup = speedImpactGroup;
 	}
 
+	/**
+	 * @return the attackRule
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public AttackRule getAttackRule() {
+		return attackRule;
+	}
+
+	/**
+	 * @param attackRule the attackRule to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setAttackRule(AttackRule attackRule) {
+		this.attackRule = attackRule;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -170,16 +193,20 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		UnitType other = (UnitType) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
+			}
 		} else if (!id.equals(other.id)) {
 			return false;
 		}

@@ -94,3 +94,10 @@ select {
 .owge-errors {
     background-color: #600;
 }
+
+.required {
+    &::after {
+        content: '*';
+        color: red;
+    }
+}

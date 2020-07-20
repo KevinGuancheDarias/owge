@@ -4,6 +4,7 @@ import { UnitType, MissionSupport, SpeedImpactGroup } from '@owge/universe';
 
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
+import { AttackRule } from '../../types/attack-rule.type';
 
 /**
  *
@@ -21,7 +22,7 @@ import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-
 export class UnitTypeCrudComponent implements OnInit {
   private static readonly _DEFAULT_CAN_DO_MISSION: MissionSupport = 'ANY';
 
-  public unitType: UnitType;
+  public unitType: UnitType & { attackRule: AttackRule };
   public isUnlimitedMaxAmount: boolean;
   public speedImpactGroups: SpeedImpactGroup[] = [];
 
@@ -35,7 +36,7 @@ export class UnitTypeCrudComponent implements OnInit {
     this.unitType.maxCount = null;
   }
 
-  public onSelectedOrNew(el: UnitType): void {
+  public onSelectedOrNew(el: UnitType & { attackRule: AttackRule }): void {
     this.unitType = el;
     if (!el.id) {
       el.canExplore = UnitTypeCrudComponent._DEFAULT_CAN_DO_MISSION;

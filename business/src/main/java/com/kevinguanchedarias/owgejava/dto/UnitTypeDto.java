@@ -14,6 +14,7 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	private Long computedMaxCount;
 	private Long userBuilt;
 	private SpeedImpactGroupDto speedImpactGroup;
+	private AttackRuleDto attackRule;
 
 	@Override
 	public void dtoFromEntity(UnitType entity) {
@@ -25,6 +26,10 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 		if (entity.getSpeedImpactGroup() != null) {
 			speedImpactGroup = new SpeedImpactGroupDto();
 			speedImpactGroup.dtoFromEntity(entity.getSpeedImpactGroup());
+		}
+		if (entity.getAttackRule() != null) {
+			attackRule = new AttackRuleDto();
+			attackRule.dtoFromEntity(entity.getAttackRule());
 		}
 	}
 
@@ -123,6 +128,24 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	 */
 	public void setSpeedImpactGroup(SpeedImpactGroupDto speedImpactGroup) {
 		this.speedImpactGroup = speedImpactGroup;
+	}
+
+	/**
+	 * @return the attackRule
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public AttackRuleDto getAttackRule() {
+		return attackRule;
+	}
+
+	/**
+	 * @param attackRule the attackRule to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setAttackRule(AttackRuleDto attackRule) {
+		this.attackRule = attackRule;
 	}
 
 }

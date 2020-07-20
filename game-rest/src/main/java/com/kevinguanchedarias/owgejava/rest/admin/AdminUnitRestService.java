@@ -9,16 +9,19 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.UnitBo;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
+import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithFullRestService;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 
 /**
@@ -48,6 +51,12 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	@Autowired
 	private SpeedImpactGroupBo speedImpactGroupBo;
 
+	@Autowired
+	private DtoUtilService dtoUtilService;
+
+	@Autowired
+	private RequirementBo requirementBo;
+
 	/*
 	 * (non-Javadoc)
 	 *
@@ -63,9 +72,16 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	}
 
 	@Override
+	public Optional<UnitDto> beforeRequestEnd(UnitDto dto, Unit savedEntity) {
+		dto.setRequirements(dtoUtilService.convertEntireArray(RequirementInformationDto.class,
+				requirementBo.findRequirements(getObject(), dto.getId())));
+		return CrudWithFullRestService.super.beforeRequestEnd(dto, savedEntity);
+	}
+
+	@Override
 	public Optional<Unit> beforeSave(UnitDto parsedDto, Unit entity) {
 		if (parsedDto.getTypeId() == null) {
-			throw this.exceptionUtilService
+			throw exceptionUtilService
 					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_UPGRADE_TYPE_IS_MANDATORY")
 					.build();
 		} else {
