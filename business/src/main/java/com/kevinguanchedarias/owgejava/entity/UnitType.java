@@ -35,7 +35,7 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	@Column(name = "max_count", nullable = true)
 	private Long maxCount;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "parent_type")
 	private UnitType parent;
 

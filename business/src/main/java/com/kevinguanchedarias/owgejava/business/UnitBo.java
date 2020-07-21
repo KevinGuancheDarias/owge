@@ -144,5 +144,4 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 		}
 
 	}
-
 }

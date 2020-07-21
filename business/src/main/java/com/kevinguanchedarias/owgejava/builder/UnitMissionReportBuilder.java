@@ -39,7 +39,7 @@ public class UnitMissionReportBuilder {
 
 	/**
 	 * Builds the object
-	 * 
+	 *
 	 * @return instance of created map <b>NOT</b> cloned
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -111,12 +111,12 @@ public class UnitMissionReportBuilder {
 
 	public UnitMissionReportBuilder withAttackInformation(AttackInformation attackInformation) {
 		List<Map<String, Object>> attackInformationMap = new ArrayList<>();
-		attackInformation.getUsers().forEach(currentUser -> {
+		attackInformation.getUsers().entrySet().forEach(currentUser -> {
 			Map<String, Object> userMap = new HashMap<>();
-			userMap.put("userInfo", userToDto(currentUser.getUser()));
-			userMap.put("earnedPoints", currentUser.getEarnedPoints());
+			userMap.put("userInfo", userToDto(currentUser.getValue().getUser()));
+			userMap.put("earnedPoints", currentUser.getValue().getEarnedPoints());
 			List<Map<String, Object>> userUnits = new ArrayList<>();
-			currentUser.findAllUnits().forEach(currentUnit -> {
+			currentUser.getValue().getUnits().forEach(currentUnit -> {
 				Map<String, Object> unitMap = new HashMap<>();
 				unitMap.put("initialCount", currentUnit.getInitialCount());
 				unitMap.put("finalCount", currentUnit.getFinalCount());
@@ -147,7 +147,7 @@ public class UnitMissionReportBuilder {
 
 	/**
 	 * A builder class can't be instantiate
-	 * 
+	 *
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private UnitMissionReportBuilder() {

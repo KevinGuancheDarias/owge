@@ -4,6 +4,8 @@ import javax.persistence.PostLoad;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
@@ -36,6 +38,7 @@ public class AttackRuleEntityListener {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostLoad
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void loadRuleEntries(AttackRule attackRule) {
 		attackRule.setAttackRuleEntries(attackRuleEntryRepository.findByAttackRule(attackRule));
 	}

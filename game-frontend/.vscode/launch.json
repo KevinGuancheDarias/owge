@@ -7,6 +7,17 @@
         {
             "type": "chrome",
             "request": "launch",
+            "name": "Launch Chrome against docker",
+            "url": "http://192.168.99.100:8080/login",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./*": "${workspaceRoot}/projects/game-frontend/*"
+            }
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
             "name": "Launch Admin Chrome against docker",
             "url": "http://192.168.99.100:8080/admin/login",
             "webRoot": "${workspaceFolder}",
@@ -14,13 +25,6 @@
             "sourceMapPathOverrides": {
                 "webpack:///./*": "${workspaceRoot}/projects/game-admin/*"
             }
-        },
-        {
-            "type": "chrome",
-            "request": "attach",
-            "name": "Attach to Chrome",
-            "port": 9222,
-            "webRoot": "${workspaceFolder}"
         }
     ]
 }
