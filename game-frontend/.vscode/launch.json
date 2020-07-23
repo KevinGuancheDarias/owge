@@ -12,7 +12,8 @@
             "webRoot": "${workspaceFolder}",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
-                "webpack:///./*": "${workspaceRoot}/projects/game-frontend/*"
+                "webpack:///./*": "${workspaceRoot}/projects/game-frontend/*",
+                "webpack:///../*": "${workspaceRoot}/projects/*"
             }
         },
         {
@@ -23,7 +24,8 @@
             "webRoot": "${workspaceFolder}",
             "sourceMaps": true,
             "sourceMapPathOverrides": {
-                "webpack:///./*": "${workspaceRoot}/projects/game-admin/*"
+                "webpack:///./*": "${workspaceRoot}/projects/game-admin/*",
+                "webpack:///../*": "${workspaceRoot}/projects/*"
             }
         }
     ]

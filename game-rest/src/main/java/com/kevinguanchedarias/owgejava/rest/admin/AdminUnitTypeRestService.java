@@ -59,6 +59,12 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 		if (parsedDto.getAttackRule() != null && parsedDto.getAttackRule().getId() != null) {
 			entity.setAttackRule(attackRuleBo.findByIdOrDie(parsedDto.getAttackRule().getId()));
 		}
+		if (parsedDto.getParent() != null && parsedDto.getParent().getId() != null) {
+			entity.setParent(unitTypeBo.findByIdOrDie(parsedDto.getParent().getId()));
+		}
+		if (parsedDto.getShareMaxCount() != null && parsedDto.getShareMaxCount().getId() != null) {
+			entity.setShareMaxCount(unitTypeBo.findByIdOrDie(parsedDto.getShareMaxCount().getId()));
+		}
 		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 

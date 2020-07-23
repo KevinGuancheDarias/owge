@@ -11,7 +11,9 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	private Long image;
 	private String imageUrl;
 	private Long maxCount;
+	private UnitTypeDto shareMaxCount;
 	private Long computedMaxCount;
+	private UnitTypeDto parent;
 	private Long userBuilt;
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
@@ -22,6 +24,14 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 		if (entity.getImage() != null) {
 			image = entity.getImage().getId();
 			imageUrl = entity.getImage().getUrl();
+		}
+		if (entity.getShareMaxCount() != null) {
+			shareMaxCount = new UnitTypeDto();
+			shareMaxCount.dtoFromEntity(entity.getShareMaxCount());
+		}
+		if (entity.getParent() != null) {
+			parent = new UnitTypeDto();
+			parent.dtoFromEntity(entity.getParent());
 		}
 		if (entity.getSpeedImpactGroup() != null) {
 			speedImpactGroup = new SpeedImpactGroupDto();
@@ -84,6 +94,24 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	}
 
 	/**
+	 * @return the shareMaxCount
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public UnitTypeDto getShareMaxCount() {
+		return shareMaxCount;
+	}
+
+	/**
+	 * @param shareMaxCount the shareMaxCount to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setShareMaxCount(UnitTypeDto shareMaxCount) {
+		this.shareMaxCount = shareMaxCount;
+	}
+
+	/**
 	 * Transient property, when defined, represents the maxCount with all user
 	 * improvements applied
 	 *
@@ -96,6 +124,24 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 
 	public void setComputedMaxCount(Long computedMaxCount) {
 		this.computedMaxCount = computedMaxCount;
+	}
+
+	/**
+	 * @return the parent
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public UnitTypeDto getParent() {
+		return parent;
+	}
+
+	/**
+	 * @param parent the parent to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setParent(UnitTypeDto parent) {
+		this.parent = parent;
 	}
 
 	/**

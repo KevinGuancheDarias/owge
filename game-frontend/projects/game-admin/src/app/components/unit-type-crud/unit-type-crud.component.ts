@@ -22,6 +22,9 @@ import { AttackRule } from '../../types/attack-rule.type';
 export class UnitTypeCrudComponent implements OnInit {
   private static readonly _DEFAULT_CAN_DO_MISSION: MissionSupport = 'ANY';
 
+  public unitTypes: UnitType[];
+  public unitTypesWithLimitedCount: UnitType[] = [];
+  public unitTypesForParentSelect: UnitType[] = [];
   public unitType: UnitType & { attackRule: AttackRule };
   public isUnlimitedMaxAmount: boolean;
   public speedImpactGroups: SpeedImpactGroup[] = [];
@@ -29,6 +32,10 @@ export class UnitTypeCrudComponent implements OnInit {
   constructor(public adminUnitTypeService: AdminUnitTypeService, private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService) { }
 
   public ngOnInit(): void {
+    this.adminUnitTypeService.findAll().subscribe(result => {
+      this.unitTypes = result;
+      this._computeAvailableTypesForSelects();
+    });
     this._adminSpeedImpactGroupService.findAll().subscribe(result => this.speedImpactGroups = result);
   }
 
@@ -47,10 +54,23 @@ export class UnitTypeCrudComponent implements OnInit {
       el.canConquest = UnitTypeCrudComponent._DEFAULT_CAN_DO_MISSION;
       el.canDeploy = UnitTypeCrudComponent._DEFAULT_CAN_DO_MISSION;
     }
+    this._computeAvailableTypesForSelects();
     this.isUnlimitedMaxAmount = typeof this.unitType.maxCount !== 'number';
   }
 
   public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
     return a === b || (a && b && a.id === b.id);
+  }
+
+  private _computeAvailableTypesForSelects() {
+    const hasUnitType: boolean = this.unitType && !!this.unitType.id;
+    this.unitTypesWithLimitedCount = this.unitTypes.filter(current => current.maxCount);
+    if (hasUnitType) {
+      this.unitTypesWithLimitedCount = this.unitTypesWithLimitedCount.filter(current => current.id !== this.unitType.id);
+    }
+
+    this.unitTypesForParentSelect = hasUnitType
+      ? this.unitTypes.filter(current => current.id !== this.unitType.id)
+      : this.unitTypes;
   }
 }

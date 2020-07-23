@@ -36,6 +36,10 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	private Long maxCount;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "share_max_count")
+	private UnitType shareMaxCount;
+
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "parent_type")
 	private UnitType parent;
 
@@ -105,6 +109,24 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 
 	public void setMaxCount(Long maxCount) {
 		this.maxCount = maxCount;
+	}
+
+	/**
+	 * @return the shareMaxCount
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public UnitType getShareMaxCount() {
+		return shareMaxCount;
+	}
+
+	/**
+	 * @param shareMaxCount the shareMaxCount to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setShareMaxCount(UnitType shareMaxCount) {
+		this.shareMaxCount = shareMaxCount;
 	}
 
 	public UnitType getParent() {
