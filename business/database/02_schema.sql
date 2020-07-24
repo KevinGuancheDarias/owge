@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : lun. 20 juil. 2020 à 17:41
+-- Généré le : jeu. 23 juil. 2020 à 19:02
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -804,8 +804,9 @@ CREATE TABLE `unit_types` (
   `name` varchar(20) NOT NULL,
   `attack_rule_id` smallint(5) UNSIGNED DEFAULT NULL,
   `max_count` bigint(20) DEFAULT NULL,
+  `share_max_count` smallint(6) UNSIGNED DEFAULT NULL COMMENT 'The count of this unit type will apply to referenced',
   `image_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `parent_type` smallint(11) DEFAULT NULL,
+  `parent_type` smallint(6) UNSIGNED DEFAULT NULL,
   `can_explore` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_gather` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_establish_base` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
@@ -1296,7 +1297,9 @@ ALTER TABLE `unit_types`
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `image_id` (`image_id`),
   ADD KEY `speed_impact_group_id` (`speed_impact_group_id`),
-  ADD KEY `unit_types__attack_rules` (`attack_rule_id`);
+  ADD KEY `unit_types__attack_rules` (`attack_rule_id`),
+  ADD KEY `unit_types_share_count` (`share_max_count`),
+  ADD KEY `unit_types_parent_type` (`parent_type`);
 
 --
 -- Index pour la table `unlocked_relation`
@@ -1757,7 +1760,9 @@ ALTER TABLE `units`
 ALTER TABLE `unit_types`
   ADD CONSTRAINT `unit_types__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`),
   ADD CONSTRAINT `unit_types__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
-  ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
+  ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`),
+  ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`parent_type`) REFERENCES `unit_types` (`id`),
+  ADD CONSTRAINT `unit_types_share_count` FOREIGN KEY (`share_max_count`) REFERENCES `unit_types` (`id`);
 
 --
 -- Contraintes pour la table `unlocked_relation`

@@ -158,6 +158,7 @@ class CommonUsableObject extends CommonObject {
     public $pr;
     public $sr;
     public $type;
+    public $childType;
     public $ngObjectRelation;
 }
 
@@ -553,6 +554,20 @@ class ClassicExtractor {
                 default:
                     throw new Exception('Bad parameter passed to type, value ' . $type);
             }
+            if($row->Tipo) {
+                $typesTable = 'tipos' . strtolower($currentUnit->type);
+                $typeName = $this->source->query("SELECT Nombre as `name` FROM $typesTable WHERE cd = $row->Tipo LIMIT 1");
+                if($typeName && $typeName->num_rows) {
+                    $typeName = $typeName->fetch_object();
+                    $typeName = html_entity_decode($typeName->name);
+                    if($typeName === 'Heroe') {
+                        $typeName .= " $currentUnit->type";
+                    }
+                    $currentUnit->childType = $typeName;
+                } else {
+                    throw new Exception('Unit with id ' . $currentUnit->classicId . ' does NOT have a child type, that should NOT be possible');
+                }
+            }
             $currentUnit->order = $i + $type;
             $this->fillUnitAttributes($currentUnit, $row, $indexIndicator);
             if($row->cdHeroe) {
@@ -678,7 +693,9 @@ class ImportHandler {
                 echo "Importing faction $faction->name with id $faction->classicId!" . PHP_EOL;
                 $this->importFaction($faction);
             }
-            $this->connection->query('COMMIT');
+            if(!getenv('NO_COMMIT')) {
+                $this->connection->query('COMMIT');
+            }
         }catch(Exception $e) {
             $this->connection->query('ROLLBACK');
             throw $e;
@@ -881,7 +898,7 @@ class ImportHandler {
         $name = escapeString($this->connection, $unit->name);
         $description = escapeString($this->connection, $unit->description);
         $image = $unit->image->saveToDbAndDisk($this->connection);
-        $ngType = $this->findTypeId('unit_types', $unit->type);
+        $ngType = $this->findTypeId('unit_types', $unit->type, $unit->childType);
         $unique = $unit->isUnique ? 1 : 0;
         try {
             $this->connection->query(
@@ -900,10 +917,10 @@ class ImportHandler {
         }
     }
     
-    private function findTypeId(string $ngTypeTable, string $classicType): string {
+    private function findTypeId(string $ngTypeTable, string $classicType, string $childType = ''): string {
         $escapedType = escapeString($this->connection, $classicType);
-        $id = $this->connection->query("SELECT id FROM $ngTypeTable WHERE LOWER(name) = LOWER('$escapedType') LIMIT 1")->fetch_object();
-        if(!$id) {
+        $ngId = $this->connection->query("SELECT id FROM $ngTypeTable WHERE LOWER(name) = LOWER('$escapedType') LIMIT 1")->fetch_object();
+        if(!$ngId) {
             echo "Notice: $ngTypeTable of name $classicType doesn't exists, will create it, also if unit type has a count limit or an image, will have to be manually added, as u1 has it hardcoded in the source :/" . PHP_EOL;
             if($ngTypeTable === 'unit_types') {
                 $limit = strtolower($classicType) === strtolower(NG_SOLDIERS_UNIT_TYPE_NAME) ? NG_SOLDIERS_LIMIT : 'NULL';
@@ -911,10 +928,22 @@ class ImportHandler {
             } else {
                 $this->connection->query("INSERT INTO $ngTypeTable ( name ) VALUES ('$escapedType')");
             }
-            return $this->connection->insert_id;
+            $ngId = $this->connection->insert_id;
         } else {
-            return $id->id;
+            $ngId = $ngId->id;
         }
+        if($childType && $ngTypeTable === 'unit_types') {
+            $escapedType = escapeString($this->connection, $childType);
+            $childNgId = $this->connection->query("SELECT id FROM $ngTypeTable WHERE LOWER(name) = LOWER('$escapedType') LIMIT 1")->fetch_object();
+            if($childNgId) {
+                return $childNgId->id;
+            } else {
+                $this->connection->query("INSERT INTO $ngTypeTable ( name, parent_type, share_max_count ) VALUES ('$escapedType', $ngId, $ngId)");
+                return $this->connection->insert_id;
+            }
+            
+        }
+        return $ngId;
     }
 }
 
