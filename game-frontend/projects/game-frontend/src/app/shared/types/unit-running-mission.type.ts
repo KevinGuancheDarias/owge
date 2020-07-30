@@ -1,7 +1,6 @@
 import { AbstractRunningMissionPojo } from '../../shared-pojo/abstract-running-mission.pojo';
-import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
-import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { UserPojo } from '../../shared-pojo/user.pojo';
+import { Planet, ObtainedUnit } from '@owge/universe';
 
 /**
  * Represents a running unit involved missions
@@ -14,7 +13,7 @@ import { UserPojo } from '../../shared-pojo/user.pojo';
  */
 export interface UnitRunningMission extends AbstractRunningMissionPojo {
     involvedUnits: ObtainedUnit[];
-    sourcePlanet?: PlanetPojo;
-    targetPlanet?: PlanetPojo;
+    sourcePlanet?: Planet;
+    targetPlanet?: Planet;
     user?: UserPojo;
 }

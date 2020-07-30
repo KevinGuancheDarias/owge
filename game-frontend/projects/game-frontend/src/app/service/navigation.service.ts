@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 
-import { ProgrammingError } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
-import { PlanetService, PlanetStore } from '@owge/galaxy';
+import { UniverseGameService, Planet } from '@owge/universe';
+import { PlanetService } from '@owge/galaxy';
 
 import { NavigationConfig } from '../shared/types/navigation-config.type';
 import { NavigationData } from '../shared/types/navigation-data.type';
-import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { HttpParams } from '@angular/common/http';
 import { take } from 'rxjs/operators';
 
@@ -14,7 +12,7 @@ import { take } from 'rxjs/operators';
 export class NavigationService {
 
   private _lastNavigationPosition: NavigationConfig;
-  private _selectedPlanet: PlanetPojo;
+  private _selectedPlanet: Planet;
 
   constructor(
     private _universeGameService: UniverseGameService,
