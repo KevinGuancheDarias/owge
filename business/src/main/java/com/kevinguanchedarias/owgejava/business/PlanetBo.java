@@ -7,9 +7,11 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
@@ -19,6 +21,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Component
 public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
@@ -46,6 +49,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 	@Autowired
 	private SocketIoService socketIoService;
+
+	@Autowired
+	@Lazy
+	private RequirementBo requirementBo;
 
 	@PersistenceContext
 	private transient EntityManager entityManager;
@@ -228,14 +235,20 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		return hasMaxPlanets(userStorageBo.findById(userId));
 	}
 
+	@Transactional
 	public void doLeavePlanet(Integer invokerId, Long planetId) {
 		if (!canLeavePlanet(invokerId, planetId)) {
 			throw new SgtBackendInvalidInputException(
 					"Can't leave planet, make sure, it is NOT your home planet and you don't have runnings missions, nor running unit constructions");
 		}
 		Planet planet = findById(planetId);
+		UserStorage user = planet.getOwner();
 		planet.setOwner(null);
 		save(planet);
+		if (planet.getSpecialLocation() != null) {
+			requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
+		}
+
 		emitPlanetOwnedChange(invokerId);
 	}
 
@@ -249,8 +262,8 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	}
 
 	public void emitPlanetOwnedChange(Integer userId) {
-		socketIoService.sendMessage(userId, PLANET_OWNED_CHANGE,
-				() -> toDto(findPlanetsByUser(userStorageBo.findById(userId))));
+		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, PLANET_OWNED_CHANGE,
+				() -> toDto(findPlanetsByUser(userStorageBo.findById(userId)))));
 	}
 
 	public boolean canLeavePlanet(UserStorage invoker, Planet planet) {

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { LoggerHelper, UserStorage, User, ImprovementUtil } from '@owge/core';
+import { UserStorage, User, ImprovementUtil } from '@owge/core';
 import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';

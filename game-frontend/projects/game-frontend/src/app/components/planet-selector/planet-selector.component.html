@@ -9,7 +9,7 @@
         <br *ngIf="!planet.ownerId"/>
       </h5>
     </div>
-    <img class="card-img-top planet-image" src="{{ findPlanetImage(planet) }}" alt="image of the planet">
+    <img class="card-img-top planet-image" src="{{ planet | planetImage }}" alt="image of the planet">
     <div class="card-block">
       <p class="card-text planet-actions">
         <ng-template [ngTemplateOutlet]="templateRef" [ngTemplateOutletContext]="{planet: planet}"></ng-template>

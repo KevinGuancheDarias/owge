@@ -29,7 +29,7 @@ export class PlanetDescriptionPipe implements PipeTransform {
      */
     public transform(planet: Planet): Observable<string> {
         const { sector, quadrant, galaxyName, ownerName, planetNumber } = planet;
-        const name = planet.name || this._createNameFromCoordinates(planet);
+        const name = planet?.specialLocation?.name || planet.name || this._createNameFromCoordinates(planet);
         return this._translateService.get('APP.PLANET.SUMMARY', {
             sector, quadrant, galaxyName, ownerName, planetNumber, name
         });

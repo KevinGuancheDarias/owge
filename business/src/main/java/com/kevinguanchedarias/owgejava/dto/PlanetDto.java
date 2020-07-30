@@ -15,8 +15,7 @@ public class PlanetDto implements DtoFromEntity<Planet> {
 	private Boolean home;
 	private Integer galaxyId;
 	private String galaxyName;
-	private Integer specialLocationId;
-	private String specialLocationName;
+	private SpecialLocationDto specialLocation;
 
 	@Override
 	public void dtoFromEntity(Planet entity) {
@@ -30,8 +29,8 @@ public class PlanetDto implements DtoFromEntity<Planet> {
 			galaxyName = entity.getGalaxy().getName();
 		}
 		if (entity.getSpecialLocation() != null) {
-			specialLocationId = entity.getSpecialLocation().getId();
-			specialLocationName = entity.getSpecialLocation().getName();
+			specialLocation = new SpecialLocationDto();
+			specialLocation.dtoFromEntity(entity.getSpecialLocation());
 		}
 	}
 
@@ -107,22 +106,6 @@ public class PlanetDto implements DtoFromEntity<Planet> {
 		this.galaxyName = galaxyName;
 	}
 
-	public Integer getSpecialLocationId() {
-		return specialLocationId;
-	}
-
-	public void setSpecialLocationId(Integer specialLocationId) {
-		this.specialLocationId = specialLocationId;
-	}
-
-	public String getSpecialLocationName() {
-		return specialLocationName;
-	}
-
-	public void setSpecialLocationName(String specialLocationName) {
-		this.specialLocationName = specialLocationName;
-	}
-
 	public Integer getOwnerId() {
 		return ownerId;
 	}
@@ -138,4 +121,23 @@ public class PlanetDto implements DtoFromEntity<Planet> {
 	public void setOwnerName(String ownerName) {
 		this.ownerName = ownerName;
 	}
+
+	/**
+	 * @return the specialLocation
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SpecialLocationDto getSpecialLocation() {
+		return specialLocation;
+	}
+
+	/**
+	 * @param specialLocation the specialLocation to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setSpecialLocation(SpecialLocationDto specialLocation) {
+		this.specialLocation = specialLocation;
+	}
+
 }

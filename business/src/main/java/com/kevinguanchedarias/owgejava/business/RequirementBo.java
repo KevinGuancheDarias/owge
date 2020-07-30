@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
@@ -28,8 +29,10 @@ import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Requirement;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
+import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
@@ -103,6 +106,9 @@ public class RequirementBo implements Serializable {
 
 	@Autowired
 	private SpeedImpactGroupBo speedImpactGroupBo;
+
+	@Autowired
+	private PlanetBo planetBo;
 
 	@Autowired
 	private transient EntityManager entityManager;
@@ -288,6 +294,19 @@ public class RequirementBo implements Serializable {
 	}
 
 	/**
+	 *
+	 * @param user
+	 * @param specialLocation
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	public void triggerSpecialLocation(UserStorage user, SpecialLocation specialLocation) {
+		processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(
+				RequirementTypeEnum.HAVE_SPECIAL_LOCATION, specialLocation.getId().longValue()), user);
+	}
+
+	/**
 	 * Checks if all users met the new requirements of the changed relation
 	 *
 	 * @param relation
@@ -431,6 +450,9 @@ public class RequirementBo implements Serializable {
 			case HOME_GALAXY:
 				status = checkBeenGalaxyRequirement(currentRequirement, user);
 				break;
+			case HAVE_SPECIAL_LOCATION:
+				status = checkSpecialLocationRequirement(currentRequirement, user);
+				break;
 			default:
 				throw new SgtBackendNotImplementedException(
 						"Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
@@ -462,6 +484,18 @@ public class RequirementBo implements Serializable {
 	private boolean checkUnitAmountRequirement(RequirementInformation requirementInformation, UserStorage user) {
 		return obtainedUnitBo.countByUserAndUnitId(user,
 				requirementInformation.getSecondValue().intValue()) >= requirementInformation.getThirdValue();
+	}
+
+	private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {
+		Planet planet = planetBo.findOneBySpecialLocationId(currentRequirement.getSecondValue().intValue());
+		if (planet == null) {
+			LOG.warn("Special location " + currentRequirement.getSecondValue() + " is not assigned to any planet");
+			return false;
+		} else if (planet.getOwner() == null) {
+			return false;
+		} else {
+			return planet.getOwner().getId().equals(user.getId());
+		}
 	}
 
 	private boolean checkBeenFactionRequirement(RequirementInformation requirement, Integer userId) {
