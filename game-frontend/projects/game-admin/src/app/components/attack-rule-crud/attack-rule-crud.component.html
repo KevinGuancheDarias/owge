@@ -1,0 +1,66 @@
+º<owge-core-modal [hasCloseButton]>
+    <div class="header">
+        {{ 'CRUD.ATTACK_RULE.MODAL.TITLE' | translate }}
+    </div>
+    <div class="body">
+        <div class="form-row" *ngIf="editing">
+            <div class="form-group col-md-6">
+                <label for="name" class="required">{{ 'CRUD.ATTACK_RULE.MODAL.NAME' | translate }} </label>
+                <input [(ngModel)]="editing.name" id="name" class="form-control"/>
+            </div>
+            <div class="form-group cold-md-12">
+                <table *ngIf="factionFilter">
+                    <thead>
+                        <tr>
+                            <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET' | translate }}</th>
+                            <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET_NAME' | translate }}</th>
+                            <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.CAN_ATTACK' | translate }}</th>
+                            <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.ACTIONS' | translate }}</th>                      
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="!editing.entries.length">
+                            <td colspan="3">{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.IS_EMPTY' | translate }}</td>
+                        </tr>
+                        <tr *ngFor="let entry of editing.entries">
+                            <td>
+                                <select [(ngModel)]="entry.target" (ngModelChange)="selectedTargetChanged(entry)">
+                                    <option [ngValue]="null">Select...</option>
+                                    <option *ngFor="let target of ['UNIT','UNIT_TYPE']" [value]="target">
+                                        {{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET_TYPE.' + target | translate }}
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <owge-widgets-filtrable-select *ngIf="entry.target === 'UNIT' && entry.validReferences" [collection]="entry.validReferences" [filters]="factionFilter" (filteredcollection)="entry.filteredValidReferences = $event"></owge-widgets-filtrable-select>
+                                <select [(ngModel)]="entry.selectedReference" (ngModelChange)="selectedReferenceChanged(entry)">
+                                    <option [ngValue]="null">Select</option>
+                                    <option *ngFor="let validReference of entry.filteredValidReferences" [ngValue]="validReference">
+                                        {{  validReference.name }}
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="checkbox" [(ngModel)]="entry.canAttack"/>
+                            </td>
+                            <td>
+                                <button class="btn-secondary" (click)="removeEntry(entry)">{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.BTN_DELETE' | translate }}</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn" (click)="addEntry()"><i class="fa fa-plus"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <button class="btn btn-primary" role="button" (click)="save()" [disabled]="!isChanged || !editing?.name || !editing?.entries.length || !areEntriesValid">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="editing = null; modal.hide()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>
+<owge-widgets-confirmation-dialog (confirmResult)="delete($event)"></owge-widgets-confirmation-dialog>
+<span class="owge-base-colors">
+    {{ attackRule?.name || ('CRUD.ATTACK_RULE.NULL_VALUE' | translate) }} 
+    <i class="fa action fa-pen" (click)="showModal()"></i>
+    <i class="fas fa-times" (click)="confirmationDialog.show()"></i>
+</span> 

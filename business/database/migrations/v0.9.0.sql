@@ -81,3 +81,16 @@ ALTER TABLE `units` ADD INDEX( `speed_impact_group_id`);
 ALTER TABLE `units` ADD CONSTRAINT `units__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `units` ADD `speed` DOUBLE NULL AFTER `is_unique`;
 
+CREATE TABLE `attack_rules` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(100) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+CREATE TABLE `attack_rule_entries` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `attack_rule_id` SMALLINT UNSIGNED NOT NULL , `target` ENUM('UNIT','UNIT_TYPE') NOT NULL , `reference_id` SMALLINT UNSIGNED NOT NULL , `can_attack` TINYINT NOT NULL , PRIMARY KEY (`id`), INDEX (`attack_rule_id`)) ENGINE = InnoDB;
+ALTER TABLE `attack_rule_entries` ADD CONSTRAINT `fk_attack_rule` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `unit_types` ADD `attack_rule_id` SMALLINT UNSIGNED NULL AFTER `name`;
+ALTER TABLE `units` ADD `attack_rule_id` SMALLINT UNSIGNED NULL AFTER `name`;
+ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `units` ADD CONSTRAINT `units__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `unit_types` ADD `share_max_count` SMALLINT(6) UNSIGNED NULL COMMENT 'The count of this unit type will apply to referenced' AFTER `max_count`;
+ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_share_count` FOREIGN KEY (`share_max_count`) REFERENCES `unit_types`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `unit_types` CHANGE `parent_type` `parent_type` SMALLINT(6) UNSIGNED NULL DEFAULT NULL;
+ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`parent_type`) REFERENCES `unit_types`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

@@ -191,7 +191,8 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @since 0.8.1
 	 */
 	public Long countByUserAndUnitType(UserStorage user, UnitType type) {
-		return repository.countByUserAndUnitType(user, type);
+		return ObjectUtils.firstNonNull(repository.countByUserAndUnitType(user, type), 0L)
+				+ ObjectUtils.firstNonNull(repository.countByUserAndSharedCountUnitType(user, type), 0L);
 	}
 
 	/**

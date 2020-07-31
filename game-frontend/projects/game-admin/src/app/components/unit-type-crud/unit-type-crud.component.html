@@ -2,12 +2,28 @@
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="unitType">
             <div class="form-group col-md-6">
-                <label for="max-amount-unlimited">{{ 'CRUD.UNIT_TYPE.MAX_AMOUNT_UNLIMITED' | translate }} </label>
-                <input type="checkbox" [(ngModel)]="isUnlimitedMaxAmount" (ngModelChange)="onIsUnlimitedMaxAmountChange()" id="max-amount-unlimited" class="form-control"/>
+                <label for="max-amount-unlimited">{{ 'CRUD.UNIT_TYPE.SHARE_MAX_COUNT' | translate }} </label>
+                <owge-widgets-id-name-dropdown [(model)]="unitType.shareMaxCount" [extraHtmlClass]="'form-control'" [nullSelectionI18NName]="'CRUD.UNIT_TYPE.OWN_COUNT'" [elementsList]="unitTypesWithLimitedCount"></owge-widgets-id-name-dropdown>
             </div>
+
+            <div class="form-group col-md-6">
+                <label for="max-amount-unlimited">{{ 'CRUD.UNIT_TYPE.MAX_AMOUNT_UNLIMITED' | translate }} </label>
+                <input [disabled]="unitType.shareMaxCount" type="checkbox" [(ngModel)]="isUnlimitedMaxAmount" (ngModelChange)="onIsUnlimitedMaxAmountChange()" id="max-amount-unlimited" class="form-control"/>
+            </div>
+
             <div class="form-group col-md-6">
                 <label for="max-amount">{{ 'CRUD.UNIT_TYPE.MAX_AMOUNT' | translate }} </label>
-                <input [disabled]="isUnlimitedMaxAmount" type="number" [(ngModel)]="unitType.maxCount" id="max-amount" class="form-control"/>
+                <input [disabled]="unitType.shareMaxCount || isUnlimitedMaxAmount" type="number" [(ngModel)]="unitType.maxCount" id="max-amount" class="form-control"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>{{ 'CRUD.UNIT_TYPE.PARENT' | translate }}</label>
+                <owge-widgets-id-name-dropdown [(model)]="unitType.parent" [extraHtmlClass]="'form-control'" [nullSelectionI18NName]="'CRUD.UNIT_TYPE.ROOT_TYPE'" [elementsList]="unitTypesForParentSelect"></owge-widgets-id-name-dropdown>
+            </div>
+
+            <div class="form-group">
+                <label>{{ 'CRUD.ATTACK_RULE.LABEL' | translate }}</label>
+                <app-attack-rule-crud [(attackRule)]="unitType.attackRule" class="form-control"></app-attack-rule-crud>
             </div>
 
             <app-can-do-missions-crud class="form-row" [element]="unitType">

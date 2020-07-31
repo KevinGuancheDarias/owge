@@ -25,11 +25,13 @@ export class WithReadCrudMixin<T, K> extends AbstractConfigurationCrudService<T,
         const result: Observable<T[]> = this._getAuthConfiguration().findAll
             ? this._universeGameService.requestWithAutorizationToContext(this._getContextPathPrefix(), 'get', path)
             : this._universeGameService.getToUniverse(`${this._getContextPathPrefix()}/${path}`);
-        this._subject = new ReplaySubject(1);
-        result.subscribe(data => {
-            this._data = data;
-            this._subject.next(data);
-        });
+        if (!this._subject) {
+            this._subject = new ReplaySubject(1);
+            result.subscribe(data => {
+                this._data = data;
+                this._subject.next(data);
+            });
+        }
         return this._subject.asObservable();
     }
 

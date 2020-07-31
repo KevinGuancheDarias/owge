@@ -97,6 +97,10 @@
             "MISSIONS_OUTSIDE_GALAXY": "Misiones intergalácticas permitidas",
             "REQUIREMENT_GROUPS": "Grupos de requisitos para poder salir de la galaxía"
         },
+        "ATTACK_RULE": {
+            "LABEL": "Regla de ataque",
+            "NULL_VALUE": "Heredado"
+        },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requisitos"
     },

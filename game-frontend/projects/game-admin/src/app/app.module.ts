@@ -52,6 +52,8 @@ import { AdminRequirementService } from './services/admin-requirement.service';
 import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
 import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-group.service';
 import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/can-do-missions-crud.component';
+import { AttackRuleCrudComponent } from './components/attack-rule-crud/attack-rule-crud.component';
+import { AdminAttackRuleService } from './services/admin-attack-rule.service';
 
 @NgModule({
   declarations: [
@@ -78,7 +80,8 @@ import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/ca
     RequirementsTableComponent,
     RequirementsModalComponent,
     SpeedImpactGroupCrudComponent,
-    CanDoMissionsCrudComponent
+    CanDoMissionsCrudComponent,
+    AttackRuleCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -120,6 +123,7 @@ import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/ca
     AdminUserService,
     AdminRequirementService,
     AdminSpeedImpactGroupService,
+    AdminAttackRuleService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

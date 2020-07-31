@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -27,6 +26,8 @@ import org.springframework.util.CollectionUtils;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.entity.AttackRule;
+import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
@@ -37,6 +38,7 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
+import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -74,7 +76,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public class AttackObtainedUnit {
+		AttackUserInformation user;
 		Double pendingAttack;
+		boolean noAttack = false;
 		Double availableShield;
 		Double availableHealth;
 		Long finalCount;
@@ -86,6 +90,31 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private Double totalHealth;
 
 		private Double initialHealth;
+
+		public AttackObtainedUnit() {
+			throw new ProgrammingException("Can't use AttackObtainedUnit");
+		}
+
+		public AttackObtainedUnit(ObtainedUnit obtainedUnit, GroupedImprovement userImprovement) {
+			Unit unit = obtainedUnit.getUnit();
+			Integer unitTypeId = unit.getType().getId();
+			initialCount = obtainedUnit.getCount();
+			finalCount = initialCount;
+			totalAttack = initialCount.doubleValue() * unit.getAttack();
+			totalAttack += (totalAttack * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitTypeId)));
+			pendingAttack = totalAttack;
+			totalShield = initialCount.doubleValue() * unit.getShield();
+			totalShield += (totalShield * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitTypeId)));
+			availableShield = totalShield;
+			totalHealth = initialCount.doubleValue() * unit.getHealth();
+			initialHealth = totalHealth;
+			totalHealth += (totalHealth * improvementBo.findAsRational(
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.DEFENSE, unitTypeId)));
+			availableHealth = totalHealth;
+			this.obtainedUnit = obtainedUnit;
+		}
 
 		public Double getTotalAttack() {
 			return totalAttack;
@@ -127,33 +156,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 			return obtainedUnit;
 		}
 
-		/**
-		 * Notice: Setter with logic, check it
-		 *
-		 * @param obtainedUnit
-		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-		 */
-		public void setObtainedUnit(ObtainedUnit obtainedUnit, GroupedImprovement userImprovement) {
-			Unit unit = obtainedUnit.getUnit();
-			Integer unitTypeId = unit.getType().getId();
-			initialCount = obtainedUnit.getCount();
-			finalCount = initialCount;
-			totalAttack = initialCount.doubleValue() * unit.getAttack();
-			totalAttack += (totalAttack * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitTypeId)));
-			pendingAttack = totalAttack;
-			totalShield = initialCount.doubleValue() * unit.getShield();
-			totalShield += (totalShield * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitTypeId)));
-			availableShield = totalShield;
-			totalHealth = initialCount.doubleValue() * unit.getHealth();
-			initialHealth = totalHealth;
-			totalHealth += (totalHealth * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.DEFENSE, unitTypeId)));
-			availableHealth = totalHealth;
-			this.obtainedUnit = obtainedUnit;
-		}
-
 		public Double getInitialHealth() {
 			return initialHealth;
 		}
@@ -167,8 +169,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public class AttackUserInformation {
 		AttackInformation attackInformationRef;
 		Double earnedPoints = 0D;
-		List<AttackObtainedUnit> unitsWithAvailableAttack = new ArrayList<>();
-		List<AttackObtainedUnit> unitsWithoutAttack = new ArrayList<>();
+		List<AttackObtainedUnit> units = new ArrayList<>();
+		List<AttackObtainedUnit> attackableUnits;
 		boolean isDefeated = false;
 		boolean canAttack = true;
 
@@ -176,54 +178,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private GroupedImprovement userImprovement;
 
 		public AttackUserInformation(UserStorage user) {
-			setUser(user);
+			this.user = user;
 			userImprovement = improvementBo.findUserImprovement(user);
-		}
-
-		/**
-		 * List of users that the current user can attack
-		 *
-		 * @return
-		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-		 */
-		public List<AttackUserInformation> findVictims(List<AttackUserInformation> allUsers) {
-			return allUsers.stream()
-					.filter(current -> !current.isDefeated && !current.getUser().getId().equals(getUser().getId()))
-					.filter(this::filterAlliance).collect(Collectors.toList());
-		}
-
-		public List<AttackObtainedUnit> findAllUnits() {
-			List<AttackObtainedUnit> retVal = new ArrayList<>();
-			retVal.addAll(unitsWithAvailableAttack);
-			retVal.addAll(unitsWithoutAttack);
-			return retVal;
-		}
-
-		public List<AttackObtainedUnit> findUnitsWithLife() {
-			return findAllUnits().stream().filter(current -> current.availableHealth > 0D).collect(Collectors.toList());
-		}
-
-		public void attackVictim(AttackUserInformation targetVictim, List<AttackUserInformation> allUsers) {
-			unitsWithAvailableAttack.stream().filter(current -> {
-				List<AttackObtainedUnit> victimUnitsWithLife = targetVictim.findUnitsWithLife();
-				AtomicInteger count = new AtomicInteger(victimUnitsWithLife.size());
-				if (count.get() == 0) {
-					targetVictim.isDefeated = true;
-				} else {
-					count = manageVictimsDamage(current, victimUnitsWithLife, count);
-				}
-				return count.get() == 0;
-			}).findFirst();
-			updateUnitsWithAvailableAttack();
-			updateCanAttack(allUsers);
 		}
 
 		public UserStorage getUser() {
 			return user;
-		}
-
-		public void setUser(UserStorage user) {
-			this.user = user;
 		}
 
 		public Double getEarnedPoints() {
@@ -232,6 +192,155 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		public GroupedImprovement getUserImprovement() {
 			return userImprovement;
+		}
+
+		/**
+		 * @return the units
+		 * @since 0.9.0
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public List<AttackObtainedUnit> getUnits() {
+			return units;
+		}
+
+	}
+
+	public class AttackInformation {
+		private Mission attackMission;
+		private boolean isRemoved = false;
+		private Map<Integer, AttackUserInformation> users = new HashMap<>();
+		private List<AttackObtainedUnit> units = new ArrayList<>();
+
+		public AttackInformation() {
+			throw new ProgrammingException(
+					"Can't invoke constructor for " + this.getClass().getName() + " without arguments");
+		}
+
+		public AttackInformation(Mission attackMission) {
+			this.attackMission = attackMission;
+		}
+
+		/**
+		 * To have the expected behavior should be invoked after <i>startAttack()</i>
+		 *
+		 * @return true if the mission has been removed from the database
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public boolean isMissionRemoved() {
+			return isRemoved;
+		}
+
+		public void addUnit(ObtainedUnit unitEntity) {
+			UserStorage userEntity = unitEntity.getUser();
+			AttackUserInformation user;
+			if (users.containsKey(userEntity.getId())) {
+				user = users.get(userEntity.getId());
+			} else {
+				user = new AttackUserInformation(userEntity);
+				users.put(userEntity.getId(), user);
+			}
+			AttackObtainedUnit unit = new AttackObtainedUnit(unitEntity, user.userImprovement);
+			unit.user = user;
+			user.units.add(unit);
+			units.add(unit);
+		}
+
+		public void startAttack() {
+			Collections.shuffle(units);
+			users.forEach((userId, user) -> user.attackableUnits = units.stream().filter(
+					unit -> !unit.user.user.getId().equals(user.user.getId()) && filterAlliance(user, unit.user))
+					.collect(Collectors.toList()));
+			doAttack();
+			updatePoints();
+		}
+
+		/**
+		 * @return the users
+		 * @since 0.9.0
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		public Map<Integer, AttackUserInformation> getUsers() {
+			return users;
+		}
+
+		public void setRemoved(boolean isRemoved) {
+			this.isRemoved = isRemoved;
+		}
+
+		private void doAttack() {
+			units.forEach(unit -> {
+				List<AttackObtainedUnit> attackableByUnit = unit.user.attackableUnits.stream().filter(target -> {
+					Unit unitEntity = unit.obtainedUnit.getUnit();
+					AttackRule attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
+							unitEntity.getType().getAttackRule());
+					return canAttack(attackRule, target);
+				}).collect(Collectors.toList());
+				for (AttackObtainedUnit target : attackableByUnit) {
+					attackTarget(unit, target);
+					if (unit.noAttack) {
+						break;
+					}
+				}
+			});
+		}
+
+		private boolean canAttack(AttackRule attackRule, AttackObtainedUnit target) {
+			if (attackRule == null || attackRule.getAttackRuleEntries() == null) {
+				return true;
+			} else {
+				for (AttackRuleEntry ruleEntry : attackRule.getAttackRuleEntries()) {
+					if (ruleEntry.getTarget() == AttackableTargetEnum.UNIT) {
+						if (target.obtainedUnit.getUnit().getId().equals(ruleEntry.getReferenceId())) {
+							return ruleEntry.getCanAttack();
+						}
+					} else if (ruleEntry.getTarget() == AttackableTargetEnum.UNIT_TYPE) {
+						UnitType unitType = findUnitTypeMatchingRule(ruleEntry,
+								target.obtainedUnit.getUnit().getType());
+						if (unitType != null) {
+							return ruleEntry.getCanAttack();
+						}
+					} else {
+						throw new ProgrammingException("unexpected code path");
+					}
+				}
+				return true;
+			}
+		}
+
+		private UnitType findUnitTypeMatchingRule(AttackRuleEntry ruleEntry, UnitType unitType) {
+			if (ruleEntry.getReferenceId().equals(unitType.getId())) {
+				return unitType;
+			} else if (unitType.getParent() != null) {
+				return findUnitTypeMatchingRule(ruleEntry, unitType.getParent());
+			} else {
+				return null;
+			}
+		}
+
+		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
+			Double myAttack = source.pendingAttack;
+			Double victimShield = target.availableShield;
+			if (victimShield > myAttack) {
+				source.pendingAttack = 0D;
+				source.noAttack = true;
+				target.availableShield -= myAttack;
+			} else {
+				myAttack -= target.availableShield;
+				target.availableShield = 0D;
+				Double victimHealth = target.availableHealth;
+				addPointsAndUpdateCount(myAttack, source, target);
+				if (victimHealth > myAttack) {
+					source.pendingAttack = 0D;
+					source.noAttack = true;
+					target.availableHealth -= myAttack;
+				} else {
+					source.pendingAttack = myAttack - victimHealth;
+					target.availableHealth = 0D;
+					obtainedUnitBo.delete(target.obtainedUnit);
+					deleteMissionIfRequired(target.obtainedUnit);
+				}
+				improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
+			}
 		}
 
 		/**
@@ -245,24 +354,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private void deleteMissionIfRequired(ObtainedUnit obtainedUnit) {
 			Mission mission = obtainedUnit.getMission();
 			if (mission != null && !obtainedUnitBo.existsByMission(mission)) {
-				if (attackInformationRef.attackMission.getId().equals(mission.getId())) {
-					attackInformationRef.setRemoved(true);
+				if (attackMission.getId().equals(mission.getId())) {
+					setRemoved(true);
 				} else {
 					delete(mission);
 				}
 			}
 		}
 
-		private void updateUnitsWithAvailableAttack() {
-			unitsWithAvailableAttack = unitsWithAvailableAttack.stream().filter(current -> current.pendingAttack > 0D)
-					.collect(Collectors.toList());
-		}
-
-		private void updateCanAttack(List<AttackUserInformation> allUsers) {
-			canAttack = !unitsWithAvailableAttack.isEmpty() && !findVictims(allUsers).isEmpty();
-		}
-
-		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit victimUnit) {
+		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit source,
+				AttackObtainedUnit victimUnit) {
 			Double healthForEachUnit = victimUnit.totalHealth / victimUnit.initialCount;
 			Long killedCount = (long) Math.floor(usedAttack / healthForEachUnit);
 			if (killedCount > victimUnit.finalCount) {
@@ -271,47 +372,32 @@ public class UnitMissionBo extends AbstractMissionBo {
 			} else {
 				victimUnit.finalCount -= killedCount;
 			}
-			earnedPoints += killedCount * victimUnit.obtainedUnit.getUnit().getPoints();
+			source.user.earnedPoints += killedCount * victimUnit.obtainedUnit.getUnit().getPoints();
 		}
 
-		/**
-		 * @param current
-		 * @param victimUnitsWithLife
-		 * @param count
-		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-		 * @return
-		 */
-		private AtomicInteger manageVictimsDamage(AttackObtainedUnit current,
-				List<AttackObtainedUnit> victimUnitsWithLife, final AtomicInteger count) {
-			victimUnitsWithLife.stream().filter(victimUnit -> {
-				Double myAttack = current.pendingAttack;
-				Double victimShield = victimUnit.availableShield;
-				if (victimShield > myAttack) {
-					current.pendingAttack = 0D;
-					victimUnit.availableShield -= myAttack;
-				} else {
-					myAttack -= victimUnit.availableShield;
-					victimUnit.availableShield = 0D;
-					Double victimHealth = victimUnit.availableHealth;
-					addPointsAndUpdateCount(myAttack, victimUnit);
-					if (victimHealth > myAttack) {
-						current.pendingAttack = 0D;
-						victimUnit.availableHealth -= myAttack;
-					} else {
-						current.pendingAttack = myAttack - victimHealth;
-						victimUnit.availableHealth = 0D;
-						obtainedUnitBo.delete(victimUnit.obtainedUnit);
-						deleteMissionIfRequired(victimUnit.obtainedUnit);
-						count.decrementAndGet();
-					}
-					improvementBo.clearCacheEntriesIfRequired(victimUnit.obtainedUnit.getUnit(), obtainedUnitBo);
-				}
-				if (current.pendingAttack == 0D) {
-					unitsWithoutAttack.add(current);
-				}
-				return current.pendingAttack == 0D;
-			}).findFirst();
-			return count;
+		private void updatePoints() {
+			Set<Integer> alteredUsers = new HashSet<>();
+			users.entrySet().forEach(current -> {
+				AttackUserInformation attackUserInformation = current.getValue();
+				List<AttackObtainedUnit> userUnits = attackUserInformation.units;
+				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
+				obtainedUnitBo
+						.save(userUnits.stream()
+								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
+										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
+								.map(currentUnit -> {
+									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
+									alteredUsers.add(attackUserInformation.getUser().getId());
+									return currentUnit.obtainedUnit;
+								}).collect(Collectors.toList()));
+			});
+			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
+				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
+						() -> unitTypeBo.findUnitTypesWithUserInfo(current));
+				socketIoService.sendMessage(current, UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
+
+			}));
 		}
 
 		/**
@@ -323,116 +409,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * @since 0.7.0
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 		 */
-		private boolean filterAlliance(AttackUserInformation current) {
-			return getUser().getAlliance() == null || current.getUser().getAlliance() == null
-					|| !getUser().getAlliance().getId().equals(current.getUser().getAlliance().getId());
+		private boolean filterAlliance(AttackUserInformation source, AttackUserInformation target) {
+			return source.user.getAlliance() == null || target.user.getAlliance() == null
+					|| !source.user.getAlliance().getId().equals(target.user.getAlliance().getId());
 		}
-	}
-
-	public class AttackInformation {
-		private Mission attackMission;
-		private boolean isRemoved = false;
-		private List<AttackUserInformation> users = new ArrayList<>();
-
-		public AttackInformation() {
-			throw new ProgrammingException(
-					"Can't invoke constructor for " + this.getClass().getName() + " without arguments");
-		}
-
-		public AttackInformation(Mission attackMission) {
-			this.attackMission = attackMission;
-		}
-
-		/**
-		 * To have the expected behavior sohuld be invoked after <i>startAttack()</i>
-		 *
-		 * @return true if the mission has been removed from the database
-		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-		 */
-		public boolean isMissionRemoved() {
-			return isRemoved;
-		}
-
-		public void startAttack() {
-			doAttack();
-			updatePoints();
-		}
-
-		public void addUnitToUser(ObtainedUnit unitToAdd) {
-
-			AttackUserInformation attackUserInformation = users.stream()
-					.filter(current -> current.getUser().getId().equals(unitToAdd.getUser().getId())).findFirst()
-					.orElse(null);
-			if (attackUserInformation == null) {
-				attackUserInformation = new AttackUserInformation(unitToAdd.getUser());
-				attackUserInformation.attackInformationRef = this;
-				users.add(attackUserInformation);
-			}
-			AttackObtainedUnit attackObtainedUnit = new AttackObtainedUnit();
-			attackObtainedUnit.setObtainedUnit(unitToAdd, attackUserInformation.getUserImprovement());
-			attackUserInformation.unitsWithAvailableAttack.add(attackObtainedUnit);
-		}
-
-		public List<AttackUserInformation> getUsers() {
-			return users;
-		}
-
-		public void setUsers(List<AttackUserInformation> users) {
-			this.users = users;
-		}
-
-		public Mission getAttackMission() {
-			return attackMission;
-		}
-
-		public void setRemoved(boolean isRemoved) {
-			this.isRemoved = isRemoved;
-		}
-
-		private void doAttack() {
-			Collections.shuffle(users);
-			List<AttackUserInformation> attackerUsers = users.stream().filter(current -> current.canAttack)
-					.collect(Collectors.toList());
-			if (!attackerUsers.isEmpty()) {
-				AttackUserInformation attackerUser = attackerUsers.get(0);
-				List<AttackUserInformation> victims = attackerUser.findVictims(users);
-				if (victims.isEmpty()) {
-					attackerUser.canAttack = false;
-				} else {
-					victims.stream().filter(current -> {
-						attackerUser.attackVictim(current, users);
-						return !attackerUser.canAttack;
-					}).findFirst();
-				}
-				doAttack();
-			}
-
-		}
-
-		private void updatePoints() {
-			Set<Integer> alteredUsers = new HashSet<>();
-			users.forEach(current -> {
-				List<AttackObtainedUnit> units = current.findAllUnits();
-				userStorageBo.addPointsToUser(current.getUser(), current.earnedPoints);
-				obtainedUnitBo
-						.save(units.stream()
-								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
-										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
-								.map(currentUnit -> {
-									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
-									alteredUsers.add(current.getUser().getId());
-									return currentUnit.obtainedUnit;
-								}).collect(Collectors.toList()));
-			});
-			alteredUsers.forEach(current -> {
-				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
-						() -> unitTypeBo.findUnitTypesWithUserInfo(current));
-				socketIoService.sendMessage(current, UNIT_OBTAINED_CHANGE,
-						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
-
-			});
-		}
-
 	}
 
 	@Autowired
@@ -442,7 +422,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private transient SocketIoService socketIoService;
 
 	@Autowired
-	private EntityManager entityManager;
+	private transient EntityManager entityManager;
 
 	@Override
 	public String getGroupName() {
@@ -683,8 +663,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, new ArrayList<>())
 				.withAttackInformation(attackInformation);
 		UserStorage invoker = mission.getUser();
-		handleMissionReportSave(mission, builder, true, attackInformation.users.stream().map(current -> current.user)
-				.filter(user -> !user.getId().equals(invoker.getId())).collect(Collectors.toList()));
+		handleMissionReportSave(mission, builder, true,
+				attackInformation.users.entrySet().stream().map(current -> current.getValue().user)
+						.filter(user -> !user.getId().equals(invoker.getId())).collect(Collectors.toList()));
 		handleMissionReportSave(mission, builder, false, invoker);
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChange(mission);
@@ -799,9 +780,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (mission != null) {
 			Integer userId = mission.getUser().getId();
 			List<ObtainedUnit> alteredUnits = new ArrayList<>();
-			findUnitsInvolved(missionId).forEach(current -> {
-				alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()));
-			});
+			findUnitsInvolved(missionId).forEach(current -> alteredUnits
+					.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId())));
 			resolveMission(mission);
 			emitLocalMissionChange(mission);
 			TransactionUtil.doAfterCommit(() -> {
@@ -824,8 +804,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 		} else {
 			mission.setResolved(true);
 			save(mission);
-			Interval interval = new Interval(new Instant().getMillis(), mission.getTerminationDate().getTime());
-			adminRegisterReturnMission(mission, mission.getRequiredTime() - (interval.toDurationMillis() / 1000D));
+			long nowMillis = new Instant().getMillis();
+			long terminationMillis = mission.getTerminationDate().getTime();
+			long durationMillis = 0L;
+			if (terminationMillis >= nowMillis) {
+				Interval interval = new Interval(nowMillis, terminationMillis);
+				durationMillis = (long) (interval.toDurationMillis() / 1000D);
+			}
+			adminRegisterReturnMission(mission, mission.getRequiredTime() - durationMillis);
 		}
 	}
 
@@ -1214,7 +1200,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
 		AttackInformation retVal = new AttackInformation(attackMission);
-		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnitToUser);
+		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnit);
 		return retVal;
 	}
 

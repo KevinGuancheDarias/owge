@@ -16,6 +16,8 @@ import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, O
 })
 export class WidgetIdNameDropdownComponent implements OnChanges {
 
+  @Input() public useIdAsValue = false;
+  @Input() public nullSelectionI18NName = 'WIDGETS.ID_NAME_DROPDOWN.SELECT';
   @Input() public inputId: string;
   @Input() public disabled = false;
   @Input() public idField = 'id';
@@ -23,6 +25,8 @@ export class WidgetIdNameDropdownComponent implements OnChanges {
   @Input() public elementsList: any[];
   @Input() public hasNull = true;
   @Input() public model: any;
+  @Input() public extraHtmlClass: string;
+  @Input() public nullValue: null | undefined | '' = undefined;
   @Output() public modelChange: EventEmitter<any> = new EventEmitter();
 
   constructor(private _cdr: ChangeDetectorRef) { }
@@ -36,4 +40,9 @@ export class WidgetIdNameDropdownComponent implements OnChanges {
     this.modelChange.emit(value);
   }
 
+  public compareById(a: any, b: any): boolean {
+    const firstId: any = a && a[this.idField];
+    const secondId: any = b && b[this.idField];
+    return firstId === secondId;
+  }
 }

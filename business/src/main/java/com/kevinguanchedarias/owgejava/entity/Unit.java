@@ -69,6 +69,11 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	@Fetch(FetchMode.JOIN)
 	private SpeedImpactGroup speedImpactGroup;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "attack_rule_id", nullable = true)
+	@Fetch(FetchMode.JOIN)
+	private AttackRule attackRule;
+
 	public Integer getOrder() {
 		return order;
 	}
@@ -219,6 +224,24 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	 */
 	public void setSpeedImpactGroup(SpeedImpactGroup speedImpactGroup) {
 		this.speedImpactGroup = speedImpactGroup;
+	}
+
+	/**
+	 * @return the attackRule
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public AttackRule getAttackRule() {
+		return attackRule;
+	}
+
+	/**
+	 * @param attackRule the attackRule to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setAttackRule(AttackRule attackRule) {
+		this.attackRule = attackRule;
 	}
 
 }

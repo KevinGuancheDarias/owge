@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
@@ -42,6 +43,9 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 	@Autowired
 	private SpeedImpactGroupBo speedImpactGroupBo;
 
+	@Autowired
+	private AttackRuleBo attackRuleBo;
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public Optional<UnitType> beforeSave(UnitTypeDto parsedDto, UnitType entity) {
@@ -51,6 +55,15 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 		}
 		if (parsedDto.getSpeedImpactGroup() != null && parsedDto.getSpeedImpactGroup().getId() != null) {
 			entity.setSpeedImpactGroup(speedImpactGroupBo.findByIdOrDie(parsedDto.getSpeedImpactGroup().getId()));
+		}
+		if (parsedDto.getAttackRule() != null && parsedDto.getAttackRule().getId() != null) {
+			entity.setAttackRule(attackRuleBo.findByIdOrDie(parsedDto.getAttackRule().getId()));
+		}
+		if (parsedDto.getParent() != null && parsedDto.getParent().getId() != null) {
+			entity.setParent(unitTypeBo.findByIdOrDie(parsedDto.getParent().getId()));
+		}
+		if (parsedDto.getShareMaxCount() != null && parsedDto.getShareMaxCount().getId() != null) {
+			entity.setShareMaxCount(unitTypeBo.findByIdOrDie(parsedDto.getShareMaxCount().getId()));
 		}
 		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}

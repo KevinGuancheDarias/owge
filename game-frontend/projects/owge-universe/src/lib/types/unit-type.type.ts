@@ -14,6 +14,8 @@ export interface UnitType extends TypeWithMissionLimitation {
     image: number;
     imageUrl: string;
     maxCount?: number;
+    parent: UnitType;
+    shareMaxCount: UnitType;
     computedMaxCount?: number;
     userBuilt: number;
     speedImpactGroup: SpeedImpactGroup;

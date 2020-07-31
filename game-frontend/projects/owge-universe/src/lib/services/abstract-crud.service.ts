@@ -52,8 +52,10 @@ export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> 
             entity
         ).pipe(
             map(saved => {
-                this._data.push(saved);
-                this._syncSubject();
+                if (this._data) {
+                    this._data.push(saved);
+                    this._syncSubject();
+                }
                 return saved;
             }),
             take(1)
@@ -80,9 +82,11 @@ export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> 
             entity
         ).pipe(
             map(saved => {
-                this._data = this._data.map(current => current[this._getIdKey()] === saved[this._getIdKey()] ? saved : current);
-                this._syncSubject();
-                this._log.debug('Emmited new subject value for saving');
+                if (this._data) {
+                    this._data = this._data.map(current => current[this._getIdKey()] === saved[this._getIdKey()] ? saved : current);
+                    this._syncSubject();
+                    this._log.debug('Emmited new subject value for saving');
+                }
                 return saved;
             }),
             take(1)
