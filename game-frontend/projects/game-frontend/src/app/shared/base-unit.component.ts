@@ -38,7 +38,7 @@ export class BaseUnitComponent extends BaseComponent {
             const unitType = this._unitTypes.find(current => current.id === unit.typeId);
             return this._isChild(this.unitType, unitType);
         } else {
-            return !!this.unitType;
+            return !this.unitType;
         }
     }
 

@@ -8,6 +8,7 @@ import { RequirementInformation } from '@owge/universe';
 import { RequirementInformationWithTranslation } from '../types/requirement-information-with-translation.type';
 import { take } from 'rxjs/operators';
 import { ProgrammingError } from '@owge/core';
+import { AdminSpecialLocationService } from './admin-special-location.service';
 
 
 /**
@@ -22,7 +23,8 @@ export class AdminRequirementService {
     public constructor(
         private _translateService: TranslateService,
         private _adminFactionService: AdminFactionService,
-        private _adminUpgradeService: AdminUpgradeService
+        private _adminUpgradeService: AdminUpgradeService,
+        private _adminSpecialLocationService: AdminSpecialLocationService
     ) { }
 
     /**
@@ -68,6 +70,9 @@ export class AdminRequirementService {
                 return (await this._adminFactionService.findOneById(requirementInformation.secondValue).pipe(take(1)).toPromise()).name;
             case 'UPGRADE_LEVEL':
                 return (await this._adminUpgradeService.findOneById(requirementInformation.secondValue).pipe(take(1)).toPromise()).name;
+            case 'HAVE_SPECIAL_LOCATION':
+                return (await this._adminSpecialLocationService.findOneById(requirementInformation.secondValue)
+                    .pipe(take(1)).toPromise()).name;
             default:
                 throw new ProgrammingError(`Invalid requirement code ${requirementInformation.requirement.code}`);
         }

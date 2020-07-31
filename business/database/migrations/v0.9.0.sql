@@ -94,3 +94,5 @@ ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_share_count` FOREIGN KEY (`s
 
 ALTER TABLE `unit_types` CHANGE `parent_type` `parent_type` SMALLINT(6) UNSIGNED NULL DEFAULT NULL;
 ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`parent_type`) REFERENCES `unit_types`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `units` CHANGE `improvement_id` `improvement_id` SMALLINT(6) UNSIGNED NULL;

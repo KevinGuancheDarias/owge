@@ -15,8 +15,12 @@ import { MEDIA_ROUTES, Config } from '@owge/core';
 export class PlanetImagePipe implements PipeTransform {
     public transform(planet: Planet): string {
         if (planet) {
-            if (planet.specialLocationId) {
-                throw new Error('Unsupported feature for now');
+            if (planet.specialLocation) {
+                if (planet.specialLocation.imageUrl) {
+                    return planet.specialLocation.imageUrl;
+                } else {
+                    return '/assets/img/special-location-without-icon.png';
+                }
             } else if (Planet.isExplored(planet)) {
                 return MEDIA_ROUTES.PLANET_RICHNESS_IMAGES + (planet.richness / 10) + Config.PLANET_RICHNESS_IMAGE_EXTENSION;
             } else {

@@ -6,6 +6,7 @@ import { AdminFactionService } from '../../services/admin-faction.service';
 import { AdminUpgradeService } from '../../services/admin-upgrade.service';
 import { Observable } from 'rxjs';
 import { WidgetFilter } from 'projects/owge-widgets/src/lib/types/widget-filter.type';
+import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
 
 /**
  *
@@ -29,10 +30,13 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   public secondValueFilters: WidgetFilter<any>[] = null;
   public secondValueListFiltered: CommonEntity<number[]>;
 
+  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION'];
+
   public constructor(
     private _translateService: TranslateService,
     private _adminFactionService: AdminFactionService,
-    private _adminUpgradeService: AdminUpgradeService
+    private _adminUpgradeService: AdminUpgradeService,
+    private _adminSpecialLocationService: AdminSpecialLocationService
   ) {
     super();
   }
@@ -55,6 +59,9 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
           this._adminUpgradeService.findAll().subscribe(upgrades => this.secondValueList = upgrades);
           this._translateService.get('REQUIREMENTS.THIRD_VALUES.UPGRADE_LEVEL')
             .subscribe(translation => this.newRequirement.targetThirdValueTranslation = translation);
+          break;
+        case 'HAVE_SPECIAL_LOCATION':
+          this._adminSpecialLocationService.findAll().subscribe(specialLocations => this.secondValueList = specialLocations);
           break;
         default:
           throw new ProgrammingError(`The requirement with code ${this.newRequirement.requirement.code} is not supported`);

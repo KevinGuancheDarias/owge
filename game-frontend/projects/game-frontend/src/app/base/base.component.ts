@@ -73,6 +73,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
   }
 
   public findPlanetImage(planet: PlanetPojo): string {
+    this._bcLog.warnDeprecated('This is really really critically bad for the performance', '0.9.0', 'PlanetImagePipe');
     return PlanetPojo.findImage(planet);
   }
 

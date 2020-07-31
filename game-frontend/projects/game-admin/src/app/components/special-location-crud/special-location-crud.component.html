@@ -4,7 +4,7 @@
 
             <div class="form-group col-md-6">
                 <label for="target-galaxy">{{ 'CRUD.SPECIAL_LOCATION.TARGET_GALAXY' | translate }}</label>
-                <owge-widgets-id-name-dropdown class="form-control" [disabled]="!selectedEl.id" [hasNull]="false" [inputId]="'target-galaxy'" [elementsList]="galaxies" [(model)]="selectedEl.galaxyId"></owge-widgets-id-name-dropdown>
+                <owge-widgets-id-name-dropdown class="form-control" [disabled]="!selectedEl.id" [hasNull]="false" [inputId]="'target-galaxy'" [elementsList]="galaxies" [(model)]="selectedEl.galaxyId" [useIdAsValue]="true"></owge-widgets-id-name-dropdown>
             </div>
             <div class="form-group col-md-6">
                 <label for="selected-planet">{{ 'CRUD.SPECIAL_LOCATION.SELECTED_PLANET' | translate }}</label>

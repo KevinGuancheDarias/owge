@@ -18,6 +18,8 @@ export class PlanetDisplayNamePipe implements PipeTransform {
   transform(planet: Planet): string {
     if (!planet) {
       return 'Unexplored :(';
+    } else if (planet.specialLocation) {
+      return planet.specialLocation.name;
     } else if (planet.name) {
       return planet.name;
     } else {

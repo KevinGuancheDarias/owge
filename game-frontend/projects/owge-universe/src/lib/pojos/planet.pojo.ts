@@ -1,4 +1,5 @@
 import { MEDIA_ROUTES, Config, LoggerHelper } from '@owge/core';
+import { SpecialLocation } from '../types/special-location.type';
 
 /**
  *
@@ -21,11 +22,11 @@ export class Planet {
     public ownerName?: number;
     public richness: number;
     public home: boolean;
-    public specialLocationId: number;
+    public specialLocation: SpecialLocation;
 
     public static findImage(planet: Planet): string {
         this._LOG.warnDeprecated('Planet.findImage()', '0.8.1', 'ng://OwgeGalaxy/pipes/planetImage');
-        if (planet.specialLocationId) {
+        if (planet.specialLocation) {
             throw new Error('Unsupported feature for now');
         } else if (Planet.isExplored(planet)) {
             return MEDIA_ROUTES.PLANET_RICHNESS_IMAGES + (planet.richness / 10) + Config.PLANET_RICHNESS_IMAGE_EXTENSION;
