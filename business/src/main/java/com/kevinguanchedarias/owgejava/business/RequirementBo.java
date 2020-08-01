@@ -535,6 +535,7 @@ public class RequirementBo implements Serializable {
 				break;
 			case UNIT:
 				emitUnlockedChange(unlockedRelation, object, unitBo);
+				break;
 			case TIME_SPECIAL:
 				emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
 				break;
