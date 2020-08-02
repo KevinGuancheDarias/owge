@@ -10,7 +10,6 @@ import {
   UniverseCacheManagerService, WsEventCacheService, TypeWithMissionLimitation, Planet, MissionSupport
 } from '@owge/universe';
 
-import { PlanetPojo } from '../shared-pojo/planet.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { AnyRunningMission } from '../shared/types/any-running-mission.type';
 import { MissionType } from '@owge/core';
@@ -142,16 +141,16 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
    * @param {MissionType} missionType
-   * @param {PlanetPojo} sourcePlanet
-   * @param {PlanetPojo} targetPlanet
+   * @param {Planet} sourcePlanet
+   * @param {Planet} targetPlanet
    * @param {SelectedUnit[]} selectedUnits
    * @returns {Promise<void>}
    * @memberof MissionService
    */
   public async sendMission(
     missionType: MissionType,
-    sourcePlanet: PlanetPojo,
-    targetPlanet: PlanetPojo,
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
     selectedUnits: SelectedUnit[]
   ): Promise<void> {
     await this._loadingService.runWithLoading(async () => {
@@ -183,31 +182,31 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     });
   }
 
-  public sendExploreMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendExploreMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/explorePlanet', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendGatherMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendGatherMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/gather', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendEstablishBaseMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendEstablishBaseMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/establishBase', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendAttackMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendAttackMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/attack', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendCounterattackMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendCounterattackMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/counterattack', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendConquestMission(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendConquestMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits);
   }
 
-  public sendDeploy(sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  public sendDeploy(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._sendMission('mission/deploy', sourcePlanet, targetPlanet, involvedUnits);
   }
 
@@ -269,7 +268,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     await this._offlineCountUnitMissionsStore.save(content);
   }
 
-  private _sendMission(url: string, sourcePlanet: PlanetPojo, targetPlanet: PlanetPojo, involvedUnits: SelectedUnit[]): Observable<void> {
+  private _sendMission(url: string, sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
     return this._universeGameService.postWithAuthorizationToUniverse<AnyRunningMission>(
       url, {
       sourcePlanetId: sourcePlanet.id,

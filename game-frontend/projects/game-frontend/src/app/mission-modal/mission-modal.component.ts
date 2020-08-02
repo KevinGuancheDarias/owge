@@ -2,10 +2,8 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { UnitType, MissionStore, Unit } from '@owge/universe';
+import { UnitType, MissionStore, Planet, ObtainedUnit } from '@owge/universe';
 
-import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { MissionType } from '@owge/core';
 import { MissionService } from '../services/mission.service';
@@ -35,12 +33,12 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   /**
    * Planet to which mission is going to be send
    *
-   * @type {PlanetPojo}
+   * @type {Planet}
    * @memberof DisplayQuadrantComponent
    */
-  public targetPlanet: PlanetPojo;
+  public targetPlanet: Planet;
 
-  public sourcePlanet: PlanetPojo;
+  public sourcePlanet: Planet;
 
   /**
    * Units that can be used in mission
@@ -106,11 +104,11 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     this._childModal.hide();
   }
 
-  public isExplored(planet: PlanetPojo): boolean {
-    return PlanetPojo.isExplored(planet);
+  public isExplored(planet: Planet): boolean {
+    return Planet.isExplored(planet);
   }
 
-  public planetIsMine(planet: PlanetPojo): boolean {
+  public planetIsMine(planet: Planet): boolean {
     return this._planetService.isMine(planet);
   }
 
@@ -168,13 +166,13 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   /**
    *
    *
-   * @param {PlanetPojo} targetPlanet
+   * @param {Planet} targetPlanet
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.4
    * @returns {boolean}
    * @memberof MissionModalComponent
    */
-  public isDeploymentAllowed(targetPlanet: PlanetPojo): boolean {
+  public isDeploymentAllowed(targetPlanet: Planet): boolean {
     switch (this.deploymentConfig) {
       case 'DISALLOWED':
         return false;

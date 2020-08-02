@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 
-import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
+import { Planet, ObtainedUnit } from '@owge/universe';
 
 /**
  * Stores the information to display in the <i>MissionModalComponent</i>
@@ -27,21 +26,21 @@ export class MissionInformationStore {
     /**
      * Planet used as <i>sourcePlanet</i> in the backend endpoint
      *
-     * @type {ReplaySubject<PlanetPojo>}
+     * @type {ReplaySubject<Planet>}
      * @readonly
      * @memberof MissionInformationStore
      */
-    public readonly originPlanet: ReplaySubject<PlanetPojo> = new ReplaySubject();
+    public readonly originPlanet: ReplaySubject<Planet> = new ReplaySubject();
 
 
     /**
      * Planet to which the mission goes to
      *
-     * @type {ReplaySubject<PlanetPojo>}
+     * @type {ReplaySubject<Planet>}
      * @readonly
      * @memberof MissionInformationStore
      */
-    public readonly targetPlanet: ReplaySubject<PlanetPojo> = new ReplaySubject();
+    public readonly targetPlanet: ReplaySubject<Planet> = new ReplaySubject();
 
 
     /**

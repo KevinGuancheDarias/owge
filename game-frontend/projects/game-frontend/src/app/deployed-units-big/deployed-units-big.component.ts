@@ -1,13 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { filter } from 'rxjs/operators';
 
 import { PlanetService } from '@owge/galaxy';
 
-import { ObtainedUnit } from '../shared-pojo/obtained-unit.pojo';
 import { UnitService } from '../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
 import { Subscription } from 'rxjs';
 import { cloneDeep } from 'lodash-es';
+import { ObtainedUnit } from '@owge/universe';
 
 @Component({
   selector: 'app-deployed-units-big',
