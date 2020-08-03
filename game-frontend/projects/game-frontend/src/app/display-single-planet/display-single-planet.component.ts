@@ -12,22 +12,16 @@ import { Component, OnInit, Input } from '@angular/core';
 export class DisplaySinglePlanetComponent implements OnInit {
 
   private _planet: PlanetPojo;
-  private _planetImage: string;
 
   @Input()
   set planet(planet: PlanetPojo) {
     if (planet) {
       this._planet = planet;
-      this._planetImage = PlanetPojo.findImage(planet);
     }
   }
 
   get planet(): PlanetPojo {
     return this._planet;
-  }
-
-  get planetImage(): string {
-    return this._planetImage;
   }
 
   constructor() { }

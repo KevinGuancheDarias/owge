@@ -1,10 +1,10 @@
 <div class="container" *ngIf="planet">
     <ng-content></ng-content>
     <p>
-        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet.name }}
+        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet | planetDisplayName }}
 
     </p>
 
-    <img src="{{ planetImage }}" />
+    <img src="{{ planet | planetImage }}" />
 
 </div>
