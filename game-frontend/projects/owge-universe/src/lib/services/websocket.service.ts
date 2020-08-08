@@ -202,6 +202,19 @@ export class WebsocketService {
     this._onBeforeWorkaroundSyncHandlers.push(action);
   }
 
+  /**
+   * Clear browser cache for current universe and user
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @returns
+   */
+  public async clearCache(): Promise<void> {
+    this._log.info('Full cache clear, just wanted');
+    await this._universeCacheManager.clearOpenStores();
+    await this._invokeWorkaroundSync();
+  }
+
   private async _registerSocketHandlers(): Promise<void> {
     try {
       await Promise.all([
@@ -238,9 +251,7 @@ export class WebsocketService {
     });
 
     this._socket.on('cache_clear', async () => {
-      this._log.info('Full cache clear, just wanted');
-      await this._universeCacheManager.clearOpenStores();
-      await this._invokeWorkaroundSync();
+      await this.clearCache();
     });
   }
 

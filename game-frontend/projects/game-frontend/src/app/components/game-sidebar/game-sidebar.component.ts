@@ -9,7 +9,6 @@ import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, P
 
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
-import { LoginSessionService } from '../../login-session/login-session.service';
 import { ReportService } from '../../services/report.service';
 
 /**
@@ -45,6 +44,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._createTranslatableMenuRoute('APP.MENU_ALLIANCES', ROUTES.ALLIANCE, 'fas fa-user-friends', true),
     this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', '/time_specials', 'fa fa-clock'),
     this._createTranslatableMenuRoute('APP.MENU_RANKING', ROUTES.RANKING, 'fa fa-trophy', true),
+    this._createTranslatableMenuRoute('APP.MENU_SETTINGS', ROUTES.SETTINGS, 'fas fa-cog', true),
     {
       text: version,
       path: ROUTES.VERSION,

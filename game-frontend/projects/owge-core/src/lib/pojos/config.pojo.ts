@@ -20,7 +20,8 @@ export const ROUTES = {
     REPORTS: '/reports',
     ALLIANCE: '/alliance',
     RANKING: '/ranking',
-    VERSION: '/version'
+    VERSION: '/version',
+    SETTINGS: '/settings'
 };
 
 export class Config {

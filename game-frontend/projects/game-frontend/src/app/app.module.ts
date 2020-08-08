@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { filter, map, take } from 'rxjs/operators';
+import { take } from 'rxjs/operators';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
@@ -73,6 +73,7 @@ import { TimeSpecialService } from './services/time-specials.service';
 import { Log, Level } from 'ng2-logger/browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PlanetListComponent } from './components/planet-list/planet-list.component';
+import { SettingsComponent } from './components/settings/settings.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -100,6 +101,9 @@ export const APP_ROUTES: Routes = [
     children: RANKING_ROUTES, data: {
       sectionTitle: 'Ranking'
     }
+  },
+  {
+    path: 'settings', component: SettingsComponent, canActivate: [LoginSessionService]
   },
   { path: '**', component: PageNotFoundComponent }
 ];
@@ -144,6 +148,7 @@ export const APP_ROUTES: Routes = [
     GameSidebarComponent,
     TimeSpecialsComponent,
     PlanetListComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,

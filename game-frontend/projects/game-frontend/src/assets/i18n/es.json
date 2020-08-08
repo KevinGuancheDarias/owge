@@ -148,6 +148,7 @@
         "MENU_ALLIANCES": "Alianzas",
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking",
+        "MENU_SETTINGS": "Configuración",
         "MENU_LOGOUT": "Salir",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Misiones"
@@ -206,5 +207,8 @@
         "POINTS": "Puntos",
         "USER": "Usuario",
         "ALLIANCE": "Alianza"
+    },
+    "SETTINGS": {
+        "BTN_FORCE_SYNC": "Force sync"
     }
 }

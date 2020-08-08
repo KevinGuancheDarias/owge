@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { UserStorage, User, MenuRoute, ROUTES } from '@owge/core';
 import { AbstractSidebarComponent } from '@owge/widgets';
 import { TranslateService } from '@ngx-translate/core';
-import { AdminUser } from './types/admin-user.type';
 import { AdminUserStore } from './store/admin-user.store';
 import { map } from 'rxjs/operators';
 
