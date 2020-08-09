@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { skip } from 'rxjs/operators';
+import { skip, filter } from 'rxjs/operators';
 
 import { Improvement, UserStorage, LoggerHelper, ResourcesEnum, User } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
@@ -49,9 +49,12 @@ export class ResourceManagerService {
     private _currentMaxEnergyFloor: BehaviorSubject<number> = new BehaviorSubject(0);
 
     constructor(private _userStore: UserStorage<UserWithFaction>) {
-        _userStore.currentUser.subscribe(user => {
+        _userStore.currentUser.pipe(
+            filter(user => user && user.primaryResource && !!user.secondaryResource)
+        ).subscribe(user => {
             this._setResources(user);
             this._currentUser = user;
+            this.startHandling();
         });
     }
 
@@ -89,8 +92,10 @@ export class ResourceManagerService {
     }
 
     public stopHandling() {
-        window.clearInterval(this._intervalId);
-        this._intervalId = null;
+        if (this._intervalId) {
+            window.clearInterval(this._intervalId);
+            this._intervalId = null;
+        }
     }
 
     /**
