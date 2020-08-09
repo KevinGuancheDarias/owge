@@ -12,13 +12,13 @@ import {
   UserStorage,
   Improvement,
   StorageOfflineHelper,
-  SessionService
+  SessionService,
+  ToastrService
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
-import { ToastrService } from 'ngx-toastr';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -39,7 +39,8 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     private _universeStorage: UniverseStorage,
     private _sessionService: SessionService,
     private _userStore: UserStorage<User>,
-    private _universeCacheManagerService: UniverseCacheManagerService
+    private _universeCacheManagerService: UniverseCacheManagerService,
+    private _toastsService: ToastrService
   ) {
     super();
     this._eventsMap = {
@@ -261,6 +262,12 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     url: string,
     options?: HttpOptions
   ): Observable<T> {
+    const errorHandler = this._toastsService.handleHttpError.bind(this._toastsService);
+    if (!options) {
+      options = { errorHandler };
+    } else if (!options.errorHandler) {
+      options.errorHandler = errorHandler;
+    }
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(

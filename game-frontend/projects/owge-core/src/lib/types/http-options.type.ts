@@ -18,5 +18,5 @@ export interface HttpOptions {
     reportProgress?: boolean;
     responseType?: 'json';
     withCredentials?: boolean;
-    errorHandler?: (err: HttpErrorResponse | any, caught: Observable<any>) => Observable<any>;
+    errorHandler?: (err: HttpErrorResponse | any, caught?: Observable<any>) => Observable<any>;
 }

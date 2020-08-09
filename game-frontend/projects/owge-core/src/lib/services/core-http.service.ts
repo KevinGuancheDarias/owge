@@ -9,6 +9,7 @@ import { LoggerHelper } from '../helpers/logger.helper';
 import { SessionStore } from '../store/session.store';
 import { ProgrammingError } from '../errors/programming.error';
 import { TranslateService } from '@ngx-translate/core';
+import { HttpUtil } from '../utils/http.util';
 
 export type validNonDataMethod = 'get' | 'delete';
 export type validWriteMethod = 'post' | 'put';
@@ -216,21 +217,7 @@ export class CoreHttpService {
    * @memberOf BaseHttpService
    */
   private _translateServerError(error: Response | HttpErrorResponse | any): string {
-    try {
-      let body: any;
-      if (error instanceof HttpErrorResponse) {
-        body = error.error;
-      } else if (error instanceof Response) {
-        body = error.json() || ''; // Should have a default server exception pojo
-      } else if (error.exceptionType && error.message) {
-        body = error;
-      } else {
-        throw new ProgrammingError('Unexpected value for error');
-      }
-      return body.message ? body.message : 'El servidor no respondió correctamente';
-    } catch (e) {
-      return 'El servidor no devolvió un JSON válido';
-    }
+    return HttpUtil.translateServerError(error);
   }
 
   /**

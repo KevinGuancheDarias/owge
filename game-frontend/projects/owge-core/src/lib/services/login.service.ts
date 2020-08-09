@@ -8,6 +8,7 @@ import { SessionService } from './session.service';
 import { OwgeCoreConfig } from '../pojos/owge-core-config';
 import { CoreHttpService } from './core-http.service';
 import { OwgeUserModule } from '../owge-user.module';
+import { ToastrService } from './toastr.service';
 
 /**
  *
@@ -21,7 +22,9 @@ export class LoginService {
   constructor(
     private _coreHttpService: CoreHttpService,
     private _sessionService: SessionService,
-    private _accountConfig: OwgeCoreConfig) { }
+    private _accountConfig: OwgeCoreConfig,
+    private _toastrService: ToastrService
+  ) { }
 
   /**
    * Executes the game action agains the OWGE Authentication server
@@ -45,8 +48,8 @@ export class LoginService {
         }
       }
     );
-
-    return this._coreHttpService.post(`${this._accountConfig.url}${this._accountConfig.loginEndpoint}`, params).pipe(
+    const errorHandler = this._toastrService.handleHttpError.bind(this._toastrService);
+    return this._coreHttpService.post(`${this._accountConfig.url}${this._accountConfig.loginEndpoint}`, params, { errorHandler }).pipe(
       map(res => {
         this._sessionService.setTokenPojo(res.token);
         return this._sessionService.getRawToken();

@@ -15,6 +15,7 @@ import { OwgeContentDirective } from './directives/owge-content.directive';
 import { OwgeCoreIfDesktopDirective } from './directives/if-desktop.directive';
 import { LocalConfigurationService } from './services/local-configuration.service';
 import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
+import { ToastrService } from './services/toastr.service';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -51,7 +52,7 @@ import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe,
+    DynamicImagePipe
   ],
 })
 export class CoreModule {
@@ -70,7 +71,8 @@ export class CoreModule {
         CoreHttpService,
         { provide: OwgeCoreConfig, useValue: accountConfig },
         ScreenDimensionsService,
-        LocalConfigurationService
+        LocalConfigurationService,
+        ToastrService
       ]
     };
   }
