@@ -1,5 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import { PlanetListItem } from '@owge/galaxy';
+import { PlanetListItem } from '../types/planet-list-item.type';
 
 /**
  *

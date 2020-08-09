@@ -7,6 +7,7 @@ import { OwgeWidgetsModule } from '@owge/widgets';
 import { PlanetListService } from './services/planet-list.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -15,6 +16,7 @@ import { CommonModule } from '@angular/common';
   ],
   imports: [
     CommonModule,
+    FormsModule,
     CoreModule,
     OwgeWidgetsModule,
     TranslateModule.forChild()
