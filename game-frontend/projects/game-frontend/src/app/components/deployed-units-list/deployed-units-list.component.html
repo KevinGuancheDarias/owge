@@ -1,6 +1,6 @@
 <owge-core-loading [isReady]="obtainedUnits">
   <div *ngFor="let unitType of parsedObtained | keyvalue" class="owge-card-list" [ngClass]="{'tiny-imgs': useTiny}">
-    <h2>
+    <h2 *ngIf="selectable">
       {{ unitType.value.typeName }} 
       <button (click)="clickAllOfType(unitType.key)" class="owge-btn">{{ 'APP.UNITS.IN_PLANET.CHOOSE_TYPE' | translate}}</button>
     </h2>
