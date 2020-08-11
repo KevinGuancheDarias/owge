@@ -227,6 +227,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     body?: any,
     options?: HttpOptions
   ): Observable<T> {
+    options = this._addErrorHandlerIfMissing(options);
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
@@ -262,12 +263,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     url: string,
     options?: HttpOptions
   ): Observable<T> {
-    const errorHandler = this._toastsService.handleHttpError.bind(this._toastsService);
-    if (!options) {
-      options = { errorHandler };
-    } else if (!options.errorHandler) {
-      options.errorHandler = errorHandler;
-    }
+    options = this._addErrorHandlerIfMissing(options);
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
@@ -296,6 +292,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     body: any,
     options?: HttpOptions
   ): Observable<T> {
+    options = this._addErrorHandlerIfMissing(options);
     return this._universeStorage.currentUniverse.pipe<Universe, any>(
       first(),
       switchMap(
@@ -304,7 +301,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
       )
     );
   }
-
 
   /**
    * Because backend still sends as user property, factionDto instead of faction, we have to fix it here
@@ -325,5 +321,15 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     this._workaroundFactionFix(user);
     this._onUserImprovementsChange(user.improvements);
     return user;
+  }
+
+  private _addErrorHandlerIfMissing(options: HttpOptions): HttpOptions {
+    const errorHandler = this._toastsService.handleHttpError.bind(this._toastsService);
+    if (!options) {
+      options = { errorHandler };
+    } else if (!options.errorHandler) {
+      options.errorHandler = errorHandler;
+    }
+    return options;
   }
 }

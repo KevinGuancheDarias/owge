@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 
 import { AbstractCrudService, UnitType, UniverseGameService, CrudServiceAuthControl } from '@owge/universe';
 import { validContext } from '@owge/core';
+import { Observable } from 'rxjs';
 
 /**
  * admin service for managing unit types
@@ -14,6 +15,23 @@ import { validContext } from '@owge/core';
 export class AdminUnitTypeService extends AbstractCrudService<UnitType> {
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
+    }
+
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param unitType
+     * @returns
+     */
+    public unsetAttackRule(unitType: UnitType): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            this._getContextPathPrefix(),
+            'delete',
+            `unit_type/${unitType.id}/attackRule`
+        );
     }
 
     protected _getEntity(): string {

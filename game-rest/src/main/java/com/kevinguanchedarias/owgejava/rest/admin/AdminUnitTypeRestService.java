@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -82,4 +84,16 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 				.withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
 	}
 
+	/**
+	 *
+	 * @param unitTypeId
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@DeleteMapping("{unitTypeId}/attackRule")
+	public void unsetAttackRule(@PathVariable Integer unitTypeId) {
+		UnitType unitType = unitTypeBo.findById(unitTypeId);
+		unitType.setAttackRule(null);
+		unitTypeBo.save(unitType);
+	}
 }

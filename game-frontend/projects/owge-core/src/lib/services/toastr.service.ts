@@ -1,6 +1,6 @@
 import { ToastrService as SourceService } from 'ngx-toastr';
 import { Injectable } from '@angular/core';
-import { Observable, empty } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpUtil } from '../utils/http.util';
 
@@ -29,6 +29,6 @@ export class ToastrService {
     public handleHttpError(err: any): Observable<void> {
         const errorString = HttpUtil.translateServerError(err);
         this._translateService.get(errorString).subscribe(val => this._toastrService.error(val));
-        return empty();
+        return throwError(err);
     }
 }

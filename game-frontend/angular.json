@@ -36,7 +36,8 @@
               "node_modules/@fortawesome/fontawesome-free/css/solid.css",
               "shared/styles/styles.scss",
               "shared/styles/styles.less",
-              "projects/game-admin/src/styles.less"
+              "projects/game-admin/src/styles.less",
+              "node_modules/ngx-toastr/toastr.css"
             ],
             "scripts": []
           },

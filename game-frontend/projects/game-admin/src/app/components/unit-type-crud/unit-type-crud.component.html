@@ -23,7 +23,7 @@
 
             <div class="form-group">
                 <label>{{ 'CRUD.ATTACK_RULE.LABEL' | translate }}</label>
-                <app-attack-rule-crud [(attackRule)]="unitType.attackRule" class="form-control"></app-attack-rule-crud>
+                <app-attack-rule-crud [beforeDelete]="beforeAttackRuleDeleteBinded" [(attackRule)]="unitType.attackRule" class="form-control"></app-attack-rule-crud>
             </div>
 
             <app-can-do-missions-crud class="form-row" [element]="unitType">

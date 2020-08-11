@@ -28,8 +28,10 @@ export class WithDeleteCrudMixin<T, K> extends AbstractConfigurationCrudService<
     public delete(id: K): Observable<T[]> {
         const path = this._findOneEntityPath(id);
         this._universeGameService.requestWithAutorizationToContext(this._getContextPathPrefix(), 'delete', path).subscribe(() => {
-            this._data = this._data.filter(current => <any>current[this._getIdKey()] !== id);
-            this._syncSubject();
+            if (this._data) {
+                this._data = this._data.filter(current => <any>current[this._getIdKey()] !== id);
+                this._syncSubject();
+            }
         });
         return this._subject.asObservable();
     }

@@ -61,4 +61,17 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
 		});
 		return saved;
 	}
+
+	@Transactional
+	@Override
+	public void delete(Integer attackRuleId) {
+		delete(findByIdOrDie(attackRuleId));
+	}
+
+	@Transactional
+	@Override
+	public void delete(AttackRule attackRule) {
+		attackRuleEntryRepository.deleteAll(attackRule.getAttackRuleEntries());
+		BaseBo.super.delete(attackRule);
+	}
 }

@@ -77,7 +77,12 @@
             "LEVEL_EFFECT": "Efecto nivel"
         },
         "UNIT": {
-            "TYPE": "Tipo"
+            "TYPE": "Tipo",
+            "ATTACK": "Ataque",
+            "HEALTH": "Defensa",
+            "SHIELD": "Escudo",
+            "CHARGE": "Carga",
+            "SPEED": "Velocidad"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxia",
@@ -99,7 +104,22 @@
         },
         "ATTACK_RULE": {
             "LABEL": "Regla de ataque",
-            "NULL_VALUE": "Heredado"
+            "NULL_VALUE": "Heredado",
+            "TITLE": "Editar reglas de ataque",
+            "NAME": "Nombre",
+            "MODAL": {
+                "TABLE": {
+                    "TARGET": "Tipo objetivo",
+                    "TARGET_TYPE": {
+                        "UNIT_TYPE": "Tipo de unidad",
+                        "UNIT": "Unidad"
+                    },
+                    "TARGET_NAME": "Nombre objetivo",
+                    "CAN_ATTACK": "Puede atacar",
+                    "ACTIONS": "Acciones",
+                    "BTN_DELETE": "Borrar"
+                }
+            }
         },
         "IMPROVEMENTS": "Improvements",
         "REQUIREMENTS": "Requisitos"

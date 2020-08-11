@@ -41,7 +41,9 @@ export class AttackRuleCrudComponent implements OnInit, OnChanges {
   @ViewChild(ModalComponent) public modal: ModalComponent;
   @ViewChild(WidgetConfirmationDialogComponent) public confirmationDialog: WidgetConfirmationDialogComponent;
   @Input() public attackRule: AttackRule;
+  @Input() public beforeDelete: (attackRule?: AttackRule) => Promise<void>;
   @Output() public attackRuleChange: EventEmitter<AttackRule> = new EventEmitter;
+  @Output() public deleteError: EventEmitter<void> = new EventEmitter;
 
   public editing: Omit<AttackRule, 'entries'> & { entries: AttackRuleEntryWithReferenceInfo[] };
   public isChanged = false;
@@ -147,11 +149,17 @@ export class AttackRuleCrudComponent implements OnInit, OnChanges {
    * @since 0.9.0
    * @param confirm
    */
-  public delete(confirm: boolean): void {
+  public async delete(confirm: boolean): Promise<void> {
     if (confirm) {
-      this._adminAttackRuleService.delete(this.attackRule.id).subscribe(() => {
+      try {
+        if (this.beforeDelete) {
+          await this.beforeDelete(this.attackRule);
+        }
+        await this._adminAttackRuleService.delete(this.attackRule.id).pipe(take(1)).toPromise();
         this.attackRuleChange.emit(null);
-      });
+      } catch (_) {
+        this.deleteError.emit();
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 
-import { throwError as observableThrowError, Observable, EMPTY as empty } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { switchMap, first, catchError } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
@@ -317,7 +317,7 @@ export class CoreHttpService {
       this._translateService.get(errString).subscribe(val => {
         console.error(`Error!\n ${val}`, err);
       });
-      return empty;
+      return throwError(err);
     }
   }
 }

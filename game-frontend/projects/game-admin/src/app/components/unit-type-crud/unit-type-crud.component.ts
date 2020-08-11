@@ -5,6 +5,7 @@ import { UnitType, MissionSupport, SpeedImpactGroup } from '@owge/universe';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
 import { AttackRule } from '../../types/attack-rule.type';
+import { take } from 'rxjs/operators';
 
 /**
  *
@@ -28,10 +29,12 @@ export class UnitTypeCrudComponent implements OnInit {
   public unitType: UnitType & { attackRule: AttackRule };
   public isUnlimitedMaxAmount: boolean;
   public speedImpactGroups: SpeedImpactGroup[] = [];
+  public beforeAttackRuleDeleteBinded: () => Promise<void>;
 
   constructor(public adminUnitTypeService: AdminUnitTypeService, private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService) { }
 
   public ngOnInit(): void {
+    this.beforeAttackRuleDeleteBinded = this.beforeAttackRuleDelete.bind(this);
     this.adminUnitTypeService.findAll().subscribe(result => {
       this.unitTypes = result;
       this._computeAvailableTypesForSelects();
@@ -60,6 +63,10 @@ export class UnitTypeCrudComponent implements OnInit {
 
   public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
     return a === b || (a && b && a.id === b.id);
+  }
+
+  public async beforeAttackRuleDelete(): Promise<void> {
+    return this.adminUnitTypeService.unsetAttackRule(this.unitType).pipe(take(1)).toPromise();
   }
 
   private _computeAvailableTypesForSelects() {

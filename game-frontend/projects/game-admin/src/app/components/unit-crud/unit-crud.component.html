@@ -9,6 +9,23 @@
             <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>
 
             <div class="form-group col-md-6">
+                <label for="unit-speed">{{ 'CRUD.UNIT.ATTACK' | translate }}</label>
+                <input class="form-control" type="number" id="unit-speed" [(ngModel)]="selectedEl.attack">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="unit-speed">{{ 'CRUD.UNIT.HEALTH' | translate }}</label>
+                <input class="form-control" type="number" id="unit-speed" [(ngModel)]="selectedEl.health">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="unit-speed">{{ 'CRUD.UNIT.SHIELD' | translate }}</label>
+                <input class="form-control" type="number" id="unit-speed" [(ngModel)]="selectedEl.shield">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="unit-speed">{{ 'CRUD.UNIT.CHARGE' | translate }}</label>
+                <input class="form-control" type="number" id="unit-speed" [(ngModel)]="selectedEl.charge">
+            </div>
+
+            <div class="form-group col-md-6">
                 <label for="unit-speed">{{ 'CRUD.UNIT.SPEED' | translate }}</label>
                 <input class="form-control" type="number" id="unit-speed" [(ngModel)]="selectedEl.speed">
             </div>

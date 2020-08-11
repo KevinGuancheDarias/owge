@@ -4,12 +4,12 @@
     </div>
     <div class="body">
         <div class="form-row" *ngIf="editing">
-            <div class="form-group col-md-6">
+            <div class="form-group col-md-12">
                 <label for="name" class="required">{{ 'CRUD.ATTACK_RULE.MODAL.NAME' | translate }} </label>
                 <input [(ngModel)]="editing.name" id="name" class="form-control"/>
             </div>
             <div class="form-group cold-md-12">
-                <table *ngIf="factionFilter">
+                <table class="table-primary table" *ngIf="factionFilter">
                     <thead>
                         <tr>
                             <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET' | translate }}</th>

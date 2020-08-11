@@ -87,7 +87,12 @@
             "LEVEL_EFFECT": "Level effect"
         },
         "UNIT": {
-            "TYPE": "Type"
+            "TYPE": "Type",
+            "ATTACK": "Attack",
+            "HEALTH": "Health",
+            "SHIELD": "Shield",
+            "CHARGE": "Charge",
+            "SPEED": "Speed"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxy",
@@ -111,7 +116,22 @@
         "REQUIREMENTS": "Requirements",
         "ATTACK_RULE": {
             "LABEL": "Attack rule",
-            "NULL_VALUE": "Inherited"
+            "NULL_VALUE": "Inherited",
+            "MODAL": {
+                "TITLE": "Edit attack rules",
+                "NAME": "Name",
+                "TABLE": {
+                    "TARGET": "Target",
+                    "TARGET_TYPE": {
+                        "UNIT_TYPE": "Unit Type",
+                        "UNIT": "Unit"
+                    },
+                    "TARGET_NAME": "Target name",
+                    "CAN_ATTACK": "Can attack",
+                    "ACTIONS": "Actions",
+                    "BTN_DELETE": "Delete"
+                }
+            }
         }
     },
     "CRUD_WITH_IMAGE": {
