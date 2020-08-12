@@ -57,6 +57,9 @@ public class MissionBo extends AbstractMissionBo {
 	@Autowired
 	private transient SocketIoService socketIoService;
 
+	@Autowired
+	private transient ConfigurationBo configurationBo;
+
 	@PostConstruct
 	public void init() {
 		improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
@@ -97,9 +100,13 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
-				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-						improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed()));
+		if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
+			resourceRequirements.setRequiredTime(3D);
+		} else {
+			resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
+					+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
+							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed()));
+		}
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
 
@@ -194,7 +201,11 @@ public class MissionBo extends AbstractMissionBo {
 
 		Mission mission = new Mission();
 		mission.setMissionInformation(missionInformation);
+		if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
+			resourceRequirements.setRequiredTime(3D);
+		}
 		attachRequirementstoMission(mission, resourceRequirements);
+
 		mission.setType(findMissionType(MissionType.BUILD_UNIT));
 		mission.setUser(user);
 		missionInformation.setMission(mission);

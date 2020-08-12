@@ -74,8 +74,6 @@ public class ConfigurationBo implements Serializable {
 
 	}
 
-	private HashMap<String, Configuration> cache = new HashMap<>();
-
 	@Autowired
 	private ConfigurationRepository configurationRepository;
 
@@ -103,11 +101,7 @@ public class ConfigurationBo implements Serializable {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com
 	 */
 	public Optional<Configuration> findOne(String name) {
-		if (cache.get(name) != null) {
-			return Optional.of(cache.get(name));
-		} else {
-			return configurationRepository.findById(name);
-		}
+		return configurationRepository.findById(name);
 	}
 
 	public List<Configuration> findAllNonPrivileged() {
@@ -138,17 +132,12 @@ public class ConfigurationBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	public Configuration findConfigurationParam(String name) {
-		if (cache.get(name) != null) {
-			return cache.get(name);
-		}
-
-		Configuration retVal = configurationRepository.findById(name).get();
+		Configuration retVal = configurationRepository.findById(name).orElse(null);
 
 		if (retVal == null) {
 			throw new SgtBackendConfigurationNotFoundException("Configuration param " + name + " not found");
 		}
 
-		cache.put(retVal.getName(), retVal);
 		return retVal;
 	}
 
@@ -168,10 +157,6 @@ public class ConfigurationBo implements Serializable {
 	 */
 	public void deleteOne(String name) {
 		configurationRepository.deleteById(name);
-	}
-
-	public void clearCache() {
-		cache = new HashMap<>();
 	}
 
 	public Configuration saveByKeyAndValue(String key, String value) {

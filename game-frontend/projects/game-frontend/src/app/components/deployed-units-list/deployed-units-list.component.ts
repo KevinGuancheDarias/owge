@@ -107,8 +107,8 @@ export class DeployedUnitsListComponent implements OnChanges {
     });
     this.selection.emit(selectedCounts.filter(current => current.count));
     const ids: number[] = selectedCounts.map<number>(
-      (current, index) => current ? this.obtainedUnits[index].unit.typeId : null
+      current => current && current.count ? current.unit.typeId : null
     ).filter(current => current !== null);
-    this.unitTypesOfSelection.emit(await this._unitTypeService.idsToUnitTypes(...ids));
+    this.unitTypesOfSelection.emit(await this._unitTypeService.idsToUnitTypes(...Array.from(new Set(ids))));
   }
 }
