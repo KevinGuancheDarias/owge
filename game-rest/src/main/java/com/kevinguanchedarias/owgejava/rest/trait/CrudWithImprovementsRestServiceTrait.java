@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.rest.trait;
 
@@ -49,7 +49,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/**
 	 * Config
-	 * 
+	 *
 	 * @since 0.8.0
 	 */
 	@Override
@@ -57,7 +57,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.rest.trait.
 	 * AdminCrudRestServiceNoOpEventsTrait#beforeRequestEnd(java.lang.Object)
 	 */
@@ -73,12 +73,15 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 		if (entity.getId() != null && entity.getImprovement() == null) {
 			entity.setImprovement(getBo().findById(entity.getId()).getImprovement());
 		}
+		if (entity.getImprovement() == null) {
+			entity.setImprovement(getBeanFactory().getBean(ImprovementBo.class).save(new Improvement()));
+		}
 		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
 	/**
 	 * Finds the current improvement (if any)
-	 * 
+	 *
 	 * @param id
 	 * @throws NotFoundException If the parent entity doesn't exists, or if it
 	 *                           doesn't have an improvement
@@ -97,7 +100,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/**
 	 * Creates or updates the entity's improvement
-	 * 
+	 *
 	 * @todo In the future refactor not to use the controller for the saving of the
 	 *       entity
 	 * @param id
@@ -120,7 +123,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/**
 	 * Returns the unitTypeImprovements for the given entity improvement
-	 * 
+	 *
 	 * @param id
 	 * @return
 	 * @since 0.8.0
@@ -136,7 +139,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/**
 	 * Creates a new unit type improvement
-	 * 
+	 *
 	 * @param id
 	 * @param improvementUnitTypeDto
 	 * @return
@@ -164,7 +167,7 @@ public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extend
 
 	/**
 	 * Deletes an existing unit type improvement
-	 * 
+	 *
 	 * @param id
 	 * @param unitTypeImprovementId
 	 * @return

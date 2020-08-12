@@ -82,7 +82,7 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	public Optional<Unit> beforeSave(UnitDto parsedDto, Unit entity) {
 		if (parsedDto.getTypeId() == null) {
 			throw exceptionUtilService
-					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_UPGRADE_TYPE_IS_MANDATORY")
+					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_UNIT_TYPE_IS_MANDATORY")
 					.build();
 		} else {
 			entity.setType(unitTypeBo.findByIdOrDie(parsedDto.getTypeId()));

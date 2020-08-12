@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -102,7 +103,10 @@ public class UnitRestService {
 
 	@GetMapping("requirements")
 	public List<UnitWithRequirementInformation> requirements() {
-		return requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction());
+		return requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction())
+				.stream().filter(unitWithRequirementInformation -> unitWithRequirementInformation.getUnit()
+						.getHasToDisplayInRequirements())
+				.collect(Collectors.toList());
 	}
 
 	@GetMapping("cancel")

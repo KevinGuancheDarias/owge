@@ -6,6 +6,7 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 
 public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements DtoWithImprovements {
+	private Boolean hasToDisplayInRequirements;
 	private Integer points = 0;
 	private Integer time = 60;
 	private Integer primaryResource = 100;
@@ -22,7 +23,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private ImprovementDto improvement;
 	private Boolean clonedImprovements = false;
 	private SpeedImpactGroupDto speedImpactGroup;
-	private transient AttackRuleDto attackRule;
+	private AttackRuleDto attackRule;
 	private List<RequirementInformationDto> requirements;
 
 	@Override
@@ -40,6 +41,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 			attackRule.dtoFromEntity(entity.getAttackRule());
 		}
 		DtoWithImprovements.super.dtoFromEntity(entity);
+	}
+
+	/**
+	 * @return the hasToDisplayInRequirements
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasToDisplayInRequirements() {
+		return hasToDisplayInRequirements;
+	}
+
+	/**
+	 * @param hasToDisplayInRequirements the hasToDisplayInRequirements to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasToDisplayInRequirements(Boolean hasToDisplayInRequirements) {
+		this.hasToDisplayInRequirements = hasToDisplayInRequirements;
 	}
 
 	public Integer getPoints() {

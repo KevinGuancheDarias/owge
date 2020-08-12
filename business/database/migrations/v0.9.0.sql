@@ -96,3 +96,4 @@ ALTER TABLE `unit_types` CHANGE `parent_type` `parent_type` SMALLINT(6) UNSIGNED
 ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`parent_type`) REFERENCES `unit_types`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE `units` CHANGE `improvement_id` `improvement_id` SMALLINT(6) UNSIGNED NULL;
+ALTER TABLE `units` ADD `display_in_requirements` BOOLEAN NULL DEFAULT FALSE AFTER `name`;

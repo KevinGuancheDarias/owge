@@ -120,7 +120,11 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		if (!CollectionUtils.isEmpty(relations)) {
 			BaseBo<Integer, EntityWithId<Integer>, DtoFromEntity<EntityWithId<Integer>>> bo = objectEntityBo
 					.findBo(relations.get(0).getObject());
-			relations.stream().forEach(current -> retVal.add((E) bo.findById(current.getReferenceId())));
+			relations.forEach(current -> {
+				E entity = (E) bo.findByIdOrDie(current.getReferenceId());
+				System.out.println("Value for entity is " + entity + " as referenced " + current.getReferenceId());
+				retVal.add(entity);
+			});
 		}
 		return retVal;
 	}

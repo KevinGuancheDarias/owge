@@ -23,6 +23,9 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 		implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
 	private static final long serialVersionUID = -1923291486680931835L;
 
+	@Column(name = "display_in_requirements")
+	private Boolean hasToDisplayInRequirements;
+
 	@Column(name = "order_number")
 	private Integer order;
 
@@ -73,6 +76,24 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	@JoinColumn(name = "attack_rule_id", nullable = true)
 	@Fetch(FetchMode.JOIN)
 	private AttackRule attackRule;
+
+	/**
+	 * @return the hasToDisplayInRequirements
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasToDisplayInRequirements() {
+		return hasToDisplayInRequirements;
+	}
+
+	/**
+	 * @param hasToDisplayInRequirements the hasToDisplayInRequirements to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasToDisplayInRequirements(Boolean hasToDisplayInRequirements) {
+		this.hasToDisplayInRequirements = hasToDisplayInRequirements;
+	}
 
 	public Integer getOrder() {
 		return order;

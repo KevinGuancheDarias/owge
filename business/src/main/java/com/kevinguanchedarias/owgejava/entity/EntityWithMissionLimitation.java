@@ -10,7 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
-import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 
 @MappedSuperclass
