@@ -26,7 +26,7 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
   public assetsImage = false;
 
   @Input()
-  public usePercentage = true;
+  public usePercentage = false;
 
   @ViewChild('textElement', { static: true })
   private _textElement: ElementRef;

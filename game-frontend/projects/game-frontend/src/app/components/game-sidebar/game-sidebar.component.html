@@ -42,13 +42,13 @@
 
                   <app-display-single-resource [resourceName]="user.faction.energyName"
                         [resourceImage]="user.faction.energyImageUrl"
-                        [resourceValue]="100-(resources.currentEnergy*100)/resources.currentMaxEnergy"
+                        [resourceValue]="resources.currentEnergy"
                         [resourceMaxValue]="resources.currentMaxEnergy">
                   </app-display-single-resource>
 
                   <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
                         [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
-                        [resourceValue]="100-(unitType.userBuilt*100)/unitType.computedMaxCount"
+                        [resourceValue]="unitType.userBuilt"
                         [resourceMaxValue]="unitType.computedMaxCount">
 
                   </app-display-single-resource>
@@ -56,7 +56,7 @@
                         [resourceName]="'APP.SIDEBAR.MISSIONS_RESOURCE_NAME' | translate"
                         [resourceValue]="missionsCount"
                         [staticImage]="true" [resourceImage]="'ui_icons/mission.png'"
-                        [resourceMaxValue]="maxMissions" [usePercentage]="false">
+                        [resourceMaxValue]="maxMissions">
                   </app-display-single-resource>
             </div>
       </div>

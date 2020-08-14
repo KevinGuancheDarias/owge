@@ -16,6 +16,7 @@ import { OwgeCoreIfDesktopDirective } from './directives/if-desktop.directive';
 import { LocalConfigurationService } from './services/local-configuration.service';
 import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
 import { ToastrService } from './services/toastr.service';
+import { FormatNumberPipe } from './pipes/format-number.pipe';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -39,6 +40,7 @@ import { ToastrService } from './services/toastr.service';
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
     DynamicImagePipe,
+    FormatNumberPipe
   ],
   providers: [
     ScreenDimensionsService,
@@ -52,7 +54,8 @@ import { ToastrService } from './services/toastr.service';
     HideDuplicatedNamePipe,
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
-    DynamicImagePipe
+    DynamicImagePipe,
+    FormatNumberPipe
   ],
 })
 export class CoreModule {

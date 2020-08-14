@@ -1,9 +1,9 @@
 <div>
   <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'" [staticImage]="staticImage"
     [assetsImage]="assetsImage"></owge-widgets-display-image>
-  <p #textElement>{{ resourceValue | number: '0.0-2' }}
+  <p #textElement>{{ resourceValue | formatNumber | async }}
 
     <span [title]="resourceMaxValue" *ngIf="usePercentage && resourceMaxValue"> % </span>
-    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | number: '0.0-2' }} </span>
+    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | formatNumber | async }} </span>
   </p>
 </div>
