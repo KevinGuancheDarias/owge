@@ -6,7 +6,7 @@
     </ng-template>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
-            <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>
+            <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="false" [el]="selectedEl"></app-resource-requirements-crud>
 
             <div class="form-group col-md-6">
                 <label for="unit-speed">{{ 'CRUD.UNIT.ATTACK' | translate }}</label>

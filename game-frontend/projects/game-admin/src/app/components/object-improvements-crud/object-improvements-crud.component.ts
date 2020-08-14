@@ -2,8 +2,8 @@ import { Component, OnChanges, Input, HostBinding, ViewChild } from '@angular/co
 import { isEqual } from 'lodash-es';
 import { take } from 'rxjs/operators';
 
-import { WithImprovementsCrudMixin, UnitType } from '@owge/universe';
-import { LoadingService, ModalComponent, Improvement, ImprovementUnitType } from '@owge/core';
+import { WithImprovementsCrudMixin, UnitType, Improvement, ImprovementUnitType } from '@owge/universe';
+import { LoadingService, ModalComponent } from '@owge/core';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 
 @Component({

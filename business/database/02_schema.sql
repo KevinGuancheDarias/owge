@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : jeu. 23 juil. 2020 à 19:02
+-- Généré le : ven. 14 août 2020 à 19:37
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `new_shit`
+-- Base de données : `nightly_snapshot`
 --
 
 -- --------------------------------------------------------
@@ -773,6 +773,7 @@ CREATE TABLE `units` (
   `id` smallint(6) UNSIGNED NOT NULL,
   `order_number` smallint(6) UNSIGNED DEFAULT NULL COMMENT 'El orden de la unidad',
   `name` char(40) CHARACTER SET latin1 COLLATE latin1_spanish_ci NOT NULL,
+  `display_in_requirements` tinyint(1) DEFAULT '0',
   `attack_rule_id` smallint(5) UNSIGNED DEFAULT NULL,
   `image_id` bigint(20) UNSIGNED DEFAULT NULL,
   `points` int(11) UNSIGNED DEFAULT NULL,
@@ -814,7 +815,8 @@ CREATE TABLE `unit_types` (
   `can_counterattack` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_conquest` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_deploy` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
-  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL
+  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL,
+  `has_to_inherit_improvements` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'If true applied benefits to parent unit type will also apply to this'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
