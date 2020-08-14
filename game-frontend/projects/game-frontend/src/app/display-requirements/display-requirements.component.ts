@@ -1,8 +1,7 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
 import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/date-time.util';
-import { UserStorage } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import { ResourceRequirements } from '@owge/universe';
+import { ResourceRequirements, UserStorage } from '@owge/universe';
 
 @Component({
   selector: 'app-display-requirements',

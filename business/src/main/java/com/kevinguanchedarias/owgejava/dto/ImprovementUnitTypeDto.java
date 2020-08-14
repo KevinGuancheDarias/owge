@@ -7,14 +7,17 @@ public class ImprovementUnitTypeDto implements DtoFromEntity<ImprovementUnitType
 	private String type;
 	private Integer unitTypeId;
 	private String unitTypeName;
+	private UnitTypeDto unitType;
 	private Long value;
 
 	@Override
 	public void dtoFromEntity(ImprovementUnitType entity) {
 		id = entity.getId();
 		type = entity.getType();
-		unitTypeId = entity.getUnitType().getId();
-		unitTypeName = entity.getUnitType().getName();
+		if (entity.getUnitType() != null) {
+			unitType = new UnitTypeDto();
+			unitType.dtoFromEntity(entity.getUnitType());
+		}
 		value = entity.getValue();
 	}
 
@@ -34,20 +37,65 @@ public class ImprovementUnitTypeDto implements DtoFromEntity<ImprovementUnitType
 		this.type = type;
 	}
 
+	/**
+	 *
+	 * @deprecated Use the unit type instead
+	 * @param unitTypeName
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
 	public Integer getUnitTypeId() {
 		return unitTypeId;
 	}
 
+	/**
+	 *
+	 * @deprecated Use the unit type instead
+	 * @param unitTypeId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
 	public void setUnitTypeId(Integer unitTypeId) {
 		this.unitTypeId = unitTypeId;
 	}
 
+	/**
+	 *
+	 * @deprecated Use the unit type instead
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
 	public String getUnitTypeName() {
 		return unitTypeName;
 	}
 
+	/**
+	 *
+	 * @deprecated Use the unit type instead
+	 * @param unitTypeName
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
 	public void setUnitTypeName(String unitTypeName) {
 		this.unitTypeName = unitTypeName;
+	}
+
+	/**
+	 * @return the unitType
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public UnitTypeDto getUnitType() {
+		return unitType;
+	}
+
+	/**
+	 * @param unitType the unitType to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setUnitType(UnitTypeDto unitType) {
+		this.unitType = unitType;
 	}
 
 	public Long getValue() {

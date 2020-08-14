@@ -7,9 +7,9 @@ import { Observable } from 'rxjs';
 import { TokenPojo } from '../pojos/token.pojo';
 import { OwgeCoreConfig } from '../pojos/owge-core-config';
 import { ProgrammingError } from '../errors/programming.error';
-import { UserStorage } from '../storages/user.storage';
 import { User } from '../types/user.type';
 import { JwtTokenUtil } from '../utils/jwt-token.util';
+import { SessionStore } from '../store/session.store';
 
 /**
  * Modern implementation of session control (replacement for good old' SessionService)
@@ -23,7 +23,7 @@ export class SessionService implements CanActivate {
   public static readonly LOGIN_ROUTE = '/login';
   public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
 
-  public constructor(private _router: Router, private _accountConfig: OwgeCoreConfig, private _userStore: UserStorage<User>) {
+  public constructor(private _router: Router, private _accountConfig: OwgeCoreConfig, private _sessionStore: SessionStore) {
 
   }
 
@@ -37,7 +37,7 @@ export class SessionService implements CanActivate {
   public initStore(): void {
     const token = this._findTokenIfNotExpired();
     if (token) {
-      this._userStore.currentToken.next(this.getRawToken());
+      this._sessionStore.next('currentToken', this.getRawToken());
     }
   }
 
@@ -97,7 +97,7 @@ export class SessionService implements CanActivate {
  * @return the encoded token
  */
   public setTokenPojo(token): void {
-    this._userStore.currentToken.next(token);
+    this._sessionStore.next('currentToken', token);
     sessionStorage.setItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM, token);
   }
 
@@ -129,7 +129,7 @@ export class SessionService implements CanActivate {
 
   private _clearSessionData() {
     sessionStorage.removeItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
-    this._userStore.currentToken.next(null);
+    this._sessionStore.next('currentToken', null);
   }
 
   private _isLoginRoute(route: string): boolean {

@@ -2,8 +2,11 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip, filter } from 'rxjs/operators';
 
-import { Improvement, UserStorage, LoggerHelper, ResourcesEnum, User } from '@owge/core';
+import { LoggerHelper, ResourcesEnum } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
+import { UserStorage } from '../storages/user.storage';
+import { Improvement } from '../types/improvement.type';
+import { UserWithImprovements } from '../types/user-with-improvements.type';
 
 /**
  * Thi service contains the logged in user resources <br />
@@ -137,7 +140,7 @@ export class ResourceManagerService {
         this.addResources(resourceType, value * -1);
     }
 
-    private _setResources(user: UserWithFaction) {
+    private _setResources(user: UserWithFaction & UserWithImprovements) {
         this._setPrimaryValue(user.primaryResource);
         this._setSecondaryValue(user.secondaryResource);
 

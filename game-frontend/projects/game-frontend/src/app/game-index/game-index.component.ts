@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
-import { UserStorage, User, ObservableSubscriptionsHelper } from '@owge/core';
+import { User } from '@owge/core';
 
 import { BaseComponent } from '../base/base.component';
 import { MissionService } from '../services/mission.service';
 import { UpgradeService } from '../service/upgrade.service';
-import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade } from '@owge/universe';
+import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage } from '@owge/universe';
 import { take } from 'rxjs/operators';
 
 @Component({

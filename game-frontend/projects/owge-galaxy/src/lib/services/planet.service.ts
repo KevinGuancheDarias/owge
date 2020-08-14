@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
-import { User, UserStorage, AbstractWebsocketApplicationHandler, SessionStore, StorageOfflineHelper } from '@owge/core';
-import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
+import { User, AbstractWebsocketApplicationHandler, SessionStore, StorageOfflineHelper } from '@owge/core';
+import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService, UserStorage } from '@owge/universe';
 
 import { Planet } from '@owge/universe';
 import { PlanetStore } from '../stores/planet.store';

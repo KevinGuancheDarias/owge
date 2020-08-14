@@ -1,9 +1,9 @@
 import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { skip, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
-import { UserStorage, LoggerHelper, CoreHttpService, ProgrammingError, User } from '@owge/core';
-import { UniverseStorage, Universe, UniverseGameService, ResourceManagerService } from '@owge/universe';
+import { LoggerHelper, ProgrammingError, User } from '@owge/core';
+import { UniverseStorage, Universe, UniverseGameService, UserStorage } from '@owge/universe';
 
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
@@ -12,7 +12,6 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { Faction } from '../shared-pojo/faction.pojo';
 import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { MissionService } from '../services/mission.service';
 
 /**
  * Provides token storage and retrieving features<br />

@@ -19,4 +19,5 @@ export interface UnitType extends TypeWithMissionLimitation {
     computedMaxCount?: number;
     userBuilt: number;
     speedImpactGroup: SpeedImpactGroup;
+    hasToInheritImprovements: boolean;
 }

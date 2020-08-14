@@ -97,21 +97,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		public AttackObtainedUnit(ObtainedUnit obtainedUnit, GroupedImprovement userImprovement) {
 			Unit unit = obtainedUnit.getUnit();
-			Integer unitTypeId = unit.getType().getId();
+			UnitType unitType = unit.getType();
 			initialCount = obtainedUnit.getCount();
 			finalCount = initialCount;
 			totalAttack = initialCount.doubleValue() * unit.getAttack();
 			totalAttack += (totalAttack * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitTypeId)));
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitType)));
 			pendingAttack = totalAttack;
 			totalShield = initialCount.doubleValue() * unit.getShield();
 			totalShield += (totalShield * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitTypeId)));
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitType)));
 			availableShield = totalShield;
 			totalHealth = initialCount.doubleValue() * unit.getHealth();
 			initialHealth = totalHealth;
 			totalHealth += (totalHealth * improvementBo.findAsRational(
-					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.DEFENSE, unitTypeId)));
+					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.DEFENSE, unitType)));
 			availableHealth = totalHealth;
 			this.obtainedUnit = obtainedUnit;
 		}

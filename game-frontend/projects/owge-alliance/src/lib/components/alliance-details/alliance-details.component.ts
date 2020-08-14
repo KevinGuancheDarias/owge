@@ -2,7 +2,7 @@ import { Component, OnInit, Input, ViewChild, ViewEncapsulation } from '@angular
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
-import { UserStorage, LoadingService } from '@owge/core';
+import { LoadingService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 
 import { Alliance } from '../../types/alliance.type';
@@ -10,6 +10,7 @@ import { AllianceService } from '../../services/alliance.service';
 import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
 import { UserWithAlliance } from '../../types/user-with-alliance.type';
 import { filter, map } from 'rxjs/operators';
+import { UserStorage } from '@owge/universe';
 
 /**
  *

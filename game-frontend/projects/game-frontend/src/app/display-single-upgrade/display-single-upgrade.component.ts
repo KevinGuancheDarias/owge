@@ -1,9 +1,9 @@
 import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { Improvement, LoggerHelper, UserStorage, User, ScreenDimensionsService, ObservableSubscriptionsHelper } from '@owge/core';
+import { User, ScreenDimensionsService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { UniverseGameService, Upgrade, UpgradeRunningMission, ObtainedUpgrade } from '@owge/universe';
+import { Upgrade, UpgradeRunningMission, ObtainedUpgrade, UserStorage } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';

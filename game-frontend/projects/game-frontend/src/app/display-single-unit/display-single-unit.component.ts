@@ -1,12 +1,14 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { UserStorage, User, ImprovementUtil } from '@owge/core';
-import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit } from '@owge/universe';
+import { User } from '@owge/core';
+import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
 import { UnitTypeService } from '../services/unit-type.service';
+import { ImprovementUtil } from 'projects/owge-universe/src/lib/utils/improvement.util';
+import { filter, take } from 'rxjs/operators';
 
 export type validViews = 'requirements' | 'attributes';
 
@@ -106,11 +108,20 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
         this._improvementsSubscription.unsubscribe();
         delete this._improvementsSubscription;
       }
-      this._improvementsSubscription = this._userStore.currentUserImprovements.subscribe(improvement => {
+      this._improvementsSubscription = this._userStore.currentUserImprovements.subscribe(async improvement => {
         this.moreCharge = improvement.moreChargeCapacity;
-        this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unit.typeId);
-        this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unit.typeId);
-        this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unit.typeId);
+        const unitTypes: UnitType[] = await this._unitTypeService.getUnitTypes().pipe(
+          filter(result => !!result),
+          take(1)
+        ).toPromise();
+        const unitTypeOfUnit = unitTypes.find(unitType => unitType.id === this.unit.typeId);
+        if (unitTypeOfUnit) {
+          this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', unitTypeOfUnit);
+          this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', unitTypeOfUnit);
+          this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', unitTypeOfUnit);
+        } else {
+          console.warn(`Unit with id ${this.unit.id} doesn't have a unitType`);
+        }
       });
     });
     this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);

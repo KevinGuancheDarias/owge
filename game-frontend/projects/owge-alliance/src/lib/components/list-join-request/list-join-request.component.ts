@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
 import { AllianceService } from '../../services/alliance.service';
-import { UserStorage } from '@owge/core';
+import { UserStorage } from '@owge/universe';
 import { UserWithAlliance } from '../../types/user-with-alliance.type';
 
 /**

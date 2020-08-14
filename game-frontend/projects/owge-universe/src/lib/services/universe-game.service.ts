@@ -9,8 +9,6 @@ import {
   validContext,
   validNonDataMethod,
   validWriteMethod,
-  UserStorage,
-  Improvement,
   StorageOfflineHelper,
   SessionService,
   ToastrService
@@ -19,6 +17,9 @@ import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { UserStorage } from '../storages/user.storage';
+import { Improvement } from '../types/improvement.type';
+import { UserWithImprovements } from '../types/user-with-improvements.type';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -31,7 +32,7 @@ import { UniverseCacheManagerService } from './universe-cache-manager.service';
 @Injectable()
 export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
-  private _offlineUserStore: StorageOfflineHelper<User>;
+  private _offlineUserStore: StorageOfflineHelper<UserWithImprovements>;
   private _outsideUniverse: Subject<boolean> = new BehaviorSubject(false);
 
   constructor(
@@ -237,7 +238,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     );
   }
 
-  protected _onUserDataChange(user: User) {
+  protected _onUserDataChange(user: UserWithImprovements) {
     this._userStore.currentUser.next(this._handleUserLoad(user));
     this._offlineUserStore.save(user);
   }
@@ -314,7 +315,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-  private _handleUserLoad(user: User): User {
+  private _handleUserLoad(user: UserWithImprovements): User {
     if (!user.consumedEnergy) {
       user.consumedEnergy = 0;
     }

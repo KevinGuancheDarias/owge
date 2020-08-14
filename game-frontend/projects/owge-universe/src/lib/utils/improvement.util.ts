@@ -1,6 +1,6 @@
-import { validImprovementType } from '../types/improvement-unit-type.type';
 import { Improvement } from '../types/improvement.type';
-
+import { validImprovementType } from '../types/improvement-unit-type.type';
+import { UnitType } from '../types/unit-type.type';
 
 /**
  * Has methods to interact with improvements
@@ -26,14 +26,18 @@ export class ImprovementUtil {
     public static findUnitTypeImprovement(
         improvement: Improvement,
         improvementType: validImprovementType,
-        unitTypeId: number
+        unitType: UnitType
     ): number {
-        const retVal: number = improvement && improvement.unitTypesUpgrades && improvement.unitTypesUpgrades.length
-            ? improvement.unitTypesUpgrades
-                .filter(current => current.type === improvementType && current.unitTypeId === unitTypeId)
+        let retVal = 0;
+        if (improvement && improvement.unitTypesUpgrades && improvement.unitTypesUpgrades.length) {
+            retVal = improvement.unitTypesUpgrades
+                .filter(current => current.type === improvementType && current.unitType.id === unitType.id)
                 .map(current => current.value)
-                .reduce((sum, current) => sum + current, 0)
-            : 0;
+                .reduce((sum, current) => sum + current, 0);
+            if (unitType && unitType.hasToInheritImprovements && unitType.parent) {
+                retVal += ImprovementUtil.findUnitTypeImprovement(improvement, improvementType, unitType.parent);
+            }
+        }
         return retVal;
     }
 

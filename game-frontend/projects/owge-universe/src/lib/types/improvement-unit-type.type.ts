@@ -1,3 +1,4 @@
+import { UnitType } from './unit-type.type';
 
 
 /**
@@ -16,7 +17,17 @@ export type validImprovementType = 'ATTACK' | 'DEFENSE' | 'SHIELD' | 'AMOUNT';
 export interface ImprovementUnitType {
     id?: number;
     type: validImprovementType;
+
+    unitType: UnitType;
+
+    /**
+     * @deprecated since 0.9.0
+     */
     unitTypeId: number;
+
+    /**
+     * @deprecated since 0.9.0
+     */
     unitTypeName?: string;
     value: number;
 }

@@ -64,6 +64,9 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	@Fetch(FetchMode.JOIN)
 	private AttackRule attackRule;
 
+	@Column(name = "has_to_inherit_improvements")
+	private Boolean hasToInheritImprovements = false;
+
 	public UnitType() {
 		super();
 	}
@@ -203,6 +206,26 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	 */
 	public void setAttackRule(AttackRule attackRule) {
 		this.attackRule = attackRule;
+	}
+
+	/**
+	 * If true applied benefits to parent unit type will also apply to this
+	 *
+	 * @return the hasToInheritImprovements
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasToInheritImprovements() {
+		return hasToInheritImprovements;
+	}
+
+	/**
+	 * @param hasToInheritImprovements the hasToInheritImprovements to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasToInheritImprovements(Boolean hasToInheritImprovements) {
+		this.hasToInheritImprovements = hasToInheritImprovements;
 	}
 
 	@Override

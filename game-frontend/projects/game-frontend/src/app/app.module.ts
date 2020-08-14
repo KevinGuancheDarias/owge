@@ -7,9 +7,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
-import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, UserStorage } from '@owge/core';
+import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
 

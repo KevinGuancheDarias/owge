@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.dto;
 
+import java.util.List;
+
 import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.dto.base.DtoWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
@@ -17,6 +19,8 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	private Long userBuilt;
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
+	private Boolean hasToInheritImprovements = false;
+	private List<InheritedImprovementUnitType> inheritedImprovementUnitTypes;
 
 	@Override
 	public void dtoFromEntity(UnitType entity) {
@@ -192,6 +196,42 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	 */
 	public void setAttackRule(AttackRuleDto attackRule) {
 		this.attackRule = attackRule;
+	}
+
+	/**
+	 * @return the hasToInheritImprovements
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasToInheritImprovements() {
+		return hasToInheritImprovements;
+	}
+
+	/**
+	 * @param hasToInheritImprovements the hasToInheritImprovements to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasToInheritImprovements(Boolean hasToInheritImprovements) {
+		this.hasToInheritImprovements = hasToInheritImprovements;
+	}
+
+	/**
+	 * @return the inheritedImprovementUnitTypes
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<InheritedImprovementUnitType> getInheritedImprovementUnitTypes() {
+		return inheritedImprovementUnitTypes;
+	}
+
+	/**
+	 * @param inheritedImprovementUnitTypes the inheritedImprovementUnitTypes to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setInheritedImprovementUnitTypes(List<InheritedImprovementUnitType> inheritedImprovementUnitTypes) {
+		this.inheritedImprovementUnitTypes = inheritedImprovementUnitTypes;
 	}
 
 }

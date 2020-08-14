@@ -1,7 +1,7 @@
 import { Route } from '@angular/router';
 import { take } from 'rxjs/operators';
 
-import { RouterData, UserStorage } from '@owge/core';
+import { RouterData } from '@owge/core';
 
 import { AllianceOfUserComponent } from './components/alliance-of-user/alliance-of-user.component';
 import { AllianceDisplayListComponent } from './components/alliance-display-list/alliance-display-list.component';
@@ -9,6 +9,7 @@ import { ListJoinRequestComponent } from './components/list-join-request/list-jo
 import { AllianceStorage } from './storages/alliance.storage';
 import { Alliance } from './types/alliance.type';
 import { UserWithAlliance } from './types/user-with-alliance.type';
+import { UserStorage } from '@owge/universe';
 
 export const ALLIANCE_ROUTES: Route[] = [
     {

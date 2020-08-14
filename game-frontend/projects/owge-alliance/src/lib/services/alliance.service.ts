@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { switchMap, first, map, take, tap } from 'rxjs/operators';
 
-import { UserStorage } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, UserStorage } from '@owge/universe';
 
 import { AllianceStorage } from '../storages/alliance.storage';
 import { Alliance } from '../types/alliance.type';

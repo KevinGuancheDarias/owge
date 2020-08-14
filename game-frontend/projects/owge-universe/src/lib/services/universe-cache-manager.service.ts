@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, UserStorage, User, JwtTokenUtil } from '@owge/core';
+import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, JwtTokenUtil } from '@owge/core';
 import { filter, map, take } from 'rxjs/operators';
 import { UserWithFaction } from '@owge/faction';
 
 import Dexie from 'dexie';
+import { UserStorage } from '../storages/user.storage';
 
 
 /**
