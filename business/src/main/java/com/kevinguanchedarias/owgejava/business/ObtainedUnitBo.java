@@ -453,8 +453,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 */
 	public boolean wouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
 		UnitType type = unitTypeBo.findById(typeId);
-		Long userCount = ObjectUtils.firstNonNull(repository.countByUserAndUnitType(user, type), 0L) + count;
-		return type.hasMaxCount() && userCount > unitTypeBo.findUniTypeLimitByUser(user, typeId);
+		UnitType targetToCountTo = findMaxShareCountRoot(type);
+		Long userCount = ObjectUtils.firstNonNull(countByUserAndUnitType(user, targetToCountTo), 0L) + count;
+		return targetToCountTo.hasMaxCount()
+				&& userCount > unitTypeBo.findUniTypeLimitByUser(user, targetToCountTo.getId());
 	}
 
 	/**
@@ -493,4 +495,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return unitMissionBo.findOneByUserIdAndTypeAndTargetPlanet(userId, MissionType.DEPLOYED, planet.getId());
 	}
 
+	private UnitType findMaxShareCountRoot(UnitType type) {
+		return type.getShareMaxCount() == null ? type : findMaxShareCountRoot(type.getShareMaxCount());
+	}
 }

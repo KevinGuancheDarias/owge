@@ -75,7 +75,8 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    */
   public hasAvailable(typeId: number, requiredCount: number): boolean {
     const type: UnitType = this._findTypeById(typeId);
-    return !type.maxCount || this.findAvailableByType(typeId) >= requiredCount;
+    const targetType = this._findShareMaxCountRoot(type);
+    return !targetType.maxCount || this.findAvailableByType(targetType.id) >= requiredCount;
   }
 
   /**
@@ -126,5 +127,9 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
       throw new ProgrammingError(`No UnitType with id ${id} was found`);
     }
     return retVal;
+  }
+
+  private _findShareMaxCountRoot(unitType: UnitType): UnitType {
+    return unitType.shareMaxCount ? unitType.shareMaxCount : unitType;
   }
 }
