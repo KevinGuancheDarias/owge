@@ -270,13 +270,14 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
       this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);
     });
-    await this._offlineUnlockedCache.save(content);
-    this._unitStore.unlocked.next(content);
+    const sorted = this._sortUnits(content);
+    await this._offlineUnlockedCache.save(sorted);
+    this._unitStore.unlocked.next(sorted);
   }
 
   protected async _onObtainedChange(content: ObtainedUnit[]): Promise<void> {
     this._unitStore.obtained.next(
-      this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id, true)
+      this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id)
     );
     await this._offlineObtainedCache.save(content);
   }
@@ -308,18 +309,21 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-  private _createPlanetsRepresentation<T>(units: T[], keyGetter: (unit: T) => any, isMultiple = true): PlanetsUnitsRepresentation<T[]> {
-    const unitsMap: Map<string, T[]> = new Map();
-    units.forEach(unit => {
+  private _createPlanetsRepresentation(
+    units: ObtainedUnit[],
+    keyGetter: (unit: ObtainedUnit) => any
+  ): PlanetsUnitsRepresentation<ObtainedUnit[]> {
+    const unitsMap: Map<string, ObtainedUnit[]> = new Map();
+    units.sort((a, b) => a.unit.name.localeCompare(b.unit.name)).forEach(unit => {
       const planetId: string = keyGetter(unit);
-      const collection: T[] = unitsMap.get(planetId);
+      const collection: ObtainedUnit[] = unitsMap.get(planetId);
       if (!collection) {
         unitsMap.set(planetId, [unit]);
       } else {
         collection.push(unit);
       }
     });
-    const planetUnitsRepresentation: PlanetsUnitsRepresentation<T[]> = <any>{ planets: {} };
+    const planetUnitsRepresentation: PlanetsUnitsRepresentation<ObtainedUnit[]> = <any>{ planets: {} };
     unitsMap.forEach((value, key) => planetUnitsRepresentation.planets[key] = value);
     return planetUnitsRepresentation;
   }
@@ -330,5 +334,9 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
         upgrade => upgrade.upgrade.id === currentRequirement.upgrade.id && upgrade.level >= currentRequirement.level
       );
     });
+  }
+
+  private _sortUnits(units: Unit[]): Unit[] {
+    return units.sort((a, b) => a.name.localeCompare(b.name));
   }
 }
