@@ -49,7 +49,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Boolean getHasToDisplayInRequirements() {
-		return hasToDisplayInRequirements;
+		return Boolean.TRUE.equals(hasToDisplayInRequirements);
 	}
 
 	/**

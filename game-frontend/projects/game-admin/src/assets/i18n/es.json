@@ -69,6 +69,7 @@
         "RESOURCE_REQUIREMENT": {
             "PR": "Recurso primario",
             "SR": "Recurso segundario",
+            "ENERGY": "Energía",
             "TIME": "Tiempo",
             "POINTS": "Puntos"
         },
@@ -78,6 +79,8 @@
         },
         "UNIT": {
             "TYPE": "Tipo",
+            "UNIQUE": "Unico",
+            "SHOW_IN_REQUIREMENTS": "Mostrar en requisitos",
             "ATTACK": "Ataque",
             "HEALTH": "Defensa",
             "SHIELD": "Escudo",

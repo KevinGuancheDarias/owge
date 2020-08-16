@@ -13,6 +13,7 @@ export interface Unit {
     name: string;
     image?: number;
     imageUrl?: string;
+    hasToDisplayInRequirements?: boolean;
     points?: number;
     description?: string;
     time?: number;

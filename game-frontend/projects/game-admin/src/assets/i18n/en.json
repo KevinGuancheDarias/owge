@@ -79,6 +79,7 @@
         "RESOURCE_REQUIREMENT": {
             "PR": "Primary resource",
             "SR": "Secondary resource",
+            "ENERGY": "Energy",
             "TIME": "Time",
             "POINTS": "Points"
         },
@@ -88,6 +89,8 @@
         },
         "UNIT": {
             "TYPE": "Type",
+            "UNIQUE": "Unique",
+            "SHOW_IN_REQUIREMENTS": "Show in requirements",
             "ATTACK": "Attack",
             "HEALTH": "Health",
             "SHIELD": "Shield",
