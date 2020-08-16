@@ -103,7 +103,7 @@ public class GroupedImprovement extends AbstractImprovementDto {
 		if (unitType != null) {
 			Long retVal = getUnitTypesUpgrades().stream()
 					.filter(current -> improvementTypeEnum.name().equals(current.getType())
-							&& unitType.getId().equals(current.getUnitTypeId()))
+							&& unitType.getId().equals(current.getUnitType().getId()))
 					.map(ImprovementUnitTypeDto::getValue).reduce(0L, (sum, current) -> sum + current);
 			if (Boolean.TRUE.equals(unitType.getHasToInheritImprovements()) && unitType.getParent() != null) {
 				retVal += findUnitTypeImprovement(improvementTypeEnum, unitType.getParent());
