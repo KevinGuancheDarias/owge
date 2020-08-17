@@ -78,6 +78,17 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	}
 
 	/**
+	 *
+	 * @param id
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Planet findLockedById(Long id) {
+		return planetRepository.findLockedById(id);
+	}
+
+	/**
 	 * @param galaxyId if null will be a random galaxy
 	 * @return Random planet fom galaxy id
 	 * @throws SgtBackendUniverseIsFull

@@ -114,8 +114,8 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
 	}
 
-	public List<ObtainedUnit> findByMissionId(Long missionId) {
-		return repository.findByMissionId(missionId);
+	public List<ObtainedUnit> findLockedByMissionId(Long missionId) {
+		return repository.findLockedByMissionId(missionId);
 	}
 
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId) {
@@ -167,6 +167,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
+	@Transactional(propagation = Propagation.MANDATORY)
 	public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(Integer userId, Integer unitId,
 			Long planetId) {
 		return repository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(userId, unitId, planetId,

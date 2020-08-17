@@ -644,7 +644,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @return
 	 */
 	private List<ObtainedUnit> findUnitsInvolved(Long missionId) {
-		List<ObtainedUnit> retVal = obtainedUnitBo.findByMissionId(missionId);
+		List<ObtainedUnit> retVal = obtainedUnitBo.findLockedByMissionId(missionId);
 		retVal.forEach(current -> imageStoreBo.computeImageUrl(current.getUnit().getImage()));
 		return retVal;
 	}
@@ -715,7 +715,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		returnMission.setTargetPlanet(mission.getTargetPlanet());
 		returnMission.setUser(mission.getUser());
 		returnMission.setRelatedMission(mission);
-		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findLockedByMissionId(mission.getId());
 		missionRepository.saveAndFlush(returnMission);
 		obtainedUnits.forEach(current -> current.setMission(returnMission));
 		obtainedUnitBo.save(obtainedUnits);
@@ -727,7 +727,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessReturnMission(Long missionId) {
 		Mission mission = missionRepository.findById(missionId).get();
 		Integer userId = mission.getUser().getId();
-		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findLockedByMissionId(mission.getId());
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChange(mission);
@@ -816,7 +816,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
-		return obtainedUnitBo.findByMissionId(mission.getId());
+		return obtainedUnitBo.findLockedByMissionId(mission.getId());
 	}
 
 	/**
@@ -1141,10 +1141,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		Long sourcePlanetId = missionInformation.getSourcePlanetId();
 		Long targetPlanetId = missionInformation.getTargetPlanetId();
 		if (sourcePlanetId != null) {
-			retVal.setSourcePlanet(planetBo.findById(sourcePlanetId));
+			retVal.setSourcePlanet(planetBo.findLockedById(sourcePlanetId));
 		}
 		if (targetPlanetId != null) {
-			retVal.setTargetPlanet(planetBo.findById(targetPlanetId));
+			retVal.setTargetPlanet(planetBo.findLockedById(targetPlanetId));
 		}
 
 		retVal.setTerminationDate(computeTerminationDate(requiredTime));

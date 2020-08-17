@@ -252,7 +252,7 @@ public class MissionBo extends AbstractMissionBo {
 			MissionInformation missionInformation = mission.getMissionInformation();
 			Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
 			return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId.longValue()),
-					obtainedUnitBo.findByMissionId(mission.getId()).get(0).getCount());
+					obtainedUnitBo.findLockedByMissionId(mission.getId()).get(0).getCount());
 		} else {
 			return null;
 		}
@@ -283,7 +283,7 @@ public class MissionBo extends AbstractMissionBo {
 					MissionInformation missionInformation = mission.getMissionInformation();
 					Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
 					Planet planet = planetBo.findById(missionInformation.getValue().longValue());
-					List<ObtainedUnit> findByMissionId = obtainedUnitBo.findByMissionId(mission.getId());
+					List<ObtainedUnit> findByMissionId = obtainedUnitBo.findLockedByMissionId(mission.getId());
 					return new RunningUnitBuildDto(unit, mission, planet,
 							findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
 				}).collect(Collectors.toList());
@@ -376,7 +376,7 @@ public class MissionBo extends AbstractMissionBo {
 			Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
 			UserStorage user = mission.getUser();
 			Integer userId = user.getId();
-			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
+			obtainedUnitBo.findLockedByMissionId(missionId).forEach(current -> {
 				if (current.getUnit().getImprovement() != null) {
 					shouldClearImprovementsCache.remove(0);
 					shouldClearImprovementsCache.add(true);

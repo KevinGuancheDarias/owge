@@ -3,8 +3,13 @@ package com.kevinguanchedarias.owgejava.repository;
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.LockModeType;
+import javax.persistence.QueryHint;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -95,6 +100,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNull(Integer userId, Integer unitId,
 			Long planetId);
 
@@ -107,6 +114,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
 	public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(Integer userId, Integer unitId,
 			Long planetId, String missionCode);
 
@@ -118,5 +127,10 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findBySourcePlanetNotNullAndMissionNullAndUserId(Integer userId);
+
+	@Query("SELECT ou FROM ObtainedUnit ou WHERE ou.mission.id = :missionId")
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
+	public List<ObtainedUnit> findLockedByMissionId(Long missionId);
 
 }
