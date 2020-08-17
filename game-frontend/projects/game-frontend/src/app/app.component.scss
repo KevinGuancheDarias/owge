@@ -1,4 +1,5 @@
 .is-connected {
+    z-index: 65535;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -13,5 +14,25 @@
 
     &.not-connected {
         background-color: red;
+    }
+
+    &.panic-state {
+        background-color: rgb(179, 94, 10);
+    }
+}
+
+.panic-wrapper {
+    z-index: 65533;
+    background-color: rgba(255,255,255, 0.8);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    min-width: 100vw;
+    height: 100vh;
+
+    button {
+        width: 90vw;
+        margin: 0 auto;
+        margin-top: calc(50vh - 10px);
     }
 }

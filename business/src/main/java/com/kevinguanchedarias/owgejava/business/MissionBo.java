@@ -283,7 +283,7 @@ public class MissionBo extends AbstractMissionBo {
 					MissionInformation missionInformation = mission.getMissionInformation();
 					Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
 					Planet planet = planetBo.findById(missionInformation.getValue().longValue());
-					List<ObtainedUnit> findByMissionId = obtainedUnitBo.findLockedByMissionId(mission.getId());
+					List<ObtainedUnit> findByMissionId = obtainedUnitBo.findByMissionId(mission.getId());
 					return new RunningUnitBuildDto(unit, mission, planet,
 							findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
 				}).collect(Collectors.toList());

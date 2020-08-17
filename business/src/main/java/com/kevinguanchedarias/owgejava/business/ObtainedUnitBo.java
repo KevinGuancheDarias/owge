@@ -114,6 +114,11 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
 	}
 
+	public List<ObtainedUnit> findByMissionId(Long missionId) {
+		return repository.findByMissionId(missionId);
+	}
+
+	@Transactional(propagation = Propagation.MANDATORY)
 	public List<ObtainedUnit> findLockedByMissionId(Long missionId) {
 		return repository.findLockedByMissionId(missionId);
 	}

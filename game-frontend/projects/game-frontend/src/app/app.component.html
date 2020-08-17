@@ -1,10 +1,14 @@
 <app-game-sidebar *ngIf="isInGame"></app-game-sidebar>
 <div class="app-container">
     <router-outlet></router-outlet>
+    <div *ngIf="isPanic" class="panic-wrapper">
+        <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' }}</button>
+    </div>
 </div>
-<div *ngIf="isInGame" class="is-connected" [ngClass]="isConnected ? 'connected' : 'not-connected'" [@toggleConnected]="hasToShow ? 'show' : 'hide'">
-    <ng-container *ngIf="isConnected">{{ 'APP.CONNECTED' | translate }}</ng-container>
-    <ng-container *ngIf="!isConnected">{{ 'APP.NOT_CONNECTED' | translate }}</ng-container>
+<div *ngIf="isInGame" class="is-connected" [ngClass]="panicClass || connectedClass" [@toggleConnected]="hasToShow || isPanic ? 'show' : 'hide'">
+    <ng-container *ngIf="isConnected && !isPanic">{{ 'APP.CONNECTED' | translate }}</ng-container>
+    <ng-container *ngIf="!isConnected && !isPanic">{{ 'APP.NOT_CONNECTED' | translate }}</ng-container>
+    <ng-container *ngIf="isPanic">{{ 'APP.SYNC_ERROR' | translate}}</ng-container>
 </div>
 
 <div *ngIf="isLoading" class="is-loading">

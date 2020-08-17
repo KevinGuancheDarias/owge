@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import * as io from 'socket.io-client';
 import { ToastrService } from 'ngx-toastr';
 
-import { Observable, Subject, ReplaySubject } from 'rxjs';
+import { Observable, Subject, ReplaySubject, BehaviorSubject } from 'rxjs';
 import { WsEventCacheService } from './ws-event-cache.service';
 import {
   LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
@@ -23,6 +23,11 @@ export class WebsocketService {
   public get isConnected(): Observable<boolean> {
     return this._isConnected.asObservable();
   }
+
+  public get isCachePanic(): Observable<boolean> {
+    return this._isCachePanic.asObservable();
+  }
+
   private _socket: SocketIOClient.Socket;
   private _isFirstConnection = true;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
@@ -32,7 +37,7 @@ export class WebsocketService {
   private _isConnected: Subject<boolean> = new ReplaySubject(1);
   private _hasTriggeredFirtsOffline = false;
   private _isWantedDisconnection: boolean;
-  private _isCachePanic = false;
+  private _isCachePanic: Subject<boolean> = new BehaviorSubject(false);
 
   private _onBeforeWorkaroundSyncHandlers: Array<() => Promise<void>> = [];
 
@@ -49,7 +54,7 @@ export class WebsocketService {
   }
 
   public addEventHandler(...handlers: AbstractWebsocketApplicationHandler[]) {
-    handlers.forEach(handler => handler.onCachePanic(() => this._isCachePanic = true));
+    handlers.forEach(handler => handler.onCachePanic(() => this._isCachePanic.next(true)));
     this._eventHandlers = this._eventHandlers.concat(handlers);
   }
 
@@ -61,7 +66,7 @@ export class WebsocketService {
    * @param handler
    */
   public preprendEventHandler(handler: AbstractWebsocketApplicationHandler): void {
-    handler.onCachePanic(() => this._isCachePanic = true);
+    handler.onCachePanic(() => this._isCachePanic.next(true));
     this._eventHandlers = [handler, ...this._eventHandlers];
   }
 
@@ -258,28 +263,30 @@ export class WebsocketService {
   private _timeoutPromise(inputPromise: Promise<any>): Promise<any> {
     return Promise.race([
       inputPromise,
-      new Promise(resolve => window.setTimeout(() => resolve('timeout'), 10000))
+      new Promise(resolve => window.setTimeout(() => resolve('timeout'), 20000))
     ]);
   }
 
   private async _invokeWorkaroundSync(): Promise<void> {
     this._log.debug('Invoking workaroundSync');
-    this._isCachePanic = false;
+    this._isCachePanic.next(false);
     await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
       current.isSynced.next(false);
-      const result = await this._timeoutPromise(current.workaroundSync());
-      if (result === 'timeout') {
-        const errorMsg = `${current.constructor.name}.workaroundSync ()timed out`;
+      let result;
+      try {
+        result = await this._timeoutPromise(current.workaroundSync());
+      } catch (e) {
+        result = 'Error';
+      }
+      if (result === 'timeout' || result === 'Error') {
+        const errorMsg = `${current.constructor.name}.workaroundSync () ${result === 'timeout' ? 'timeout' : 'failed'}`;
         this._log.error(errorMsg);
         this._toastrService.error(errorMsg);
+        this._isCachePanic.next(true);
+      } else {
+        current.isSynced.next(true);
       }
-      current.isSynced.next(true);
       return result;
     })));
-    if (this._isCachePanic) {
-      await this._universeCacheManager.clearCachesForUser();
-      window.location.reload();
-      this._isCachePanic = false;
-    }
   }
 }

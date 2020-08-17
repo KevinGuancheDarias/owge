@@ -38,6 +38,10 @@ export class AppComponent implements OnInit {
   public isLoading: boolean;
 
   public isConnected: boolean;
+  public isPanic: boolean;
+  public connectedClass: string;
+  public panicClass: string;
+
   public hasToShow: boolean;
 
   private timeoutId: number;
@@ -55,14 +59,25 @@ export class AppComponent implements OnInit {
       }
       if (this.isConnected) {
         this.timeoutId = window.setTimeout(() => this.hasToShow = false, 500);
+        this.connectedClass = 'connected';
       } else {
         this.hasToShow = true;
+        this.connectedClass = 'not-connected';
       }
+    });
+
+    websocketService.isCachePanic.subscribe(panic => {
+      this.panicClass = panic ? 'panic-state' : '';
+      this.isPanic = panic;
     });
   }
 
   public ngOnInit() {
     this._universeGameService.isInGame().subscribe(isInGame => this.isInGame = isInGame);
     this._loadingService.observeLoading().subscribe(current => this.isLoading = current);
+  }
+
+  public clickReload() {
+    window.location.reload();
   }
 }
