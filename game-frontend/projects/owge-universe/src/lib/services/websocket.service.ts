@@ -276,6 +276,9 @@ export class WebsocketService {
       try {
         result = await this._timeoutPromise(current.workaroundSync());
       } catch (e) {
+        if (e.constructor.name === 'DexieError') {
+          alert('Storage error, check your device has enough free space');
+        }
         result = 'Error';
       }
       if (result === 'timeout' || result === 'Error') {

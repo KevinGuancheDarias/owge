@@ -30,7 +30,22 @@ export class ConfigurationService {
     private _universeCacheManagerService: UniverseCacheManagerService,
     universeStore: UniverseStorage
   ) {
-    universeStore.currentUniverse.pipe(distinctUntilChanged(), filter(val => !!val)).subscribe(() => this.init());
+    universeStore.currentUniverse.pipe(distinctUntilChanged(), filter(val => !!val))
+      .subscribe(async () => {
+        try {
+          await this.init();
+        } catch (e) {
+          if (e.constructor.name === 'DexieError') {
+            if (e.message.trim() === 'QuotaExceededError') {
+              alert('No enough space in yor device');
+            } else if (e.message !== 'Table data does not exist') {
+              alert('Not able to store information on your device');
+            }
+          } else {
+            throw e;
+          }
+        }
+      });
   }
 
   /**
