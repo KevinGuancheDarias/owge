@@ -1,6 +1,10 @@
 {
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "You have exceeded your missions limit",
     "I18N_ERR_DEPLOY_ITSELF": "Target planet can't be origin planet",
+    "I18N_OWNER_NOT_DEFEATED": "Planet owner not defeated, conquest failed",
+    "I18N_MAX_PLANETS_EXCEEDED": "Max planets exceeded",
+    "I18N_PLANET_IS_NOW_OURS": "Planet is now of your property",
+    "I18N_YOUR_PLANET_WAS_CONQUISTED": "Your planet was conquisted",
     "APP": {
         "CONNECTED": "Connected",
         "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",
@@ -126,7 +130,8 @@
                 "GATHER": "Gather",
                 "ESTABLISH_BASE": "Establish base",
                 "ESTABLISH_BASE_ERROR": "Error establishg base, maybe you have the max possible planets",
-                "ESTABLISH_BASE_SUCCESS": "Success, now the planet is of your property"
+                "ESTABLISH_BASE_SUCCESS": "Success, now the planet is of your property",
+                "CONQUEST": "Conquest"
             },
             "BODY": {
                 "USERNAME": "Username: {{username}}",

@@ -31,7 +31,7 @@ public class RealizationJob extends QuartzJobBean {
 
 	/**
 	 * Will be called at time of resolving a mission
-	 * 
+	 *
 	 * @author Kevin Guanche Darias
 	 */
 	@Override
@@ -64,7 +64,7 @@ public class RealizationJob extends QuartzJobBean {
 					unitMissionBo.processEstablishBase(missionId);
 					break;
 				case ATTACK:
-					unitMissionBo.processAttack(missionId);
+					unitMissionBo.processAttack(missionId, true);
 					break;
 				case COUNTERATTACK:
 					unitMissionBo.processCounterattack(missionId);

@@ -46,6 +46,12 @@
               </div>
             </owge-widgets-collapsable-item>
 
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.CONQUEST' | translate" *ngIf="report.parsedJson?.conquestStatus !== undefined">
+              <div class="owge-base-colors">
+                {{ report.parsedJson.conquestStatusStr | translate}}
+              </div>
+            </owge-widgets-collapsable-item>
+
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.GATHER' | translate"
               *ngIf="report.parsedJson?.gatheredPrimary !== undefined && report.parsedJson?.gatheredSecondary !== undefined">
               <h5>{{ 'APP.REPORTS.BODY.GATHER.TITLE' | translate }}</h5>

@@ -65,7 +65,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
 	private static final String JOB_GROUP_NAME = "UnitMissions";
-	private static final String MAX_PLANETS_MESSAGE = "You already have the max planets, you can have";
+	private static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
 
 	@Autowired
 	private ImageStoreBo imageStoreBo;
@@ -650,12 +650,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	@Transactional
-	public void processAttack(Long missionId) {
+	public AttackInformation processAttack(Long missionId, boolean survivorsDoReturn) {
 		Mission mission = findById(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
 		AttackInformation attackInformation = buildAttackInformation(targetPlanet, mission);
 		attackInformation.startAttack();
-		if (!attackInformation.isMissionRemoved()) {
+		if (survivorsDoReturn && !attackInformation.isMissionRemoved()) {
 			adminRegisterReturnMission(mission);
 		}
 		resolveMission(mission);
@@ -670,6 +670,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChange(mission);
 		}
+		return attackInformation;
 	}
 
 	/**
@@ -682,7 +683,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	@Transactional
 	public void processCounterattack(Long missionId) {
-		processAttack(missionId);
+		processAttack(missionId, true);
 	}
 
 	/**
@@ -745,19 +746,25 @@ public class UnitMissionBo extends AbstractMissionBo {
 				targetPlanet, involvedUnits);
 		boolean maxPlanets = planetBo.hasMaxPlanets(user);
 		boolean areUnitsHavingToReturn = false;
-		if (maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
+		AttackInformation attackInformation = processAttack(missionId, false);
+		UserStorage oldOwner = targetPlanet.getOwner();
+		boolean isOldOwnerDefeated = attackInformation.getUsers().containsKey(oldOwner.getId())
+				? attackInformation.getUsers().get(oldOwner.getId()).units.stream()
+						.noneMatch(current -> current.finalCount > 0L)
+				: true;
+		if (!isOldOwnerDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
 			adminRegisterReturnMission(mission);
 			areUnitsHavingToReturn = true;
 			if (maxPlanets) {
 				builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
+			} else if (!isOldOwnerDefeated) {
+				builder.withConquestInformation(false, "I18N_OWNER_NOT_DEFEATED");
 			} else {
-				builder.withConquestInformation(false, "This is a home planet now, can't conquest it");
+				builder.withConquestInformation(false, "I18N_CANT_CONQUER_HOME_PLANET");
 			}
 		} else {
-			obtainedUnitBo.deleteBySourcePlanetIdAndMissionIdNull(targetPlanet);
-			UserStorage oldOwner = targetPlanet.getOwner();
 			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
-			builder.withConquestInformation(true);
+			builder.withConquestInformation(true, "I18N_PLANET_IS_NOW_OURS");
 			if (oldOwner != null) {
 				planetBo.emitPlanetOwnedChange(oldOwner);
 				emitEnemyMissionsChange(oldOwner);

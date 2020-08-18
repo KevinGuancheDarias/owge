@@ -51,6 +51,7 @@ export * from './lib/types/speed-impact-group.type';
 export * from './lib/types/image-store.type';
 export * from './lib/types/mission-report-any-json.type';
 export * from './lib/types/mission-report-attack-json.type';
+export * from './lib/types/mission-report-conquest-json.type';
 export * from './lib/types/mission-report-error-json.type';
 export * from './lib/types/mission-report-establish-base-json.type';
 export * from './lib/types/mission-report-explore-json.type';

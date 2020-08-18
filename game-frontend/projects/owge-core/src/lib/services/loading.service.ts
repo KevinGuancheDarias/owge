@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject ,  Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 interface LoadingPromise extends Promise<any> {
   completed?: boolean;
@@ -39,7 +39,10 @@ export class LoadingService implements OnDestroy {
     currentLoadingPromise.completed = false;
     promise.then(() => {
       currentLoadingPromise.completed = true;
-    }).catch(e => console.error(`Failed promise in ${this.constructor.name}`, e));
+    }).catch(e => {
+      console.error(`Failed promise in ${this.constructor.name}`, e);
+      currentLoadingPromise.completed = true;
+    });
     this._startInterval();
     return promise;
   }
