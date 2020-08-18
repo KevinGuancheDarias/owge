@@ -72,7 +72,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     this._handleReportsDownload(await this._doDownloadPage(page).pipe(
       map(result => result.reports),
       take(1)
-    ).toPromise(), page !== 1);
+    ).toPromise());
     this._reportStore.reports.next(this._currentReports);
   }
 
@@ -141,14 +141,11 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-  private _handleReportsDownload(reports: MissionReport[], isPush = false): void {
+  private _handleReportsDownload(reports: MissionReport[]): void {
     reports.filter(current => !this._alreadyDownloadedReports.has(current.id))
       .map(current => {
-        if (isPush) {
-          this._currentReports.push(current);
-        } else {
-          this._currentReports = [current, ...this._currentReports];
-        }
+        this._currentReports.push(current);
+        this._currentReports = this._currentReports.sort((a, b) => a.id > b.id ? -1 : 1);
         this._alreadyDownloadedReports.add(current.id);
         current.missionDate = new Date(current.missionDate);
         return current;
