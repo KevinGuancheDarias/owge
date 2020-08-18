@@ -267,9 +267,9 @@ public class RequirementBo implements Serializable {
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
-	public void triggerLevelUpCompleted(UserStorage user) {
-		processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.UPGRADE_LEVEL),
-				user);
+	public void triggerLevelUpCompleted(UserStorage user, Integer upgradeId) {
+		processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.UPGRADE_LEVEL,
+				upgradeId.longValue()), user);
 	}
 
 	/**

@@ -150,7 +150,7 @@ public class MissionBo extends AbstractMissionBo {
 			ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
 			obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
 			obtainedUpgradeBo.save(obtainedUpgrade);
-			requirementBo.triggerLevelUpCompleted(user);
+			requirementBo.triggerLevelUpCompleted(user, upgrade.getId());
 			improvementBo.clearSourceCache(user, obtainedUpgradeBo);
 			improvementBo.triggerChange(userId, obtainedUpgrade.getUpgrade().getImprovement());
 			delete(mission);

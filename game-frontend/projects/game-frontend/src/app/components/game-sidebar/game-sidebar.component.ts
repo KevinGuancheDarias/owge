@@ -44,7 +44,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._createTranslatableMenuRoute('APP.MENU_ALLIANCES', ROUTES.ALLIANCE, 'fas fa-user-friends', true),
     this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', '/time_specials', 'fa fa-clock'),
     this._createTranslatableMenuRoute('APP.MENU_RANKING', ROUTES.RANKING, 'fa fa-trophy', true),
-    this._createTranslatableMenuRoute('APP.MENU_SETTINGS', ROUTES.SETTINGS, 'fas fa-cog', true),
+    this._createTranslatableMenuRoute('APP.MENU_SETTINGS', ROUTES.SETTINGS, 'fas fa-cog'),
     {
       text: version,
       path: ROUTES.VERSION,
