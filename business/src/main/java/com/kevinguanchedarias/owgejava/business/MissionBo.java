@@ -386,13 +386,15 @@ public class MissionBo extends AbstractMissionBo {
 				requirementBo.triggerUnitBuildCompleted(user, current.getUnit());
 			});
 			delete(mission);
-			if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
-				improvementBo.clearSourceCache(user, obtainedUnitBo);
-			}
-			socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-					() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			TransactionUtil.doAfterCommit(() -> {
+				if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
+					improvementBo.clearSourceCache(user, obtainedUnitBo);
+				}
+				socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+				socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}

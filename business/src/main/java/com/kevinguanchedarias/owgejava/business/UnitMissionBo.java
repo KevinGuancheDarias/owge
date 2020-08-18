@@ -344,7 +344,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		/**
-		 * Deletes the mission from the system, when all units involved ade death
+		 * Deletes the mission from the system, when all units involved are death
 		 *
 		 * Notice, should be invoked after <b>removing the obtained unit</b>
 		 *
