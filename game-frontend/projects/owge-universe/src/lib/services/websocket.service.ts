@@ -32,7 +32,7 @@ export class WebsocketService {
   private _isFirstConnection = true;
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _credentialsToken: string;
-  private _eventHandlers: AbstractWebsocketApplicationHandler[] = [];
+  private _eventHandlers: Set<AbstractWebsocketApplicationHandler> = new Set;
   private _isAuthenticated = false;
   private _isConnected: Subject<boolean> = new ReplaySubject(1);
   private _hasTriggeredFirtsOffline = false;
@@ -54,8 +54,10 @@ export class WebsocketService {
   }
 
   public addEventHandler(...handlers: AbstractWebsocketApplicationHandler[]) {
-    handlers.forEach(handler => handler.onCachePanic(() => this._isCachePanic.next(true)));
-    this._eventHandlers = this._eventHandlers.concat(handlers);
+    handlers.forEach(handler => {
+      handler.onCachePanic(() => this._isCachePanic.next(true));
+      this._eventHandlers.add(handler);
+    });
   }
 
   /**
@@ -67,7 +69,7 @@ export class WebsocketService {
    */
   public preprendEventHandler(handler: AbstractWebsocketApplicationHandler): void {
     handler.onCachePanic(() => this._isCachePanic.next(true));
-    this._eventHandlers = [handler, ...this._eventHandlers];
+    this._eventHandlers = new Set([handler, ...this._eventHandlers]);
   }
 
   /**
@@ -95,7 +97,7 @@ export class WebsocketService {
         });
         this._socket.io.on('connect_error', async () => {
           if (this._isFirstConnection && !this._hasTriggeredFirtsOffline) {
-            await Promise.all(this._eventHandlers.map(current => current.workaroundInitialOffline()));
+            await Promise.all([...this._eventHandlers].map(current => current.workaroundInitialOffline()));
             this._hasTriggeredFirtsOffline = true;
           }
         });
@@ -223,10 +225,10 @@ export class WebsocketService {
   private async _registerSocketHandlers(): Promise<void> {
     try {
       await Promise.all([
-        ...this._eventHandlers.map(handler => handler.beforeWorkaroundSync()),
+        ...[...this._eventHandlers].map(handler => handler.beforeWorkaroundSync()),
         ...this._onBeforeWorkaroundSyncHandlers.map(action => action())
       ]);
-      await Promise.all(this._eventHandlers.map(handler => handler.createStores()));
+      await Promise.all([...this._eventHandlers].map(handler => handler.createStores()));
       await this._invokeWorkaroundSync();
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
@@ -236,7 +238,7 @@ export class WebsocketService {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
-        const handlers: AbstractWebsocketApplicationHandler[] = this._eventHandlers.filter(
+        const handlers: AbstractWebsocketApplicationHandler[] = [...this._eventHandlers].filter(
           current => !!current.getHandlerMethod(eventName)
         );
         if (handlers.length) {
@@ -270,7 +272,7 @@ export class WebsocketService {
   private async _invokeWorkaroundSync(): Promise<void> {
     this._log.debug('Invoking workaroundSync');
     this._isCachePanic.next(false);
-    await this._loadingService.addPromise(Promise.all(this._eventHandlers.map(async current => {
+    await this._loadingService.addPromise(Promise.all([...this._eventHandlers].map(async current => {
       current.isSynced.next(false);
       let result;
       try {

@@ -43,6 +43,7 @@ export * from './lib/types/user.type';
 export * from './lib/utils/async-collection.util';
 export * from './lib/utils/content-transclusion.util';
 export * from './lib/utils/date.util';
+export * from './lib/utils/debug.util';
 export * from './lib/utils/http.util';
 export * from './lib/utils/jwt-token.util';
 export * from './lib/owge-core.module';
