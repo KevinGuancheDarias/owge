@@ -10,10 +10,10 @@ COPY . /app
 
 # Game Frontend
 FROM owge-frontends as game-frontend 
-CMD [ "npm", "run", "ngServeDocker", "--live-reload=false"]
+CMD [ "npm", "run", "ngServeDocker", "--", "--live-reload=false"]
 EXPOSE 4200
 
 # Game Admin
 FROM owge-frontends as game-admin 
-CMD [ "npm", "run", "ngServeDockerAdmin", "--live-reload=false"]
+CMD [ "npm", "run", "ngServeDockerAdmin", "--", "--live-reload=false"]
 EXPOSE 4200
