@@ -69,6 +69,12 @@ public class MissionBo extends AbstractMissionBo {
 						() -> unitTypeBo.findUnitTypesWithUserInfo(userId));
 			}
 		});
+		improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) -> {
+			TransactionUtil.doAfterCommit(() -> {
+				socketIoService.sendMessage(userId, "user_max_energy_change",
+						() -> userStorageBo.findMaxEnergy(userId));
+			});
+		});
 	}
 
 	@Override

@@ -20,6 +20,7 @@ import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UserStorage } from '../storages/user.storage';
 import { Improvement } from '../types/improvement.type';
 import { UserWithImprovements } from '../types/user-with-improvements.type';
+import { ResourceManagerService } from './resource-manager.service';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -34,6 +35,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
   private static readonly _LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
   private _offlineUserStore: StorageOfflineHelper<UserWithImprovements>;
   private _outsideUniverse: Subject<boolean> = new BehaviorSubject(false);
+  private _currentUser: User;
 
   constructor(
     private _coreHttpService: CoreHttpService,
@@ -41,13 +43,16 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     private _sessionService: SessionService,
     private _userStore: UserStorage<User>,
     private _universeCacheManagerService: UniverseCacheManagerService,
-    private _toastsService: ToastrService
+    private _toastsService: ToastrService,
+    private _resourceManagerService: ResourceManagerService
   ) {
     super();
     this._eventsMap = {
       user_data_change: '_onUserDataChange',
-      user_improvements_change: '_onUserImprovementsChange'
+      user_improvements_change: '_onUserImprovementsChange',
+      user_max_energy_change: '_onUserMaxEnergyChange'
     };
+    _userStore.currentUser.subscribe(user => this._currentUser = user);
   }
 
   public async createStores(): Promise<void> {
@@ -247,6 +252,10 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     this._userStore.currentUserImprovements.next(content);
   }
 
+  protected _onUserMaxEnergyChange(content: number): void {
+    this._resourceManagerService.setMaxEnergy(content);
+  }
+
   /**
    *
    *
@@ -332,5 +341,20 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
       options.errorHandler = errorHandler;
     }
     return options;
+  }
+
+  private _subscribeToResourceChanges(): void {
+    this._resourceManagerService.currentPrimaryResource.subscribe(val => {
+      this._currentUser.primaryResource = val;
+      this._onUserDataChange(this._currentUser);
+    });
+    this._resourceManagerService.currentSecondaryResource.subscribe(val => {
+      this._currentUser.secondaryResource = val;
+      this._onUserDataChange(this._currentUser);
+    });
+    this._resourceManagerService.currentMaxEnergy.subscribe(val => {
+      this._currentUser.maxEnergy = val;
+      this._onUserDataChange(this._currentUser);
+    });
   }
 }

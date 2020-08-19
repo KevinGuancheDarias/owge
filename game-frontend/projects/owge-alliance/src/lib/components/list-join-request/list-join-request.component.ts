@@ -3,6 +3,7 @@ import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
 import { AllianceService } from '../../services/alliance.service';
 import { UserStorage } from '@owge/universe';
 import { UserWithAlliance } from '../../types/user-with-alliance.type';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 /**
  * List and handles join request
@@ -26,7 +27,9 @@ export class ListJoinRequestComponent implements OnInit {
   }
 
   public ngOnInit() {
-    this._userStorage.currentUser.subscribe(async user => {
+    this._userStorage.currentUser.pipe(
+      distinctUntilChanged((a, b) => a !== b)
+    ).subscribe(async user => {
       this.isAllianceOwner = user.alliance && user.alliance.owner === user.id;
       if (this.isAllianceOwner) {
         this._loadJoinRequest();

@@ -4,10 +4,10 @@ import { Observable } from 'rxjs';
 import { camelCase, upperFirst } from 'lodash-es';
 
 
-import { ProgrammingError, LoadingService, User, DateUtil, StorageOfflineHelper } from '@owge/core';
+import { ProgrammingError, LoadingService, User, DateUtil, StorageOfflineHelper, ResourcesEnum } from '@owge/core';
 import {
   UniverseGameService, MissionStore, UnitRunningMission, RunningMission, UserStorage,
-  UniverseCacheManagerService, WsEventCacheService, TypeWithMissionLimitation, Planet, MissionSupport
+  UniverseCacheManagerService, WsEventCacheService, TypeWithMissionLimitation, Planet, MissionSupport, ResourceManagerService
 } from '@owge/universe';
 
 import { SelectedUnit } from '../shared/types/selected-unit.type';
@@ -30,13 +30,15 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     userStore: UserStorage<User>,
     private _missionStore: MissionStore,
     private _universeCacheManagerService: UniverseCacheManagerService,
-    private _wsEventCacheService: WsEventCacheService
+    private _wsEventCacheService: WsEventCacheService,
+    private _resourceManagerService: ResourceManagerService
   ) {
     super();
     this._eventsMap = {
       unit_mission_change: '_onMyUnitMissionsChange',
       missions_count_change: '_onMissionsCountChange',
-      enemy_mission_change: '_onEnemyMissionChange'
+      enemy_mission_change: '_onEnemyMissionChange',
+      mission_gather_result: '_onMissionGatherResult'
     };
     userStore.currentUser.subscribe(user => this._currentUser = user);
     userStore.currentUserImprovements.subscribe(improvement =>
@@ -261,6 +263,19 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     const withBrowserDateContent: UnitRunningMission[] = content.map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.enemyUnitMissions.next(withBrowserDateContent);
     await this._offlineEnemyUnitMissionsStore.save(withBrowserDateContent);
+  }
+
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @protected
+   * @param content
+   */
+  protected _onMissionGatherResult(content: { primaryResource: number, secondaryResource: number }): void {
+    this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, content.primaryResource || 0);
+    this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, content.secondaryResource || 0);
   }
 
   protected async _onMissionsCountChange(content: number) {

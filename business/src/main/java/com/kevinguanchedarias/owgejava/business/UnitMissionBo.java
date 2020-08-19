@@ -601,6 +601,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.withGatherInformation(primaryResource, secondaryResource);
 		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
+
+		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
+			Map<String, Double> content = new HashMap<>();
+			content.put("primaryResource", primaryResource);
+			content.put("secondaryResource", secondaryResource);
+			return content;
+		}));
 	}
 
 	@Transactional

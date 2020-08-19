@@ -140,6 +140,19 @@ export class ResourceManagerService {
         this.addResources(resourceType, value * -1);
     }
 
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     * @param maxEnergy
+     */
+    public setMaxEnergy(maxEnergy: number): void {
+        this._currentMaxEnergy = maxEnergy;
+        this._currentMaxEnergyFloor.next(Math.floor(this._currentMaxEnergy));
+    }
+
     private _setResources(user: UserWithFaction & UserWithImprovements) {
         this._setPrimaryValue(user.primaryResource);
         this._setSecondaryValue(user.secondaryResource);
@@ -157,10 +170,9 @@ export class ResourceManagerService {
 
 
         this._currentConsumedEnergy = user.consumedEnergy;
-        this._currentMaxEnergy = user.maxEnergy;
+        this.setMaxEnergy(user.maxEnergy);
 
         this._currentEnergyFloor.next(Math.floor(this._currentConsumedEnergy));
-        this._currentMaxEnergyFloor.next(Math.floor(this._currentMaxEnergy));
     }
 
     private _setPrimaryValue(value: number): void {

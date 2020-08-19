@@ -4,7 +4,7 @@
       {{ 'APP.REPORTS.NO_REPORTS' | translate }}
     </div>
     <div class="card owge report-card" *ngFor="let report of reports">
-      <owge-widgets-display-list-item [itemName]="'Mission to ' + report.parsedJson?.targetPlanet?.name" [image]="report.parsedJson?.targetPlanet | planetImage"
+      <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)" [image]="report.parsedJson?.targetPlanet | planetImage"
         [hideDesktopSections]="[0,0,1]"
       >
         <ng-template owgeCoreContent [select]="'extra-header'">
@@ -56,13 +56,13 @@
               *ngIf="report.parsedJson?.gatheredPrimary !== undefined && report.parsedJson?.gatheredSecondary !== undefined">
               <h5>{{ 'APP.REPORTS.BODY.GATHER.TITLE' | translate }}</h5>
               <app-display-single-resource [resourceName]="userData.faction.primaryResourceName"
-                [resourceImage]="userData.faction.primaryResourceImage"
+                [resourceImage]="userData.faction.primaryResourceImageUrl"
                 [resourceValue]="report.parsedJson?.gatheredPrimary">
     
               </app-display-single-resource>
     
               <app-display-single-resource [resourceName]="userData.faction.secondaryResourceName"
-                [resourceImage]="userData.faction.secondaryResourceImage"
+                [resourceImage]="userData.faction.secondaryResourceImageUrl"
                 [resourceValue]="report.parsedJson?.gatheredSecondary">
     
               </app-display-single-resource>

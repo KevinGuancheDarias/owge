@@ -272,6 +272,17 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return obtainedUnitBo.findConsumeEnergyByUser(user);
 	}
 
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double findMaxEnergy(Integer userId) {
+		return findMaxEnergy(findByIdOrDie(userId));
+	}
+
 	public Double findMaxEnergy(UserStorage user) {
 		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
 		Faction faction = user.getFaction();
