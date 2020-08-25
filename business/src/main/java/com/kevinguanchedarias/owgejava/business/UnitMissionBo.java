@@ -592,8 +592,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
 		Double withUserImprovement = withPlanetRichness
 				+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
-		Double primaryResource = withUserImprovement * 0.7;
-		Double secondaryResource = withUserImprovement * 0.3;
+		Double primaryResource = withUserImprovement * 0.5;
+		Double secondaryResource = withUserImprovement * 0.5;
 		user.addtoPrimary(primaryResource);
 		user.addToSecondary(secondaryResource);
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
