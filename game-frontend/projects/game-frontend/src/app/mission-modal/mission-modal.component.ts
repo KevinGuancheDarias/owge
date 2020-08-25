@@ -58,6 +58,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public deploymentConfig: validDeploymentValue;
   public canCrossGalaxy = true;
   public canDoMissionOutsideGalaxy = true;
+  public clickSelectAllBinded: Function;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
@@ -120,7 +121,9 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   }
 
   public isMissionRealizableByUnitTypes(missionType: MissionType): boolean {
-    if (missionType) {
+    if (!this.isValidSelection) {
+      return true;
+    } else if (missionType) {
       const retVal = this.selectedUnitsTypes
         ? this._unitTypeService.canDoMission(this.targetPlanet, this.selectedUnitsTypes, missionType)
         : false;
@@ -161,6 +164,26 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
     } else {
       this.canDoMissionOutsideGalaxy = true;
     }
+    if (this.missionType) {
+      this.clickSelectAllBinded = this.selectAllFilter.bind(this);
+    }
+  }
+
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param obtainedUnit
+   * @returns
+   */
+  public async selectAllFilter(obtainedUnit: ObtainedUnit): Promise<boolean> {
+    return await this._unitTypeService.canDoMission(
+      this.targetPlanet,
+      await this._unitTypeService.idsToUnitTypes(obtainedUnit.unit.typeId),
+      this.missionType
+    );
   }
 
   /**

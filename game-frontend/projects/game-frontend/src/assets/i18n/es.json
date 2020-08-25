@@ -74,7 +74,7 @@
             "MISSION_TYPE": "Tipo misión",
             "NO_CROSS_GALAXY": "Al menos una de tus unidades no puede salir de la galaxia",
             "MISSION_NOT_ALLOWED_CROSS_GALAXY": "Al menos una de tus unidades no puede hacer esta misión fuera de tu galaxia",
-            "CHOOSE_UNITS_FIRST": "Selecciona unidades para poder escoger tipo de misión",
+            "MUST_SELECT_MISSION_TYPE": "Debes seleccionar el tipo de misión primero",
             "BTN_SEND_MISSION": "Enviar misión"
         },
         "UPGRADES": {
@@ -110,7 +110,9 @@
             }
         },
         "DEPLOYED_UNIT_LIST": {
-            "CHOOSE_COUNT": "Seleccionar cantidad"
+            "CHOOSE_COUNT": "Seleccionar cantidad",
+            "BTN_SELECT_ALL": "Seleccionar todas",
+            "BTN_UNSELECT_ALL": "Deseleccionar todas"
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxia",

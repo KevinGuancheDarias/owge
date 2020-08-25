@@ -74,7 +74,7 @@
             "MISSION_TYPE": "Mission type",
             "NO_CROSS_GALAXY": "At least one unit can't go outside the galaxy",
             "MISSION_NOT_ALLOWED_CROSS_GALAXY": "At least one unit can't run this mission type outside the galaxy",
-            "CHOOSE_UNITS_FIRST": "You have to select units before you can choose mission type",
+            "MUST_SELECT_MISSION_TYPE": "Must select mission type before",
             "BTN_SEND_MISSION": "Send mission"
         },
         "UPGRADES": {
@@ -110,7 +110,9 @@
             }
         },
         "DEPLOYED_UNIT_LIST": {
-            "CHOOSE_COUNT": "Select count"
+            "CHOOSE_COUNT": "Select count",
+            "BTN_SELECT_ALL": "Select all units",
+            "BTN_UNSELECT_ALL": "Unselect all units"
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxy",

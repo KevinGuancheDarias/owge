@@ -6,7 +6,7 @@
   </div>
   <div class="body owge-base-colors" *ngIf="deploymentConfig">
     <ng-container *ngIf="sourcePlanet && targetPlanet">
-      <div *ngIf="isValidSelection">
+      <div>
         <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
         <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType" (ngModelChange)="onMissionTypeChange()">
         <option [ngValue]="null">{{ 'APP.MISSION_TYPES.PLEASE_SELECT' | translate }}</option>
@@ -19,9 +19,6 @@
           <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home" value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">{{ 'APP.MISSION_TYPES.CONQUEST' | translate }}</option>
         </select>
       </div>
-      <div *ngIf="!isValidSelection">
-        {{ 'APP.MISSION_MODAL.CHOOSE_UNITS_FIRST' | translate }}
-      </div>
       <div class="owge-errors" *ngIf="sourcePlanet.galaxyId !== targetPlanet.galaxyId">
         <div *ngIf="!canCrossGalaxy">
           {{ 'APP.MISSION_MODAL.NO_CROSS_GALAXY' | translate }}
@@ -31,7 +28,7 @@
         </div>
       </div>
       <div class="unit-selection">
-        <app-deployed-units-list [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="onUnitSelection($event)"
+        <app-deployed-units-list [filterForAll]="clickSelectAllBinded" [selectAllNotAvailableText]="'APP.MISSION_MODAL.MUST_SELECT_MISSION_TYPE'" [obtainedUnits]="obtainedUnits" [selectable]="true" (selection)="onUnitSelection($event)"
           (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
       </div>
     </ng-container>
