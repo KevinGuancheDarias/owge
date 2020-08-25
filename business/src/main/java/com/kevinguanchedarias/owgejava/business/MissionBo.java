@@ -101,7 +101,7 @@ public class MissionBo extends AbstractMissionBo {
 		checkUpgradeIsAvailable(obtainedUpgrade);
 
 		UserStorage user = userStorageBo.findById(userId);
-		checkCanDoMisison(user);
+		checkMissionLimitNotReached(user);
 		ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
@@ -189,7 +189,7 @@ public class MissionBo extends AbstractMissionBo {
 				unitId);
 		checkUnlockedUnit(userId, relation);
 		UserStorage user = userStorageBo.findById(userId);
-		checkCanDoMisison(user);
+		checkMissionLimitNotReached(user);
 		Unit unit = unitBo.findByIdOrDie(unitId);
 		Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
 		unitBo.checkIsUniqueBuilt(user, unit);

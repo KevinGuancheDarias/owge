@@ -336,7 +336,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		mission.setReport(missionReport);
 	}
 
-	protected void checkCanDoMisison(UserStorage user) {
+	protected void checkMissionLimitNotReached(UserStorage user) {
 		if (countUserMissions(user.getId()) + 1 >= findUserMaxAllowedMissions(user)) {
 			throw exceptionUtilService
 					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED")
