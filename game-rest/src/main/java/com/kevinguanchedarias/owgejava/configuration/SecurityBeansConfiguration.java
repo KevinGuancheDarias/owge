@@ -1,11 +1,15 @@
 package com.kevinguanchedarias.owgejava.configuration;
 
+import java.util.Arrays;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -22,10 +26,14 @@ import com.kevinguanchedarias.owgejava.event.ResourceAutoUpdateEventHandler;
 import com.kevinguanchedarias.owgejava.filter.BootJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.security.AdminTokenConfigLoader;
 import com.kevinguanchedarias.owgejava.security.DevelopmentSgtTokenConfigLoader;
+import com.kevinguanchedarias.owgejava.security.SgtTokenConfigLoader;
 
 @Configuration
 @Order(101)
 class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
+
+	@Autowired
+	private Environment environment;
 
 	private AuthenticationEntryPoint authenticationEntryPoint = new RestAuthenticationEntryPoint();
 	private BootJwtAuthenticationFilter adminBootJwtAuthenticationFilter = new BootJwtAuthenticationFilter("/admin/**");
@@ -47,9 +55,22 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
 		return new AdminTokenConfigLoader();
 	}
 
+	/**
+	 * Can't use profile annotation, as Spring Boot 2.29 doesn't support proper
+	 * overriding
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
 	@Bean
 	public TokenConfigLoader gameOwgeTokenConfigLoader() {
-		return new DevelopmentSgtTokenConfigLoader();
+		if (Arrays.asList(environment.getActiveProfiles()).stream().anyMatch(profile -> profile.equals("rsaKeys"))) {
+			return new SgtTokenConfigLoader();
+		} else {
+			return new DevelopmentSgtTokenConfigLoader();
+		}
+
 	}
 
 	@Bean
