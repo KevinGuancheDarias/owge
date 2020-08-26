@@ -25,9 +25,9 @@ class CorsFilterConfiguration extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		CorsFilter filter = new CorsFilter();
 		filter.setCorsConfigurator(createFilterConfiguration());
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().securityContext()
-				.securityContextRepository(new OwgeNullSecurityContextRepository())
-				.and().csrf().disable();
+		http.addFilterBefore(filter, org.springframework.web.filter.CorsFilter.class).sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().securityContext()
+				.securityContextRepository(new OwgeNullSecurityContextRepository()).and().csrf().disable();
 
 	}
 
