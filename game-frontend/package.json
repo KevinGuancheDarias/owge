@@ -13,7 +13,7 @@
     "ngServeDockerAdmin": "ng serve game-admin --host 0.0.0.0 --disable-host-check",
     "build": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build --prod",
     "buildDevLike": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng buil",
-    "buildAdmin": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build game-admin --prod -- dist/game-admin/index.html",
+    "buildAdmin": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build game-admin --prod",
     "lint": "tslint \"src/**/*.ts\"",
     "test": "ng test",
     "createVersionFile": "node scripts/create-version-file.js",
