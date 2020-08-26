@@ -97,6 +97,8 @@ export class WebsocketService {
         });
         this._socket.io.on('connect_error', async () => {
           if (this._isFirstConnection && !this._hasTriggeredFirtsOffline) {
+            await this._wsEventCacheService.createStores();
+            await Promise.all([...this._eventHandlers].map(current => current.createStores()));
             await Promise.all([...this._eventHandlers].map(current => current.workaroundInitialOffline()));
             this._hasTriggeredFirtsOffline = true;
           }
