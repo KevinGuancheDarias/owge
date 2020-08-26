@@ -1,6 +1,6 @@
 {
-  "name": "game-frontend",
-  "short_name": "game-frontend",
+  "name": "OWGE",
+  "short_name": "OWGE",
   "theme_color": "#1976d2",
   "background_color": "#fafafa",
   "display": "standalone",
@@ -19,52 +19,69 @@
   },
   "icons": [
     {
-      "src": "assets/icons/icon-72x72.png",
-      "sizes": "72x72",
+      "src": "/assets/icons/android-icon-192x192-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "192x192"
     },
     {
-      "src": "assets/icons/icon-96x96.png",
-      "sizes": "96x96",
+      "src": "/assets/icons/apple-icon-180x180-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "180x180"
     },
     {
-      "src": "assets/icons/icon-128x128.png",
-      "sizes": "128x128",
+      "src": "/assets/icons/apple-icon-152x152-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "152x152"
     },
     {
-      "src": "assets/icons/icon-144x144.png",
-      "sizes": "144x144",
+      "src": "/assets/icons/apple-icon-144x144-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "144x144"
     },
     {
-      "src": "assets/icons/icon-152x152.png",
-      "sizes": "152x152",
+      "src": "/assets/icons/apple-icon-120x120-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "120x120"
     },
     {
-      "src": "assets/icons/icon-192x192.png",
-      "sizes": "192x192",
+      "src": "/assets/icons/apple-icon-114x114-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "114x114"
     },
     {
-      "src": "assets/icons/icon-384x384.png",
-      "sizes": "384x384",
+      "src": "/assets/icons/favicon-96x96-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "96x96"
     },
     {
-      "src": "assets/icons/icon-512x512.png",
-      "sizes": "512x512",
+      "src": "/assets/icons/apple-icon-76x76-dunplab-manifest-17126.png",
       "type": "image/png",
-      "purpose": "maskable any"
+      "sizes": "76x76"
+    },
+    {
+      "src": "/assets/icons/apple-icon-72x72-dunplab-manifest-17126.png",
+      "type": "image/png",
+      "sizes": "72x72"
+    },
+    {
+      "src": "/assets/icons/apple-icon-60x60-dunplab-manifest-17126.png",
+      "type": "image/png",
+      "sizes": "60x60"
+    },
+    {
+      "src": "/assets/icons/apple-icon-57x57-dunplab-manifest-17126.png",
+      "type": "image/png",
+      "sizes": "57x57"
+    },
+    {
+      "src": "/assets/icons/favicon-32x32-dunplab-manifest-17126.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "/assets/icons/favicon-16x16-dunplab-manifest-17126.png",
+      "type": "image/png",
+      "sizes": "16x16"
     }
   ]
 }

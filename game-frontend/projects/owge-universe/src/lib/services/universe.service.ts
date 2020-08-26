@@ -6,6 +6,7 @@ import { CoreHttpService, Config } from '@owge/core';
 
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
+import { Title } from '@angular/platform-browser';
 
 /**
  * Has methods related to universe handling
@@ -17,7 +18,11 @@ import { Universe } from '../types/universe.type';
 @Injectable()
 export class UniverseService {
     public static readonly LOCAL_STORAGE_SELECTED_UNIVERSE = 'owge_universe';
-    public constructor(private _universeStorage: UniverseStorage, private _coreHttpService: CoreHttpService) { }
+    public constructor(
+        private _universeStorage: UniverseStorage,
+        private _coreHttpService: CoreHttpService,
+        private _titleService: Title
+    ) { }
 
     /**
      * Finds the oficial servers
@@ -64,5 +69,6 @@ export class UniverseService {
     public setSelectedUniverse(universe: Universe): void {
         this._universeStorage.currentUniverse.next(universe);
         sessionStorage.setItem(UniverseService.LOCAL_STORAGE_SELECTED_UNIVERSE, JSON.stringify(universe));
+        this._titleService.setTitle(`OWGE :: ${universe.name}`);
     }
 }

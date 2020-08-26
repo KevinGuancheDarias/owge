@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
-import { first, switchMap, take } from 'rxjs/operators';
+import { first, switchMap, take, filter } from 'rxjs/operators';
 
 import {
   CoreHttpService,
@@ -21,6 +21,7 @@ import { UserStorage } from '../storages/user.storage';
 import { Improvement } from '../types/improvement.type';
 import { UserWithImprovements } from '../types/user-with-improvements.type';
 import { ResourceManagerService } from './resource-manager.service';
+import { Title } from '@angular/platform-browser';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -44,7 +45,8 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     private _userStore: UserStorage<User>,
     private _universeCacheManagerService: UniverseCacheManagerService,
     private _toastsService: ToastrService,
-    private _resourceManagerService: ResourceManagerService
+    private _resourceManagerService: ResourceManagerService,
+    private _titleService: Title
   ) {
     super();
     this._eventsMap = {
@@ -53,6 +55,9 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
       user_max_energy_change: '_onUserMaxEnergyChange'
     };
     _userStore.currentUser.subscribe(user => this._currentUser = user);
+    _universeStorage.currentUniverse.pipe(filter(val => !!val)).subscribe(val => {
+      _titleService.setTitle(`OWGE :: ${val.name}`);
+    });
   }
 
   public async createStores(): Promise<void> {
@@ -124,6 +129,7 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     this._sessionService.logout();
     sessionStorage.removeItem(UniverseGameService._LOCAL_STORAGE_SELECTED_UNIVERSE);
     this._universeStorage.currentUniverse.next(null);
+    this._titleService.setTitle('OWGE');
   }
 
   /**
