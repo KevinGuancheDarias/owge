@@ -5,8 +5,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { AdminFactionService } from '../../services/admin-faction.service';
 import { AdminUpgradeService } from '../../services/admin-upgrade.service';
 import { Observable } from 'rxjs';
-import { WidgetFilter } from 'projects/owge-widgets/src/lib/types/widget-filter.type';
 import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
+import { WidgetFilter } from '@owge/widgets';
 
 /**
  *

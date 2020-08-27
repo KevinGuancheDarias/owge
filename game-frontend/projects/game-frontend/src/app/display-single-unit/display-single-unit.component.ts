@@ -1,13 +1,12 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { User } from '@owge/core';
-import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage } from '@owge/universe';
+import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage, ImprovementUtil } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
 import { UnitTypeService } from '../services/unit-type.service';
-import { ImprovementUtil } from 'projects/owge-universe/src/lib/utils/improvement.util';
 import { filter, take } from 'rxjs/operators';
 
 export type validViews = 'requirements' | 'attributes';

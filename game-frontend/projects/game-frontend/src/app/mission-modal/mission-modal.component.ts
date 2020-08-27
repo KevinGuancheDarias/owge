@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { UnitType, MissionStore, Planet, ObtainedUnit } from '@owge/universe';
+import { UnitType, MissionStore, Planet, ObtainedUnit, SpeedImpactGroupService } from '@owge/universe';
 
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { MissionType } from '@owge/core';
@@ -11,7 +11,6 @@ import { UnitTypeService } from '../services/unit-type.service';
 import { MissionInformationStore } from '../store/mission-information.store';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
-import { SpeedImpactGroupService } from 'projects/owge-universe/src/lib/services/speed-impact-group.service';
 import { Observable } from 'rxjs';
 
 /**
