@@ -1,0 +1,11 @@
+<div #progress class="progress mx-auto">
+    <span class="progress-left">
+                  <span  #left class="progress-bar border-primary"></span>
+    </span>
+    <span class="progress-right">
+                  <span #right  class="progress-bar border-primary"></span>
+    </span>
+    <div class="progress-value w-100 h-100 rounded-circle d-flex align-items-center justify-content-center">
+      <div><ng-content></ng-content></div>
+    </div>
+  </div>

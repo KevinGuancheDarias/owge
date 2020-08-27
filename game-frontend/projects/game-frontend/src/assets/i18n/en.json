@@ -51,7 +51,9 @@
             "SECTOR": "Sector",
             "QUADRANT": "Quadrant",
             "CURRENT_COORDINATES": "Current coordinates",
-            "TOOLTIP_SEND_MISSION": "Send mission"
+            "TOOLTIP_SEND_MISSION": "Send mission",
+            "FAST_EXPLORE_SENT": "One {{unitName}} was sent to explore",
+            "FAST_EXPLORE_UNAVAILABLE": "No unit that has the explorer role was found"
         },
         "PLANET": {
             "SUMMARY": "Name: {{name}}, Coordinates: Galaxy: {{galaxyName}}, sector {{sector}}, quadrant {{quadrant}}, number {{planetNumber}}",

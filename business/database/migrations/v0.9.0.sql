@@ -98,3 +98,5 @@ ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`p
 ALTER TABLE `units` CHANGE `improvement_id` `improvement_id` SMALLINT(6) UNSIGNED NULL;
 ALTER TABLE `units` ADD `display_in_requirements` BOOLEAN NULL DEFAULT FALSE AFTER `name`;
 ALTER TABLE `unit_types` ADD `has_to_inherit_improvements` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'If true applied benefits to parent unit type will also apply to this' AFTER `speed_impact_group_id`;
+
+ALTER TABLE `units` ADD `can_fast_explore` BOOLEAN NOT NULL DEFAULT FALSE AFTER `is_unique`;

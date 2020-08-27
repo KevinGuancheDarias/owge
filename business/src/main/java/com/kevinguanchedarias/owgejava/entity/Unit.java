@@ -55,6 +55,9 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	@Column(name = "is_unique", nullable = false)
 	private Boolean isUnique = false;
 
+	@Column(name = "can_fast_explore", nullable = false)
+	private Boolean canFastExplore = false;
+
 	@Column
 	private Double speed = 0D;
 
@@ -189,6 +192,24 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 
 	public void setIsUnique(Boolean isUnique) {
 		this.isUnique = isUnique;
+	}
+
+	/**
+	 * @return the canFastExplore
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getCanFastExplore() {
+		return canFastExplore;
+	}
+
+	/**
+	 * @param canFastExplore the canFastExplore to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setCanFastExplore(Boolean canFastExplore) {
+		this.canFastExplore = canFastExplore;
 	}
 
 	/**

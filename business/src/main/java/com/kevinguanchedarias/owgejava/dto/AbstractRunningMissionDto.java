@@ -13,6 +13,7 @@ public abstract class AbstractRunningMissionDto {
 	private Long missionId;
 	private Double requiredPrimary;
 	private Double requiredSecondary;
+	private Double requiredTime;
 	private Long pendingMillis;
 	private MissionType type;
 	private Integer missionsCount;
@@ -29,6 +30,7 @@ public abstract class AbstractRunningMissionDto {
 		missionId = mission.getId();
 		requiredPrimary = mission.getPrimaryResource();
 		requiredSecondary = mission.getSecondaryResource();
+		requiredTime = mission.getRequiredTime();
 		pendingMillis = mission.getTerminationDate() == null ? NEVER_ENDING_MISSION_SYMBOL
 				: (mission.getTerminationDate().getTime() - new Date().getTime() + INTENTIONAL_DELAY_MS);
 		type = MissionType.valueOf(mission.getType().getCode());
@@ -56,6 +58,24 @@ public abstract class AbstractRunningMissionDto {
 
 	public void setRequiredSecondary(Double requiredSecondary) {
 		this.requiredSecondary = requiredSecondary;
+	}
+
+	/**
+	 * @return the requiredTime
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double getRequiredTime() {
+		return requiredTime;
+	}
+
+	/**
+	 * @param requiredTime the requiredTime to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setRequiredTime(Double requiredTime) {
+		this.requiredTime = requiredTime;
 	}
 
 	/**

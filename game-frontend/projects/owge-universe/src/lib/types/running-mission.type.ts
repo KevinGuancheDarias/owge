@@ -11,6 +11,7 @@ export interface RunningMission {
     requiredPrimary: number;
     requiredSecondary: number;
     pendingMillis: number;
+    requiredTime: number;
     type: MissionType;
 
     /**

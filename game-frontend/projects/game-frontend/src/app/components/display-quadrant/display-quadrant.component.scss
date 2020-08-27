@@ -4,10 +4,19 @@ app-display-quadrant {
             a {
                 margin-left: 5px;
                 margin-bottom: 7px;
+                float: left;
             }
             img {
                 margin-top: 3px;
             }
         }
+
+        .fast-explore {
+            color: red;
+            &.available {
+                color: green;
+            }
+        }
     }
 }
+

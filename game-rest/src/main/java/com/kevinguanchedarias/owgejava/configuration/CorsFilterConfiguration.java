@@ -34,7 +34,7 @@ class CorsFilterConfiguration extends WebSecurityConfigurerAdapter {
 	private CorsConfigurator createFilterConfiguration() {
 		SimpleCorsConfigurator corsConfigurator = new SimpleCorsConfigurator();
 		String[] originStrings = { "http://owgejava_ci.kevinguanchedarias.com", "http://localhost:4200",
-				"http://localhost", "http://192.168.99.100" };
+				"http://localhost", "http://192.168.99.100:8080" };
 		List<String> originList = new ArrayList<>(Arrays.asList(originStrings));
 		if (!StringUtils.isEmpty(customOrigin)) {
 			originList.add(customOrigin);

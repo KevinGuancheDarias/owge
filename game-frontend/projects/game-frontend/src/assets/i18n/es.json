@@ -51,7 +51,9 @@
             "SECTOR": "Sector",
             "QUADRANT": "Cuadrante",
             "CURRENT_COORDINATES": "Coordenadas actuales",
-            "TOOLTIP_SEND_MISSION": "Enviar misión"
+            "TOOLTIP_SEND_MISSION": "Enviar misión",
+            "FAST_EXPLORE_SENT": "Una unidad de {{unitName}} fue enviada a explorar",
+            "FAST_EXPLORE_UNAVAILABLE": "No hay ninguna unidad disponible con el rol de explorador"
         },
         "PLANET": {
             "SUMMARY": "Nombre: {{name}}, Coordenadas: Galaxia: {{galaxyName}}, sector {{sector}}, cuadrante {{quadrant}}, número {{planetNumber}}",
