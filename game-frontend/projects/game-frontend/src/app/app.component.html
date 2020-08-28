@@ -2,7 +2,7 @@
 <div class="app-container">
     <router-outlet></router-outlet>
     <div *ngIf="isPanic" class="panic-wrapper">
-        <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' }}</button>
+        <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' | translate }}</button>
     </div>
 </div>
 <div *ngIf="isInGame" class="is-connected" [ngClass]="panicClass || connectedClass" [@toggleConnected]="hasToShow || isPanic ? 'show' : 'hide'">
