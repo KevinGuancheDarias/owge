@@ -74,6 +74,7 @@
         "GALAXY": {
             "SECTORS": "Sectors",
             "QUADRANTS": "Quadrants",
+            "PLANETS": "Planets",
             "ORDER": "Order"
         },
         "RESOURCE_REQUIREMENT": {

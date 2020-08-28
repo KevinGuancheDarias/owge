@@ -8,6 +8,7 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 	private String name;
 	private Long sectors;
 	private Long quadrants;
+	private Long numPlanets;
 	private Integer orderNumber;
 
 	@Override
@@ -16,6 +17,7 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 		name = entity.getName();
 		sectors = entity.getSectors();
 		quadrants = entity.getQuadrants();
+		numPlanets = entity.getNumPlanets();
 		orderNumber = entity.getOrderNumber();
 	}
 
@@ -52,7 +54,27 @@ public class GalaxyDto implements DtoFromEntity<Galaxy> {
 	}
 
 	/**
-	 * 
+	 * Number of planets for each quadrant
+	 *
+	 * @return the numPlanets
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long getNumPlanets() {
+		return numPlanets;
+	}
+
+	/**
+	 * @param numPlanets the numPlanets to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setNumPlanets(Long numPlanets) {
+		this.numPlanets = numPlanets;
+	}
+
+	/**
+	 *
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 * @return

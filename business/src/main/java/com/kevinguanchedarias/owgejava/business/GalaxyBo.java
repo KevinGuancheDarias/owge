@@ -1,14 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
-import java.util.concurrent.Future;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +21,6 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	private static final long serialVersionUID = 5691936505840441041L;
 
-	private static final Integer PLANETS_FOR_EACH_QUADRANT = 20;
 	private static final Long GALAXY_MAX_LENGTH = 50000L;
 
 	@Autowired
@@ -43,24 +39,12 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
 	public Class<GalaxyDto> getDtoClass() {
 		return GalaxyDto.class;
-	}
-
-	/**
-	 * Will async save the galaxy
-	 * 
-	 * @param galaxy
-	 * @return - Saved Galaxy, or null if an error occurred
-	 */
-	@Async
-	public Future<Galaxy> saveAsync(Galaxy galaxy) {
-		Galaxy savedGalaxy = save(galaxy);
-		return new AsyncResult<>(savedGalaxy);
 	}
 
 	@Override
@@ -76,7 +60,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * Will check if it's possible to save the galaxy
-	 * 
+	 *
 	 * @param galaxy
 	 * @author Kevin Guanche Darias
 	 * @throws SgtBackendInvalidInputException When it's not possible to save
@@ -88,13 +72,13 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * Returns number of planets galaxy will have
-	 * 
+	 *
 	 * @param galaxy
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public Long computedPlanetsCount(Galaxy galaxy) {
-		return galaxy.getSectors() * galaxy.getQuadrants() * PLANETS_FOR_EACH_QUADRANT;
+		return galaxy.getSectors() * galaxy.getQuadrants() * galaxy.getNumPlanets();
 	}
 
 	/**
@@ -116,7 +100,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * Returns true if the specified galaxy has players
-	 * 
+	 *
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 * @param id Galaxy id
@@ -126,7 +110,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	}
 
 	private void checkInput(Galaxy galaxy) {
-		if (galaxy.getSectors() < 1 || galaxy.getQuadrants() < 1) {
+		if (galaxy.getSectors() < 1 || galaxy.getQuadrants() < 1 || galaxy.getNumPlanets() < 1) {
 			throw new SgtBackendInvalidInputException("Datos de entrada no válidos");
 		}
 
@@ -139,7 +123,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	/**
 	 * Will check if the selected galaxy is empty Considered empty when there are
 	 * not players in it
-	 * 
+	 *
 	 * @param galaxy
 	 * @author Kevin Guanche Darias
 	 */
@@ -151,7 +135,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * Will append a transient planet instance to the galaxy
-	 * 
+	 *
 	 * @param richnessPosibilities
 	 * @param galaxy
 	 * @param sector
@@ -179,7 +163,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	/**
 	 * Prepares the galaxy for saving, so if galaxy has never been persisted will
 	 * insert ALL its planets WARNING: HEAVY INTENSE OPERATION!
-	 * 
+	 *
 	 * @param galaxy
 	 * @author Kevin Guanche Darias
 	 */
@@ -188,7 +172,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 		for (int sector = 1; sector <= galaxy.getSectors(); sector++) {
 			for (int quadrant = 1; quadrant <= galaxy.getQuadrants(); quadrant++) {
-				for (int planetNumber = 1; planetNumber <= PLANETS_FOR_EACH_QUADRANT; planetNumber++) {
+				for (int planetNumber = 1; planetNumber <= galaxy.getNumPlanets(); planetNumber++) {
 					preparePlanet(richnessPosibilities, galaxy, sector, quadrant, planetNumber);
 				}
 			}
@@ -197,7 +181,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * Will generate the richness possibilities
-	 * 
+	 *
 	 * @return
 	 */
 	private Integer[] generateRichnessPosibilities() {

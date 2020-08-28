@@ -100,3 +100,5 @@ ALTER TABLE `units` ADD `display_in_requirements` BOOLEAN NULL DEFAULT FALSE AFT
 ALTER TABLE `unit_types` ADD `has_to_inherit_improvements` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'If true applied benefits to parent unit type will also apply to this' AFTER `speed_impact_group_id`;
 
 ALTER TABLE `units` ADD `can_fast_explore` BOOLEAN NOT NULL DEFAULT FALSE AFTER `is_unique`;
+
+ALTER TABLE `galaxies` ADD `num_planets` INT UNSIGNED NOT NULL DEFAULT '20' AFTER `quadrants`;

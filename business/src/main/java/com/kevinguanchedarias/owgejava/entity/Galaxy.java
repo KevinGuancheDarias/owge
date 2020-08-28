@@ -26,6 +26,9 @@ public class Galaxy implements EntityWithId<Integer> {
 	private Long sectors;
 	private Long quadrants;
 
+	@Column(name = "num_planets")
+	private Long numPlanets = 20L;
+
 	@Column(name = "order_number")
 	private Integer orderNumber;
 
@@ -67,6 +70,26 @@ public class Galaxy implements EntityWithId<Integer> {
 		this.quadrants = quadrants;
 	}
 
+	/**
+	 * Number of planets for each quadrant
+	 *
+	 * @return the numPlanets
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Long getNumPlanets() {
+		return numPlanets;
+	}
+
+	/**
+	 * @param numPlanets the numPlanets to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setNumPlanets(Long numPlanets) {
+		this.numPlanets = numPlanets;
+	}
+
 	public Integer getOrderNumber() {
 		return orderNumber;
 	}
@@ -85,7 +108,7 @@ public class Galaxy implements EntityWithId<Integer> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -98,23 +121,28 @@ public class Galaxy implements EntityWithId<Integer> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Galaxy other = (Galaxy) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
-		} else if (!id.equals(other.id))
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		return true;
 	}
 

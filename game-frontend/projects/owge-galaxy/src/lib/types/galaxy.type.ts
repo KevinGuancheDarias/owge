@@ -11,5 +11,6 @@ export interface Galaxy {
     name: string;
     sectors: number;
     quadrants: number;
+    numPlanets?: number;
     orderNumber: number;
 }

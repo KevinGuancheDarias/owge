@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { AdminGalaxyService } from '../../services/admin-galaxy.service';
-import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Galaxy } from '@owge/galaxy';
 import { LoggerHelper } from '@owge/core';
@@ -44,6 +43,7 @@ export class GalaxiesCrudComponent {
     if (this.selectedGalaxy.id) {
       this.adminGalaxyService.hasPlayers(this.selectedGalaxy.id).pipe(take(1)).subscribe(val => this.hasPlayers = val);
     } else {
+      galaxy.numPlanets = 20;
       this.hasPlayers = false;
     }
   }
