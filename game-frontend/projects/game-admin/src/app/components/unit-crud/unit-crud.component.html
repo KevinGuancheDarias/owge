@@ -12,6 +12,11 @@
                 <input class="form-control" type="checkbox" id="input-unique" [(ngModel)]="selectedEl.isUnique">
             </div>
             <div class="form-group col-md-6">
+                <label for="input-fast-explore">{{ 'CRUD.UNIT.CAN_FAST_EXPLORE' | translate }}</label>
+                <input class="form-control" type="checkbox" id="input-fast-explore" [(ngModel)]="selectedEl.canFastExplore">
+            </div>
+
+            <div class="form-group col-md-6">
                 <label for="input-show-in-requirements">{{ 'CRUD.UNIT.SHOW_IN_REQUIREMENTS' | translate }}</label>
                 <input class="form-control" type="checkbox" id="input-show-in-requirements" [(ngModel)]="selectedEl.hasToDisplayInRequirements">
             </div>

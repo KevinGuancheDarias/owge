@@ -80,6 +80,7 @@
         "UNIT": {
             "TYPE": "Tipo",
             "UNIQUE": "Unico",
+            "CAN_FAST_EXPLORE": "Reacciona a exploración rápida",
             "SHOW_IN_REQUIREMENTS": "Mostrar en requisitos",
             "ATTACK": "Ataque",
             "HEALTH": "Defensa",

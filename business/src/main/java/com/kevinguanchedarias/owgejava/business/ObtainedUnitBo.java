@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
@@ -116,6 +117,17 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	public List<ObtainedUnit> findByMissionId(Long missionId) {
 		return repository.findByMissionId(missionId);
+	}
+
+	/**
+	 *
+	 * @param unit
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByUnit(Unit unit) {
+		return repository.findByUnit(unit);
 	}
 
 	@Transactional(propagation = Propagation.MANDATORY)
@@ -254,11 +266,22 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		} else {
 			retVal = null;
 		}
-		socketIoService.sendMessage(obtainedUnitDto.getUserId(), "unit_type_change",
-				() -> unitTypeBo.findUnitTypesWithUserInfo(obtainedUnitDto.getUserId()));
-		socketIoService.sendMessage(obtainedUnitDto.getUserId(), UnitMissionBo.UNIT_OBTAINED_CHANGE,
-				() -> toDto(findMyDeployedInUserOwnedPlanets()));
+		Integer userId = obtainedUnitDto.getUserId();
+		socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId));
+		emitObtainedUnitChange(userId);
 		return retVal;
+	}
+
+	/**
+	 * Emits changed obtained units
+	 *
+	 * @param user
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitObtainedUnitChange(Integer userId) {
+		socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
+				() -> toDto(findDeployedInUserOwnedPlanets(userId)));
 	}
 
 	/**
@@ -394,6 +417,18 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	public Long deleteBySourcePlanetIdAndMissionIdNull(Planet sourcePlanet) {
 		return repository.deleteBySourcePlanetIdAndMissionIdNull(sourcePlanet.getId());
+	}
+
+	/**
+	 * Delete by relation id
+	 *
+	 * @param unit
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void deleteByUnit(Unit unit) {
+		repository.deleteByUnit(unit);
 	}
 
 	public boolean existsByMission(Mission mission) {

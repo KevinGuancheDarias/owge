@@ -1,11 +1,14 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
@@ -24,6 +27,9 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 
 	@Autowired
 	private UnlockedRelationBo unlockedRelationBo;
+
+	@Autowired
+	private ObjectRelationBo objectRelationBo;
 
 	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
@@ -86,10 +92,27 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
 	 */
+	@Transactional
 	@Override
 	public void delete(Unit unit) {
+		objectRelationBo.delete(objectRelationBo.findOneByObjectTypeAndReferenceId(getObject(), unit.getId()));
+		Set<UserStorage> affectedUsers = new HashSet<>();
+		obtainedUnitBo.findByUnit(unit).forEach(obtainedUnit -> affectedUsers.add(obtainedUnit.getUser()));
+		obtainedUnitBo.deleteByUnit(unit);
 		improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitBo);
+		affectedUsers.forEach(user -> {
+			obtainedUnitBo.emitObtainedUnitChange(user.getId());
+			if (unit.getImprovement() != null) {
+				improvementBo.emitUserImprovement(user);
+			}
+		});
 		WithNameBo.super.delete(unit);
+	}
+
+	@Transactional
+	@Override
+	public void delete(Integer id) {
+		delete(findByIdOrDie(id));
 	}
 
 	/**

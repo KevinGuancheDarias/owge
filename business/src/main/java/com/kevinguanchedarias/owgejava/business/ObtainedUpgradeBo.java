@@ -9,9 +9,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
@@ -28,6 +30,9 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	@Autowired
 	private ImprovementBo improvementBo;
 
+	@Autowired
+	private SocketIoService socketIoService;
+
 	@PostConstruct
 	public void init() {
 		improvementBo.addImprovementSource(this);
@@ -40,7 +45,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -49,8 +54,29 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	}
 
 	/**
+	 *
+	 * @param upgrade
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void deleteByUpgrade(Upgrade upgrade) {
+		obtainedUpgradeRepository.deleteByUpgrade(upgrade);
+	}
+
+	/**
+	 *
+	 * @param id
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitObtainedChange(Integer userId) {
+		socketIoService.sendMessage(userId, "obtained_upgrades_change", () -> toDto(findByUser(userId)));
+	}
+
+	/**
 	 * Returns obtained upgrades by given user
-	 * 
+	 *
 	 * @param userId id of the user
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -64,8 +90,18 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	}
 
 	/**
+	 *
+	 * @param upgrade
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUpgrade> findByUpgrade(Upgrade upgrade) {
+		return obtainedUpgradeRepository.findByUpgrade(upgrade);
+	}
+
+	/**
 	 * Does user has the given upgrade obtained?
-	 * 
+	 *
 	 * @param userId    id of the user
 	 * @param upgradeId id of the asked upgrade
 	 * @return true if upgrade has been obtained
@@ -77,7 +113,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 
 	/**
 	 * Find user's obtained upgrade
-	 * 
+	 *
 	 * @param userId
 	 * @param upgradeId
 	 * @author Kevin Guanche Darias
@@ -89,7 +125,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 	/**
 	 * Returns the total sum of the value for the specified improvement type for
 	 * user obtained upgrades
-	 * 
+	 *
 	 * @param user
 	 * @param type The expected type
 	 * @return
@@ -102,7 +138,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.interfaces.ImprovementSource#
 	 * calculateImprovement()
 	 */
@@ -112,4 +148,5 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 				.map(current -> improvementBo.multiplyValues(current.getUpgrade().getImprovement(), current.getLevel()))
 				.collect(Collectors.toList()));
 	}
+
 }

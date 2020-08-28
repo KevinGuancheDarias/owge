@@ -163,8 +163,7 @@ public class MissionBo extends AbstractMissionBo {
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(obtainedUpgrade);
 				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
-				socketIoService.sendMessage(user, "obtained_upgrades_change",
-						() -> obtainedUpgradeBo.toDto(obtainedUpgradeBo.findByUser(userId)));
+				obtainedUpgradeBo.emitObtainedChange(userId);
 				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 			});
 		} else {

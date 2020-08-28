@@ -48,12 +48,46 @@ public class ObtainedUpgrade implements EntityWithId<Long> {
 		this.id = id;
 	}
 
+	/**
+	 *
+	 * @deprecated use {@link ObtainedUpgrade#getUser()}
+	 * @return
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.0")
 	public UserStorage getUserId() {
 		return userId;
 	}
 
+	/**
+	 *
+	 * @deprecated use {@link ObtainedUpgrade#setUser(UserStorage)}
+	 * @param userId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated
 	public void setUserId(UserStorage userId) {
 		this.userId = userId;
+	}
+
+	/**
+	 *
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public UserStorage getUser() {
+		return userId;
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setUser(UserStorage user) {
+		userId = user;
 	}
 
 	public Upgrade getUpgrade() {
@@ -73,7 +107,7 @@ public class ObtainedUpgrade implements EntityWithId<Long> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use isAvailable instead()
 	 * @return
 	 */
@@ -83,7 +117,7 @@ public class ObtainedUpgrade implements EntityWithId<Long> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @since 0.8.1
 	 * @return
 	 */

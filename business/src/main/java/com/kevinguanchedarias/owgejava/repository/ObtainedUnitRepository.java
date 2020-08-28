@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
@@ -54,6 +55,14 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	public Long countByUserIdAndUnitId(Integer userId, Integer unitId);
 
 	public Long deleteByMissionId(Long missionId);
+
+	/**
+	 *
+	 * @param unit
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void deleteByUnit(Unit unit);
 
 	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE ou.user.id = ?1 AND ou.unit.id = ?2 AND ou.sourcePlanet.id = ?3 AND(ou.mission.id IS NULL OR ou.mission.type.code = 'DEPLOYED') ")
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullOrDeployed(Integer userId,
@@ -132,5 +141,14 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
 	public List<ObtainedUnit> findLockedByMissionId(Long missionId);
+
+	/**
+	 *
+	 * @param unit
+	 * @return
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByUnit(Unit unit);
 
 }

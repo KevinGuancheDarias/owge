@@ -157,6 +157,18 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	}
 
 	/**
+	 * Emits the current user improvements
+	 *
+	 * @param user
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUserImprovement(UserStorage user) {
+		socketIoService.sendMessage(user, "user_improvements_change",
+				() -> beanFactory.getBean(getClass()).findUserImprovement(user));
+	}
+
+	/**
 	 * Triggers a change detection
 	 *
 	 * @param improvement

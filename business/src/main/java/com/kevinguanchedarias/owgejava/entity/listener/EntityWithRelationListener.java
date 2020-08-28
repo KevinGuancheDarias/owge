@@ -10,8 +10,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
-import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
-import com.kevinguanchedarias.owgejava.business.UnlockedRelationBo;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRelation;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRelationImp;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
@@ -29,16 +27,11 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 public class EntityWithRelationListener {
 
 	private ObjectRelationBo objectRelationBo;
-	private RequirementInformationBo requirementInformationBo;
-	private UnlockedRelationBo unlockedRelationBo;
 
 	@Lazy
-	public EntityWithRelationListener(ObjectRelationBo objectRelationBo,
-			RequirementInformationBo requirementInformationBo, UnlockedRelationBo unlockedRelationBo) {
+	public EntityWithRelationListener(ObjectRelationBo objectRelationBo) {
 		super();
 		this.objectRelationBo = objectRelationBo;
-		this.requirementInformationBo = requirementInformationBo;
-		this.unlockedRelationBo = unlockedRelationBo;
 	}
 
 	/**
@@ -79,8 +72,6 @@ public class EntityWithRelationListener {
 	@Transactional(propagation = Propagation.MANDATORY)
 	public void removeRelation(EntityWithRelationImp entityWithRelation) {
 		ObjectRelation relation = entityWithRelation.getRelation();
-		requirementInformationBo.deleteByRelation(relation);
-		unlockedRelationBo.deleteByRelation(relation);
 		objectRelationBo.delete(relation);
 	}
 }

@@ -41,6 +41,9 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 	@Autowired
 	private ObjectRelationsRepository objectRelationsRepository;
 
+	@Autowired
+	private RequirementInformationBo requirementInformationBo;
+
 	@Override
 	public JpaRepository<ObjectRelation, Integer> getRepository() {
 		return objectRelationsRepository;
@@ -122,7 +125,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 					.findBo(relations.get(0).getObject());
 			relations.forEach(current -> {
 				E entity = (E) bo.findByIdOrDie(current.getReferenceId());
-				System.out.println("Value for entity is " + entity + " as referenced " + current.getReferenceId());
 				retVal.add(entity);
 			});
 		}
@@ -268,6 +270,20 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 		if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId) == null) {
 			throw new SgtBackendTargetNotUnlocked("The target object relation has not been unlocked");
 		}
+	}
+
+	@Transactional
+	@Override
+	public void delete(ObjectRelation objectRelation) {
+		requirementInformationBo.deleteByRelation(objectRelation);
+		unlockedRelationBo.deleteByRelation(objectRelation);
+		BaseBo.super.delete(objectRelation);
+	}
+
+	@Transactional
+	@Override
+	public void delete(Integer id) {
+		delete(findById(id));
 	}
 
 }

@@ -90,6 +90,7 @@
         "UNIT": {
             "TYPE": "Type",
             "UNIQUE": "Unique",
+            "CAN_FAST_EXPLORE": "Can fast explore",
             "SHOW_IN_REQUIREMENTS": "Show in requirements",
             "ATTACK": "Attack",
             "HEALTH": "Health",

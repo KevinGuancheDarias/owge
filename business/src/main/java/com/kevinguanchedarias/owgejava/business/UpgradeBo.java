@@ -1,17 +1,19 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.UpgradeRepository;
 
@@ -23,7 +25,7 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	private UpgradeRepository upgradeRepository;
 
 	@Autowired
-	private transient RequirementInformationDao requirementInformationDao;
+	private ObjectRelationBo objectRelationBo;
 
 	@Autowired
 	private ObtainedUpgradeBo obtainedUpgradeBo;
@@ -38,7 +40,7 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -50,13 +52,31 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 	@Override
 	public void delete(Upgrade upgrade) {
 		improvementBo.clearCacheEntriesIfRequired(upgrade, obtainedUpgradeBo);
-		requirementInformationDao.deleteAllObjectRelations(RequirementTargetObject.UPGRADE, upgrade.getId());
+		objectRelationBo
+				.delete(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE, upgrade.getId()));
+		Set<UserStorage> affectedUsers = new HashSet<>();
+		obtainedUpgradeBo.findByUpgrade(upgrade)
+				.forEach(obtainedUpgrade -> affectedUsers.add(obtainedUpgrade.getUser()));
+		obtainedUpgradeBo.deleteByUpgrade(upgrade);
+		improvementBo.clearCacheEntriesIfRequired(upgrade, obtainedUpgradeBo);
+		affectedUsers.forEach(user -> {
+			obtainedUpgradeBo.emitObtainedChange(user.getId());
+			if (upgrade.getImprovement() != null) {
+				improvementBo.emitUserImprovement(user);
+			}
+		});
 		WithNameBo.super.delete(upgrade);
+	}
+
+	@Transactional
+	@Override
+	public void delete(Integer id) {
+		delete(findByIdOrDie(id));
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
 	 * owgejava.entity.EntityWithId)
@@ -69,7 +89,7 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
 	 */
 	@Override
@@ -80,7 +100,7 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 
 	/**
 	 * Returns the resource requirements required to level up
-	 * 
+	 *
 	 * @param obtainedUpgrade
 	 * @return
 	 * @author Kevin Guanche Darias
