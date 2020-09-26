@@ -1,0 +1,18 @@
+º<owge-core-modal [hasCloseButton]>
+    <div class="header">
+        {{ i18nModalTitle | translate }}
+    </div>
+    <div class="body">
+        <ng-content></ng-content>
+    </div>
+    <div class="footer">
+        <button class="btn btn-primary" role="button" (click)="clickSave()" [disabled]="isDisabled">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="clickCancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>
+<owge-widgets-confirmation-dialog (confirmResult)="clickDelete($event)"></owge-widgets-confirmation-dialog>
+<span class="owge-base-colors">
+    {{ itemName || (i18nNullValue | translate) }} 
+    <i class="fa action fa-pen" (click)="modal.show()"></i>
+    <i class="fas fa-times" (click)="confirmationDialog.show()"></i>
+</span> 

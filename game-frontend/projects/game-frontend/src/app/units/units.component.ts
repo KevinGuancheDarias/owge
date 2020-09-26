@@ -33,10 +33,6 @@ export class UnitsComponent extends BaseComponent implements OnInit, AfterViewIn
   public hideDescription = false;
   public inputElement: HTMLInputElement;
 
-  public get location(): ValidLocation {
-    return this.findLocation();
-  }
-
   constructor(
     private _router: Router,
     private _unitTypeService: UnitTypeService,
@@ -88,15 +84,15 @@ export class UnitsComponent extends BaseComponent implements OnInit, AfterViewIn
   }
 
   public isBuildRoute(): boolean {
-    return this.location === 'BUILD_URL';
+    return this.findLocation() === 'BUILD_URL';
   }
 
   public isDeployedRoute(): boolean {
-    return this.location === 'DEPLOYED_URL';
+    return this.findLocation() === 'DEPLOYED_URL';
   }
 
   public isRequirementsRoute(): boolean {
-    return this.location === 'REQUIREMENTS_URL';
+    return this.findLocation() === 'REQUIREMENTS_URL';
   }
 
   private findLocation(): ValidLocation {
@@ -106,8 +102,10 @@ export class UnitsComponent extends BaseComponent implements OnInit, AfterViewIn
       case this.REQUIREMENTS_URL:
         return 'REQUIREMENTS_URL';
       case this.DEPLOYED_URL:
-      default:
         return 'DEPLOYED_URL';
+      default:
+        this._router.navigate([this.DEPLOYED_URL]);
+        break;
     }
   }
 }

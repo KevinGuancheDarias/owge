@@ -33,6 +33,9 @@ export class AbstractCrudService<T, K = number> extends WithReadCrudMixin<T, K> 
      */
     public constructor(protected _universeGameService: UniverseGameService) {
         super();
+        if (!_universeGameService) {
+            throw new ProgrammingError('When extending AbstractCrudService, it is required to pass UniverseGameService to the constructor');
+        }
     }
 
     /**

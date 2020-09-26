@@ -7,6 +7,7 @@ import { MissionService } from '../services/mission.service';
 import { UpgradeService } from '../service/upgrade.service';
 import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage } from '@owge/universe';
 import { take } from 'rxjs/operators';
+import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
 
 @Component({
   selector: 'app-game-index',
@@ -26,7 +27,8 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   public constructor(
     private _missionService: MissionService,
     private _userStore: UserStorage<User>,
-    private _upgradeService: UpgradeService
+    private _upgradeService: UpgradeService,
+    private _tutorialService: TutorialService
   ) {
     super();
   }
@@ -54,6 +56,7 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   public findMyMissions(): void {
     this._subscriptions.add(this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
       this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
+      this._tutorialService.triggerTutorial();
     }));
   }
 

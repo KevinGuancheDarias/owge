@@ -1,6 +1,7 @@
 export * from './lib/components/abstract-sidebar.component/abstract-sidebar.component';
 export * from './lib/components/owge-card-list/owge-card-list.component';
 export * from './lib/components/removable-image/removable-image.component';
+export * from './lib/components/widget-choose-item-modal/widget-choose-item-modal.component';
 export * from './lib/components/widget-circular-percentage/widget-circular-percentage.component';
 export * from './lib/components/widget-collapsable-item/widget-collapsable-item.component';
 export * from './lib/components/widget-confirmation-dialog/widget-confirmation-dialog.component';

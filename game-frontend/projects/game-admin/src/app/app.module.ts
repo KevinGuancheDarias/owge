@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import {
-  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService
+  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService, CoreHttpService
 } from '@owge/core';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeUniverseModule } from '@owge/universe';
@@ -54,6 +54,11 @@ import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-grou
 import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/can-do-missions-crud.component';
 import { AttackRuleCrudComponent } from './components/attack-rule-crud/attack-rule-crud.component';
 import { AdminAttackRuleService } from './services/admin-attack-rule.service';
+import { TutorialComponent } from './components/tutorial/tutorial.component';
+import { AdminTutorialService } from './services/admin-tutorial.service';
+import { TranslatableComponent } from './components/translatable/translatable.component';
+import { AdminTutorialEntryService } from './services/admin-tutorial-entry.service';
+import { AdminTranslatableService } from './services/admin-translatable.service';
 
 @NgModule({
   declarations: [
@@ -81,7 +86,9 @@ import { AdminAttackRuleService } from './services/admin-attack-rule.service';
     RequirementsModalComponent,
     SpeedImpactGroupCrudComponent,
     CanDoMissionsCrudComponent,
-    AttackRuleCrudComponent
+    AttackRuleCrudComponent,
+    TutorialComponent,
+    TranslatableComponent
   ],
   imports: [
     BrowserModule,
@@ -124,6 +131,9 @@ import { AdminAttackRuleService } from './services/admin-attack-rule.service';
     AdminRequirementService,
     AdminSpeedImpactGroupService,
     AdminAttackRuleService,
+    AdminTutorialService,
+    AdminTutorialEntryService,
+    AdminTranslatableService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',
@@ -136,7 +146,8 @@ export class AppModule {
   public constructor(
     sessionService: SessionService,
     adminLoginService: AdminLoginService,
-    translateService: TranslateService) {
+    translateService: TranslateService
+  ) {
     sessionService.initStore();
     const key = AdminLoginService.SESSION_STORAGE_KEY;
     const rawToken: string = sessionStorage.getItem(key);

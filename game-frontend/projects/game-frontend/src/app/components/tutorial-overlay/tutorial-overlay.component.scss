@@ -1,0 +1,86 @@
+@keyframes tutorial-color-change {
+    0% { color: silver }
+    50% { color: orange; }
+    100% { color: silver }
+}
+@keyframes tutorial-border-color-change {
+    0% { border-color: red; }
+    50% { border-color: orange; }
+    100% { border-color: red; }
+}
+
+@keyframes tutorial-stroke-color-change {
+    0% { stroke: red; }
+    50% { stroke: orange; }
+    100% { stroke: red; }
+}
+
+span.tutorial-text {
+    position: absolute;
+    display: inline-block;
+    max-width: 100%;
+    padding: 10px;
+    white-space: pre-wrap;
+    border-radius: 4px;
+    border: 2px solid red;
+    font-size: 8pt;
+    max-height: 100px;
+    overflow: auto;
+    z-index: 65534;
+
+    box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+    --var-opacity: 1;
+    animation: tutorial-border-color-change 0.75s infinite;
+    span {
+        animation: tutorial-color-change 3s infinite;
+    }
+}
+
+app-tutorial-overlay {
+    .tutorial-overlay {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        z-index: 65532;
+        background-color: rgba($color: #88B, $alpha: 0.4);
+
+        svg{
+            top: 0px;
+            left: 0px;
+            position: absolute;
+            min-height: 100%;
+            min-width: 100%;
+
+            rect, line {
+                animation: tutorial-stroke-color-change 0.5s infinite;
+            }
+        }
+    }
+
+    div.click-blocker {
+        position: fixed;
+        left: -1;
+        top: -1;
+        z-index: 65534;
+        cursor: not-allowed;
+    }
+
+}
+@media (min-width: 767px){
+    span.tutorial-text {
+        font-size: 12pt;
+        max-width: 350px;
+    }    
+}
+@media (min-height: 400px) {
+    span.tutorial-text {
+        max-height: 250px;
+    }
+}
+@media (min-height: 600px) {
+    span.tutorial-text {
+        max-height: 450px;
+    }
+}

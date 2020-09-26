@@ -74,6 +74,7 @@ import { Log, Level } from 'ng2-logger/browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PlanetListComponent } from './components/planet-list/planet-list.component';
 import { SettingsComponent } from './components/settings/settings.component';
+import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -148,7 +149,8 @@ export const APP_ROUTES: Routes = [
     GameSidebarComponent,
     TimeSpecialsComponent,
     PlanetListComponent,
-    SettingsComponent
+    SettingsComponent,
+    TutorialOverlayComponent
   ],
   imports: [
     BrowserModule,
@@ -250,5 +252,5 @@ export class AppModule {
 }
 
 export function findHttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http);
+  return new TranslateHttpLoader(http, './assets/i18n/');
 }

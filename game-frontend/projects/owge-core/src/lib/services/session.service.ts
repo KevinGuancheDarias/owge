@@ -7,7 +7,6 @@ import { Observable } from 'rxjs';
 import { TokenPojo } from '../pojos/token.pojo';
 import { OwgeCoreConfig } from '../pojos/owge-core-config';
 import { ProgrammingError } from '../errors/programming.error';
-import { User } from '../types/user.type';
 import { JwtTokenUtil } from '../utils/jwt-token.util';
 import { SessionStore } from '../store/session.store';
 

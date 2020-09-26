@@ -17,6 +17,8 @@ import { LocalConfigurationService } from './services/local-configuration.servic
 import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
 import { ToastrService } from './services/toastr.service';
 import { FormatNumberPipe } from './pipes/format-number.pipe';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { LanguageHttpInterceptor } from './http-interceptors/language.http-interceptor';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -73,6 +75,7 @@ export class CoreModule {
       providers: [
         CoreHttpService,
         { provide: OwgeCoreConfig, useValue: accountConfig },
+        { provide: HTTP_INTERCEPTORS, useClass: LanguageHttpInterceptor, multi: true },
         ScreenDimensionsService,
         LocalConfigurationService,
         ToastrService

@@ -1,0 +1,10 @@
+<div class="tutorial-overlay" *ngIf="runningEntry" #overlayEl>
+    <svg *ngFor="let node of nodes" #imgEl width="100%">
+    </svg>
+    <span #textEl class="owge-base-colors tutorial-text">
+        {{ runningEntry.text?.translation?.value}} 
+        <br>
+        <span>{{ (runningEntry.event === 'CLICK' ? 'TUTORIAL.CLICK_TARGET' : 'TUTORIAL.CLICK_OR_KEY') | translate}}</span>
+    </span>
+</div>
+<div *ngFor="let node of nodes" #clickBlockerEl class="click-blocker"></div>

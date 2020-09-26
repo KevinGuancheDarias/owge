@@ -102,3 +102,25 @@ ALTER TABLE `unit_types` ADD `has_to_inherit_improvements` BOOLEAN NOT NULL DEFA
 ALTER TABLE `units` ADD `can_fast_explore` BOOLEAN NOT NULL DEFAULT FALSE AFTER `is_unique`;
 
 ALTER TABLE `galaxies` ADD `num_planets` INT UNSIGNED NOT NULL DEFAULT '20' AFTER `quadrants`;
+
+CREATE TABLE `tutorial_sections` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(100) NOT NULL , `description` TEXT NULL , `frontend_router_path` VARCHAR(150) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+CREATE TABLE `tutorial_sections_available_html_symbols` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(50) NOT NULL , `identifier` VARCHAR(150) NOT NULL COMMENT 'The identifier to use in the Frontend ngDirective' , `tutorial_section_id` SMALLINT UNSIGNED NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+ALTER TABLE `tutorial_sections_available_html_symbols` ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+CREATE TABLE `tutorial_sections_entries` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `order_num` SMALLINT UNSIGNED NULL , `section_available_html_symbol_id` INT UNSIGNED NOT NULL , `event` ENUM('CLICK','ANY_KEY_OR_CLICK') NOT NULL , `text_id` INT UNSIGNED NOT NULL , PRIMARY KEY (`id`), INDEX (`section_id`)) ENGINE = InnoDB;
+
+ALTER TABLE `tutorial_sections_entries` ADD CONSTRAINT `fk_tse_symbol_id` FOREIGN KEY (`section_available_html_symbol_id`) REFERENCES `tutorial_sections_available_html_symbols`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+CREATE TABLE `translatables` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(100) NOT NULL , `default_lang_code` CHAR(2) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+
+CREATE TABLE `translatables_translations` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `translatable_id` INT UNSIGNED NOT NULL , `lang_code` CHAR(2) NOT NULL , `value` LONGTEXT NOT NULL , PRIMARY KEY (`id`), INDEX (`translatable_id`)) ENGINE = InnoDB;
+
+ALTER TABLE `translatables_translations` ADD CONSTRAINT `fk_translatable_id` FOREIGN KEY (`translatable_id`) REFERENCES `translatables`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+CREATE TABLE `visited_tutorial_entries` ( `id` BIGINT NOT NULL AUTO_INCREMENT , `user_id` INT(11) UNSIGNED NOT NULL , `entry_id` INT UNSIGNED NOT NULL , PRIMARY KEY (`id`), INDEX (`user_id`)) ENGINE = InnoDB;
+
+ALTER TABLE `visited_tutorial_entries` ADD CONSTRAINT `fk_vts_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `user_storage` ADD `has_skipped_tutorial` BOOLEAN NOT NULL AFTER `max_energy`;

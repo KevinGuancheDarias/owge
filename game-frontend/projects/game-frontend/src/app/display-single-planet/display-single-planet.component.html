@@ -1,7 +1,7 @@
 <div class="container" *ngIf="planet">
     <ng-content></ng-content>
     <p>
-        <i *ngIf="planet.home" class="fa fa-home"></i> {{ planet | planetDisplayName }}
+        <i *ngIf="planet.home" class="fa fa-home"></i><span class="planet-name">{{ planet | planetDisplayName }}</span>
 
     </p>
 

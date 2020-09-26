@@ -59,10 +59,12 @@ public class UserStorage implements EntityWithId<Integer> {
 	@Deprecated(since = "0.8.0")
 	private Double secondaryResourceGenerationPerSecond = 0D;
 
+	@Column(name = "has_skipped_tutorial")
+	private Boolean hasSkippedTutorial = false;
 	/**
 	 * @deprecated Max Energy is now a computed value
 	 */
-	@Deprecated
+	@Deprecated(since = "0.7.0")
 	@Column(name = "max_energy")
 	private Double maxEnergy;
 
@@ -104,7 +106,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	/**
 	 * Fills the transient properties of the entity <br />
 	 * <b>IMPORTANT: The entity should have all the "details" </b>
-	 * 
+	 *
 	 * @deprecated Transient properties of UserStorage are not longer required, use
 	 *             version without transient argument
 	 * @author Kevin Guanche Darias
@@ -127,7 +129,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	/**
 	 * Returns a new instance of {@link UserStorage} with only id and username <br>
 	 * Potentially useful when wanting to remove ORM proxies
-	 * 
+	 *
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -213,7 +215,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -224,7 +226,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -234,7 +236,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -245,7 +247,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -270,6 +272,24 @@ public class UserStorage implements EntityWithId<Integer> {
 		this.maxEnergy = maxEnergy;
 	}
 
+	/**
+	 * @return the hasSkippedTutorial
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasSkippedTutorial() {
+		return hasSkippedTutorial;
+	}
+
+	/**
+	 * @param hasSkippedTutorial the hasSkippedTutorial to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasSkippedTutorial(Boolean hasSkippedTutorial) {
+		this.hasSkippedTutorial = hasSkippedTutorial;
+	}
+
 	public Double getPoints() {
 		return points;
 	}
@@ -287,7 +307,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated We use computed improvements
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -332,7 +352,7 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Transient properties of UserStorage are not longer required, we
 	 *             calculate in the frontend and in the backend
 	 * @return

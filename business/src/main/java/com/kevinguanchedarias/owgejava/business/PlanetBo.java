@@ -48,7 +48,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	private MissionBo missionBo;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Autowired
 	@Lazy

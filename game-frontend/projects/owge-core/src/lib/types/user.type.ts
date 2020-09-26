@@ -19,6 +19,7 @@ export interface User {
 
     consumedEnergy: number;
     maxEnergy: number;
+    hasSkippedTutorial: boolean;
     primaryResource: number;
     secondaryResource: number;
 }

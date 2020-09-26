@@ -10,6 +10,7 @@ import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModa
 import { Planet, ObtainedUnit, Unit, MissionStore, UnitRunningMission } from '@owge/universe';
 import { MissionService } from '../../services/mission.service';
 import { ToastrService } from '@owge/core';
+import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
 
 interface DisplayQuadrantUnitRunningMission extends UnitRunningMission {
   currentCompletePercentage?: number;
@@ -49,7 +50,8 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
     private _planetListService: PlanetListService,
     private _missionService: MissionService,
     private _toastrService: ToastrService,
-    private _missionStore: MissionStore
+    private _missionStore: MissionStore,
+    private _tutorialService: TutorialService
   ) {
     super();
   }
@@ -94,6 +96,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
         this._clearExplorationProgressInterval();
       }
     }));
+    this._tutorialService.triggerTutorialAfterRender();
   }
 
   public ngOnDestroy(): void {
@@ -159,6 +162,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
   public sendMission(targetPlanet: Planet) {
     this._missionInformationStore.targetPlanet.next(targetPlanet);
     this._missionModal.show();
+    this._tutorialService.triggerTutorialAfterRender(600);
   }
 
   private _registerInterval(): void {

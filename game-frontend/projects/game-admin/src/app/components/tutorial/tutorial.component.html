@@ -1,0 +1,29 @@
+<app-common-crud [_crudService]="adminTutorialEntryService" (elementSelected)="selectedEl = $event" 
+    [hasDescription]="false" [hideSections]="{ name: true}" [customNewFiller]="createNew"
+>
+    <ng-template #middleOfCard let-element>
+        <div class="card-title">{{ element.text?.name }}</div>
+    </ng-template>
+    <ng-template #modalBody let-newElement>
+        <ng-container *ngIf="selectedEl">
+            <div class="form-group col-md-6">
+                <label for="order">{{ 'CRUD.TUTORIAL_ORDER' | translate }}</label>
+                <input class="form-control" type="number" id="order" [(ngModel)]="selectedEl.order">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="htmlSymbol">{{ 'CRUD.TUTORIAL.HTML_SYMBOL' | translate }}</label>
+                <owge-widgets-id-name-dropdown class="form-control" [inputId]="'htmlSymbol'" [elementsList]="availableHtmlSymbols" [(model)]="selectedEl.htmlSymbol"></owge-widgets-id-name-dropdown>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="event">{{ 'CRUD.TUTORIAL.EVENT' | translate }}</label>
+                <select id="event" [(ngModel)]="selectedEl.event">
+                    <option *ngFor="let event of validEvents">{{ event }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>{{ 'CRUD.TUTORIAL.TRANSLATABLE' | translate }}</label>
+                <app-translatable [(translatable)]="selectedEl.text"></app-translatable>
+            </div>
+        </ng-container>
+    </ng-template>
+</app-common-crud>

@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="footer">
-        <button class="btn btn-primary" role="button" (click)="save()" [disabled]="!detectIsChanged()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="save()" [disabled]="!detectIsChanged()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
         <button class="btn" role="button" (click)="cancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
     </div>
 </owge-core-modal>
@@ -32,7 +32,7 @@
 <div *ngIf="elements" class="owge-card-list">
     <div class="card owge" *ngFor="let element of elements, let i = index">
         <div class="card-block">
-            <div class="card-title">
+            <div class="card-title" *ngIf="!hideSections || !hideSections.name">
                 <span>{{ element.name }}</span>
             </div>
             <ng-container *ngTemplateOutlet="middleOfCard, context: { $implicit: element}"></ng-container>
@@ -40,7 +40,8 @@
                 {{ element.description }}
             </div>
         </div>
-        <a class="btn btn-block" role="button" (click)="edit(element)">{{ 'CRUD.EDIT' | translate}}</a>
+        <button *ngIf="allowSelection" (click)="clickSelect(element)" class="btn btn-primary">{{ 'CRUD.BTN_SELECT' }}</button>
+        <a class="btn" [class.btn-primary]="!allowSelection" role="button" (click)="edit(element)">{{ 'CRUD.EDIT' | translate}}</a>
         <a class="btn btn-block" role="button" (click)="delete(element)">{{ 'CRUD.DELETE' | translate }}</a>
     </div>
 </div>

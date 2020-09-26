@@ -15,6 +15,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	private Double primaryResourceGenerationPerSecond;
 	private Double secondaryResourceGenerationPerSecond;
 	private Double maxEnergy;
+	private Boolean hasSkippedTutorial;
 	private FactionDto factionDto;
 	private PlanetDto homePlanetDto;
 	private AllianceDto alliance;
@@ -102,6 +103,24 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 		this.maxEnergy = maxEnergy;
 	}
 
+	/**
+	 * @return the hasSkippedTutorial
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getHasSkippedTutorial() {
+		return hasSkippedTutorial;
+	}
+
+	/**
+	 * @param hasSkippedTutorial the hasSkippedTutorial to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 */
+	public void setHasSkippedTutorial(Boolean hasSkippedTutorial) {
+		this.hasSkippedTutorial = hasSkippedTutorial;
+	}
+
 	public FactionDto getFactionDto() {
 		return factionDto;
 	}
@@ -115,7 +134,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	}
 
 	public void setHomePlanetDto(PlanetDto planetDto) {
-		this.homePlanetDto = planetDto;
+		homePlanetDto = planetDto;
 	}
 
 	/**

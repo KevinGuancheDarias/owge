@@ -8,7 +8,7 @@
     <ng-container *ngIf="sourcePlanet && targetPlanet">
       <div>
         <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
-        <select class="owge-base-colors" *ngIf="targetPlanet" [(ngModel)]="missionType" (ngModelChange)="onMissionTypeChange()">
+        <select class="owge-base-colors mission-type" *ngIf="targetPlanet" [(ngModel)]="missionType" (ngModelChange)="onMissionTypeChange()">
         <option [ngValue]="null">{{ 'APP.MISSION_TYPES.PLEASE_SELECT' | translate }}</option>
           <option value="EXPLORE" [disabled]="!isMissionRealizableByUnitTypes('EXPLORE')">{{ 'APP.MISSION_TYPES.EXPLORE' | translate }}</option>
           <option *ngIf="isExplored(targetPlanet)" value="GATHER" [disabled]="!isMissionRealizableByUnitTypes('GATHER')">{{ 'APP.MISSION_TYPES.GATHER' | translate }}</option>
