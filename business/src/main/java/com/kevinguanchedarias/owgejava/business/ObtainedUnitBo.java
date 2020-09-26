@@ -27,6 +27,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, ImprovementSource {
@@ -297,7 +298,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount,
 			boolean handleImprovements) {
 		if (handleImprovements) {
-			improvementBo.clearSourceCache(obtainedUnit.getUser(), this);
+			TransactionUtil.doAfterCommit(() -> improvementBo.clearSourceCache(obtainedUnit.getUser(), this));
 		}
 		if (substractionCount > obtainedUnit.getCount()) {
 			throw new SgtBackendInvalidInputException(

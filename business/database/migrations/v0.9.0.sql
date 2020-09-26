@@ -105,7 +105,7 @@ ALTER TABLE `galaxies` ADD `num_planets` INT UNSIGNED NOT NULL DEFAULT '20' AFTE
 
 CREATE TABLE `tutorial_sections` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(100) NOT NULL , `description` TEXT NULL , `frontend_router_path` VARCHAR(150) NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
 
-CREATE TABLE `tutorial_sections_available_html_symbols` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(50) NOT NULL , `identifier` VARCHAR(150) NOT NULL COMMENT 'The identifier to use in the Frontend ngDirective' , `tutorial_section_id` SMALLINT UNSIGNED NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+CREATE TABLE `tutorial_sections_available_html_symbols` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(50) NOT NULL , `identifier` VARCHAR(150) NOT NULL COMMENT 'The identifier to use in the Frontend ngDirective' , `tutorial_section_id` SMALLINT UNSIGNED NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
 
 ALTER TABLE `tutorial_sections_available_html_symbols` ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 

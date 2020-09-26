@@ -6,6 +6,7 @@ package com.kevinguanchedarias.owgejava.pojo;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.BeanUtils;
 
 import com.kevinguanchedarias.owgejava.dto.AbstractImprovementDto;
 import com.kevinguanchedarias.owgejava.dto.ImprovementDto;
@@ -139,7 +140,9 @@ public class GroupedImprovement extends AbstractImprovementDto {
 						&& current.getUnitType().getId().equals(improvement.getUnitType().getId()))
 				.findFirst().orElse(null);
 		if (existing == null) {
-			getUnitTypesUpgrades().add(improvement);
+			ImprovementUnitTypeDto cloned = new ImprovementUnitTypeDto();
+			BeanUtils.copyProperties(improvement, cloned);
+			getUnitTypesUpgrades().add(cloned);
 		} else {
 			existing.setValue(existing.getValue() + improvement.getValue());
 		}
