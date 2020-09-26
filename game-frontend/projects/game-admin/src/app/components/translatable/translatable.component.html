@@ -1,0 +1,55 @@
+<owge-widgets-choose-item-modal [itemName]="translatable?.name">
+    <app-common-crud [_crudService]="adminTranslatableService" (saveResult)="translatable = $event" [hasDescription]="false"
+        [allowSelection]="true" (elementSelected)="onSelection($event)" (choosen)="onChoosen($event)"
+    >
+        <ng-template #modalBody>
+            <ng-container *ngIf="selectedEl">
+                <div class="form-group col-md-6">
+                    <label class="required" for="defaultLangCode">{{ 'CRUD.TRANSLATABLE.DEFAULT_LANG_CODE' | translate }}</label>
+                    <select class="form-control owge-base-colors" id="defaultLangCode" [(ngModel)]="selectedEl.defaultLangCode">
+                        <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate }}</option>
+                        <option *ngFor="let langCode of allowedLangCodes|async">{{ langCode }}</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-12">
+                    <h5 class="owge-base-colors">{{ 'CRUD.TRANSLATABLE.TRANSLATIONS' }}</h5>
+                </div>
+                <div class="form-group col-md-12">
+                    <table class="table-responsive">
+                        <thead>
+                            <tr>
+                                <th>{{ 'CRUD.TRANSLATABLE.LANG_CODE' | translate }}</th>
+                                <th>{{ 'CRUD.TRANSLATABLE.LANG.TEXT' | translate }}</th>
+                                <th>{{ 'CRUD.TRANSLATABLE.ACTIONS' | translate }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="!selectedEl.id">
+                                <td>{{ 'CRUD.TRANSLATABLE.MUST_SAVE' | translate }}</td>
+                            </tr>
+                            <ng-container *ngIf="selectedEl.id">
+                                <tr *ngFor="let translation of translations">
+                                    <td>
+                                        <select class="owge-base-colors" [(ngModel)]="translation.langCode" (ngModelChange)="markAsdirty(translation)">
+                                            <option *ngFor="let langCode of allowedLangCodes|async" [ngValue]="langCode">{{ langCode }}</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <textarea [(ngModel)]="translation.value" (ngModelChange)="markAsdirty(translation)" rows="10"></textarea>
+                                    </td>
+                                    <td>
+                                        <button (click)="clickSaveTranslation(translation)" [disabled]="!translation.isDirty" class="btn btn-primary">{{'CRUD.BTN_SAVE' | translate }}</button>
+                                        <a (click)="clickDeleteTranslation(translation)" class="btn btn-block">{{'CRUD.BTN_DELETE' | translate }}</a>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                        <caption>
+                            <a class="btn btn-block" (click)="clickAddTranslation()">{{ 'CRUD.BTN.ADD' | translate}}</a>
+                        </caption>
+                    </table>
+                </div>
+            </ng-container>
+        </ng-template>
+    </app-common-crud>
+</owge-widgets-choose-item-modal>

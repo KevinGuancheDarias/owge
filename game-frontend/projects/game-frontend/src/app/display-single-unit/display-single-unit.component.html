@@ -26,12 +26,12 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a owgeUniverseOnClickIfWsConnected class="btn btn-block" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
         <a owgeUniverseOnClickIfWsConnected *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
           (clickAndConnected)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
-          <input type="number" id="count" name="count" [(ngModel)]="count" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.BUILD.COUNT' | translate" min="0" />
-          <a owgeUniverseOnClickIfWsConnected *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block" role="button"
+          <input type="number" name="count" [(ngModel)]="count" [placeholder]="'APP.UNITS.DISPLAY_SINGLE.BUILD.COUNT' | translate" min="0" />
+          <a owgeUniverseOnClickIfWsConnected *ngIf="canBuild() && isValidCount() && count >= 1" class="btn btn-block do-build" role="button"
             (clickAndConnected)="buildSelectedUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.BTN_BUILD' | translate }}</a>
           <a owgeUniverseOnClickIfWsConnected *ngIf="canBuild() && count && !isValidCount()" class="btn btn-block" role="button" (clickAndConnected)="count = 1">Error (report it!)</a>
           <a owgeUniverseOnClickIfWsConnected *ngIf="!count" class="btn btn-block" role="button" (clickAndConnected)="count = 1">{{ 'APP.UNITS.DISPLAY_SINGLE.MIN_ONE' | translate }}</a>

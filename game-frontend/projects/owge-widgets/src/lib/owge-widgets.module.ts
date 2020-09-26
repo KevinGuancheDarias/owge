@@ -24,6 +24,7 @@ import { WidgetIdNameDropdownComponent } from './components/widget-id-name-dropd
 import { FormsModule } from '@angular/forms';
 import { WidgetFiltrableSelectComponent } from './components/widget-filtrable-select/widget-filtrable-select.component';
 import { WidgetCircularPercentageComponent } from './components/widget-circular-percentage/widget-circular-percentage.component';
+import { WidgetChooseItemModalComponent } from './components/widget-choose-item-modal/widget-choose-item-modal.component';
 
 /**
  * Has UI widgets for OWGE
@@ -55,7 +56,8 @@ import { WidgetCircularPercentageComponent } from './components/widget-circular-
     WidgetDisplaySimpleItemComponent,
     WidgetIdNameDropdownComponent,
     WidgetFiltrableSelectComponent,
-    WidgetCircularPercentageComponent
+    WidgetCircularPercentageComponent,
+    WidgetChooseItemModalComponent
   ],
   providers: [
     DisplayService
@@ -75,7 +77,8 @@ import { WidgetCircularPercentageComponent } from './components/widget-circular-
     WidgetDisplaySimpleItemComponent,
     WidgetIdNameDropdownComponent,
     WidgetFiltrableSelectComponent,
-    WidgetCircularPercentageComponent
+    WidgetCircularPercentageComponent,
+    WidgetChooseItemModalComponent
   ]
 })
 export class OwgeWidgetsModule {

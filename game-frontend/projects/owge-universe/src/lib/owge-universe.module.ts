@@ -22,6 +22,7 @@ import { PlanetDescriptionPipe } from './pipes/planet-description.pipe';
 import { FormsModule } from '@angular/forms';
 import { PlanetOwnerPipe } from './pipes/planet-owner.pipe';
 import { SpeedImpactGroupService } from './services/speed-impact-group.service';
+import { TutorialService } from './services/tutorial.service';
 
 /**
  *
@@ -69,7 +70,8 @@ export class OwgeUniverseModule {
         UniverseCacheManagerService,
         WebsocketService,
         WsEventCacheService,
-        SpeedImpactGroupService
+        SpeedImpactGroupService,
+        TutorialService
       ]
     };
   }
@@ -78,7 +80,8 @@ export class OwgeUniverseModule {
     _websocketService.addEventHandler(
       _injector.get(UniverseGameService),
       _injector.get(UniverseCacheManagerService),
-      _injector.get(SpeedImpactGroupService)
+      _injector.get(SpeedImpactGroupService),
+      _injector.get(TutorialService)
     );
   }
 }

@@ -147,20 +147,18 @@ export class AttackRuleCrudComponent implements OnInit, OnChanges {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.0
-   * @param confirm
    */
-  public async delete(confirm: boolean): Promise<void> {
-    if (confirm) {
-      try {
-        if (this.beforeDelete) {
-          await this.beforeDelete(this.attackRule);
-        }
-        await this._adminAttackRuleService.delete(this.attackRule.id).pipe(take(1)).toPromise();
-        this.attackRuleChange.emit(null);
-      } catch (_) {
-        this.deleteError.emit();
+  public async delete(): Promise<void> {
+    try {
+      if (this.beforeDelete) {
+        await this.beforeDelete(this.attackRule);
       }
+      await this._adminAttackRuleService.delete(this.attackRule.id).pipe(take(1)).toPromise();
+      this.attackRuleChange.emit(null);
+    } catch (_) {
+      this.deleteError.emit();
     }
+
   }
 
   public detectIsChanged(): void {

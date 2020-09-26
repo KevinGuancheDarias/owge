@@ -32,7 +32,8 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
     this._createTranslatableMenuRoute('APP.MENU_UPGRADES', 'upgrades', 'fa fa-flask'),
     this._createTranslatableMenuRoute('APP.MENU_UNITS', 'units', 'fa fa-male'),
     this._createTranslatableMenuRoute('APP.MENU_SPECIAL_LOCATIONS', 'special-locations', 'fas fa-globe-europe'),
-    this._createTranslatableMenuRoute('APP.MENU_SPEED_IMPACT_GROUP', 'speed-impact-groups', 'fas fa-tachometer-alt')
+    this._createTranslatableMenuRoute('APP.MENU_SPEED_IMPACT_GROUP', 'speed-impact-groups', 'fas fa-tachometer-alt'),
+    this._createTranslatableMenuRoute('APP.MENU_TUTORIAL', 'tutorial', 'fa fa-info')
   ];
 
   public constructor(private _userStore: UserStorage<User>, adminUserStore: AdminUserStore, translateService: TranslateService) {

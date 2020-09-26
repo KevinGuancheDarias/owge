@@ -37,8 +37,19 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @Input() public customElementsSource: Observable<T[]>;
   @Input() public customNewFiller: (el: T) => Promise<T>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
+  @Input() public allowSelection = false;
   @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
+  @Output() public saveResult: EventEmitter<T> = new EventEmitter;
+
+
+  /**
+   * When allowSelection is defined, can be used to control selection <br>
+   * <b>NOTICE:</b> don't confuse with elementSelected which is used to control the creation/edition modal
+   *
+   * @since 0.9.0
+  */
+  @Output() public choosen: EventEmitter<T> = new EventEmitter;
   public elements: T[];
   public newElement: T;
   public originalElement: T;
@@ -153,11 +164,10 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    */
   public save(): void {
     this._loadingService.runWithLoading(async () => {
-      if (this.customSaveAction) {
-        await this.customSaveAction(this.newElement);
-      } else {
-        await this._doSave();
-      }
+      this.saveResult.emit(this.customSaveAction
+        ? await this.customSaveAction(this.newElement)
+        : await this._doSave()
+      );
     });
   }
 
@@ -201,6 +211,17 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   }
 
   /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.0
+   * @param el
+   */
+  public clickSelect(el: T): void {
+    this.choosen.emit(el);
+  }
+
+  /**
    * Do the savings to the backend
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -208,7 +229,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * @returns
    * @since 0.9.0
    */
-  protected async _doSave(): Promise<void> {
+  protected async _doSave(): Promise<T> {
     if (this.newElement[this.idField]) {
       this.newElement = await this._crudService.saveExistingOrPut(this.newElement).toPromise();
     } else {
@@ -216,5 +237,6 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
     }
     this.originalElement = { ...this.newElement };
     this._crudModal.hide();
+    return this.newElement;
   }
 }
