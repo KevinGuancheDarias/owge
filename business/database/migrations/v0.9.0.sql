@@ -109,7 +109,7 @@ CREATE TABLE `tutorial_sections_available_html_symbols` ( `id` INT UNSIGNED NOT 
 
 ALTER TABLE `tutorial_sections_available_html_symbols` ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
-CREATE TABLE `tutorial_sections_entries` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `order_num` SMALLINT UNSIGNED NULL , `section_available_html_symbol_id` INT UNSIGNED NOT NULL , `event` ENUM('CLICK','ANY_KEY_OR_CLICK') NOT NULL , `text_id` INT UNSIGNED NOT NULL , PRIMARY KEY (`id`), INDEX (`section_id`)) ENGINE = InnoDB;
+CREATE TABLE `tutorial_sections_entries` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `order_num` SMALLINT UNSIGNED NULL , `section_available_html_symbol_id` INT UNSIGNED NOT NULL , `event` ENUM('CLICK','ANY_KEY_OR_CLICK') NOT NULL , `text_id` INT UNSIGNED NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
 
 ALTER TABLE `tutorial_sections_entries` ADD CONSTRAINT `fk_tse_symbol_id` FOREIGN KEY (`section_available_html_symbol_id`) REFERENCES `tutorial_sections_available_html_symbols`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
