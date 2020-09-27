@@ -23,6 +23,8 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
   public selectedFactionIndex: number;
   public selectedFaction: Faction;
 
+  private _alreadyClicked = false;
+
 
   constructor(
     private factionService: FactionService,
@@ -52,11 +54,20 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
    * @author Kevin Guanche Darias
    */
   public onFormSubmit() {
-    this.loginSessionService.setSelectedFaction(this.selectedFaction);
-    this.universeService.subscribe(this.selectedFaction.id).subscribe(
-      subscritionSucceeded => this.redirectToGameIfSubscritionSucceeded(subscritionSucceeded),
-      error => this.displayError(error)
-    );
+    if (!this._alreadyClicked) {
+      this._alreadyClicked = true;
+      this.loginSessionService.setSelectedFaction(this.selectedFaction);
+      this.universeService.subscribe(this.selectedFaction.id).subscribe(
+        subscritionSucceeded => {
+          this.redirectToGameIfSubscritionSucceeded(subscritionSucceeded);
+          this._alreadyClicked = false;
+        },
+        error => {
+          this._alreadyClicked = false;
+          this.displayError(error);
+        }
+      );
+    }
   }
 
   private async redirectToGameIfSubscritionSucceeded(serverMessage: boolean) {

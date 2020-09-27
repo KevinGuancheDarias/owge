@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : ven. 14 août 2020 à 19:37
+-- Généré le : Dim 27 sep. 2020 à 11:24
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -225,6 +225,7 @@ CREATE TABLE `galaxies` (
   `name` varchar(30) CHARACTER SET utf8 NOT NULL,
   `sectors` int(11) UNSIGNED NOT NULL,
   `quadrants` int(11) UNSIGNED NOT NULL,
+  `num_planets` int(10) UNSIGNED NOT NULL DEFAULT '20',
   `order_number` smallint(6) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_spanish_ci;
 
@@ -766,6 +767,71 @@ CREATE TABLE `time_specials` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `translatables`
+--
+
+CREATE TABLE `translatables` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `default_lang_code` char(2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `translatables_translations`
+--
+
+CREATE TABLE `translatables_translations` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `translatable_id` int(10) UNSIGNED NOT NULL,
+  `lang_code` char(2) NOT NULL,
+  `value` longtext NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `tutorial_sections`
+--
+
+CREATE TABLE `tutorial_sections` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text,
+  `frontend_router_path` varchar(150) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `tutorial_sections_available_html_symbols`
+--
+
+CREATE TABLE `tutorial_sections_available_html_symbols` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `identifier` varchar(150) NOT NULL COMMENT 'The identifier to use in the Frontend ngDirective',
+  `tutorial_section_id` smallint(5) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `tutorial_sections_entries`
+--
+
+CREATE TABLE `tutorial_sections_entries` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `order_num` smallint(5) UNSIGNED DEFAULT NULL,
+  `section_available_html_symbol_id` int(10) UNSIGNED NOT NULL,
+  `event` enum('CLICK','ANY_KEY_OR_CLICK') NOT NULL,
+  `text_id` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `units`
 --
 
@@ -788,6 +854,7 @@ CREATE TABLE `units` (
   `shield` smallint(6) UNSIGNED DEFAULT NULL,
   `charge` smallint(6) UNSIGNED DEFAULT NULL,
   `is_unique` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `can_fast_explore` tinyint(1) NOT NULL DEFAULT '0',
   `speed` double DEFAULT '0',
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
   `cloned_improvements` tinyint(4) NOT NULL,
@@ -902,8 +969,21 @@ CREATE TABLE `user_storage` (
   `primary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `secondary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `max_energy` double UNSIGNED DEFAULT NULL,
+  `has_skipped_tutorial` tinyint(1) NOT NULL,
   `points` double NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `visited_tutorial_entries`
+--
+
+CREATE TABLE `visited_tutorial_entries` (
+  `id` bigint(20) NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `entry_id` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -1280,6 +1360,39 @@ ALTER TABLE `time_specials`
   ADD KEY `image_id` (`image_id`);
 
 --
+-- Index pour la table `translatables`
+--
+ALTER TABLE `translatables`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `translatables_translations`
+--
+ALTER TABLE `translatables_translations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `translatable_id` (`translatable_id`);
+
+--
+-- Index pour la table `tutorial_sections`
+--
+ALTER TABLE `tutorial_sections`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `tutorial_sections_available_html_symbols`
+--
+ALTER TABLE `tutorial_sections_available_html_symbols`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_section_id` (`tutorial_section_id`);
+
+--
+-- Index pour la table `tutorial_sections_entries`
+--
+ALTER TABLE `tutorial_sections_entries`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tse_symbol_id` (`section_available_html_symbol_id`);
+
+--
 -- Index pour la table `units`
 --
 ALTER TABLE `units`
@@ -1343,6 +1456,13 @@ ALTER TABLE `user_storage`
   ADD KEY `faction` (`faction`),
   ADD KEY `home_planet` (`home_planet`),
   ADD KEY `alliance_id` (`alliance_id`);
+
+--
+-- Index pour la table `visited_tutorial_entries`
+--
+ALTER TABLE `visited_tutorial_entries`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Index pour la table `websocket_events_information`
@@ -1537,6 +1657,36 @@ ALTER TABLE `time_specials`
   MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `translatables`
+--
+ALTER TABLE `translatables`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `translatables_translations`
+--
+ALTER TABLE `translatables_translations`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `tutorial_sections`
+--
+ALTER TABLE `tutorial_sections`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `tutorial_sections_available_html_symbols`
+--
+ALTER TABLE `tutorial_sections_available_html_symbols`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `tutorial_sections_entries`
+--
+ALTER TABLE `tutorial_sections_entries`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `units`
 --
 ALTER TABLE `units`
@@ -1571,6 +1721,12 @@ ALTER TABLE `upgrade_types`
 --
 ALTER TABLE `user_improvements`
   MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `visited_tutorial_entries`
+--
+ALTER TABLE `visited_tutorial_entries`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `websocket_messages_status`
@@ -1747,6 +1903,24 @@ ALTER TABLE `time_specials`
   ADD CONSTRAINT `time_specials_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
 
 --
+-- Contraintes pour la table `translatables_translations`
+--
+ALTER TABLE `translatables_translations`
+  ADD CONSTRAINT `fk_translatable_id` FOREIGN KEY (`translatable_id`) REFERENCES `translatables` (`id`);
+
+--
+-- Contraintes pour la table `tutorial_sections_available_html_symbols`
+--
+ALTER TABLE `tutorial_sections_available_html_symbols`
+  ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections` (`id`);
+
+--
+-- Contraintes pour la table `tutorial_sections_entries`
+--
+ALTER TABLE `tutorial_sections_entries`
+  ADD CONSTRAINT `fk_tse_symbol_id` FOREIGN KEY (`section_available_html_symbol_id`) REFERENCES `tutorial_sections_available_html_symbols` (`id`);
+
+--
 -- Contraintes pour la table `units`
 --
 ALTER TABLE `units`
@@ -1788,6 +1962,12 @@ ALTER TABLE `user_storage`
   ADD CONSTRAINT `user_storage_ibfk_1` FOREIGN KEY (`home_planet`) REFERENCES `planets` (`id`),
   ADD CONSTRAINT `user_storage_ibfk_2` FOREIGN KEY (`faction`) REFERENCES `factions` (`id`),
   ADD CONSTRAINT `user_storage_ibfk_3` FOREIGN KEY (`alliance_id`) REFERENCES `alliances` (`id`);
+
+--
+-- Contraintes pour la table `visited_tutorial_entries`
+--
+ALTER TABLE `visited_tutorial_entries`
+  ADD CONSTRAINT `fk_vts_user_idd` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
 -- Contraintes pour la table `websocket_events_information`

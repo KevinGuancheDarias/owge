@@ -33,11 +33,14 @@ class UserService {
      * @since 0.8.0
      * @author Kevin Guanche Darias
      */
-    public function login(string $email, string $password): LoggedUser {
+    public function login(string $emailOrUrsername, string $password): LoggedUser {
         $connection = $this->dbHandler->getConnection();
-        $email = $connection->real_escape_string($email);
+        $emailOrUrsername = $connection->real_escape_string($emailOrUrsername);
         $password = $connection->real_escape_string($password);
-        $result = $connection->query("SELECT id, username, email, password FROM users WHERE email = '$email' AND password = '$password'");
+        $fieldOfWhere = filter_var($emailOrUrsername, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
+        $result = $connection->query("SELECT id, username, email, password FROM users WHERE $fieldOfWhere = '$emailOrUrsername' AND password = '$password'");
         if(!$result->num_rows) {
             throw new AccessDeniedHttpException('invalid_credentials','Invalid credentials');
         }

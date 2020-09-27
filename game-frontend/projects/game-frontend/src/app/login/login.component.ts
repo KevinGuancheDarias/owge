@@ -51,8 +51,7 @@ export class LoginComponent implements OnInit {
   onLoginFormSubmit() {
     this._loginService.login(this.email, this.password)
       .subscribe(
-        token => this.onLoginSuccess(token),
-        error => alert(error)
+        token => this.onLoginSuccess(token)
       );
   }
 

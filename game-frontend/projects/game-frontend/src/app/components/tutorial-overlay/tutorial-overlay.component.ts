@@ -255,12 +255,12 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
     }
   }
 
-  private _defineAsVisited(): void {
-    if (!this._isPanic) {
+  private _defineAsVisited(event: KeyboardEvent | MouseEvent): void {
+    if (!this._isPanic && !this._isArrowsOrTabOrAltOrCtrl(event)) {
       if (this.runningEntry.event === 'CLICK') {
         this.nodes.forEach(current => current.removeEventListener('click', this._clickOrKeyHandler));
       } else {
-        this._domEvents.forEach(event => window.document.removeEventListener(event, this._clickOrKeyHandler));
+        this._domEvents.forEach(current => window.document.removeEventListener(current, this._clickOrKeyHandler));
       }
       this._tutorialService.addVisited(this.runningEntry.id);
     }
@@ -284,5 +284,12 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
     } else {
       return false;
     }
+  }
+
+  private _isArrowsOrTabOrAltOrCtrl(event: KeyboardEvent | MouseEvent) {
+    return event instanceof KeyboardEvent && (
+      (event.keyCode >= 37 && event.keyCode <= 40)
+      || event.keyCode === 9 || event.altKey || event.shiftKey || event.ctrlKey
+    );
   }
 }
