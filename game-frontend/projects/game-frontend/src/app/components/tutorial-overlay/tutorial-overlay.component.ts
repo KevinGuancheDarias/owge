@@ -4,7 +4,9 @@ import {
 } from '@angular/core';
 import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
 import { TutorialSectionEntry, WebsocketService } from '@owge/universe';
-import { ScreenDimensionsService } from '@owge/core';
+import { ScreenDimensionsService, LoggerHelper } from '@owge/core';
+import { fromEvent } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 type decidedPosition = 'top' | 'left' | 'down' | 'right';
 interface Position {
@@ -13,6 +15,10 @@ interface Position {
   decidedPosition?: decidedPosition;
   width?: number;
   height?: number;
+}
+
+interface MaybeChromeMouseEvent extends MouseEvent {
+  path?: HTMLElement[];
 }
 
 /**
@@ -36,18 +42,18 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
 
   @ViewChild('overlayEl') private _overlayElRef: ElementRef<HTMLDivElement>;
   @ViewChild('textEl') private _textRef: ElementRef<HTMLElement>;
+  @ViewChild('imgEl') private _imgRef: ElementRef<SVGElement>;
   @ViewChildren('clickBlockerEl') private _clickBlockerRefs: QueryList<ElementRef<HTMLDivElement>>;
-  @ViewChildren('imgEl') private _inmgRefs: QueryList<ElementRef<SVGElement>>;
 
+  private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _entries: TutorialSectionEntry[];
   private _clickBlockerEls: HTMLDivElement[];
-  private _imgEls: SVGElement[];
   private _runCheck = false;
   private _clickOrKeyHandler: any;
-  private _domEvents = ['keydown', 'click'];
   private _isPanic = false;
   private _rootEl: HTMLHtmlElement;
   private _isDesktop = false;
+  private _isClickDisabled = false;
 
   constructor(
     private _tutorialService: TutorialService,
@@ -57,6 +63,22 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
   ) {
     websocketService.isCachePanic.subscribe(panic => this._isPanic = panic);
     sds.hasMinWidth(767, 'tutorial_section_overlay').subscribe(has => this._isDesktop = has);
+    fromEvent(window, 'resize').pipe(
+      debounceTime(1000)
+    ).subscribe(() => {
+      this._log.debug('Repainting due to window resize event');
+      this._runCheck = true;
+    });
+    document.addEventListener('click', e => {
+      if (this._isClickDisabled &&
+        (this.runningEntry.event === 'CLICK' && !this._findEventPath(e).some(pathEl => this.nodes.includes(pathEl)))
+      ) {
+        e.stopPropagation();
+        e.preventDefault();
+      } else if (this.runningEntry && this.runningEntry.event === 'ANY_KEY_OR_CLICK') {
+        this._defineAsVisited(e);
+      }
+    }, true);
   }
 
   public ngAfterViewInit(): void {
@@ -69,9 +91,13 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
   }
 
   public ngAfterViewChecked(): void {
+    this._doPaint();
+  }
+
+  private _doPaint(): void {
     if (this.runningEntry && this._runCheck && this.nodes && this.nodes.length) {
       this._clickBlockerEls = this._clickBlockerRefs.toArray().map(ref => ref.nativeElement);
-      this._imgEls = this._inmgRefs.toArray().map(ref => ref.nativeElement);
+      this._imgRef.nativeElement.innerHTML = '';
       let position: Position;
       const isFixed = this._isFixed(this.nodes[0]);
       const el: HTMLElement = this._textRef.nativeElement;
@@ -83,7 +109,7 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
           currentNodePosition = this._workaroundScroll(currentNodePosition);
           currentElPosition = this._workaroundScroll(currentElPosition);
         }
-        const imgEl: SVGElement = this._imgEls[i];
+        const imgEl: SVGElement = this._imgRef.nativeElement;
         if (!position) {
           position = this._calculatePosition(currentNodePosition, currentElPosition);
         }
@@ -129,22 +155,20 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
           imgEl.appendChild(rect);
         }
       });
-      let linesAndRects: SVGElement[] = [];
-      this._imgEls.forEach(svg => linesAndRects = linesAndRects.concat(Array.from(svg.querySelectorAll('line,rect'))));
       this._runCheck = false;
     }
   }
 
   private _findNextEntry() {
     if (this.runningEntry && this.nodes) {
+      window.document.removeEventListener('keydown', this._clickOrKeyHandler);
       this.nodes.forEach(current => {
-        current.style.zIndex = current.attributes['oldZIndex'];
-        current.style.position = current.attributes['oldPosition'];
+        current.classList.remove('tutorial-target-node');
       });
-      if (this._textRef && this._textRef.nativeElement && this._clickBlockerEls && this._imgEls) {
+      if (this._textRef && this._textRef.nativeElement && this._clickBlockerEls && this._imgRef) {
         this._textRef.nativeElement.style.display = 'none';
         this._clickBlockerEls.forEach(el => el.style.display = 'none');
-        this._imgEls.forEach(svg => svg.style.display = 'none');
+        this._imgRef.nativeElement.style.display = 'none';
       }
     }
 
@@ -155,13 +179,15 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
         : false;
     });
     if (this.runningEntry) {
+      this._isClickDisabled = true;
+      document.querySelector('body').classList.add('tutorial-blocker');
       if (this._textRef) {
         this._textRef.nativeElement.style.display = 'block';
+        this._imgRef.nativeElement.style.display = 'block';
       }
       this.nodes.forEach((current, i) => {
         const computedStyle: CSSStyleDeclaration = window.getComputedStyle(current);
-        current.attributes['oldZIndex'] = computedStyle.zIndex;
-        current.attributes['oldPosition'] = computedStyle.position;
+        current.classList.add('tutorial-target-node');
         current.style.zIndex = '65533';
         if (computedStyle.position === 'static') {
           current.style.position = 'relative';
@@ -169,12 +195,16 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
         if (this.runningEntry.event === 'CLICK') {
           current.addEventListener('click', this._clickOrKeyHandler);
         } else {
-          this._domEvents.forEach(event => window.document.addEventListener(event, this._clickOrKeyHandler));
+          window.document.addEventListener('keydown', this._clickOrKeyHandler);
         }
 
       });
     } else if (this._textRef) {
       document.body.removeChild(this._textRef.nativeElement);
+    }
+    if (!this.runningEntry) {
+      this._isClickDisabled = false;
+      document.querySelector('body').classList.remove('tutorial-blocker');
     }
     this._chr.detectChanges();
     this._runCheck = true;
@@ -259,8 +289,6 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
     if (!this._isPanic && !this._isArrowsOrTabOrAltOrCtrl(event)) {
       if (this.runningEntry.event === 'CLICK') {
         this.nodes.forEach(current => current.removeEventListener('click', this._clickOrKeyHandler));
-      } else {
-        this._domEvents.forEach(current => window.document.removeEventListener(current, this._clickOrKeyHandler));
       }
       this._tutorialService.addVisited(this.runningEntry.id);
     }
@@ -291,5 +319,25 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
       (event.keyCode >= 37 && event.keyCode <= 40)
       || event.keyCode === 9 || event.altKey || event.shiftKey || event.ctrlKey
     );
+  }
+
+  private _findEventPath(e: MaybeChromeMouseEvent): HTMLElement[] {
+    return e.path || (e.composedPath && <any>e.composedPath) || this._genEventPath(e);
+  }
+
+  private _genEventPath(e: MouseEvent): HTMLElement[] {
+    const path: HTMLElement[] = [];
+    let currentElem: HTMLElement = <any>e.target;
+    while (currentElem) {
+      path.push(currentElem);
+      currentElem = currentElem.parentElement;
+    }
+    if (path.indexOf(<any>window) === -1 && path.indexOf(<any>document) === -1) {
+      path.push(<any>document);
+    }
+    if (path.indexOf(<any>window) === -1) {
+      path.push(<any>window);
+    }
+    return path;
   }
 }

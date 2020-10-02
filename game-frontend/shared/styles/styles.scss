@@ -1,6 +1,19 @@
 @import './partials/colors';
 @import './modules/owge-widgets/widget-sidebar.scss';
 
+body.tutorial-blocker {
+    a.btn, a[role=button], button, input, .owge-tutorial-item {
+        opacity: 0.5;
+    }
+
+    .tutorial-overlay, .tutorial-text, .tutorial-target-node {
+        opacity: 1 !important;
+        * {
+            opacity: 1 !important;
+        }
+    }
+}
+
 .app-container {
     margin-bottom: 30px;
 }
