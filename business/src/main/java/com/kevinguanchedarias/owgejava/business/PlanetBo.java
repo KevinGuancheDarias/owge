@@ -36,9 +36,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	private ExploredPlanetRepository exploredPlanetRepository;
 
 	@Autowired
-	private GalaxyBo galaxyBo;
-
-	@Autowired
 	private UserStorageBo userStorageBo;
 
 	@Autowired
@@ -96,12 +93,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 */
 	public Planet findRandomPlanet(Integer galaxyId) {
 		Integer targetGalaxy = galaxyId;
-		if (targetGalaxy == null) {
-			targetGalaxy = galaxyBo.findRandomGalaxy();
-		}
 
-		planetRepository.findAll();
-		int count = (int) (planetRepository.countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(targetGalaxy));
+		int count = galaxyId != null
+				? (int) (planetRepository.countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(galaxyId))
+				: (int) (planetRepository.countByOwnerIsNullAndSpecialLocationIsNull());
 
 		if (count == 0) {
 			throw new SgtBackendUniverseIsFull("No hay más espacio en este universo");
@@ -109,8 +104,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
 		int planetLocation = RandomUtils.nextInt(0, count);
 
-		List<Planet> selectedPlanetsRange = planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(
-				targetGalaxy, PageRequest.of(planetLocation, 1));
+		List<Planet> selectedPlanetsRange = galaxyId != null
+				? planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(targetGalaxy,
+						PageRequest.of(planetLocation, 1))
+				: planetRepository.findOneByOwnerIsNullAndSpecialLocationIsNull(PageRequest.of(planetLocation, 1));
 
 		return selectedPlanetsRange.get(0);
 	}

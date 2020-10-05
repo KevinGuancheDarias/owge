@@ -3,7 +3,10 @@ import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular
 @Component({
   selector: 'app-display-single-resource',
   templateUrl: './display-single-resource.component.html',
-  styleUrls: ['./display-single-resource.component.less']
+  styleUrls: [
+    './display-single-resource.component.less',
+    './display-single-resource.component.scss'
+  ]
 })
 export class DisplaySingleResourceComponent implements AfterViewInit {
 
@@ -27,6 +30,9 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
 
   @Input()
   public usePercentage = false;
+
+  @Input()
+  public limitedMax = false;
 
   @ViewChild('textElement', { static: true })
   private _textElement: ElementRef;

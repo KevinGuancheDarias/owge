@@ -18,7 +18,11 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
 	public long countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId);
 
+	public long countByOwnerIsNullAndSpecialLocationIsNull();
+
 	public List<Planet> findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId, Pageable pageable);
+
+	public List<Planet> findOneByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
 
 	public Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
 
@@ -59,4 +63,5 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
 	public Planet findLockedById(Long id);
+
 }

@@ -1,13 +1,13 @@
 <div *ngIf="userData">
-  <app-display-single-resource [resourceName]="userData.faction.primaryResourceName" [resourceImage]="userData.faction.primaryResourceImageUrl"
+  <app-display-single-resource [limitedMax]="limitedMax" [resourceName]="userData.faction.primaryResourceName" [resourceImage]="userData.faction.primaryResourceImageUrl"
     [resourceValue]="requirements.requiredPrimary"></app-display-single-resource>
-  <app-display-single-resource [resourceName]="userData.faction.secondaryResourceName" [resourceImage]="userData.faction.secondaryResourceImageUrl"
+  <app-display-single-resource [limitedMax]="limitedMax" [resourceName]="userData.faction.secondaryResourceName" [resourceImage]="userData.faction.secondaryResourceImageUrl"
     [resourceValue]="requirements.requiredSecondary"></app-display-single-resource>
-  <app-display-single-resource *ngIf="requirements.requiredEnergy" [resourceName]="userData.faction.energyName"
+  <app-display-single-resource [limitedMax]="limitedMax" *ngIf="requirements.requiredEnergy" [resourceName]="userData.faction.energyName"
     [resourceImage]="userData.faction.energyImageUrl" [resourceValue]="requirements.requiredEnergy"></app-display-single-resource>
   <div *ngIf="parsedRequiredTime" class="time">
     <app-display-dynamic-image [image]="timeImage" [title]="'Time'" [customClass]="'resourceImage'" [staticImage]="true"></app-display-dynamic-image>
-    <p>
+    <p [class.limited-max]="limitedMax">
       <span *ngIf="parsedRequiredTime.days">{{ parsedRequiredTime.days }}d</span>
       <span *ngIf="parsedRequiredTime.hours">{{ parsedRequiredTime.hours }}h</span>
       <span *ngIf="parsedRequiredTime.minutes">{{ parsedRequiredTime.minutes }}m</span>
