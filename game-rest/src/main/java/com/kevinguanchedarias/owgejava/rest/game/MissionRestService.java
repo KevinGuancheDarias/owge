@@ -77,7 +77,7 @@ public class MissionRestService {
 	@PostMapping("cancel")
 	public String cancel(@RequestParam("id") Long id) {
 		unitMissionBo.myCancelMission(id);
-		return "OK";
+		return "\"OK\"";
 	}
 
 	@RequestMapping(value = "findMy", method = RequestMethod.GET)

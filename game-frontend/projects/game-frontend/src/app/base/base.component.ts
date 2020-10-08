@@ -48,7 +48,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    * @author Kevin Guanche Darias
    */
   public async displayError(message: string): Promise<void> {
-    alert(message);
+    console.error(message);
   }
 
   public async displayConfirm(message: string): Promise<boolean> {
