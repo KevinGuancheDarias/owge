@@ -989,11 +989,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
 					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {
-				Double lowestSpeed = lowestSpeedOptional.get() / 70;
+				Long missionTypeDivisor = findMissionTypeDivisor(missionType);
+				Double lowestSpeed = lowestSpeedOptional.get();
 				Double missionTypeTime = calculateRequiredTime(missionType);
 				long moveCost = calculateMoveCost(mission.getSourcePlanet(), mission.getTargetPlanet());
-				Double withMoveCost = missionTypeTime + (missionTypeTime * (moveCost * 0.01));
-				mission.setRequiredTime(withMoveCost / lowestSpeed);
+				Double withMoveCost = (missionTypeTime + (moveCost * (100 - lowestSpeed)) / missionTypeDivisor);
+				mission.setRequiredTime(withMoveCost < missionTypeTime ? missionTypeTime : withMoveCost);
 				mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
 			}
 		}
@@ -1265,10 +1266,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private long calculateMoveCost(Planet sourcePlanet, Planet targetPlanet) {
+		long positionInQuadrant = Math.abs(sourcePlanet.getPlanetNumber() - targetPlanet.getPlanetNumber());
 		long quadrants = Math.abs(sourcePlanet.getQuadrant() - targetPlanet.getQuadrant());
 		long sectors = Math.abs(sourcePlanet.getSector() - targetPlanet.getSector());
-		boolean isDifferentGalaxy = sourcePlanet.getGalaxy().equals(targetPlanet.getGalaxy());
-		return (quadrants + (sectors * 2) + (isDifferentGalaxy ? 10 : 0));
+		boolean isDifferentGalaxy = !sourcePlanet.getGalaxy().getId().equals(targetPlanet.getGalaxy().getId());
+		return (long) Math
+				.floor((positionInQuadrant * 0.4) + (quadrants * 2.5) + (sectors * 4) + (isDifferentGalaxy ? 500 : 0));
 	}
 
 	private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
@@ -1294,5 +1297,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 				}
 			});
 		}
+	}
+
+	private Long findMissionTypeDivisor(MissionType missionType) {
+		return Long.valueOf(
+				configurationBo.findOrSetDefault("MISSION_SPEED_DIVISOR_" + missionType.name(), "1").getValue());
 	}
 }

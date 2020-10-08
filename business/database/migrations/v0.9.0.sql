@@ -124,3 +124,5 @@ CREATE TABLE `visited_tutorial_entries` ( `id` BIGINT NOT NULL AUTO_INCREMENT , 
 ALTER TABLE `visited_tutorial_entries` ADD CONSTRAINT `fk_vts_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 ALTER TABLE `user_storage` ADD `has_skipped_tutorial` BOOLEAN NOT NULL AFTER `max_energy`;
+
+ALTER TABLE `configuration` CHANGE `name` `name` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;

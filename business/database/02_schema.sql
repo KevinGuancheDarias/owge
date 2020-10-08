@@ -147,7 +147,7 @@ CREATE TABLE `carpetas` (
 --
 
 CREATE TABLE `configuration` (
-  `name` varchar(30) NOT NULL,
+  `name` varchar(50) NOT NULL,
   `display_name` varchar(400) DEFAULT NULL,
   `value` varchar(200) NOT NULL,
   `privileged` tinyint(4) NOT NULL DEFAULT '0'
