@@ -1,11 +1,7 @@
-<app-common-crud [hasDescription]="false" [_crudService]="adminConfigurationService" [hideSections]="{ id: true, name: true}" 
-    [idField]="'name'" [customSaveAction]="saveFunction" (elementSelected)="onSelected($event)">
+<app-common-crud [hasDescription]="false" [_crudService]="adminConfigurationService" [hideSections]="{ id: true}" 
+    [idField]="'name'" [customSaveAction]="saveFunction" (elementSelected)="onSelected($event)" [disableName]="!isNew">
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
-            <div class="form-group col-md-6" >
-                <label for="configuration-name">{{ 'CRUD.ELEMENT_NAME' | translate }}</label>
-                <input [disabled]="!isNew" [(ngModel)]="selectedEl.name" id="configuration-name" class="form-control"/>
-            </div>
             <div class="form-group col-md-6">
                 <label for="configuration-display-name">{{ 'CRUD.CONFIGURATION.DISPLAY_NAME' | translate }}</label>
                 <input [(ngModel)]="selectedEl.displayName" id="configuration-display-name" class="form-control"/>

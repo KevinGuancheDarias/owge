@@ -38,6 +38,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @Input() public customNewFiller: (el: T) => Promise<T>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
   @Input() public allowSelection = false;
+  @Input() public disableName = false;
   @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   @Output() public saveResult: EventEmitter<T> = new EventEmitter;

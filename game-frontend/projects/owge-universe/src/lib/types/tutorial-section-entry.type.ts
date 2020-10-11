@@ -1,7 +1,6 @@
 import { TutorialSectionAvailableHtmlSymbol } from './tutorial-section-available-html-symbol.type';
-import { TutorialEvent } from 'projects/owge-core/src/lib/types/tutorial-event.type';
 import { Translatable } from './translatable.type';
-
+import { TutorialEvent } from '@owge/core';
 
 /**
  *
