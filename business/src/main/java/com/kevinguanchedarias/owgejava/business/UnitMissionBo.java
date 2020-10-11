@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -29,6 +30,7 @@ import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
+import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -640,22 +642,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
-	/**
-	 * Due to lack of support from Quartz to access spring context from the
-	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
-	 * computation from here
-	 *
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 * @param missionId
-	 * @return
-	 */
-	private List<ObtainedUnit> findUnitsInvolved(Long missionId) {
-		List<ObtainedUnit> retVal = obtainedUnitBo.findLockedByMissionId(missionId);
-		retVal.forEach(current -> imageStoreBo.computeImageUrl(current.getUnit().getImage()));
-		return retVal;
-	}
-
 	@Transactional
 	public AttackInformation processAttack(Long missionId, boolean survivorsDoReturn) {
 		Mission mission = findById(missionId);
@@ -929,6 +915,22 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
+	 * Due to lack of support from Quartz to access spring context from the
+	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
+	 * computation from here
+	 *
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.0
+	 * @param missionId
+	 * @return
+	 */
+	private List<ObtainedUnit> findUnitsInvolved(Long missionId) {
+		List<ObtainedUnit> retVal = obtainedUnitBo.findLockedByMissionId(missionId);
+		retVal.forEach(current -> imageStoreBo.computeImageUrl(current.getUnit().getImage()));
+		return retVal;
+	}
+
+	/**
 	 * Executes modifications to <i>missionInformation</i> to define the logged in
 	 * user as the sender user
 	 *
@@ -989,12 +991,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
 					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {
-				Long missionTypeDivisor = findMissionTypeDivisor(missionType);
-				Double lowestSpeed = lowestSpeedOptional.get();
-				Double missionTypeTime = calculateRequiredTime(missionType);
-				long moveCost = calculateMoveCost(mission.getSourcePlanet(), mission.getTargetPlanet());
-				Double withMoveCost = (missionTypeTime + (moveCost * (100 - lowestSpeed)) / missionTypeDivisor);
-				mission.setRequiredTime(withMoveCost < missionTypeTime ? missionTypeTime : withMoveCost);
+				double lowestSpeed = lowestSpeedOptional.get();
+				double missionTypeTime = calculateRequiredTime(missionType);
+				double requiredTime = calculateTimeUsingSpeed(mission, missionType, missionTypeTime, lowestSpeed);
+				mission.setRequiredTime(requiredTime);
 				mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
 			}
 		}
@@ -1006,6 +1006,52 @@ public class UnitMissionBo extends AbstractMissionBo {
 		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
 		return retVal;
+	}
+
+	private double calculateTimeUsingSpeed(Mission mission, MissionType missionType, double missionTypeTime,
+			double lowestUnitSpeed) {
+		int missionTypeDivisor = findMissionTypeDivisor(missionType);
+		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
+		float moveCost = calculateMoveCost(missionType, mission.getSourcePlanet(), mission.getTargetPlanet());
+		return (missionTypeTime + (leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor;
+	}
+
+	/**
+	 * Finds the speed left multiplier <b>also known as the "mission penalty"</b>
+	 * which depends of the mission type and if it's on different quadrant
+	 *
+	 * @param mission
+	 * @param missionType
+	 * @return
+	 */
+	private int findSpeedLeftMultiplier(Mission mission, MissionType missionType) {
+		final String prefix = "MISSION_SPEED_";
+		String missionTypeName = missionType.name();
+		Long sourceQuadrant = mission.getSourcePlanet().getQuadrant();
+		Long targetQuadrant = mission.getTargetPlanet().getQuadrant();
+		Long sourceSector = mission.getSourcePlanet().getSector();
+		Long targetSector = mission.getTargetPlanet().getSector();
+		Galaxy sourceGalaxy = mission.getSourcePlanet().getGalaxy();
+		Galaxy targetGalaxy = mission.getTargetPlanet().getGalaxy();
+		Integer defaultMultiplier;
+		String configurationName;
+		if (sourceQuadrant.equals(targetQuadrant) && sourceSector.equals(targetSector)
+				&& sourceGalaxy.equals(targetGalaxy)) {
+			configurationName = prefix + missionTypeName + "_SAME_Q_PENALTY";
+			defaultMultiplier = 50;
+		} else if (!sourceGalaxy.equals(targetGalaxy)) {
+			configurationName = prefix + missionTypeName + "_DIFF_G_PENALTY";
+			defaultMultiplier = 2000;
+		} else if (!sourceSector.equals(targetSector)) {
+			configurationName = prefix + missionTypeName + "_DIFF_S_PENALTY";
+			defaultMultiplier = 200;
+		} else {
+			configurationName = prefix + missionTypeName + "_DIFF_Q_PENALTY";
+			defaultMultiplier = 100;
+		}
+		return NumberUtils.toInt(
+				configurationBo.findOrSetDefault(configurationName, defaultMultiplier.toString()).getValue(),
+				defaultMultiplier);
 	}
 
 	/**
@@ -1265,13 +1311,22 @@ public class UnitMissionBo extends AbstractMissionBo {
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
 	}
 
-	private long calculateMoveCost(Planet sourcePlanet, Planet targetPlanet) {
+	private float calculateMoveCost(MissionType missionType, Planet sourcePlanet, Planet targetPlanet) {
+		final String prefix = "MISSION_SPEED_";
+		String missionTypeName = missionType.name();
 		long positionInQuadrant = Math.abs(sourcePlanet.getPlanetNumber() - targetPlanet.getPlanetNumber());
 		long quadrants = Math.abs(sourcePlanet.getQuadrant() - targetPlanet.getQuadrant());
 		long sectors = Math.abs(sourcePlanet.getSector() - targetPlanet.getSector());
-		boolean isDifferentGalaxy = !sourcePlanet.getGalaxy().getId().equals(targetPlanet.getGalaxy().getId());
-		return (long) Math
-				.floor((positionInQuadrant * 0.4) + (quadrants * 2.5) + (sectors * 4) + (isDifferentGalaxy ? 500 : 0));
+		float planetDiff = NumberUtils.toFloat(
+				configurationBo.findOrSetDefault(prefix + missionTypeName + "_P_MOVE_COST", "0.01").getValue(), 0.01f);
+		float quadrantDiff = NumberUtils.toFloat(
+				configurationBo.findOrSetDefault(prefix + missionTypeName + "_Q_MOVE_COST", "0.02").getValue(), 0.02f);
+		float sectorDiff = NumberUtils.toFloat(
+				configurationBo.findOrSetDefault(prefix + missionTypeName + "_S_MOVE_COST", "0.03").getValue(), 0.03f);
+		float galaxyDiff = NumberUtils.toFloat(
+				configurationBo.findOrSetDefault(prefix + missionTypeName + "_G_MOVE_COST", "0.15").getValue(), 0.15f);
+		return 1 + (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
+				+ (targetPlanet.getGalaxy().equals(sourcePlanet.getGalaxy()) ? galaxyDiff : 0);
 	}
 
 	private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
@@ -1299,8 +1354,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
-	private Long findMissionTypeDivisor(MissionType missionType) {
-		return Long.valueOf(
+	private int findMissionTypeDivisor(MissionType missionType) {
+		return Integer.valueOf(
 				configurationBo.findOrSetDefault("MISSION_SPEED_DIVISOR_" + missionType.name(), "1").getValue());
 	}
 }
