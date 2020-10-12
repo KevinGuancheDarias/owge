@@ -80,6 +80,9 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	@Fetch(FetchMode.JOIN)
 	private AttackRule attackRule;
 
+	@Column(name = "bypass_shield", nullable = false)
+	private Boolean bypassShield = false;
+
 	/**
 	 * @return the hasToDisplayInRequirements
 	 * @since 0.9.0
@@ -284,6 +287,26 @@ public class Unit extends CommonEntityWithImageStore<Integer>
 	 */
 	public void setAttackRule(AttackRule attackRule) {
 		this.attackRule = attackRule;
+	}
+
+	/**
+	 *
+	 * @return
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getBypassShield() {
+		return bypassShield;
+	}
+
+	/**
+	 *
+	 * @param bypassShield
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setBypassShield(Boolean bypassShield) {
+		this.bypassShield = bypassShield;
 	}
 
 }

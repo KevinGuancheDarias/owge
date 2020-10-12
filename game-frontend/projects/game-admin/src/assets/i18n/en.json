@@ -97,7 +97,8 @@
             "HEALTH": "Health",
             "SHIELD": "Shield",
             "CHARGE": "Charge",
-            "SPEED": "Speed"
+            "SPEED": "Speed",
+            "BYPASS_SHIELDS": "Bypass shields"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxy",
