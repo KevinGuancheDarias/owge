@@ -61,12 +61,6 @@ public class UserStorage implements EntityWithId<Integer> {
 
 	@Column(name = "has_skipped_tutorial")
 	private Boolean hasSkippedTutorial = false;
-	/**
-	 * @deprecated Max Energy is now a computed value
-	 */
-	@Deprecated(since = "0.7.0")
-	@Column(name = "max_energy")
-	private Double maxEnergy;
 
 	@Column(nullable = false)
 	private Double points = 0D;
@@ -254,22 +248,6 @@ public class UserStorage implements EntityWithId<Integer> {
 	@Deprecated(since = "0.8.0")
 	public void setSecondaryResourceGenerationPerSecond(Double secondaryResourceGenerationPerSecond) {
 		this.secondaryResourceGenerationPerSecond = secondaryResourceGenerationPerSecond;
-	}
-
-	/**
-	 * @deprecated Max Energy is now a computed value
-	 */
-	@Deprecated
-	public Double getMaxEnergy() {
-		return maxEnergy;
-	}
-
-	/**
-	 * @deprecated Max Energy is now a computed value
-	 */
-	@Deprecated
-	public void setMaxEnergy(Double maxEnergy) {
-		this.maxEnergy = maxEnergy;
 	}
 
 	/**

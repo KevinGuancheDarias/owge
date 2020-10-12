@@ -968,7 +968,6 @@ CREATE TABLE `user_storage` (
   `energy` double UNSIGNED NOT NULL,
   `primary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `secondary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
-  `max_energy` double UNSIGNED DEFAULT NULL,
   `has_skipped_tutorial` tinyint(1) NOT NULL,
   `points` double NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';

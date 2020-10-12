@@ -142,25 +142,6 @@ export class LoginSessionService implements CanActivate {
   }
 
   /**
-   * Generates the HTTP headers with the Authorization token included
-   *
-   * @deprecated This feature is not in use in modern <i>CoreHttpService</i>
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {HttpHeaders} [headers] If present will append to existing, else will create new
-   * @returns {HttpHeaders}
-   * @memberof LoginSessionService
-   */
-  public genHttpClientHeaders(headers?: HttpHeaders): HttpHeaders {
-    this._lgsLog.warnDeprecated('genHttpClientHeaders()', '0.7.0', 'Don\'t use LoginSessionService');
-    const target: HttpHeaders = headers
-      ? headers
-      : new HttpHeaders();
-    return target.append('Authorization', `Bearer ${this.getRawToken()}`);
-  }
-
-
-  /**
    *
    * @deprecated As of 0.8.0 it's better to use the same method but from UniverseGameService
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
