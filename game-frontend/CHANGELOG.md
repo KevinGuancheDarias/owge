@@ -1,9 +1,15 @@
 # OWGE changelog
 
-v0.9.0 (latest)
+v0.9.0 (2020-10-12 16:35)
 =================
-* [class=Admin] __Feature:__ Allow to specify how much planets for each quadrant should a new galaxy have
-* __Feature:__ [As a player I want to be able to choose all units to send to the mission, with a single button, or all of a certain type #16](https://github.com/KevinGuancheDarias/owge/issues/16)
+* __Feature:__ [As a player I want to be able to fast explore by using a single button in the planet #14](https://github.com/KevinGuancheDarias/owge/issues/14)  
+* [class=Admin] __Feature:__ [As an admin I want to be able to add "speed bonus" to type of units #20](https://github.com/KevinGuancheDarias/owge/issues/20)  
+* __Feature:__ [As an admin I want to be able to choose with type of unit can attack with type of unit #19](https://github.com/KevinGuancheDarias/owge/issues/19)  
+* [class=Admin] __Feature:__ [As an admin I want to add interactive tutorials for the game sections #263](https://github.com/KevinGuancheDarias/owge/issues/263)  
+* __Feature:__ [As a player I want to have interactive tutorials #264](https://github.com/KevinGuancheDarias/owge/issues/264)  
+* [class=Admin] __Feature:__ Allow to specify how much planets for each quadrant should a new galaxy have  
+* [class=Admin] __Feature:__ [As an admin I would like to configure a "speed bonus" that when disponible, would allow travelling cross galaxies #22](https://github.com/KevinGuancheDarias/owge/issues/22)  
+* __Feature:__ [As a player I want to be able to choose all units to send to the mission, with a single button, or all of a certain type #16](https://github.com/KevinGuancheDarias/owge/issues/16)  
 * __Feature:__ [As a player I dont want to be able to send missions to planets outside my galaxy, unless I have reached the requirements for a specified speed group #12](https://github.com/KevinGuancheDarias/owge/issues/12)
 * __Feature:__ [As a player I want to have the concept of units speed (internally known as "speed group") #195](https://github.com/KevinGuancheDarias/owge/issues/195)
 * __Feature:__ [As a player I want to be able to create a list of planets #7](https://github.com/KevinGuancheDarias/owge/issues/7)
