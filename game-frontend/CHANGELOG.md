@@ -2,6 +2,7 @@
 
 v0.10.0(latest)
 =================
+* [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
 
 v0.9.0 (2020-10-12 16:35)
