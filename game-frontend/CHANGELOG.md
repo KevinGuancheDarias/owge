@@ -2,6 +2,7 @@
 
 v0.10.0(latest)
 =================
+* [class=Admin] __Feature:__ [As an admin I want to define units that can bypass unit shields #269](https://github.com/KevinGuancheDarias/owge/issues/269)
 * [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
 

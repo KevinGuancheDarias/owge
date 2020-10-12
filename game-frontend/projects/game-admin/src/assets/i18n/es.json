@@ -87,7 +87,8 @@
             "HEALTH": "Defensa",
             "SHIELD": "Escudo",
             "CHARGE": "Carga",
-            "SPEED": "Velocidad"
+            "SPEED": "Velocidad",
+            "BYPASS_SHIELDS": "Atraviesa escudos"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxia",

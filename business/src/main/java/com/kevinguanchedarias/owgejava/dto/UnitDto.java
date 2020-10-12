@@ -25,6 +25,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private Boolean clonedImprovements = false;
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
+	private Boolean bypassShield = false;
 	private List<RequirementInformationDto> requirements;
 
 	@Override
@@ -246,6 +247,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	 */
 	public void setAttackRule(AttackRuleDto attackRule) {
 		this.attackRule = attackRule;
+	}
+
+	/**
+	 * @return the bypassShield
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getBypassShield() {
+		return bypassShield;
+	}
+
+	/**
+	 * @param bypassShield the bypassShield to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setBypassShield(Boolean bypassShield) {
+		this.bypassShield = bypassShield;
 	}
 
 	/**

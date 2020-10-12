@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : Dim 27 sep. 2020 à 11:24
+-- Généré le : lun. 12 oct. 2020 à 16:41
 -- Version du serveur :  5.7.19-log
 -- Version de PHP : 7.4.1
 
@@ -257,8 +257,8 @@ CREATE TABLE `improvements` (
   `more_energy_production` smallint(6) DEFAULT NULL,
   `more_charge_capacity` smallint(6) DEFAULT NULL,
   `more_missions_value` tinyint(4) DEFAULT NULL,
-  `more_upgrade_research_speed` float UNSIGNED DEFAULT NULL,
-  `more_unit_build_speed` float UNSIGNED DEFAULT NULL
+  `more_upgrade_research_speed` float DEFAULT NULL,
+  `more_unit_build_speed` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -798,7 +798,7 @@ CREATE TABLE `translatables_translations` (
 CREATE TABLE `tutorial_sections` (
   `id` smallint(5) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
-  `description` text,
+  `description` mediumtext,
   `frontend_router_path` varchar(150) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -858,7 +858,8 @@ CREATE TABLE `units` (
   `speed` double DEFAULT '0',
   `improvement_id` smallint(6) UNSIGNED NOT NULL,
   `cloned_improvements` tinyint(4) NOT NULL,
-  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL
+  `speed_impact_group_id` smallint(5) UNSIGNED DEFAULT NULL,
+  `bypass_shield` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1905,19 +1906,19 @@ ALTER TABLE `time_specials`
 -- Contraintes pour la table `translatables_translations`
 --
 ALTER TABLE `translatables_translations`
-  ADD CONSTRAINT `fk_translatable_id` FOREIGN KEY (`translatable_id`) REFERENCES `translatables` (`id`);
+  ADD CONSTRAINT `fk_translatable_id` FOREIGN KEY (`translatable_id`) REFERENCES `translatables` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Contraintes pour la table `tutorial_sections_available_html_symbols`
 --
 ALTER TABLE `tutorial_sections_available_html_symbols`
-  ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections` (`id`);
+  ADD CONSTRAINT `fk_section_id` FOREIGN KEY (`tutorial_section_id`) REFERENCES `tutorial_sections` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Contraintes pour la table `tutorial_sections_entries`
 --
 ALTER TABLE `tutorial_sections_entries`
-  ADD CONSTRAINT `fk_tse_symbol_id` FOREIGN KEY (`section_available_html_symbol_id`) REFERENCES `tutorial_sections_available_html_symbols` (`id`);
+  ADD CONSTRAINT `fk_tse_symbol_id` FOREIGN KEY (`section_available_html_symbol_id`) REFERENCES `tutorial_sections_available_html_symbols` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Contraintes pour la table `units`
@@ -1966,7 +1967,7 @@ ALTER TABLE `user_storage`
 -- Contraintes pour la table `visited_tutorial_entries`
 --
 ALTER TABLE `visited_tutorial_entries`
-  ADD CONSTRAINT `fk_vts_user_idd` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
+  ADD CONSTRAINT `fk_vts_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Contraintes pour la table `websocket_events_information`

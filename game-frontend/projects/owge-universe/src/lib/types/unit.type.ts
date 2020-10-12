@@ -32,4 +32,5 @@ export interface Unit {
     typeName?: string;
     requirements?: ResourceRequirements;
     speedImpactGroup: SpeedImpactGroup;
+    bypassShield: boolean;
 }
