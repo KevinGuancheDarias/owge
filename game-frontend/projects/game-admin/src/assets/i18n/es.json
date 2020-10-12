@@ -88,7 +88,8 @@
             "SHIELD": "Escudo",
             "CHARGE": "Carga",
             "SPEED": "Velocidad",
-            "BYPASS_SHIELDS": "Atraviesa escudos"
+            "BYPASS_SHIELDS": "Atraviesa escudos",
+            "IS_INVISIBLE": "Es invisible"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxia",
