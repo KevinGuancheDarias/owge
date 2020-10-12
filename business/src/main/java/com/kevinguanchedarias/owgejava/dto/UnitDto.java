@@ -26,6 +26,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
 	private Boolean bypassShield = false;
+	private Boolean isInvisible = false;
 	private List<RequirementInformationDto> requirements;
 
 	@Override
@@ -265,6 +266,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	 */
 	public void setBypassShield(Boolean bypassShield) {
 		this.bypassShield = bypassShield;
+	}
+
+	/**
+	 * @return the isInvisible
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getIsInvisible() {
+		return isInvisible;
+	}
+
+	/**
+	 * @param isInvisible the isInvisible to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setIsInvisible(Boolean isInvisible) {
+		this.isInvisible = isInvisible;
 	}
 
 	/**

@@ -49,6 +49,11 @@
             </div>
 
             <div class="form-group col-md-6">
+                <label for="input-is-invisible">{{ 'CRUD.UNIT.IS_INVISIBLE' | translate }}</label>
+                <input class="form-control" type="checkbox" id="input-is-invisible" [(ngModel)]="selectedEl.isInvisible">
+            </div>
+
+            <div class="form-group col-md-6">
                 <label for="unit-type">{{ 'CRUD.UNIT.TYPE' | translate }}</label>
                 <owge-widgets-id-name-dropdown class="form-control" [useIdAsValue]="true" [inputId]="'unit-type'" [elementsList]="unitTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
             </div>

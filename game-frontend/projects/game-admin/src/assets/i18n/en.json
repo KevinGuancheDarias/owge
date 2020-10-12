@@ -98,7 +98,8 @@
             "SHIELD": "Shield",
             "CHARGE": "Charge",
             "SPEED": "Speed",
-            "BYPASS_SHIELDS": "Bypass shields"
+            "BYPASS_SHIELDS": "Bypass shields",
+            "IS_INVISIBLE": "Is invisible"
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxy",
