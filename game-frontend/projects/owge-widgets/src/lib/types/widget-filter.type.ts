@@ -5,10 +5,9 @@
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  * @export
- * @interface WidgetFilter
  * @template T Data type
  */
-export interface WidgetFilter<T extends { id?: number, name?: string }> {
+export interface WidgetFilter<T> {
 
     /**
      * Translatable name (shoule be a translation string)
@@ -25,7 +24,18 @@ export interface WidgetFilter<T extends { id?: number, name?: string }> {
     isEnabled?: boolean;
 
     /**
-     * The data
+     * When the filter doesn't use data, we can define the input we want to use <br>
+     * <ul>
+     * <li>text = for text input</li>
+     * <li>number = for numeric input</li>
+     * </ul>
+     *
+     * @since 0.10.0
+     */
+    inputType?: 'number' | 'text';
+
+    /**
+     * The data (required, if inputType is null)
      *
      * @since 0.9.0
      */

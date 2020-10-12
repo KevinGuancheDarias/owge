@@ -6,12 +6,17 @@
                 <div class="form-group col-md-6" *ngFor="let filter of filters" >
                     <input [(ngModel)]="filter.isEnabled" type="checkbox" (ngModelChange)="triggerFilter()" />
                     <label>{{ filter.name | translate }}</label>
-                    <select [disabled]="!filter.isEnabled" *ngIf="filter.compareAction" [compareWith]="filter.compareAction" class="form-control"[(ngModel)]="filter.selected" (ngModelChange)="triggerFilter()" >
-                        <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate }}</option>
-                        <option *ngFor="let entry of filter.data" [ngValue]="entry">
-                            {{ entry.name }}
-                        </option>
-                    </select> 
+                    <ng-container *ngIf="!filter.inputType">
+                        <select [disabled]="!filter.isEnabled" *ngIf="filter.compareAction" [compareWith]="filter.compareAction" class="form-control"[(ngModel)]="filter.selected" (ngModelChange)="triggerFilter()" >
+                            <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate }}</option>
+                            <option *ngFor="let entry of filter.data" [ngValue]="entry">
+                                {{ entry.name }}
+                            </option>
+                        </select> 
+                    </ng-container>
+                    <ng-container *ngIf="filter.inputType">
+                        <input [disabled]="!filter.isEnabled" class="form-control" [type]="filter.inputType" [(ngModel)]="filter.selected"  (ngModelChange)="triggerFilter()"/>
+                    </ng-container>
                 </div>
             </div>
         </div>

@@ -6,7 +6,8 @@ import { AdminFactionService } from '../../services/admin-faction.service';
 import { AdminUpgradeService } from '../../services/admin-upgrade.service';
 import { Observable } from 'rxjs';
 import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
+import { AdminUnitService } from '../../services/admin-unit.service';
 
 /**
  *
@@ -30,13 +31,14 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   public secondValueFilters: WidgetFilter<any>[] = null;
   public secondValueListFiltered: CommonEntity<number[]>;
 
-  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION'];
+  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT'];
 
   public constructor(
     private _translateService: TranslateService,
     private _adminFactionService: AdminFactionService,
     private _adminUpgradeService: AdminUpgradeService,
-    private _adminSpecialLocationService: AdminSpecialLocationService
+    private _adminSpecialLocationService: AdminSpecialLocationService,
+    private _adminUnitService: AdminUnitService
   ) {
     super();
   }
@@ -62,6 +64,10 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
           break;
         case 'HAVE_SPECIAL_LOCATION':
           this._adminSpecialLocationService.findAll().subscribe(specialLocations => this.secondValueList = specialLocations);
+          break;
+        case 'HAVE_UNIT':
+          this._adminFactionService.buildFilter().then(result => this.secondValueFilters = [result, WidgetFilterUtil.buildByNameFilter()]);
+          this._adminUnitService.findAll().subscribe(units => this.secondValueList = units);
           break;
         default:
           throw new ProgrammingError(`The requirement with code ${this.newRequirement.requirement.code} is not supported`);
