@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.10.0(latest)
+=================
+* [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
+
 v0.9.0 (2020-10-12 16:35)
 =================
 * __Feature:__ [As a player I want to be able to fast explore by using a single button in the planet #14](https://github.com/KevinGuancheDarias/owge/issues/14)  
