@@ -55,7 +55,9 @@
             "PR_PRODUCTION": "Producción recurso primario",
             "SR_PRODUCTION": "Producción recurso segundario",
             "INITIAL_ENERGY": "Energía inicial",
-            "MAX_PLANETS": "Máximo de planetas"
+            "MAX_PLANETS": "Máximo de planetas",
+            "CUSTOM_GATHER_PRIMARY_PERCENTAGE": "Porcentaje custom de recolección de primario",
+            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Porcentaje custom de recolección de secundario"
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Nombre a mostrar",

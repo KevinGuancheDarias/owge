@@ -60,6 +60,15 @@
                 <input id="max-planets" type="number" class="form-control" [(ngModel)]="selectedEl.maxPlanets"/>
             </div>
 
+            <div class="form-group col-md-6">
+                <label for="custom-primary-percentage">{{ 'CRUD.FACTION.CUSTOM_GATHER_PRIMARY_PERCENTAGE' | translate }}</label><br>
+                <input  id="custom-primary-percentage" [min]="1" [max]="99" maxlength="2" type="number"  class="form-control" [(ngModel)]="selectedEl.customPrimaryGatherPercentage" (ngModelChange)="processPrimary()"  onkeypress="if (this.value.length > 1) return false;"/>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="custom-secondary-percentage">{{ 'CRUD.FACTION.CUSTOM_GATHER_SECONDARY_PERCENTAGE' | translate }}</label><br>
+                <input  id="custom-secondary-percentage" [min]="1" [max]="99" maxlength="2" type="number"  class="form-control" [(ngModel)]="selectedEl.customSecondaryGatherPercentage" (ngModelChange)="processSecondary()"  onkeypress="if (this.value.length > 1) return false;"/>
+            </div>
+
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
             <app-object-improvements-crud [service]="adminFactionService" [entityId]="selectedEl.id"></app-object-improvements-crud>
         </ng-container>

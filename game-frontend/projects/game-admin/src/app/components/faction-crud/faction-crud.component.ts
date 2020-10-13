@@ -16,7 +16,6 @@ export class FactionCrudComponent {
 
   constructor(public adminFactionService: AdminFactionService) { }
 
-
   /**
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -42,5 +41,31 @@ export class FactionCrudComponent {
   public defineEnergyImage(image: ImageStore): void {
     this.selectedEl.energyImage = image.id;
     this.selectedEl.energyImageUrl = image.url;
+  }
+
+  public processPrimary(): void {
+    this.selectedEl.customSecondaryGatherPercentage = 100 - this.selectedEl.customPrimaryGatherPercentage;
+    if (this.selectedEl.customSecondaryGatherPercentage >= 100) {
+      this.selectedEl.customSecondaryGatherPercentage = 99;
+      this.selectedEl.customPrimaryGatherPercentage = 1;
+    }
+    if (!this.selectedEl.customPrimaryGatherPercentage || this.selectedEl.customPrimaryGatherPercentage < 1) {
+      this.selectedEl.customPrimaryGatherPercentage = 1;
+    } else if (this.selectedEl.customPrimaryGatherPercentage > 99) {
+      this.selectedEl.customPrimaryGatherPercentage = 99;
+    }
+  }
+
+  public processSecondary(): void {
+    this.selectedEl.customPrimaryGatherPercentage = 100 - this.selectedEl.customSecondaryGatherPercentage;
+    if (this.selectedEl.customPrimaryGatherPercentage >= 100) {
+      this.selectedEl.customPrimaryGatherPercentage = 99;
+      this.selectedEl.customSecondaryGatherPercentage = 1;
+    }
+    if (!this.selectedEl.customSecondaryGatherPercentage || this.selectedEl.customSecondaryGatherPercentage < 1) {
+      this.selectedEl.customSecondaryGatherPercentage = 1;
+    } else if (this.selectedEl.customSecondaryGatherPercentage > 99) {
+      this.selectedEl.customSecondaryGatherPercentage = 99;
+    }
   }
 }

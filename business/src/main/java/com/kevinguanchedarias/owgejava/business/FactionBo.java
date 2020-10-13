@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 
 @Service
@@ -24,7 +25,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -34,7 +35,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/**
 	 * Returns the factions that are visible
-	 * 
+	 *
 	 * @param lazyFetch Fetch the proxies, or set to null
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -47,13 +48,28 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/**
 	 * Will check if given faction exists AND it's visible
-	 * 
+	 *
 	 * @param id faction id
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public boolean existsAndIsVisible(Integer id) {
 		return factionRepository.countByHiddenFalseAndId(id) == 1;
+	}
+
+	@Override
+	public Faction save(Faction faction) {
+		Float customPrimaryGatherPercentage = faction.getCustomPrimaryGatherPercentage();
+		customPrimaryGatherPercentage = customPrimaryGatherPercentage != null ? customPrimaryGatherPercentage : 1;
+		Float customSecondaryGatherPercentage = faction.getCustomSecondaryGatherPercentage();
+		customSecondaryGatherPercentage = customSecondaryGatherPercentage != null ? customSecondaryGatherPercentage : 1;
+		if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 0) {
+			if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 100) {
+				throw new SgtBackendInvalidInputException(
+						"No, dear hacker, custom primary porcentage plus secondary CAN'T be higher than 100");
+			}
+		}
+		return BaseBo.super.save(faction);
 	}
 
 	private void handleLazyFetch(boolean lazyFetch, List<Faction> factions) {

@@ -17,7 +17,7 @@ import org.hibernate.annotations.FetchMode;
 
 /**
  * Represents a Faction
- * 
+ *
  * @author Kevin Guanche Darias
  *
  */
@@ -82,6 +82,12 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
+
+	@Column(name = "custom_primary_gather_percentage")
+	private Float customPrimaryGatherPercentage = 0F;
+
+	@Column(name = "custom_secondary_gather_percentage")
+	private Float customSecondaryGatherPercentage = 0F;
 
 	@Override
 	public Integer getId() {
@@ -242,6 +248,43 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	public void setMaxPlanets(Integer maxPlanets) {
 		this.maxPlanets = maxPlanets;
+	}
+
+	/**
+	 * @return the customPrimaryGatherPercentage
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Float getCustomPrimaryGatherPercentage() {
+		return customPrimaryGatherPercentage;
+	}
+
+	/**
+	 * @param customPrimaryGatherPercentage the customPrimaryGatherPercentage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setCustomPrimaryGatherPercentage(Float customPrimaryGatherPercentage) {
+		this.customPrimaryGatherPercentage = customPrimaryGatherPercentage;
+	}
+
+	/**
+	 * @return the customSecondaryGatherPercentage
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Float getCustomSecondaryGatherPercentage() {
+		return customSecondaryGatherPercentage;
+	}
+
+	/**
+	 * @param customSecondaryGatherPercentage the customSecondaryGatherPercentage to
+	 *                                        set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setCustomSecondaryGatherPercentage(Float customSecondaryGatherPercentage) {
+		this.customSecondaryGatherPercentage = customSecondaryGatherPercentage;
 	}
 
 }

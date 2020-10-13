@@ -28,10 +28,12 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 	private Integer maxPlanets;
 	private Boolean clonedImprovements = false;
 	private ImprovementDto improvement;
+	private Float customPrimaryGatherPercentage = 0F;
+	private Float customSecondaryGatherPercentage = 0F;
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait#dtoFromEntity(
 	 * java.lang.Object)
@@ -280,7 +282,7 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.dto.DtoWithImprovements#getImprovement()
 	 */
 	@Override
@@ -290,7 +292,7 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * com.kevinguanchedarias.owgejava.dto.DtoWithImprovements#setImprovement(com.
 	 * kevinguanchedarias.owgejava.dto.ImprovementDto)
@@ -299,4 +301,42 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 	public void setImprovement(ImprovementDto improvementDto) {
 		improvement = improvementDto;
 	}
+
+	/**
+	 * @return the customPrimaryGatherPercentage
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Float getCustomPrimaryGatherPercentage() {
+		return customPrimaryGatherPercentage;
+	}
+
+	/**
+	 * @param customPrimaryGatherPercentage the customPrimaryGatherPercentage to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setCustomPrimaryGatherPercentage(Float customPrimaryGatherPercentage) {
+		this.customPrimaryGatherPercentage = customPrimaryGatherPercentage;
+	}
+
+	/**
+	 * @return the customSecondaryGatherPercentage
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Float getCustomSecondaryGatherPercentage() {
+		return customSecondaryGatherPercentage;
+	}
+
+	/**
+	 * @param customSecondaryGatherPercentage the customSecondaryGatherPercentage to
+	 *                                        set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setCustomSecondaryGatherPercentage(Float customSecondaryGatherPercentage) {
+		this.customSecondaryGatherPercentage = customSecondaryGatherPercentage;
+	}
+
 }
