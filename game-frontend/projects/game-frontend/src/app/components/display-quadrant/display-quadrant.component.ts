@@ -7,10 +7,9 @@ import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
 import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent } from '@owge/galaxy';
-import { Planet, ObtainedUnit, Unit, MissionStore, UnitRunningMission } from '@owge/universe';
+import { Planet, ObtainedUnit, Unit, MissionStore, UnitRunningMission, TutorialService } from '@owge/universe';
 import { MissionService } from '../../services/mission.service';
 import { ToastrService } from '@owge/core';
-import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
 
 interface DisplayQuadrantUnitRunningMission extends UnitRunningMission {
   currentCompletePercentage?: number;

@@ -5,9 +5,8 @@ import { User } from '@owge/core';
 import { BaseComponent } from '../base/base.component';
 import { MissionService } from '../services/mission.service';
 import { UpgradeService } from '../service/upgrade.service';
-import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage } from '@owge/universe';
+import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
 import { take } from 'rxjs/operators';
-import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
 
 @Component({
   selector: 'app-game-index',

@@ -1,11 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminTutorialService } from '../../services/admin-tutorial.service';
-import { TutorialSection, TutorialSectionAvailableHtmlSymbol } from '@owge/universe';
-import { TutorialSectionEntry } from 'projects/owge-universe/src/lib/types/tutorial-section-entry.type';
-import { Observable } from 'rxjs';
+import { TutorialSection, TutorialSectionAvailableHtmlSymbol, TutorialSectionEntry } from '@owge/universe';
 import { AdminTutorialEntryService } from '../../services/admin-tutorial-entry.service';
-import { TutorialEvent } from 'projects/owge-core/src/lib/types/tutorial-event.type';
-
+import { TutorialEvent } from '@owge/core';
 
 /**
  *

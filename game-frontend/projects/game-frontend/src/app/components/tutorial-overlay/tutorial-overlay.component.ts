@@ -2,8 +2,7 @@ import {
   Component, AfterViewInit, ElementRef, AfterViewChecked, ChangeDetectionStrategy,
   ChangeDetectorRef, ViewChildren, QueryList, ViewChild, ViewEncapsulation
 } from '@angular/core';
-import { TutorialService } from 'projects/owge-universe/src/lib/services/tutorial.service';
-import { TutorialSectionEntry, WebsocketService } from '@owge/universe';
+import { TutorialSectionEntry, WebsocketService, TutorialService } from '@owge/universe';
 import { ScreenDimensionsService, LoggerHelper } from '@owge/core';
 import { fromEvent } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';

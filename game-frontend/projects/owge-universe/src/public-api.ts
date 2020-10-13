@@ -17,6 +17,7 @@ export * from './lib/services/abstract-crud.service';
 export * from './lib/services/image-store.service';
 export * from './lib/services/resource-manager.service';
 export * from './lib/services/speed-impact-group.service';
+export * from './lib/services/tutorial.service';
 export * from './lib/services/universe-cache-manager.service';
 export * from './lib/services/universe-game.service';
 export * from './lib/services/universe.service';
