@@ -65,7 +65,9 @@
             "PR_PRODUCTION": "Primary resource production",
             "SR_PRODUCTION": "Secondary resource production",
             "INITIAL_ENERGY": "Initial energy",
-            "MAX_PLANETS": "Max planets"
+            "MAX_PLANETS": "Max planets",
+            "CUSTOM_GATHER_PRIMARY_PERCENTAGE": "Custom gather primary percentage",
+            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Custom gather secondary percentage"
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Display name",

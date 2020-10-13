@@ -28,4 +28,14 @@ export interface Faction {
     primaryResourceProduction: number;
     secondaryResourceProduction: number;
     maxPlanets: number;
+
+    /**
+     * @since 0.10.0
+     */
+    customPrimaryGatherPercentage: number;
+
+    /**
+     * @since 0.10.0
+     */
+    customSecondaryGatherPercentage: number;
 }
