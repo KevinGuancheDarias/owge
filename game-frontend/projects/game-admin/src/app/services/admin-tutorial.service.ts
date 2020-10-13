@@ -1,10 +1,10 @@
 import {
     AbstractCrudService, TutorialSection, CrudServiceAuthControl, UniverseGameService,
-    TutorialSectionAvailableHtmlSymbol
+    TutorialSectionAvailableHtmlSymbol,
+    TutorialSectionEntry
 } from '@owge/universe';
 import { validContext } from '@owge/core';
 import { Observable } from 'rxjs';
-import { TutorialSectionEntry } from 'projects/owge-universe/src/lib/types/tutorial-section-entry.type';
 import { Injectable } from '@angular/core';
 
 /**

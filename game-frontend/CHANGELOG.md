@@ -1,6 +1,6 @@
 # OWGE changelog
 
-v0.9.0 (2020-10-12 16:35)
+v0.9.0 (2020-10-13 17:38)
 =================
 * __Feature:__ [As a player I want to be able to fast explore by using a single button in the planet #14](https://github.com/KevinGuancheDarias/owge/issues/14)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to add "speed bonus" to type of units #20](https://github.com/KevinGuancheDarias/owge/issues/20)  
