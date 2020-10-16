@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.1 (latest)
+================
+* __Fix:__ [In the navigation, when a selected galaxy has less sectors and/or quadrants than the previously selected one, should automatically choose sector 1 and/or quadrant 1, to avoid "invisible" navigation #284](https://github.com/KevinGuancheDarias/owge/issues/284)  
+
 v0.9.0 (2020-10-13 17:38)
 =================
 * __Feature:__ [As a player I want to be able to fast explore by using a single button in the planet #14](https://github.com/KevinGuancheDarias/owge/issues/14)  
