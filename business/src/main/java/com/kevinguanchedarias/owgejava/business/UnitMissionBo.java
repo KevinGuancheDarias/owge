@@ -622,10 +622,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 				targetPlanet, involvedUnits);
 		UserStorage planetOwner = targetPlanet.getOwner();
 		boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
-		boolean areUnitsHavingtoReturn = false;
 		if (planetOwner != null || hasMaxPlanets) {
 			adminRegisterReturnMission(mission);
-			areUnitsHavingtoReturn = true;
 			if (planetOwner != null) {
 				builder.withEstablishBaseInformation(false, "The planet already belongs to a user");
 			} else {
@@ -637,9 +635,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
-		if (!areUnitsHavingtoReturn) {
-			emitLocalMissionChangeAfterCommit(mission);
-		}
+		emitLocalMissionChangeAfterCommit(mission);
+
 	}
 
 	@Transactional
@@ -1302,6 +1299,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 			current.setTargetPlanet(null);
 			current.setMission(null);
 		});
+		planetBo.save(targetPlanet);
+		obtainedUnitBo.findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED)
+				.forEach(units -> {
+					Mission mission = units.getMission();
+					obtainedUnitBo.moveUnit(units, owner.getId(), targetPlanet.getId());
+					if (mission != null) {
+						delete(mission);
+					}
+
+				});
 		if (targetPlanet.getSpecialLocation() != null) {
 			requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
 		}

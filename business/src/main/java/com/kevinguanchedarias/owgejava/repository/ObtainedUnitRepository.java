@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.QueryHints;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -150,5 +151,15 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findByUnit(Unit unit);
+
+	/**
+	 *
+	 * @param userId
+	 * @param targetPlanet
+	 * @param name
+	 * @return
+	 */
+	public List<ObtainedUnit> findByUserIdAndTargetPlanetAndMissionTypeCode(Integer userId, Planet targetPlanet,
+			String name);
 
 }

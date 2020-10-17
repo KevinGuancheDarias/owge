@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
@@ -28,12 +28,24 @@ import { ReportService } from '../../services/report.service';
 })
 export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
 
+  private static readonly _LS_DISPLAY_TWITCH_KEY = 'do_display_twitch';
+
+  @Output() public displayTwitch: EventEmitter<boolean> = new EventEmitter;
   @ViewChild('planetSelectionModal', { static: true }) private _modalComponent: ModalComponent;
   public selectedPlanet: Planet;
   public myPlanets: Planet[];
   public user: UserWithFaction;
   public withLimitUnitTypes: UnitType[];
   public resources: AutoUpdatedResources;
+  public hasToDisplayTwitch: boolean = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
+  public twitchRoute = this._createTranslatableMenuRoute(
+    'APP.MENU_TWITCH',
+    () => this._clickTwitch(),
+    'fab fa-twitch',
+    true,
+    { 'is-twitch-active': this.hasToDisplayTwitch }
+  );
+
   public menuRoutes: MenuRoute[] = [
     this._createTranslatableMenuRoute('APP.MENU_HOME', ROUTES.GAME_INDEX, 'fa fa-home'),
     this._createTranslatableMenuRoute('APP.MENU_UPGRADES', ROUTES.UPGRADES, 'fa fa-flask'),
@@ -50,6 +62,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       path: ROUTES.VERSION,
       icon: 'fa fa-info'
     },
+    this.twitchRoute,
     this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._universeGameService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
@@ -83,6 +96,12 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
     this._reportService.findUserUnreadCount().subscribe(result => this.userUnreadReports = result);
     this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
+    window.addEventListener('storage', e => {
+      if (e.key === GameSidebarComponent._LS_DISPLAY_TWITCH_KEY) {
+        this._syncTwitchButton();
+      }
+    });
+    this.displayTwitch.emit(this.hasToDisplayTwitch);
   }
 
   public displayPlanetSelectionModal(): void {
@@ -97,5 +116,21 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     if (await this._displayService.confirm('Leave the planet ' + planet.name + '?')) {
       this._planetService.leavePlanet(planet).subscribe(() => { });
     }
+  }
+
+  private _clickTwitch(): void {
+    this.hasToDisplayTwitch = !this.hasToDisplayTwitch;
+    if (!this.hasToDisplayTwitch) {
+      localStorage.removeItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
+    } else {
+      localStorage.setItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY, 'true');
+    }
+    this._syncTwitchButton();
+  }
+
+  private _syncTwitchButton(): void {
+    this.hasToDisplayTwitch = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
+    this.twitchRoute.cssClasses = { 'is-twitch-active': this.hasToDisplayTwitch };
+    this.displayTwitch.emit(this.hasToDisplayTwitch);
   }
 }

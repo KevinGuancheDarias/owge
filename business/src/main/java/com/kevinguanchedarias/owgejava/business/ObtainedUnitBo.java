@@ -540,4 +540,16 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	private UnitType findMaxShareCountRoot(UnitType type) {
 		return type.getShareMaxCount() == null ? type : findMaxShareCountRoot(type.getShareMaxCount());
 	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param targetPlanet
+	 * @param missionType
+	 * @return
+	 */
+	public List<ObtainedUnit> findByUserIdAndTargetPlanetAndMissionTypeCode(Integer userId, Planet targetPlanet,
+			MissionType missionType) {
+		return repository.findByUserIdAndTargetPlanetAndMissionTypeCode(userId, targetPlanet, missionType.name());
+	}
 }

@@ -4,6 +4,11 @@ import { LoadingService } from '@owge/core';
 
 import { state, style, trigger, transition, animate } from '@angular/animations';
 import { WebsocketService, UniverseGameService } from '@owge/universe';
+import { Player } from './types/twitch-player.type';
+
+declare const Twitch: {
+  Player: typeof Player
+};
 
 @Component({
   selector: 'app-root',
@@ -41,8 +46,9 @@ export class AppComponent implements OnInit {
   public isPanic: boolean;
   public connectedClass: string;
   public panicClass: string;
-
   public hasToShow: boolean;
+  public hasToDisplayTwitch: boolean;
+  public twitchPlayer: Player;
 
   private timeoutId: number;
 
@@ -79,5 +85,24 @@ export class AppComponent implements OnInit {
 
   public clickReload() {
     window.location.reload();
+  }
+
+  public onDisplayTwitch(val: boolean): void {
+    this.hasToDisplayTwitch = val;
+    const divId = 'twitch-display';
+    if (val) {
+      this.twitchPlayer = new Twitch.Player(divId, {
+        width: '100%',
+        height: '100%',
+        channel: 'kevinguanchedarias',
+        parent: [location.host.split(':')[0]]
+      });
+      this.twitchPlayer.addEventListener(Twitch.Player.ONLINE, () => console.log('Channel is online'));
+      this.twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => console.log('Channel is offline'));
+    } else {
+      this.twitchPlayer.pause();
+      delete this.twitchPlayer;
+      document.getElementById(divId).innerHTML = '';
+    }
   }
 }

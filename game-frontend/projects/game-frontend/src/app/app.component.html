@@ -1,6 +1,9 @@
-<app-game-sidebar *ngIf="isInGame"></app-game-sidebar>
+<app-game-sidebar *ngIf="isInGame" (displayTwitch)="onDisplayTwitch($event)"></app-game-sidebar>
 <div class="app-container">
     <router-outlet></router-outlet>
+        <div class="twitch-scroll" *ngIf="hasToDisplayTwitch">
+            <!-- Forces an scroll to be available on mobile devices-->
+        </div>
     <div *ngIf="isPanic" class="panic-wrapper">
         <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' | translate }}</button>
     </div>
@@ -15,6 +18,10 @@
     <div>
 
     </div>
+</div>
+
+<div id="twitch-display" [style.display]="hasToDisplayTwitch ? 'block' : 'none'">
+    
 </div>
 
 <app-tutorial-overlay>
