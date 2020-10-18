@@ -212,6 +212,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private boolean isRemoved = false;
 		private Map<Integer, AttackUserInformation> users = new HashMap<>();
 		private List<AttackObtainedUnit> units = new ArrayList<>();
+		private Set<Integer> usersWithDeletedMissions = new HashSet<>();
 
 		public AttackInformation() {
 			throw new ProgrammingException(
@@ -254,6 +255,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.collect(Collectors.toList()));
 			doAttack();
 			updatePoints();
+			usersWithDeletedMissions.forEach(userId -> {
+				emitMissions(userId);
+			});
 		}
 
 		/**
@@ -360,6 +364,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 					setRemoved(true);
 				} else {
 					delete(mission);
+					usersWithDeletedMissions.add(mission.getUser().getId());
 				}
 			}
 		}
@@ -660,6 +665,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChangeAfterCommit(mission);
 		}
+		if (!attackInformation.usersWithDeletedMissions.isEmpty()) {
+			emitEnemyMissionsChange(targetPlanet.getOwner());
+		}
+
 		return attackInformation;
 	}
 
@@ -1266,9 +1275,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private void emitLocalMissionChange(Mission mission, UserStorage user) {
 		entityManager.refresh(mission);
 		emitEnemyMissionsChange(mission);
-		socketIoService.sendMessage(user, "unit_mission_change",
-				() -> new MissionWebsocketMessage(countUserMissions(user.getId()),
-						findUserRunningMissions(user.getId())));
+		emitMissions(user.getId());
+	}
+
+	private void emitMissions(Integer userId) {
+		socketIoService.sendMessage(userId, "unit_mission_change",
+				() -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
 	}
 
 	private void emitEnemyMissionsChange(Mission mission) {

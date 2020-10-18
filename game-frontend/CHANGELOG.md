@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.2 (latest)
+================
+* __Fix:__ [Conquest or establish base doesn't get deleted, even if all its units has been killed #290](https://github.com/KevinGuancheDarias/owge/issues/290)  
+
 v0.9.1 (2020-10-18 11:32)
 ===========================
 * __Fix:__ [If you deploy multiple units, and in the deployed mission, you send back only some units, the other units will disappear #288](https://github.com/KevinGuancheDarias/owge/issues/288)  
