@@ -2,7 +2,7 @@ import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/cor
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
-import { MenuRoute, ROUTES, ModalComponent, SessionService } from '@owge/core';
+import { MenuRoute, ROUTES, ModalComponent, SessionService, LoggerHelper } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
 import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, Planet, UniverseGameService } from '@owge/universe';
@@ -10,6 +10,7 @@ import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, P
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { ReportService } from '../../services/report.service';
+import { TwitchState } from '../../types/twitch-state.type';
 
 /**
  *
@@ -29,8 +30,11 @@ import { ReportService } from '../../services/report.service';
 export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
 
   private static readonly _LS_DISPLAY_TWITCH_KEY = 'do_display_twitch';
+  private static readonly _LS_ASK_IS_OTHER_PLAYING_UNMUTED = 'ask_is_other_playing_twitch';
+  private static readonly _LS_YEAH_IS_PLAYING = 'yeah_is_playing';
+  private static readonly _LOG: LoggerHelper = new LoggerHelper(GameSidebarComponent.name);
 
-  @Output() public displayTwitch: EventEmitter<boolean> = new EventEmitter;
+  @Output() public displayTwitch: EventEmitter<TwitchState> = new EventEmitter;
   @ViewChild('planetSelectionModal', { static: true }) private _modalComponent: ModalComponent;
   public selectedPlanet: Planet;
   public myPlanets: Planet[];
@@ -38,6 +42,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public withLimitUnitTypes: UnitType[];
   public resources: AutoUpdatedResources;
   public hasToDisplayTwitch: boolean = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
+  public isPrimaryTwitch = false;
   public twitchRoute = this._createTranslatableMenuRoute(
     'APP.MENU_TWITCH',
     () => this._clickTwitch(),
@@ -84,7 +89,13 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     super(_translateService);
   }
 
-  public ngOnInit() {
+  public async ngOnInit() {
+    window.addEventListener('storage', e => {
+      if (e.key === GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED && e.newValue === '1') {
+        localStorage.setItem(GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED, '0');
+        localStorage.setItem(GameSidebarComponent._LS_YEAH_IS_PLAYING, this.isPrimaryTwitch ? '1' : '0');
+      }
+    });
     this._planetService.findMyPlanets().subscribe(planets => this.myPlanets = planets);
     this._universeGameService.findLoggedInUserData<UserWithFaction>().subscribe(user => this.user = user);
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
@@ -98,10 +109,14 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
     window.addEventListener('storage', e => {
       if (e.key === GameSidebarComponent._LS_DISPLAY_TWITCH_KEY) {
-        this._syncTwitchButton();
+        this._syncTwitchButton(false);
       }
     });
-    this.displayTwitch.emit(this.hasToDisplayTwitch);
+    this.isPrimaryTwitch = !(await this._isTwitchPlayingUnmutedInOtherTab());
+    this.displayTwitch.emit({
+      hasToDisplay: this.hasToDisplayTwitch,
+      isPrimary: this.isPrimaryTwitch
+    });
   }
 
   public displayPlanetSelectionModal(): void {
@@ -125,12 +140,42 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     } else {
       localStorage.setItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY, 'true');
     }
-    this._syncTwitchButton();
+    this._syncTwitchButton(true);
   }
 
-  private _syncTwitchButton(): void {
+  private _syncTwitchButton(isPrimary: boolean): void {
     this.hasToDisplayTwitch = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
     this.twitchRoute.cssClasses = { 'is-twitch-active': this.hasToDisplayTwitch };
-    this.displayTwitch.emit(this.hasToDisplayTwitch);
+    this.displayTwitch.emit({
+      hasToDisplay: this.hasToDisplayTwitch,
+      isPrimary
+    });
+  }
+
+  private async _isTwitchPlayingUnmutedInOtherTab(): Promise<boolean> {
+    let handlerFromOutside;
+    const promise1 = new Promise<boolean>(resolve => window.setTimeout(() => {
+      window.removeEventListener('storage', handlerFromOutside);
+      localStorage.setItem(GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED, '0');
+      resolve(false);
+    }, 2000));
+    const promise2 = new Promise<boolean>(resolve => {
+      const handler = (e: StorageEvent) => {
+        if (e.key === GameSidebarComponent._LS_YEAH_IS_PLAYING && e.newValue === '1') {
+          window.removeEventListener('storage', handler);
+          localStorage.setItem(GameSidebarComponent._LS_YEAH_IS_PLAYING, '0');
+          GameSidebarComponent._LOG.debug('Twitch is playing from other tab');
+          resolve(true);
+        }
+      };
+      handlerFromOutside = handler;
+      window.addEventListener('storage', handler);
+    });
+    localStorage.setItem(GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED, '1');
+    const retVal: boolean = await Promise.race([promise1, promise2]);
+    if (!retVal) {
+      GameSidebarComponent._LOG.debug('Twitch is playing as primary in this tab');
+    }
+    return retVal;
   }
 }

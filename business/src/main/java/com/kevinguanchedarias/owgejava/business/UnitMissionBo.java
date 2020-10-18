@@ -1104,7 +1104,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			retVal.put(current.getId(), currentObtainedUnit);
 		});
-		deletedMissions.forEach(this::resolveMission);
+		List<ObtainedUnit> unitsInMissionsAfterDelete = obtainedUnitBo
+				.findByMissionIn(deletedMissions.stream().map(Mission::getId).collect(Collectors.toList()));
+		deletedMissions.stream().filter(
+				mission -> unitsInMissionsAfterDelete.stream().noneMatch(unit -> mission.equals(unit.getMission()))
+
+		).forEach(this::resolveMission);
 		return retVal;
 	}
 

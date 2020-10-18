@@ -461,6 +461,17 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return savedUnit;
 	}
 
+	/**
+	 *
+	 * @param missionIds
+	 * @return
+	 * @since 0.9.1
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByMissionIn(List<Long> missionIds) {
+		return repository.findByMissionIdIn(missionIds);
+	}
+
 	public Double findConsumeEnergyByUser(UserStorage user) {
 		return ObjectUtils.firstNonNull(repository.computeConsumedEnergyByUser(user), 0D);
 	}

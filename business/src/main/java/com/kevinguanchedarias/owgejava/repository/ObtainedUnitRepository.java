@@ -162,4 +162,13 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	public List<ObtainedUnit> findByUserIdAndTargetPlanetAndMissionTypeCode(Integer userId, Planet targetPlanet,
 			String name);
 
+	/**
+	 *
+	 * @param missionIds
+	 * @return
+	 * @since 0.9.1
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByMissionIdIn(List<Long> missionIds);
+
 }
