@@ -89,7 +89,9 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
                 current.activeTimeSpecialDto.pendingMillis = current.activeTimeSpecialDto.pendingMillis
                     ? current.activeTimeSpecialDto.pendingMillis
                     : current.activeTimeSpecialDto.pendingTime;
-                current.activeTimeSpecialDto = DateUtil.computeBrowserTerminationDate(current.activeTimeSpecialDto);
+                if (!current.activeTimeSpecialDto.browserComputedTerminationDate) {
+                    current.activeTimeSpecialDto = DateUtil.computeBrowserTerminationDate(current.activeTimeSpecialDto);
+                }
             }
         });
         this._timeSpecialStore.unlocked.next(contentOrEmpty);

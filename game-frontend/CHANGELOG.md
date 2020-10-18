@@ -2,6 +2,7 @@
 
 v0.9.2 (latest)
 ================
+* __Fix:__ [Active time specials time is not properly syncing, when reloading the tab, the time starts from the beginning #286](https://github.com/KevinGuancheDarias/owge/issues/286)  
 * __Fix:__ [Conquest or establish base doesn't get deleted, even if all its units has been killed #290](https://github.com/KevinGuancheDarias/owge/issues/290)  
 
 v0.9.1 (2020-10-18 11:32)
