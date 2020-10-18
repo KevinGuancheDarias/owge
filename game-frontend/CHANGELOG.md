@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.1 (latest)
-================
+v0.9.1 (2020-10-18 11:32)
+===========================
 * __Fix:__ [If you deploy multiple units, and in the deployed mission, you send back only some units, the other units will disappear #288](https://github.com/KevinGuancheDarias/owge/issues/288)  
 * __Fix:__ [If you deploy to a planet, and then having the units deployed, you send an establish base mission, or a conquest mission, the deployed units will be removed, and will not be usable #285](https://github.com/KevinGuancheDarias/owge/issues/285)  
 * __Fix:__ [In the navigation, when a selected galaxy has less sectors and/or quadrants than the previously selected one, should automatically choose sector 1 and/or quadrant 1, to avoid "invisible" navigation #284](https://github.com/KevinGuancheDarias/owge/issues/284)  
