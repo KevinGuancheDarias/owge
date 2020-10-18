@@ -55,7 +55,7 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   public findMyMissions(): void {
     this._subscriptions.add(this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
       this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
-      this._tutorialService.triggerTutorial();
+      this._tutorialService.triggerTutorialAfterRender();
     }));
   }
 

@@ -86,31 +86,15 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
     }
 
     /**
-     * Triggers the tutorial when an event occurs
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public async triggerTutorial(): Promise<void> {
-        await this._waitReady();
-        if (this._activeRouterUrl) {
-            this._applicableEntries.next(this._entries.filter(entry =>
-                !entry.isVisited
-                && (!entry.htmlSymbol.sectionFrontendPath || entry.htmlSymbol.sectionFrontendPath === this._activeRouterUrl)
-            ));
-        }
-    }
-
-    /**
      * Triggers the tutorial after render (Angular doesn't provide a way to know such thing, so let's just wait)
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @param [tickTime=300]
+     * @param [tickTime=1300]
      * @returns
      */
-    public triggerTutorialAfterRender(tickTime = 300): Promise<void> {
-        return new Promise(resolve => window.setTimeout(() => this.triggerTutorial().then(resolve), tickTime));
+    public triggerTutorialAfterRender(tickTime = 1300): Promise<void> {
+        return new Promise(resolve => window.setTimeout(() => this._triggerTutorial().then(resolve), tickTime));
     }
 
     /**
@@ -183,7 +167,7 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
     protected async _onVisitedTutorialEntryChange(content: number[]): Promise<void> {
         await this._offlineVisitedEntriesStore.save(content);
         this._store.visitedEntries.next(content);
-        await this.triggerTutorial();
+        await this._triggerTutorial();
     }
 
     private async _waitReady(): Promise<void> {
@@ -192,4 +176,15 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
             take(1)
         ).toPromise();
     }
+
+    private async _triggerTutorial(): Promise<void> {
+        await this._waitReady();
+        if (this._activeRouterUrl) {
+            this._applicableEntries.next(this._entries.filter(entry =>
+                !entry.isVisited
+                && (!entry.htmlSymbol.sectionFrontendPath || entry.htmlSymbol.sectionFrontendPath === this._activeRouterUrl)
+            ));
+        }
+    }
+
 }

@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.3 (latest)
+=================
+* __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  
+
 v0.9.2 (2020-10-18 18:56)
 ===========================
 * __Fix:__ [Active time specials time is not properly syncing, when reloading the tab, the time starts from the beginning #286](https://github.com/KevinGuancheDarias/owge/issues/286)  

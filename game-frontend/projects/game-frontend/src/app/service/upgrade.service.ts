@@ -132,12 +132,10 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
    *
    * @author Kevin Guanche Darias
    */
-  public registerLevelUp(obtainedUpgrade: ObtainedUpgrade): void {
+  public registerLevelUp(obtainedUpgrade: ObtainedUpgrade): Observable<void> {
     let params: HttpParams = new HttpParams();
     params = params.append('upgradeId', obtainedUpgrade.upgrade.id.toString());
-    this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', { params }).subscribe(res => {
-
-    });
+    return this._universeGameService.getWithAuthorizationToUniverse('upgrade/registerLevelUp', { params });
   }
 
   /**
