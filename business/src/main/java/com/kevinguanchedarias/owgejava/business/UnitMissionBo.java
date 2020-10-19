@@ -278,7 +278,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				List<AttackObtainedUnit> attackableByUnit = unit.user.attackableUnits.stream().filter(target -> {
 					Unit unitEntity = unit.obtainedUnit.getUnit();
 					AttackRule attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
-							unitEntity.getType().getAttackRule());
+							findAttackRule(unitEntity.getType()));
 					return canAttack(attackRule, target);
 				}).collect(Collectors.toList());
 				for (AttackObtainedUnit target : attackableByUnit) {
@@ -318,6 +318,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 				return unitType;
 			} else if (unitType.getParent() != null) {
 				return findUnitTypeMatchingRule(ruleEntry, unitType.getParent());
+			} else {
+				return null;
+			}
+		}
+
+		/**
+		 * Discovers the attack rule, looking using recursion
+		 *
+		 * @param type
+		 * @return
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		private AttackRule findAttackRule(UnitType type) {
+			if (type.getAttackRule() != null) {
+				return type.getAttackRule();
+			} else if (type.getParent() != null) {
+				return findAttackRule(type.getParent());
 			} else {
 				return null;
 			}
