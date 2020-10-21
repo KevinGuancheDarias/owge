@@ -148,12 +148,15 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	@CacheEvict(cacheNames = CACHE_KEY, key = "#user.id")
 	public void clearSourceCache(UserStorage user, ImprovementSource source) {
 		String sourceCacheName = findSourceCacheName(user, source);
-		socketIoService.sendMessage(user, "user_improvements_change", () -> {
+		Runnable action = () -> {
 			LOG.debug("Clearing cache for " + sourceCacheName);
 			cacheManager.getCache(CACHE_KEY).evictIfPresent(user.getId());
 			cacheManager.getCache(CACHE_KEY).evictIfPresent(sourceCacheName);
+		};
+		socketIoService.sendMessage(user, "user_improvements_change", () -> {
+			action.run();
 			return beanFactory.getBean(getClass()).findUserImprovement(user);
-		});
+		}, action);
 	}
 
 	/**

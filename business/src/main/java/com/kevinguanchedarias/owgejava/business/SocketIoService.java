@@ -84,10 +84,12 @@ public class SocketIoService {
 	 * @param targetUserId
 	 * @param eventName
 	 * @param messageContent
-	 * @since 0.9.0
+	 * @param notConnectedAction Action to run if the user is not connected
+	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent) {
+	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent,
+			Runnable notConnectedAction) {
 		List<SocketIOClient> userSockets = server.getAllClients().stream()
 				.filter(client -> client.get(USER_TOKEN_KEY) != null
 						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId))
@@ -99,7 +101,39 @@ public class SocketIoService {
 				LOCAL_LOGGER.trace("Sending message to socket");
 				client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, sendValue));
 			});
+		} else {
+			notConnectedAction.run();
 		}
+	}
+
+	/**
+	 * Sends a message to all sockets from related target user, if any
+	 *
+	 * @param <T>
+	 * @param targetUserId
+	 * @param eventName
+	 * @param messageContent
+	 * @since 0.9.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent) {
+		sendMessage(targetUserId, eventName, messageContent, null);
+	}
+
+	/**
+	 * Sends a message to all sockets from related target user, if any
+	 *
+	 * @param <T>
+	 * @param user
+	 * @param eventName
+	 * @param messageContent
+	 * @param notConnectedAction Action to run if the user is not connected
+	 * @since 0.9.2
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent,
+			Runnable notConnectedAction) {
+		sendMessage(user.getId(), eventName, messageContent, notConnectedAction);
 	}
 
 	/**
@@ -113,7 +147,7 @@ public class SocketIoService {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
-		sendMessage(user.getId(), eventName, messageContent);
+		sendMessage(user.getId(), eventName, messageContent, null);
 	}
 
 	/**
