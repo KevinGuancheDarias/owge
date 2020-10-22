@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.3 (latest)
-=================
+v0.9.3 (2020-10-22 20:24)
+===========================
 * __Fix:__ [Units death in combat are not updated in the people's browser #292](https://github.com/KevinGuancheDarias/owge/issues/292)  
 * __Fix:__ [Attacks are not working properly, some units, are not dieing while they should #294](https://github.com/KevinGuancheDarias/owge/issues/294)  
 * __Fix:__ [Sometimes the upgrades don't update the UnitType's max count, nor max energy, nor max missions #287](https://github.com/KevinGuancheDarias/owge/issues/287)  
