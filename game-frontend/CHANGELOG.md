@@ -2,9 +2,11 @@
 
 v0.9.3 (latest)
 =================
+* __Fix:__ [Units death in combat are not updated in the people's browser #292](https://github.com/KevinGuancheDarias/owge/issues/292)  
+* __Fix:__ [Attacks are not working properly, some units, are not dieing while they should #294](https://github.com/KevinGuancheDarias/owge/issues/294)  
 * __Fix:__ [Sometimes the upgrades don't update the UnitType's max count, nor max energy, nor max missions #287](https://github.com/KevinGuancheDarias/owge/issues/287)  
 * __Fix:__ [The attack is not working properly when one unit A can't destroy unit B, should be able to kill unit C, but as unit B can't be attacked, it fails so hard #291](https://github.com/KevinGuancheDarias/owge/issues/291)  
-* __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  
+* __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  (partial fix, keeps failing)
 
 v0.9.2 (2020-10-18 18:56)
 ===========================

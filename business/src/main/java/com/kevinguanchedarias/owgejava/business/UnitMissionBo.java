@@ -255,9 +255,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.collect(Collectors.toList()));
 			doAttack();
 			updatePoints();
-			usersWithDeletedMissions.forEach(userId -> {
-				emitMissions(userId);
-			});
+			usersWithDeletedMissions.forEach(UnitMissionBo.this::emitMissions);
 		}
 
 		/**
@@ -342,28 +340,26 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
 			Double myAttack = source.pendingAttack;
-			Double victimShield = target.availableShield;
-			if (victimShield > myAttack) {
+			Double victimHealth = target.availableHealth + target.availableShield;
+			addPointsAndUpdateCount(myAttack, source, target);
+			if (victimHealth > myAttack) {
 				source.pendingAttack = 0D;
 				source.noAttack = true;
-				target.availableShield -= myAttack;
-			} else {
-				myAttack -= target.availableShield;
-				target.availableShield = 0D;
-				Double victimHealth = target.availableHealth;
-				addPointsAndUpdateCount(myAttack, source, target);
-				if (victimHealth > myAttack) {
-					source.pendingAttack = 0D;
-					source.noAttack = true;
-					target.availableHealth -= myAttack;
-				} else {
-					source.pendingAttack = myAttack - victimHealth;
-					target.availableHealth = 0D;
-					obtainedUnitBo.delete(target.obtainedUnit);
-					deleteMissionIfRequired(target.obtainedUnit);
+				double attackDistribruted = myAttack / 2;
+				target.availableShield -= attackDistribruted;
+				target.availableHealth -= attackDistribruted;
+				if (target.availableShield < 0.0D) {
+					target.availableHealth += target.availableShield;
 				}
-				improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
+			} else {
+				source.pendingAttack = myAttack - victimHealth;
+				target.availableHealth = 0D;
+				target.availableShield = 0D;
+				obtainedUnitBo.delete(target.obtainedUnit);
+				deleteMissionIfRequired(target.obtainedUnit);
 			}
+			improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
+
 		}
 
 		/**
@@ -388,7 +384,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit source,
 				AttackObtainedUnit victimUnit) {
-			Double healthForEachUnit = victimUnit.totalHealth / victimUnit.initialCount;
+			Double healthForEachUnit = (victimUnit.totalHealth + victimUnit.totalShield) / victimUnit.initialCount;
 			Long killedCount = (long) Math.floor(usedAttack / healthForEachUnit);
 			if (killedCount > victimUnit.finalCount) {
 				killedCount = victimUnit.finalCount;
@@ -405,15 +401,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 				AttackUserInformation attackUserInformation = current.getValue();
 				List<AttackObtainedUnit> userUnits = attackUserInformation.units;
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
-				obtainedUnitBo
-						.save(userUnits.stream()
-								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
-										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
-								.map(currentUnit -> {
-									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
-									alteredUsers.add(attackUserInformation.getUser().getId());
-									return currentUnit.obtainedUnit;
-								}).collect(Collectors.toList()));
+				obtainedUnitBo.save(userUnits.stream()
+						.filter(currentUnit -> !currentUnit.initialCount.equals(currentUnit.finalCount))
+						.map(currentUnit -> {
+							currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
+							alteredUsers.add(attackUserInformation.getUser().getId());
+							return currentUnit.obtainedUnit;
+						}).collect(Collectors.toList()));
 			});
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
 				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
