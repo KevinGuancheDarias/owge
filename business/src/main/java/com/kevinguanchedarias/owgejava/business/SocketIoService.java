@@ -101,7 +101,7 @@ public class SocketIoService {
 				LOCAL_LOGGER.trace("Sending message to socket");
 				client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, sendValue));
 			});
-		} else {
+		} else if (notConnectedAction != null) {
 			notConnectedAction.run();
 		}
 	}
