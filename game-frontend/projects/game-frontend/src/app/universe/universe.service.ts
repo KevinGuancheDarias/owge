@@ -29,7 +29,7 @@ export class UniverseService {
    */
   public findOfficials(): Observable<Universe[]> {
     this._log.warnDeprecated('UniverseService.findOfficials', '0.8.0', 'OwgeUniverse/UniverseService.findOfficials');
-    return this._coreHttpService.get(Config.accountServerUrl + 'universe/findOfficials');
+    return this._coreHttpService.get(Config.accountServerUrl + '/universe/findOfficials');
   }
 
   /**
@@ -52,7 +52,7 @@ export class UniverseService {
   public subscribe(factionId: number): Observable<boolean> {
     let params: HttpParams = new HttpParams();
     params = params.append('factionId', factionId.toString());
-    return this._universeGameService.getWithAuthorizationToUniverse('user/subscribe', {params});
+    return this._universeGameService.getWithAuthorizationToUniverse('user/subscribe', { params });
   }
 
   public findUniverseUserLocalConfig(): UniverseLocalConfig {
