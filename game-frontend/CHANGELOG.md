@@ -1,5 +1,10 @@
 # OWGE changelog
 
+v0.9.4 (latest)
+================
+* __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
+* __Fix:__ [Units death in combact are not removed, they appear as "0" units #296](https://github.com/KevinGuancheDarias/owge/issues/296)  
+
 v0.9.3 (2020-10-22 20:24)
 ===========================
 * __Fix:__ [Units death in combat are not updated in the people's browser #292](https://github.com/KevinGuancheDarias/owge/issues/292)  

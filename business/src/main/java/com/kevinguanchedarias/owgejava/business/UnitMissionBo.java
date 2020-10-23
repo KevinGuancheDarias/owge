@@ -401,13 +401,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 				AttackUserInformation attackUserInformation = current.getValue();
 				List<AttackObtainedUnit> userUnits = attackUserInformation.units;
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
-				obtainedUnitBo.save(userUnits.stream()
-						.filter(currentUnit -> !currentUnit.initialCount.equals(currentUnit.finalCount))
-						.map(currentUnit -> {
-							currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
-							alteredUsers.add(attackUserInformation.getUser().getId());
-							return currentUnit.obtainedUnit;
-						}).collect(Collectors.toList()));
+				obtainedUnitBo
+						.save(userUnits.stream()
+								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
+										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
+								.map(currentUnit -> {
+									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
+									alteredUsers.add(attackUserInformation.getUser().getId());
+									return currentUnit.obtainedUnit;
+								}).collect(Collectors.toList()));
 			});
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
 				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
