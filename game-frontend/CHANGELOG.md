@@ -1,7 +1,8 @@
 # OWGE changelog
 
-v0.9.4 (latest)
-================
+v0.9.4 (2020-10-23 19:55)
+==========================
+* __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)  
 * __Improvement:__ [Only deployed units join the attacks, gathers trigger attack, if there are deployed units #298](https://github.com/KevinGuancheDarias/owge/issues/298)  
 * __Fix:__ [Speed formula allows missions to take less than the base time #297](https://github.com/KevinGuancheDarias/owge/issues/297)  
 * __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
