@@ -1031,9 +1031,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private double calculateTimeUsingSpeed(Mission mission, MissionType missionType, double missionTypeTime,
 			double lowestUnitSpeed) {
 		int missionTypeDivisor = findMissionTypeDivisor(missionType);
+		missionTypeDivisor = missionTypeDivisor == 0 ? 1 : missionTypeDivisor;
 		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
 		float moveCost = calculateMoveCost(missionType, mission.getSourcePlanet(), mission.getTargetPlanet());
-		return (missionTypeTime + (leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor;
+		return (missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed) / missionTypeDivisor));
 	}
 
 	/**

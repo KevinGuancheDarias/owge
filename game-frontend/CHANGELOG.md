@@ -2,6 +2,7 @@
 
 v0.9.4 (latest)
 ================
+* __Fix:__ [Speed formula allows missions to take less than the base time #297](https://github.com/KevinGuancheDarias/owge/issues/297)  
 * __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
 * __Fix:__ [Units death in combact are not removed, they appear as "0" units #296](https://github.com/KevinGuancheDarias/owge/issues/296)  
 
@@ -20,7 +21,7 @@ v0.9.2 (2020-10-18 18:56)
 
 v0.9.1 (2020-10-18 11:32)
 ===========================
-* __Fix:__ [If you deploy multiple units, and in the deployed mission, you send back only some units, the other units will disappear #288](https://github.com/KevinGuancheDarias/owge/issues/288)  
+* __Fix:__ [If you deploy multiple unitxs, and in the deployed mission, you send back only some units, the other units will disappear #288](https://github.com/KevinGuancheDarias/owge/issues/288)  
 * __Fix:__ [If you deploy to a planet, and then having the units deployed, you send an establish base mission, or a conquest mission, the deployed units will be removed, and will not be usable #285](https://github.com/KevinGuancheDarias/owge/issues/285)  
 * __Fix:__ [In the navigation, when a selected galaxy has less sectors and/or quadrants than the previously selected one, should automatically choose sector 1 and/or quadrant 1, to avoid "invisible" navigation #284](https://github.com/KevinGuancheDarias/owge/issues/284)  
 
