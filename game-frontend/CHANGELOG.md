@@ -2,6 +2,7 @@
 
 v0.9.4 (latest)
 ================
+* __Improvement:__ [Only deployed units join the attacks, gathers trigger attack, if there are deployed units #298](https://github.com/KevinGuancheDarias/owge/issues/298)  
 * __Fix:__ [Speed formula allows missions to take less than the base time #297](https://github.com/KevinGuancheDarias/owge/issues/297)  
 * __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
 * __Fix:__ [Units death in combact are not removed, they appear as "0" units #296](https://github.com/KevinGuancheDarias/owge/issues/296)  

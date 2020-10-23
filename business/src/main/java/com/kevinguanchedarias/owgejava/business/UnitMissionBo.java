@@ -1313,6 +1313,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
 		AttackInformation retVal = new AttackInformation(attackMission);
 		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnit);
+		obtainedUnitBo.findByMissionId(attackMission.getId()).forEach(retVal::addUnit);
 		return retVal;
 	}
 
