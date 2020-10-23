@@ -676,8 +676,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChangeAfterCommit(mission);
 		}
-		if (!attackInformation.usersWithDeletedMissions.isEmpty()) {
-			emitEnemyMissionsChange(targetPlanet.getOwner());
+		UserStorage owner = targetPlanet.getOwner();
+		if (owner != null && !attackInformation.usersWithDeletedMissions.isEmpty()) {
+			emitEnemyMissionsChange(owner);
 		}
 
 		return attackInformation;
