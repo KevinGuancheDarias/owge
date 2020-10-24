@@ -213,6 +213,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private Map<Integer, AttackUserInformation> users = new HashMap<>();
 		private List<AttackObtainedUnit> units = new ArrayList<>();
 		private Set<Integer> usersWithDeletedMissions = new HashSet<>();
+		private Set<Integer> usersWithChangedCounts = new HashSet<>();
 
 		public AttackInformation() {
 			throw new ProgrammingException(
@@ -255,7 +256,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.collect(Collectors.toList()));
 			doAttack();
 			updatePoints();
-			usersWithDeletedMissions.forEach(UnitMissionBo.this::emitMissions);
+			usersWithDeletedMissions.forEach(userId -> {
+				emitMissions(userId);
+				usersWithChangedCounts.remove(userId);
+			});
+			usersWithChangedCounts.forEach(UnitMissionBo.this::emitMissions);
 		}
 
 		/**
@@ -350,6 +355,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 				target.availableHealth -= attackDistribruted;
 				if (target.availableShield < 0.0D) {
 					target.availableHealth += target.availableShield;
+				}
+				if (!target.initialCount.equals(target.finalCount)) {
+					usersWithChangedCounts.add(target.user.getUser().getId());
 				}
 			} else {
 				source.pendingAttack = myAttack - victimHealth;

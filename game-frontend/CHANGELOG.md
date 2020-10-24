@@ -1,6 +1,7 @@
 # OWGE changelog
 v0.9.5 (latest)
 ==================
+* __Fix:__ [Deployments are not visually-updating the units count, if only partial count of the units is killed #302](https://github.com/KevinGuancheDarias/owge/issues/302)  
 * __Fix:__ [Attacks were failing when a unit doesn't have shield (created from admin panel) #305](https://github.com/KevinGuancheDarias/owge/issues/305)  
 
 v0.9.4 (2020-10-23 19:55)
