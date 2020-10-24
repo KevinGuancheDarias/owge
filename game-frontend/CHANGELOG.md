@@ -1,4 +1,7 @@
 # OWGE changelog
+v0.9.5 (latest)
+==================
+* __Fix:__ [Attacks were failing when a unit doesn't have shield (created from admin panel) #305](https://github.com/KevinGuancheDarias/owge/issues/305)  
 
 v0.9.4 (2020-10-23 19:55)
 ==========================

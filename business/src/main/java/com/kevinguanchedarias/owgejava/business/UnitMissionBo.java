@@ -106,7 +106,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			totalAttack += (totalAttack * improvementBo.findAsRational(
 					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitType)));
 			pendingAttack = totalAttack;
-			totalShield = initialCount.doubleValue() * unit.getShield();
+			totalShield = initialCount.doubleValue() * ObjectUtils.firstNonNull(unit.getShield(), 0);
 			totalShield += (totalShield * improvementBo.findAsRational(
 					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitType)));
 			availableShield = totalShield;
