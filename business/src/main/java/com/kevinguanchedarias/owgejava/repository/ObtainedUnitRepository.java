@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 
+import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -180,5 +181,17 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findByTargetPlanetIdAndMissionTypeCode(Long id, String missionType);
+
+	/**
+	 *
+	 * @param userId
+	 * @param alliance or null
+	 * @param id3
+	 * @return
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("SELECT case when count(ou)> 0 then true else false end FROM ObtainedUnit ou WHERE ou.targetPlanet.id = ?3 AND ou.mission.type.code = 'DEPLOYED' AND ou.user.id != ?1 AND (ou.user.alliance IS NULL OR ?2 IS NULL OR ou.user.alliance != ?2)")
+	public boolean areUnitsInvolved(Integer userId, Alliance alliance, Long relatedPlanetId);
 
 }

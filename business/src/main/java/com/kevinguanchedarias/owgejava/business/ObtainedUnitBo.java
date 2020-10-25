@@ -417,6 +417,18 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return retVal;
 	}
 
+	/**
+	 *
+	 * @param user
+	 * @param relatedPlanet
+	 * @return
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean areUnitsInvolved(UserStorage user, Planet relatedPlanet) {
+		return repository.areUnitsInvolved(user.getId(), user.getAlliance(), relatedPlanet.getId());
+	}
+
 	public Long deleteBySourcePlanetIdAndMissionIdNull(Planet sourcePlanet) {
 		return repository.deleteBySourcePlanetIdAndMissionIdNull(sourcePlanet.getId());
 	}

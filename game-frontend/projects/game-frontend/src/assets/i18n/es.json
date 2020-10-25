@@ -3,6 +3,7 @@
     "I18N_ERR_DEPLOY_ITSELF": "El planeta de destino no puede ser el mismo que el de origen",
     "I18N_OWNER_NOT_DEFEATED": "El propietario del planet no fue derrotado, fallo al conquistar",
     "I18N_MAX_PLANETS_EXCEEDED": "Límite de planetas excedido",
+    "I18N_ALREADY_HAS_OWNER": "El planeta ya es propiedad de otro",
     "I18N_PLANET_IS_NOW_OURS": "El Planeta es ahora de tu propiedad",
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Tu planeta ha sido conquistado",
     "APP": {

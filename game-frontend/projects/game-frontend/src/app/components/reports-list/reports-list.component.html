@@ -27,7 +27,7 @@
             </owge-widgets-collapsable-item>
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ESTABLISH_BASE' | translate" *ngIf="report.parsedJson?.establishBaseStatus !== undefined">
                 <div class="owge-base-colors">
-                  {{ report.parsedJson.establishBaseStatusStr ? 'APP.REPORTS.RESULTS.ESTABLISH_BASE_ERROR' : 'APP.REPORTS.RESULTS.ESTABLISH_BASE_SUCCESS' | translate}}
+                  {{ (report.parsedJson.establishBaseStatusStr ? report.parsedJson.establishBaseStatusStr : 'APP.REPORTS.RESULTS.ESTABLISH_BASE_SUCCESS') | translate}}
                 </div>
             </owge-widgets-collapsable-item>
 

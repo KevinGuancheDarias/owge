@@ -611,30 +611,50 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		adminRegisterReturnMission(mission);
-		Long gathered = involvedUnits.stream()
-				.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
-				.reduce(0L, (sum, current) -> sum + current);
-		Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
-		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
-		Double withUserImprovement = withPlanetRichness
-				+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
-		Double primaryResource = withUserImprovement * 0.5;
-		Double secondaryResource = withUserImprovement * 0.5;
-		user.addtoPrimary(primaryResource);
-		user.addToSecondary(secondaryResource);
-		UnitMissionReportBuilder builder = UnitMissionReportBuilder
-				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
-				.withGatherInformation(primaryResource, secondaryResource);
-		handleMissionReportSave(mission, builder);
-		resolveMission(mission);
+		boolean continueMission = triggerAttackIfRequired(missionId, user, targetPlanet);
+		if (continueMission) {
+			adminRegisterReturnMission(mission);
+			Long gathered = involvedUnits.stream()
+					.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
+					.reduce(0L, (sum, current) -> sum + current);
+			Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
+			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+			Double withUserImprovement = withPlanetRichness
+					+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
+			Double primaryResource = withUserImprovement * 0.5;
+			Double secondaryResource = withUserImprovement * 0.5;
+			user.addtoPrimary(primaryResource);
+			user.addToSecondary(secondaryResource);
+			UnitMissionReportBuilder builder = UnitMissionReportBuilder
+					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+					.withGatherInformation(primaryResource, secondaryResource);
+			handleMissionReportSave(mission, builder);
+			resolveMission(mission);
 
-		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
-			Map<String, Double> content = new HashMap<>();
-			content.put("primaryResource", primaryResource);
-			content.put("secondaryResource", secondaryResource);
-			return content;
-		}));
+			TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
+				Map<String, Double> content = new HashMap<>();
+				content.put("primaryResource", primaryResource);
+				content.put("secondaryResource", secondaryResource);
+				return content;
+			}));
+		}
+	}
+
+	/**
+	 *
+	 * @param missionId
+	 * @param user
+	 * @param targetPlanet
+	 * @return True if should continue the mission
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private boolean triggerAttackIfRequired(Long missionId, UserStorage user, Planet targetPlanet) {
+		boolean continueMission = true;
+		if (obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
+			AttackInformation result = processAttack(missionId, false);
+			continueMission = !result.isMissionRemoved();
+		}
+		return continueMission;
 	}
 
 	@Transactional
@@ -643,25 +663,26 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
-				targetPlanet, involvedUnits);
-		UserStorage planetOwner = targetPlanet.getOwner();
-		boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
-		if (planetOwner != null || hasMaxPlanets) {
-			adminRegisterReturnMission(mission);
-			if (planetOwner != null) {
-				builder.withEstablishBaseInformation(false, "The planet already belongs to a user");
+		if (triggerAttackIfRequired(missionId, user, targetPlanet)) {
+			UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+					targetPlanet, involvedUnits);
+			UserStorage planetOwner = targetPlanet.getOwner();
+			boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
+			if (planetOwner != null || hasMaxPlanets) {
+				adminRegisterReturnMission(mission);
+				if (planetOwner != null) {
+					builder.withEstablishBaseInformation(false, "I18N_ALREADY_HAS_OWNER");
+				} else {
+					builder.withEstablishBaseInformation(false, MAX_PLANETS_MESSAGE);
+				}
 			} else {
-				builder.withEstablishBaseInformation(false, MAX_PLANETS_MESSAGE);
+				builder.withEstablishBaseInformation(true);
+				definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 			}
-		} else {
-			builder.withEstablishBaseInformation(true);
-			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
+			handleMissionReportSave(mission, builder);
+			resolveMission(mission);
+			emitLocalMissionChangeAfterCommit(mission);
 		}
-		handleMissionReportSave(mission, builder);
-		resolveMission(mission);
-		emitLocalMissionChangeAfterCommit(mission);
-
 	}
 
 	@Transactional
