@@ -1,6 +1,6 @@
 # OWGE changelog
-v0.9.5 (latest)
-==================
+v0.9.5 (2020-10-25 18:36)
+==========================
 * __Fix:__ [Conquest was not removing the unlocked units from special locations #312](https://github.com/KevinGuancheDarias/owge/issues/312)  
 * __Improvement:__ [Twitch icon should display that I'm live or not, and maybe reload the fixed video if displayed (due to Twitch bug) #304](https://github.com/KevinGuancheDarias/owge/issues/304)  
 * __Improvement:__ [Gather and EB missions should trigger an attack, just like the conquest do, but only if there are enemy units in the planet #303](https://github.com/KevinGuancheDarias/owge/issues/303)  
