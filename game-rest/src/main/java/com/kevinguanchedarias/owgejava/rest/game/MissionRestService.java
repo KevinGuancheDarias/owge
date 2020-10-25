@@ -39,39 +39,39 @@ public class MissionRestService {
 		return missionBo.countUserMissions(userStorageBo.findLoggedIn().getId());
 	}
 
-	@RequestMapping(value = "explorePlanet", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto explorePlanet(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterExploreMission(missionInformation);
+	@PostMapping(value = "explorePlanet", consumes = TARGET_CONSUMES_MEDIATYPE)
+	public void explorePlanet(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterExploreMission(missionInformation);
 	}
 
 	@RequestMapping(value = "gather", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto gather(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterGatherMission(missionInformation);
+	public void gather(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterGatherMission(missionInformation);
 	}
 
 	@RequestMapping(value = "establishBase", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto establishBase(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterEstablishBaseMission(missionInformation);
+	public void establishBase(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterEstablishBaseMission(missionInformation);
 	}
 
 	@RequestMapping(value = "attack", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto attack(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterAttackMission(missionInformation);
+	public void attack(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterAttackMission(missionInformation);
 	}
 
 	@RequestMapping(value = "counterattack", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto counterattack(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterCounterattackMission(missionInformation);
+	public void counterattack(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterCounterattackMission(missionInformation);
 	}
 
 	@RequestMapping(value = "conquest", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto conquest(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterConquestMission(missionInformation);
+	public void conquest(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterConquestMission(missionInformation);
 	}
 
 	@RequestMapping(value = "deploy", method = RequestMethod.POST, consumes = TARGET_CONSUMES_MEDIATYPE)
-	public UnitRunningMissionDto deploy(@RequestBody UnitMissionInformation missionInformation) {
-		return unitMissionBo.myRegisterDeploy(missionInformation);
+	public void deploy(@RequestBody UnitMissionInformation missionInformation) {
+		unitMissionBo.myRegisterDeploy(missionInformation);
 	}
 
 	@PostMapping("cancel")

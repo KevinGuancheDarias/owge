@@ -475,16 +475,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public UnitRunningMissionDto myRegisterExploreMission(UnitMissionInformation missionInformation) {
+	public void myRegisterExploreMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterExploreMission(missionInformation);
+		adminRegisterExploreMission(missionInformation);
 	}
 
 	/**
 	 * Registers a explore mission <b>as a admin</b>
 	 *
 	 * @param missionInformation
-	 * @return mission representation DTO
 	 * @throws SgtBackendInvalidInputException When input information is not valid
 	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
 	 *                                         universe)</b>
@@ -492,66 +491,66 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public UnitRunningMissionDto adminRegisterExploreMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.EXPLORE);
+	public void adminRegisterExploreMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.EXPLORE);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterGatherMission(UnitMissionInformation missionInformation) {
+	public void myRegisterGatherMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterGatherMission(missionInformation);
+		adminRegisterGatherMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterGatherMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.GATHER);
+	public void adminRegisterGatherMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.GATHER);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
+	public void myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterEstablishBase(missionInformation);
+		adminRegisterEstablishBase(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
+	public void adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterAttackMission(UnitMissionInformation missionInformation) {
+	public void myRegisterAttackMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterAttackMission(missionInformation);
+		adminRegisterAttackMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterAttackMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.ATTACK);
+	public void adminRegisterAttackMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.ATTACK);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+	public void myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterCounterattackMission(missionInformation);
+		adminRegisterCounterattackMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+	public void adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
 		if (!planetBo.isOfUserProperty(missionInformation.getUserId(), missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"TargetPlanet doesn't belong to sender user, try again dear Hacker, maybe next time you have some luck");
 		}
-		return commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
+		commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterConquestMission(UnitMissionInformation missionInformation) {
+	public void myRegisterConquestMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterConquestMission(missionInformation);
+		adminRegisterConquestMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterConquestMission(UnitMissionInformation missionInformation) {
+	public void adminRegisterConquestMission(UnitMissionInformation missionInformation) {
 		if (planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"Doesn't make sense to conquest your own planet... unless your population hates you, and are going to organize a rebelion");
@@ -563,23 +562,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (planetBo.hasMaxPlanets(missionInformation.getUserId())) {
 			throw new SgtBackendInvalidInputException(MAX_PLANETS_MESSAGE);
 		}
-		return commonMissionRegister(missionInformation, MissionType.CONQUEST);
+		commonMissionRegister(missionInformation, MissionType.CONQUEST);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterDeploy(UnitMissionInformation missionInformation) {
+	public void myRegisterDeploy(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterDeploy(missionInformation);
+		adminRegisterDeploy(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterDeploy(UnitMissionInformation missionInformation) {
+	public void adminRegisterDeploy(UnitMissionInformation missionInformation) {
 		if (missionInformation.getSourcePlanetId().equals(missionInformation.getTargetPlanetId())) {
 			throw exceptionUtilService
 					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_DEPLOY_ITSELF")
 					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
 		}
-		return commonMissionRegister(missionInformation, MissionType.DEPLOY);
+		commonMissionRegister(missionInformation, MissionType.DEPLOY);
 	}
 
 	/**
@@ -973,8 +972,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
-	private UnitRunningMissionDto commonMissionRegister(UnitMissionInformation missionInformation,
-			MissionType missionType) {
+	private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		missionInformation.setMissionType(missionType);
 		UserStorage user = userStorageBo.findLoggedIn();
@@ -1028,12 +1026,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		save(mission);
 		scheduleMission(mission);
-		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
-		retVal.setMissionsCount(countUserMissions(userId));
 		emitLocalMissionChangeAfterCommit(mission);
 		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
-		return retVal;
 	}
 
 	private double calculateTimeUsingSpeed(Mission mission, MissionType missionType, double missionTypeTime,

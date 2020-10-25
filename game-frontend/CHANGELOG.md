@@ -1,6 +1,7 @@
 # OWGE changelog
 v0.9.5 (latest)
 ==================
+* __Security:__ [The backend is sending the planet information of an unexplored planet as result to POST explore #306](https://github.com/KevinGuancheDarias/owge/issues/306)  
 * __Fix:__ [Upgrades are not displaying the time correctly when reloading #300](https://github.com/KevinGuancheDarias/owge/issues/300)  
 * __Fix:__ [Explore missions display units that no longer join fights, due to #298 change #301](https://github.com/KevinGuancheDarias/owge/issues/301)  
 * __Fix:__ [Deployments are not visually-updating the units count, if only partial count of the units is killed #302](https://github.com/KevinGuancheDarias/owge/issues/302)  
