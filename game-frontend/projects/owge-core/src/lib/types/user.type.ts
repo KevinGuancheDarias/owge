@@ -22,4 +22,9 @@ export interface User {
     hasSkippedTutorial: boolean;
     primaryResource: number;
     secondaryResource: number;
+
+    /**
+     * @since 0.9.5
+     */
+    canAlterTwitchState: boolean;
 }

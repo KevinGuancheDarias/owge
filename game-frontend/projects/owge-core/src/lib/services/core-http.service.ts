@@ -198,7 +198,7 @@ export class CoreHttpService {
     if (method === 'get' || method === 'delete') {
       return this._doGetOrDeleteWithAuthorizationToContext(context, method, baseUrl, url, options);
     } else if (method === 'post' || method === 'put') {
-      if (!body) {
+      if (typeof body === 'undefined') {
         throw new ProgrammingError(`You can't use ${method} without specifying a body`);
       }
       return this._doPostOrPutWithAuthorizationToContext(context, method, baseUrl, url, body, options);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
@@ -11,6 +11,8 @@ import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { ReportService } from '../../services/report.service';
 import { TwitchState } from '../../types/twitch-state.type';
+import { TwitchService } from '../../services/twitch.service';
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 /**
  *
@@ -25,7 +27,24 @@ import { TwitchState } from '../../types/twitch-state.type';
   styleUrls: [
     './game-sidebar.component.less',
     './game-sidebar.component.scss'
-  ]
+  ],
+  animations: [
+    trigger('goRight', [
+      state('left', style({
+        left: '20px',
+        top: '-7px',
+        fontSize: '15pt'
+      })),
+      state('right', style({
+        left: '25px',
+        top: '-11px',
+        fontSize: '18pt',
+      })),
+      transition('left => right', animate(900)),
+      transition('right => left', animate(900))
+    ])
+  ],
+  encapsulation: ViewEncapsulation.None
 })
 export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
 
@@ -51,6 +70,8 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     { 'is-twitch-active': this.hasToDisplayTwitch }
   );
 
+  public animationState: 'left' | 'right' = 'left';
+
   public menuRoutes: MenuRoute[] = [
     this._createTranslatableMenuRoute('APP.MENU_HOME', ROUTES.GAME_INDEX, 'fa fa-home'),
     this._createTranslatableMenuRoute('APP.MENU_UPGRADES', ROUTES.UPGRADES, 'fa fa-flask'),
@@ -75,6 +96,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
 
   public userUnreadReports = 0;
   public enemyUnreadReports = 0;
+  public isTwitchLive = false;
 
   constructor(
     _translateService: TranslateService,
@@ -84,9 +106,14 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _resourceManagerService: ResourceManagerService,
     private _unitTypeService: UnitTypeService,
     private _missionStore: MissionStore,
-    private _reportService: ReportService
+    private _reportService: ReportService,
+    twitchService: TwitchService
   ) {
     super(_translateService);
+    twitchService.state().subscribe(value => {
+      this.twitchRoute.cssClasses['is-twitch-live'] = value;
+      this.isTwitchLive = value;
+    });
   }
 
   public async ngOnInit() {
@@ -131,6 +158,10 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     if (await this._displayService.confirm('Leave the planet ' + planet.name + '?')) {
       this._planetService.leavePlanet(planet).subscribe(() => { });
     }
+  }
+
+  public toggleStateAnimation(): void {
+    this.animationState = this.animationState === 'left' ? 'right' : 'left';
   }
 
   private _clickTwitch(): void {

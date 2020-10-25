@@ -87,6 +87,9 @@ public class UserStorage implements EntityWithId<Integer> {
 	@Fetch(FetchMode.JOIN)
 	private Alliance alliance;
 
+	@Column(name = "can_alter_twitch_state", nullable = false)
+	private Boolean canAlterTwitchState = false;
+
 	@Transient
 	@Deprecated(since = "0.8.0")
 	private Double computedPrimaryResourceGenerationPerSecond;
@@ -349,6 +352,24 @@ public class UserStorage implements EntityWithId<Integer> {
 	 */
 	public void setAlliance(Alliance alliance) {
 		this.alliance = alliance;
+	}
+
+	/**
+	 * @return the canAlterTwitchState
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getCanAlterTwitchState() {
+		return canAlterTwitchState;
+	}
+
+	/**
+	 * @param canAlterTwitchState the canAlterTwitchState to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.5
+	 */
+	public void setCanAlterTwitchState(Boolean canAlterTwitchState) {
+		this.canAlterTwitchState = canAlterTwitchState;
 	}
 
 	/**

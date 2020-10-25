@@ -640,23 +640,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
-	/**
-	 *
-	 * @param missionId
-	 * @param user
-	 * @param targetPlanet
-	 * @return True if should continue the mission
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	private boolean triggerAttackIfRequired(Long missionId, UserStorage user, Planet targetPlanet) {
-		boolean continueMission = true;
-		if (obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
-			AttackInformation result = processAttack(missionId, false);
-			continueMission = !result.isMissionRemoved();
-		}
-		return continueMission;
-	}
-
 	@Transactional
 	public void processEstablishBase(Long missionId) {
 		Mission mission = findById(missionId);
@@ -806,14 +789,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 		} else {
 			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 			builder.withConquestInformation(true, "I18N_PLANET_IS_NOW_OURS");
-			if (oldOwner != null) {
-				planetBo.emitPlanetOwnedChange(oldOwner);
-				emitEnemyMissionsChange(oldOwner);
-				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
-						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
-						.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
-				handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
+			if (targetPlanet.getSpecialLocation() != null) {
+				requirementBo.triggerSpecialLocation(oldOwner, targetPlanet.getSpecialLocation());
 			}
+			planetBo.emitPlanetOwnedChange(oldOwner);
+			emitEnemyMissionsChange(oldOwner);
+			UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
+					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+					.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
+			handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
+
 		}
 		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
@@ -1416,6 +1401,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 				}
 			});
 		}
+	}
+
+	/**
+	 *
+	 * @param missionId
+	 * @param user
+	 * @param targetPlanet
+	 * @return True if should continue the mission
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private boolean triggerAttackIfRequired(Long missionId, UserStorage user, Planet targetPlanet) {
+		boolean continueMission = true;
+		if (obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
+			AttackInformation result = processAttack(missionId, false);
+			continueMission = !result.isMissionRemoved();
+		}
+		return continueMission;
 	}
 
 	private int findMissionTypeDivisor(MissionType missionType) {

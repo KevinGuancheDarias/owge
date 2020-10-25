@@ -48,6 +48,9 @@ public class SocketIoService {
 	private ConfigurationBo configurationBo;
 
 	@Autowired
+	private UserStorageBo userStorageBo;
+
+	@Autowired
 	@Lazy
 	private List<OwgeJwtAuthenticationFilter> authenticationFilters;
 
@@ -81,20 +84,25 @@ public class SocketIoService {
 	 * Sends a message to all sockets from related target user, if any
 	 *
 	 * @param <T>
-	 * @param targetUserId
+	 * @param targetUserId       If 0 will broadcast to all connected users
 	 * @param eventName
 	 * @param messageContent
 	 * @param notConnectedAction Action to run if the user is not connected
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent,
+	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
 			Runnable notConnectedAction) {
 		List<SocketIOClient> userSockets = server.getAllClients().stream()
 				.filter(client -> client.get(USER_TOKEN_KEY) != null
-						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId))
+						&& (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
 				.collect(Collectors.toList());
-		websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, targetUserId));
+		if (targetUserId == 0) {
+			userStorageBo.findAll().forEach(
+					user -> websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, user.getId())));
+		} else {
+			websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, targetUserId));
+		}
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
 			userSockets.forEach(client -> {
@@ -116,7 +124,7 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent) {
+	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent) {
 		sendMessage(targetUserId, eventName, messageContent, null);
 	}
 
@@ -147,7 +155,7 @@ public class SocketIoService {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
-		sendMessage(user.getId(), eventName, messageContent, null);
+		sendMessage(user == null ? 0 : user.getId(), eventName, messageContent, null);
 	}
 
 	/**

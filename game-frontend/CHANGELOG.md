@@ -1,6 +1,9 @@
 # OWGE changelog
 v0.9.5 (latest)
 ==================
+* __Fix:__ [Conquest was not removing the unlocked units from special locations #312](https://github.com/KevinGuancheDarias/owge/issues/312)  
+* __Improvement:__ [Twitch icon should display that I'm live or not, and maybe reload the fixed video if displayed (due to Twitch bug) #304](https://github.com/KevinGuancheDarias/owge/issues/304)  
+* __Improvement:__ [Gather and EB missions should trigger an attack, just like the conquest do, but only if there are enemy units in the planet #303](https://github.com/KevinGuancheDarias/owge/issues/303)  
 * [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)
 * __Security:__ [The backend is sending the planet information of an unexplored planet as result to POST explore #306](https://github.com/KevinGuancheDarias/owge/issues/306)  
 * __Fix:__ [Upgrades are not displaying the time correctly when reloading #300](https://github.com/KevinGuancheDarias/owge/issues/300)  
