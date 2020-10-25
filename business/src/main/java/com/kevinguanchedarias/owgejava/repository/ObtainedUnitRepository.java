@@ -74,7 +74,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
 
-	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE 1=1 AND (ou.mission.id IS NULL AND ou.sourcePlanet.id = ?2) OR (ou.targetPlanet.id = ?2 AND ou.mission.id IS NOT NULL AND ou.mission.id != ?1 ) ")
+	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE 1=1 AND (ou.mission.id IS NULL AND ou.sourcePlanet.id = ?2) OR (ou.targetPlanet.id = ?2 AND ou.mission.id IS NOT NULL AND ou.mission.id != ?1 AND ou.mission.type.code = 'DEPLOYED' ) ")
 	public List<ObtainedUnit> findByExplorePlanet(Long exploreMissionId, Long planetId);
 
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
