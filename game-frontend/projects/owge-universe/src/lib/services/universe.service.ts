@@ -32,7 +32,7 @@ export class UniverseService {
      * @returns
      */
     public findOfficials(): Observable<Universe[]> {
-        return this._coreHttpService.get(Config.accountServerUrl + 'universe/findOfficials');
+        return this._coreHttpService.get(`${Config.accountServerUrl}/universe/findOfficials`);
     }
 
     /**

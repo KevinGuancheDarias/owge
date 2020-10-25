@@ -1,6 +1,7 @@
 # OWGE changelog
 v0.9.5 (latest)
 ==================
+* [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)
 * __Security:__ [The backend is sending the planet information of an unexplored planet as result to POST explore #306](https://github.com/KevinGuancheDarias/owge/issues/306)  
 * __Fix:__ [Upgrades are not displaying the time correctly when reloading #300](https://github.com/KevinGuancheDarias/owge/issues/300)  
 * __Fix:__ [Explore missions display units that no longer join fights, due to #298 change #301](https://github.com/KevinGuancheDarias/owge/issues/301)  
@@ -9,7 +10,7 @@ v0.9.5 (latest)
 
 v0.9.4 (2020-10-23 19:55)
 ==========================
-* [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)  
+* [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)  (partial)
 * __Improvement:__ [Only deployed units join the attacks, gathers trigger attack, if there are deployed units #298](https://github.com/KevinGuancheDarias/owge/issues/298)  
 * __Fix:__ [Speed formula allows missions to take less than the base time #297](https://github.com/KevinGuancheDarias/owge/issues/297)  
 * __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
