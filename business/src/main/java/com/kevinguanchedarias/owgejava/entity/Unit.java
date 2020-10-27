@@ -14,13 +14,11 @@ import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
-import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
 @Entity
 @Table(name = "units")
 @EntityListeners(UnitListener.class)
-public class Unit extends CommonEntityWithImageStore<Integer>
-		implements EntityWithImprovements<Integer>, WithDtoFromEntityTrait<Unit> {
+public class Unit extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
 	private static final long serialVersionUID = -1923291486680931835L;
 
 	@Column(name = "display_in_requirements")

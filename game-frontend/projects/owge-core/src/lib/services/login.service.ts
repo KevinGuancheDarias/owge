@@ -49,7 +49,7 @@ export class LoginService {
       }
     );
     const errorHandler = this._toastrService.handleHttpError.bind(this._toastrService);
-    return this._coreHttpService.post(`${this._accountConfig.url}${this._accountConfig.loginEndpoint}`, params, { errorHandler }).pipe(
+    return this._coreHttpService.post(`${this._accountConfig.url}/${this._accountConfig.loginEndpoint}`, params, { errorHandler }).pipe(
       map(res => {
         this._sessionService.setTokenPojo(res.token);
         return this._sessionService.getRawToken();
