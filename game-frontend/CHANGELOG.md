@@ -1,4 +1,9 @@
 # OWGE changelog
+
+v0.9.6 (latest)
+=================
+* __Improvement:__ Greatly improve the sync system, reducing way less battery, server power and user bandwith
+
 v0.9.5 (2020-10-25 18:36)
 ==========================
 * __Fix:__ [Conquest was not removing the unlocked units from special locations #312](https://github.com/KevinGuancheDarias/owge/issues/312)  

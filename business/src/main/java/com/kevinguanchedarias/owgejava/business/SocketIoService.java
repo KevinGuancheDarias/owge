@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -97,17 +98,25 @@ public class SocketIoService {
 				.filter(client -> client.get(USER_TOKEN_KEY) != null
 						&& (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
 				.collect(Collectors.toList());
+		Map<Integer, WebsocketEventsInformation> savedInformation = new HashMap<>();
 		if (targetUserId == 0) {
-			userStorageBo.findAll().forEach(
-					user -> websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, user.getId())));
+			userStorageBo.findAll().forEach(user -> {
+				WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, user.getId());
+				savedInformation.put(user.getId(), saved);
+				websocketEventsInformationBo.save(saved);
+			});
 		} else {
-			websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, targetUserId));
+			WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, targetUserId);
+			savedInformation.put(targetUserId, saved);
+			websocketEventsInformationBo.save(saved);
 		}
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
 			userSockets.forEach(client -> {
 				LOCAL_LOGGER.trace("Sending message to socket");
-				client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, sendValue));
+				TokenUser user = client.get(USER_TOKEN_KEY);
+				client.sendEvent("deliver_message",
+						new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
 			});
 		} else if (notConnectedAction != null) {
 			notConnectedAction.run();

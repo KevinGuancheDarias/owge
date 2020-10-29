@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
@@ -24,6 +27,7 @@ import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -31,7 +35,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 @RestController
 @RequestMapping("game/unit")
 @ApplicationScope
-public class UnitRestService {
+public class UnitRestService implements SyncSource {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
@@ -149,5 +153,13 @@ public class UnitRestService {
 
 	private UserStorage findLoggedInUser() {
 		return userStorageBo.findLoggedIn();
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("unit_unlocked_change", this::findUnlocked)
+				.withHandler("unit_build_mission_change", this::findBuildMissions)
+				.withHandler("unit_obtained_change", this::findInMyPlanets)
+				.withHandler("unit_requirements_change", this::requirements).build();
 	}
 }

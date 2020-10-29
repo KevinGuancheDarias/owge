@@ -1,5 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
+import java.util.Map;
+import java.util.function.Supplier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -8,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
 /**
  *
@@ -22,7 +27,9 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 @RestController
 @RequestMapping("game/twitch-state")
 @ApplicationScope
-public class TwitchStateRestService {
+public class TwitchStateRestService implements SyncSource {
+	private static final String TWITCH_STATE_CHANGE = "twitch_state_change";
+
 	@Autowired
 	private ConfigurationBo configurationBo;
 
@@ -54,9 +61,14 @@ public class TwitchStateRestService {
 		boolean statusBool = Boolean.parseBoolean(status.replace("\"", ""));
 		if (Boolean.TRUE.equals(userStorageBo.findLoggedInWithDetails().getCanAlterTwitchState())) {
 			configurationBo.saveByKeyAndValue("TWITCH_STATE", String.valueOf(statusBool));
-			socketIoService.sendMessage(null, "twitch_state_change", () -> statusBool);
+			socketIoService.sendMessage(null, TWITCH_STATE_CHANGE, () -> statusBool);
 		} else {
 			throw new SgtBackendInvalidInputException("You can't get out of Matrix, the system rules your live!");
 		}
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler(TWITCH_STATE_CHANGE, this::findTwitchState).build();
 	}
 }

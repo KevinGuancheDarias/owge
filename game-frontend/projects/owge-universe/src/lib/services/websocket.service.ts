@@ -6,9 +6,10 @@ import { Observable, Subject, ReplaySubject, BehaviorSubject } from 'rxjs';
 import { WsEventCacheService } from './ws-event-cache.service';
 import {
   LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
-  SessionService, LoadingService, StorageOfflineHelper
+  SessionService, LoadingService, StorageOfflineHelper, AsyncCollectionUtil
 } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 
 @Injectable()
 export class WebsocketService {
@@ -164,12 +165,11 @@ export class WebsocketService {
               // TODO: Remove the workaround with window reload, as the Dexie databases don't want to recreate after deletion
               window.location.reload();
             }
-            await this._wsEventCacheService.createStores();
-            await this._wsEventCacheService.setEventsInformation(response.value);
+            await this._setupSync(response);
             this._isAuthenticated = true;
             this._registerSocketHandlers();
             resolve();
-          } else if (response.value === 'Invalid Credentails') {
+          } else if (response.value === '"Invalid credentials"') {
             this.close();
             this._sessionService.logout();
           } else {
@@ -199,18 +199,6 @@ export class WebsocketService {
     }
   }
 
-
-  /**
-   * Adds an async action to run before the workaroundSync takes place
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @param action
-   */
-  public onBeforeWorkaroundSync(action: () => Promise<void>): void {
-    this._onBeforeWorkaroundSyncHandlers.push(action);
-  }
-
   /**
    * Clear browser cache for current universe and user
    *
@@ -220,18 +208,23 @@ export class WebsocketService {
    */
   public async clearCache(): Promise<void> {
     this._log.info('Full cache clear, just wanted');
-    await this._universeCacheManager.clearOpenStores();
-    await this._invokeWorkaroundSync();
+    await this._wsEventCacheService.clearCaches();
+    await this._setupSync({ value: [] });
+  }
+
+  private _getValidHandlers(event: keyof WebsocketSyncResponse): AbstractWebsocketApplicationHandler[] {
+    return [...this._eventHandlers].filter(
+      current => !!current.getHandlerMethod(event)
+    );
   }
 
   private async _registerSocketHandlers(): Promise<void> {
     try {
       await Promise.all([
-        ...[...this._eventHandlers].map(handler => handler.beforeWorkaroundSync()),
-        ...this._onBeforeWorkaroundSyncHandlers.map(action => action())
+        ...[...this._eventHandlers].map(handler => handler.beforeWorkaroundSync())
       ]);
       await Promise.all([...this._eventHandlers].map(handler => handler.createStores()));
-      await this._invokeWorkaroundSync();
+      this._runwithSyncedData();
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
     }
@@ -240,12 +233,11 @@ export class WebsocketService {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
-        const handlers: AbstractWebsocketApplicationHandler[] = [...this._eventHandlers].filter(
-          current => !!current.getHandlerMethod(eventName)
-        );
+        const handlers: AbstractWebsocketApplicationHandler[] = this._getValidHandlers(eventName);
         if (handlers.length) {
           handlers.forEach(async handler => {
             try {
+              await this._wsEventCacheService.saveEventData(message, message.value);
               await handler.execute(eventName, message.value);
             } catch (e) {
               this._log.error(`Handler ${handler.constructor.name} failed for eent ${eventName}`, e);
@@ -271,29 +263,35 @@ export class WebsocketService {
     ]);
   }
 
-  private async _invokeWorkaroundSync(): Promise<void> {
-    this._log.debug('Invoking workaroundSync');
-    this._isCachePanic.next(false);
-    await this._loadingService.addPromise(Promise.all([...this._eventHandlers].map(async current => {
-      current.isSynced.next(false);
-      let result;
-      try {
-        result = await this._timeoutPromise(current.workaroundSync());
-      } catch (e) {
-        if (e.constructor.name === 'DexieError') {
-          alert('Storage error, check your device has enough free space');
+  private async _setupSync(response: { value: any[] }): Promise<void> {
+    await this._loadingService.runWithLoading(async () => {
+      await this._wsEventCacheService.createStores();
+      await this._wsEventCacheService.setEventsInformation(response.value);
+      await this._wsEventCacheService.createOfflineStores();
+      await this._wsEventCacheService.applySync();
+    });
+  }
+
+  private async _runwithSyncedData(): Promise<void> {
+    await AsyncCollectionUtil.forEach([...this._eventHandlers], async handler => {
+      const eventMap = handler.getEventsMap();
+      await AsyncCollectionUtil.forEach(Object.keys(eventMap), async (event: keyof WebsocketSyncResponse) => {
+        // Initial run with synced data
+        if (this._wsEventCacheService.isSynchronizableEvent(event)) {
+          this._log.debug(`Running handler for event ${event}, known to be in ${handler.constructor.name}`);
+          try {
+            const result = await this._timeoutPromise(
+              handler.execute(event, await this._wsEventCacheService.findStoredValue(event))
+            );
+            if (result === 'timeout') {
+              this._toastrService.warning(`Sync took too much for ${handler.constructor.name} on event ${event}`);
+            }
+          } catch (e) {
+            this._toastrService.error(`Sync failed for ${handler.constructor.name} on event ${event}`);
+            console.error(e);
+          }
         }
-        result = 'Error';
-      }
-      if (result === 'timeout' || result === 'Error') {
-        const errorMsg = `${current.constructor.name}.workaroundSync () ${result === 'timeout' ? 'timeout' : 'failed'}`;
-        this._log.error(errorMsg);
-        this._toastrService.error(errorMsg);
-        this._isCachePanic.next(true);
-      } else {
-        current.isSynced.next(true);
-      }
-      return result;
-    })));
+      });
+    });
   }
 }

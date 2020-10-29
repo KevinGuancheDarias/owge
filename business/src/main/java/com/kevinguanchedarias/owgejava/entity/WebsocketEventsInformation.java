@@ -25,7 +25,7 @@ public class WebsocketEventsInformation implements Serializable {
 	@EmbeddedId
 	private EventNameUserId eventNameUserId;
 	@Column(name = "last_sent", nullable = false)
-	private Date lastSenT = new Date();
+	private Date lastSenT = dateWithoutMs();
 
 	/**
 	 *
@@ -86,4 +86,9 @@ public class WebsocketEventsInformation implements Serializable {
 		this.lastSenT = lastSenT;
 	}
 
+	private Date dateWithoutMs() {
+		Date now = new Date();
+		long removedMs = now.getTime() / 1000;
+		return new Date(removedMs * 1000);
+	}
 }

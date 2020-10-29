@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,16 +14,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 
 @RestController
 @RequestMapping("game/mission")
 @ApplicationScope
-public class MissionRestService {
+public class MissionRestService implements SyncSource {
 
 	private static final String TARGET_CONSUMES_MEDIATYPE = "application/json";
 
@@ -88,5 +93,12 @@ public class MissionRestService {
 	@RequestMapping(value = "findEnemy", method = RequestMethod.GET)
 	public List<UnitRunningMissionDto> findEnemy() {
 		return missionBo.myFindEnemyRunningMissions();
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("missions_count_change", this::findCount)
+				.withHandler("unit_mission_change", () -> new MissionWebsocketMessage(findCount(), findMy()))
+				.withHandler("enemy_mission_change", this::findEnemy).build();
 	}
 }

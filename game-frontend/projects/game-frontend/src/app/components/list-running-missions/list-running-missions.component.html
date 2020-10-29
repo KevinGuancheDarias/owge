@@ -27,13 +27,13 @@
             <div class="row planet-names">
               <div>
                 <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
-                <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
+                <a data-html="true" placement="bottom"
                   (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
                   (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
               </div>
               <div>
                 <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
-                <a data-html="true" [ngbTooltip]="tooltipPlanetComponent" placement="bottom"
+                <a data-html="true" placement="bottom"
                   (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
                   (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
               </div>

@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.PlanetListBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.PlanetListDto;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.PlanetListAddRequestBody;
 
 /**
@@ -26,7 +30,7 @@ import com.kevinguanchedarias.owgejava.pojo.PlanetListAddRequestBody;
 @RestController
 @RequestMapping("game/planet-list")
 @ApplicationScope
-public class PlanetListRestService {
+public class PlanetListRestService implements SyncSource {
 	@Autowired
 	private PlanetListBo planetListBo;
 
@@ -58,5 +62,10 @@ public class PlanetListRestService {
 	@DeleteMapping("{planetId}")
 	public void delete(@PathVariable Long planetId) {
 		planetListBo.myDelete(planetId);
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("planet_user_list_change", this::findMy).build();
 	}
 }

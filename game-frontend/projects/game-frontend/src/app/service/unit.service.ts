@@ -10,7 +10,7 @@ import {
 import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
   UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
-  ObtainedUpgrade, UniverseCacheManagerService, WsEventCacheService, Planet, UnitUpgradeRequirements, Improvement, UserStorage
+  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, Improvement, UserStorage
 } from '@owge/universe';
 import { PlanetService } from '@owge/galaxy';
 
@@ -26,10 +26,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   private _improvement: Improvement;
   private _unitStore: UnitStore = new UnitStore;
   private _onUnlockedChangeSubscription: Subscription;
-  private _offlineUnlockedCache: StorageOfflineHelper<Unit[]>;
-  private _offlineObtainedCache: StorageOfflineHelper<ObtainedUnit[]>;
-  private _offlineBuildMissionCache: StorageOfflineHelper<UnitBuildRunningMission[]>;
-  private _offlineRequirementsCache: StorageOfflineHelper<UnitUpgradeRequirements[]>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
@@ -37,7 +33,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     private _userStore: UserStorage<User>,
     private _planetService: PlanetService,
     private _upgradeService: UpgradeService,
-    private _universeCacheManagerService: UniverseCacheManagerService,
     private _wsEventCacheService: WsEventCacheService
   ) {
     super();
@@ -49,46 +44,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => this._improvement = improvement);
     this._resources = new AutoUpdatedResources(_resourceManagerService);
     this._planetService.findCurrentPlanet().subscribe(currentSelected => this._selectedPlanet = currentSelected);
-  }
-
-  public async createStores(): Promise<void> {
-    this._offlineUnlockedCache = this._universeCacheManagerService.getStore('unit.unlocked');
-    this._offlineObtainedCache = this._universeCacheManagerService.getStore('unit.obtained');
-    this._offlineBuildMissionCache = this._universeCacheManagerService.getStore('unit.build_missions');
-    this._offlineRequirementsCache = this._universeCacheManagerService.getStore('unit.requirements');
-  }
-
-  /**
-   * Workarounds the syncing of unit related stuff
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundSync(): Promise<void> {
-    this._onUnlockedChange(await this._wsEventCacheService.findFromCacheOrRun('unit_unlocked_change', this._offlineUnlockedCache,
-      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/findUnlocked')
-        .toPromise()
-    ));
-    this._onObtainedChange(await this._wsEventCacheService.findFromCacheOrRun('unit_obtained_change', this._offlineObtainedCache,
-      async () =>
-        await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/find-in-my-planets')
-          .toPromise()
-    ));
-    this._onBuildMissionChange(await this._wsEventCacheService.findFromCacheOrRun(
-      'unit_build_mission_change',
-      this._offlineBuildMissionCache,
-      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unit/build-missions')
-        .toPromise()
-    ));
-  }
-
-  public async workaroundInitialOffline(): Promise<void> {
-    await Promise.all([
-      this._offlineUnlockedCache.doIfNotNull(content => this._onUnlockedChange(content)),
-      this._offlineObtainedCache.doIfNotNull(content => this._onObtainedChange(content)),
-      this._offlineBuildMissionCache.doIfNotNull(content => this._onBuildMissionChange(content))
-    ]);
   }
 
   /**
@@ -251,27 +206,16 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onUnlockedChange(content: Unit[]): Promise<void> {
-    const cachedValue = await this._offlineRequirementsCache.find();
-    let unitUpgradeRequirements;
-    if (cachedValue) {
-      unitUpgradeRequirements = cachedValue;
-    } else {
-      unitUpgradeRequirements = await this._universeGameService.requestWithAutorizationToContext<UnitUpgradeRequirements[]>(
-        'game', 'get', 'unit/requirements'
-      ).toPromise();
-      await this._offlineRequirementsCache.save(unitUpgradeRequirements);
-    }
+    const unitUpgradeRequirements: UnitUpgradeRequirements[] = await this._wsEventCacheService.findStoredValue('unit_requirements_change');
     if (this._onUnlockedChangeSubscription) {
       this._onUnlockedChangeSubscription.unsubscribe();
       delete this._onUnlockedChangeSubscription;
     }
-    await this._upgradeService.isSynced.pipe(filter(isSynced => isSynced), take(1)).toPromise();
     this._onUnlockedChangeSubscription = this._upgradeService.findObtained().subscribe(upgrades => {
       unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
       this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);
     });
     const sorted = this._sortUnits(content);
-    await this._offlineUnlockedCache.save(sorted);
     this._unitStore.unlocked.next(sorted);
   }
 
@@ -279,13 +223,12 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     this._unitStore.obtained.next(
       this._createPlanetsRepresentation(content, (unit) => unit.sourcePlanet.id)
     );
-    await this._offlineObtainedCache.save(content);
   }
 
   protected async _onBuildMissionChange(content: UnitBuildRunningMission[]): Promise<void> {
-    await this._offlineBuildMissionCache.save(content);
     content.forEach(current => DateUtil.computeBrowserTerminationDate(current));
     this._unitStore.runningBuildMissions.next(content);
+    await this._wsEventCacheService.updateWithFrontendComputedData('unit_build_mission_change', content);
   }
 
   private _doComputeRequiredResources(unit: Unit, subscribeToResources: boolean, count = 1): Unit {

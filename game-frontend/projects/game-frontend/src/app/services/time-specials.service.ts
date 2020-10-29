@@ -23,7 +23,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
     protected _log: LoggerHelper;
 
     private _timeSpecialStore: TimeSpecialStore = new TimeSpecialStore;
-    private _offlineUnlocked: StorageOfflineHelper<TimeSpecial[]>;
 
     public constructor(
         protected _universeGameService: UniverseGameService,
@@ -37,10 +36,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
         };
     }
 
-    public async createStores(): Promise<void> {
-        this._offlineUnlocked = this._universeCacheManagerService.getStore('time_special.unlocked');
-    }
-
     /**
      * Returns the unlocked time specials <br>
      * Notice: The observable emits when the state of a timespecial changes (active, recharching, unlocked, etc)
@@ -51,17 +46,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
      */
     public findUnlocked(): Observable<TimeSpecial[]> {
         return this._timeSpecialStore.unlocked.asObservable();
-    }
-
-    public async workaroundSync(): Promise<void> {
-        this._onTimeSpecialChange(await this._wsEventCacheService.findFromCacheOrRun('time_special_change', this._offlineUnlocked,
-            async () =>
-                await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'time_special/findUnlocked').toPromise()
-        ));
-    }
-
-    public async workaroundInitialOffline(): Promise<void> {
-        await this._offlineUnlocked.doIfNotNull(content => this._onTimeSpecialChange(content));
     }
 
     /**
@@ -95,6 +79,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
             }
         });
         this._timeSpecialStore.unlocked.next(contentOrEmpty);
-        await this._offlineUnlocked.save(contentOrEmpty);
+        this._wsEventCacheService.updateWithFrontendComputedData('time_special_change', content);
     }
 }

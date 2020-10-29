@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,17 +13,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUpgradeBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
 @RestController
 @RequestMapping("game/upgrade")
 @ApplicationScope
-public class UpgradeRestService {
+public class UpgradeRestService implements SyncSource {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
@@ -70,5 +74,11 @@ public class UpgradeRestService {
 	public Object cancelUpgrade() {
 		missionBo.cancelUpgradeMission(userStorageBo.findLoggedIn().getId());
 		return "{}";
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("obtained_upgrades_change", this::findObtained)
+				.withHandler("running_upgrade_change", this::findRunningUpgrade).build();
 	}
 }

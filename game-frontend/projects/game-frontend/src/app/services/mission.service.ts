@@ -20,10 +20,6 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
 
   private _currentUser: User;
 
-  private _offlineMyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
-  private _offlineEnemyUnitMissionsStore: StorageOfflineHelper<UnitRunningMission[]>;
-  private _offlineCountUnitMissionsStore: StorageOfflineHelper<number>;
-
   public constructor(
     private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
@@ -45,63 +41,6 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
       _missionStore.maxMissions.next(improvement.moreMisions)
     );
   }
-
-  public async createStores(): Promise<void> {
-    this._offlineMyUnitMissionsStore = this._universeCacheManagerService.getStore('mission.my');
-    this._offlineEnemyUnitMissionsStore = this._universeCacheManagerService.getStore('mission.enemy');
-    this._offlineCountUnitMissionsStore = this._universeCacheManagerService.getStore('mission.count');
-  }
-
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundSync(): Promise<void> {
-    const count: number = await this._wsEventCacheService.findFromCacheOrRun(
-      'missions_count_change',
-      this._offlineCountUnitMissionsStore,
-      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'mission/count').toPromise()
-    );
-    this._onMyUnitMissionsChange({
-      count,
-      myUnitMissions: await this._wsEventCacheService.findFromCacheOrRun(
-        'unit_mission_change',
-        this._offlineMyUnitMissionsStore,
-        () => this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findMy').pipe(
-          map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
-        ).toPromise()
-      )
-    });
-    this._onMissionsCountChange(count);
-    this._onEnemyMissionChange(
-      await this._wsEventCacheService.findFromCacheOrRun('enemy_mission_change', this._offlineEnemyUnitMissionsStore,
-        async () =>
-          await this._universeGameService.requestWithAutorizationToContext<UnitRunningMission[]>('game', 'get', 'mission/findEnemy')
-            .pipe(
-              map(obResult => obResult.map(current => DateUtil.computeBrowserTerminationDate(current)))
-            ).toPromise()
-      )
-    );
-  }
-
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundInitialOffline(): Promise<void> {
-    const count: number = await this._offlineCountUnitMissionsStore.find();
-    if (typeof count === 'number') {
-      await this._offlineMyUnitMissionsStore.doIfNotNull(content => this._onMyUnitMissionsChange({ count, myUnitMissions: content }));
-    }
-    await this._offlineEnemyUnitMissionsStore.doIfNotNull(content => this._onEnemyMissionChange(content));
-  }
-
 
   /**
    * Check if the specified type with mission limitation can do the mission
@@ -249,7 +188,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     const withBrowserDateContent: UnitRunningMission[] = content.myUnitMissions
       .map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.myUnitMissions.next(withBrowserDateContent);
-    await this._offlineMyUnitMissionsStore.save(withBrowserDateContent);
+    await this._wsEventCacheService.updateWithFrontendComputedData('unit_mission_change', content);
   }
 
   /**
@@ -262,7 +201,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
   protected async _onEnemyMissionChange(content: UnitRunningMission[]): Promise<void> {
     const withBrowserDateContent: UnitRunningMission[] = content.map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.enemyUnitMissions.next(withBrowserDateContent);
-    await this._offlineEnemyUnitMissionsStore.save(withBrowserDateContent);
+    await this._wsEventCacheService.updateWithFrontendComputedData('enemy_mission_change', content);
   }
 
 
@@ -280,7 +219,6 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
 
   protected async _onMissionsCountChange(content: number) {
     this._missionStore.missionsCount.next(content);
-    await this._offlineCountUnitMissionsStore.save(content);
   }
 
   private _sendMission(url: string, sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {

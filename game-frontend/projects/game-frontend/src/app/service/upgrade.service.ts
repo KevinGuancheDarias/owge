@@ -16,8 +16,6 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
 
   private _upgradeStore: UpgradeStore = new UpgradeStore;
   private _resources: AutoUpdatedResources;
-  private _offlineObtainedStore: StorageOfflineHelper<ObtainedUpgrade[]>;
-  private _offlineRunningStore: StorageOfflineHelper<UpgradeRunningMission>;
 
   constructor(
     private _resourceManagerService: ResourceManagerService,
@@ -31,38 +29,6 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
       obtained_upgrades_change: '_onObtainedChange',
       running_upgrade_change: '_onRunningChange'
     };
-  }
-
-  public async createStores(): Promise<void> {
-    this._offlineObtainedStore = this._universeCacheManagerService.getStore('upgrade.obtained');
-    this._offlineRunningStore = this._universeCacheManagerService.getStore('upgrade.running');
-  }
-
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundSync(): Promise<void> {
-    this._onObtainedChange(await this._wsEventCacheService.findFromCacheOrRun('obtained_upgrades_change', this._offlineObtainedStore,
-      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'upgrade/findObtained').toPromise()
-    ));
-    this._onRunningChange(await this._wsEventCacheService.findFromCacheOrRun(
-      'running_upgrade_change',
-      this._offlineRunningStore,
-      async () =>
-        await this._universeGameService.requestWithAutorizationToContext<UpgradeRunningMission>('game', 'get', 'upgrade/findRunningUpgrade')
-          .pipe(
-            map(result => DateUtil.computeBrowserTerminationDate(result))
-          ).toPromise()
-    ));
-  }
-
-  public async workaroundInitialOffline(): Promise<void> {
-    await this._offlineObtainedStore.doIfNotNull(content => this._onObtainedChange(content));
-    await this._offlineRunningStore.doIfNotNull(content => this._onRunningChange(content));
   }
 
   public findObtained(): Observable<ObtainedUpgrade[]> {
@@ -154,12 +120,11 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onObtainedChange(content: ObtainedUpgrade[]): Promise<void> {
-    await this._offlineObtainedStore.save(content);
     this._upgradeStore.obtained.next(content);
   }
 
   protected async _onRunningChange(content: UpgradeRunningMission): Promise<void> {
-    await this._offlineRunningStore.save(content);
     this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
+    await this._wsEventCacheService.updateWithFrontendComputedData('running_upgrade_change', content);
   }
 }

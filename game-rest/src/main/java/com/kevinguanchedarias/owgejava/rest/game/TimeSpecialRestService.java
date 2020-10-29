@@ -3,7 +3,9 @@
  */
 package com.kevinguanchedarias.owgejava.rest.game;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -14,12 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.TimeSpecialBo;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.rest.trait.WithReadRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
 
@@ -33,7 +37,7 @@ import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
 @RequestMapping("game/time_special")
 public class TimeSpecialRestService
 		implements WithUnlockedRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto>,
-		WithReadRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> {
+		WithReadRestServiceTrait<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto>, SyncSource {
 
 	@Autowired
 	private TimeSpecialBo timeSpecialBo;
@@ -69,6 +73,11 @@ public class TimeSpecialRestService
 		return builder.withBeanFactory(beanFactory).withBoService(timeSpecialBo).withDtoClass(TimeSpecialDto.class)
 				.withEntityClass(TimeSpecial.class)
 				.withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("time_special_change", this::findUnlocked).build();
 	}
 
 }

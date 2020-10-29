@@ -167,7 +167,7 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
     protected async _onVisitedTutorialEntryChange(content: number[]): Promise<void> {
         await this._offlineVisitedEntriesStore.save(content);
         this._store.visitedEntries.next(content);
-        await this._triggerTutorial();
+        this._triggerTutorial();
     }
 
     private async _waitReady(): Promise<void> {

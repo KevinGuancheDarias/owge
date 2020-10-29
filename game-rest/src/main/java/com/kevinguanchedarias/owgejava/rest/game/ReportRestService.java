@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,14 +13,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
 
 @RestController
 @RequestMapping("game/report")
 @ApplicationScope
-public class ReportRestService {
+public class ReportRestService implements SyncSource {
 
 	@Autowired
 	private MissionReportBo missionReportBo;
@@ -34,6 +38,11 @@ public class ReportRestService {
 	@PostMapping("mark-as-read")
 	public void markAsRead(@RequestBody List<Long> reportsIds) {
 		missionReportBo.markAsRead(userStorageBo.findLoggedIn().getId(), reportsIds);
+	}
+
+	@Override
+	public Map<String, Supplier<Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("mission_report_change", () -> findMy(1)).build();
 	}
 
 }
