@@ -134,16 +134,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		return planetRepository.findByGalaxyIdAndOwnerNotNull(galaxyId);
 	}
 
-	/**
-	 * Find the planets for logged in user
-	 *
-	 * @return
-	 * @author Kevin Guanche Darias
-	 */
-	public List<Planet> findMyPlanets() {
-		return findPlanetsByUser(userStorageBo.findLoggedIn());
-	}
-
 	public List<Planet> findByGalaxyAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant) {
 		return planetRepository.findByGalaxyIdAndSectorAndQuadrant(galaxy, sector, quadrant);
 	}

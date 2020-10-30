@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @EnableWebSecurity
 @EnableWebMvc
 @EnableCaching
+@EnableAsync
 @ImportResource("META-INF/quartz-context.xml")
 public class OwgeRestApplication {
 
@@ -35,10 +37,10 @@ public class OwgeRestApplication {
 		builder.serializationInclusion(Include.NON_NULL);
 		return builder;
 	}
-	
+
 	@Bean
-    public SchedulerFactoryBeanCustomizer schedulerFactoryBeanCustomizer()  {
-        return bean -> bean.setTaskExecutor(null);
-    }
-	
+	public SchedulerFactoryBeanCustomizer schedulerFactoryBeanCustomizer() {
+		return bean -> bean.setTaskExecutor(null);
+	}
+
 }

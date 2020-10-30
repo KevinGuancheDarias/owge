@@ -5,7 +5,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -23,6 +23,7 @@ import com.kevinguanchedarias.owgejava.business.TimeSpecialBo;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.rest.trait.WithReadRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithUnlockedRestServiceTrait;
@@ -76,8 +77,10 @@ public class TimeSpecialRestService
 	}
 
 	@Override
-	public Map<String, Supplier<Object>> findSyncHandlers() {
-		return SyncHandlerBuilder.create().withHandler("time_special_change", this::findUnlocked).build();
+	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create()
+				.withHandler("time_special_change", user -> timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user)))
+				.build();
 	}
 
 }

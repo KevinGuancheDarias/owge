@@ -1,9 +1,12 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
@@ -13,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
@@ -31,20 +35,24 @@ public class WebsocketSyncService {
 	@Autowired(required = false)
 	private List<SyncSource> syncSources;
 
-	private Map<String, Supplier<Object>> handlers = new HashMap<>();
+	@Autowired
+	private AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
+	private UserStorageBo userStorageBo;
+
+	private Map<String, Function<UserStorage, Object>> handlers = new HashMap<>();
 
 	@PostConstruct
 	public void init() {
 		if (syncSources != null) {
-			syncSources.forEach(source -> {
-				source.findSyncHandlers().forEach((handler, lambda) -> {
-					if (handlers.containsKey(handler)) {
-						throw new ProgrammingException("There is already a handler for " + handler);
-					} else {
-						handlers.put(handler, lambda);
-					}
-				});
-			});
+			syncSources.forEach(source -> source.findSyncHandlers().forEach((handler, lambda) -> {
+				if (handlers.containsKey(handler)) {
+					throw new ProgrammingException("There is already a handler for " + handler);
+				} else {
+					handlers.put(handler, lambda);
+				}
+			}));
 		} else {
 			LOG.warn("No sync sources has been specified");
 		}
@@ -61,14 +69,26 @@ public class WebsocketSyncService {
 	@Transactional
 	public Map<String, Object> findWantedData(List<String> keys) {
 		Map<String, Object> retVal = new HashMap<>();
+		Map<String, CompletableFuture<Object>> runningHandlers = new HashMap<>();
 		keys.forEach(key -> {
 			if (handlers.containsKey(key)) {
-				retVal.put(key, handlers.get(key).get());
+				runningHandlers.put(key, asyncRunnerBo.runAssync(userStorageBo.findLoggedIn(), handlers.get(key)));
 			} else {
 				throw new SgtBackendInvalidInputException("Invalid key specified, specified: " + key + ", of allowed: "
 						+ String.join(",", handlers.keySet()));
 			}
 		});
+		Collection<CompletableFuture<Object>> values = runningHandlers.values();
+		CompletableFuture.allOf(values.toArray(new CompletableFuture[values.size()])).join();
+		runningHandlers.forEach((key, handler) -> {
+			try {
+				retVal.put(key, handler.get());
+			} catch (InterruptedException | ExecutionException e) {
+				LOG.error(e);
+				Thread.currentThread().interrupt();
+			}
+		});
 		return retVal;
 	}
+
 }

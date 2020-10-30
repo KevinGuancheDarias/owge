@@ -2,8 +2,10 @@ package com.kevinguanchedarias.owgejava.builder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
 /**
@@ -15,7 +17,7 @@ import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
  */
 public class SyncHandlerBuilder {
 
-	protected Map<String, Supplier<Object>> map = new HashMap<>();
+	protected Map<String, Function<UserStorage, Object>> map = new HashMap<>();
 
 	/**
 	 *
@@ -35,8 +37,21 @@ public class SyncHandlerBuilder {
 	 * @since 0.9.6
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public SyncHandlerBuilder withHandler(String handler, Supplier<Object> lambda) {
+	public SyncHandlerBuilder withHandler(String handler, Function<UserStorage, Object> lambda) {
 		map.put(handler, lambda);
+		return this;
+	}
+
+	/**
+	 *
+	 * @param handler
+	 * @param lambda
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public SyncHandlerBuilder withHandler(String handler, Supplier<Object> lambda) {
+		map.put(handler, unused -> lambda.get());
 		return this;
 	}
 
@@ -46,7 +61,7 @@ public class SyncHandlerBuilder {
 	 * @since 0.9.6
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Map<String, Supplier<Object>> build() {
+	public Map<String, Function<UserStorage, Object>> build() {
 		return map;
 	}
 

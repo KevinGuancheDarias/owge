@@ -378,18 +378,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * Finds all units that belong to logged user and are not involved in any
-	 * mission
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ObtainedUnit> findMyDeployedInUserOwnedPlanets() {
-		return findDeployedInUserOwnedPlanets(userStorageBo.findLoggedIn().getId());
-	}
-
-	/**
 	 * Finds all units that belong to given user and are not involved in any mission
 	 *
 	 * @param userId

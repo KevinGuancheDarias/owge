@@ -2,7 +2,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
+import com.kevinguanchedarias.owgejava.business.FactionBo;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
@@ -30,7 +31,6 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
 @RestController
 @RequestMapping("game/unit")
@@ -53,16 +53,7 @@ public class UnitRestService implements SyncSource {
 	private RequirementBo requirementBo;
 
 	@Autowired
-	private DtoUtilService dtoUtilService;
-
-	@GetMapping("findUnlocked")
-	public List<UnitDto> findUnlocked() {
-		List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
-				unlockedRelationBo.findByUserIdAndObjectType(findLoggedInUser().getId(), RequirementTargetObject.UNIT));
-
-		UnitDto convert = new UnitDto();
-		return convert.dtoFromEntity(UnitDto.class, units);
-	}
+	private FactionBo factionBo;
 
 	/**
 	 *
@@ -82,17 +73,6 @@ public class UnitRestService implements SyncSource {
 		return new DeprecationRestResponse<>("0.9.0", "/unit/build-missions", retVal);
 	}
 
-	/**
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@GetMapping("build-missions")
-	public List<RunningUnitBuildDto> findBuildMissions() {
-		return missionBo.findMyBuildMissions();
-	}
-
 	@PostMapping(value = "build")
 	public Object build(@RequestParam("planetId") Long planetId, @RequestParam("unitId") Integer unitId,
 			@RequestParam("count") Long count) {
@@ -105,43 +85,10 @@ public class UnitRestService implements SyncSource {
 		return retVal;
 	}
 
-	@GetMapping("requirements")
-	public List<UnitWithRequirementInformation> requirements() {
-		return requirementBo.findFactionUnitLevelRequirements(userStorageBo.findLoggedInWithDetails().getFaction())
-				.stream().filter(unitWithRequirementInformation -> unitWithRequirementInformation.getUnit()
-						.getHasToDisplayInRequirements())
-				.collect(Collectors.toList());
-	}
-
 	@GetMapping("cancel")
 	public String cancel(@RequestParam("missionId") Long missionId) {
 		missionBo.cancelBuildUnit(missionId);
 		return "\"OK\"";
-	}
-
-	/**
-	 *
-	 * @deprecated
-	 * @param planetId
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.9.0")
-	@GetMapping("findInMyPlanet")
-	public List<DeprecationRestResponse<ObtainedUnitDto>> findInMyPlanet(@RequestParam("planetId") Long planetId) {
-		return DeprecationRestResponse.fromList("0.9.0", "/unit/find-in-my-planets",
-				dtoUtilService.convertEntireArray(ObtainedUnitDto.class, obtainedUnitBo.findInMyPlanet(planetId)));
-	}
-
-	/**
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@GetMapping("find-in-my-planets")
-	public List<ObtainedUnitDto> findInMyPlanets() {
-		return obtainedUnitBo.toDto(obtainedUnitBo.findMyDeployedInUserOwnedPlanets());
 	}
 
 	@RequestMapping(value = "delete", method = RequestMethod.POST)
@@ -151,15 +98,34 @@ public class UnitRestService implements SyncSource {
 		return "\"OK\"";
 	}
 
+	@Override
+	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("unit_unlocked_change", this::findUnlocked)
+				.withHandler("unit_build_mission_change", user -> missionBo.findBuildMissions(user.getId()))
+				.withHandler("unit_obtained_change", this::findInMyPlanets)
+				.withHandler("unit_requirements_change", this::requirements).build();
+	}
+
+	private List<UnitDto> findUnlocked(UserStorage user) {
+		List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
+				unlockedRelationBo.findByUserIdAndObjectType(user.getId(), RequirementTargetObject.UNIT));
+
+		UnitDto convert = new UnitDto();
+		return convert.dtoFromEntity(UnitDto.class, units);
+	}
+
+	private List<ObtainedUnitDto> findInMyPlanets(UserStorage user) {
+		return obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(user.getId()));
+	}
+
 	private UserStorage findLoggedInUser() {
 		return userStorageBo.findLoggedIn();
 	}
 
-	@Override
-	public Map<String, Supplier<Object>> findSyncHandlers() {
-		return SyncHandlerBuilder.create().withHandler("unit_unlocked_change", this::findUnlocked)
-				.withHandler("unit_build_mission_change", this::findBuildMissions)
-				.withHandler("unit_obtained_change", this::findInMyPlanets)
-				.withHandler("unit_requirements_change", this::requirements).build();
+	private List<UnitWithRequirementInformation> requirements(UserStorage user) {
+		return requirementBo.findFactionUnitLevelRequirements(factionBo.findByUser(user.getId())).stream()
+				.filter(unitWithRequirementInformation -> unitWithRequirementInformation.getUnit()
+						.getHasToDisplayInRequirements())
+				.collect(Collectors.toList());
 	}
 }

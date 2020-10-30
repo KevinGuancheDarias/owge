@@ -1,7 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +15,7 @@ import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
@@ -68,7 +69,7 @@ public class TwitchStateRestService implements SyncSource {
 	}
 
 	@Override
-	public Map<String, Supplier<Object>> findSyncHandlers() {
+	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
 		return SyncHandlerBuilder.create().withHandler(TWITCH_STATE_CHANGE, this::findTwitchState).build();
 	}
 }

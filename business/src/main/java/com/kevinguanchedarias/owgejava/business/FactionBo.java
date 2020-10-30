@@ -24,7 +24,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -34,7 +34,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/**
 	 * Returns the factions that are visible
-	 * 
+	 *
 	 * @param lazyFetch Fetch the proxies, or set to null
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -47,13 +47,24 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
 	/**
 	 * Will check if given faction exists AND it's visible
-	 * 
+	 *
 	 * @param id faction id
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public boolean existsAndIsVisible(Integer id) {
 		return factionRepository.countByHiddenFalseAndId(id) == 1;
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Faction findByUser(Integer userId) {
+		return factionRepository.findOneByUsersId(userId);
 	}
 
 	private void handleLazyFetch(boolean lazyFetch, List<Faction> factions) {

@@ -169,7 +169,7 @@ export class WebsocketService {
             this._isAuthenticated = true;
             this._registerSocketHandlers();
             resolve();
-          } else if (response.value === '"Invalid credentials"') {
+          } else if (response.value === 'Invalid credentials') {
             this.close();
             this._sessionService.logout();
           } else {

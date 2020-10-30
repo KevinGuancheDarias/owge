@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
@@ -264,17 +263,6 @@ public class MissionBo extends AbstractMissionBo {
 	}
 
 	/**
-	 * Finds all build missions for logged user
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<RunningUnitBuildDto> findMyBuildMissions() {
-		return findBuildMissions(userStorageBo.findLoggedIn().getId());
-	}
-
-	/**
 	 * Finds all build missions for given user
 	 *
 	 * @param userId
@@ -415,22 +403,6 @@ public class MissionBo extends AbstractMissionBo {
 					() -> unitTypeBo.findUnitTypesWithUserInfo(user));
 			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 		});
-	}
-
-	/**
-	 * Returns all running missions by the logged in user
-	 *
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public List<UnitRunningMissionDto> myFindUserRunningMissions() {
-		return findUserRunningMissions(userStorageBo.findLoggedIn().getId());
-	}
-
-	@Transactional
-	public List<UnitRunningMissionDto> myFindEnemyRunningMissions() {
-		return findEnemyRunningMissions(userStorageBo.findLoggedIn());
 	}
 
 	/**

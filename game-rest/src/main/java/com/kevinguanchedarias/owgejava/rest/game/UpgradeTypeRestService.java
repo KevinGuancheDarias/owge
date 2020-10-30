@@ -2,7 +2,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.UpgradeTypeBo;
 import com.kevinguanchedarias.owgejava.dto.UpgradeTypeDto;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
@@ -33,7 +34,7 @@ public class UpgradeTypeRestService implements SyncSource {
 	}
 
 	@Override
-	public Map<String, Supplier<Object>> findSyncHandlers() {
+	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
 		return SyncHandlerBuilder.create().withHandler("upgrade_types_change", this::findAll).build();
 	}
 

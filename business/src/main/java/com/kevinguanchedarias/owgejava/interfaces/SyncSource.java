@@ -1,7 +1,9 @@
 package com.kevinguanchedarias.owgejava.interfaces;
 
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Function;
+
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 /**
  * Instead of having multiple rest endpoints for the data, use a sync source
@@ -17,5 +19,5 @@ public interface SyncSource {
 	 * @since 0.9.6
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	Map<String, Supplier<Object>> findSyncHandlers();
+	Map<String, Function<UserStorage, Object>> findSyncHandlers();
 }
