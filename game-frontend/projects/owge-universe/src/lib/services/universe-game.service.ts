@@ -64,15 +64,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     this._offlineUserStore = this._universeCacheManagerService.getStore('universe_game.user');
   }
 
-  public async workaroundSync(): Promise<void> {
-    const token = await this._userStore.currentToken.pipe(take(1)).toPromise();
-    if (token) {
-      this._onUserDataChange(
-        await this.requestWithAutorizationToContext('game', 'get', 'user/findData').toPromise()
-      );
-    }
-  }
-
   /**
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -112,7 +103,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     );
 
   }
-
 
   /**
    *

@@ -1,6 +1,6 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AsyncCollectionUtil, ProgrammingError, StorageOfflineHelper } from '@owge/core';
+import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UniverseGameService } from './universe-game.service';
@@ -55,9 +55,11 @@ export class WsEventCacheService {
 
     public constructor(
         private _universeCacheManagerService: UniverseCacheManagerService,
-        private _universeGameService: UniverseGameService
+        private _universeGameService: UniverseGameService,
+        _sessionService: SessionService
     ) {
         this._eventsInformation = {};
+        _sessionService.onLogout.subscribe(() => this._clearSession());
     }
 
     /**
@@ -287,5 +289,11 @@ export class WsEventCacheService {
                 userId: -1
             };
         }
+    }
+
+    private _clearSession(): void {
+        this._eventsInformation = {};
+        this._eventInformationStore = null;
+        this._eventsOfflineStore = {};
     }
 }

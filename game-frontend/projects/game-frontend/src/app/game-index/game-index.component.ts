@@ -39,7 +39,7 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
         this.runningUpgrade = result;
         if (result) {
           this._upgradeService.findOneObtained(result.upgrade.id)
-            .pipe(take(1)).subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
+            .subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
         } else {
           this.relatedObtainedUpgrade = null;
         }

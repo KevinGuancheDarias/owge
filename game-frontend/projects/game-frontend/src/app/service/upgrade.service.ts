@@ -20,8 +20,7 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _universeGameService: UniverseGameService,
-    private _wsEventCacheService: WsEventCacheService,
-    private _universeCacheManagerService: UniverseCacheManagerService
+    private _wsEventCacheService: WsEventCacheService
   ) {
     super();
     this._resources = new AutoUpdatedResources(_resourceManagerService);

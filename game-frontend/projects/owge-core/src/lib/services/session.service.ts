@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { OwgeUserModule } from '../owge-user.module';
 
 import { Router, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivate } from '@angular/router';
@@ -21,6 +21,19 @@ import { SessionStore } from '../store/session.store';
 export class SessionService implements CanActivate {
   public static readonly LOGIN_ROUTE = '/login';
   public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
+
+
+  /**
+   *
+   * @since 0.9.6
+   * @readonly
+   * @type
+   */
+  public get onLogout(): Observable<void> {
+    return this._logoutEmitter.asObservable();
+  }
+
+  private _logoutEmitter: EventEmitter<void> = new EventEmitter();
 
   public constructor(private _router: Router, private _accountConfig: OwgeCoreConfig, private _sessionStore: SessionStore) {
 
@@ -89,6 +102,7 @@ export class SessionService implements CanActivate {
   public logout(): any {
     this._clearSessionData();
     this._redirectIfNotLoggedIn();
+    this._logoutEmitter.emit();
   }
 
   /**
