@@ -2,6 +2,7 @@
 
 v0.9.6 (latest)
 =================
+* __Fix:__ [Unlimited missions when launched from a deployed mission #321](https://github.com/KevinGuancheDarias/owge/issues/321)  
 * __Fix:__ [Research time becomes 0 for all upgrades in unknown conditions (some players consider it related to huge mission traffic on their planets) #318](https://github.com/KevinGuancheDarias/owge/issues/318)  
 * __Fix:__ [Unit building time reduces to seconds after a player activates two construction specials (faction special after planet special) #320](https://github.com/KevinGuancheDarias/owge/issues/320)  
 * __Fix:__ [Solve Conquestspam by making conquest missions interceptable once they have reached 10% of their progress #316](https://github.com/KevinGuancheDarias/owge/issues/316)  

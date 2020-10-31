@@ -984,7 +984,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		missionInformation.setMissionType(missionType);
 		UserStorage user = userStorageBo.findLoggedIn();
-		if (planetBo.isOfUserProperty(user.getId(), missionInformation.getSourcePlanetId())) {
+		if (!missionType.equals(MissionType.DEPLOY)
+				|| !planetBo.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
 			checkMissionLimitNotReached(user);
 		}
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
