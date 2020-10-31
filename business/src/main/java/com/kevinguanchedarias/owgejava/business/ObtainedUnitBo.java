@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -399,9 +400,13 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 */
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
+		List<String> allowedMissions = new ArrayList<>();
+		allowedMissions.add(MissionType.CONQUEST.name());
 		retVal.addAll(repository.findBySourcePlanetIdAndMissionIsNull(attackedPlanet.getId()));
 		retVal.addAll(repository.findByTargetPlanetIdAndMissionTypeCode(attackedPlanet.getId(),
 				MissionType.DEPLOYED.toString()));
+		retVal.addAll(repository.findByTargetPlanetIdWhereReferencePercentageTimePassed(attackedPlanet.getId(), 0.1d,
+				allowedMissions, new Date()));
 		return retVal;
 	}
 

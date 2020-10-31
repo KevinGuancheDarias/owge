@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.LockModeType;
@@ -181,6 +182,19 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findByTargetPlanetIdAndMissionTypeCode(Long id, String missionType);
+
+	/**
+	 * finds units according to #316
+	 *
+	 * @param planetId
+	 * @param referenceRationalTime from 0 to 1
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("SELECT ou FROM ObtainedUnit ou WHERE ou.targetPlanet.id = ?1 AND ou.mission IS NOT NULL AND ou.mission.type.code IN (?3) AND ou.mission.requiredTime * ?2  < TIME_TO_SEC(TIMEDIFF(?4, ou.mission.startingDate))  ")
+	public List<ObtainedUnit> findByTargetPlanetIdWhereReferencePercentageTimePassed(Long planetId,
+			Double referenceRationalTime, List<String> allowedMissions, Date nowReference);
 
 	/**
 	 *

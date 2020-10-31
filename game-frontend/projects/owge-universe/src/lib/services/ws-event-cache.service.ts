@@ -157,23 +157,27 @@ export class WsEventCacheService {
                         this.isSynchronizableEvent(event)
                         && !(await this._isValidCacheEntry(this._eventsInformation[event], this._eventsOfflineStore[event]))
                     );
-                this._universeGameService.requestWithAutorizationToContext<WebsocketSyncResponse>(
-                    'game',
-                    'get',
-                    'websocket-sync',
-                    null,
-                    {
-                        params: new HttpParams().append('keys', wantedKeys.join(','))
-                    }
-                ).subscribe(async events => {
-                    const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
-                    await AsyncCollectionUtil.forEach(keys, async key => {
-                        await this._eventsOfflineStore[key].save(events[key]);
-                        this._markEventAsUnchanged(key);
+                if (wantedKeys.length) {
+                    this._universeGameService.requestWithAutorizationToContext<WebsocketSyncResponse>(
+                        'game',
+                        'get',
+                        'websocket-sync',
+                        null,
+                        {
+                            params: new HttpParams().append('keys', wantedKeys.join(','))
+                        }
+                    ).subscribe(async events => {
+                        const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
+                        await AsyncCollectionUtil.forEach(keys, async key => {
+                            await this._eventsOfflineStore[key].save(events[key]);
+                            this._markEventAsUnchanged(key);
+                        });
+                        await this._eventInformationStore.save(this._eventsInformation);
+                        resolve();
                     });
-                    await this._eventInformationStore.save(this._eventsInformation);
+                } else {
                     resolve();
-                });
+                }
             } else {
                 throw new ProgrammingError('Should never invoke this method before loading the event information');
             }

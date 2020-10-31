@@ -2,6 +2,7 @@
 
 v0.9.6 (latest)
 =================
+* __Fix:__ [Solve Conquestspam by making conquest missions interceptable once they have reached 10% of their progress #316](https://github.com/KevinGuancheDarias/owge/issues/316)  
 * __Improvement:__ Greatly improve the sync system, reducing way less battery, server power and user bandwith
 
 v0.9.5 (2020-10-25 18:36)

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -732,6 +733,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public void adminRegisterReturnMission(Mission mission, Double customRequiredTime) {
 		Mission returnMission = new Mission();
+		returnMission.setStartingDate(new Date());
 		returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
 		returnMission.setRequiredTime(mission.getRequiredTime());
 		Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
@@ -1247,6 +1249,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	private Mission prepareMission(UnitMissionInformation missionInformation, MissionType type) {
 		Mission retVal = new Mission();
+		retVal.setStartingDate(new Date());
 		Double requiredTime = calculateRequiredTime(type);
 		retVal.setMissionInformation(null);
 		retVal.setType(findMissionType(type));
