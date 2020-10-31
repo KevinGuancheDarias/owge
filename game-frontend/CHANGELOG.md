@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.6 (latest)
-=================
+v0.9.6 (2020-10-31 20:25)
+==========================
 * __Fix:__ [Unlimited missions when launched from a deployed mission #321](https://github.com/KevinGuancheDarias/owge/issues/321)  
 * __Fix:__ [Research time becomes 0 for all upgrades in unknown conditions (some players consider it related to huge mission traffic on their planets) #318](https://github.com/KevinGuancheDarias/owge/issues/318)  
 * __Fix:__ [Unit building time reduces to seconds after a player activates two construction specials (faction special after planet special) #320](https://github.com/KevinGuancheDarias/owge/issues/320)  
