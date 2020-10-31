@@ -210,6 +210,7 @@ export class WebsocketService {
     this._log.info('Full cache clear, just wanted');
     await this._wsEventCacheService.clearCaches();
     await this._setupSync({ value: [] });
+    await this._runWithSyncedData();
   }
 
   private _getValidHandlers(event: keyof WebsocketSyncResponse): AbstractWebsocketApplicationHandler[] {
@@ -224,7 +225,7 @@ export class WebsocketService {
         ...[...this._eventHandlers].map(handler => handler.beforeWorkaroundSync())
       ]);
       await Promise.all([...this._eventHandlers].map(handler => handler.createStores()));
-      this._runwithSyncedData();
+      this._runWithSyncedData();
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
     }
@@ -272,7 +273,15 @@ export class WebsocketService {
     });
   }
 
-  private async _runwithSyncedData(): Promise<void> {
+
+  /**
+   *
+   * @todo In the future run only with changed events
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @private
+   * @returns
+   */
+  private async _runWithSyncedData(): Promise<void> {
     await AsyncCollectionUtil.forEach([...this._eventHandlers], async handler => {
       const eventMap = handler.getEventsMap();
       await AsyncCollectionUtil.forEach(Object.keys(eventMap), async (event: keyof WebsocketSyncResponse) => {

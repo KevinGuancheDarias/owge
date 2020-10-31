@@ -27,7 +27,6 @@ public class TaskExecutorConfig {
 			if (context != null) {
 				RequestContextHolder.setRequestAttributes(context);
 			}
-			System.err.println("The thread id is " + Thread.currentThread().getId());
 			task.run();
 		}
 	}

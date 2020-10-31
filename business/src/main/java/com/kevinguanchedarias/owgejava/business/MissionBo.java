@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -108,9 +109,12 @@ public class MissionBo extends AbstractMissionBo {
 		if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
 			resourceRequirements.setRequiredTime(3D);
 		} else {
-			resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
+			double requiredTime = resourceRequirements.getRequiredTime() * 2
 					+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed()));
+							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed());
+			resourceRequirements.setRequiredTime(requiredTime < (resourceRequirements.getRequiredTime() * 0.5)
+					? resourceRequirements.getRequiredTime() * 0.5
+					: requiredTime);
 		}
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
@@ -120,6 +124,7 @@ public class MissionBo extends AbstractMissionBo {
 		missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
 
 		Mission mission = new Mission();
+		mission.setStartingDate(new Date());
 		mission.setMissionInformation(missionInformation);
 		attachRequirementstoMission(mission, resourceRequirements);
 		mission.setType(findMissionType(MissionType.LEVEL_UP));
@@ -195,15 +200,19 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
+		double requiredTime = resourceRequirements.getRequiredTime() * 2
 				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed()));
+						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed());
+		resourceRequirements.setRequiredTime(requiredTime < (resourceRequirements.getRequiredTime() * 0.5)
+				? resourceRequirements.getRequiredTime() * 0.5
+				: requiredTime);
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
 		missionInformation.setValue(planetId.doubleValue());
 
 		Mission mission = new Mission();
+		mission.setStartingDate(new Date());
 		mission.setMissionInformation(missionInformation);
 		if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
 			resourceRequirements.setRequiredTime(3D);
