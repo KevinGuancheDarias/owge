@@ -260,8 +260,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Transactional
 	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnitDto retVal;
-		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),
-				obtainedUnitDto.getCount(), handleImprovements);
+		ObtainedUnit unitBeforeDeletion = findByIdOrDie(obtainedUnitDto.getId());
+		ObtainedUnit obtainedUnit = saveWithSubtraction(unitBeforeDeletion, obtainedUnitDto.getCount(),
+				handleImprovements);
 		if (obtainedUnit != null) {
 			retVal = new ObtainedUnitDto();
 			retVal.dtoFromEntity(obtainedUnit);
@@ -269,6 +270,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 			retVal = null;
 		}
 		Integer userId = obtainedUnitDto.getUserId();
+		if (unitBeforeDeletion.getUnit().getEnergy() > 0) {
+			userStorageBo.emitUserData(unitBeforeDeletion.getUser());
+		}
 		socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId));
 		emitObtainedUnitChange(userId);
 		return retVal;

@@ -349,7 +349,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		if (emitChange && user.getId() != null) {
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(savedUser);
-				socketIoService.sendMessage(savedUser, "user_data_change", () -> findData(savedUser));
+				emitUserData(user);
 			});
 		}
 		return savedUser;
@@ -382,6 +382,16 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		userDto.setConsumedEnergy(findConsumedEnergy(user));
 		userDto.setMaxEnergy(findMaxEnergy(user));
 		return userDto;
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.7
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUserData(UserStorage user) {
+		socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
 	}
 
 	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
@@ -420,5 +430,4 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {
 		return improvementBo.computePlusPercertage(factionResource, resourceImprovement);
 	}
-
 }

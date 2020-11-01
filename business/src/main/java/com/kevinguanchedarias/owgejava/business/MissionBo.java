@@ -65,8 +65,7 @@ public class MissionBo extends AbstractMissionBo {
 		improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
 			if (improvement.getUnitTypesUpgrades().stream()
 					.anyMatch(current -> ImprovementTypeEnum.AMOUNT.name().equals(current.getType()))) {
-				socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE,
-						() -> unitTypeBo.findUnitTypesWithUserInfo(userId));
+				unitTypeBo.emitUserChange(userId);
 			}
 		});
 		improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) -> {
@@ -242,7 +241,7 @@ public class MissionBo extends AbstractMissionBo {
 			entityManager.refresh(mission);
 			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
-			socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> unitTypeBo.findUnitTypesWithUserInfo(user));
+			unitTypeBo.emitUserChange(userId);
 		});
 
 		return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);
@@ -408,8 +407,7 @@ public class MissionBo extends AbstractMissionBo {
 		Integer userId = user.getId();
 		cancelMission(missionId);
 		TransactionUtil.doAfterCommit(() -> {
-			socketIoService.sendMessage(user.getId(), UNIT_TYPE_CHANGE,
-					() -> unitTypeBo.findUnitTypesWithUserInfo(user));
+			unitTypeBo.emitUserChange(userId);
 			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 		});
 	}

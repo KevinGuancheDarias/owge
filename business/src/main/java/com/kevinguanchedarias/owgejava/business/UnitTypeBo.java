@@ -23,6 +23,8 @@ import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	private static final long serialVersionUID = 1064115662505668879L;
 
+	private static final String UNIT_TYPE_CHANGE = "unit_type_change";
+
 	@Autowired
 	private UnitTypeRepository unitTypeRepository;
 
@@ -39,6 +41,9 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private SocketIoService socketIoService;
 
 	@Override
 	public JpaRepository<UnitType, Integer> getRepository() {
@@ -145,5 +150,19 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 			}
 			return currentDto;
 		}).collect(Collectors.toList());
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @since 0.9.7
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUserChange(UserStorage user) {
+		emitUserChange(user.getId());
+	}
+
+	public void emitUserChange(Integer userId) {
+		socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> findUnitTypesWithUserInfo(userId));
 	}
 }

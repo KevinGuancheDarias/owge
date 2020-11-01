@@ -215,14 +215,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private List<AttackObtainedUnit> units = new ArrayList<>();
 		private Set<Integer> usersWithDeletedMissions = new HashSet<>();
 		private Set<Integer> usersWithChangedCounts = new HashSet<>();
+		private Planet targetPlanet;
 
 		public AttackInformation() {
 			throw new ProgrammingException(
 					"Can't invoke constructor for " + this.getClass().getName() + " without arguments");
 		}
 
-		public AttackInformation(Mission attackMission) {
+		public AttackInformation(Mission attackMission, Planet targetPlanet) {
 			this.attackMission = attackMission;
+			this.targetPlanet = targetPlanet;
 		}
 
 		/**
@@ -259,9 +261,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 			updatePoints();
 			usersWithDeletedMissions.forEach(userId -> {
 				emitMissions(userId);
+				userStorageBo.emitUserData(userStorageBo.findById(userId));
 				usersWithChangedCounts.remove(userId);
 			});
-			usersWithChangedCounts.forEach(UnitMissionBo.this::emitMissions);
+			usersWithChangedCounts.forEach(userId -> {
+				if (targetPlanet.getOwner().getId().equals(userId)) {
+					obtainedUnitBo.emitObtainedUnitChange(userId);
+				}
+				emitMissions(userId);
+				userStorageBo.emitUserData(userStorageBo.findById(userId));
+			});
 		}
 
 		/**
@@ -366,6 +375,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				target.availableShield = 0D;
 				obtainedUnitBo.delete(target.obtainedUnit);
 				deleteMissionIfRequired(target.obtainedUnit);
+				usersWithChangedCounts.add(target.user.getUser().getId());
 			}
 			improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
 
@@ -420,9 +430,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 									return currentUnit.obtainedUnit;
 								}).collect(Collectors.toList()));
 			});
+			usersWithChangedCounts.forEach(alteredUsers::add);
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
-				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
-						() -> unitTypeBo.findUnitTypesWithUserInfo(current));
+				unitTypeBo.emitUserChange(current);
 				socketIoService.sendMessage(current, UNIT_OBTAINED_CHANGE,
 						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
 
@@ -1331,7 +1341,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
-		AttackInformation retVal = new AttackInformation(attackMission);
+		AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
 		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnit);
 		obtainedUnitBo.findByMissionId(attackMission.getId()).forEach(retVal::addUnit);
 		return retVal;

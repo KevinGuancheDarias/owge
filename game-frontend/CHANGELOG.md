@@ -2,6 +2,7 @@
 
 v0.9.7 (latest)
 ================
+* __Fix:__ [Deployed units are not removed from user planet unless forced sync #329](https://github.com/KevinGuancheDarias/owge/issues/329)  
 * __Fix:__ [For conquest missions, owner should not lose his planet when ally units survive #317](https://github.com/KevinGuancheDarias/owge/issues/317)  
 * __Improvement:__ [Create an admin option to switch enable/disable battle against enemy units caused by establish base missions #319](https://github.com/KevinGuancheDarias/owge/issues/319)  
 

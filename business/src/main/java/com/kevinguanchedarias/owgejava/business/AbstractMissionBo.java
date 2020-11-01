@@ -39,8 +39,6 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
 	public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
 
-	protected static final String UNIT_TYPE_CHANGE = "unit_type_change";
-
 	private static final long serialVersionUID = 3252246009672348672L;
 
 	private static final Integer MAX_ATTEMPS = 3;
