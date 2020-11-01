@@ -2,6 +2,7 @@
 
 v0.9.7 (latest)
 ================
+* __Fix:__ [When you delete units that use energy, the energy is not restored unless you force sync #328](https://github.com/KevinGuancheDarias/owge/issues/328)  
 * __Fix:__ [Active time specials doesn't show up as active #330](https://github.com/KevinGuancheDarias/owge/issues/330)  
 * __Fix:__ [Deployed units are not removed from user planet unless forced sync #329](https://github.com/KevinGuancheDarias/owge/issues/329)  
 * __Fix:__ [For conquest missions, owner should not lose his planet when ally units survive #317](https://github.com/KevinGuancheDarias/owge/issues/317)  
