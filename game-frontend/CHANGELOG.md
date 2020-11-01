@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.8 (latest)
+=================
+* __Fix:__ [Upgrade doesn't end unless you force sync #331](https://github.com/KevinGuancheDarias/owge/issues/331)  
+
 v0.9.7 (2020-11-01 22:50)
 ===========================
 * __Fix:__ [Game should "panic" when sync fails #322] (https://github.com/KevinGuancheDarias/owge/issues/322)

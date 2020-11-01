@@ -174,6 +174,7 @@ export class WsEventCacheService {
                             return throwError(err);
                         })
                     ).subscribe(async events => {
+                        wantedKeys.filter(key => typeof events[key] === 'undefined').forEach(key => events[key] = null);
                         const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
                         await AsyncCollectionUtil.forEach(keys, async key => {
                             await this._eventsOfflineStore[key].save(events[key]);
