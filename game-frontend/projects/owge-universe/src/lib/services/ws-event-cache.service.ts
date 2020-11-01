@@ -1,6 +1,8 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
+import { throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UniverseGameService } from './universe-game.service';
@@ -149,8 +151,8 @@ export class WsEventCacheService {
         });
     }
 
-    public applySync(): Promise<void> {
-        return new Promise(async resolve => {
+    public applySync(): Promise<any> {
+        return new Promise(async (resolve, reject) => {
             if (this._eventsInformation) {
                 const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil
                     .filter(WsEventCacheService._ALLOWED_EVENTS, async event =>
@@ -166,6 +168,11 @@ export class WsEventCacheService {
                         {
                             params: new HttpParams().append('keys', wantedKeys.join(','))
                         }
+                    ).pipe(
+                        catchError(err => {
+                            reject(err);
+                            return throwError(err);
+                        })
                     ).subscribe(async events => {
                         const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
                         await AsyncCollectionUtil.forEach(keys, async key => {

@@ -265,12 +265,16 @@ export class WebsocketService {
   }
 
   private async _setupSync(response: { value: any[] }): Promise<void> {
-    await this._loadingService.runWithLoading(async () => {
-      await this._wsEventCacheService.createStores();
-      await this._wsEventCacheService.setEventsInformation(response.value);
-      await this._wsEventCacheService.createOfflineStores();
-      await this._wsEventCacheService.applySync();
-    });
+    try {
+      await this._loadingService.runWithLoading(async () => {
+        await this._wsEventCacheService.createStores();
+        await this._wsEventCacheService.setEventsInformation(response.value);
+        await this._wsEventCacheService.createOfflineStores();
+        await this._wsEventCacheService.applySync();
+      });
+    } catch (e) {
+      this._isCachePanic.next(true);
+    }
   }
 
 
