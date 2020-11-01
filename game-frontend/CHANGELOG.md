@@ -2,7 +2,8 @@
 
 v0.9.7 (latest)
 ================
-* __Fix:__ [Create an admin option to switch enable/disable battle against enemy units caused by establish base missions #319](https://github.com/KevinGuancheDarias/owge/issues/319)  
+* __Fix:__ [For conquest missions, owner should not lose his planet when ally units survive #317](https://github.com/KevinGuancheDarias/owge/issues/317)  
+* __Improvement:__ [Create an admin option to switch enable/disable battle against enemy units caused by establish base missions #319](https://github.com/KevinGuancheDarias/owge/issues/319)  
 
 v0.9.6 (2020-10-31 20:25)
 ==========================

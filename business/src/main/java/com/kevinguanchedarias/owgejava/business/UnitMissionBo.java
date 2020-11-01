@@ -778,13 +778,20 @@ public class UnitMissionBo extends AbstractMissionBo {
 				? attackInformation.getUsers().get(oldOwner.getId()).units.stream()
 						.noneMatch(current -> current.finalCount > 0L)
 				: true;
-		if (!isOldOwnerDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
+		boolean isAllianceDefeated = isOldOwnerDefeated && (oldOwner.getAlliance() == null || attackInformation
+				.getUsers().entrySet().stream()
+				.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
+				.allMatch(currentUser -> currentUser.getValue().units.stream()
+						.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
 			adminRegisterReturnMission(mission);
 			areUnitsHavingToReturn = true;
 			if (maxPlanets) {
 				builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
 			} else if (!isOldOwnerDefeated) {
 				builder.withConquestInformation(false, "I18N_OWNER_NOT_DEFEATED");
+			} else if (!isAllianceDefeated) {
+				builder.withConquestInformation(false, "I18N_ALLIANCE_NOT_DEFEATED");
 			} else {
 				builder.withConquestInformation(false, "I18N_CANT_CONQUER_HOME_PLANET");
 			}
