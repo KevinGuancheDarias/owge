@@ -44,7 +44,7 @@ public class Mission implements EntityWithId<Long> {
 	private MissionType type;
 
 	@Column(name = "starting_date")
-	private Date startingDate;
+	private Date startingDate = new Date();
 
 	@Column(name = "termination_date", nullable = false)
 	private Date terminationDate;

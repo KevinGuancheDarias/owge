@@ -15,7 +15,7 @@
           <option *ngIf="isExplored(targetPlanet)" value="ESTABLISH_BASE" [disabled]="!isMissionRealizableByUnitTypes('ESTABLISH_BASE')">{{ 'APP.MISSION_TYPES.ESTABLISH_BASE' | translate }}</option>
           <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet)" value="ATTACK" [disabled]="!isMissionRealizableByUnitTypes('ATTACK')">{{ 'APP.MISSION_TYPES.ATTACK' | translate }}</option>
           <option *ngIf="isExplored(targetPlanet) && planetIsMine(targetPlanet)" value="COUNTERATTACK" [disabled]="!isMissionRealizableByUnitTypes('COUNTERATTACK')">{{ 'APP.MISSION_TYPES.COUNTERATTACK' | translate }}</option>
-          <option *ngIf="maxMissions > 1 && isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">{{ 'APP.MISSION_TYPES.DEPLOY' | translate }}</option>
+          <option *ngIf="isExplored(targetPlanet) && isDeploymentAllowed(targetPlanet)" value="DEPLOY" [disabled]="!isMissionRealizableByUnitTypes('DEPLOY')">{{ 'APP.MISSION_TYPES.DEPLOY' | translate }}</option>
           <option *ngIf="isExplored(targetPlanet) && !planetIsMine(targetPlanet) && targetPlanet.ownerId && !targetPlanet.home" value="CONQUEST" [disabled]="!isMissionRealizableByUnitTypes('CONQUEST')">{{ 'APP.MISSION_TYPES.CONQUEST' | translate }}</option>
         </select>
       </div>

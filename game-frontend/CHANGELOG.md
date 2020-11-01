@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.7 (latest)
+================
+* __Fix:__ [Create an admin option to switch enable/disable battle against enemy units caused by establish base missions #319](https://github.com/KevinGuancheDarias/owge/issues/319)  
+
 v0.9.6 (2020-10-31 20:25)
 ==========================
 * __Fix:__ [Unlimited missions when launched from a deployed mission #321](https://github.com/KevinGuancheDarias/owge/issues/321)  

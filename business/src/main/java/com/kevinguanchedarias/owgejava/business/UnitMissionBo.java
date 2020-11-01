@@ -612,7 +612,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		boolean continueMission = triggerAttackIfRequired(missionId, user, targetPlanet);
+		boolean continueMission = triggerAttackIfRequired(mission, user, targetPlanet);
 		if (continueMission) {
 			adminRegisterReturnMission(mission);
 			Long gathered = involvedUnits.stream()
@@ -647,7 +647,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		if (triggerAttackIfRequired(missionId, user, targetPlanet)) {
+		if (triggerAttackIfRequired(mission, user, targetPlanet)) {
 			UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
 					targetPlanet, involvedUnits);
 			UserStorage planetOwner = targetPlanet.getOwner();
@@ -1415,10 +1415,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @return True if should continue the mission
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private boolean triggerAttackIfRequired(Long missionId, UserStorage user, Planet targetPlanet) {
+	private boolean triggerAttackIfRequired(Mission mission, UserStorage user, Planet targetPlanet) {
 		boolean continueMission = true;
-		if (obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
-			AttackInformation result = processAttack(missionId, false);
+		if (isAttackTriggerEnabledForMission(MissionType.valueOf(mission.getType().getCode()))
+				&& obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
+			AttackInformation result = processAttack(mission.getId(), false);
 			continueMission = !result.isMissionRemoved();
 		}
 		return continueMission;
@@ -1427,5 +1428,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private int findMissionTypeDivisor(MissionType missionType) {
 		return Integer.valueOf(
 				configurationBo.findOrSetDefault("MISSION_SPEED_DIVISOR_" + missionType.name(), "1").getValue());
+	}
+
+	private boolean isAttackTriggerEnabledForMission(MissionType missionType) {
+		return Boolean.parseBoolean(configurationBo
+				.findOrSetDefault("MISSION_" + missionType.name() + "_TRIGGER_ATTACK", "FALSE").getValue());
 	}
 }
