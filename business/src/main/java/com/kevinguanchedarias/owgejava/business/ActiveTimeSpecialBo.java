@@ -152,6 +152,20 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	}
 
 	/**
+	 *
+	 * @param user
+	 * @return
+	 * @since 0.9.7
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<TimeSpecialDto> findByUserWithCurrentStatus(UserStorage user) {
+		List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user));
+		unlockeds.forEach(
+				current -> current.setActiveTimeSpecialDto(toDto(findOneByTimeSpecial(current.getId(), user.getId()))));
+		return unlockeds;
+	}
+
+	/**
 	 * Deletes all active time specials <br>
 	 * <b>Has Propagation.MANDATORY as should not be run by controllers, this action
 	 * is reserved to another service
@@ -266,12 +280,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	private void emitTimeSpecialChange(UserStorage user) {
-		socketIoService.sendMessage(user, "time_special_change", () -> {
-			List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user));
-			unlockeds.forEach(current -> current
-					.setActiveTimeSpecialDto(toDto(findOneByTimeSpecial(current.getId(), user.getId()))));
-			return unlockeds;
-		});
+	public void emitTimeSpecialChange(UserStorage user) {
+		socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
 	}
 }

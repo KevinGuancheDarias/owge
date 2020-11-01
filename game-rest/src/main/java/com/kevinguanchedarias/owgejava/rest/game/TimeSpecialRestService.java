@@ -79,7 +79,7 @@ public class TimeSpecialRestService
 	@Override
 	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
 		return SyncHandlerBuilder.create()
-				.withHandler("time_special_change", user -> timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user)))
+				.withHandler("time_special_change", user -> activeTimeSpecialBo.findByUserWithCurrentStatus(user))
 				.build();
 	}
 
