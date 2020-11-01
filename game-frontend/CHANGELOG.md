@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.7 (latest)
-================
+v0.9.7 (2020-11-01 22:50)
+===========================
 * __Fix:__ [Game should "panic" when sync fails #322] (https://github.com/KevinGuancheDarias/owge/issues/322)
 * __Fix:__ [When you delete units that use energy, the energy is not restored unless you force sync #328](https://github.com/KevinGuancheDarias/owge/issues/328)  
 * __Fix:__ [Active time specials doesn't show up as active #330](https://github.com/KevinGuancheDarias/owge/issues/330)  
