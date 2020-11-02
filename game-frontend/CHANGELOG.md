@@ -2,6 +2,7 @@
 
 v0.9.8 (latest)
 =================
+* __Fix:__ [The time when the upgrade or build bonus is too high displays wrongly, while it work as expected #323](https://github.com/KevinGuancheDarias/owge/issues/323)  
 * __Fix:__ [Conquest to planets owned by players without alliance fails, due to #317 conditions #332](https://github.com/KevinGuancheDarias/owge/issues/332)  
 * __Fix:__ [Planet list is not synchronising automatically the owner #324](https://github.com/KevinGuancheDarias/owge/issues/324)  
 * __Fix:__ [Read mission reports keep showing up as unread new messages until manually synced #326](https://github.com/KevinGuancheDarias/owge/issues/326)  

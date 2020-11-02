@@ -13,7 +13,6 @@ import { ScreenDimensionsService } from '@owge/core';
   ]
 })
 export class DisplayRequirementsComponent implements OnInit, OnChanges, OnDestroy {
-  private static readonly _INTENTIONAL_DELAY = 3000;
 
   public userData: UserWithFaction;
   public timeImage = 'ui_icons/time.png';
@@ -36,7 +35,7 @@ export class DisplayRequirementsComponent implements OnInit, OnChanges, OnDestro
   public ngOnChanges(): void {
     this.parsedRequiredTime =
       DateTimeUtil.milisToDaysHoursMinutesSeconds(
-        (this.requirements.requiredTime * 1000) + DisplayRequirementsComponent._INTENTIONAL_DELAY
+        (this.requirements.requiredTime * 1000)
       );
   }
 

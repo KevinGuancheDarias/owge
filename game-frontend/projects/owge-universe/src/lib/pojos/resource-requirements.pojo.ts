@@ -74,9 +74,10 @@ export class ResourceRequirements {
      * @since 0.8.0
      * @param base
      * @param percentage
+     * @param [maxPercentage=50]
      * @returns
      */
-    public handleSustractionPercentage(base: number, percentage: number): number {
-        return base * 2 + this.handlePercentage(-base, percentage);
+    public handleSustractionPercentage(base: number, percentage: number, maxPercentage = 50): number {
+        return base * 2 + this.handlePercentage(-base, percentage > maxPercentage ? maxPercentage : percentage);
     }
 }
