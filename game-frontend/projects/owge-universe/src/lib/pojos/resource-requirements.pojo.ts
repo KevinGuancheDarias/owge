@@ -31,7 +31,7 @@ export class ResourceRequirements {
             : 0;
         this.runnable = resources.currentPrimaryResource >= this.requiredPrimary
             && resources.currentSecondaryResource >= this.requiredSecondary
-            && resources.availableEnergy() >= requiredEnergy;
+            && (!requiredEnergy || resources.availableEnergy() >= requiredEnergy);
     }
 
     public startDynamicRunnable(resourceManagerService: ResourceManagerService) {
