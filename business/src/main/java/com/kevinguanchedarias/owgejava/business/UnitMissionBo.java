@@ -463,6 +463,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Autowired
 	private transient EntityManager entityManager;
 
+	@Autowired
+	private PlanetListBo planetListBo;
+
 	@Override
 	public String getGroupName() {
 		return JOB_GROUP_NAME;
@@ -788,11 +791,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 				? attackInformation.getUsers().get(oldOwner.getId()).units.stream()
 						.noneMatch(current -> current.finalCount > 0L)
 				: true;
-		boolean isAllianceDefeated = isOldOwnerDefeated && (oldOwner.getAlliance() == null || attackInformation
-				.getUsers().entrySet().stream()
-				.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
-				.allMatch(currentUser -> currentUser.getValue().units.stream()
-						.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+		boolean isAllianceDefeated = isOldOwnerDefeated
+				&& (oldOwner.getAlliance() == null || attackInformation.getUsers().entrySet().stream()
+						.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
+								&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
+						.allMatch(currentUser -> currentUser.getValue().units.stream()
+								.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
 		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
 			adminRegisterReturnMission(mission);
 			areUnitsHavingToReturn = true;
@@ -1376,6 +1380,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
 		}
 
+		planetListBo.emitByChangedPlanet(targetPlanet);
 		planetBo.emitPlanetOwnedChange(owner);
 		socketIoService.sendMessage(owner, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));

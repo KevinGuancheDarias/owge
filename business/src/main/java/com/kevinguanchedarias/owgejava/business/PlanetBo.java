@@ -51,6 +51,9 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Lazy
 	private RequirementBo requirementBo;
 
+	@Autowired
+	private PlanetListBo planetListBo;
+
 	@PersistenceContext
 	private transient EntityManager entityManager;
 
@@ -246,7 +249,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		if (planet.getSpecialLocation() != null) {
 			requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
 		}
-
+		planetListBo.emitByChangedPlanet(planet);
 		emitPlanetOwnedChange(invokerId);
 	}
 

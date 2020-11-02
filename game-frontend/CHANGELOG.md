@@ -2,6 +2,7 @@
 
 v0.9.8 (latest)
 =================
+* __Fix:__ [Planet list is not synchronising automatically the owner #324](https://github.com/KevinGuancheDarias/owge/issues/324)  
 * __Fix:__ [Read mission reports keep showing up as unread new messages until manually synced #326](https://github.com/KevinGuancheDarias/owge/issues/326)  
 * __Fix:__ [Upgrade doesn't end unless you force sync #331](https://github.com/KevinGuancheDarias/owge/issues/331)  
 
