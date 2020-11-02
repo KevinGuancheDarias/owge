@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.8 (latest)
-=================
+v0.9.8 (2020-11-02 20:58)
+==========================
 * __Fix:__ Fix admin panel stopped working again
 * __Fix:__ [When upgrading version in a service worker env, devices may take some reloads till they pull the changes #313](https://github.com/KevinGuancheDarias/owge/issues/313)  
 * __Fix:__ [If the available energy is negative (maybe because a time special is over) the game displays that there are not enough resources even for units or upgrades that don't need energy #327](https://github.com/KevinGuancheDarias/owge/issues/327)  
