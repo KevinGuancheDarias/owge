@@ -52,7 +52,7 @@ public class ReportRestService implements SyncSource {
 	@Override
 	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
 		return SyncHandlerBuilder.create().withHandler("mission_report_change",
-				user -> missionReportBo.findMissionReportsInformation(user.getId(), 1)).build();
+				user -> missionReportBo.findMissionReportsInformation(user.getId(), 0)).build();
 	}
 
 }
