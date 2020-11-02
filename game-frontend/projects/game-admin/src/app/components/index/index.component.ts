@@ -30,4 +30,15 @@ export class IndexComponent {
       alert('Clever decision!!!!!!');
     }
   }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.8
+   */
+  public notifyFrontendVersionUpdate(): void {
+    this._universeGameService.requestWithAutorizationToContext('admin', 'post', 'system/notify-updated-version', 'true')
+      .pipe(take(1)).toPromise();
+  }
 }

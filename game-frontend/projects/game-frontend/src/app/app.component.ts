@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { LoadingService } from '@owge/core';
+import { LoadingService, ToastrService } from '@owge/core';
 
 import { state, style, trigger, transition, animate } from '@angular/animations';
 import { WebsocketService, UniverseGameService } from '@owge/universe';
@@ -8,6 +8,7 @@ import { Player } from './types/twitch-player.type';
 import { TwitchState } from './types/twitch-state.type';
 import { TwitchService } from './services/twitch.service';
 import { delay, filter } from 'rxjs/operators';
+import { SwUpdate } from '@angular/service-worker';
 
 declare const Twitch: {
   Player: typeof Player
@@ -59,6 +60,8 @@ export class AppComponent implements OnInit {
   public constructor(
     private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
+    swUpdate: SwUpdate,
+    toastrService: ToastrService,
     websocketService: WebsocketService,
     twitchService: TwitchService
   ) {
@@ -87,6 +90,11 @@ export class AppComponent implements OnInit {
         this._removePlayer();
         setTimeout(() => this._loadPlayer(this.hasToDisplayTwitch), 1000);
       }
+    });
+
+    swUpdate.available.subscribe(() => {
+      toastrService.info('I18N_APP_UPDATE_DETECTED');
+      window.setTimeout(() => window.location.reload(), 5000);
     });
   }
 

@@ -1,2 +1,3 @@
 <owge-widgets-confirmation-dialog #modal [text]="'Deleting caches, forces all users to download the content again'" (confirmResult)="confirmDelete($event)"></owge-widgets-confirmation-dialog>
 <button (click)="modal.show()" class="owge-base-colors">DROP USER CACHES!!!!!!</button>
+<button (click)="notifyFrontendVersionUpdate()" class="owge-base-colors">Notify frontend version update</button>

@@ -59,6 +59,7 @@ import { AdminTutorialService } from './services/admin-tutorial.service';
 import { TranslatableComponent } from './components/translatable/translatable.component';
 import { AdminTutorialEntryService } from './services/admin-tutorial-entry.service';
 import { AdminTranslatableService } from './services/admin-translatable.service';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({
   declarations: [
@@ -112,6 +113,7 @@ import { AdminTranslatableService } from './services/admin-translatable.service'
       loginClientSecret: environment.loginClientSecret,
       contextPath: 'admin'
     }),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: false }),
     OwgeUserModule,
     OwgeUniverseModule.forRoot(),
     OwgeWidgetsModule,

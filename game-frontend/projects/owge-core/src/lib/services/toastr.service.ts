@@ -1,4 +1,4 @@
-import { ToastrService as SourceService } from 'ngx-toastr';
+import { IndividualConfig, ToastrService as SourceService } from 'ngx-toastr';
 import { Injectable } from '@angular/core';
 import { Observable, throwError, combineLatest } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,8 +43,8 @@ export class ToastrService {
      * @param [i18nTitle]
      * @param i18nInterpolation
      */
-    public info(i18nText: string, i18nTitle?: string, i18nInterpolation?: Object): void {
-        this._show('info', i18nText, i18nTitle, i18nInterpolation);
+    public info(i18nText: string, i18nTitle?: string, i18nInterpolation?: Object, toastrConfig?: IndividualConfig): void {
+        this._show('info', i18nText, i18nTitle, i18nInterpolation, toastrConfig);
     }
 
     /**
@@ -60,8 +60,14 @@ export class ToastrService {
         this._show('error', i18nText, i18nTitle, i18nInterpolation);
     }
 
-    private _show(type: allowedTypes, i18nText: string, i18nTitle?: string, i18nInterpolation: Object = {}): void {
+    private _show(
+        type: allowedTypes,
+        i18nText: string,
+        i18nTitle?: string,
+        i18nInterpolation: Object = {},
+        toastrConfig?: IndividualConfig
+    ): void {
         this._translateService.get([i18nText, i18nTitle || 'this_is_just_to_make_hapy_translateService_its not used'], i18nInterpolation)
-            .subscribe(result => this._toastrService[type](result[i18nText], i18nTitle ? result[i18nTitle] : undefined));
+            .subscribe(result => this._toastrService[type](result[i18nText], i18nTitle ? result[i18nTitle] : undefined, toastrConfig));
     }
 }

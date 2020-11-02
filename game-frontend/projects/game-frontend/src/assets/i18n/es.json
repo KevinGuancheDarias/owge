@@ -7,6 +7,7 @@
     "I18N_PLANET_IS_NOW_OURS": "El Planeta es ahora de tu propiedad",
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Tu planeta ha sido conquistado",
     "I18N_ALLIANCE_NOT_DEFEATED": "Las unidades del dueño del planeta fueron derrotadas, pero unidades de sus aliados sobrevivieron",
+    "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
     "APP": {
         "CONNECTED": "Conectado",
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",
