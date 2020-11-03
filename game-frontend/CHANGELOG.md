@@ -2,6 +2,7 @@
 
 v0.9.9 (latest)
 ================
+* __Fix:__ [Attacks to planets that don't belong to any user fails #333](https://github.com/KevinGuancheDarias/owge/issues/333)  
 * __Fix:__ [When energy is negative, and the unit doesn't require energy, the backend throws "Unexpected fatal error" when building an unit #334](https://github.com/KevinGuancheDarias/owge/issues/334)  
 
 v0.9.8 (2020-11-02 20:58)

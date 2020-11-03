@@ -265,7 +265,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				usersWithChangedCounts.remove(userId);
 			});
 			usersWithChangedCounts.forEach(userId -> {
-				if (targetPlanet.getOwner().getId().equals(userId)) {
+				if (targetPlanet.getOwner() != null && targetPlanet.getOwner().getId().equals(userId)) {
 					obtainedUnitBo.emitObtainedUnitChange(userId);
 				}
 				emitMissions(userId);
