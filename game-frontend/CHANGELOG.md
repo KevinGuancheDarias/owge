@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.9 (latest)
-================
+v0.9.9 (2020-11-03 18:22)
+==========================
 * __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  
 * [class=Admin] __Improvement:__ [Allow admins to force run Hang missions #315](https://github.com/KevinGuancheDarias/owge/issues/315)  
 * __Fix:__ [When a mission crash, the game is not sincing correctly #335](https://github.com/KevinGuancheDarias/owge/issues/335)  
