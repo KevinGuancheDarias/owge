@@ -203,7 +203,7 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
       document.querySelector('body').classList.remove('tutorial-blocker');
     }
     this._chr.detectChanges();
-    window.setTimeout(() => this._runCheck = true, 1000);
+    window.setTimeout(() => this._runCheck = true, 300);
 
   }
 
