@@ -114,10 +114,16 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 		return MissionDto.class;
 	}
 
+	/**
+	 *
+	 * @param missionId
+	 * @param missionType
+	 * @return True if the mission will continue to run
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
 	@Transactional
-	public void retryMissionIfPossible(Long missionId) {
+	public boolean retryMissionIfPossible(Long missionId, MissionType missionType) {
 		Mission mission = findById(missionId);
-		MissionType missionType = MissionType.valueOf(mission.getType().getCode());
 		mission.setUser(userStorageBo.findOneByMission(mission));
 		if (mission.getAttemps() >= MAX_ATTEMPS) {
 			if (missionType.isUnitMission() && missionType != MissionType.RETURN_MISSION
@@ -132,12 +138,14 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 			} else {
 				throw new ProgrammingException("Should never ever happend");
 			}
+			return false;
 		} else {
 			mission.setAttemps(mission.getAttemps() + 1);
 			mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
 			handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
 			scheduleMission(mission);
 			save(mission);
+			return true;
 		}
 	}
 
@@ -211,6 +219,17 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 					}
 					return retVal;
 				}).collect(Collectors.toList());
+	}
+
+	/**
+	 * Finds missions that couldn't execute with success
+	 *
+	 * @return
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Mission> findHangMissions() {
+		return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(new Date());
 	}
 
 	/**

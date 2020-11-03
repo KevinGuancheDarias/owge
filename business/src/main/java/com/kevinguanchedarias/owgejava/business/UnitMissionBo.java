@@ -22,6 +22,7 @@ import org.joda.time.Instant;
 import org.joda.time.Interval;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -971,6 +972,73 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
+	 *
+	 * @param userId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitMissions(Integer userId) {
+		socketIoService.sendMessage(userId, "unit_mission_change",
+				() -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
+	}
+
+	/**
+	 * Emits the specified mission to the <i>mission</i> target planet owner if any
+	 * <br>
+	 * As of 0.9.9 this method is now public
+	 *
+	 * @param mission
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitEnemyMissionsChange(Mission mission) {
+		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
+		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
+			emitEnemyMissionsChange(targetPlanetOwner);
+		}
+	}
+
+	/**
+	 * Runs the mission
+	 *
+	 * @param missionId
+	 * @param missionType
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void runUnitMission(Long missionId, MissionType missionType) {
+		switch (missionType) {
+		case EXPLORE:
+			processExplore(missionId);
+			break;
+		case RETURN_MISSION:
+			proccessReturnMission(missionId);
+			break;
+		case GATHER:
+			processGather(missionId);
+			break;
+		case ESTABLISH_BASE:
+			processEstablishBase(missionId);
+			break;
+		case ATTACK:
+			processAttack(missionId, true);
+			break;
+		case COUNTERATTACK:
+			processCounterattack(missionId);
+			break;
+		case CONQUEST:
+			processConquest(missionId);
+			break;
+		case DEPLOY:
+			proccessDeploy(missionId);
+			break;
+		default:
+			LOG.warn("Not an unit mission");
+		}
+
+	}
+
+	/**
 	 * Due to lack of support from Quartz to access spring context from the
 	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
 	 * computation from here
@@ -1325,18 +1393,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		entityManager.refresh(mission);
 		emitEnemyMissionsChange(mission);
 		emitMissions(user.getId());
-	}
-
-	private void emitMissions(Integer userId) {
-		socketIoService.sendMessage(userId, "unit_mission_change",
-				() -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
-	}
-
-	private void emitEnemyMissionsChange(Mission mission) {
-		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
-		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
-			emitEnemyMissionsChange(targetPlanetOwner);
-		}
 	}
 
 	private void emitEnemyMissionsChange(UserStorage user) {

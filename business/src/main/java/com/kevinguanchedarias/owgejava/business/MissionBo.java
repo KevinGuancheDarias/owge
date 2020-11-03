@@ -137,9 +137,19 @@ public class MissionBo extends AbstractMissionBo {
 		scheduleMission(mission);
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(mission);
-			socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> findRunningLevelUpMission(userId));
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			emitRunningUpgrade(user);
+			emitMissionCountChange(userId);
 		});
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitRunningUpgrade(UserStorage user) {
+		socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> findRunningLevelUpMission(user.getId()));
 	}
 
 	/**
@@ -167,7 +177,7 @@ public class MissionBo extends AbstractMissionBo {
 				entityManager.refresh(obtainedUpgrade);
 				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
 				obtainedUpgradeBo.emitObtainedChange(userId);
-				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+				emitMissionCountChange(userId);
 			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
@@ -239,12 +249,32 @@ public class MissionBo extends AbstractMissionBo {
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(obtainedUnit);
 			entityManager.refresh(mission);
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
-			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+			emitMissionCountChange(userId);
+			emitUnitBuildChange(userId);
 			unitTypeBo.emitUserChange(userId);
 		});
 
 		return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUnitBuildChange(Integer userId) {
+		socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitMissionCountChange(Integer userId) {
+		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 	}
 
 	public RunningUpgradeDto findRunningLevelUpMission(Integer userId) {
@@ -365,7 +395,7 @@ public class MissionBo extends AbstractMissionBo {
 	public void cancelUpgradeMission(Integer userId) {
 		cancelMission(findByUserIdAndTypeCode(userId, MissionType.LEVEL_UP));
 		socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, () -> null);
-		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+		emitMissionCountChange(userId);
 	}
 
 	@Transactional
@@ -393,8 +423,8 @@ public class MissionBo extends AbstractMissionBo {
 				}
 				socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-				socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
-				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+				emitUnitBuildChange(userId);
+				emitMissionCountChange(userId);
 			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
@@ -408,8 +438,30 @@ public class MissionBo extends AbstractMissionBo {
 		cancelMission(missionId);
 		TransactionUtil.doAfterCommit(() -> {
 			unitTypeBo.emitUserChange(userId);
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			emitMissionCountChange(userId);
 		});
+	}
+
+	/**
+	 *
+	 * @param missionId
+	 * @param missionType
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void runMission(Long missionId, MissionType missionType) {
+		switch (missionType) {
+		case BUILD_UNIT:
+			processBuildUnit(missionId);
+			break;
+		case LEVEL_UP:
+			processLevelUpAnUpgrade(missionId);
+			break;
+		default:
+			LOG.warn("Not a upgrade level mission nor unit build");
+			break;
+		}
 	}
 
 	/**
