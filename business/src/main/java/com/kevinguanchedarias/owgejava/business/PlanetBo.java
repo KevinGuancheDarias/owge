@@ -298,14 +298,25 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 */
 	public List<Planet> cleanUpUnexplored(Integer userId, List<Planet> planets) {
 		planets.forEach(current -> {
-			if (!isExplored(userId, current.getId())) {
-				current.setName(null);
-				current.setRichness(null);
-				current.setHome(null);
-				current.setOwner(null);
-				current.setSpecialLocation(null);
-			}
+			cleanUpUnexplored(userId, current);
 		});
 		return planets;
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param planet
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void cleanUpUnexplored(Integer userId, Planet planet) {
+		if (!isExplored(userId, planet.getId())) {
+			planet.setName(null);
+			planet.setRichness(null);
+			planet.setHome(null);
+			planet.setOwner(null);
+			planet.setSpecialLocation(null);
+		}
 	}
 }

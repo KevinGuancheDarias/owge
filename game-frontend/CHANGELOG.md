@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.10 (latest)
+==================
+* __Fix:__ [Special locations should not display their names in the explore mission, unless it's already explored #336](https://github.com/KevinGuancheDarias/owge/issues/336)  
+
 v0.9.9 (2020-11-03 18:22)
 ==========================
 * __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  

@@ -202,8 +202,13 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 */
 	@Transactional
 	public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
-		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(UnitRunningMissionDto::new)
-				.map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
+		return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(mission -> {
+			if (MissionType.valueOf(mission.getType().getCode()) == MissionType.EXPLORE) {
+				planetBo.cleanUpUnexplored(userId, mission.getTargetPlanet());
+			}
+			return mission;
+		}).map(UnitRunningMissionDto::new).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets)
+				.collect(Collectors.toList());
 	}
 
 	@Transactional
