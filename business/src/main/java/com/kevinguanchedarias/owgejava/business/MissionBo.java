@@ -60,6 +60,9 @@ public class MissionBo extends AbstractMissionBo {
 	@Autowired
 	private transient ConfigurationBo configurationBo;
 
+	@Autowired
+	private transient AsyncRunnerBo asyncRunnerBo;
+
 	@PostConstruct
 	public void init() {
 		improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
@@ -421,11 +424,13 @@ public class MissionBo extends AbstractMissionBo {
 				if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
 					improvementBo.clearSourceCache(user, obtainedUnitBo);
 				}
-				socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
 				emitUnitBuildChange(userId);
 				emitMissionCountChange(userId);
 			});
+			asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+				socketIoService.sendMessage(user.getId(), UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+			}, 2000);
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}

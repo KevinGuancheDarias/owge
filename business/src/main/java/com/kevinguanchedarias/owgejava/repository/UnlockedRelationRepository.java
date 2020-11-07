@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelation, Long>, Serializable {
 	public UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId);
@@ -23,10 +24,11 @@ public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelati
 
 	/**
 	 *
+	 * @param user
 	 * @param relation
 	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public boolean existsByRelation(ObjectRelation relation);
+	public boolean existsByUserAndRelation(UserStorage user, ObjectRelation relation);
 }

@@ -70,9 +70,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final String JOB_GROUP_NAME = "UnitMissions";
 	private static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
 
-	@Autowired
-	private ImageStoreBo imageStoreBo;
-
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is has
 	 *
@@ -461,10 +458,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private transient SocketIoService socketIoService;
 
 	@Autowired
-	private transient EntityManager entityManager;
+	private transient AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
+	private ImageStoreBo imageStoreBo;
 
 	@Autowired
 	private PlanetListBo planetListBo;
+
+	@Autowired
+	private transient EntityManager entityManager;
 
 	@Override
 	public String getGroupName() {
@@ -771,8 +774,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
-		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+			System.out.println("Ola k ase, Mercadona o k ase");
+			socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+					() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+		}, 2000);
 	}
 
 	@Transactional

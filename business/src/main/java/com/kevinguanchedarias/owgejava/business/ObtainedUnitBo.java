@@ -55,6 +55,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Autowired
 	private SocketIoService socketIoService;
 
+	@Autowired
+	private transient AsyncRunnerBo asyncRunnerBo;
+
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
 		return repository;
@@ -286,8 +289,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void emitObtainedUnitChange(Integer userId) {
-		socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
-				() -> toDto(findDeployedInUserOwnedPlanets(userId)));
+		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+			socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
+					() -> toDto(findDeployedInUserOwnedPlanets(userId)));
+		}, 2000);
 	}
 
 	/**
