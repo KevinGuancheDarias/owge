@@ -2,6 +2,7 @@
 
 v0.9.10 (latest)
 ==================
+* __Fix:__ [When there are too many missions in the screen, it displays wrongly in desktop mode #341](https://github.com/KevinGuancheDarias/owge/issues/341)  
 * __Improvement:__ [Allow to send conquest even if your max planets limit has been reached #342](https://github.com/KevinGuancheDarias/owge/issues/342)  
 * __Fix:__ [Conquest fails when there are no survivors from the original conquest mission #346](https://github.com/KevinGuancheDarias/owge/issues/346)
 * __Improvement:__ [Allow to leave a planet even if missions are going/returning, only disallow if there is a build mission in the planet #343](https://github.com/KevinGuancheDarias/owge/issues/343)  
