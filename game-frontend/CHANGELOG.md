@@ -2,6 +2,7 @@
 
 v0.9.10 (latest)
 ==================
+* __Improvement:__ [Allow to leave a planet even if missions are going/returning, only disallow if there is a build mission in the planet #343](https://github.com/KevinGuancheDarias/owge/issues/343)  
 * __Fix:__ [Cross-galaxies is not working properly, wrong behavior #337](https://github.com/KevinGuancheDarias/owge/issues/337)  
 * __Fix:__ [Special locations should not display their names in the explore mission, unless it's already explored #336](https://github.com/KevinGuancheDarias/owge/issues/336)  
 

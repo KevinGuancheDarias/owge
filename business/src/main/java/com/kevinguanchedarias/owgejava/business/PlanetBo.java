@@ -239,8 +239,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Transactional
 	public void doLeavePlanet(Integer invokerId, Long planetId) {
 		if (!canLeavePlanet(invokerId, planetId)) {
-			throw new SgtBackendInvalidInputException(
-					"Can't leave planet, make sure, it is NOT your home planet and you don't have runnings missions, nor running unit constructions");
+			throw new SgtBackendInvalidInputException("ERR_I18N_CAN_NOT_LEAVE_PLANET");
 		}
 		Planet planet = findById(planetId);
 		UserStorage user = planet.getOwner();

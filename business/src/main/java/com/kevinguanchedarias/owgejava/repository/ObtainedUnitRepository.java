@@ -208,4 +208,14 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	@Query("SELECT case when count(ou)> 0 then true else false end FROM ObtainedUnit ou WHERE ou.targetPlanet.id = ?3 AND ou.mission.type.code = 'DEPLOYED' AND ou.user.id != ?1 AND (ou.user.alliance IS NULL OR ?2 IS NULL OR ou.user.alliance != ?2)")
 	public boolean areUnitsInvolved(Integer userId, Alliance alliance, Long relatedPlanetId);
 
+	/**
+	 *
+	 * @param userId
+	 * @param planetId
+	 * @return
+	 * @since 0.9.10
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public int countByUserIdAndSourcePlanetIdAndMissionIsNull(Integer userId, Long planetId);
+
 }

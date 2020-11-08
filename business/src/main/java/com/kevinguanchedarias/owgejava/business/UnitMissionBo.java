@@ -774,11 +774,16 @@ public class UnitMissionBo extends AbstractMissionBo {
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
-		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
-			System.out.println("Ola k ase, Mercadona o k ase");
+		TransactionUtil.doAfterCommit(() -> {
+			if (obtainedUnits.get(0).getMission() != null
+					&& obtainedUnits.get(0).getMission().getInvolvedUnits() == null) {
+				entityManager.refresh(obtainedUnits.get(0).getMission());
+			}
+			emitLocalMissionChange(mission, userId);
 			socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 					() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-		}, 2000);
+		});
+
 	}
 
 	@Transactional
@@ -1395,9 +1400,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private void emitLocalMissionChange(Mission mission, UserStorage user) {
+		emitLocalMissionChange(mission, user.getId());
+	}
+
+	private void emitLocalMissionChange(Mission mission, Integer userId) {
 		entityManager.refresh(mission);
 		emitEnemyMissionsChange(mission);
-		emitMissions(user.getId());
+		emitMissions(userId);
 	}
 
 	private void emitEnemyMissionsChange(UserStorage user) {

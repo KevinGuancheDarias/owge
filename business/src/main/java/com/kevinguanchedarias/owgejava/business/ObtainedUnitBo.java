@@ -117,7 +117,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public boolean hasUnitsInPlanet(Integer userId, Long planetId) {
-		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
+		return repository.countByUserIdAndSourcePlanetIdAndMissionIsNull(userId, planetId) > 0;
 	}
 
 	public List<ObtainedUnit> findByMissionId(Long missionId) {

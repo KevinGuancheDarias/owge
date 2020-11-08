@@ -1,6 +1,7 @@
 {
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "Has excedido tu límite de misiones",
     "I18N_ERR_DEPLOY_ITSELF": "El planeta de destino no puede ser el mismo que el de origen",
+    "ERR_I18N_CAN_NOT_LEAVE_PLANET": "NO se puede dejar el planeta, asegúrate de no tener construcciones en curso, y que no sea tu planeta home",
     "I18N_OWNER_NOT_DEFEATED": "El propietario del planet no fue derrotado, fallo al conquistar",
     "I18N_MAX_PLANETS_EXCEEDED": "Límite de planetas excedido",
     "I18N_ALREADY_HAS_OWNER": "El planeta ya es propiedad de otro",

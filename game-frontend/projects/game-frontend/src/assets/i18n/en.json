@@ -1,6 +1,7 @@
 {
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "You have exceeded your missions limit",
     "I18N_ERR_DEPLOY_ITSELF": "Target planet can't be origin planet",
+    "ERR_I18N_CAN_NOT_LEAVE_PLANET": "Can't leave planet, make sure, it is NOT your home planets, nor running unit constructions",
     "I18N_OWNER_NOT_DEFEATED": "Planet owner not defeated, conquest failed",
     "I18N_MAX_PLANETS_EXCEEDED": "Max planets exceeded",
     "I18N_ALREADY_HAS_OWNER": "Planet already has an owner",
