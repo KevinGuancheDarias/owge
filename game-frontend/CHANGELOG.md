@@ -1,5 +1,10 @@
 # OWGE changelog
 
+v0.9.11 (latest)
+==================
+* __Fix:__ [Cross-galaxies is not working properly, wrong behavior #337](https://github.com/KevinGuancheDarias/owge/issues/337)  (Visual only) 
+* __Fix:__ [Mission report doesn't display that there is not units, instead is shown as empty #347](https://github.com/KevinGuancheDarias/owge/issues/347)  
+* __Fix:__ [Not able to leave planets #348](https://github.com/KevinGuancheDarias/owge/issues/348)  
 v0.9.10 (2020-11-08 19:10)
 ===========================
 * __Improvement:__ [Distinct between the units of allies and enemies #340](https://github.com/KevinGuancheDarias/owge/issues/340)

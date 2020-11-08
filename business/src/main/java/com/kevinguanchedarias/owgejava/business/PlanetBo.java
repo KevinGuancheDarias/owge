@@ -248,7 +248,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		if (planet.getSpecialLocation() != null) {
 			requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
 		}
-		planetListBo.emitByChangedPlanet(planet);
+		TransactionUtil.doAfterCommit(() -> planetListBo.emitByChangedPlanet(planet));
 		emitPlanetOwnedChange(invokerId);
 	}
 

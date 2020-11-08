@@ -464,6 +464,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private PlanetListBo planetListBo;
 
 	@Autowired
+	private AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
 	private transient EntityManager entityManager;
 
 	@Override
@@ -774,9 +777,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 				entityManager.refresh(obtainedUnits.get(0).getMission());
 			}
 			emitLocalMissionChange(mission, userId);
-			socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-					() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
 		});
+		asyncRunnerBo
+				.runAssyncWithoutContextDelayed(
+						() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+								() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))),
+						2000);
 
 	}
 
