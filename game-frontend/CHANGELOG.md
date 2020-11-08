@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.10 (latest)
-==================
+v0.9.10 (2020-11-08 18:53)
+===========================
 ** __Improvement:__ [Distinct between the units of allies and enemies #340](https://github.com/KevinGuancheDarias/owge/issues/340)
 * __Improvement:__ [Show the owners of each unit in the exploration report #339](https://github.com/KevinGuancheDarias/owge/issues/339)  
 * __Fix:__ [When there are too many missions in the screen, it displays wrongly in desktop mode #341](https://github.com/KevinGuancheDarias/owge/issues/341)  
