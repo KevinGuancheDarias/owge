@@ -118,7 +118,8 @@
         "DEPLOYED_UNIT_LIST": {
             "CHOOSE_COUNT": "Select count",
             "BTN_SELECT_ALL": "Select all units",
-            "BTN_UNSELECT_ALL": "Unselect all units"
+            "BTN_UNSELECT_ALL": "Unselect all units",
+            "OWNER_OF_UNITS": "Units from player {{username}}"
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxy",

@@ -118,7 +118,8 @@
         "DEPLOYED_UNIT_LIST": {
             "CHOOSE_COUNT": "Seleccionar cantidad",
             "BTN_SELECT_ALL": "Seleccionar todas",
-            "BTN_UNSELECT_ALL": "Deseleccionar todas"
+            "BTN_UNSELECT_ALL": "Deseleccionar todas",
+            "OWNER_OF_UNITS": "Unidades del jugador {{username}}"
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxia",

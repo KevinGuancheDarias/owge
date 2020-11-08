@@ -23,7 +23,7 @@
             </owge-widgets-collapsable-item>
 
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.EXPLORE' | translate" *ngIf="report.parsedJson?.unitsInPlanet">
-              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.unitsInPlanet"></app-deployed-units-list>
+              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.unitsInPlanet" [showUsername]="true" ></app-deployed-units-list>
             </owge-widgets-collapsable-item>
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ESTABLISH_BASE' | translate" *ngIf="report.parsedJson?.establishBaseStatus !== undefined">
                 <div class="owge-base-colors">

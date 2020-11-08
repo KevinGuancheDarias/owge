@@ -1,7 +1,7 @@
 <owge-core-loading [isReady]="obtainedUnits">
   <button *ngIf="selectable && !areAllSelected" (click)="clickSelectAll()" class="btn btn-block owge-base-colors">{{'APP.DEPLOYED_UNIT_LIST.BTN_SELECT_ALL' | translate }}</button>
   <button *ngIf="selectable && areAllSelected" (click)="clickUnselectAll()" class="btn btn-block owge-base-colors">{{'APP.DEPLOYED_UNIT_LIST.BTN_UNSELECT_ALL' | translate }}</button>
-  <div class="owge-card-list" [ngClass]="{'tiny-imgs': useTiny}">
+  <div *ngIf="!showUsername" class="owge-card-list" [ngClass]="{'tiny-imgs': useTiny}">
     <div class="card owge" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block card-header-block">
         <div class="card-title">
@@ -22,4 +22,25 @@
       {{ 'APP.UNITS.IN_PLANET.NO_UNITS' | translate }}
     </div>
   </div>
+  <ng-container *ngIf="showUsername">
+    <div class="owge-card-list" *ngFor="let userUnits of unitsForEachUser">
+      <div class="username"> {{ 'APP.DEPLOYED_UNIT_LIST.OWNER_OF_UNITS' | translate: {username: userUnits.username} }}</div>
+      <div class="card owge" *ngFor="let obtainedUnit of userUnits.obtainedUnits, let i = index">
+        <div class="card-block card-header-block">
+          <div class="card-title">
+            <span>
+              {{ obtainedUnit.count }}
+            </span>
+          </div>
+          <img [src]="obtainedUnit.unit.imageUrl" />
+        </div>
+        <div class="card-block input-count" *ngIf="selectable">
+          <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>
+          <span (click)="selectedCounts[i] = obtainedUnit.count; selectionChanged()">
+            <i class="fa fa-globe"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </owge-core-loading>
