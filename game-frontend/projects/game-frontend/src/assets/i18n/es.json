@@ -26,8 +26,12 @@
         "INDEX": {
             "TITLE_MY_MISSIONS": "Mis misiones",
             "NO_MY_MISSIONS": "No estás haciendo misiones",
-            "TITLE_ENEMY_MISSIONS": "Misiones de otros",
-            "NO_ENEMY_MISSIONS": "No hay misiones de otros jugadores a ninguno de tus planetas"
+            "TITLE_ENEMY_MISSIONS": "Misiones de enemigos",
+            "TITLE_UNKNOWN_MISSIONS": "Misiones de desconocidos (no explorados)",
+            "TITLE_ALLIES_MISSIONS": "Misiones de aliados",
+            "NO_ENEMY_MISSIONS": "No hay misiones de enemigos a ninguno de tus planetas",
+            "NO_UNKNOWN_MISSIONS": "No hay misiones de otros jugadores a ninguno de tus planetas",
+            "NO_ALLIES_MISSIONS": "No hay misiones de aliados a ninguno de tus planetas"
         },
         "MISSION_TYPES": {
             "PLEASE_SELECT": "Seleccionar...",

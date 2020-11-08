@@ -20,6 +20,8 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
 
   public myUnitRunningMissions: UnitRunningMission[];
   public enemyRunningMissions: UnitRunningMission[];
+  public alliesRunningMissions: UnitRunningMission[];
+  public unknownRunningMissions: UnitRunningMission[];
   public runningUpgrade: UpgradeRunningMission;
   public relatedObtainedUpgrade: ObtainedUpgrade;
 
@@ -61,7 +63,20 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
 
   public findEnemyMissions(): void {
     this._subscriptions.add(this._missionService.findEnemyRunningMissions().subscribe(
-      result => this.enemyRunningMissions = result
+      result => {
+        this.alliesRunningMissions = [];
+        this.enemyRunningMissions = [];
+        this.unknownRunningMissions = [];
+        result.forEach(mission => {
+          if (mission.user && mission.user.alliance && mission.user?.alliance?.id === this.userData?.alliance?.id) {
+            this.alliesRunningMissions.push(mission);
+          } else if (mission.user) {
+            this.enemyRunningMissions.push(mission);
+          } else {
+            this.unknownRunningMissions.push(mission);
+          }
+        });
+      }
     ));
   }
 }

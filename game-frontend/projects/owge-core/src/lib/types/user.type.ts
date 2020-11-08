@@ -1,3 +1,5 @@
+import { Alliance } from '@owge/alliance';
+
 /**
  * Better way to represent user details
  *
@@ -8,6 +10,7 @@
 export interface User {
     id: number;
     username: string;
+    alliance: Alliance;
     email: string;
     password: string;
     activated: boolean;
