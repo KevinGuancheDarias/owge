@@ -206,6 +206,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 			if (MissionType.valueOf(mission.getType().getCode()) == MissionType.EXPLORE) {
 				planetBo.cleanUpUnexplored(userId, mission.getTargetPlanet());
 			}
+			mission.setInvolvedUnits(obtainedUnitBo.findByMissionId(mission.getId()));
 			return mission;
 		}).map(UnitRunningMissionDto::new).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets)
 				.collect(Collectors.toList());

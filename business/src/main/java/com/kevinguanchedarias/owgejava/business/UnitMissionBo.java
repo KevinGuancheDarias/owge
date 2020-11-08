@@ -458,9 +458,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private transient SocketIoService socketIoService;
 
 	@Autowired
-	private transient AsyncRunnerBo asyncRunnerBo;
-
-	@Autowired
 	private ImageStoreBo imageStoreBo;
 
 	@Autowired
@@ -575,9 +572,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (planetBo.isHomePlanet(missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"Can't steal a home planet to a user, would you like a bandit to steal in your own home??!");
-		}
-		if (planetBo.hasMaxPlanets(missionInformation.getUserId())) {
-			throw new SgtBackendInvalidInputException(MAX_PLANETS_MESSAGE);
 		}
 		commonMissionRegister(missionInformation, MissionType.CONQUEST);
 	}
@@ -809,8 +803,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 						.allMatch(currentUser -> currentUser.getValue().units.stream()
 								.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
 		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
-			adminRegisterReturnMission(mission);
-			areUnitsHavingToReturn = true;
+			if (!attackInformation.isMissionRemoved()) {
+				adminRegisterReturnMission(mission);
+				areUnitsHavingToReturn = true;
+			}
 			if (maxPlanets) {
 				builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
 			} else if (!isOldOwnerDefeated) {
@@ -1416,7 +1412,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
 		AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
-		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnit);
+		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
+			if (!attackMission.equals(unit.getMission())) {
+				retVal.addUnit(unit);
+			}
+		});
 		obtainedUnitBo.findByMissionId(attackMission.getId()).forEach(retVal::addUnit);
 		return retVal;
 	}
