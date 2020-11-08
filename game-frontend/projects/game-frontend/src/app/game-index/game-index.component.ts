@@ -7,6 +7,7 @@ import { MissionService } from '../services/mission.service';
 import { UpgradeService } from '../service/upgrade.service';
 import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
 import { take } from 'rxjs/operators';
+import { UserWithAlliance } from '@owge/alliance';
 
 @Component({
   selector: 'app-game-index',
@@ -16,12 +17,12 @@ import { take } from 'rxjs/operators';
     './game-index.component.scss'
   ]
 })
-export class GameIndexComponent extends BaseComponent implements OnInit {
+export class GameIndexComponent extends BaseComponent<UserWithAlliance> implements OnInit {
 
-  public myUnitRunningMissions: UnitRunningMission[];
-  public enemyRunningMissions: UnitRunningMission[];
-  public alliesRunningMissions: UnitRunningMission[];
-  public unknownRunningMissions: UnitRunningMission[];
+  public myUnitRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public enemyRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public alliesRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public unknownRunningMissions: UnitRunningMission<UserWithAlliance>[];
   public runningUpgrade: UpgradeRunningMission;
   public relatedObtainedUpgrade: ObtainedUpgrade;
 
@@ -55,14 +56,14 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   }
 
   public findMyMissions(): void {
-    this._subscriptions.add(this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
+    this._subscriptions.add(this._missionService.findMyRunningMissions<UserWithAlliance>().subscribe(myRunningMissions => {
       this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
       this._tutorialService.triggerTutorialAfterRender();
     }));
   }
 
   public findEnemyMissions(): void {
-    this._subscriptions.add(this._missionService.findEnemyRunningMissions().subscribe(
+    this._subscriptions.add(this._missionService.findEnemyRunningMissions<UserWithAlliance>().subscribe(
       result => {
         this.alliesRunningMissions = [];
         this.enemyRunningMissions = [];

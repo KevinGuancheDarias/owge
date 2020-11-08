@@ -68,11 +68,11 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     });
   }
 
-  public findMyRunningMissions(): Observable<UnitRunningMission[]> {
+  public findMyRunningMissions<U extends User = User>(): Observable<UnitRunningMission<U>[]> {
     return this._missionStore.myUnitMissions.asObservable();
   }
 
-  public findEnemyRunningMissions(): Observable<UnitRunningMission[]> {
+  public findEnemyRunningMissions<U extends User = User>(): Observable<UnitRunningMission<U>[]> {
     return this._missionStore.enemyUnitMissions.asObservable();
   }
 

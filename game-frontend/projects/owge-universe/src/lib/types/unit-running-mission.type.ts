@@ -9,9 +9,9 @@ import { Planet } from '../pojos/planet.pojo';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
  */
-export interface UnitRunningMission extends RunningMission {
+export interface UnitRunningMission<U extends User = User> extends RunningMission {
     involvedUnits: ObtainedUnit[];
     sourcePlanet?: Planet;
     targetPlanet?: Planet;
-    user?: User;
+    user?: U;
 }
