@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.11 (latest)
-==================
+v0.9.11 (2020-11-08 21:24)
+===========================
 * __Fix:__ [Cross-galaxies is not working properly, wrong behavior #337](https://github.com/KevinGuancheDarias/owge/issues/337)  (Visual only) 
 * __Fix:__ [Mission report doesn't display that there is not units, instead is shown as empty #347](https://github.com/KevinGuancheDarias/owge/issues/347)  
 * __Fix:__ [Not able to leave planets #348](https://github.com/KevinGuancheDarias/owge/issues/348)  
