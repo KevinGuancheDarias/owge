@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.entity;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,9 +13,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(name = "user_storage")
@@ -29,17 +25,15 @@ public class UserStorage implements EntityWithId<Integer> {
 	private String username;
 	private String email;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "faction", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private Faction faction;
 
 	@Column(name = "last_action")
 	private Date lastAction;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "home_planet", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private Planet homePlanet;
 
 	@Column(name = "primary_resource")
@@ -74,17 +68,11 @@ public class UserStorage implements EntityWithId<Integer> {
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<UnlockedRelation> unlockedRelations;
 
-	@Deprecated(since = "0.8.0")
-	@OneToOne(mappedBy = "user", cascade = CascadeType.ALL, optional = true)
-	@Fetch(FetchMode.JOIN)
-	private UserImprovement improvements;
-
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Mission> missions;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "alliance_id")
-	@Fetch(FetchMode.JOIN)
 	private Alliance alliance;
 
 	@Column(name = "can_alter_twitch_state", nullable = false)
@@ -104,29 +92,6 @@ public class UserStorage implements EntityWithId<Integer> {
 
 	public void addToSecondary(Double value) {
 		secondaryResource += value;
-	}
-
-	/**
-	 * Fills the transient properties of the entity <br />
-	 * <b>IMPORTANT: The entity should have all the "details" </b>
-	 *
-	 * @deprecated Transient properties of UserStorage are not longer required, use
-	 *             version without transient argument
-	 * @author Kevin Guanche Darias
-	 */
-	@Deprecated(since = "0.8.0")
-	public void fillTransientValues() {
-		if (faction != null) {
-			computedPrimaryResourceGenerationPerSecond = (double) (faction.getPrimaryResourceProduction()
-					+ (faction.getPrimaryResourceProduction()
-							* (improvements.getMorePrimaryResourceProduction() / 100)));
-			computedSecondaryResourceGenerationPerSecond = (double) (faction.getSecondaryResourceProduction()
-					+ (faction.getSecondaryResourceProduction()
-							* (improvements.getMoreSecondaryResourceProduction() / 100)));
-		} else {
-			computedPrimaryResourceGenerationPerSecond = 0D;
-			computedSecondaryResourceGenerationPerSecond = 0D;
-		}
 	}
 
 	/**
@@ -307,27 +272,6 @@ public class UserStorage implements EntityWithId<Integer> {
 
 	public void setUnlockedRelations(List<UnlockedRelation> unlockedRelations) {
 		this.unlockedRelations = unlockedRelations;
-	}
-
-	/**
-	 *
-	 * @deprecated We use computed improvements
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public UserImprovement getImprovements() {
-		return improvements;
-	}
-
-	/**
-	 * @deprecated We use computed improvements
-	 * @param improvements
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public void setImprovements(UserImprovement improvements) {
-		this.improvements = improvements;
 	}
 
 	public List<Mission> getMissions() {

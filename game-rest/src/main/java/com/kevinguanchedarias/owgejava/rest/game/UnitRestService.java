@@ -25,6 +25,7 @@ import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
@@ -115,7 +116,9 @@ public class UnitRestService implements SyncSource {
 	}
 
 	private List<ObtainedUnitDto> findInMyPlanets(UserStorage user) {
-		return obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(user.getId()));
+		List<ObtainedUnit> entities = obtainedUnitBo.findDeployedInUserOwnedPlanets(user.getId());
+		entities.forEach(current -> current.getUnit().getSpeedImpactGroup().setRequirementGroups(null));
+		return obtainedUnitBo.toDto(entities);
 	}
 
 	private UserStorage findLoggedInUser() {
@@ -126,6 +129,12 @@ public class UnitRestService implements SyncSource {
 		return requirementBo.findFactionUnitLevelRequirements(factionBo.findByUser(user.getId())).stream()
 				.filter(unitWithRequirementInformation -> unitWithRequirementInformation.getUnit()
 						.getHasToDisplayInRequirements())
-				.collect(Collectors.toList());
+				.map(current -> {
+					final UnitDto unit = current.getUnit();
+					unit.setImprovement(null);
+					unit.setSpeedImpactGroup(null);
+					current.getRequirements().forEach(requirement -> requirement.getUpgrade().setRequirements(null));
+					return current;
+				}).collect(Collectors.toList());
 	}
 }

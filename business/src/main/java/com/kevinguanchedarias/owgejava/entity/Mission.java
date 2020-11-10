@@ -40,7 +40,6 @@ public class Mission implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "type", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private MissionType type;
 
 	@Column(name = "starting_date")

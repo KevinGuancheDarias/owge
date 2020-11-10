@@ -13,11 +13,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 /**
  * Represents a Faction
  *
@@ -43,12 +38,10 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "primary_resource_image_id")
-	@Fetch(FetchMode.JOIN)
 	private ImageStore primaryResourceImage;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "secondary_resource_image_id")
-	@Fetch(FetchMode.JOIN)
 	private ImageStore secondaryResourceImage;
 
 	@Column(name = "energy_name")
@@ -56,7 +49,6 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "energy_image_id")
-	@Fetch(FetchMode.JOIN)
 	private ImageStore energyImage;
 
 	@Column(name = "initial_primary_resource")
@@ -78,9 +70,7 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 	private Integer maxPlanets;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "improvement_id")
-	@Cascade({ CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DELETE })
 	private Improvement improvement;
 
 	@Column(name = "cloned_improvements")

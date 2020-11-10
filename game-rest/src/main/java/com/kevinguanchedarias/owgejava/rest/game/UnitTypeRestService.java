@@ -40,6 +40,8 @@ public class UnitTypeRestService implements SyncSource {
 	private List<UnitTypeDto> loadData(UserStorage loggedUser) {
 		return unitTypeBo.findAll().stream().map(current -> {
 			UnitTypeDto currentDto = new UnitTypeDto();
+			current.getSpeedImpactGroup().setRequirementGroups(null);
+			current.setAttackRule(null);
 			currentDto.dtoFromEntity(current);
 			UserStorage user = userStorageBo.findById(loggedUser.getId());
 			currentDto.setComputedMaxCount(unitTypeBo.findUniTypeLimitByUser(user, current));

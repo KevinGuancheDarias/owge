@@ -15,6 +15,7 @@ import javax.persistence.EntityManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -171,6 +172,7 @@ public class RequirementBo implements Serializable {
 		return requirementDao.findRequirements(objectEnum, referenceId);
 	}
 
+	@Cacheable(cacheNames = "requirements_by_faction", key = "#faction.id")
 	public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
 		return requirementDao
 				.findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue())

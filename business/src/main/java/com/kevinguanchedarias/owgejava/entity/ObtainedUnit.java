@@ -26,12 +26,10 @@ public class ObtainedUnit implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private UserStorage user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "unit_id", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private Unit unit;
 
 	private Long count;
@@ -48,12 +46,10 @@ public class ObtainedUnit implements EntityWithId<Long> {
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "mission_id", nullable = true)
-	@Fetch(FetchMode.JOIN)
 	private Mission mission;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "first_deployment_mission", nullable = true)
-	@Fetch(FetchMode.JOIN)
 	private Mission firstDeploymentMission;
 
 	private Date expiration;

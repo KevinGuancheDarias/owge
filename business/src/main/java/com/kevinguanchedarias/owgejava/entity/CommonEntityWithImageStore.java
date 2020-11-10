@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.entity;
 
@@ -9,9 +9,6 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 /**
  *
@@ -24,7 +21,6 @@ public class CommonEntityWithImageStore<K extends Serializable> extends CommonEn
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "image_id")
-	@Fetch(FetchMode.JOIN)
 	private ImageStore image;
 
 	/**

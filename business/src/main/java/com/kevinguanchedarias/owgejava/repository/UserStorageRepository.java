@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +34,18 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Intege
 	@Query("UPDATE UserStorage u SET u.alliance = :new WHERE u.alliance = :old")
 	@Modifying
 	public void defineAllianceByAllianceId(@Param("old") Alliance oldAlliance, @Param("new") Alliance newAlliance);
+
+	/**
+	 * Adds resources to the user
+	 *
+	 * @param user
+	 * @param now
+	 * @param primary
+	 * @param secondary
+	 * @since 0.9.12
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("UPDATE UserStorage u SET u.lastAction = ?2, u.primaryResource = u.primaryResource + ?3, u.secondaryResource = u.secondaryResource + ?4 WHERE u = ?1")
+	@Modifying
+	public void addResources(UserStorage user, Date now, Double primary, Double secondary);
 }

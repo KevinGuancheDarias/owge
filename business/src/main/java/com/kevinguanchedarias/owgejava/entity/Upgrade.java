@@ -11,11 +11,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 import com.kevinguanchedarias.owgejava.entity.listener.UpgradeListener;
 
 /**
@@ -40,7 +35,6 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
 	private Integer secondaryResource = 100;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "type")
 	private UpgradeType type;
 
@@ -48,9 +42,7 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
 	private Float levelEffect = 20f;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "improvement_id")
-	@Cascade({ CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DELETE })
 	private Improvement improvement;
 
 	@Column(name = "cloned_improvements")

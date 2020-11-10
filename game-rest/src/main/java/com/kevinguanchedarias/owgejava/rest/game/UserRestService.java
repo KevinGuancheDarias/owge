@@ -12,6 +12,7 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
@@ -44,8 +45,12 @@ public class UserRestService implements SyncSource {
 		return SyncHandlerBuilder.create().withHandler("user_data_change", this::findData).build();
 	}
 
-	private Object findData(UserStorage user) {
+	private UserStorageDto findData(UserStorage user) {
 		UserStorage withDetails = userStorageBo.findById(user.getId());
-		return userStorageBo.findData(withDetails);
+		UserStorageDto retVal = userStorageBo.findData(withDetails);
+		retVal.getImprovements().getUnitTypesUpgrades().forEach(current -> {
+			current.getUnitType().setSpeedImpactGroup(null);
+		});
+		return retVal;
 	}
 }

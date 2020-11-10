@@ -1,4 +1,9 @@
 # OWGE changelog
+v0.9.12 (latest)
+=================
+
+* __Improvement:__ Greatly improve database queries performance
+* __Improvement:__ Reduce bandwith usage, reduce sync time, and reduce consumed battery
 
 v0.9.11 (2020-11-08 21:24)
 ===========================
