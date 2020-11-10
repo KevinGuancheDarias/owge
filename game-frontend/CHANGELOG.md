@@ -1,6 +1,6 @@
 # OWGE changelog
-v0.9.12 (latest)
-=================
+v0.9.12 (2020-11-10 19:59)
+===========================
 * __Improvement:__ [Display a upgrade button in the unit requirements screen #338](https://github.com/KevinGuancheDarias/owge/issues/338)  
 * __Fix:__ [No unlocked units, and no units in planet string is not multi language #350](https://github.com/KevinGuancheDarias/owge/issues/350)  
 * __Fix:__ [Conquest and Eb missions fail sometimes #349](https://github.com/KevinGuancheDarias/owge/issues/349)  
