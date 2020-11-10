@@ -782,7 +782,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				.runAssyncWithoutContextDelayed(
 						() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 								() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))),
-						2000);
+						500);
 
 	}
 

@@ -117,6 +117,9 @@
             "IN_PLANET": {
                 "NO_UNITS": "There are no units in this planet",
                 "CHOOSE_TYPE": "All"
+            },
+            "UNLOCKED": {
+                "NO_UNITS": "You can't build any unit for now, please check the requirements tab"
             }
         },
         "DEPLOYED_UNIT_LIST": {

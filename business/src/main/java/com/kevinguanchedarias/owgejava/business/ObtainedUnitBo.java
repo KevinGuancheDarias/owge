@@ -292,7 +292,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
 			socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
 					() -> toDto(findDeployedInUserOwnedPlanets(userId)));
-		}, 2000);
+		}, 500);
 	}
 
 	/**

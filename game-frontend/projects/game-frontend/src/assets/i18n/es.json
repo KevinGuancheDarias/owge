@@ -68,7 +68,7 @@
             "OWNED_BY": "Propiedad de. {{username}}"
         },
         "PLANET_LIST": {
-            "PLANET_LIST": "Tu lista está vacía",
+            "EMPTY": "Tu lista está vacía",
             "ADD": "Añadir nuevo",
             "EDIT": "Editando {{el}}",
             "LABEL_NAME": "Nombre (Opcional):",
@@ -117,6 +117,9 @@
             "IN_PLANET": {
                 "NO_UNITS": "No hay unidades en este planeta",
                 "CHOOSE_TYPE": "Todas"
+            },
+            "UNLOCKED": {
+                "NO_UNITS": "No puedes construir ninguna unidad, desbloqueala primero, comprueba la pestaña de requisitos"
             }
         },
         "DEPLOYED_UNIT_LIST": {

@@ -1,8 +1,8 @@
 # OWGE changelog
 v0.9.12 (latest)
 =================
-
-* [Conquest and Eb missions fail sometimes #349](https://github.com/KevinGuancheDarias/owge/issues/349)  
+* __Fix:__ [No unlocked units, and no units in planet string is not multi language #350](https://github.com/KevinGuancheDarias/owge/issues/350)  
+* __Fix:__ [Conquest and Eb missions fail sometimes #349](https://github.com/KevinGuancheDarias/owge/issues/349)  
 * [class=Advanced]__Improvement:__ Greatly improve database queries performance
 * __Improvement:__ Reduce bandwith usage, reduce sync time, and reduce consumed battery
 
