@@ -1456,7 +1456,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 			requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
 		}
 
-		planetListBo.emitByChangedPlanet(targetPlanet);
+		TransactionUtil.doAfterCommit(() -> {
+			planetListBo.emitByChangedPlanet(targetPlanet);
+		});
 		planetBo.emitPlanetOwnedChange(owner);
 		socketIoService.sendMessage(owner, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
