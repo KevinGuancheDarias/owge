@@ -123,7 +123,11 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onRunningChange(content: UpgradeRunningMission): Promise<void> {
-    this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
+    if (content) {
+      this._upgradeStore.runningLevelUpMission.next(DateUtil.computeBrowserTerminationDate(content));
+    } else {
+      this._upgradeStore.runningLevelUpMission.next(null);
+    }
     await this._wsEventCacheService.updateWithFrontendComputedData('running_upgrade_change', content);
   }
 }

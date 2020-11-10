@@ -120,6 +120,10 @@
             },
             "UNLOCKED": {
                 "NO_UNITS": "No puedes construir ninguna unidad, desbloqueala primero, comprueba la pestaña de requisitos"
+            },
+            "REQUIREMENTS": {
+                "UPGRADING": "Subiendo de nivel {{name}} al nivel {{level}}",
+                "UPGRADE_CANCELLED": "Subida de nivel cancelada"
             }
         },
         "DEPLOYED_UNIT_LIST": {

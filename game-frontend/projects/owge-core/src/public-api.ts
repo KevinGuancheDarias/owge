@@ -47,5 +47,6 @@ export * from './lib/utils/date.util';
 export * from './lib/utils/debug.util';
 export * from './lib/utils/http.util';
 export * from './lib/utils/jwt-token.util';
+export * from './lib/utils/mission.util';
 export * from './lib/owge-core.module';
 export * from './lib/owge-user.module';

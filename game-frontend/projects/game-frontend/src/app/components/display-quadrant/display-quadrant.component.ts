@@ -9,7 +9,7 @@ import { MissionInformationStore } from '../../store/mission-information.store';
 import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent } from '@owge/galaxy';
 import { Planet, ObtainedUnit, Unit, MissionStore, UnitRunningMission, TutorialService } from '@owge/universe';
 import { MissionService } from '../../services/mission.service';
-import { ToastrService } from '@owge/core';
+import { MissionUtil, ToastrService } from '@owge/core';
 
 interface DisplayQuadrantUnitRunningMission extends UnitRunningMission {
   currentCompletePercentage?: number;
@@ -167,10 +167,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
   private _registerInterval(): void {
     this._currentExplorationsProgressInterval = window.setInterval(() => {
       Object.values(this.runningExplorations).forEach(unitRunningMission => {
-        const currentPendingMillis = unitRunningMission.browserComputedTerminationDate.getTime() - new Date().getTime();
-        let percentage = Math.floor((currentPendingMillis / unitRunningMission.requiredMillis) * 100);
-        percentage = percentage > 100 ? 100 : percentage;
-        unitRunningMission.currentCompletePercentage = Math.abs(percentage - 100);
+        unitRunningMission.currentCompletePercentage = MissionUtil.computeProgressPercentage(unitRunningMission);
       });
     }, 400);
   }

@@ -120,6 +120,10 @@
             },
             "UNLOCKED": {
                 "NO_UNITS": "You can't build any unit for now, please check the requirements tab"
+            },
+            "REQUIREMENTS": {
+                "UPGRADING": "Leveling up upgrade {{name}} to level {{level}}",
+                "UPGRADE_CANCELLED": "Level up mission cancelled"
             }
         },
         "DEPLOYED_UNIT_LIST": {
