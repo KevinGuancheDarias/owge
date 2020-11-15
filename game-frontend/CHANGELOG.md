@@ -2,6 +2,7 @@
 
 v0.10.0 (latest)
 =================
+* Merge v0.9.13
 * [class=Admin] __Feature:__ [As an admin I want to add invisible attribute to some units #23](https://github.com/KevinGuancheDarias/owge/issues/23)  
 * [class=Admin] __Feature:__ [As an admin I want to define units that can bypass unit shields #269](https://github.com/KevinGuancheDarias/owge/issues/269)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
