@@ -10,6 +10,7 @@ import {
 
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { map } from 'rxjs/operators';
+import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 
 @Injectable()
 export class UpgradeService extends AbstractWebsocketApplicationHandler {
@@ -20,7 +21,8 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _resourceManagerService: ResourceManagerService,
     private _universeGameService: UniverseGameService,
-    private _wsEventCacheService: WsEventCacheService
+    private _wsEventCacheService: WsEventCacheService,
+    private _configurationService: ConfigurationService
   ) {
     super();
     this._resources = new AutoUpdatedResources(_resourceManagerService);
@@ -71,15 +73,18 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
     requirements.requiredTime = upgradeRef.time;
 
     const nextLevel = obtainedUpgrade.level + 1;
+    const improvementStep = this._configurationService.findParamOrDefault('IMPROVEMENT_STEP', 10).value;
     for (let i = 1; i < nextLevel; i++) {
       requirements.requiredPrimary += (requirements.requiredPrimary * upgradeRef.levelEffect);
       requirements.requiredSecondary += (requirements.requiredSecondary * upgradeRef.levelEffect);
       requirements.requiredTime += (requirements.requiredTime * upgradeRef.levelEffect);
     }
     if (userImprovement && userImprovement.moreUpgradeResearchSpeed) {
-      requirements.requiredTime = requirements.handleSustractionPercentage(
+      requirements.requiredTime = requirements.computeImprovementValue(
         requirements.requiredTime,
-        userImprovement.moreUpgradeResearchSpeed
+        userImprovement.moreUpgradeResearchSpeed,
+        improvementStep,
+        false
       );
     }
     if (subscribeToResources) {

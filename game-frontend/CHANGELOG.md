@@ -2,7 +2,8 @@
 
 v0.9.13 (latest)
 =================
-* __Fix:__ [Not able to create a new account #354](https://github.com/KevinGuancheDarias/owge/issues/354)  
+* __Improvement:__ [Change improvement formula for upgrades and units, so it's reasonable stay collecting specials #355](https://github.com/KevinGuancheDarias/owge/issues/355)  
+* __Fix:__ [Not able to create a new account #354](https://github.com/KevinGuancheDarias/owge/issues/354)
 * __Fix:__ [Sometimes the ships go to the same speed than the soldiers #351](https://github.com/KevinGuancheDarias/owge/issues/351)  
 * __Fix:__ [Speed sometimes doesn't work as expected, longt times are displayed #353](https://github.com/KevinGuancheDarias/owge/issues/353)  
 * __Fix:__ [Deployments stopped working due to performance improvement #352](https://github.com/KevinGuancheDarias/owge/issues/352)  

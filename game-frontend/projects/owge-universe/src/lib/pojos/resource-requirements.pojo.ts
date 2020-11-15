@@ -80,4 +80,33 @@ export class ResourceRequirements {
     public handleSustractionPercentage(base: number, percentage: number, maxPercentage = 50): number {
         return base * 2 + this.handlePercentage(-base, percentage > maxPercentage ? maxPercentage : percentage);
     }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.13
+     * @param base
+     * @param inputPercentage
+     * @param step
+     * @param [sum=true]
+     * @returns
+     */
+    public computeImprovementValue(base: number, inputPercentage: number, step: number, sum = true) {
+        let retVal = base;
+        let pendingPercentage = inputPercentage;
+        while (pendingPercentage > 0) {
+            if (pendingPercentage < step) {
+                step = pendingPercentage;
+            }
+            const current = retVal * (step / 100);
+            if (sum) {
+                retVal += current;
+            } else {
+                retVal -= current;
+            }
+            pendingPercentage -= step;
+        }
+        return retVal;
+    }
 }

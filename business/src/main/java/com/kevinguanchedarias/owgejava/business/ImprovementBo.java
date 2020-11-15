@@ -344,6 +344,19 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	 * @since 0.8.1
 	 */
 	public Double computeImprovementValue(double base, double inputPercentage) {
+		return computeImprovementValue(base, inputPercentage, true);
+	}
+
+	/**
+	 *
+	 * @param base
+	 * @param inputPercentage
+	 * @param sum             If true sums, else sustracts
+	 * @return
+	 * @since 0.9.13
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double computeImprovementValue(double base, double inputPercentage, boolean sum) {
 		double retVal = base;
 		double step = Double
 				.parseDouble(configurationBo.findOrSetDefault("IMPROVEMENT_STEP", DEFAULT_STEP.toString()).getValue());
@@ -352,7 +365,12 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 			if (pendingPercentage < step) {
 				step = pendingPercentage;
 			}
-			retVal += retVal * (step / 100);
+			double current = retVal * (step / 100);
+			if (sum) {
+				retVal += current;
+			} else {
+				retVal -= current;
+			}
 			pendingPercentage -= step;
 		}
 		return retVal;

@@ -111,12 +111,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
 			resourceRequirements.setRequiredTime(3D);
 		} else {
-			double requiredTime = resourceRequirements.getRequiredTime() * 2
-					+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed());
-			resourceRequirements.setRequiredTime(requiredTime < (resourceRequirements.getRequiredTime() * 0.5)
-					? resourceRequirements.getRequiredTime() * 0.5
-					: requiredTime);
+			resourceRequirements
+					.setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
 		}
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
@@ -212,12 +209,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		double requiredTime = resourceRequirements.getRequiredTime() * 2
-				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed());
-		resourceRequirements.setRequiredTime(requiredTime < (resourceRequirements.getRequiredTime() * 0.5)
-				? resourceRequirements.getRequiredTime() * 0.5
-				: requiredTime);
+		resourceRequirements
+				.setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);

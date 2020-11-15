@@ -16,6 +16,7 @@ import { PlanetService } from '@owge/galaxy';
 
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { UpgradeService } from './upgrade.service';
+import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 
 @Injectable()
 export class UnitService extends AbstractWebsocketApplicationHandler {
@@ -33,7 +34,8 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     private _userStore: UserStorage<User>,
     private _planetService: PlanetService,
     private _upgradeService: UpgradeService,
-    private _wsEventCacheService: WsEventCacheService
+    private _wsEventCacheService: WsEventCacheService,
+    private _configurationService: ConfigurationService
   ) {
     super();
     this._eventsMap = {
@@ -58,30 +60,29 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @author Kevin Guanche Darias
    */
   public computeRequiredResources(unit: Unit, subscribeToResources: boolean, countBehaviorSubject: Subject<number>): Unit {
-    if (!countBehaviorSubject) {
-      this._doComputeRequiredResources(unit, subscribeToResources);
-    } else {
-      let improvementSuscription: Subscription;
-      countBehaviorSubject.pipe(distinctUntilChanged((a, b) => a === b)).subscribe(newCount => {
-        if (improvementSuscription) {
-          improvementSuscription.unsubscribe();
+    let improvementSuscription: Subscription;
+    countBehaviorSubject.pipe(distinctUntilChanged((a, b) => a === b)).subscribe(newCount => {
+      if (improvementSuscription) {
+        improvementSuscription.unsubscribe();
+      }
+      improvementSuscription = this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => {
+        if (unit.requirements) {
+          unit.requirements.stopDynamicRunnable();
         }
-        improvementSuscription = this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => {
-          if (unit.requirements) {
-            unit.requirements.stopDynamicRunnable();
-          }
-          unit.requirements = new ResourceRequirements();
-          unit.requirements.requiredPrimary = unit.primaryResource * newCount;
-          unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
-          unit.requirements.requiredTime = Math.ceil(unit.requirements.handleSustractionPercentage(
-            unit.time * newCount,
-            improvement.moreUnitBuildSpeed
-          ));
-          unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
-          this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
-        });
+        const improvementStep = this._configurationService.findParamOrDefault('IMPROVEMENT_STEP', 10).value;
+        unit.requirements = new ResourceRequirements();
+        unit.requirements.requiredPrimary = unit.primaryResource * newCount;
+        unit.requirements.requiredSecondary = unit.secondaryResource * newCount;
+        unit.requirements.requiredTime = Math.ceil(unit.requirements.computeImprovementValue(
+          unit.time * newCount,
+          improvement.moreUnitBuildSpeed,
+          improvementStep,
+          false
+        ));
+        unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
+        this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
       });
-    }
+    });
     return unit;
   }
 
@@ -95,7 +96,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    */
   public registerUnitBuild(unit: Unit, count: number): void {
     let params: HttpParams = new HttpParams();
-    unit = this._doComputeRequiredResources(unit, false, count);
     params = params.append('planetId', this._selectedPlanet.id.toString());
     params = params.append('unitId', unit.id.toString());
     params = params.append('count', count.toString());
