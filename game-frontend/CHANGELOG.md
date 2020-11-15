@@ -1,4 +1,9 @@
 # OWGE changelog
+
+v0.9.13 (latest)
+=================
+* __Fix:__ [Deployments stopped working due to performance improvement #352](https://github.com/KevinGuancheDarias/owge/issues/352)  
+
 v0.9.12 (2020-11-10 19:59)
 ===========================
 * __Improvement:__ [Display a upgrade button in the unit requirements screen #338](https://github.com/KevinGuancheDarias/owge/issues/338)  
