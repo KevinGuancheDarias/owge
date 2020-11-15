@@ -1,29 +1,30 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
+import java.util.Map;
+import java.util.function.Function;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
-import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
+import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 
 @RestController
 @RequestMapping("game/user")
 @ApplicationScope
-public class UserRestService {
+public class UserRestService implements SyncSource {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
 
-	@Autowired
-	private ImprovementBo improvementBo;
-
-	@RequestMapping(value = "exists", method = RequestMethod.GET)
+	@GetMapping("exists")
 	public Object exists() {
 		return userStorageBo.exists(userStorageBo.findLoggedIn().getId());
 	}
@@ -34,19 +35,22 @@ public class UserRestService {
 	 * @return If everything well ok, returns true
 	 * @author Kevin Guanche Darias
 	 */
-	@RequestMapping(value = "subscribe", method = RequestMethod.GET)
+	@GetMapping("subscribe")
 	public Object subscribe(@RequestParam("factionId") Integer factionId) {
 		return userStorageBo.subscribe(factionId);
 	}
 
-	@GetMapping("findData")
-	public Object findData() {
-		return userStorageBo.findData(userStorageBo.findLoggedInWithDetails());
+	@Override
+	public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
+		return SyncHandlerBuilder.create().withHandler("user_data_change", this::findData).build();
 	}
 
-	@GetMapping("improvements")
-	public GroupedImprovement findImprovements() {
-		return improvementBo.findUserImprovement(userStorageBo.findLoggedInWithDetails(false));
+	private UserStorageDto findData(UserStorage user) {
+		UserStorage withDetails = userStorageBo.findById(user.getId());
+		UserStorageDto retVal = userStorageBo.findData(withDetails);
+		retVal.getImprovements().getUnitTypesUpgrades().forEach(current -> {
+			current.getUnitType().setSpeedImpactGroup(null);
+		});
+		return retVal;
 	}
-
 }

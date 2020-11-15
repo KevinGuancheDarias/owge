@@ -9,6 +9,23 @@
 export class AsyncCollectionUtil {
 
 
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.6
+     * @static
+     * @template T
+     * @param collection
+     * @param action
+     */
+    public static async forEach<T>(collection: T[], action: (entry: T) => Promise<void>) {
+        for (const entry of collection) {
+            await action(entry);
+        }
+    }
+
     /**
      *
      *

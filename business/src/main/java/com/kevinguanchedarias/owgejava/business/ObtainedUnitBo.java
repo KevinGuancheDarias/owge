@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	@Autowired
 	private SocketIoService socketIoService;
+
+	@Autowired
+	private transient AsyncRunnerBo asyncRunnerBo;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -113,7 +117,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public boolean hasUnitsInPlanet(Integer userId, Long planetId) {
-		return repository.countByUserIdAndSourcePlanetId(userId, planetId) > 0;
+		return repository.countByUserIdAndSourcePlanetIdAndMissionIsNull(userId, planetId) > 0;
 	}
 
 	public List<ObtainedUnit> findByMissionId(Long missionId) {
@@ -259,8 +263,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	@Transactional
 	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnitDto retVal;
-		ObtainedUnit obtainedUnit = saveWithSubtraction(findByIdOrDie(obtainedUnitDto.getId()),
-				obtainedUnitDto.getCount(), handleImprovements);
+		ObtainedUnit unitBeforeDeletion = findByIdOrDie(obtainedUnitDto.getId());
+		ObtainedUnit obtainedUnit = saveWithSubtraction(unitBeforeDeletion, obtainedUnitDto.getCount(),
+				handleImprovements);
 		if (obtainedUnit != null) {
 			retVal = new ObtainedUnitDto();
 			retVal.dtoFromEntity(obtainedUnit);
@@ -268,6 +273,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 			retVal = null;
 		}
 		Integer userId = obtainedUnitDto.getUserId();
+		if (unitBeforeDeletion.getUnit().getEnergy() > 0) {
+			userStorageBo.emitUserData(unitBeforeDeletion.getUser());
+		}
 		socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId));
 		emitObtainedUnitChange(userId);
 		return retVal;
@@ -281,8 +289,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void emitObtainedUnitChange(Integer userId) {
-		socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
-				() -> toDto(findDeployedInUserOwnedPlanets(userId)));
+		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+			socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
+					() -> toDto(findDeployedInUserOwnedPlanets(userId)));
+		}, 500);
 	}
 
 	/**
@@ -378,18 +388,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	/**
-	 * Finds all units that belong to logged user and are not involved in any
-	 * mission
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ObtainedUnit> findMyDeployedInUserOwnedPlanets() {
-		return findDeployedInUserOwnedPlanets(userStorageBo.findLoggedIn().getId());
-	}
-
-	/**
 	 * Finds all units that belong to given user and are not involved in any mission
 	 *
 	 * @param userId
@@ -411,9 +409,26 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 */
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
+		List<String> allowedMissions = new ArrayList<>();
+		allowedMissions.add(MissionType.CONQUEST.name());
 		retVal.addAll(repository.findBySourcePlanetIdAndMissionIsNull(attackedPlanet.getId()));
-		retVal.addAll(repository.findByTargetPlanetId(attackedPlanet.getId()));
+		retVal.addAll(repository.findByTargetPlanetIdAndMissionTypeCode(attackedPlanet.getId(),
+				MissionType.DEPLOYED.toString()));
+		retVal.addAll(repository.findByTargetPlanetIdWhereReferencePercentageTimePassed(attackedPlanet.getId(), 0.1d,
+				allowedMissions, new Date()));
 		return retVal;
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @param relatedPlanet
+	 * @return
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean areUnitsInvolved(UserStorage user, Planet relatedPlanet) {
+		return repository.areUnitsInvolved(user.getId(), user.getAlliance(), relatedPlanet.getId());
 	}
 
 	public Long deleteBySourcePlanetIdAndMissionIdNull(Planet sourcePlanet) {
@@ -459,6 +474,17 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 			}
 		}
 		return savedUnit;
+	}
+
+	/**
+	 *
+	 * @param missionIds
+	 * @return
+	 * @since 0.9.1
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByMissionIn(List<Long> missionIds) {
+		return repository.findByMissionIdIn(missionIds);
 	}
 
 	public Double findConsumeEnergyByUser(UserStorage user) {
@@ -539,5 +565,17 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	private UnitType findMaxShareCountRoot(UnitType type) {
 		return type.getShareMaxCount() == null ? type : findMaxShareCountRoot(type.getShareMaxCount());
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param targetPlanet
+	 * @param missionType
+	 * @return
+	 */
+	public List<ObtainedUnit> findByUserIdAndTargetPlanetAndMissionTypeCode(Integer userId, Planet targetPlanet,
+			MissionType missionType) {
+		return repository.findByUserIdAndTargetPlanetAndMissionTypeCode(userId, targetPlanet, missionType.name());
 	}
 }

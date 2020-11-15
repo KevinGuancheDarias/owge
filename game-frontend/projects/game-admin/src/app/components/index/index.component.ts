@@ -11,6 +11,8 @@ import { take } from 'rxjs/operators';
 })
 export class IndexComponent {
 
+  public runningHangMissions = false;
+
   constructor(private _loadingService: LoadingService, private _universeGameService: UniverseGameService) { }
 
 
@@ -29,5 +31,29 @@ export class IndexComponent {
     } else {
       alert('Clever decision!!!!!!');
     }
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.8
+   */
+  public notifyFrontendVersionUpdate(): void {
+    this._universeGameService.requestWithAutorizationToContext('admin', 'post', 'system/notify-updated-version', 'true')
+      .pipe(take(1)).toPromise();
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.9
+   */
+  public async runHangMissions(): Promise<void> {
+    this.runningHangMissions = true;
+    await this._universeGameService.requestWithAutorizationToContext('admin', 'post', 'system/run-hang-missions', 'true')
+      .pipe(take(1)).toPromise();
+    this.runningHangMissions = false;
   }
 }

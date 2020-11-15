@@ -121,7 +121,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public boolean isUnlocked(UserStorage user, ObjectRelation relation) {
-		return repository.existsByRelation(relation);
+		return repository.existsByUserAndRelation(user, relation);
 	}
 
 	@Override

@@ -23,8 +23,6 @@ interface EntriesWithVisited extends TutorialSectionEntry {
 @Injectable()
 export class TutorialService extends AbstractWebsocketApplicationHandler {
 
-    private _offlineTutorialStore: StorageOfflineHelper<TutorialSectionEntry[]>;
-    private _offlineVisitedEntriesStore: StorageOfflineHelper<number[]>;
     private _store: TutorialStore = new TutorialStore;
     private _entries: EntriesWithVisited[];
     private _ready: Subject<boolean> = new ReplaySubject(1);
@@ -33,14 +31,13 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
 
     public constructor(
         private _universeGameService: UniverseGameService,
-        private _wsEventCacheService: WsEventCacheService,
-        private _universeCacheManagerService: UniverseCacheManagerService,
         private _loadingService: LoadingService,
         router: Router
     ) {
         super();
         this._eventsMap = {
-            visited_tutorial_entry_change: '_onVisitedTutorialEntryChange'
+            visited_tutorial_entry_change: '_onVisitedTutorialEntryChange',
+            tutorial_entries_change: '_onEntriesChange'
         };
         combineLatest(this._store.entries, this._store.visitedEntries, (entries, visitedEntries) => {
             if (entries && entries.length) {
@@ -86,31 +83,15 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
     }
 
     /**
-     * Triggers the tutorial when an event occurs
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public async triggerTutorial(): Promise<void> {
-        await this._waitReady();
-        if (this._activeRouterUrl) {
-            this._applicableEntries.next(this._entries.filter(entry =>
-                !entry.isVisited
-                && (!entry.htmlSymbol.sectionFrontendPath || entry.htmlSymbol.sectionFrontendPath === this._activeRouterUrl)
-            ));
-        }
-    }
-
-    /**
      * Triggers the tutorial after render (Angular doesn't provide a way to know such thing, so let's just wait)
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @param [tickTime=300]
+     * @param [tickTime=1300]
      * @returns
      */
     public triggerTutorialAfterRender(tickTime = 300): Promise<void> {
-        return new Promise(resolve => window.setTimeout(() => this.triggerTutorial().then(resolve), tickTime));
+        return new Promise(resolve => window.setTimeout(() => this._triggerTutorial().then(resolve), tickTime));
     }
 
     /**
@@ -129,61 +110,13 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
         ).toPromise());
     }
 
-    /**
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @returns
-     */
-    public async createStores(): Promise<void> {
-        this._offlineTutorialStore = this._universeCacheManagerService.getStore('tutorial.entries');
-        this._offlineVisitedEntriesStore = this._universeCacheManagerService.getStore('tutorial.visited_entries');
-    }
-
-    /**
-     *
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @returns
-     */
-    public async workaroundSync(): Promise<void> {
-        await this._onEntriesChange(await this._wsEventCacheService.findFromCacheOrRun(
-            'tutorial_entries_change',
-            this._offlineTutorialStore,
-            async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'tutorial/entries').toPromise()
-        ));
-        await this._onVisitedTutorialEntryChange(await this._wsEventCacheService.findFromCacheOrRun(
-            'visited_tutorial_entry_change',
-            this._offlineVisitedEntriesStore,
-            async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'tutorial/visited-entries')
-                .toPromise()
-        ));
-    }
-
-    /**
-     *
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @returns
-     */
-    public async workaroundInitialOffline(): Promise<void> {
-        await Promise.all([
-            this._offlineTutorialStore.doIfNotNull(content => this._onEntriesChange(content)),
-            this._offlineVisitedEntriesStore.doIfNotNull(visited => this._onVisitedTutorialEntryChange(visited))
-        ]);
-    }
-
     protected async _onEntriesChange(entries: TutorialSectionEntry[]): Promise<void> {
-        await this._offlineTutorialStore.save(entries);
         this._store.entries.next(entries);
     }
 
     protected async _onVisitedTutorialEntryChange(content: number[]): Promise<void> {
-        await this._offlineVisitedEntriesStore.save(content);
         this._store.visitedEntries.next(content);
-        await this.triggerTutorial();
+        this._triggerTutorial();
     }
 
     private async _waitReady(): Promise<void> {
@@ -192,4 +125,15 @@ export class TutorialService extends AbstractWebsocketApplicationHandler {
             take(1)
         ).toPromise();
     }
+
+    private async _triggerTutorial(): Promise<void> {
+        await this._waitReady();
+        if (this._activeRouterUrl) {
+            this._applicableEntries.next(this._entries.filter(entry =>
+                !entry.isVisited
+                && (!entry.htmlSymbol.sectionFrontendPath || entry.htmlSymbol.sectionFrontendPath === this._activeRouterUrl)
+            ));
+        }
+    }
+
 }

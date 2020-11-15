@@ -51,6 +51,7 @@ export abstract class AbstractWebsocketApplicationHandler {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      * @returns
+     * @deprecated As of 0.9.6 this method is not required
      */
     public async workaroundSync(): Promise<void> {
         // NOTICE: Override to handle the sync call
@@ -109,7 +110,7 @@ export abstract class AbstractWebsocketApplicationHandler {
     public async execute(eventName: string, content: any): Promise<any> {
         const functionName: string = this.getHandlerMethod(eventName);
         if (functionName && typeof this[functionName] === 'function') {
-            this[functionName](content);
+            await this[functionName](content);
         } else {
             throw new ProgrammingError('Handler for ' + eventName + ' NOT found in ' + this.constructor.name);
         }

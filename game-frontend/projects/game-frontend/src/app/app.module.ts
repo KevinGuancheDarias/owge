@@ -75,6 +75,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { PlanetListComponent } from './components/planet-list/planet-list.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
+import { TwitchService } from './services/twitch.service';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -195,7 +196,8 @@ export const APP_ROUTES: Routes = [
     UnitTypeService,
     UpgradeTypeService,
     MissionService,
-    TimeSpecialService
+    TimeSpecialService,
+    TwitchService
   ],
   bootstrap: [AppComponent]
 })
@@ -237,7 +239,8 @@ export class AppModule {
           this._injector.get(ReportService),
           this._injector.get(TimeSpecialService),
           this._injector.get(UpgradeTypeService),
-          this._injector.get(PlanetListService)
+          this._injector.get(PlanetListService),
+          this._injector.get(TwitchService)
         );
         this._universeGameService.isInGame().subscribe(async isInGame => {
           const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();

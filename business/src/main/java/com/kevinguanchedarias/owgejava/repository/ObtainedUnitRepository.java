@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.LockModeType;
@@ -11,8 +12,10 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 
+import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -73,7 +76,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
 	public List<ObtainedUnit> findByUserIdAndSourcePlanetIdAndMissionIdIsNull(Integer userId, Long planetId);
 
-	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE 1=1 AND (ou.mission.id IS NULL AND ou.sourcePlanet.id = ?2) OR (ou.targetPlanet.id = ?2 AND ou.mission.id IS NOT NULL AND ou.mission.id != ?1 ) ")
+	@Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE 1=1 AND (ou.mission.id IS NULL AND ou.sourcePlanet.id = ?2) OR (ou.targetPlanet.id = ?2 AND ou.mission.id IS NOT NULL AND ou.mission.id != ?1 AND ou.mission.type.code = 'DEPLOYED' ) ")
 	public List<ObtainedUnit> findByExplorePlanet(Long exploreMissionId, Long planetId);
 
 	public List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
@@ -150,5 +153,69 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findByUnit(Unit unit);
+
+	/**
+	 *
+	 * @param userId
+	 * @param targetPlanet
+	 * @param name
+	 * @return
+	 */
+	public List<ObtainedUnit> findByUserIdAndTargetPlanetAndMissionTypeCode(Integer userId, Planet targetPlanet,
+			String name);
+
+	/**
+	 *
+	 * @param missionIds
+	 * @return
+	 * @since 0.9.1
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByMissionIdIn(List<Long> missionIds);
+
+	/**
+	 *
+	 * @param id
+	 * @param missionType
+	 * @return
+	 * @since 0.9.4
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<ObtainedUnit> findByTargetPlanetIdAndMissionTypeCode(Long id, String missionType);
+
+	/**
+	 * finds units according to #316
+	 *
+	 * @param planetId
+	 * @param referenceRationalTime from 0 to 1
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("SELECT ou FROM ObtainedUnit ou WHERE ou.targetPlanet.id = ?1 AND ou.mission IS NOT NULL AND ou.mission.type.code IN (?3) AND ou.mission.requiredTime * ?2  < TIME_TO_SEC(TIMEDIFF(?4, ou.mission.startingDate))  ")
+	public List<ObtainedUnit> findByTargetPlanetIdWhereReferencePercentageTimePassed(Long planetId,
+			Double referenceRationalTime, List<String> allowedMissions, Date nowReference);
+
+	/**
+	 *
+	 * @param userId
+	 * @param alliance or null
+	 * @param id3
+	 * @return
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("SELECT case when count(ou)> 0 then true else false end FROM ObtainedUnit ou WHERE ou.targetPlanet.id = ?3 AND ou.mission.type.code = 'DEPLOYED' AND ou.user.id != ?1 AND (ou.user.alliance IS NULL OR ?2 IS NULL OR ou.user.alliance != ?2)")
+	public boolean areUnitsInvolved(Integer userId, Alliance alliance, Long relatedPlanetId);
+
+	/**
+	 *
+	 * @param userId
+	 * @param planetId
+	 * @return
+	 * @since 0.9.10
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public int countByUserIdAndSourcePlanetIdAndMissionIsNull(Integer userId, Long planetId);
 
 }

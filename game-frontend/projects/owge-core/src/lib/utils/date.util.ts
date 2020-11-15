@@ -65,7 +65,9 @@ export class DateUtil {
      * @param input Object that has pendingMillis and expects a browserComputedTerminationDate to be "mutated" from here
      */
     public static computeLocalTerminationDate(input: { pendingMillis: number, browserComputedTerminationDate?: Date }): void {
-        input.browserComputedTerminationDate = new Date(Date.now() + input.pendingMillis);
+        if (!input.browserComputedTerminationDate) {
+            input.browserComputedTerminationDate = new Date(Date.now() + input.pendingMillis);
+        }
     }
 
     private constructor() {

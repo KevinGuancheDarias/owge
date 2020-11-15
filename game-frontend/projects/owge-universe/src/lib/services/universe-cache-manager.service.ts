@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, JwtTokenUtil } from '@owge/core';
+import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, JwtTokenUtil, LoggerHelper } from '@owge/core';
 import { filter, map, take } from 'rxjs/operators';
 import { UserWithFaction } from '@owge/faction';
 
@@ -16,6 +16,8 @@ import { UserStorage } from '../storages/user.storage';
  */
 @Injectable()
 export class UniverseCacheManagerService extends AbstractWebsocketApplicationHandler {
+    private static readonly _LOG: LoggerHelper = new LoggerHelper(UniverseCacheManagerService.name);
+
     private _universePrefix;
     private _stores: StorageOfflineHelper<any>[] = [];
     private _userId: number;
@@ -89,8 +91,10 @@ export class UniverseCacheManagerService extends AbstractWebsocketApplicationHan
         if (!this._userId) {
             this._log.warn('Getting user shared cache, maybe invoking before workaroundSync');
         }
+        const storeKey = this._universePrefix + this._userId + '_' + storeName;
+        UniverseCacheManagerService._LOG.debug(`Getting store with key ${storeKey}`);
         const retVal: StorageOfflineHelper<T> = new StorageOfflineHelper(
-            this._universePrefix + this._userId + '_' + storeName,
+            storeKey,
             storeType
         );
         this._stores.push(retVal);

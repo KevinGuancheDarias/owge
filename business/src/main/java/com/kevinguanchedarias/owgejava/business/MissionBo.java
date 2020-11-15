@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
@@ -60,13 +60,15 @@ public class MissionBo extends AbstractMissionBo {
 	@Autowired
 	private transient ConfigurationBo configurationBo;
 
+	@Autowired
+	private transient AsyncRunnerBo asyncRunnerBo;
+
 	@PostConstruct
 	public void init() {
 		improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
 			if (improvement.getUnitTypesUpgrades().stream()
 					.anyMatch(current -> ImprovementTypeEnum.AMOUNT.name().equals(current.getType()))) {
-				socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE,
-						() -> unitTypeBo.findUnitTypesWithUserInfo(userId));
+				unitTypeBo.emitUserChange(userId);
 			}
 		});
 		improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) -> {
@@ -109,9 +111,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
 			resourceRequirements.setRequiredTime(3D);
 		} else {
-			resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
-					+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed()));
+			resourceRequirements
+					.setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+							improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
 		}
 		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
 				obtainedUpgrade.getUpgrade().getId());
@@ -121,6 +123,7 @@ public class MissionBo extends AbstractMissionBo {
 		missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
 
 		Mission mission = new Mission();
+		mission.setStartingDate(new Date());
 		mission.setMissionInformation(missionInformation);
 		attachRequirementstoMission(mission, resourceRequirements);
 		mission.setType(findMissionType(MissionType.LEVEL_UP));
@@ -134,9 +137,19 @@ public class MissionBo extends AbstractMissionBo {
 		scheduleMission(mission);
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(mission);
-			socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> findRunningLevelUpMission(userId));
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			emitRunningUpgrade(user);
+			emitMissionCountChange(userId);
 		});
+	}
+
+	/**
+	 *
+	 * @param user
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitRunningUpgrade(UserStorage user) {
+		socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> findRunningLevelUpMission(user.getId()));
 	}
 
 	/**
@@ -164,7 +177,7 @@ public class MissionBo extends AbstractMissionBo {
 				entityManager.refresh(obtainedUpgrade);
 				socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
 				obtainedUpgradeBo.emitObtainedChange(userId);
-				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+				emitMissionCountChange(userId);
 			});
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
@@ -196,15 +209,16 @@ public class MissionBo extends AbstractMissionBo {
 		if (!resourceRequirements.canRun(user, userStorageBo)) {
 			throw new SgtMissionRegistrationException("No enough resources!");
 		}
-		resourceRequirements.setRequiredTime(resourceRequirements.getRequiredTime() * 2
-				+ improvementBo.computePlusPercertage((float) -resourceRequirements.getRequiredTime(),
-						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed()));
+		resourceRequirements
+				.setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
 		MissionInformation missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
 		missionInformation.setValue(planetId.doubleValue());
 
 		Mission mission = new Mission();
+		mission.setStartingDate(new Date());
 		mission.setMissionInformation(missionInformation);
 		if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
 			resourceRequirements.setRequiredTime(3D);
@@ -232,12 +246,32 @@ public class MissionBo extends AbstractMissionBo {
 		TransactionUtil.doAfterCommit(() -> {
 			entityManager.refresh(obtainedUnit);
 			entityManager.refresh(mission);
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
-			socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
-			socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> unitTypeBo.findUnitTypesWithUserInfo(user));
+			emitMissionCountChange(userId);
+			emitUnitBuildChange(userId);
+			unitTypeBo.emitUserChange(userId);
 		});
 
 		return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUnitBuildChange(Integer userId) {
+		socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitMissionCountChange(Integer userId) {
+		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
 	}
 
 	public RunningUpgradeDto findRunningLevelUpMission(Integer userId) {
@@ -261,17 +295,6 @@ public class MissionBo extends AbstractMissionBo {
 		} else {
 			return null;
 		}
-	}
-
-	/**
-	 * Finds all build missions for logged user
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<RunningUnitBuildDto> findMyBuildMissions() {
-		return findBuildMissions(userStorageBo.findLoggedIn().getId());
 	}
 
 	/**
@@ -369,7 +392,7 @@ public class MissionBo extends AbstractMissionBo {
 	public void cancelUpgradeMission(Integer userId) {
 		cancelMission(findByUserIdAndTypeCode(userId, MissionType.LEVEL_UP));
 		socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, () -> null);
-		socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+		emitMissionCountChange(userId);
 	}
 
 	@Transactional
@@ -395,11 +418,13 @@ public class MissionBo extends AbstractMissionBo {
 				if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
 					improvementBo.clearSourceCache(user, obtainedUnitBo);
 				}
-				socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-				socketIoService.sendMessage(userId, UNIT_BUILD_MISSION_CHANGE, () -> findBuildMissions(userId));
-				socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+				emitUnitBuildChange(userId);
+				emitMissionCountChange(userId);
 			});
+			asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+				socketIoService.sendMessage(user.getId(), UNIT_OBTAINED_CHANGE,
+						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
+			}, 500);
 		} else {
 			LOG.debug(MISSION_NOT_FOUND);
 		}
@@ -411,26 +436,31 @@ public class MissionBo extends AbstractMissionBo {
 		Integer userId = user.getId();
 		cancelMission(missionId);
 		TransactionUtil.doAfterCommit(() -> {
-			socketIoService.sendMessage(user.getId(), UNIT_TYPE_CHANGE,
-					() -> unitTypeBo.findUnitTypesWithUserInfo(user));
-			socketIoService.sendMessage(userId, MISSIONS_COUNT_CHANGE, () -> countUserMissions(userId));
+			unitTypeBo.emitUserChange(userId);
+			emitMissionCountChange(userId);
 		});
 	}
 
 	/**
-	 * Returns all running missions by the logged in user
 	 *
-	 * @return
+	 * @param missionId
+	 * @param missionType
+	 * @since 0.9.9
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public List<UnitRunningMissionDto> myFindUserRunningMissions() {
-		return findUserRunningMissions(userStorageBo.findLoggedIn().getId());
-	}
-
-	@Transactional
-	public List<UnitRunningMissionDto> myFindEnemyRunningMissions() {
-		return findEnemyRunningMissions(userStorageBo.findLoggedIn());
+	public void runMission(Long missionId, MissionType missionType) {
+		switch (missionType) {
+		case BUILD_UNIT:
+			processBuildUnit(missionId);
+			break;
+		case LEVEL_UP:
+			processLevelUpAnUpgrade(missionId);
+			break;
+		default:
+			LOG.warn("Not a upgrade level mission nor unit build");
+			break;
+		}
 	}
 
 	/**

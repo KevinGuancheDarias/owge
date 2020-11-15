@@ -19,7 +19,8 @@ export abstract class AbstractSidebarComponent {
     textIndex: string,
     pathOrAction: string | Function,
     icon: string,
-    isConnectionRequired = false
+    isConnectionRequired = false,
+    cssClassesObject?: { [key: string]: boolean }
   ): MenuRoute {
     const retVal: MenuRoute = {
       text: 'Loading...',
@@ -32,6 +33,7 @@ export abstract class AbstractSidebarComponent {
       retVal.path = pathOrAction;
     }
     this._internalTranslateService.get(textIndex).subscribe(value => retVal.text = value);
+    retVal.cssClasses = cssClassesObject;
     return retVal;
   }
 }

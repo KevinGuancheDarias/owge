@@ -11,8 +11,10 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
+import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 
 public class RealizationJob extends QuartzJobBean {
 	private static final Logger LOG = Logger.getLogger(RealizationJob.class);
@@ -39,48 +41,33 @@ public class RealizationJob extends QuartzJobBean {
 		Thread.currentThread().setName("OWGE_BACKGROUND_" + missionId);
 		injectSpringBeans(context);
 		Mission mission = missionBo.findById(missionId);
-		MissionType missionType = MissionType.valueOf(mission.getType().getCode());
 		if (mission != null && !mission.getResolved()) {
+			MissionType missionType = MissionType.valueOf(mission.getType().getCode());
 			try {
 				LOG.debug("Executing mission id " + mission.getId() + " of type "
 						+ MissionType.valueOf(mission.getType().getCode()));
 				switch (missionType) {
 				case BUILD_UNIT:
-					missionBo.processBuildUnit(missionId);
-					break;
 				case LEVEL_UP:
-					missionBo.processLevelUpAnUpgrade(missionId);
-					break;
-				case EXPLORE:
-					unitMissionBo.processExplore(missionId);
-					break;
-				case RETURN_MISSION:
-					unitMissionBo.proccessReturnMission(missionId);
-					break;
-				case GATHER:
-					unitMissionBo.processGather(missionId);
-					break;
-				case ESTABLISH_BASE:
-					unitMissionBo.processEstablishBase(missionId);
-					break;
-				case ATTACK:
-					unitMissionBo.processAttack(missionId, true);
-					break;
-				case COUNTERATTACK:
-					unitMissionBo.processCounterattack(missionId);
-					break;
-				case CONQUEST:
-					unitMissionBo.processConquest(missionId);
-					break;
-				case DEPLOY:
-					unitMissionBo.proccessDeploy(missionId);
+					missionBo.runMission(missionId, missionType);
 					break;
 				default:
-					throw new CommonException("Unimplemented mission type " + mission.getType().getCode());
+					unitMissionBo.runUnitMission(missionId, missionType);
 				}
 			} catch (Exception e) {
 				LOG.error("Unexpected fatal exception when executing mission " + missionId, e);
-				missionBo.retryMissionIfPossible(missionId);
+				missionBo.retryMissionIfPossible(missionId, missionType);
+				UserStorage user = mission.getUser();
+				if (missionType.isUnitMission()) {
+					unitMissionBo.emitMissions(user.getId());
+					unitMissionBo.emitEnemyMissionsChange(mission);
+				} else if (missionType == MissionType.LEVEL_UP) {
+					missionBo.emitRunningUpgrade(user);
+				} else if (missionType == MissionType.BUILD_UNIT) {
+					missionBo.emitUnitBuildChange(user.getId());
+				} else {
+					throw new ProgrammingException("It's impossible!!!!");
+				}
 			}
 		}
 	}

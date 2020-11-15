@@ -8,6 +8,14 @@
           <div class="owge card" *ngFor="let upgradeRequirement of unit.requirements" [ngClass]="{ 'owge-green-shadow' : upgradeRequirement.reached, 'owge-red-shadow' : !upgradeRequirement.reached}">
             <img [src]="upgradeRequirement.upgrade.imageUrl" />
             <div class="upgrade-level">Lvl {{ upgradeRequirement.level }}</div>
+            <div class="fast-upgrade-div">
+              <a href="javascript:void(0)" *ngIf="!runningUpgrade || runningUpgrade.upgrade.id !== upgradeRequirement.upgrade.id" (click)="clickLevelUp(upgradeRequirement.upgrade)" class="fast-upgrade" [class.available]="!runningUpgrade && obtainedUpgrades[upgradeRequirement.upgrade.id].requirements.runnable">
+                <i class="fa fa-flask"></i>
+              </a>
+              <owge-widgets-circular-percentage *ngIf="runningUpgrade && runningUpgrade.upgrade.id === upgradeRequirement.upgrade.id" (click)="cancelLevelUp()" [percentage]="runningUpgrade.completedPercentage" [size]="30">
+                <i  class="fa fa-flask"></i>
+              </owge-widgets-circular-percentage>
+            </div>
           </div>
         </div>
       </ng-template>

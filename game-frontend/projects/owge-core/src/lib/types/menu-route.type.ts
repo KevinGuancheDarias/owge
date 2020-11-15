@@ -60,4 +60,11 @@ export interface MenuRoute {
      * @since 0.9.0
      */
     isConnectionRequired?: boolean;
+
+    /**
+     * css classes to append to the div
+     *
+     * @since 0.9.1
+     */
+    cssClasses?: { [key: string]: boolean };
 }

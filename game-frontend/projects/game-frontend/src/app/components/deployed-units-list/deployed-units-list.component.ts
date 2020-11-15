@@ -1,11 +1,15 @@
 import { Component, Input, OnChanges, OnInit, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
-import { UnitType } from '@owge/universe';
+import { ObtainedUnit, UnitType } from '@owge/universe';
 
-import { ObtainedUnit } from '../../shared-pojo/obtained-unit.pojo';
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
 import { UnitTypeService } from '../../services/unit-type.service';
 import { ToastrService } from '@owge/core';
+
+interface UnitsForEachUser {
+  username: string;
+  obtainedUnits: ObtainedUnit[];
+}
 
 @Component({
   selector: 'app-deployed-units-list',
@@ -16,6 +20,8 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
 
   @Input()
   public obtainedUnits: ObtainedUnit[];
+
+  @Input() public showUsername = false;
 
   /**
    * If can select the unit to be used
@@ -54,6 +60,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   public selectedCounts: number[];
   public unitTypes: UnitType[] = [];
   public areAllSelected = false;
+  public unitsForEachUser: Array<UnitsForEachUser> = [];
 
   constructor(private _unitTypeService: UnitTypeService, private _toastrService: ToastrService) { }
 
@@ -65,6 +72,22 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     if (changes && changes.obtainedUnits.currentValue) {
       this.areAllSelected = false;
       this.selectedCounts = this.obtainedUnits.map(() => null);
+    }
+    if (changes && changes.showUsername?.currentValue && this.obtainedUnits) {
+      this.unitsForEachUser = [];
+      this.obtainedUnits.forEach(unit => {
+        const currentObject: UnitsForEachUser = this.unitsForEachUser.find(current => current.username === unit.username);
+        if (currentObject) {
+          currentObject.obtainedUnits.push(unit);
+        } else {
+          this.unitsForEachUser.push({
+            username: unit.username,
+            obtainedUnits: [
+              unit
+            ]
+          });
+        }
+      });
     }
   }
 

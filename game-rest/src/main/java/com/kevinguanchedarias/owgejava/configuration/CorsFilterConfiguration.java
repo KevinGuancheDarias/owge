@@ -41,6 +41,7 @@ class CorsFilterConfiguration extends WebSecurityConfigurerAdapter {
 		}
 		List<String> rootOriginList = new ArrayList<>();
 		rootOriginList.add("kevinguanchedarias.com");
+		rootOriginList.add("owge.net");
 		List<String> methodList = new ArrayList<>();
 		methodList.add("GET");
 		methodList.add("POST");

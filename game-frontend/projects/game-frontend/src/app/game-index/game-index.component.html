@@ -21,4 +21,26 @@
       </p>
     </div>
   </owge-core-loading>
+
+  <owge-core-loading [isReady]="unknownRunningMissions">
+    <h1 class="owge-title">{{ 'APP.INDEX.TITLE_UNKNOWN_MISSIONS' | translate }}</h1>
+    <div *ngIf="unknownRunningMissions" class="owge-card-list">
+      <app-list-running-missions [runningUnitMissions]="unknownRunningMissions" [displayUser]="true"
+        (missionDone)="findEnemyMissions()"></app-list-running-missions>
+      <p *ngIf="!unknownRunningMissions.length" class="owge-base-colors no-missions">
+        {{ 'APP.INDEX.NO_UNKNOWN_MISSIONS' | translate }}
+      </p>
+    </div>
+  </owge-core-loading>
+
+  <owge-core-loading [isReady]="alliesRunningMissions">
+    <h1 class="owge-title">{{ 'APP.INDEX.TITLE_ALLIES_MISSIONS' | translate }}</h1>
+    <div *ngIf="alliesRunningMissions" class="owge-card-list">
+      <app-list-running-missions [runningUnitMissions]="alliesRunningMissions" [displayUser]="true"
+        (missionDone)="findEnemyMissions()"></app-list-running-missions>
+      <p *ngIf="!alliesRunningMissions.length" class="owge-base-colors no-missions">
+        {{ 'APP.INDEX.NO_ALLIES_MISSIONS' | translate }}
+      </p>
+    </div>
+  </owge-core-loading>
 </div>

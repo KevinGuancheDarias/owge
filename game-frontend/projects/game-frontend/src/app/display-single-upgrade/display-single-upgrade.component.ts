@@ -3,7 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { User, ScreenDimensionsService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { Upgrade, UpgradeRunningMission, ObtainedUpgrade, UserStorage } from '@owge/universe';
+import { Upgrade, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
@@ -38,7 +38,8 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
     private _upgradeService: UpgradeService,
     private _translateService: TranslateService,
     private _userStore: UserStorage<User>,
-    private _screenDimensionsService: ScreenDimensionsService
+    private _screenDimensionsService: ScreenDimensionsService,
+    private _tutorialService: TutorialService
   ) {
     super();
     this.requireUser();
@@ -64,7 +65,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   }
 
   public updateSelectedUpgrade(selected: ObtainedUpgrade): void {
-    this._upgradeService.registerLevelUp(selected);
+    this._upgradeService.registerLevelUp(selected).subscribe(() => this._tutorialService.triggerTutorialAfterRender());
   }
 
   /**

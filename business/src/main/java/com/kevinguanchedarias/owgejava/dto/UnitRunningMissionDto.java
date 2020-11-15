@@ -32,6 +32,11 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
 		targetPlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getTargetPlanet());
 		UserStorage userEntity = mission.getUser();
 		user = new UserStorageDto();
+		if (userEntity.getAlliance() != null) {
+			AllianceDto alliance = new AllianceDto();
+			alliance.setId(userEntity.getAlliance().getId());
+			user.setAlliance(alliance);
+		}
 		user.setId(userEntity.getId());
 		user.setUsername(userEntity.getUsername());
 	}

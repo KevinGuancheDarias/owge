@@ -1,9 +1,6 @@
 <owge-core-loading [isReady]="building !== undefined" [ngClass]="{ 'compact-view' : isCompactView}">
   <ng-container *ngIf="unlockedUnits !== undefined">
-    <div *ngIf="!unlockedUnits.length" class="owge-base-colors no-units">You can't build any unit for now, please check the
-      requirements
-      tab
-    </div>
+    <div *ngIf="!unlockedUnits.length" class="owge-base-colors no-units">{{ 'APP.UNITS.UNLOCKED.NO_UNITS' | translate }}</div>
     <ng-container *ngFor="let unit of unlockedUnits">
       <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit)" [isCompactView]="isCompactView" [unit]="unit" [withBuildMode]="true" [building]="building"
         [defaultView]="'requirements'"></app-display-single-unit>

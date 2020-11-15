@@ -11,11 +11,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 @Entity
 @Table(name = "planets")
 public class Planet implements EntityWithId<Long> {
@@ -35,7 +30,6 @@ public class Planet implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "owner", nullable = true)
-	@Fetch(FetchMode.JOIN)
 	private UserStorage owner;
 
 	private Integer richness;
@@ -43,12 +37,10 @@ public class Planet implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "galaxy_id")
-	@Fetch(FetchMode.JOIN)
 	private Galaxy galaxy;
 
-	@OneToOne
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "special_location_id")
-	@Cascade({ CascadeType.MERGE, CascadeType.PERSIST })
 	private SpecialLocation specialLocation;
 
 	public Double findRationalRichness() {

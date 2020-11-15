@@ -20,6 +20,7 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	private PlanetDto homePlanetDto;
 	private AllianceDto alliance;
 	private GroupedImprovement improvements;
+	private Boolean canAlterTwitchState = false;
 
 	private Double computedPrimaryResourceGenerationPerSecond;
 	private Double computedSecondaryResourceGenerationPerSecond;
@@ -169,6 +170,24 @@ public class UserStorageDto implements DtoFromEntity<UserStorage> {
 	 */
 	public void setImprovements(GroupedImprovement improvements) {
 		this.improvements = improvements;
+	}
+
+	/**
+	 * @return the canAlterTwitchState
+	 * @since 0.9.5
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getCanAlterTwitchState() {
+		return canAlterTwitchState;
+	}
+
+	/**
+	 * @param canAlterTwitchState the canAlterTwitchState to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.5
+	 */
+	public void setCanAlterTwitchState(Boolean canAlterTwitchState) {
+		this.canAlterTwitchState = canAlterTwitchState;
 	}
 
 	public Double getComputedPrimaryResourceGenerationPerSecond() {

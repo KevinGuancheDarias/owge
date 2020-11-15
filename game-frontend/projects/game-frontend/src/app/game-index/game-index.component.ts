@@ -7,6 +7,7 @@ import { MissionService } from '../services/mission.service';
 import { UpgradeService } from '../service/upgrade.service';
 import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
 import { take } from 'rxjs/operators';
+import { UserWithAlliance } from '@owge/alliance';
 
 @Component({
   selector: 'app-game-index',
@@ -16,10 +17,12 @@ import { take } from 'rxjs/operators';
     './game-index.component.scss'
   ]
 })
-export class GameIndexComponent extends BaseComponent implements OnInit {
+export class GameIndexComponent extends BaseComponent<UserWithAlliance> implements OnInit {
 
-  public myUnitRunningMissions: UnitRunningMission[];
-  public enemyRunningMissions: UnitRunningMission[];
+  public myUnitRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public enemyRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public alliesRunningMissions: UnitRunningMission<UserWithAlliance>[];
+  public unknownRunningMissions: UnitRunningMission<UserWithAlliance>[];
   public runningUpgrade: UpgradeRunningMission;
   public relatedObtainedUpgrade: ObtainedUpgrade;
 
@@ -39,7 +42,7 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
         this.runningUpgrade = result;
         if (result) {
           this._upgradeService.findOneObtained(result.upgrade.id)
-            .pipe(take(1)).subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
+            .subscribe(obtainedUpgrade => this.relatedObtainedUpgrade = obtainedUpgrade);
         } else {
           this.relatedObtainedUpgrade = null;
         }
@@ -53,15 +56,28 @@ export class GameIndexComponent extends BaseComponent implements OnInit {
   }
 
   public findMyMissions(): void {
-    this._subscriptions.add(this._missionService.findMyRunningMissions().subscribe(myRunningMissions => {
+    this._subscriptions.add(this._missionService.findMyRunningMissions<UserWithAlliance>().subscribe(myRunningMissions => {
       this.myUnitRunningMissions = myRunningMissions.filter(current => this._missionService.isUnitMission(current));
-      this._tutorialService.triggerTutorial();
+      this._tutorialService.triggerTutorialAfterRender();
     }));
   }
 
   public findEnemyMissions(): void {
-    this._subscriptions.add(this._missionService.findEnemyRunningMissions().subscribe(
-      result => this.enemyRunningMissions = result
+    this._subscriptions.add(this._missionService.findEnemyRunningMissions<UserWithAlliance>().subscribe(
+      result => {
+        this.alliesRunningMissions = [];
+        this.enemyRunningMissions = [];
+        this.unknownRunningMissions = [];
+        result.forEach(mission => {
+          if (mission.user && mission.user.alliance && mission.user?.alliance?.id === this.userData?.alliance?.id) {
+            this.alliesRunningMissions.push(mission);
+          } else if (mission.user) {
+            this.enemyRunningMissions.push(mission);
+          } else {
+            this.unknownRunningMissions.push(mission);
+          }
+        });
+      }
     ));
   }
 }

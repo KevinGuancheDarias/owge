@@ -36,3 +36,22 @@
         margin-top: calc(50vh - 10px);
     }
 }
+
+#twitch-display {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background-color: black;
+}
+
+#twitch-display, .twitch-scroll {
+    width: 300px;
+    min-height: 200px;
+}
+
+@media (min-width:768px) and (min-height: 760px) {
+    #twitch-display, .twitch-scroll {
+        width: 400px;
+        height: 300px;
+    }
+}

@@ -2,14 +2,14 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
 
 @Service
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
@@ -70,6 +70,17 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 			}
 		}
 		return BaseBo.super.save(faction);
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Faction findByUser(Integer userId) {
+		return factionRepository.findOneByUsersId(userId);
 	}
 
 	private void handleLazyFetch(boolean lazyFetch, List<Faction> factions) {

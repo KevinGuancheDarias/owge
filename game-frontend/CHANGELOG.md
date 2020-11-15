@@ -1,10 +1,118 @@
 # OWGE changelog
 
 v0.10.0 (latest)
+=================
 * [class=Admin] __Feature:__ [As an admin I want to add invisible attribute to some units #23](https://github.com/KevinGuancheDarias/owge/issues/23)  
 * [class=Admin] __Feature:__ [As an admin I want to define units that can bypass unit shields #269](https://github.com/KevinGuancheDarias/owge/issues/269)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
+
+v0.9.13 (2020-11-15 13:33)
+===========================
+* __Improvement:__ [Change improvement formula for upgrades and units, so it's reasonable stay collecting specials #355](https://github.com/KevinGuancheDarias/owge/issues/355)  
+* __Fix:__ [Not able to create a new account #354](https://github.com/KevinGuancheDarias/owge/issues/354)
+* __Fix:__ [Sometimes the ships go to the same speed than the soldiers #351](https://github.com/KevinGuancheDarias/owge/issues/351)  
+* __Fix:__ [Speed sometimes doesn't work as expected, longt times are displayed #353](https://github.com/KevinGuancheDarias/owge/issues/353)  
+* __Fix:__ [Deployments stopped working due to performance improvement #352](https://github.com/KevinGuancheDarias/owge/issues/352)  
+
+v0.9.12 (2020-11-10 19:59)
+===========================
+* __Improvement:__ [Display a upgrade button in the unit requirements screen #338](https://github.com/KevinGuancheDarias/owge/issues/338)  
+* __Fix:__ [No unlocked units, and no units in planet string is not multi language #350](https://github.com/KevinGuancheDarias/owge/issues/350)  
+* __Fix:__ [Conquest and Eb missions fail sometimes #349](https://github.com/KevinGuancheDarias/owge/issues/349)  
+* [class=Advanced]__Improvement:__ Greatly improve database queries performance
+* __Improvement:__ Reduce bandwith usage, reduce sync time, and reduce consumed battery
+
+v0.9.11 (2020-11-08 21:24)
+===========================
+* __Fix:__ [Cross-galaxies is not working properly, wrong behavior #337](https://github.com/KevinGuancheDarias/owge/issues/337)  (Visual only) 
+* __Fix:__ [Mission report doesn't display that there is not units, instead is shown as empty #347](https://github.com/KevinGuancheDarias/owge/issues/347)  
+* __Fix:__ [Not able to leave planets #348](https://github.com/KevinGuancheDarias/owge/issues/348)  
+v0.9.10 (2020-11-08 19:10)
+===========================
+* __Improvement:__ [Distinct between the units of allies and enemies #340](https://github.com/KevinGuancheDarias/owge/issues/340)
+* __Improvement:__ [Show the owners of each unit in the exploration report #339](https://github.com/KevinGuancheDarias/owge/issues/339)  
+* __Fix:__ [When there are too many missions in the screen, it displays wrongly in desktop mode #341](https://github.com/KevinGuancheDarias/owge/issues/341)  
+* __Improvement:__ [Allow to send conquest even if your max planets limit has been reached #342](https://github.com/KevinGuancheDarias/owge/issues/342)  
+* __Fix:__ [Conquest fails when there are no survivors from the original conquest mission #346](https://github.com/KevinGuancheDarias/owge/issues/346)
+* __Improvement:__ [Allow to leave a planet even if missions are going/returning, only disallow if there is a build mission in the planet #343](https://github.com/KevinGuancheDarias/owge/issues/343)  
+* __Fix:__ [Cross-galaxies is not working properly, wrong behavior #337](https://github.com/KevinGuancheDarias/owge/issues/337)  
+* __Fix:__ [Special locations should not display their names in the explore mission, unless it's already explored #336](https://github.com/KevinGuancheDarias/owge/issues/336)  
+
+v0.9.9 (2020-11-03 18:22)
+==========================
+* __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  
+* [class=Admin] __Improvement:__ [Allow admins to force run Hang missions #315](https://github.com/KevinGuancheDarias/owge/issues/315)  
+* __Fix:__ [When a mission crash, the game is not sincing correctly #335](https://github.com/KevinGuancheDarias/owge/issues/335)  
+* __Fix:__ [Attacks to planets that don't belong to any user fails #333](https://github.com/KevinGuancheDarias/owge/issues/333)  
+* __Fix:__ [When energy is negative, and the unit doesn't require energy, the backend throws "Unexpected fatal error" when building an unit #334](https://github.com/KevinGuancheDarias/owge/issues/334)  
+
+v0.9.8 (2020-11-02 20:58)
+==========================
+* __Fix:__ Fix admin panel stopped working again
+* __Fix:__ [When upgrading version in a service worker env, devices may take some reloads till they pull the changes #313](https://github.com/KevinGuancheDarias/owge/issues/313)  
+* __Fix:__ [If the available energy is negative (maybe because a time special is over) the game displays that there are not enough resources even for units or upgrades that don't need energy #327](https://github.com/KevinGuancheDarias/owge/issues/327)  
+* __Fix:__ [The time when the upgrade or build bonus is too high displays wrongly, while it work as expected #323](https://github.com/KevinGuancheDarias/owge/issues/323)  
+* __Fix:__ [Conquest to planets owned by players without alliance fails, due to #317 conditions #332](https://github.com/KevinGuancheDarias/owge/issues/332)  
+* __Fix:__ [Planet list is not synchronising automatically the owner #324](https://github.com/KevinGuancheDarias/owge/issues/324)  
+* __Fix:__ [Read mission reports keep showing up as unread new messages until manually synced #326](https://github.com/KevinGuancheDarias/owge/issues/326)  
+* __Fix:__ [Upgrade doesn't end unless you force sync #331](https://github.com/KevinGuancheDarias/owge/issues/331)  
+
+v0.9.7 (2020-11-01 22:50)
+===========================
+* __Fix:__ [Game should "panic" when sync fails #322] (https://github.com/KevinGuancheDarias/owge/issues/322)
+* __Fix:__ [When you delete units that use energy, the energy is not restored unless you force sync #328](https://github.com/KevinGuancheDarias/owge/issues/328)  
+* __Fix:__ [Active time specials doesn't show up as active #330](https://github.com/KevinGuancheDarias/owge/issues/330)  
+* __Fix:__ [Deployed units are not removed from user planet unless forced sync #329](https://github.com/KevinGuancheDarias/owge/issues/329)  
+* __Fix:__ [For conquest missions, owner should not lose his planet when ally units survive #317](https://github.com/KevinGuancheDarias/owge/issues/317)  
+* __Improvement:__ [Create an admin option to switch enable/disable battle against enemy units caused by establish base missions #319](https://github.com/KevinGuancheDarias/owge/issues/319)  
+
+v0.9.6 (2020-10-31 20:25)
+==========================
+* __Fix:__ [Unlimited missions when launched from a deployed mission #321](https://github.com/KevinGuancheDarias/owge/issues/321)  
+* __Fix:__ [Research time becomes 0 for all upgrades in unknown conditions (some players consider it related to huge mission traffic on their planets) #318](https://github.com/KevinGuancheDarias/owge/issues/318)  
+* __Fix:__ [Unit building time reduces to seconds after a player activates two construction specials (faction special after planet special) #320](https://github.com/KevinGuancheDarias/owge/issues/320)  
+* __Fix:__ [Solve Conquestspam by making conquest missions interceptable once they have reached 10% of their progress #316](https://github.com/KevinGuancheDarias/owge/issues/316)  
+* __Improvement:__ Greatly improve the sync system, reducing way less battery, server power and user bandwith
+
+v0.9.5 (2020-10-25 18:36)
+==========================
+* __Fix:__ [Conquest was not removing the unlocked units from special locations #312](https://github.com/KevinGuancheDarias/owge/issues/312)  
+* __Improvement:__ [Twitch icon should display that I'm live or not, and maybe reload the fixed video if displayed (due to Twitch bug) #304](https://github.com/KevinGuancheDarias/owge/issues/304)  
+* __Improvement:__ [Gather and EB missions should trigger an attack, just like the conquest do, but only if there are enemy units in the planet #303](https://github.com/KevinGuancheDarias/owge/issues/303)  
+* [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)
+* __Security:__ [The backend is sending the planet information of an unexplored planet as result to POST explore #306](https://github.com/KevinGuancheDarias/owge/issues/306)  
+* __Fix:__ [Upgrades are not displaying the time correctly when reloading #300](https://github.com/KevinGuancheDarias/owge/issues/300)  
+* __Fix:__ [Explore missions display units that no longer join fights, due to #298 change #301](https://github.com/KevinGuancheDarias/owge/issues/301)  
+* __Fix:__ [Deployments are not visually-updating the units count, if only partial count of the units is killed #302](https://github.com/KevinGuancheDarias/owge/issues/302)  
+* __Fix:__ [Attacks were failing when a unit doesn't have shield (created from admin panel) #305](https://github.com/KevinGuancheDarias/owge/issues/305)  
+
+v0.9.4 (2020-10-23 19:55)
+==========================
+* [class=Admin] __Fix:__ [Fix admin panel not working in official server #299](https://github.com/KevinGuancheDarias/owge/issues/299)  (partial)
+* __Improvement:__ [Only deployed units join the attacks, gathers trigger attack, if there are deployed units #298](https://github.com/KevinGuancheDarias/owge/issues/298)  
+* __Fix:__ [Speed formula allows missions to take less than the base time #297](https://github.com/KevinGuancheDarias/owge/issues/297)  
+* __Fix:__ [Attacks are failing when one gather mission participates in the combact #295](https://github.com/KevinGuancheDarias/owge/issues/295)  
+* __Fix:__ [Units death in combact are not removed, they appear as "0" units #296](https://github.com/KevinGuancheDarias/owge/issues/296)  
+
+v0.9.3 (2020-10-22 20:24)
+===========================
+* __Fix:__ [Units death in combat are not updated in the people's browser #292](https://github.com/KevinGuancheDarias/owge/issues/292)  
+* __Fix:__ [Attacks are not working properly, some units, are not dieing while they should #294](https://github.com/KevinGuancheDarias/owge/issues/294)  
+* __Fix:__ [Sometimes the upgrades don't update the UnitType's max count, nor max energy, nor max missions #287](https://github.com/KevinGuancheDarias/owge/issues/287)  
+* __Fix:__ [The attack is not working properly when one unit A can't destroy unit B, should be able to kill unit C, but as unit B can't be attacked, it fails so hard #291](https://github.com/KevinGuancheDarias/owge/issues/291)  
+* __Fix:__ [The tutorial sometimes displays wrongly. And may block the player #289](https://github.com/KevinGuancheDarias/owge/issues/289)  (partial fix, keeps failing)
+
+v0.9.2 (2020-10-18 18:56)
+===========================
+* __Fix:__ [Active time specials time is not properly syncing, when reloading the tab, the time starts from the beginning #286](https://github.com/KevinGuancheDarias/owge/issues/286)  
+* __Fix:__ [Conquest or establish base doesn't get deleted, even if all its units has been killed #290](https://github.com/KevinGuancheDarias/owge/issues/290)  
+
+v0.9.1 (2020-10-18 11:32)
+===========================
+* __Fix:__ [If you deploy multiple unitxs, and in the deployed mission, you send back only some units, the other units will disappear #288](https://github.com/KevinGuancheDarias/owge/issues/288)  
+* __Fix:__ [If you deploy to a planet, and then having the units deployed, you send an establish base mission, or a conquest mission, the deployed units will be removed, and will not be usable #285](https://github.com/KevinGuancheDarias/owge/issues/285)  
+* __Fix:__ [In the navigation, when a selected galaxy has less sectors and/or quadrants than the previously selected one, should automatically choose sector 1 and/or quadrant 1, to avoid "invisible" navigation #284](https://github.com/KevinGuancheDarias/owge/issues/284)  
 
 v0.9.0 (2020-10-13 17:38)
 =================

@@ -1,3 +1,5 @@
 <div class="owge-base-colors">
     <button [disabled]="isSyncing" (click)="triggerResync()" class="btn btn-primary">{{ 'SETTINGS.BTN_FORCE_SYNC' | translate }}</button>
+
+    <button class="btn btn-primary" (click)="askTwitchState()" *ngIf="user?.canAlterTwitchState">Change twitch state</button>
 </div>

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,9 +70,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final String JOB_GROUP_NAME = "UnitMissions";
 	private static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
 
-	@Autowired
-	private ImageStoreBo imageStoreBo;
-
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is has
 	 *
@@ -106,7 +104,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			totalAttack += (totalAttack * improvementBo.findAsRational(
 					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.ATTACK, unitType)));
 			pendingAttack = totalAttack;
-			totalShield = initialCount.doubleValue() * unit.getShield();
+			totalShield = initialCount.doubleValue() * ObjectUtils.firstNonNull(unit.getShield(), 0);
 			totalShield += (totalShield * improvementBo.findAsRational(
 					(double) userImprovement.findUnitTypeImprovement(ImprovementTypeEnum.SHIELD, unitType)));
 			availableShield = totalShield;
@@ -212,14 +210,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private boolean isRemoved = false;
 		private Map<Integer, AttackUserInformation> users = new HashMap<>();
 		private List<AttackObtainedUnit> units = new ArrayList<>();
+		private Set<Integer> usersWithDeletedMissions = new HashSet<>();
+		private Set<Integer> usersWithChangedCounts = new HashSet<>();
+		private Planet targetPlanet;
 
 		public AttackInformation() {
 			throw new ProgrammingException(
 					"Can't invoke constructor for " + this.getClass().getName() + " without arguments");
 		}
 
-		public AttackInformation(Mission attackMission) {
+		public AttackInformation(Mission attackMission, Planet targetPlanet) {
 			this.attackMission = attackMission;
+			this.targetPlanet = targetPlanet;
 		}
 
 		/**
@@ -254,6 +256,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 					.collect(Collectors.toList()));
 			doAttack();
 			updatePoints();
+			usersWithDeletedMissions.forEach(userId -> {
+				emitMissions(userId);
+				userStorageBo.emitUserData(userStorageBo.findById(userId));
+				usersWithChangedCounts.remove(userId);
+			});
+			usersWithChangedCounts.forEach(userId -> {
+				if (targetPlanet.getOwner() != null && targetPlanet.getOwner().getId().equals(userId)) {
+					obtainedUnitBo.emitObtainedUnitChange(userId);
+				}
+				emitMissions(userId);
+				userStorageBo.emitUserData(userStorageBo.findById(userId));
+			});
 		}
 
 		/**
@@ -274,7 +288,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				List<AttackObtainedUnit> attackableByUnit = unit.user.attackableUnits.stream().filter(target -> {
 					Unit unitEntity = unit.obtainedUnit.getUnit();
 					AttackRule attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
-							unitEntity.getType().getAttackRule());
+							findAttackRule(unitEntity.getType()));
 					return canAttack(attackRule, target);
 				}).collect(Collectors.toList());
 				for (AttackObtainedUnit target : attackableByUnit) {
@@ -319,30 +333,49 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 		}
 
+		/**
+		 * Discovers the attack rule, looking using recursion
+		 *
+		 * @param type
+		 * @return
+		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+		 */
+		private AttackRule findAttackRule(UnitType type) {
+			if (type.getAttackRule() != null) {
+				return type.getAttackRule();
+			} else if (type.getParent() != null) {
+				return findAttackRule(type.getParent());
+			} else {
+				return null;
+			}
+		}
+
 		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
 			Double myAttack = source.pendingAttack;
-			Double victimShield = target.availableShield;
-			if (victimShield > myAttack) {
+			Double victimHealth = target.availableHealth + target.availableShield;
+			addPointsAndUpdateCount(myAttack, source, target);
+			if (victimHealth > myAttack) {
 				source.pendingAttack = 0D;
 				source.noAttack = true;
-				target.availableShield -= myAttack;
-			} else {
-				myAttack -= target.availableShield;
-				target.availableShield = 0D;
-				Double victimHealth = target.availableHealth;
-				addPointsAndUpdateCount(myAttack, source, target);
-				if (victimHealth > myAttack) {
-					source.pendingAttack = 0D;
-					source.noAttack = true;
-					target.availableHealth -= myAttack;
-				} else {
-					source.pendingAttack = myAttack - victimHealth;
-					target.availableHealth = 0D;
-					obtainedUnitBo.delete(target.obtainedUnit);
-					deleteMissionIfRequired(target.obtainedUnit);
+				double attackDistribruted = myAttack / 2;
+				target.availableShield -= attackDistribruted;
+				target.availableHealth -= attackDistribruted;
+				if (target.availableShield < 0.0D) {
+					target.availableHealth += target.availableShield;
 				}
-				improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
+				if (!target.initialCount.equals(target.finalCount)) {
+					usersWithChangedCounts.add(target.user.getUser().getId());
+				}
+			} else {
+				source.pendingAttack = myAttack - victimHealth;
+				target.availableHealth = 0D;
+				target.availableShield = 0D;
+				obtainedUnitBo.delete(target.obtainedUnit);
+				deleteMissionIfRequired(target.obtainedUnit);
+				usersWithChangedCounts.add(target.user.getUser().getId());
 			}
+			improvementBo.clearCacheEntriesIfRequired(target.obtainedUnit.getUnit(), obtainedUnitBo);
+
 		}
 
 		/**
@@ -360,13 +393,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 					setRemoved(true);
 				} else {
 					delete(mission);
+					usersWithDeletedMissions.add(mission.getUser().getId());
 				}
 			}
 		}
 
 		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit source,
 				AttackObtainedUnit victimUnit) {
-			Double healthForEachUnit = victimUnit.totalHealth / victimUnit.initialCount;
+			Double healthForEachUnit = (victimUnit.totalHealth + victimUnit.totalShield) / victimUnit.initialCount;
 			Long killedCount = (long) Math.floor(usedAttack / healthForEachUnit);
 			if (killedCount > victimUnit.finalCount) {
 				killedCount = victimUnit.finalCount;
@@ -393,9 +427,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 									return currentUnit.obtainedUnit;
 								}).collect(Collectors.toList()));
 			});
+			usersWithChangedCounts.forEach(alteredUsers::add);
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
-				socketIoService.sendMessage(current, UNIT_TYPE_CHANGE,
-						() -> unitTypeBo.findUnitTypesWithUserInfo(current));
+				unitTypeBo.emitUserChange(current);
 				socketIoService.sendMessage(current, UNIT_OBTAINED_CHANGE,
 						() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
 
@@ -424,6 +458,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private transient SocketIoService socketIoService;
 
 	@Autowired
+	private ImageStoreBo imageStoreBo;
+
+	@Autowired
+	private PlanetListBo planetListBo;
+
+	@Autowired
+	private AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
 	private transient EntityManager entityManager;
 
 	@Override
@@ -449,16 +492,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public UnitRunningMissionDto myRegisterExploreMission(UnitMissionInformation missionInformation) {
+	public void myRegisterExploreMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterExploreMission(missionInformation);
+		adminRegisterExploreMission(missionInformation);
 	}
 
 	/**
 	 * Registers a explore mission <b>as a admin</b>
 	 *
 	 * @param missionInformation
-	 * @return mission representation DTO
 	 * @throws SgtBackendInvalidInputException When input information is not valid
 	 * @throws UserNotFoundException           When user doesn't exists <b>(in this
 	 *                                         universe)</b>
@@ -466,66 +508,66 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	public UnitRunningMissionDto adminRegisterExploreMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.EXPLORE);
+	public void adminRegisterExploreMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.EXPLORE);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterGatherMission(UnitMissionInformation missionInformation) {
+	public void myRegisterGatherMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterGatherMission(missionInformation);
+		adminRegisterGatherMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterGatherMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.GATHER);
+	public void adminRegisterGatherMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.GATHER);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
+	public void myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterEstablishBase(missionInformation);
+		adminRegisterEstablishBase(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
+	public void adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterAttackMission(UnitMissionInformation missionInformation) {
+	public void myRegisterAttackMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterAttackMission(missionInformation);
+		adminRegisterAttackMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterAttackMission(UnitMissionInformation missionInformation) {
-		return commonMissionRegister(missionInformation, MissionType.ATTACK);
+	public void adminRegisterAttackMission(UnitMissionInformation missionInformation) {
+		commonMissionRegister(missionInformation, MissionType.ATTACK);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+	public void myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterCounterattackMission(missionInformation);
+		adminRegisterCounterattackMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
+	public void adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
 		if (!planetBo.isOfUserProperty(missionInformation.getUserId(), missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"TargetPlanet doesn't belong to sender user, try again dear Hacker, maybe next time you have some luck");
 		}
-		return commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
+		commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterConquestMission(UnitMissionInformation missionInformation) {
+	public void myRegisterConquestMission(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterConquestMission(missionInformation);
+		adminRegisterConquestMission(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterConquestMission(UnitMissionInformation missionInformation) {
+	public void adminRegisterConquestMission(UnitMissionInformation missionInformation) {
 		if (planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
 			throw new SgtBackendInvalidInputException(
 					"Doesn't make sense to conquest your own planet... unless your population hates you, and are going to organize a rebelion");
@@ -534,26 +576,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 			throw new SgtBackendInvalidInputException(
 					"Can't steal a home planet to a user, would you like a bandit to steal in your own home??!");
 		}
-		if (planetBo.hasMaxPlanets(missionInformation.getUserId())) {
-			throw new SgtBackendInvalidInputException(MAX_PLANETS_MESSAGE);
-		}
-		return commonMissionRegister(missionInformation, MissionType.CONQUEST);
+		commonMissionRegister(missionInformation, MissionType.CONQUEST);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto myRegisterDeploy(UnitMissionInformation missionInformation) {
+	public void myRegisterDeploy(UnitMissionInformation missionInformation) {
 		myRegister(missionInformation);
-		return adminRegisterDeploy(missionInformation);
+		adminRegisterDeploy(missionInformation);
 	}
 
 	@Transactional
-	public UnitRunningMissionDto adminRegisterDeploy(UnitMissionInformation missionInformation) {
+	public void adminRegisterDeploy(UnitMissionInformation missionInformation) {
 		if (missionInformation.getSourcePlanetId().equals(missionInformation.getTargetPlanetId())) {
 			throw exceptionUtilService
 					.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_DEPLOY_ITSELF")
 					.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, getClass(), DocTypeEnum.EXCEPTIONS).build();
 		}
-		return commonMissionRegister(missionInformation, MissionType.DEPLOY);
+		commonMissionRegister(missionInformation, MissionType.DEPLOY);
 	}
 
 	/**
@@ -586,30 +625,33 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		adminRegisterReturnMission(mission);
-		Long gathered = involvedUnits.stream()
-				.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
-				.reduce(0L, (sum, current) -> sum + current);
-		Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
-		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
-		Double withUserImprovement = withPlanetRichness
-				+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
-		Double primaryResource = withUserImprovement * 0.5;
-		Double secondaryResource = withUserImprovement * 0.5;
-		user.addtoPrimary(primaryResource);
-		user.addToSecondary(secondaryResource);
-		UnitMissionReportBuilder builder = UnitMissionReportBuilder
-				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
-				.withGatherInformation(primaryResource, secondaryResource);
-		handleMissionReportSave(mission, builder);
-		resolveMission(mission);
+		boolean continueMission = triggerAttackIfRequired(mission, user, targetPlanet);
+		if (continueMission) {
+			adminRegisterReturnMission(mission);
+			Long gathered = involvedUnits.stream()
+					.map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
+					.reduce(0L, (sum, current) -> sum + current);
+			Double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
+			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+			Double withUserImprovement = withPlanetRichness
+					+ (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
+			Double primaryResource = withUserImprovement * 0.5;
+			Double secondaryResource = withUserImprovement * 0.5;
+			user.addtoPrimary(primaryResource);
+			user.addToSecondary(secondaryResource);
+			UnitMissionReportBuilder builder = UnitMissionReportBuilder
+					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+					.withGatherInformation(primaryResource, secondaryResource);
+			handleMissionReportSave(mission, builder);
+			resolveMission(mission);
 
-		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
-			Map<String, Double> content = new HashMap<>();
-			content.put("primaryResource", primaryResource);
-			content.put("secondaryResource", secondaryResource);
-			return content;
-		}));
+			TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
+				Map<String, Double> content = new HashMap<>();
+				content.put("primaryResource", primaryResource);
+				content.put("secondaryResource", secondaryResource);
+				return content;
+			}));
+		}
 	}
 
 	@Transactional
@@ -618,26 +660,24 @@ public class UnitMissionBo extends AbstractMissionBo {
 		UserStorage user = mission.getUser();
 		List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
 		Planet targetPlanet = mission.getTargetPlanet();
-		UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
-				targetPlanet, involvedUnits);
-		UserStorage planetOwner = targetPlanet.getOwner();
-		boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
-		boolean areUnitsHavingtoReturn = false;
-		if (planetOwner != null || hasMaxPlanets) {
-			adminRegisterReturnMission(mission);
-			areUnitsHavingtoReturn = true;
-			if (planetOwner != null) {
-				builder.withEstablishBaseInformation(false, "The planet already belongs to a user");
+		if (triggerAttackIfRequired(mission, user, targetPlanet)) {
+			UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+					targetPlanet, involvedUnits);
+			UserStorage planetOwner = targetPlanet.getOwner();
+			boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
+			if (planetOwner != null || hasMaxPlanets) {
+				adminRegisterReturnMission(mission);
+				if (planetOwner != null) {
+					builder.withEstablishBaseInformation(false, "I18N_ALREADY_HAS_OWNER");
+				} else {
+					builder.withEstablishBaseInformation(false, MAX_PLANETS_MESSAGE);
+				}
 			} else {
-				builder.withEstablishBaseInformation(false, MAX_PLANETS_MESSAGE);
+				builder.withEstablishBaseInformation(true);
+				definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 			}
-		} else {
-			builder.withEstablishBaseInformation(true);
-			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
-		}
-		handleMissionReportSave(mission, builder);
-		resolveMission(mission);
-		if (!areUnitsHavingtoReturn) {
+			handleMissionReportSave(mission, builder);
+			resolveMission(mission);
 			emitLocalMissionChangeAfterCommit(mission);
 		}
 	}
@@ -663,6 +703,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChangeAfterCommit(mission);
 		}
+		UserStorage owner = targetPlanet.getOwner();
+		if (owner != null && !attackInformation.usersWithDeletedMissions.isEmpty()) {
+			emitEnemyMissionsChange(owner);
+		}
+
 		return attackInformation;
 	}
 
@@ -701,6 +746,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Transactional
 	public void adminRegisterReturnMission(Mission mission, Double customRequiredTime) {
 		Mission returnMission = new Mission();
+		returnMission.setStartingDate(new Date());
 		returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
 		returnMission.setRequiredTime(mission.getRequiredTime());
 		Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
@@ -725,8 +771,19 @@ public class UnitMissionBo extends AbstractMissionBo {
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
-		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+		TransactionUtil.doAfterCommit(() -> {
+			if (obtainedUnits.get(0).getMission() != null
+					&& obtainedUnits.get(0).getMission().getInvolvedUnits() == null) {
+				entityManager.refresh(obtainedUnits.get(0).getMission());
+			}
+			emitLocalMissionChange(mission, userId);
+		});
+		asyncRunnerBo
+				.runAssyncWithoutContextDelayed(
+						() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+								() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))),
+						500);
+
 	}
 
 	@Transactional
@@ -745,27 +802,39 @@ public class UnitMissionBo extends AbstractMissionBo {
 				? attackInformation.getUsers().get(oldOwner.getId()).units.stream()
 						.noneMatch(current -> current.finalCount > 0L)
 				: true;
-		if (!isOldOwnerDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
-			adminRegisterReturnMission(mission);
-			areUnitsHavingToReturn = true;
+		boolean isAllianceDefeated = isOldOwnerDefeated
+				&& (oldOwner.getAlliance() == null || attackInformation.getUsers().entrySet().stream()
+						.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
+								&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
+						.allMatch(currentUser -> currentUser.getValue().units.stream()
+								.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
+			if (!attackInformation.isMissionRemoved()) {
+				adminRegisterReturnMission(mission);
+				areUnitsHavingToReturn = true;
+			}
 			if (maxPlanets) {
 				builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
 			} else if (!isOldOwnerDefeated) {
 				builder.withConquestInformation(false, "I18N_OWNER_NOT_DEFEATED");
+			} else if (!isAllianceDefeated) {
+				builder.withConquestInformation(false, "I18N_ALLIANCE_NOT_DEFEATED");
 			} else {
 				builder.withConquestInformation(false, "I18N_CANT_CONQUER_HOME_PLANET");
 			}
 		} else {
 			definePlanetAsOwnedBy(user, involvedUnits, targetPlanet);
 			builder.withConquestInformation(true, "I18N_PLANET_IS_NOW_OURS");
-			if (oldOwner != null) {
-				planetBo.emitPlanetOwnedChange(oldOwner);
-				emitEnemyMissionsChange(oldOwner);
-				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
-						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
-						.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
-				handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
+			if (targetPlanet.getSpecialLocation() != null) {
+				requirementBo.triggerSpecialLocation(oldOwner, targetPlanet.getSpecialLocation());
 			}
+			planetBo.emitPlanetOwnedChange(oldOwner);
+			emitEnemyMissionsChange(oldOwner);
+			UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
+					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+					.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
+			handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
+
 		}
 		handleMissionReportSave(mission, builder);
 		resolveMission(mission);
@@ -915,6 +984,73 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	/**
+	 *
+	 * @param userId
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitMissions(Integer userId) {
+		socketIoService.sendMessage(userId, "unit_mission_change",
+				() -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
+	}
+
+	/**
+	 * Emits the specified mission to the <i>mission</i> target planet owner if any
+	 * <br>
+	 * As of 0.9.9 this method is now public
+	 *
+	 * @param mission
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitEnemyMissionsChange(Mission mission) {
+		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
+		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
+			emitEnemyMissionsChange(targetPlanetOwner);
+		}
+	}
+
+	/**
+	 * Runs the mission
+	 *
+	 * @param missionId
+	 * @param missionType
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void runUnitMission(Long missionId, MissionType missionType) {
+		switch (missionType) {
+		case EXPLORE:
+			processExplore(missionId);
+			break;
+		case RETURN_MISSION:
+			proccessReturnMission(missionId);
+			break;
+		case GATHER:
+			processGather(missionId);
+			break;
+		case ESTABLISH_BASE:
+			processEstablishBase(missionId);
+			break;
+		case ATTACK:
+			processAttack(missionId, true);
+			break;
+		case COUNTERATTACK:
+			processCounterattack(missionId);
+			break;
+		case CONQUEST:
+			processConquest(missionId);
+			break;
+		case DEPLOY:
+			proccessDeploy(missionId);
+			break;
+		default:
+			LOG.warn("Not an unit mission");
+		}
+
+	}
+
+	/**
 	 * Due to lack of support from Quartz to access spring context from the
 	 * EntityListener of {@link ImageStoreListener} we have to invoke the image URL
 	 * computation from here
@@ -945,12 +1081,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
-	private UnitRunningMissionDto commonMissionRegister(UnitMissionInformation missionInformation,
-			MissionType missionType) {
+	private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		missionInformation.setMissionType(missionType);
 		UserStorage user = userStorageBo.findLoggedIn();
-		if (planetBo.isOfUserProperty(user.getId(), missionInformation.getSourcePlanetId())) {
+		if (!missionType.equals(MissionType.DEPLOY)
+				|| !planetBo.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
 			checkMissionLimitNotReached(user);
 		}
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
@@ -984,11 +1120,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
 		obtainedUnitBo.save(obtainedUnits);
-		if (obtainedUnits.stream().noneMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
+		if (!obtainedUnits.stream().allMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
 				&& obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
 			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
 					.filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
-							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
+							&& (unit.getSpeedImpactGroup() == null || !unit.getSpeedImpactGroup().getIsFixed()))
 					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {
 				double lowestSpeed = lowestSpeedOptional.get();
@@ -1000,20 +1136,18 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		save(mission);
 		scheduleMission(mission);
-		UnitRunningMissionDto retVal = new UnitRunningMissionDto(mission, obtainedUnits);
-		retVal.setMissionsCount(countUserMissions(userId));
 		emitLocalMissionChangeAfterCommit(mission);
 		TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
-		return retVal;
 	}
 
 	private double calculateTimeUsingSpeed(Mission mission, MissionType missionType, double missionTypeTime,
 			double lowestUnitSpeed) {
 		int missionTypeDivisor = findMissionTypeDivisor(missionType);
+		missionTypeDivisor = missionTypeDivisor == 0 ? 1 : missionTypeDivisor;
 		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
 		float moveCost = calculateMoveCost(missionType, mission.getSourcePlanet(), mission.getTargetPlanet());
-		return (missionTypeTime + (leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor;
+		return (missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor);
 	}
 
 	/**
@@ -1107,7 +1241,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			retVal.put(current.getId(), currentObtainedUnit);
 		});
-		deletedMissions.forEach(this::resolveMission);
+		List<ObtainedUnit> unitsInMissionsAfterDelete = obtainedUnitBo
+				.findByMissionIn(deletedMissions.stream().map(Mission::getId).collect(Collectors.toList()));
+		deletedMissions.stream().filter(mission -> unitsInMissionsAfterDelete.stream()
+				.noneMatch(unit -> mission.getId().equals(unit.getMission() != null ? unit.getMission().getId() : null))
+
+		).forEach(this::resolveMission);
 		return retVal;
 	}
 
@@ -1212,6 +1351,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 */
 	private Mission prepareMission(UnitMissionInformation missionInformation, MissionType type) {
 		Mission retVal = new Mission();
+		retVal.setStartingDate(new Date());
 		Double requiredTime = calculateRequiredTime(type);
 		retVal.setMissionInformation(null);
 		retVal.setType(findMissionType(type));
@@ -1262,18 +1402,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private void emitLocalMissionChange(Mission mission, UserStorage user) {
-		entityManager.refresh(mission);
-		emitEnemyMissionsChange(mission);
-		socketIoService.sendMessage(user, "unit_mission_change",
-				() -> new MissionWebsocketMessage(countUserMissions(user.getId()),
-						findUserRunningMissions(user.getId())));
+		emitLocalMissionChange(mission, user.getId());
 	}
 
-	private void emitEnemyMissionsChange(Mission mission) {
-		UserStorage targetPlanetOwner = mission.getTargetPlanet().getOwner();
-		if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
-			emitEnemyMissionsChange(targetPlanetOwner);
-		}
+	private void emitLocalMissionChange(Mission mission, Integer userId) {
+		entityManager.refresh(mission);
+		emitEnemyMissionsChange(mission);
+		emitMissions(userId);
 	}
 
 	private void emitEnemyMissionsChange(UserStorage user) {
@@ -1282,8 +1417,13 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
-		AttackInformation retVal = new AttackInformation(attackMission);
-		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(retVal::addUnit);
+		AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
+		obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
+			if (!attackMission.equals(unit.getMission())) {
+				retVal.addUnit(unit);
+			}
+		});
+		obtainedUnitBo.findByMissionId(attackMission.getId()).forEach(retVal::addUnit);
 		return retVal;
 	}
 
@@ -1302,10 +1442,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 			current.setTargetPlanet(null);
 			current.setMission(null);
 		});
+		planetBo.save(targetPlanet);
+		obtainedUnitBo.findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED)
+				.forEach(units -> {
+					Mission mission = units.getMission();
+					obtainedUnitBo.moveUnit(units, owner.getId(), targetPlanet.getId());
+					if (mission != null) {
+						delete(mission);
+					}
+
+				});
 		if (targetPlanet.getSpecialLocation() != null) {
 			requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
 		}
 
+		TransactionUtil.doAfterCommit(() -> {
+			planetListBo.emitByChangedPlanet(targetPlanet);
+		});
 		planetBo.emitPlanetOwnedChange(owner);
 		socketIoService.sendMessage(owner, UNIT_OBTAINED_CHANGE,
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
@@ -1325,8 +1478,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 				configurationBo.findOrSetDefault(prefix + missionTypeName + "_S_MOVE_COST", "0.03").getValue(), 0.03f);
 		float galaxyDiff = NumberUtils.toFloat(
 				configurationBo.findOrSetDefault(prefix + missionTypeName + "_G_MOVE_COST", "0.15").getValue(), 0.15f);
-		return 1 + (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
-				+ (targetPlanet.getGalaxy().equals(sourcePlanet.getGalaxy()) ? galaxyDiff : 0);
+		return (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
+				+ (!targetPlanet.getGalaxy().getId().equals(sourcePlanet.getGalaxy().getId()) ? galaxyDiff : 0);
 	}
 
 	private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
@@ -1354,8 +1507,31 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 	}
 
+	/**
+	 *
+	 * @param missionId
+	 * @param user
+	 * @param targetPlanet
+	 * @return True if should continue the mission
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	private boolean triggerAttackIfRequired(Mission mission, UserStorage user, Planet targetPlanet) {
+		boolean continueMission = true;
+		if (isAttackTriggerEnabledForMission(MissionType.valueOf(mission.getType().getCode()))
+				&& obtainedUnitBo.areUnitsInvolved(user, targetPlanet)) {
+			AttackInformation result = processAttack(mission.getId(), false);
+			continueMission = !result.isMissionRemoved();
+		}
+		return continueMission;
+	}
+
 	private int findMissionTypeDivisor(MissionType missionType) {
 		return Integer.valueOf(
 				configurationBo.findOrSetDefault("MISSION_SPEED_DIVISOR_" + missionType.name(), "1").getValue());
+	}
+
+	private boolean isAttackTriggerEnabledForMission(MissionType missionType) {
+		return Boolean.parseBoolean(configurationBo
+				.findOrSetDefault("MISSION_" + missionType.name() + "_TRIGGER_ATTACK", "FALSE").getValue());
 	}
 }

@@ -51,6 +51,9 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Lazy
 	private RequirementBo requirementBo;
 
+	@Autowired
+	private PlanetListBo planetListBo;
+
 	@PersistenceContext
 	private transient EntityManager entityManager;
 
@@ -132,16 +135,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 */
 	public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId) {
 		return planetRepository.findByGalaxyIdAndOwnerNotNull(galaxyId);
-	}
-
-	/**
-	 * Find the planets for logged in user
-	 *
-	 * @return
-	 * @author Kevin Guanche Darias
-	 */
-	public List<Planet> findMyPlanets() {
-		return findPlanetsByUser(userStorageBo.findLoggedIn());
 	}
 
 	public List<Planet> findByGalaxyAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant) {
@@ -246,8 +239,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Transactional
 	public void doLeavePlanet(Integer invokerId, Long planetId) {
 		if (!canLeavePlanet(invokerId, planetId)) {
-			throw new SgtBackendInvalidInputException(
-					"Can't leave planet, make sure, it is NOT your home planet and you don't have runnings missions, nor running unit constructions");
+			throw new SgtBackendInvalidInputException("ERR_I18N_CAN_NOT_LEAVE_PLANET");
 		}
 		Planet planet = findById(planetId);
 		UserStorage user = planet.getOwner();
@@ -256,7 +248,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 		if (planet.getSpecialLocation() != null) {
 			requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
 		}
-
+		TransactionUtil.doAfterCommit(() -> planetListBo.emitByChangedPlanet(planet));
 		emitPlanetOwnedChange(invokerId);
 	}
 
@@ -289,8 +281,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 * @param planets
 	 * @return
 	 * @since 0.9.0
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.12")
 	public List<Planet> myCleanUpUnexplored(List<Planet> planets) {
 		return cleanUpUnexplored(userStorageBo.findLoggedIn().getId(), planets);
 	}
@@ -301,18 +295,51 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 * @param planets
 	 * @return
 	 * @since 0.9.0
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.13")
 	public List<Planet> cleanUpUnexplored(Integer userId, List<Planet> planets) {
 		planets.forEach(current -> {
-			if (!isExplored(userId, current.getId())) {
-				current.setName(null);
-				current.setRichness(null);
-				current.setHome(null);
-				current.setOwner(null);
-				current.setSpecialLocation(null);
-			}
+			cleanUpUnexplored(userId, current);
 		});
 		return planets;
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param planet
+	 * @since 0.9.9
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Deprecated(since = "0.9.13")
+	public void cleanUpUnexplored(Integer userId, Planet planet) {
+		if (!isExplored(userId, planet.getId())) {
+			planet.setName(null);
+			planet.setRichness(null);
+			planet.setHome(null);
+			planet.setOwner(null);
+			planet.setSpecialLocation(null);
+		}
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param planetDto
+	 * @since 0.9.13
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void cleanUpUnexplored(Integer userId, PlanetDto planetDto) {
+		if (!isExplored(userId, planetDto.getId())) {
+			planetDto.setName(null);
+			planetDto.setRichness(null);
+			planetDto.setHome(null);
+			planetDto.setOwnerId(null);
+			planetDto.setOwnerName(null);
+			planetDto.setSpecialLocation(null);
+		}
 	}
 }

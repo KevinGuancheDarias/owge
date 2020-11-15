@@ -9,4 +9,13 @@ public interface FactionRepository extends WithNameRepository<Faction, Integer>,
 	public List<Faction> findByHiddenFalse();
 
 	public Long countByHiddenFalseAndId(Integer id);
+
+	/**
+	 *
+	 * @param userId
+	 * @return
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Faction findOneByUsersId(Integer userId);
 }

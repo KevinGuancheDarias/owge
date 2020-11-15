@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +49,9 @@ public class SocketIoService {
 	private ConfigurationBo configurationBo;
 
 	@Autowired
+	private UserStorageBo userStorageBo;
+
+	@Autowired
 	@Lazy
 	private List<OwgeJwtAuthenticationFilter> authenticationFilters;
 
@@ -81,25 +85,72 @@ public class SocketIoService {
 	 * Sends a message to all sockets from related target user, if any
 	 *
 	 * @param <T>
+	 * @param targetUserId       If 0 will broadcast to all connected users
+	 * @param eventName
+	 * @param messageContent
+	 * @param notConnectedAction Action to run if the user is not connected
+	 * @since 0.9.2
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
+			Runnable notConnectedAction) {
+		List<SocketIOClient> userSockets = server.getAllClients().stream()
+				.filter(client -> client.get(USER_TOKEN_KEY) != null
+						&& (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
+				.collect(Collectors.toList());
+		Map<Integer, WebsocketEventsInformation> savedInformation = new HashMap<>();
+		if (targetUserId == 0) {
+			userStorageBo.findAll().forEach(user -> {
+				WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, user.getId());
+				savedInformation.put(user.getId(), saved);
+				websocketEventsInformationBo.save(saved);
+			});
+		} else {
+			WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, targetUserId);
+			savedInformation.put(targetUserId, saved);
+			websocketEventsInformationBo.save(saved);
+		}
+		if (!userSockets.isEmpty()) {
+			T sendValue = messageContent.get();
+			userSockets.forEach(client -> {
+				LOCAL_LOGGER.trace("Sending message to socket");
+				TokenUser user = client.get(USER_TOKEN_KEY);
+				client.sendEvent("deliver_message",
+						new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
+			});
+		} else if (notConnectedAction != null) {
+			notConnectedAction.run();
+		}
+	}
+
+	/**
+	 * Sends a message to all sockets from related target user, if any
+	 *
+	 * @param <T>
 	 * @param targetUserId
 	 * @param eventName
 	 * @param messageContent
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public <T> void sendMessage(Integer targetUserId, String eventName, Supplier<T> messageContent) {
-		List<SocketIOClient> userSockets = server.getAllClients().stream()
-				.filter(client -> client.get(USER_TOKEN_KEY) != null
-						&& ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId))
-				.collect(Collectors.toList());
-		websocketEventsInformationBo.save(new WebsocketEventsInformation(eventName, targetUserId));
-		if (!userSockets.isEmpty()) {
-			T sendValue = messageContent.get();
-			userSockets.forEach(client -> {
-				LOCAL_LOGGER.trace("Sending message to socket");
-				client.sendEvent("deliver_message", new WebsocketMessage<>(eventName, sendValue));
-			});
-		}
+	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent) {
+		sendMessage(targetUserId, eventName, messageContent, null);
+	}
+
+	/**
+	 * Sends a message to all sockets from related target user, if any
+	 *
+	 * @param <T>
+	 * @param user
+	 * @param eventName
+	 * @param messageContent
+	 * @param notConnectedAction Action to run if the user is not connected
+	 * @since 0.9.2
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent,
+			Runnable notConnectedAction) {
+		sendMessage(user.getId(), eventName, messageContent, notConnectedAction);
 	}
 
 	/**
@@ -113,7 +164,7 @@ public class SocketIoService {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
-		sendMessage(user.getId(), eventName, messageContent);
+		sendMessage(user == null ? 0 : user.getId(), eventName, messageContent, null);
 	}
 
 	/**

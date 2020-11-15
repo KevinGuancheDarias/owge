@@ -1,10 +1,14 @@
 {
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "Has excedido tu límite de misiones",
     "I18N_ERR_DEPLOY_ITSELF": "El planeta de destino no puede ser el mismo que el de origen",
+    "ERR_I18N_CAN_NOT_LEAVE_PLANET": "NO se puede dejar el planeta, asegúrate de no tener construcciones en curso, y que no sea tu planeta home",
     "I18N_OWNER_NOT_DEFEATED": "El propietario del planet no fue derrotado, fallo al conquistar",
     "I18N_MAX_PLANETS_EXCEEDED": "Límite de planetas excedido",
+    "I18N_ALREADY_HAS_OWNER": "El planeta ya es propiedad de otro",
     "I18N_PLANET_IS_NOW_OURS": "El Planeta es ahora de tu propiedad",
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Tu planeta ha sido conquistado",
+    "I18N_ALLIANCE_NOT_DEFEATED": "Las unidades del dueño del planeta fueron derrotadas, pero unidades de sus aliados sobrevivieron",
+    "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
     "APP": {
         "CONNECTED": "Conectado",
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",
@@ -22,8 +26,12 @@
         "INDEX": {
             "TITLE_MY_MISSIONS": "Mis misiones",
             "NO_MY_MISSIONS": "No estás haciendo misiones",
-            "TITLE_ENEMY_MISSIONS": "Misiones de otros",
-            "NO_ENEMY_MISSIONS": "No hay misiones de otros jugadores a ninguno de tus planetas"
+            "TITLE_ENEMY_MISSIONS": "Misiones de enemigos",
+            "TITLE_UNKNOWN_MISSIONS": "Misiones de desconocidos (no explorados)",
+            "TITLE_ALLIES_MISSIONS": "Misiones de aliados",
+            "NO_ENEMY_MISSIONS": "No hay misiones de enemigos a ninguno de tus planetas",
+            "NO_UNKNOWN_MISSIONS": "No hay misiones de otros jugadores a ninguno de tus planetas",
+            "NO_ALLIES_MISSIONS": "No hay misiones de aliados a ninguno de tus planetas"
         },
         "MISSION_TYPES": {
             "PLEASE_SELECT": "Seleccionar...",
@@ -60,7 +68,7 @@
             "OWNED_BY": "Propiedad de. {{username}}"
         },
         "PLANET_LIST": {
-            "PLANET_LIST": "Tu lista está vacía",
+            "EMPTY": "Tu lista está vacía",
             "ADD": "Añadir nuevo",
             "EDIT": "Editando {{el}}",
             "LABEL_NAME": "Nombre (Opcional):",
@@ -109,12 +117,20 @@
             "IN_PLANET": {
                 "NO_UNITS": "No hay unidades en este planeta",
                 "CHOOSE_TYPE": "Todas"
+            },
+            "UNLOCKED": {
+                "NO_UNITS": "No puedes construir ninguna unidad, desbloqueala primero, comprueba la pestaña de requisitos"
+            },
+            "REQUIREMENTS": {
+                "UPGRADING": "Subiendo de nivel {{name}} al nivel {{level}}",
+                "UPGRADE_CANCELLED": "Subida de nivel cancelada"
             }
         },
         "DEPLOYED_UNIT_LIST": {
             "CHOOSE_COUNT": "Seleccionar cantidad",
             "BTN_SELECT_ALL": "Seleccionar todas",
-            "BTN_UNSELECT_ALL": "Deseleccionar todas"
+            "BTN_UNSELECT_ALL": "Deseleccionar todas",
+            "OWNER_OF_UNITS": "Unidades del jugador {{username}}"
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxia",

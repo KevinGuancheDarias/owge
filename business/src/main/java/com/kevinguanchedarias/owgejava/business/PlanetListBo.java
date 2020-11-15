@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kevinguanchedarias.owgejava.dto.PlanetListDto;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.PlanetList;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.embeddedid.PlanetUser;
@@ -77,7 +78,22 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 		emitChangeToUser(user);
 	}
 
+	/**
+	 * Emits to all users that has the specified planet in the list
+	 *
+	 * @param planet
+	 * @since 0.9.8
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitByChangedPlanet(Planet planet) {
+		repository.findUserIdByPlanetListPlanet(planet).forEach(this::emitChangeToUser);
+	}
+
 	private void emitChangeToUser(UserStorage user) {
-		socketIoService.sendMessage(user, "planet_user_list_change", () -> toDto(findByUserId(user.getId())));
+		emitChangeToUser(user.getId());
+	}
+
+	private void emitChangeToUser(Integer userId) {
+		socketIoService.sendMessage(userId, "planet_user_list_change", () -> toDto(findByUserId(userId)));
 	}
 }

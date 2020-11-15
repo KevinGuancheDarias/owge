@@ -22,6 +22,7 @@ import { Improvement } from '../types/improvement.type';
 import { UserWithImprovements } from '../types/user-with-improvements.type';
 import { ResourceManagerService } from './resource-manager.service';
 import { Title } from '@angular/platform-browser';
+import { SwUpdate } from '@angular/service-worker';
 
 /**
  * Has common service methods directly related with the game <br>
@@ -46,13 +47,15 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     private _universeCacheManagerService: UniverseCacheManagerService,
     private _toastsService: ToastrService,
     private _resourceManagerService: ResourceManagerService,
-    private _titleService: Title
+    private _titleService: Title,
+    private _swUpdate: SwUpdate
   ) {
     super();
     this._eventsMap = {
       user_data_change: '_onUserDataChange',
       user_improvements_change: '_onUserImprovementsChange',
-      user_max_energy_change: '_onUserMaxEnergyChange'
+      user_max_energy_change: '_onUserMaxEnergyChange',
+      frontend_version_change: '_onFrontendVersionChange'
     };
     _userStore.currentUser.subscribe(user => this._currentUser = user);
     _universeStorage.currentUniverse.pipe(filter(val => !!val)).subscribe(val => {
@@ -62,15 +65,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
 
   public async createStores(): Promise<void> {
     this._offlineUserStore = this._universeCacheManagerService.getStore('universe_game.user');
-  }
-
-  public async workaroundSync(): Promise<void> {
-    const token = await this._userStore.currentToken.pipe(take(1)).toPromise();
-    if (token) {
-      this._onUserDataChange(
-        await this.requestWithAutorizationToContext('game', 'get', 'user/findData').toPromise()
-      );
-    }
   }
 
   /**
@@ -112,7 +106,6 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
     );
 
   }
-
 
   /**
    *
@@ -260,6 +253,10 @@ export class UniverseGameService extends AbstractWebsocketApplicationHandler {
 
   protected _onUserMaxEnergyChange(content: number): void {
     this._resourceManagerService.setMaxEnergy(content);
+  }
+
+  protected _onFrontendVersionChange(): void {
+    window.setTimeout(() => this._swUpdate.checkForUpdate(), 3000);
   }
 
   /**

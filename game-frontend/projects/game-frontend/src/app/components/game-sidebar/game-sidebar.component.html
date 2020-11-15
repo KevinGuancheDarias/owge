@@ -20,6 +20,12 @@
                   <a *ngIf="userUnreadReports" class="owge-sidebar-menu-btn-overlay-top-left" role="button" routerLink="{{ route.path }}">{{ userUnreadReports }} </a>
                   <a *ngIf="enemyUnreadReports" class="owge-sidebar-menu-btn-overlay-bottom-right" style="color: #F33" role="button" routerLink="{{ route.path }}">{{ enemyUnreadReports }} </a>
             </ng-container>
+            <ng-container *ngIf="route.icon.includes('twitch')">
+                  <a *ngIf="isTwitchLive" class="owge-sidebar-menu-btn-overlay-top-left twitch-live-animated" href="javascript:void(0)" (click)="route.action()">
+                        <i class="fas fa-video"></i>
+                        <span class="live-animated-text" [@goRight]="animationState" (@goRight.done)="toggleStateAnimation()">)))</span>
+                  </a>
+            </ng-container>
       </ng-template>
       <div class="body">
             <div class="selected-planet">

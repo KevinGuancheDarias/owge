@@ -131,14 +131,12 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
           line.setAttribute('y1', `${position.top + (currentElPosition.height / 2)}px`);
           line.setAttribute('x2', `${svgTarget.left}px`);
           line.setAttribute('y2', `${svgTarget.top}px`);
-          // line.setAttribute('stroke', 'red');
           line.setAttribute('stroke-width', '5');
           const rect: SVGRectElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           rect.setAttribute('x', `${currentNodePosition.left - 1}`);
           rect.setAttribute('y', `${currentNodePosition.top - 1}`);
           rect.setAttribute('width', `${currentNodePosition.width + 1}`);
           rect.setAttribute('height', `${currentNodePosition.height + 1}`);
-          // rect.setAttribute('stroke', 'red');
           rect.setAttribute('stroke-width', '3');
           rect.setAttribute('fill', 'transparent');
           if (isFixed) {
@@ -187,7 +185,6 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
       this.nodes.forEach((current, i) => {
         const computedStyle: CSSStyleDeclaration = window.getComputedStyle(current);
         current.classList.add('tutorial-target-node');
-        current.style.zIndex = '65533';
         if (computedStyle.position === 'static') {
           current.style.position = 'relative';
         }
@@ -206,7 +203,7 @@ export class TutorialOverlayComponent implements AfterViewInit, AfterViewChecked
       document.querySelector('body').classList.remove('tutorial-blocker');
     }
     this._chr.detectChanges();
-    this._runCheck = true;
+    window.setTimeout(() => this._runCheck = true, 300);
 
   }
 

@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 public class RequirementInformationDao implements Serializable {
 	private static final long serialVersionUID = -4922698439719271164L;
 	private static final Logger LOG = Logger.getLogger(RequirementInformationDao.class);
+	private static final String CACHE_KEY = "requirements";
 
 	@Autowired
 	private RequirementInformationRepository requirementInformationRepository;
@@ -122,7 +124,7 @@ public class RequirementInformationDao implements Serializable {
 	 * Finds by type, secondValue, and where thirdValue is greater or equal to x<br>
 	 * Example resultant SQL: WHERE type = '$type' AND secondValue = '$secondValue'
 	 * AND thirdValue >= '$thidValue'
-	 * 
+	 *
 	 * @deprecated Use
 	 *             {@link ObjectRelationBo#findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(RequirementTypeEnum, Long, Long)}
 	 * @param type
@@ -141,7 +143,7 @@ public class RequirementInformationDao implements Serializable {
 
 	/**
 	 * Will return requirement for specified object type
-	 * 
+	 *
 	 * @deprecated Use
 	 *             {@link RequirementInformationDao#findRequirements(ObjectEnum, Integer)}
 	 * @param targetObject - Type of object
@@ -156,14 +158,15 @@ public class RequirementInformationDao implements Serializable {
 	}
 
 	/**
-	 * 
-	 * 
+	 *
+	 *
 	 * @param objectEnum
 	 * @param referenceId
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Cacheable(cacheNames = CACHE_KEY, key = "{ #objectEnum, #referenceId }")
 	public List<RequirementInformation> findRequirements(ObjectEnum objectEnum, Integer referenceId) {
 		ObjectRelation objectRelation = objectRelationsBo.findOne(objectEnum, referenceId);
 		return objectRelation != null ? requirementInformationRepository.findByRelationId(objectRelation.getId())
@@ -171,7 +174,7 @@ public class RequirementInformationDao implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use
 	 *             {@link RequirementInformationDao#findRequirementsByType(ObjectEnum, Integer, RequirementTypeEnum)}
 	 * @param targetObject
@@ -189,7 +192,7 @@ public class RequirementInformationDao implements Serializable {
 
 	/**
 	 * Find all the requirements of the same type that a reference has
-	 * 
+	 *
 	 * @param target
 	 * @param referenceId
 	 * @param type
@@ -214,7 +217,7 @@ public class RequirementInformationDao implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use {@link ObjectRelationBo#findOne(ObjectEnum, Integer)}
 	 * @param targetObject
 	 * @param referenceId
@@ -228,7 +231,7 @@ public class RequirementInformationDao implements Serializable {
 
 	/**
 	 * Will save the requirement information to the database
-	 * 
+	 *
 	 * @param requirementsInformation
 	 * @author Kevin Guanche Darias
 	 */
@@ -260,7 +263,7 @@ public class RequirementInformationDao implements Serializable {
 	}
 
 	/**
-	 * 
+	 *
 	 * @deprecated Use
 	 *             {@link RequirementInformationDao#deleteRequirementInformationByObjectRelation(ObjectEnum, Integer)}
 	 *             which <b>doesn't delete the ObjectRelation by itself
@@ -284,7 +287,7 @@ public class RequirementInformationDao implements Serializable {
 
 	/**
 	 * Deletes all requirement information for given ObjectRelation (if exists)
-	 * 
+	 *
 	 * @param target
 	 * @param referenceId
 	 * @since 0.8.0
@@ -311,7 +314,7 @@ public class RequirementInformationDao implements Serializable {
 	/**
 	 * Gets the human friendly second value description<br />
 	 * For example: "{upgrade_name} level some"
-	 * 
+	 *
 	 * @param requirementInformation
 	 * @return
 	 * @author Kevin Guanche Darias
@@ -319,24 +322,24 @@ public class RequirementInformationDao implements Serializable {
 	public String getSecondValueDescription(RequirementInformation requirementInformation) {
 		String retVal;
 		switch (requirementInformation.getRequirement().getCode()) {
-			case "HAVE_SPECIAL_LOCATION":
-				retVal = specialLocationBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-				break;
-			case "BEEN_RACE":
-				retVal = factionBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-				break;
-			case "UPGRADE_LEVEL":
-				retVal = upgradeBo.findById(requirementInformation.getSecondValue().intValue()).getName() + " nivel "
-						+ requirementInformation.getThirdValue();
-				break;
-			case "WORST_PLAYER":
-				retVal = "El tío más noob!";
-				break;
-			case "HOME_GALAXY":
-				retVal = galaxyBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-				break;
-			default:
-				throw new SgtBackendRequirementException("No existe este tipo de requisito");
+		case "HAVE_SPECIAL_LOCATION":
+			retVal = specialLocationBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+			break;
+		case "BEEN_RACE":
+			retVal = factionBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+			break;
+		case "UPGRADE_LEVEL":
+			retVal = upgradeBo.findById(requirementInformation.getSecondValue().intValue()).getName() + " nivel "
+					+ requirementInformation.getThirdValue();
+			break;
+		case "WORST_PLAYER":
+			retVal = "El tío más noob!";
+			break;
+		case "HOME_GALAXY":
+			retVal = galaxyBo.findById(requirementInformation.getSecondValue().intValue()).getName();
+			break;
+		default:
+			throw new SgtBackendRequirementException("No existe este tipo de requisito");
 		}
 		return retVal;
 	}
@@ -344,7 +347,7 @@ public class RequirementInformationDao implements Serializable {
 	/**
 	 * Will find all requirement information for given object type and requirement
 	 * id
-	 * 
+	 *
 	 * @param objectType
 	 * @param requirement
 	 * @return
@@ -359,15 +362,15 @@ public class RequirementInformationDao implements Serializable {
 
 	/**
 	 * Checks if the object relation reference_id exists
-	 * 
+	 *
 	 * @param relation {@link ObjectRelation}
-	 * 
+	 *
 	 * @author Kevin Guanche Darias
 	 */
 
 	/**
 	 * Returns the requirement by object relation, but if null, returns empty list
-	 * 
+	 *
 	 * @param objectRelation
 	 * @return
 	 * @author Kevin Guanche Darias

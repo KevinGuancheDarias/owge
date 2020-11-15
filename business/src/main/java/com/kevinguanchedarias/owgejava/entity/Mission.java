@@ -40,10 +40,12 @@ public class Mission implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "type", nullable = false)
-	@Fetch(FetchMode.JOIN)
 	private MissionType type;
 
-	@Column(name = "termination_date")
+	@Column(name = "starting_date")
+	private Date startingDate = new Date();
+
+	@Column(name = "termination_date", nullable = false)
 	private Date terminationDate;
 
 	@Column(name = "required_time")
@@ -111,6 +113,24 @@ public class Mission implements EntityWithId<Long> {
 
 	public void setType(MissionType type) {
 		this.type = type;
+	}
+
+	/**
+	 * @return the startingDate
+	 * @since 0.9.6
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Date getStartingDate() {
+		return startingDate;
+	}
+
+	/**
+	 * @param startingDate the startingDate to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.6
+	 */
+	public void setStartingDate(Date startingDate) {
+		this.startingDate = startingDate;
 	}
 
 	public Date getTerminationDate() {
@@ -233,16 +253,20 @@ public class Mission implements EntityWithId<Long> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Mission other = (Mission) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
+			}
 		} else if (!id.equals(other.id)) {
 			return false;
 		}

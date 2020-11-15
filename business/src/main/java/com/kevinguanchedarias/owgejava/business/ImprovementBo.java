@@ -148,12 +148,15 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	@CacheEvict(cacheNames = CACHE_KEY, key = "#user.id")
 	public void clearSourceCache(UserStorage user, ImprovementSource source) {
 		String sourceCacheName = findSourceCacheName(user, source);
-		socketIoService.sendMessage(user, "user_improvements_change", () -> {
+		Runnable action = () -> {
 			LOG.debug("Clearing cache for " + sourceCacheName);
 			cacheManager.getCache(CACHE_KEY).evictIfPresent(user.getId());
 			cacheManager.getCache(CACHE_KEY).evictIfPresent(sourceCacheName);
+		};
+		socketIoService.sendMessage(user, "user_improvements_change", () -> {
+			action.run();
 			return beanFactory.getBean(getClass()).findUserImprovement(user);
-		});
+		}, action);
 	}
 
 	/**
@@ -341,6 +344,19 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 	 * @since 0.8.1
 	 */
 	public Double computeImprovementValue(double base, double inputPercentage) {
+		return computeImprovementValue(base, inputPercentage, true);
+	}
+
+	/**
+	 *
+	 * @param base
+	 * @param inputPercentage
+	 * @param sum             If true sums, else sustracts
+	 * @return
+	 * @since 0.9.13
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Double computeImprovementValue(double base, double inputPercentage, boolean sum) {
 		double retVal = base;
 		double step = Double
 				.parseDouble(configurationBo.findOrSetDefault("IMPROVEMENT_STEP", DEFAULT_STEP.toString()).getValue());
@@ -349,7 +365,12 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
 			if (pendingPercentage < step) {
 				step = pendingPercentage;
 			}
-			retVal += retVal * (step / 100);
+			double current = retVal * (step / 100);
+			if (sum) {
+				retVal += current;
+			} else {
+				retVal -= current;
+			}
 			pendingPercentage -= step;
 		}
 		return retVal;

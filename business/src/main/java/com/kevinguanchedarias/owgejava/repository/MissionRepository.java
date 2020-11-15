@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -58,4 +59,14 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Integer countByUserIdAndResolvedFalse(Integer userId);
+
+	/**
+	 * Finds missions
+	 *
+	 * @param date
+	 * @return
+	 * @since 0.9.9
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Mission> findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(Date date);
 }

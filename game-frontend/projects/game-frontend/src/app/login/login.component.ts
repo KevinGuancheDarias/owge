@@ -77,6 +77,6 @@ export class LoginComponent implements OnInit {
         pathAlias = 'games';
         break;
     }
-    this.kgdwGamesUrl = `${this.accountUrl}${lang}/${pathAlias}`;
+    this.kgdwGamesUrl = `${this.accountUrl}/${lang}/${pathAlias}`;
   }
 }

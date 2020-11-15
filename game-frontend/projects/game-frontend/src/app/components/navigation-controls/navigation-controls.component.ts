@@ -48,6 +48,12 @@ export class NavigationControlsComponent implements OnInit {
   }
 
   public navigate(): void {
+    if (this.selectedGalaxy.sectors < this.selectedSector) {
+      this.selectedSector = 1;
+    }
+    if (this.selectedGalaxy.quadrants < this.selectedQuadrant) {
+      this.selectedQuadrant = 1;
+    }
     this.onNavigation.emit(this._genNavigationConfig());
     this.changed = false;
   }

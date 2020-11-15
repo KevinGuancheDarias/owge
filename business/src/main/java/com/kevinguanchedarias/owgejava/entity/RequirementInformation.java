@@ -10,13 +10,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 /**
  * Has the special field secondValue , which represents the whole reason to
  * match ObjectRelation with a Requirement
- * 
+ *
  * @author Kevin Guanche Darias
  *
  */
@@ -31,12 +28,10 @@ public class RequirementInformation implements EntityWithId<Integer> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "relation_id")
-	@Fetch(FetchMode.JOIN)
 	private ObjectRelation relation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "requirement_id")
-	@Fetch(FetchMode.JOIN)
 	private Requirement requirement;
 
 	@Column(name = "second_value")
@@ -60,7 +55,7 @@ public class RequirementInformation implements EntityWithId<Integer> {
 	}
 
 	public void setRelation(ObjectRelation relationId) {
-		this.relation = relationId;
+		relation = relationId;
 	}
 
 	public Requirement getRequirement() {

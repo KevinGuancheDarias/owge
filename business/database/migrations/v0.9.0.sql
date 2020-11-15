@@ -126,3 +126,10 @@ ALTER TABLE `visited_tutorial_entries` ADD CONSTRAINT `fk_vts_user_id` FOREIGN K
 ALTER TABLE `user_storage` ADD `has_skipped_tutorial` BOOLEAN NOT NULL AFTER `max_energy`;
 
 ALTER TABLE `configuration` CHANGE `name` `name` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
+
+-- v0.9.5
+ALTER TABLE `user_storage` ADD `can_alter_twitch_state` BOOLEAN NOT NULL AFTER `points`;
+
+-- v0.9.6
+ALTER TABLE `missions` ADD `starting_date` DATETIME NOT NULL AFTER `required_time`;
+UPDATE missions SET starting_date = '1970-01-01 00:00:00';

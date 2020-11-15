@@ -12,6 +12,7 @@ export interface ObtainedUnit {
     id: number;
     unit: Unit;
     count: number;
+    username: string;
     sourcePlanet?: Planet;
     targetPlanet?: Planet;
     mission?: any;

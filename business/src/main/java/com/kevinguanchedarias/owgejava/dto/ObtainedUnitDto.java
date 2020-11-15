@@ -14,6 +14,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 	private MissionDto mission;
 	private Date expiration;
 	private Integer userId;
+	private String username;
 
 	@Override
 	public void dtoFromEntity(ObtainedUnit entity) {
@@ -26,6 +27,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 		mission = DtoUtilService.staticDtoFromEntity(MissionDto.class, entity.getMission());
 		expiration = entity.getExpiration();
 		userId = entity.getUser().getId();
+		username = entity.getUser().getUsername();
 	}
 
 	public Long getId() {
@@ -101,4 +103,23 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
 	public void setUserId(Integer userId) {
 		this.userId = userId;
 	}
+
+	/**
+	 * @return the username
+	 * @since 0.9.10
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public String getUsername() {
+		return username;
+	}
+
+	/**
+	 * @param username the username to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.10
+	 */
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 }

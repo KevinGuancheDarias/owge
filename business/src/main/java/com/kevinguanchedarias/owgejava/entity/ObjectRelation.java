@@ -13,14 +13,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 /**
  * This entity contains the id of the referenced table and the object type id
- * 
+ *
  * @author Kevin Guanche Darias
  */
 @Entity
@@ -40,9 +38,7 @@ public class ObjectRelation implements EntityWithId<Integer> {
 	@Column(name = "reference_id")
 	private Integer referenceId;
 
-	@OneToMany(mappedBy = "relation", fetch = FetchType.LAZY, cascade = javax.persistence.CascadeType.ALL)
-	@Cascade({ CascadeType.DELETE, CascadeType.REFRESH })
-	@Fetch(FetchMode.SELECT)
+	@OneToMany(mappedBy = "relation", fetch = FetchType.LAZY)
 	private List<RequirementInformation> requirements;
 
 	@Override
@@ -89,18 +85,23 @@ public class ObjectRelation implements EntityWithId<Integer> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ObjectRelation other = (ObjectRelation) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
-		} else if (!id.equals(other.id))
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		return true;
 	}
 

@@ -11,17 +11,16 @@ public class ResourceRequirementsPojo {
 
 	/**
 	 * Checks if the user mets the requirement
-	 * 
-	 * @param user
-	 *            <b>MUST BE</b> a fully loaded user
-	 * @param userStorageBo
-	 *            Used to get the user energy
+	 *
+	 * @param user          <b>MUST BE</b> a fully loaded user
+	 * @param userStorageBo Used to get the user energy
 	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public boolean canRun(UserStorage user, UserStorageBo userStorageBo) {
 		return user.getPrimaryResource() >= requiredPrimary && user.getSecondaryResource() >= requiredSecondary
-				&& (requiredEnergy == null || userStorageBo.findAvailableEnergy(user) >= requiredEnergy);
+				&& (requiredEnergy == null || requiredEnergy == 0D
+						|| userStorageBo.findAvailableEnergy(user) >= requiredEnergy);
 	}
 
 	public Double getRequiredPrimary() {

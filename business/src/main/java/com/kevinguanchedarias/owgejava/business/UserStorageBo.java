@@ -54,9 +54,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	private RequirementBo requirementBo;
 
 	@Autowired
-	private UserImprovementBo userImprovementBo;
-
-	@Autowired
 	private ObtainedUnitBo obtainedUnitBo;
 
 	@Autowired
@@ -129,28 +126,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return token != null ? convertTokenUserToUserStorage(token) : null;
 	}
 
-	/**
-	 * Returns the logged in user with ALL his details <br />
-	 * <b>NOTICE:</b> If required, will update base information (username,email)
-	 *
-	 * @deprecated Transient properties of UserStorage are not longer required, use
-	 *             version without transient argument
-	 * @param populateTransient Should Compute transient values<br />
-	 *                          Recommended if needs the computed real resource
-	 *                          generation after improvements parsing
-	 * @return
-	 * @author Kevin Guanche Darias
-	 */
-	@Deprecated(since = "0.8.0")
-	@Transactional
-	public UserStorage findLoggedInWithDetails(boolean populateTransient) {
-		UserStorage dbFullUser = findLoggedInWithDetails();
-		if (populateTransient) {
-			dbFullUser.fillTransientValues();
-		}
-		return dbFullUser;
-	}
-
 	@Transactional
 	public UserStorage findLoggedInWithDetails() {
 		UserStorage tokenSimpleUser = findLoggedIn();
@@ -202,7 +177,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		user.setEnergy(selectedFaction.getInitialEnergy().doubleValue());
 		user.setLastAction(new Date());
 		user = userStorageRepository.save(user);
-		user.setImprovements(userImprovementBo.findUserImprovements(user));
 
 		selectedPlanet.setOwner(user);
 		selectedPlanet.setHome(true);
@@ -229,17 +203,14 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		UserStorage user = findByIdOrDie(userId);
 		Faction faction = user.getFaction();
 		GroupedImprovement userImprovements = improvementBo.findUserImprovement(user);
-
 		Date now = new Date();
 		Date lastLogin = user.getLastAction();
-		user.setPrimaryResource(
-				calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
-						userImprovements.getMorePrimaryResourceProduction()), user.getPrimaryResource()));
-		user.setSecondaryResource(
+		userStorageRepository.addResources(user, now,
+				calculateSum(now, lastLogin,
+						computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
+								userImprovements.getMorePrimaryResourceProduction())),
 				calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getSecondaryResourceProduction(),
-						userImprovements.getMoreSecondaryResourceProduction()), user.getSecondaryResource()));
-		user.setLastAction(now);
-		save(user, false);
+						userImprovements.getMoreSecondaryResourceProduction())));
 	}
 
 	public boolean isYourPlanet(Planet planet, UserStorage user) {
@@ -349,7 +320,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		if (emitChange && user.getId() != null) {
 			TransactionUtil.doAfterCommit(() -> {
 				entityManager.refresh(savedUser);
-				socketIoService.sendMessage(savedUser, "user_data_change", () -> findData(savedUser));
+				emitUserData(user);
 			});
 		}
 		return savedUser;
@@ -384,6 +355,16 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return userDto;
 	}
 
+	/**
+	 *
+	 * @param userId
+	 * @since 0.9.7
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void emitUserData(UserStorage user) {
+		socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
+	}
+
 	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
 		UserStorage user = new UserStorage();
 		user.setId(tokenUser.getId().intValue());
@@ -401,11 +382,9 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * @return the new value for the given resource
 	 * @author Kevin Guanche Darias
 	 */
-	private Double calculateSum(Date now, Date lastAction, Double perSecondValue, Double value) {
-		Double retVal = value;
+	private Double calculateSum(Date now, Date lastAction, Double perSecondValue) {
 		double difference = (now.getTime() - lastAction.getTime()) / (double) 1000;
-		retVal += (difference * perSecondValue);
-		return retVal;
+		return (difference * perSecondValue);
 	}
 
 	/**
@@ -420,5 +399,4 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {
 		return improvementBo.computePlusPercertage(factionResource, resourceImprovement);
 	}
-
 }
