@@ -1,6 +1,6 @@
 {
   "name": "@owge/widgets",
-  "version": "0.9.12",
+  "version": "0.9.13",
   "peerDependencies": {
     "@angular/common": "^8.2.0",
     "@angular/core": "^8.2.0",

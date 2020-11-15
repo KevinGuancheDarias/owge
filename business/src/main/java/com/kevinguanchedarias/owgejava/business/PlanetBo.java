@@ -281,8 +281,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 * @param planets
 	 * @return
 	 * @since 0.9.0
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.12")
 	public List<Planet> myCleanUpUnexplored(List<Planet> planets) {
 		return cleanUpUnexplored(userStorageBo.findLoggedIn().getId(), planets);
 	}
@@ -293,8 +295,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 * @param planets
 	 * @return
 	 * @since 0.9.0
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.13")
 	public List<Planet> cleanUpUnexplored(Integer userId, List<Planet> planets) {
 		planets.forEach(current -> {
 			cleanUpUnexplored(userId, current);
@@ -307,8 +311,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	 * @param userId
 	 * @param planet
 	 * @since 0.9.9
+	 * @deprecated Due to Hibernate transactional auto save, can't modify the entity
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Deprecated(since = "0.9.13")
 	public void cleanUpUnexplored(Integer userId, Planet planet) {
 		if (!isExplored(userId, planet.getId())) {
 			planet.setName(null);
@@ -316,6 +322,24 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 			planet.setHome(null);
 			planet.setOwner(null);
 			planet.setSpecialLocation(null);
+		}
+	}
+
+	/**
+	 *
+	 * @param userId
+	 * @param planetDto
+	 * @since 0.9.13
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void cleanUpUnexplored(Integer userId, PlanetDto planetDto) {
+		if (!isExplored(userId, planetDto.getId())) {
+			planetDto.setName(null);
+			planetDto.setRichness(null);
+			planetDto.setHome(null);
+			planetDto.setOwnerId(null);
+			planetDto.setOwnerName(null);
+			planetDto.setSpecialLocation(null);
 		}
 	}
 }

@@ -1120,11 +1120,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 		checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
 		obtainedUnitBo.save(obtainedUnits);
-		if (obtainedUnits.stream().noneMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
+		if (!obtainedUnits.stream().allMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
 				&& obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
 			Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
 					.filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
-							&& (unit.getSpeedImpactGroup() == null || unit.getSpeedImpactGroup().getIsFixed() == false))
+							&& (unit.getSpeedImpactGroup() == null || !unit.getSpeedImpactGroup().getIsFixed()))
 					.map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
 			if (lowestSpeedOptional.isPresent()) {
 				double lowestSpeed = lowestSpeedOptional.get();
