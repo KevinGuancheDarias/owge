@@ -1147,7 +1147,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		missionTypeDivisor = missionTypeDivisor == 0 ? 1 : missionTypeDivisor;
 		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
 		float moveCost = calculateMoveCost(missionType, mission.getSourcePlanet(), mission.getTargetPlanet());
-		return (missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed) / missionTypeDivisor));
+		return (missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor);
 	}
 
 	/**
@@ -1478,8 +1478,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 				configurationBo.findOrSetDefault(prefix + missionTypeName + "_S_MOVE_COST", "0.03").getValue(), 0.03f);
 		float galaxyDiff = NumberUtils.toFloat(
 				configurationBo.findOrSetDefault(prefix + missionTypeName + "_G_MOVE_COST", "0.15").getValue(), 0.15f);
-		return 1 + (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
-				+ (targetPlanet.getGalaxy().equals(sourcePlanet.getGalaxy()) ? galaxyDiff : 0);
+		return (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
+				+ (!targetPlanet.getGalaxy().getId().equals(sourcePlanet.getGalaxy().getId()) ? galaxyDiff : 0);
 	}
 
 	private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,

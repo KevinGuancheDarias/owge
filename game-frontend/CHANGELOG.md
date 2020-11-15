@@ -2,6 +2,7 @@
 
 v0.9.13 (latest)
 =================
+* __Fix:__ [Speed sometimes doesn't work as expected, longt times are displayed #353](https://github.com/KevinGuancheDarias/owge/issues/353)  
 * __Fix:__ [Deployments stopped working due to performance improvement #352](https://github.com/KevinGuancheDarias/owge/issues/352)  
 
 v0.9.12 (2020-11-10 19:59)
