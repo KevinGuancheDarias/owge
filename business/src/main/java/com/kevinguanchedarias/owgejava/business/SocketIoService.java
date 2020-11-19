@@ -18,6 +18,8 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
@@ -92,6 +94,7 @@ public class SocketIoService {
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
 			Runnable notConnectedAction) {
 		List<SocketIOClient> userSockets = server.getAllClients().stream()
@@ -133,6 +136,7 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent) {
 		sendMessage(targetUserId, eventName, messageContent, null);
 	}
@@ -148,6 +152,7 @@ public class SocketIoService {
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent,
 			Runnable notConnectedAction) {
 		sendMessage(user.getId(), eventName, messageContent, notConnectedAction);
@@ -163,6 +168,7 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
 		sendMessage(user == null ? 0 : user.getId(), eventName, messageContent, null);
 	}

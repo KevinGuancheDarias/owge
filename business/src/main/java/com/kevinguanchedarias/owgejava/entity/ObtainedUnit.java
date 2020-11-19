@@ -12,9 +12,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
 @Table(name = "obtained_units")
 @Entity
 public class ObtainedUnit implements EntityWithId<Long> {
@@ -36,12 +33,10 @@ public class ObtainedUnit implements EntityWithId<Long> {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "source_planet", nullable = true)
-	@Fetch(FetchMode.JOIN)
 	private Planet sourcePlanet;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "target_planet", nullable = true)
-	@Fetch(FetchMode.JOIN)
 	private Planet targetPlanet;
 
 	@OneToOne(fetch = FetchType.LAZY)

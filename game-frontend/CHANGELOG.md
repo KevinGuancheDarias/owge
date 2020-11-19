@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.14 (latest)
+=================
+* __Fix:__ Reduce random errors in attacks
+
 v0.9.13 (2020-11-15 13:33)
 ===========================
 * __Improvement:__ [Change improvement formula for upgrades and units, so it's reasonable stay collecting specials #355](https://github.com/KevinGuancheDarias/owge/issues/355)  
