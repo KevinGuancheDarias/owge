@@ -1,4 +1,4 @@
-<app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="selectedEl = $event">
+<app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="onSelected($event)">
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <div class="form-group col-md-6">

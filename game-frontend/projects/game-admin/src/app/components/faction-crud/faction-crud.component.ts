@@ -1,9 +1,16 @@
 import { Component } from '@angular/core';
 
-import { Faction } from '@owge/faction';
-import { ImageStore } from '@owge/universe';
+import { Faction, FactionUnitType } from '@owge/faction';
+import { ImageStore, UnitType } from '@owge/universe';
+import { take } from 'rxjs/operators';
 
 import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+
+interface UnitTypeWithOverrides extends UnitType {
+  overrideId?: number;
+  overrideMaxCount?: number;
+}
 
 @Component({
   selector: 'app-faction-crud',
@@ -13,8 +20,11 @@ import { AdminFactionService } from '../../services/admin-faction.service';
 export class FactionCrudComponent {
 
   public selectedEl: Faction;
+  public unitTypes: UnitTypeWithOverrides[];
 
-  constructor(public adminFactionService: AdminFactionService) { }
+  constructor(public adminFactionService: AdminFactionService, private _adminUnitTypeService: AdminUnitTypeService) {
+
+  }
 
   /**
    *
@@ -67,5 +77,17 @@ export class FactionCrudComponent {
     } else if (this.selectedEl.customSecondaryGatherPercentage > 99) {
       this.selectedEl.customSecondaryGatherPercentage = 99;
     }
+  }
+
+  public async onSelected(faction: Faction): Promise<void> {
+    this.unitTypes = await this._adminUnitTypeService.findAll().pipe(take(1)).toPromise();
+    const overrides: FactionUnitType[] = await this.adminFactionService.findUnitTypes(faction.id).toPromise();
+    overrides.forEach(override => {
+      const unitType: UnitTypeWithOverrides = this.unitTypes.find(current => current.id === override.unitTypeId);
+      if (unitType) {
+        unitType.overrideId = override.id;
+        unitType.overrideMaxCount = override.maxCount;
+      }
+    });
   }
 }

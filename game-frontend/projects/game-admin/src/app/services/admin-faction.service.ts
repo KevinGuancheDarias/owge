@@ -9,11 +9,12 @@ import {
     CrudConfig,
     RequirementInformation
 } from '@owge/universe';
-import { Faction } from '@owge/faction';
+import { Faction, FactionUnitType } from '@owge/faction';
 import { validContext, ProgrammingError } from '@owge/core';
 import { Mixin } from 'ts-mixer';
 import { take } from 'rxjs/operators';
 import { WidgetFilter } from '@owge/widgets';
+import { Observable } from 'rxjs';
 
 
 export interface AdminFactionService
@@ -60,6 +61,19 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
                 );
             }
         };
+    }
+
+
+    /**
+     * Finds the unit type overrides for the given faction
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @param factionId
+     * @since 0.10.0
+     * @returns
+     */
+    public findUnitTypes(factionId: number): Observable<FactionUnitType[]> {
+        return this._universeGameService.requestWithAutorizationToContext('admin', 'get', `faction/${factionId}/unitTypes`);
     }
 
     protected _getEntity(): string {

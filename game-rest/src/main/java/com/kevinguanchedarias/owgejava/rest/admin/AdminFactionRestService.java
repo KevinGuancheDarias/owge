@@ -1,12 +1,16 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -17,12 +21,13 @@ import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 
 /**
- * 
- * 
+ *
+ *
  * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
@@ -42,9 +47,27 @@ public class AdminFactionRestService
 	@Autowired
 	private AutowireCapableBeanFactory beanFactory;
 
+	/**
+	 *
+	 * @param factionId
+	 * @return
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping("{factionId}/unitTypes")
+	public List<FactionUnitTypeDto> findUnitTypesOverrides(@PathVariable Integer factionId) {
+		Faction faction = factionBo.findByIdOrDie(factionId);
+		return faction.getUnitTypes().stream().map(current -> {
+			FactionUnitTypeDto dto = new FactionUnitTypeDto();
+			dto.dtoFromEntity(current);
+			dto.setFactionId(null);
+			return dto;
+		}).collect(Collectors.toList());
+	}
+
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.rest.trait.
 	 * CrudWithImprovementsRestServiceTrait#getRestCrudConfigBuilder()
 	 */

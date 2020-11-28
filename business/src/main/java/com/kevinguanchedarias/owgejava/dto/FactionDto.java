@@ -1,6 +1,10 @@
 package com.kevinguanchedarias.owgejava.dto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 
@@ -30,6 +34,7 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 	private ImprovementDto improvement;
 	private Float customPrimaryGatherPercentage = 0F;
 	private Float customSecondaryGatherPercentage = 0F;
+	private List<FactionUnitTypeDto> unitTypes;
 
 	/*
 	 * (non-Javadoc)
@@ -58,6 +63,20 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 		}
 
 		DtoWithImprovements.super.dtoFromEntity(entity);
+	}
+
+	/**
+	 *
+	 * @param faction
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void loadUnitTypesOverrides(Faction faction) {
+		unitTypes = faction.getUnitTypes().stream().map(current -> {
+			FactionUnitTypeDto dto = new FactionUnitTypeDto();
+			dto.dtoFromEntity(current);
+			return dto;
+		}).collect(Collectors.toList());
 	}
 
 	@Override
@@ -337,6 +356,24 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 	 */
 	public void setCustomSecondaryGatherPercentage(Float customSecondaryGatherPercentage) {
 		this.customSecondaryGatherPercentage = customSecondaryGatherPercentage;
+	}
+
+	/**
+	 * @return the unitTypes
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<FactionUnitTypeDto> getUnitTypes() {
+		return unitTypes;
+	}
+
+	/**
+	 * @param unitTypes the unitTypes to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setUnitTypes(List<FactionUnitTypeDto> unitTypes) {
+		this.unitTypes = unitTypes;
 	}
 
 }
