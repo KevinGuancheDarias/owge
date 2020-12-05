@@ -3,6 +3,7 @@
 v0.9.14 (latest)
 =================
 * __Fix:__ Reduce random errors in attacks
+* __Fix:__ [Removing negative units allows to add units without having to wait, nor losing resources #361](https://github.com/KevinGuancheDarias/owge/issues/361)  
 
 v0.9.13 (2020-11-15 13:33)
 ===========================

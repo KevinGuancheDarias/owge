@@ -310,7 +310,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		if (handleImprovements) {
 			TransactionUtil.doAfterCommit(() -> improvementBo.clearSourceCache(obtainedUnit.getUser(), this));
 		}
-		if (substractionCount > obtainedUnit.getCount()) {
+		if (substractionCount < 0) {
+			throw new SgtBackendInvalidInputException(
+					"Dear hacker, while this was possible in <= v0.9.13 , it's not now, you can go cry if you want");
+		} else if (substractionCount > obtainedUnit.getCount()) {
 			throw new SgtBackendInvalidInputException(
 					"Can't not subtract because, obtainedUnit count is less than the amount to subtract");
 		} else if (obtainedUnit.getCount() > substractionCount) {

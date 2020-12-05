@@ -850,8 +850,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 			UserStorage user = mission.getUser();
 			Integer userId = user.getId();
 			List<ObtainedUnit> alteredUnits = new ArrayList<>();
-			findUnitsInvolved(missionId).forEach(current -> alteredUnits
-					.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId())));
+			findUnitsInvolved(missionId).forEach(current -> {
+				// if(canDoMission(user, targetPlanet, entityWithMissionLimitation,
+				// missionType))
+				alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()));
+			});
 			resolveMission(mission);
 			TransactionUtil.doAfterCommit(() -> {
 				alteredUnits.forEach(unit -> {
