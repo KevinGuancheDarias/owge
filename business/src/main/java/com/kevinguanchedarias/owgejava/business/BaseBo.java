@@ -26,7 +26,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 		return getRepository().findAll().stream().map(this::onFind).collect(Collectors.toList());
 	}
 
-	default Long countAll() {
+	default long countAll() {
 		return getRepository().count();
 	}
 

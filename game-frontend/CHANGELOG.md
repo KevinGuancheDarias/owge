@@ -2,6 +2,7 @@
 
 v0.9.14 (latest)
 =================
+* __Fix:__ [Allow to limit alliances by % of world players, and max number configurable in admin panel #358](https://github.com/KevinGuancheDarias/owge/issues/358)  
 * __Fix:__ Reduce random errors in attacks
 * __Fix:__ [Removing negative units allows to add units without having to wait, nor losing resources #361](https://github.com/KevinGuancheDarias/owge/issues/361)  
 

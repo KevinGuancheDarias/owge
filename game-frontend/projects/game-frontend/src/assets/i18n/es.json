@@ -9,6 +9,7 @@
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Tu planeta ha sido conquistado",
     "I18N_ALLIANCE_NOT_DEFEATED": "Las unidades del dueño del planeta fueron derrotadas, pero unidades de sus aliados sobrevivieron",
     "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
+    "I18N_ERR_ALLIANCE_IS_FULL": "La alianza está llena, prueba más tarde, los límites son un máximo absoluto, o en universos pequeños... un porcentaje del total de jugadores",
     "APP": {
         "CONNECTED": "Conectado",
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",

@@ -87,7 +87,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	 * @author Kevin Guanche Darias
 	 */
 	public Integer findRandomGalaxy() {
-		int count = countAll().intValue();
+		int count = (int) countAll();
 
 		if (count == 0) {
 			throw new SgtBackendNoGalaxiesFound("Este universo no posee galaxias");

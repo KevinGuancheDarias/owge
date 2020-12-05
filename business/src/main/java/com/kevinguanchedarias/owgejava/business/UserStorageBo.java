@@ -149,6 +149,17 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	}
 
 	/**
+	 *
+	 * @param alliance
+	 * @return
+	 * @since 0.9.14
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public int countByAlliance(Alliance alliance) {
+		return userStorageRepository.countByAlliance(alliance);
+	}
+
+	/**
 	 * Will subscribe logged in user to this universe
 	 *
 	 * @param factionId Faction that the user wants to use

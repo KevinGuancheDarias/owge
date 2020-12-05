@@ -9,6 +9,7 @@
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Your planet was conquisted",
     "I18N_ALLIANCE_NOT_DEFEATED": "Units of the owner of the planet were killed, but units from members of his alliance has survived",
     "I18N_APP_UPDATE_DETECTED": "The game has been updated, will reload soon, or reload by yourself",
+    "I18N_ERR_ALLIANCE_IS_FULL": "The alliance is full, check again later. the limits are defined by max, and by a percentage of current total players of the universe",
     "APP": {
         "CONNECTED": "Connected",
         "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",

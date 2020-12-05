@@ -48,4 +48,13 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Intege
 	@Query("UPDATE UserStorage u SET u.lastAction = ?2, u.primaryResource = u.primaryResource + ?3, u.secondaryResource = u.secondaryResource + ?4 WHERE u = ?1")
 	@Modifying
 	public void addResources(UserStorage user, Date now, Double primary, Double secondary);
+
+	/**
+	 *
+	 * @param alliance
+	 * @return
+	 * @since 0.9.14
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public int countByAlliance(Alliance alliance);
 }
