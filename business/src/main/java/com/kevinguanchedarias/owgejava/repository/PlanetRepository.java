@@ -64,4 +64,12 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 	@QueryHints({ @QueryHint(name = "javax.persistence.lock.timeout", value = "5000") })
 	public Planet findLockedById(Long id);
 
+	/**
+	 *
+	 * @param galaxyId
+	 * @since 0.9.14
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void deleteByGalaxyId(Integer galaxyId);
+
 }

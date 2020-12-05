@@ -3,15 +3,15 @@
         <ng-container *ngIf="selectedGalaxy && hasPlayers !== null">
             <div class="form-group col-md-4">
                 <label for="num-sectors">{{ 'CRUD.GALAXY.SECTORS' | translate }} </label>
-                <input min="1" [disabled]="selectedGalaxy.id" type="number" [(ngModel)]="selectedGalaxy.sectors" id="num-sectors" class="form-control"/>
+                <input min="1" [disabled]="hasPlayers" type="number" [(ngModel)]="selectedGalaxy.sectors" id="num-sectors" class="form-control"/>
             </div>
             <div class="form-group col-md-4">
                 <label for="num-quadrants">{{ 'CRUD.GALAXY.QUADRANTS' | translate }} </label>
-                <input min="1" [disabled]="selectedGalaxy.id" type="number" [(ngModel)]="selectedGalaxy.quadrants" id="num-quadrants" class="form-control"/>
+                <input min="1" [disabled]="hasPlayers" type="number" [(ngModel)]="selectedGalaxy.quadrants" id="num-quadrants" class="form-control"/>
             </div>
             <div class="form-group col-md-4">
                 <label for="num-planets">{{ 'CRUD.GALAXY.PLANETS' | translate }} </label>
-                <input min="1" [disabled]="selectedGalaxy.id" type="number" [(ngModel)]="selectedGalaxy.numPlanets" id="num-quadrants" class="form-control"/>
+                <input min="1" [disabled]="hasPlayers" type="number" [(ngModel)]="selectedGalaxy.numPlanets" id="num-quadrants" class="form-control"/>
             </div>
             <div class="form-group col-md-4">
                 <label for="max-amount">{{ 'CRUD.GALAXY.ORDER' | translate }} </label>
