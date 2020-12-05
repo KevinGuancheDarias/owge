@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.14 (latest)
-=================
+v0.9.14 (2020-12-05 17:26)
+==========================
 * __Improvement:__ [Allow to resize galaxies if world is empty, note, is not perfect #362](https://github.com/KevinGuancheDarias/owge/issues/362)  
 * __Fix:__ [Allow to limit alliances by % of world players, and max number configurable in admin panel #358](https://github.com/KevinGuancheDarias/owge/issues/358)  
 * __Fix:__ Reduce random errors in attacks
