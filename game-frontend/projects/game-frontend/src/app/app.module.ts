@@ -9,7 +9,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage } from '@owge/universe';
+import { OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
 
@@ -208,7 +208,8 @@ export class AppModule {
     private _translateService: TranslateService,
     private _configurationService: ConfigurationService,
     private _userStorage: UserStorage<User>,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();
@@ -227,6 +228,7 @@ export class AppModule {
   }
 
   private _initWebsocket(): void {
+    this._wsEventCacheService.addCacheListeners(this._configurationService);
     this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
         this._websocketService.addEventHandler(

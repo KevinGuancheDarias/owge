@@ -11,11 +11,11 @@
 	</parent>
 	<groupId>com.kevinguanchedarias.owgejava</groupId>
 	<artifactId>game-rest</artifactId>
-	<version>0.9.14-SNAPSHOT</version>
+	<version>0.9.15-SNAPSHOT</version>
 	<name>OWGE Game Rest</name>
 
 	<properties>
-		<owge.version>0.9.14-SNAPSHOT</owge.version>
+		<owge.version>0.9.15-SNAPSHOT</owge.version>
 	</properties>
 
 	<dependencies>

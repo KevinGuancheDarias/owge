@@ -1,6 +1,6 @@
 {
   "name": "@owge/universe",
-  "version": "0.9.14",
+  "version": "0.9.15",
   "peerDependencies": {
     "@angular/common": "^8.2.0",
     "@angular/core": "^8.2.0",

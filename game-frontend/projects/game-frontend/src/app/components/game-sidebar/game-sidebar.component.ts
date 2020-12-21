@@ -13,6 +13,9 @@ import { ReportService } from '../../services/report.service';
 import { TwitchState } from '../../types/twitch-state.type';
 import { TwitchService } from '../../services/twitch.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ConfigurationService } from '../../modules/configuration/services/configuration.service';
+import { Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  *
@@ -99,7 +102,6 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public isTwitchLive = false;
 
   constructor(
-    _translateService: TranslateService,
     private _universeGameService: UniverseGameService,
     private _planetService: PlanetService,
     private _displayService: DisplayService,
@@ -107,13 +109,24 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _unitTypeService: UnitTypeService,
     private _missionStore: MissionStore,
     private _reportService: ReportService,
-    twitchService: TwitchService
+    twitchService: TwitchService,
+    translateService: TranslateService,
+    configurationService: ConfigurationService
   ) {
-    super(_translateService);
+    super(translateService);
     twitchService.state().subscribe(value => {
       this.twitchRoute.cssClasses['is-twitch-live'] = value;
       this.isTwitchLive = value;
     });
+    const alliancesRoute: MenuRoute = this.menuRoutes[6];
+    const shouldDisplayAllianceSubject: Subject<boolean> = new Subject();
+    alliancesRoute.shouldDisplay = shouldDisplayAllianceSubject.asObservable();
+    configurationService.observeParamOrDefault('DISABLED_FEATURE_ALLIANCE', 'FALSE')
+      .pipe(
+        map(configuration => configuration.value === 'TRUE')
+      ).subscribe(isDisabled =>
+        shouldDisplayAllianceSubject.next(!isDisabled)
+      );
   }
 
   public async ngOnInit() {

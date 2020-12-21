@@ -87,6 +87,10 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	 */
 	@Transactional
 	public Alliance save(Alliance alliance, Integer invokerId) {
+		if (Boolean.parseBoolean(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE").getValue())) {
+			throw new SgtBackendInvalidInputException(
+					"You can't not create an alliance, while the idea is nice, it's not possible");
+		}
 		Alliance retVal;
 		if (alliance.getId() == null) {
 			UserStorage creator = userStorageBo.findById(invokerId);

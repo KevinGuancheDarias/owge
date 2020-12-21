@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.15 (latest)
+=================
+* __Improvement:__ [Allow to disable the alliances #365](https://github.com/KevinGuancheDarias/owge/issues/365)  
+
 v0.9.14 (2020-12-05 17:26)
 ==========================
 * __Improvement:__ [Allow to resize galaxies if world is empty, note, is not perfect #362](https://github.com/KevinGuancheDarias/owge/issues/362)  
