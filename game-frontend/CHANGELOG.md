@@ -2,6 +2,7 @@
 
 v0.9.15 (latest)
 =================
+* __Fix:__ [Reports are not marked as read, if the information comes from a socket event #366](https://github.com/KevinGuancheDarias/owge/issues/366)  
 * __Fix:__ [Improvements are bugged in all sources, including upgrades, units, and time specials #363](https://github.com/KevinGuancheDarias/owge/issues/363)  
 * __Improvement:__ [Allow to disable the alliances #365](https://github.com/KevinGuancheDarias/owge/issues/365)  
 
