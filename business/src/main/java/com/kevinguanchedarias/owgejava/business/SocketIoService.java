@@ -18,8 +18,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
@@ -52,6 +51,9 @@ public class SocketIoService {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private AsyncRunnerBo asyncRunnerBo;
 
 	@Autowired
 	@Lazy
@@ -94,7 +96,6 @@ public class SocketIoService {
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
 			Runnable notConnectedAction) {
 		List<SocketIOClient> userSockets = server.getAllClients().stream()
@@ -115,11 +116,16 @@ public class SocketIoService {
 		}
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
-			userSockets.forEach(client -> {
-				LOCAL_LOGGER.trace("Sending message to socket");
-				TokenUser user = client.get(USER_TOKEN_KEY);
-				client.sendEvent("deliver_message",
-						new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
+			asyncRunnerBo.runAssyncWithoutContext(() -> {
+				userSockets.forEach(client -> {
+					if (TransactionSynchronizationManager.isActualTransactionActive()) {
+						System.out.println("No debería pasar si todo va bien!!!");
+					}
+					LOCAL_LOGGER.trace("Sending message to socket");
+					TokenUser user = client.get(USER_TOKEN_KEY);
+					client.sendEvent("deliver_message",
+							new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
+				});
 			});
 		} else if (notConnectedAction != null) {
 			notConnectedAction.run();
@@ -136,7 +142,6 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent) {
 		sendMessage(targetUserId, eventName, messageContent, null);
 	}
@@ -152,7 +157,6 @@ public class SocketIoService {
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent,
 			Runnable notConnectedAction) {
 		sendMessage(user.getId(), eventName, messageContent, notConnectedAction);
@@ -168,7 +172,6 @@ public class SocketIoService {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
 		sendMessage(user == null ? 0 : user.getId(), eventName, messageContent, null);
 	}
