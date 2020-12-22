@@ -76,6 +76,7 @@ import { PlanetListComponent } from './components/planet-list/planet-list.compon
 import { SettingsComponent } from './components/settings/settings.component';
 import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
 import { TwitchService } from './services/twitch.service';
+import { FastExplorationButtonComponent } from './components/fast-exploration-button/fast-exploration-button.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -151,7 +152,8 @@ export const APP_ROUTES: Routes = [
     TimeSpecialsComponent,
     PlanetListComponent,
     SettingsComponent,
-    TutorialOverlayComponent
+    TutorialOverlayComponent,
+    FastExplorationButtonComponent
   ],
   imports: [
     BrowserModule,

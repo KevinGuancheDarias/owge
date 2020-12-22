@@ -1,8 +1,19 @@
-img {
-    width: 20px;
-    height: 20px;
-}
+app-planet-list {
+    img.icon-mission {
+        width: 20px;
+        height: 20px;
+    }
 
-a {
-    max-width: 20px;
+    a {
+        max-width: 20px;
+    }
+    .planet-list-actions {
+        min-height: 100px;
+        line-height: 70px;
+        text-align: center;
+        .fa-pen {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+    }
 }
