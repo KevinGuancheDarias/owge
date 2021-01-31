@@ -113,11 +113,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @memberof UnitService
    * @author Kevin Guanche Darias
    */
-  public cancel(missionData: UnitBuildRunningMission) {
+  public cancel(missionData: UnitBuildRunningMission): Observable<void> {
     let params: HttpParams = new HttpParams();
     params = params.append('missionId', missionData.missionId);
-    this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params }).subscribe(() => {
-    });
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params });
   }
 
   /**

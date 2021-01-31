@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { User } from '@owge/core';
@@ -133,7 +133,7 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
   }
 
   public cancelUnit(): void {
-    this._unitService.cancel(this.building);
+    this._unitService.cancel(this.building).pipe(take(1)).subscribe();
   }
 
   public async deleteUnits(): Promise<void> {

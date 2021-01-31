@@ -1,5 +1,11 @@
 # OWGE changelog
 
+v0.9.16 (latest)
+====================
+* __Fix:__ [When a unit is been built, for stops been unlocked, for any reason, maybe time special expired, or special location was left, the pending time is no displayed #370
+](https://github.com/KevinGuancheDarias/owge/issues/370)  
+* __Improvement:__ [Allow to send system messages #368](https://github.com/KevinGuancheDarias/owge/issues/368)  
+
 v0.9.15 (2020-12-22 19:21)
 ===========================
 * __Fix:__ [Missing fast explore icon in planet list #359](https://github.com/KevinGuancheDarias/owge/issues/359)  
