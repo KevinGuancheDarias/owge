@@ -112,7 +112,9 @@
                     "COUNT": "Cantidad",
                     "BTN_BUILD": "Construir",
                     "MIN_ONE": "Mínimo 1",
-                    "NO_RESOURCES": "Sin recursos"
+                    "NO_RESOURCES": "Sin recursos",
+                    "CANCEL_TITLE": "Confirma para cancelar",
+                    "CANCEL_TEXT": "¿Seguro qué quieres cancelar la construcción actual?"
                 }
             },
             "IN_PLANET": {

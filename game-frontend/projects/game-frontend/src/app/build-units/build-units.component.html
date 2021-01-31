@@ -1,3 +1,4 @@
+
 <owge-core-loading [isReady]="building !== undefined" [ngClass]="{ 'compact-view' : isCompactView}">
   <ng-container *ngIf="unlockedUnits !== undefined">
     <div *ngIf="!unlockedUnits.length" class="owge-base-colors no-units">{{ 'APP.UNITS.UNLOCKED.NO_UNITS' | translate }}</div>

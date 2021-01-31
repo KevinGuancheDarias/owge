@@ -53,10 +53,6 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, On
     }
   }
 
-  public onCancel(): void {
-
-  }
-
   private _findUnlocked(): Observable<Unit[]> {
     return this._unitService.findUnlocked();
   }

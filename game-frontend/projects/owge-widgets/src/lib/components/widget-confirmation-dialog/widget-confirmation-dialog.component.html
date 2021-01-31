@@ -1,10 +1,10 @@
 <owge-core-modal #childModal [hasCloseButton]="false" [closeOnOverlayClick]="closeOnOverlayClick" [isOpenOnLoad]="isOpenOnLoad"
   [hasCloseButton]="hasCloseButton">
   <div class="header">
-    {{ title }}
+    {{ title  || (i18nTitle | translate) }}
   </div>
   <div class="body">
-    {{ text}}
+    {{ text || (i18nText | translate)}}
   </div>
 
   <div class="footer">

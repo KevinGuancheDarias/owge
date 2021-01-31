@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter, ViewChild } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
 import { User } from '@owge/core';
@@ -8,6 +8,7 @@ import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
 import { UnitTypeService } from '../services/unit-type.service';
 import { filter, take } from 'rxjs/operators';
+import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 
 export type validViews = 'requirements' | 'attributes';
 
@@ -62,6 +63,8 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
    */
   @Input()
   public defaultView: validViews = 'attributes';
+
+  @ViewChild(WidgetConfirmationDialogComponent) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public selectedView: validViews;
   public numberToDelete: number;
@@ -132,8 +135,10 @@ export class DisplaySingleUnitComponent extends BaseComponent implements OnInit,
     this.displayError('Ya hay otras unidades en construcción');
   }
 
-  public cancelUnit(): void {
-    this._unitService.cancel(this.building).pipe(take(1)).subscribe();
+  public cancelBuild(confirm: boolean): void {
+    if (confirm) {
+      this._unitService.cancel(this.building).pipe(take(1)).subscribe();
+    }
   }
 
   public async deleteUnits(): Promise<void> {

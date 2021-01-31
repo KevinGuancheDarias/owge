@@ -112,7 +112,9 @@
                     "COUNT": "Count",
                     "BTN_BUILD": "Build",
                     "MIN_ONE": "At least select 1",
-                    "NO_RESOURCES": "No resources"
+                    "NO_RESOURCES": "No resources",
+                    "CANCEL_TITLE": "Confirm cancel unit build",
+                    "CANCEL_TEXT": "Are you sure you want to cancel the current unit build?"
                 }
             },
             "IN_PLANET": {

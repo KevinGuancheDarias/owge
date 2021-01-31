@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import {first} from 'rxjs/operators';
+import { first } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { AbstractModalContainerComponent } from '@owge/core';
@@ -23,6 +23,20 @@ export class WidgetConfirmationDialogComponent extends AbstractModalContainerCom
   @Input() public text: string;
 
   /**
+   * Instead of using a <i>text</i> use a i18n name, such as APP.FOO_BAR_BAZ
+   *
+   * @since 0.9.16
+   */
+  @Input() public i18nText: string;
+
+  /**
+   * Instead of using a <i>title</i> use a i18n title, such as APP.FOO_BAR_BAZ
+   *
+   * @since 0.9.16
+   */
+  @Input() public i18nTitle: string;
+
+  /**
    * Represents if the confirmation has been accepted or rejected
    *
    * @since 0.7.0
@@ -36,8 +50,8 @@ export class WidgetConfirmationDialogComponent extends AbstractModalContainerCom
 
   public async ngOnInit(): Promise<void> {
     this.confirmResult.subscribe(() => this.hide());
-    if (!this.title) {
-      this.title = await this._translateService.get('WIDGETS.CONFIRMATION_DIALOG_DEFAULT_TITLE').pipe(first()).toPromise();
+    if (!this.i18nTitle && !this.title) {
+      this.i18nTitle = 'WIDGETS.CONFIRMATION_DIALOG_DEFAULT_TITLE';
     }
   }
 }

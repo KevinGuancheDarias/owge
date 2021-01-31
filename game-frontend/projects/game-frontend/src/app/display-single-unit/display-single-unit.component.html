@@ -1,3 +1,8 @@
+<owge-widgets-confirmation-dialog 
+  (confirmResult)="cancelBuild($event)" 
+  [i18nTitle]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TITLE'"
+  [i18nText]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TEXT'"
+></owge-widgets-confirmation-dialog>
 <ng-container *ngIf="userData && unit && unitTypes">
   <owge-widgets-display-list-item [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="unit.imageUrl" [hideDesktopSections]="[0,0, isCompactView]"
@@ -26,7 +31,7 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="confirmDialog.show()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
         <a owgeUniverseOnClickIfWsConnected *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
           (clickAndConnected)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
