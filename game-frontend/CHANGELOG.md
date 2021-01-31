@@ -2,6 +2,7 @@
 
 v0.9.16 (latest)
 ====================
+* __Fix:__ [Remove messages when they are older than 15 days, this should be done in the night #367](https://github.com/KevinGuancheDarias/owge/issues/367)  
 * __Fix:__ [Prompt the user to confirm when cancelling unit build #372](https://github.com/KevinGuancheDarias/owge/issues/372)  
 * __Fix:__ [When a unit is been built, for stops been unlocked, for any reason, maybe time special expired, or special location was left, the pending time is no displayed #370](https://github.com/KevinGuancheDarias/owge/issues/370)  
 * __Improvement:__ [Allow to send system messages #368](https://github.com/KevinGuancheDarias/owge/issues/368)  

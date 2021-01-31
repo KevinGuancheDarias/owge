@@ -53,7 +53,7 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
 	 * @since 0.9.16
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Scheduled(cron = "*/10 * * * * *")
+	@Scheduled(cron = "0 0 1 * * *")
 	public void deleteOldSystemMessages() {
 		transactionUtilService.runWithRequired(() -> {
 			List<SystemMessage> forDeleteMessages = repository

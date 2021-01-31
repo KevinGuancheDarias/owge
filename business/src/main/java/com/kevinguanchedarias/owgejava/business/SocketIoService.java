@@ -116,17 +116,15 @@ public class SocketIoService {
 		}
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
-			asyncRunnerBo.runAssyncWithoutContext(() -> {
-				userSockets.forEach(client -> {
-					if (TransactionSynchronizationManager.isActualTransactionActive()) {
-						System.out.println("No debería pasar si todo va bien!!!");
-					}
-					LOCAL_LOGGER.trace("Sending message to socket");
-					TokenUser user = client.get(USER_TOKEN_KEY);
-					client.sendEvent("deliver_message",
-							new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
-				});
-			});
+			asyncRunnerBo.runAssyncWithoutContext(() -> userSockets.forEach(client -> {
+				if (TransactionSynchronizationManager.isActualTransactionActive()) {
+					LOCAL_LOGGER.warn("Should never happend, if everything is nice!!!");
+				}
+				LOCAL_LOGGER.trace("Sending message to socket");
+				TokenUser user = client.get(USER_TOKEN_KEY);
+				client.sendEvent("deliver_message",
+						new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
+			}));
 		} else if (notConnectedAction != null) {
 			notConnectedAction.run();
 		}
@@ -184,9 +182,7 @@ public class SocketIoService {
 	 */
 	public void clearCache() {
 		websocketEventsInformationBo.clear();
-		server.getAllClients().forEach(client -> {
-			client.sendEvent("cache_clear", "null");
-		});
+		server.getAllClients().forEach(client -> client.sendEvent("cache_clear", "null"));
 	}
 
 	private void registerUnauthenticatedEvents() {

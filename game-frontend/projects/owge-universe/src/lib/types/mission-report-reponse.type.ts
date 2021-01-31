@@ -12,4 +12,5 @@ export interface MissionReportResponse {
     userUnread: number;
     enemyUnread: number;
     reports: MissionReport[];
+    requiresFlush: boolean;
 }
