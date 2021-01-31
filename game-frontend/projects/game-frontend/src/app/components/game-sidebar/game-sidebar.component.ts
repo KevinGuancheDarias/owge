@@ -5,7 +5,10 @@ import { PlanetService } from '@owge/galaxy';
 import { MenuRoute, ROUTES, ModalComponent, SessionService, LoggerHelper } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, Planet, UniverseGameService } from '@owge/universe';
+import {
+  UnitType, MissionStore, ResourceManagerService,
+  AutoUpdatedResources, Planet, UniverseGameService, SystemMessageService
+} from '@owge/universe';
 
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
@@ -92,6 +95,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       icon: 'fa fa-info'
     },
     this.twitchRoute,
+    this._createTranslatableMenuRoute('APP.MENU_SYSTEM_MESSAGES', ROUTES.SYSTEM_MESSAGES, 'fa fa-robot'),
     this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._universeGameService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
@@ -100,6 +104,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public userUnreadReports = 0;
   public enemyUnreadReports = 0;
   public isTwitchLive = false;
+  public unreadSystemMessages = 0;
 
   constructor(
     private _universeGameService: UniverseGameService,
@@ -109,9 +114,10 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _unitTypeService: UnitTypeService,
     private _missionStore: MissionStore,
     private _reportService: ReportService,
+    private _systemMessageService: SystemMessageService,
     twitchService: TwitchService,
     translateService: TranslateService,
-    configurationService: ConfigurationService
+    configurationService: ConfigurationService,
   ) {
     super(translateService);
     twitchService.state().subscribe(value => {
@@ -146,6 +152,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._missionStore.missionsCount.subscribe(count => this.missionsCount = count);
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
     this._reportService.findUserUnreadCount().subscribe(result => this.userUnreadReports = result);
+    this._systemMessageService.findAll().pipe(
+      map(result => result.filter(message => !message.isRead).length)
+    ).subscribe(systemUnread => this.unreadSystemMessages = systemUnread);
     this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
     window.addEventListener('storage', e => {
       if (e.key === GameSidebarComponent._LS_DISPLAY_TWITCH_KEY) {

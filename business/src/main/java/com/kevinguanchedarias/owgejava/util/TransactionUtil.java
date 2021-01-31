@@ -5,7 +5,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /**
  * Has methods to interact with Spring transactions
- * 
+ *
  * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  *

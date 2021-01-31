@@ -57,4 +57,13 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Intege
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public int countByAlliance(Alliance alliance);
+
+	/**
+	 *
+	 * @return
+	 * @since 0.9.16
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Query("SELECT id FROM #{#entityName}")
+	public List<Integer> findAllIds();
 }

@@ -177,6 +177,7 @@
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Configuración",
+        "MENU_SYSTEM_MESSAGES": "Mensajes del sistema",
         "MENU_LOGOUT": "Salir",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Misiones"

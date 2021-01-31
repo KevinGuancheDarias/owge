@@ -51,6 +51,7 @@ export class WsEventCacheService {
         'unit_requirements_change',
         'visited_tutorial_entry_change',
         'user_data_change',
+        'system_message_change'
     ];
     private _eventsInformation: { [key: string]: WebsocketEventInformation };
     private _eventInformationStore: StorageOfflineHelper<{ [key: string]: WebsocketEventInformation }>;
@@ -153,7 +154,7 @@ export class WsEventCacheService {
         });
     }
 
-    public applySync(): Promise<any> {
+    public applySync(): Promise<void> {
         return new Promise(async (resolve, reject) => {
             if (this._eventsInformation) {
                 const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil

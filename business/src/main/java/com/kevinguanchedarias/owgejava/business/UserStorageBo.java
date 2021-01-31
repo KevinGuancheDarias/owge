@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -124,6 +125,16 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	public UserStorage findLoggedIn() {
 		TokenUser token = authenticationBo.findTokenUser();
 		return token != null ? convertTokenUserToUserStorage(token) : null;
+	}
+
+	/**
+	 *
+	 * @return
+	 * @since 0.9.16
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Integer> findAllIds() {
+		return userStorageRepository.findAllIds();
 	}
 
 	@Transactional

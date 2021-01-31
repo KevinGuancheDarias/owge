@@ -21,7 +21,8 @@ export const ROUTES = {
     ALLIANCE: '/alliance',
     RANKING: '/ranking',
     VERSION: '/version',
-    SETTINGS: '/settings'
+    SETTINGS: '/settings',
+    SYSTEM_MESSAGES: '/system-messages'
 };
 
 export class Config {
