@@ -31,6 +31,14 @@
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
+        <ng-container *ngIf="building && building.unit.id === unit.id">
+          <ng-template owgeCoreIfDesktop>
+            <div class="in-planet-count">
+              <h5>{{ 'APP.UNITS.DISPLAY_SINGLE.NUMBER' | translate }}:</h5>
+              <h5> {{ building.count }}</h5>
+            </div>
+          </ng-template>
+        </ng-container>
         <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="confirmDialog.show()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
         <a owgeUniverseOnClickIfWsConnected *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
           (clickAndConnected)="otherUnitAlreadyRunning()">---</a>
@@ -56,10 +64,10 @@
         <a owgeUniverseOnClickIfWsConnected class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (clickAndConnected)="deleteUnits()">{{ 'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate }}</a>
       </ng-container>
     </ng-template>
-
     <ng-template owgeCoreContent select="image-container-prepend">
       <ng-template owgeCoreIfDesktop [negate]="true">
-        <div class="in-planet-count-mobile">{{ inPlanetCount }}</div>
+        <div *ngIf="withInPlanetMode" class="in-planet-count-mobile">{{ inPlanetCount }}</div>
+        <div *ngIf="withBuildMode && building && building.unit.id === unit.id"> {{ building.count }}</div>
       </ng-template>
     </ng-template>
   </owge-widgets-display-list-item> 

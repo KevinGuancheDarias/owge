@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.17 (latest)
+=================
+* __Improvement:__ [Display the number of units been built #374](https://github.com/KevinGuancheDarias/owge/issues/374)  
+
 v0.9.16 (2021-01-31 20:05)
 ============================
 * __Fix:__ [Remove messages when they are older than 15 days, this should be done in the night #367](https://github.com/KevinGuancheDarias/owge/issues/367)  
