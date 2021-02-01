@@ -11,6 +11,8 @@ import { map, take, tap } from 'rxjs/operators';
 @Injectable()
 export class ReportService extends AbstractWebsocketApplicationHandler {
 
+  private static readonly _MAX_ALLOWED_LOCAL_NEW_STORE = 15;
+
   private _currentReports: MissionReport[] = [];
   private _currentCounts: MissionReportResponse;
 
@@ -18,6 +20,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   private _reportStore: ReportStore = new ReportStore;
   private _offlineChangeCache: StorageOfflineHelper<MissionReportResponse>;
   private _offlineCountChangeCache: StorageOfflineHelper<MissionReportResponse>;
+  private _doSplit = true;
 
   public constructor(
     private _universeGameService: UniverseGameService,
@@ -30,6 +33,19 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
       mission_report_change: '_onChange',
       mission_report_count_change: '_onCountChange'
     };
+  }
+
+  /**
+   * If true will ensure _currentReports size is not big, else will allow it to grow greatly <br>
+   * The use case is to allow the ReportListComponent to scroll without new report events shrinking the list
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.17
+   * @param value
+   */
+  public setDoSplit(value: boolean) {
+    this._doSplit = value;
   }
 
   public async createStores(): Promise<void> {
@@ -148,6 +164,11 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     this._alreadyDownloadedReports.add(content.id);
     content.missionDate = new Date(content.missionDate);
     if (emit) {
+      if (this._doSplit && this._currentReports.length > ReportService._MAX_ALLOWED_LOCAL_NEW_STORE) {
+        this._currentReports = this._currentReports.slice(ReportService._MAX_ALLOWED_LOCAL_NEW_STORE * -1);
+        this._alreadyDownloadedReports = new Set;
+        this._currentReports.forEach(report => this._alreadyDownloadedReports.add(report.id));
+      }
       this._saveOffline().then(() => this._emit());
     }
   }

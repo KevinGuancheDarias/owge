@@ -164,7 +164,8 @@
                 "ATTACK": {
                     "EARNED_POINTS": "Earned points"
                 }
-            }
+            },
+            "SHOW_OLDER": "Show older"
         },
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",

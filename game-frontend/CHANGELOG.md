@@ -2,6 +2,7 @@
 
 v0.9.17 (latest)
 =================
+* __Fix:__ [When the player generates a lot of reports, the game may slow down (and drain a funny amount of battery) #373](https://github.com/KevinGuancheDarias/owge/issues/373)  
 * __Improvement:__ [Display the number of units been built #374](https://github.com/KevinGuancheDarias/owge/issues/374)  
 
 v0.9.16 (2021-01-31 20:05)
