@@ -86,8 +86,11 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
 	}
 
 	public void emitToUser(UserStorage user) {
-		socketIoService.sendMessage(user, "mission_report_change",
-				() -> findMissionReportsInformation(user.getId(), 0));
+		emitToUser(user.getId());
+	}
+
+	public void emitToUser(Integer userId) {
+		socketIoService.sendMessage(userId, "mission_report_change", () -> findMissionReportsInformation(userId, 0));
 	}
 
 	/**
@@ -100,18 +103,24 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
 	@Scheduled(cron = "0 0 1 * * *")
 	@Transactional
 	public void deleteOldMessages() {
-		HashSet<UserStorage> affectedUsers = new HashSet<>();
-		missionReportRepository
-				.findByReportDateLessThan(new Date(new Date().getTime() - (86400 * 1000 * DAYS_TO_PRESERVE_MESSAGES)))
-				.forEach(report -> {
-					Mission mission = report.getMission();
-					if (mission != null) {
-						mission.setReport(null);
-						missionBo.save(mission);
-					}
-					affectedUsers.add(report.getUser());
-					delete(report);
-				});
+		HashSet<Integer> affectedUsers = new HashSet<>();
+		int page = 0;
+		List<MissionReport> reports;
+		do {
+			reports = missionReportRepository.findByReportDateLessThan(
+					new Date(new Date().getTime() - (86400 * 1000 * DAYS_TO_PRESERVE_MESSAGES)),
+					PageRequest.of(page, 50));
+			reports.forEach(report -> {
+				Mission mission = report.getMission();
+				if (mission != null) {
+					mission.setReport(null);
+					missionBo.save(mission);
+				}
+				affectedUsers.add(report.getUser().getId());
+				delete(report);
+			});
+			page++;
+		} while (!reports.isEmpty());
 		CompletableFuture.delayedExecutor(15, TimeUnit.SECONDS).execute(() -> affectedUsers.forEach(this::emitToUser));
 	}
 

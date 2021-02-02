@@ -37,5 +37,5 @@ public interface MissionReportRepository extends JpaRepository<MissionReport, Lo
 	@Modifying
 	void markAsReadIfUserIsOwner(List<Long> reportsIds, Integer userId);
 
-	List<MissionReport> findByReportDateLessThan(Date date);
+	List<MissionReport> findByReportDateLessThan(Date date, Pageable pageable);
 }
