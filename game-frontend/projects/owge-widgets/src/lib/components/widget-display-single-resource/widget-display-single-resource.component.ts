@@ -1,22 +1,20 @@
 import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { LoggerHelper } from '@owge/core';
 
 /**
  *
  *
- * @deprecated As of 0.9.17 use OwgeWidgets://WidgetDisplaySingleResourceComponent
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @export
  */
 @Component({
-  selector: 'app-display-single-resource',
-  templateUrl: './display-single-resource.component.html',
+  selector: 'owge-widgets-display-single-resource',
+  templateUrl: './widget-display-single-resource.component.html',
   styleUrls: [
-    './display-single-resource.component.less',
-    './display-single-resource.component.scss'
+    './widget-display-single-resource.component.less',
+    './widget-display-single-resource.component.scss'
   ]
 })
-export class DisplaySingleResourceComponent implements AfterViewInit {
+export class WidgetDisplaySingleResourceComponent implements AfterViewInit {
 
   @Input()
   public resourceName: string;
@@ -29,6 +27,21 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
 
   @Input()
   public resourceMaxValue: number;
+
+  /**
+   * Allows to specify if the number is formatted <br>
+   * In previous versions this was always formatted
+   * @since 0.9.17
+   */
+  @Input() public doFormat = true;
+
+  /**
+   * Allow to change the image class <br>
+   * In previous versions this class was always resourceImage
+   *
+   * @since 0.9.17
+   */
+  @Input() public customImageClass = 'resourceImage';
 
   @Input()
   public staticImage = false;
@@ -45,16 +58,14 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
   @ViewChild('textElement', { static: true })
   private _textElement: ElementRef;
 
-  private _loggerHelper: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _maxTextWidth = 120;
 
   public ngAfterViewInit(): void {
-    this._loggerHelper.warnDeprecated('DisplaySingleResourceComponent', '0.9.17', 'WidgetDisplaySingleResourceComponent');
     this._textElement.nativeElement.style.visibility = 'hidden';
     const intervalId = setInterval(() => {
       if (this._textElement.nativeElement.offsetWidth > this._maxTextWidth) {
         this._textElement.nativeElement.style.fontSize = `${this._findTextSize(this._textElement.nativeElement) - 1}pt`;
-      } else if (typeof this.resourceValue === 'number') {
+      } else {
         this._textElement.nativeElement.style.visibility = 'visible';
         clearInterval(intervalId);
       }

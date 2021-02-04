@@ -1,9 +1,8 @@
 import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChildren, AfterViewInit, QueryList } from '@angular/core';
-import { UnitType } from '@owge/universe';
 import { UnitTypeService } from '../services/unit-type.service';
 import { BaseComponent } from '../base/base.component';
-import { LocalConfigurationService } from '@owge/core';
+import { LocalConfigurationService, UnitType } from '@owge/core';
 
 type ValidLocation = 'BUILD_URL' | 'DEPLOYED_URL' | 'REQUIREMENTS_URL';
 

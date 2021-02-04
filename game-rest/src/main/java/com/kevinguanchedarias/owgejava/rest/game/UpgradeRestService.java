@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,10 +59,17 @@ public class UpgradeRestService implements SyncSource {
 
 	private List<ObtainedUpgradeDto> findObtained(UserStorage user) {
 		List<ObtainedUpgrade> obtainedUpgradeList = obtainedUpgradeBo.findByUser(user.getId());
+		obtainedUpgradeList.forEach(this::initImprovement);
 		return obtainedUpgradeBo.toDto(obtainedUpgradeList);
 	}
 
 	private RunningUpgradeDto findRunningUpgrade(UserStorage user) {
 		return missionBo.findRunningLevelUpMission(user.getId());
+	}
+
+	private void initImprovement(ObtainedUpgrade obtainedUpgrade) {
+		if (obtainedUpgrade.getUpgrade().getImprovement() != null) {
+			Hibernate.initialize(obtainedUpgrade.getUpgrade().getImprovement());
+		}
 	}
 }

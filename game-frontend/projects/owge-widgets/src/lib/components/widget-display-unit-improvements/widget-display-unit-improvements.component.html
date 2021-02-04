@@ -1,0 +1,10 @@
+<owge-widgets-display-single-resource *ngFor="let unitTypeImprovement of unitTypeImprovements; let i = index"
+    [doFormat]="false" [resourceImage]="unitTypeImprovement.unitType.imageUrl" [resourceValue]="unitTypeImprovement.value + '%'">
+
+    <owge-widgets-display-image *ngIf="shouldUseImage(unitTypeImprovement.type); else isAmount" 
+        [assetsImage]="true" [image]="findImage(unitTypeImprovement.type)" [customClass]="'resourceImage improved-unit-attribute'"
+    ></owge-widgets-display-image>
+    <ng-template #isAmount>
+        <span><i class="fas fa-arrow-up"></i></span>
+    </ng-template>
+</owge-widgets-display-single-resource>

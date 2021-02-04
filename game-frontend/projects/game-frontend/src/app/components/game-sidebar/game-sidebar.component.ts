@@ -2,11 +2,11 @@ import { Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation }
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
-import { MenuRoute, ROUTES, ModalComponent, SessionService, LoggerHelper } from '@owge/core';
+import { MenuRoute, ROUTES, ModalComponent, LoggerHelper, UnitType } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
 import {
-  UnitType, MissionStore, ResourceManagerService,
+  MissionStore, ResourceManagerService,
   AutoUpdatedResources, Planet, UniverseGameService, SystemMessageService
 } from '@owge/universe';
 

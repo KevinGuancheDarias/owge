@@ -1,4 +1,4 @@
-import { RequirementInformation } from './requirement-information.type';
+import { RequirementInformation } from '@owge/core';
 
 /**
  * Represents an upgrade as backend knows it

@@ -106,6 +106,7 @@
                 "NUMBER": "Cantidad",
                 "ATTRIBUTES": "Atributos",
                 "REQUIREMENTS": "Requisitos",
+                "IMPROVEMENTS": "Mejoras",
                 "DELETE": "Borrar",
                 "BUILD": {
                     "CANCEL": "Cancelar",

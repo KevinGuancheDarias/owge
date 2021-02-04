@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { AbstractCrudService, UnitType, UniverseGameService, CrudServiceAuthControl } from '@owge/universe';
-import { validContext } from '@owge/core';
+import { AbstractCrudService, UniverseGameService, CrudServiceAuthControl } from '@owge/universe';
+import { validContext, UnitType } from '@owge/core';
 import { Observable } from 'rxjs';
 
 /**

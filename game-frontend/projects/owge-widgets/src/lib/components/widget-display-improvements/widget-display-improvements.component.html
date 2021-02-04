@@ -1,0 +1,18 @@
+<ng-container *ngIf="improvement">
+    <ng-container *ngFor="let currentImprovement of allowedOfPercentage" >
+        <owge-widgets-display-single-resource *ngIf="improvement[currentImprovement]"
+            [resourceName]="'test'" [resourceImage]="imageOfImprovement[currentImprovement].path" [doFormat]="false"
+            [assetsImage]="imageOfImprovement[currentImprovement].assetsImage" [staticImage]="imageOfImprovement[currentImprovement].staticImage"
+            [resourceValue]="improvement[currentImprovement] + '%'"
+        ></owge-widgets-display-single-resource>
+    </ng-container>
+
+    <ng-container *ngFor="let currentImprovement of allowedOfAmount" >
+        <owge-widgets-display-single-resource *ngIf="improvement[currentImprovement]"
+            [resourceName]="'test'" [resourceImage]="imageOfImprovement[currentImprovement].path" [doFormat]="false"
+            [assetsImage]="imageOfImprovement[currentImprovement].assetsImage" [staticImage]="imageOfImprovement[currentImprovement].staticImage"
+            [resourceValue]="improvement[currentImprovement]"
+        ></owge-widgets-display-single-resource>
+    </ng-container>
+</ng-container>
+<owge-widgets-display-unit-improvements *ngIf="improvement?.unitTypesUpgrades.length" [unitTypeImprovements]="improvement.unitTypesUpgrades"></owge-widgets-display-unit-improvements>

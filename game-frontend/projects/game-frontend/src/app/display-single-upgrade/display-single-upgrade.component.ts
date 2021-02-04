@@ -8,6 +8,7 @@ import { Upgrade, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialS
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
 import { distinctUntilChanged } from 'rxjs/operators';
+import { UserWithFaction } from '@owge/faction';
 
 @Component({
   selector: 'app-display-single-upgrade',
@@ -17,7 +18,7 @@ import { distinctUntilChanged } from 'rxjs/operators';
     './display-single-upgrade.component.scss',
   ]
 })
-export class DisplaySingleUpgradeComponent extends BaseComponent implements OnInit, OnDestroy {
+export class DisplaySingleUpgradeComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
 
   @Input()
   public upgrade: Upgrade;
@@ -30,6 +31,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent implements OnIn
   public runningUpgrade: UpgradeRunningMission;
   public vConfirmDeleteText: string;
   public isDesktop: boolean;
+  public selectedView: 'requirements' | 'improvements' = 'requirements';
 
   private _sdsIdentifier: string;
   private _oldValueRunningUpgrade: UpgradeRunningMission;

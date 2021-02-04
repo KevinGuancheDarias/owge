@@ -4,13 +4,11 @@ import { map, tap, distinctUntilChanged, filter, take } from 'rxjs/operators';
 import { Observable, Subscription, Subject } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
-import {
-  ProgrammingError, User, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, StorageOfflineHelper
-} from '@owge/core';
+import { ProgrammingError, User, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, Improvement } from '@owge/core';
 import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
   UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
-  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, Improvement, UserStorage
+  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, UserStorage
 } from '@owge/universe';
 import { PlanetService } from '@owge/galaxy';
 

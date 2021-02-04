@@ -1,5 +1,5 @@
+import { UnitType } from '@owge/core';
 import { ReplaySubject, Subject } from 'rxjs';
-import { UnitType } from '../types/unit-type.type';
 
 
 /**

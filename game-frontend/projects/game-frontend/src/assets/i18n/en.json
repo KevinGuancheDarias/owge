@@ -106,6 +106,7 @@
                 "NUMBER": "Number",
                 "ATTRIBUTES": "Attributes",
                 "REQUIREMENTS": "Requirements",
+                "IMPROVEMENTS": "Improvements",
                 "DELETE": "Delete",
                 "BUILD": {
                     "CANCEL": "Cancel",

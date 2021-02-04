@@ -1,6 +1,4 @@
-import { Improvement } from '../types/improvement.type';
-import { validImprovementType } from '../types/improvement-unit-type.type';
-import { UnitType } from '../types/unit-type.type';
+import { Improvement, UnitType, validImprovementType } from '@owge/core';
 
 /**
  * Has methods to interact with improvements

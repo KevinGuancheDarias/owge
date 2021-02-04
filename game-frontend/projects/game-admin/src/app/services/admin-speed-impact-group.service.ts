@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
-    AbstractCrudService, WithRequirementsCrudMixin, CrudConfig, UniverseGameService, CrudServiceAuthControl,
-    SpeedImpactGroup
+    AbstractCrudService, WithRequirementsCrudMixin, CrudConfig, UniverseGameService, CrudServiceAuthControl
 } from '@owge/universe';
 import { mix } from 'ts-mixer';
-import { validContext } from '@owge/core';
+import { validContext, SpeedImpactGroup } from '@owge/core';
 
 export interface AdminSpeedImpactGroupService extends AbstractCrudService<SpeedImpactGroup>, WithRequirementsCrudMixin { }
 

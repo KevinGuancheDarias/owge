@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
-import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
+import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { UnitType, MissionStore, Planet, ObtainedUnit, SpeedImpactGroupService } from '@owge/universe';
+import { MissionStore, Planet, ObtainedUnit, SpeedImpactGroupService } from '@owge/universe';
 
 import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { MissionType } from '@owge/core';

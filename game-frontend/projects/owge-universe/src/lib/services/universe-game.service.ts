@@ -11,14 +11,14 @@ import {
   validWriteMethod,
   StorageOfflineHelper,
   SessionService,
-  ToastrService
+  ToastrService,
+  Improvement
 } from '@owge/core';
 import { UniverseStorage } from '../storages/universe.storage';
 import { Universe } from '../types/universe.type';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UserStorage } from '../storages/user.storage';
-import { Improvement } from '../types/improvement.type';
 import { UserWithImprovements } from '../types/user-with-improvements.type';
 import { ResourceManagerService } from './resource-manager.service';
 import { Title } from '@angular/platform-browser';

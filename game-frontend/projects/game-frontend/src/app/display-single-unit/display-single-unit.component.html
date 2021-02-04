@@ -14,6 +14,8 @@
     [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' | translate }}</a>
       <a class="btn" (click)="selectedView = 'attributes'"
         [ngClass]="{ 'selected-menu': selectedView === 'attributes'}">{{ 'APP.UNITS.DISPLAY_SINGLE.ATTRIBUTES' | translate }}</a>
+      <a class="btn" *ngIf="unit.improvement" (click)="selectedView = 'improvements'"
+        [ngClass]="{ 'selected-menu': selectedView === 'improvements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.IMPROVEMENTS' | translate }}</a>
       <app-display-requirements *ngIf="selectedView === 'requirements'" [requirements]="unit.requirements">
       </app-display-requirements>
       <ng-container *ngIf="selectedView === 'attributes'">
@@ -27,6 +29,10 @@
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge"></owge-widgets-display-improved-attribute>
         <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed"></owge-widgets-display-improved-attribute>
       </ng-container>
+      <owge-widgets-display-improvements *ngIf="selectedView === 'improvements'" 
+        [improvement]="unit.improvement" [prImage]="userData.faction.primaryResourceImageUrl" 
+        [srImage]="userData.faction.secondaryResourceImageUrl" [energyImage]="userData.faction.energyImageUrl"
+      ></owge-widgets-display-improvements>
     </ng-template>
     
     <ng-template owgeCoreContent select="action-buttons">

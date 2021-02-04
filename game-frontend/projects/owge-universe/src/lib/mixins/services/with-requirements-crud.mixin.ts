@@ -1,13 +1,11 @@
-import { ProgrammingError, LoggerHelper } from '@owge/core';
+import { ProgrammingError, LoggerHelper, RequirementInformation, RequirementGroup } from '@owge/core';
 
 import { UniverseGameService } from '../../services/universe-game.service';
 import { Observable, Subject, Subscription, pipe } from 'rxjs';
 import { CrudConfig } from '../../types/crud-config.type';
-import { RequirementInformation } from '../../types/requirement-information.type';
 import { HttpParams } from '@angular/common/http';
 import { StoreAwareService } from '../../interfaces/store-aware-service.interface';
 import { take, finalize } from 'rxjs/operators';
-import { RequirementGroup } from '../../types/requirement-group.type';
 
 /**
  * Add requirements handling to an existing crud service

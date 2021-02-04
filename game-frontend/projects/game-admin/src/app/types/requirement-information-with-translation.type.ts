@@ -1,4 +1,4 @@
-import { RequirementInformation } from '@owge/universe';
+import { RequirementInformation } from '@owge/core';
 
 /**
  * Has frontend computed translations for the requirement

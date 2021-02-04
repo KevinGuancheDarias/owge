@@ -1,16 +1,17 @@
 import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter, ViewChild } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { User } from '@owge/core';
-import { UnitType, Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage, ImprovementUtil } from '@owge/universe';
+import { User, UnitType } from '@owge/core';
+import { Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage, ImprovementUtil } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
 import { UnitTypeService } from '../services/unit-type.service';
 import { filter, take } from 'rxjs/operators';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
+import { UserWithFaction } from '@owge/faction';
 
-export type validViews = 'requirements' | 'attributes';
+export type validViews = 'requirements' | 'attributes' | 'improvements';
 
 @Component({
   selector: 'app-display-single-unit',
@@ -18,7 +19,7 @@ export type validViews = 'requirements' | 'attributes';
   styleUrls: ['./display-single-unit.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class DisplaySingleUnitComponent extends BaseComponent implements OnInit, OnDestroy {
+export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
 
   @Input()
   public unit: Unit;

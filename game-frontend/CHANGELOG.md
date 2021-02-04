@@ -2,6 +2,7 @@
 
 v0.9.17 (latest)
 =================
+* __Fix:__ [Display the improved attributes for units, upgrades and time specials #369](https://github.com/KevinGuancheDarias/owge/issues/369)  
 * __Fix:__ [The game server crashes when there are toooooooo many messages to delete in the job #375](https://github.com/KevinGuancheDarias/owge/issues/375)  
 * __Fix:__ [When the player generates a lot of reports, the game may slow down (and drain a funny amount of battery) #373](https://github.com/KevinGuancheDarias/owge/issues/373)  
 * __Improvement:__ [Display the number of units been built #374](https://github.com/KevinGuancheDarias/owge/issues/374)  

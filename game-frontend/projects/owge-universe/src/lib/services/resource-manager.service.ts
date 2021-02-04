@@ -2,10 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip, filter } from 'rxjs/operators';
 
-import { LoggerHelper, ResourcesEnum } from '@owge/core';
+import { Improvement, LoggerHelper, ResourcesEnum } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { UserStorage } from '../storages/user.storage';
-import { Improvement } from '../types/improvement.type';
 import { UserWithImprovements } from '../types/user-with-improvements.type';
 
 /**

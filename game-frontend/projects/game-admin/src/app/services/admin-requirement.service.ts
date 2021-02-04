@@ -4,10 +4,9 @@ import { TranslateService } from '@ngx-translate/core';
 import { AdminFactionService } from './admin-faction.service';
 import { AdminUpgradeService } from './admin-upgrade.service';
 import { Observable } from 'rxjs';
-import { RequirementInformation } from '@owge/universe';
 import { RequirementInformationWithTranslation } from '../types/requirement-information-with-translation.type';
 import { take } from 'rxjs/operators';
-import { ProgrammingError } from '@owge/core';
+import { ProgrammingError, RequirementInformation } from '@owge/core';
 import { AdminSpecialLocationService } from './admin-special-location.service';
 
 

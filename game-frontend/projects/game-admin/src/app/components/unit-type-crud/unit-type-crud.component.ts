@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { UnitType, MissionSupport, SpeedImpactGroup } from '@owge/universe';
+import { UnitType, MissionSupport, SpeedImpactGroup } from '@owge/core';
 
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';

@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, ViewChild } from '@angular/core';
-import { WithRequirementsCrudMixin, RequirementInformation, RequirementGroup } from '@owge/universe';
-import { LoadingService, ModalComponent } from '@owge/core';
+import { WithRequirementsCrudMixin } from '@owge/universe';
+import { LoadingService, ModalComponent, RequirementInformation, RequirementGroup } from '@owge/core';
 import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';
 import { RequirementsModalComponent } from '../requirements-modal/requirements-modal.component';
 import { TranslateService } from '@ngx-translate/core';

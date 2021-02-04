@@ -7,9 +7,7 @@ import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
 import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent } from '@owge/galaxy';
-import { Planet, ObtainedUnit, Unit, MissionStore, UnitRunningMission, TutorialService } from '@owge/universe';
-import { MissionService } from '../../services/mission.service';
-import { MissionUtil, ToastrService } from '@owge/core';
+import { Planet, TutorialService } from '@owge/universe';
 
 @Component({
   selector: 'app-display-quadrant',
