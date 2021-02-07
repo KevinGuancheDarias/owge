@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.18 (latest)
+==================
+* [class=Advanced]__Improvement:__ Add strong logging information to ease debugging of random attack failures
+
 v0.9.17 (20201-02-04 19:13)
 =============================
 * __Fix:__ [Display the improved attributes for units, upgrades and time specials #369](https://github.com/KevinGuancheDarias/owge/issues/369)  

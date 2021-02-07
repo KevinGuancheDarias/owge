@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.kevinguanchedarias.owge</groupId>
 	<artifactId>owgejava-backend</artifactId>
-	<version>0.9.17-SNAPSHOT</version>
+	<version>0.9.18-SNAPSHOT</version>
 	<name>OWGE Business</name>
 	<url>http://owgejava.kevinguanchedarias.com</url>
 
