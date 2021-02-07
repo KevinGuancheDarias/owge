@@ -1,11 +1,11 @@
 # OWGE changelog
 
-v0.9.18 (latest)
-==================
+v0.9.18 (2021-02-07 14:43)
+===========================
 * __Improvement:__ Move missions icon above the unit limits in the game sidebar
 * [class=Advanced]__Improvement:__ Add strong logging information to ease debugging of random attack failures
 
-v0.9.17 (20201-02-04 19:13)
+v0.9.17 (2021-02-04 19:13)
 =============================
 * __Fix:__ [Display the improved attributes for units, upgrades and time specials #369](https://github.com/KevinGuancheDarias/owge/issues/369)  
 * __Fix:__ [The game server crashes when there are toooooooo many messages to delete in the job #375](https://github.com/KevinGuancheDarias/owge/issues/375)  
