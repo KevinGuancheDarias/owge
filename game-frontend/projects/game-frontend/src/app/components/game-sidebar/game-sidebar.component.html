@@ -55,17 +55,18 @@
                         [resourceMaxValue]="resources.currentMaxEnergy">
                   </app-display-single-resource>
 
-                  <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
-                        [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
-                        [resourceValue]="unitType.userBuilt"
-                        [resourceMaxValue]="unitType.computedMaxCount">
-
-                  </app-display-single-resource>
                   <app-display-single-resource *ngIf="maxMissions"
                         [resourceName]="'APP.SIDEBAR.MISSIONS_RESOURCE_NAME' | translate"
                         [resourceValue]="missionsCount"
                         [staticImage]="true" [resourceImage]="'ui_icons/mission.png'"
                         [resourceMaxValue]="maxMissions">
+                  </app-display-single-resource>
+
+                  <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
+                        [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
+                        [resourceValue]="unitType.userBuilt"
+                        [resourceMaxValue]="unitType.computedMaxCount">
+
                   </app-display-single-resource>
             </div>
       </div>

@@ -2,6 +2,7 @@
 
 v0.9.18 (latest)
 ==================
+* __Improvement:__ Move missions icon above the unit limits in the game sidebar
 * [class=Advanced]__Improvement:__ Add strong logging information to ease debugging of random attack failures
 
 v0.9.17 (20201-02-04 19:13)
