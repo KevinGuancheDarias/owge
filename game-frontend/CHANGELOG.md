@@ -2,6 +2,7 @@
 
 v0.9.19 (latest)
 ==================
+* __Fix:__ [Some missions fails randomly EPIC bug #378](https://github.com/KevinGuancheDarias/owge/issues/378)  
 * __Fix:__ [System messages appear in the wrong order #377](https://github.com/KevinGuancheDarias/owge/issues/377)  
 
 v0.9.18 (2021-02-07 14:43)
