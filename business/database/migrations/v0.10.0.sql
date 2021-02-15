@@ -17,8 +17,6 @@ CREATE TABLE `factions_unit_types` (
   PRIMARY KEY (`id`),
   KEY `fk_fut_faction_id` (`faction_id`),
   KEY `fk_fut_unit_type_id` (`unit_type_id`),
-  CONSTRAINT `fk_fut_faction_id` FOREIGN KEY (`faction_id`) REFERENCES `factions
-` (`id`),
-  CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit
-_types` (`id`)
+  CONSTRAINT `fk_fut_faction_id` FOREIGN KEY (`faction_id`) REFERENCES `factions` (`id`),
+  CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

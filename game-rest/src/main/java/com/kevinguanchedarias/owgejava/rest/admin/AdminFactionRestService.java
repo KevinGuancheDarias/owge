@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -22,6 +24,7 @@ import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
+import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 
@@ -63,6 +66,18 @@ public class AdminFactionRestService
 			dto.setFactionId(null);
 			return dto;
 		}).collect(Collectors.toList());
+	}
+
+	/**
+	 *
+	 * @param factionId
+	 * @param overrides
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@PutMapping("{factionId}/unitTypes")
+	public void saveUnitTypes(@PathVariable Integer factionId, @RequestBody List<UnitTypesOverride> overrides) {
+		factionBo.saveOverrides(factionId, overrides);
 	}
 
 	/*

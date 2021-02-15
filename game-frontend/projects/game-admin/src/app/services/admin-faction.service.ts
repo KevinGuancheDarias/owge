@@ -15,6 +15,7 @@ import { take } from 'rxjs/operators';
 import { WidgetFilter } from '@owge/widgets';
 import { Observable } from 'rxjs';
 
+import { UnitTypeWithOverrides } from '../types/unit-type-with-overrides.type';
 
 export interface AdminFactionService
     extends AbstractCrudService<Faction>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -73,6 +74,16 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
      */
     public findUnitTypes(factionId: number): Observable<FactionUnitType[]> {
         return this._universeGameService.requestWithAutorizationToContext('admin', 'get', `faction/${factionId}/unitTypes`);
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.10.0
+     */
+    public saveUnitTypes(factionId: number, overrides: UnitTypeWithOverrides[]): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext('admin', 'put', `faction/${factionId}/unitTypes`, overrides);
     }
 
     protected _getEntity(): string {

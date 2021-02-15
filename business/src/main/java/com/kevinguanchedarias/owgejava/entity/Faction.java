@@ -81,11 +81,12 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@Column(name = "custom_secondary_gather_percentage")
 	private Float customSecondaryGatherPercentage = 0F;
+
 	@OneToMany(mappedBy = "faction", fetch = FetchType.LAZY)
 	private List<UserStorage> users;
 
-	@OneToMany(mappedBy = "unitTypes", fetch = FetchType.LAZY)
-	private transient List<FactionUnitType> unitTypes;
+	@OneToMany(mappedBy = "unitType", fetch = FetchType.LAZY)
+	private List<FactionUnitType> unitTypes;
 
 	@Override
 	public Integer getId() {

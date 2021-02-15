@@ -43,7 +43,7 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	}
 
 	/**
-	 * Returns a reference, useful to execute uddate operations
+	 * Returns a reference, useful to execute update operations
 	 *
 	 * @param id
 	 * @return

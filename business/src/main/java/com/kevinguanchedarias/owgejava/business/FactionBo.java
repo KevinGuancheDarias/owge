@@ -2,25 +2,37 @@ package com.kevinguanchedarias.owgejava.business;
 
 import java.util.List;
 
-import com.kevinguanchedarias.owgejava.dto.FactionDto;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.repository.FactionRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.kevinguanchedarias.owgejava.dto.FactionDto;
+import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
+import com.kevinguanchedarias.owgejava.repository.FactionRepository;
+import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 
 @Service
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	private static final long serialVersionUID = -6735454832872729630L;
 
 	@Autowired
-	private FactionRepository factionRepository;
+	private FactionRepository repository;
+
+	@Autowired
+	private transient FactionUnitTypeRepository factionUnitTypeRepository;
+
+	@Autowired
+	@Lazy
+	private UnitTypeBo unitTypeBo;
 
 	@Override
 	public JpaRepository<Faction, Integer> getRepository() {
-		return factionRepository;
+		return repository;
 	}
 
 	/*
@@ -41,7 +53,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	 * @author Kevin Guanche Darias
 	 */
 	public List<Faction> findVisible(boolean lazyFetch) {
-		List<Faction> retVal = factionRepository.findByHiddenFalse();
+		List<Faction> retVal = repository.findByHiddenFalse();
 		handleLazyFetch(lazyFetch, retVal);
 		return retVal;
 	}
@@ -54,7 +66,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	 * @author Kevin Guanche Darias
 	 */
 	public boolean existsAndIsVisible(Integer id) {
-		return factionRepository.countByHiddenFalseAndId(id) == 1;
+		return repository.countByHiddenFalseAndId(id) == 1;
 	}
 
 	@Override
@@ -63,11 +75,11 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 		customPrimaryGatherPercentage = customPrimaryGatherPercentage != null ? customPrimaryGatherPercentage : 1;
 		Float customSecondaryGatherPercentage = faction.getCustomSecondaryGatherPercentage();
 		customSecondaryGatherPercentage = customSecondaryGatherPercentage != null ? customSecondaryGatherPercentage : 1;
-		if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 0) {
-			if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 100) {
-				throw new SgtBackendInvalidInputException(
-						"No, dear hacker, custom primary porcentage plus secondary CAN'T be higher than 100");
-			}
+		if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 0
+				&& (customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 100) {
+			throw new SgtBackendInvalidInputException(
+					"No, dear hacker, custom primary porcentage plus secondary CAN'T be higher than 100");
+
 		}
 		return BaseBo.super.save(faction);
 	}
@@ -80,7 +92,26 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Faction findByUser(Integer userId) {
-		return factionRepository.findOneByUsersId(userId);
+		return repository.findOneByUsersId(userId);
+	}
+
+	/**
+	 *
+	 * @param factionId
+	 * @param overrides
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void saveOverrides(Integer factionId, List<UnitTypesOverride> overrides) {
+		factionUnitTypeRepository.deleteByFactionId(factionId);
+		overrides.forEach(override -> {
+			FactionUnitType factionUnitType = new FactionUnitType();
+			factionUnitType.setUnitType(unitTypeBo.getOne(override.getId()));
+			factionUnitType.setFaction(getOne(factionId));
+			factionUnitType.setMaxCount(override.getOverrideMaxCount());
+			factionUnitTypeRepository.save(factionUnitType);
+		});
 	}
 
 	private void handleLazyFetch(boolean lazyFetch, List<Faction> factions) {

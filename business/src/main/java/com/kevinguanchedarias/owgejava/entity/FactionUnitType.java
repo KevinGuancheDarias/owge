@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -19,7 +21,9 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "factions_unit_types")
-public class FactionUnitType {
+public class FactionUnitType implements Serializable {
+	private static final long serialVersionUID = 3368581537329653944L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
@@ -32,7 +36,7 @@ public class FactionUnitType {
 	@JoinColumn(name = "unit_type_id")
 	private UnitType unitType;
 
-	@Column(name = "max_couunt", nullable = true)
+	@Column(name = "max_count", nullable = true)
 	private Long maxCount;
 
 	/**
