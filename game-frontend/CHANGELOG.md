@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.19 (latest)
-==================
+v0.9.19 (2021-02-15)
+=====================
 * __Improvement:__ [Allow to sort ranking by nickname #360](https://github.com/KevinGuancheDarias/owge/issues/360)  
 * __Fix:__ [Some missions fails randomly EPIC bug #378](https://github.com/KevinGuancheDarias/owge/issues/378)  
 * __Fix:__ [System messages appear in the wrong order #377](https://github.com/KevinGuancheDarias/owge/issues/377)  
