@@ -16,6 +16,7 @@ export * from './lib/components/widget-display-unit-improvements/widget-display-
 export * from './lib/components/widget-filtrable-select/widget-filtrable-select.component';
 export * from './lib/components/widget-id-name-dropdown/widget-id-name-dropdown.component';
 export * from './lib/components/widget-sidebar/widget-sidebar.component';
+export * from './lib/components/widget-sort-list/widget-sort-list.component';
 export * from './lib/components/widget-span-with-placeholder/widget-span-with-placeholder.component';
 export * from './lib/owge-widgets.module';
 export * from './lib/pipes/ui-icon.pipe';

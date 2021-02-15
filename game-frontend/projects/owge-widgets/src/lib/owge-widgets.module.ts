@@ -27,7 +27,10 @@ import { WidgetCircularPercentageComponent } from './components/widget-circular-
 import { WidgetChooseItemModalComponent } from './components/widget-choose-item-modal/widget-choose-item-modal.component';
 import { WidgetDisplayImprovementsComponent } from './components/widget-display-improvements/widget-display-improvements.component';
 import { WidgetDisplaySingleResourceComponent } from './components/widget-display-single-resource/widget-display-single-resource.component';
-import { WidgetDisplayUnitImprovementsComponent } from './components/widget-display-unit-improvements/widget-display-unit-improvements.component';
+import {
+  WidgetDisplayUnitImprovementsComponent
+} from './components/widget-display-unit-improvements/widget-display-unit-improvements.component';
+import { WidgetSortListComponent } from './components/widget-sort-list/widget-sort-list.component';
 
 /**
  * Has UI widgets for OWGE
@@ -63,7 +66,8 @@ import { WidgetDisplayUnitImprovementsComponent } from './components/widget-disp
     WidgetChooseItemModalComponent,
     WidgetDisplayImprovementsComponent,
     WidgetDisplaySingleResourceComponent,
-    WidgetDisplayUnitImprovementsComponent
+    WidgetDisplayUnitImprovementsComponent,
+    WidgetSortListComponent
   ],
   providers: [
     DisplayService
@@ -86,7 +90,8 @@ import { WidgetDisplayUnitImprovementsComponent } from './components/widget-disp
     WidgetCircularPercentageComponent,
     WidgetChooseItemModalComponent,
     WidgetDisplayImprovementsComponent,
-    WidgetDisplaySingleResourceComponent
+    WidgetDisplaySingleResourceComponent,
+    WidgetSortListComponent
   ]
 })
 export class OwgeWidgetsModule {

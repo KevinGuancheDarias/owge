@@ -9,7 +9,9 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService, SystemMessageService } from '@owge/universe';
+import {
+  OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService, SystemMessageService
+} from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
 
