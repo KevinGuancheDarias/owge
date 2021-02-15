@@ -417,15 +417,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 				AttackUserInformation attackUserInformation = current.getValue();
 				List<AttackObtainedUnit> userUnits = attackUserInformation.units;
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
-				obtainedUnitBo
-						.save(userUnits.stream()
-								.filter(currentUnit -> !currentUnit.finalCount.equals(0L)
-										&& !currentUnit.initialCount.equals(currentUnit.finalCount))
-								.map(currentUnit -> {
-									currentUnit.obtainedUnit.setCount(currentUnit.finalCount);
-									alteredUsers.add(attackUserInformation.getUser().getId());
-									return currentUnit.obtainedUnit;
-								}).collect(Collectors.toList()));
+				userUnits.stream().filter(currentUnit -> !currentUnit.finalCount.equals(0L)
+						&& !currentUnit.initialCount.equals(currentUnit.finalCount)).forEach(currentUnit -> {
+							long killed = currentUnit.initialCount - currentUnit.finalCount;
+							obtainedUnitBo.trySave(currentUnit.obtainedUnit, -killed);
+							alteredUsers.add(attackUserInformation.getUser().getId());
+						});
 			});
 			usersWithChangedCounts.forEach(alteredUsers::add);
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
@@ -755,7 +752,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		returnMission.setTargetPlanet(mission.getTargetPlanet());
 		returnMission.setUser(mission.getUser());
 		returnMission.setRelatedMission(mission);
-		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findLockedByMissionId(mission.getId());
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
 		missionRepository.saveAndFlush(returnMission);
 		obtainedUnits.forEach(current -> current.setMission(returnMission));
 		obtainedUnitBo.save(obtainedUnits);
@@ -767,7 +764,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	public void proccessReturnMission(Long missionId) {
 		Mission mission = missionRepository.findById(missionId).get();
 		Integer userId = mission.getUser().getId();
-		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findLockedByMissionId(mission.getId());
+		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
 		obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
 		resolveMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
@@ -850,8 +847,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 			UserStorage user = mission.getUser();
 			Integer userId = user.getId();
 			List<ObtainedUnit> alteredUnits = new ArrayList<>();
-			findUnitsInvolved(missionId).forEach(current -> alteredUnits
-					.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId())));
+			findUnitsInvolved(missionId).forEach(current -> {
+				// if(canDoMission(user, targetPlanet, entityWithMissionLimitation,
+				// missionType))
+				alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()));
+			});
 			resolveMission(mission);
 			TransactionUtil.doAfterCommit(() -> {
 				alteredUnits.forEach(unit -> {
@@ -901,7 +901,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
-		return obtainedUnitBo.findLockedByMissionId(mission.getId());
+		return obtainedUnitBo.findByMissionId(mission.getId());
 	}
 
 	/**
@@ -1061,7 +1061,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @return
 	 */
 	private List<ObtainedUnit> findUnitsInvolved(Long missionId) {
-		List<ObtainedUnit> retVal = obtainedUnitBo.findLockedByMissionId(missionId);
+		List<ObtainedUnit> retVal = obtainedUnitBo.findByMissionId(missionId);
 		retVal.forEach(current -> imageStoreBo.computeImageUrl(current.getUnit().getImage()));
 		return retVal;
 	}
@@ -1288,7 +1288,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private void checkDeployedAllowed(MissionType missionType) {
 		if (missionType == MissionType.DEPLOY
 				&& configurationBo.findDeployMissionConfiguration().equals(DeployMissionConfigurationEnum.DISALLOWED)) {
-			throw new SgtBackendInvalidInputException("The deployment mission is globally disabñed");
+			throw new SgtBackendInvalidInputException("The deployment mission is globally disabled");
 		}
 	}
 
@@ -1360,10 +1360,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 		Long sourcePlanetId = missionInformation.getSourcePlanetId();
 		Long targetPlanetId = missionInformation.getTargetPlanetId();
 		if (sourcePlanetId != null) {
-			retVal.setSourcePlanet(planetBo.findLockedById(sourcePlanetId));
+			retVal.setSourcePlanet(planetBo.findById(sourcePlanetId));
 		}
 		if (targetPlanetId != null) {
-			retVal.setTargetPlanet(planetBo.findLockedById(targetPlanetId));
+			retVal.setTargetPlanet(planetBo.findById(targetPlanetId));
 		}
 
 		retVal.setTerminationDate(computeTerminationDate(requiredTime));

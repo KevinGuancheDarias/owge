@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Planet } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
 import { MissionModalComponent } from '../../mission-modal/mission-modal.component';
@@ -18,7 +18,8 @@ import { UnitService } from '../../service/unit.service';
   selector: 'app-planet-list',
   templateUrl: './planet-list.component.html',
   styleUrls: ['./planet-list.component.scss'],
-  providers: [MissionInformationStore]
+  providers: [MissionInformationStore],
+  encapsulation: ViewEncapsulation.None
 })
 export class PlanetListComponent extends BaseComponent implements OnInit, OnDestroy {
 

@@ -60,6 +60,7 @@ import { TranslatableComponent } from './components/translatable/translatable.co
 import { AdminTutorialEntryService } from './services/admin-tutorial-entry.service';
 import { AdminTranslatableService } from './services/admin-translatable.service';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { AdminSystemMessageService } from './services/admin-system-message.service';
 
 @NgModule({
   declarations: [
@@ -136,6 +137,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     AdminTutorialService,
     AdminTutorialEntryService,
     AdminTranslatableService,
+    AdminSystemMessageService,
     LoadingService,
     {
       provide: 'APPLICATION_CONTEXT',

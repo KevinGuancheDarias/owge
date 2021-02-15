@@ -1,0 +1,6 @@
+div p.limited-max {
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: 95px;
+    text-overflow: ellipsis;
+}

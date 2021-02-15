@@ -1,6 +1,5 @@
 import { Requirement } from './requirement.type';
 
-
 /**
  * Frontend  anagulous to backend <i>RequirementInformation</i>
  *

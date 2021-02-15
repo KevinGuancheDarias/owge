@@ -11,6 +11,8 @@ import { map, take, tap } from 'rxjs/operators';
 @Injectable()
 export class ReportService extends AbstractWebsocketApplicationHandler {
 
+  private static readonly _MAX_ALLOWED_LOCAL_NEW_STORE = 15;
+
   private _currentReports: MissionReport[] = [];
   private _currentCounts: MissionReportResponse;
 
@@ -18,6 +20,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   private _reportStore: ReportStore = new ReportStore;
   private _offlineChangeCache: StorageOfflineHelper<MissionReportResponse>;
   private _offlineCountChangeCache: StorageOfflineHelper<MissionReportResponse>;
+  private _doSplit = true;
 
   public constructor(
     private _universeGameService: UniverseGameService,
@@ -26,9 +29,23 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   ) {
     super();
     this._eventsMap = {
+      mission_report_new: '_onNew',
       mission_report_change: '_onChange',
       mission_report_count_change: '_onCountChange'
     };
+  }
+
+  /**
+   * If true will ensure _currentReports size is not big, else will allow it to grow greatly <br>
+   * The use case is to allow the ReportListComponent to scroll without new report events shrinking the list
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.17
+   * @param value
+   */
+  public setDoSplit(value: boolean) {
+    this._doSplit = value;
   }
 
   public async createStores(): Promise<void> {
@@ -72,8 +89,8 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     this._handleReportsDownload(await this._doDownloadPage(page).pipe(
       map(result => result.reports),
       take(1)
-    ).toPromise());
-    this._reportStore.reports.next(this._currentReports);
+    ).toPromise(), false);
+    this._emit();
   }
 
   /**
@@ -93,8 +110,8 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
         reportWithThatID.userReadDate = new Date();
       }
     });
-    this._reportStore.reports.next(this._currentReports);
-    await this._offlineChangeCache.save({ ...this._currentCounts, reports: this._currentReports });
+    this._emit();
+    await this._saveOffline();
   }
 
   /**
@@ -126,7 +143,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   protected async _onChange(content: MissionReportResponse): Promise<void> {
     if (!this._isCachePanic(content)) {
       this._onCountChange(content);
-      this._handleReportsDownload(content.reports);
+      this._handleReportsDownload(content.reports, content.requiresFlush);
       this._reportStore.reports.next(this._currentReports);
       await this._offlineChangeCache.save(content);
     }
@@ -141,14 +158,40 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-  private _handleReportsDownload(reports: MissionReport[]): void {
+  protected _onNew(content: MissionReport, emit = true): void {
+    this._currentReports.push(content);
+    this._currentReports = this._currentReports.sort((a, b) => a.id > b.id ? -1 : 1);
+    this._alreadyDownloadedReports.add(content.id);
+    content.missionDate = new Date(content.missionDate);
+    if (emit) {
+      if (this._doSplit && this._currentReports.length > ReportService._MAX_ALLOWED_LOCAL_NEW_STORE) {
+        this._currentReports = this._currentReports.slice(ReportService._MAX_ALLOWED_LOCAL_NEW_STORE * -1);
+        this._alreadyDownloadedReports = new Set;
+        this._currentReports.forEach(report => this._alreadyDownloadedReports.add(report.id));
+      }
+      this._saveOffline().then(() => this._emit());
+    }
+  }
+
+  private _handleReportsDownload(reports: MissionReport[], requiresFlush: boolean): void {
+    if (requiresFlush) {
+      this._currentReports = [];
+      this._alreadyDownloadedReports = new Set();
+    }
     reports.filter(current => !this._alreadyDownloadedReports.has(current.id))
       .map(current => {
-        this._currentReports.push(current);
-        this._currentReports = this._currentReports.sort((a, b) => a.id > b.id ? -1 : 1);
-        this._alreadyDownloadedReports.add(current.id);
-        current.missionDate = new Date(current.missionDate);
+        this._onNew(current, false);
         return current;
       });
+    this._saveOffline().then(() => this._emit());
+    this._emit();
+  }
+
+  private _emit(): void {
+    this._reportStore.reports.next(this._currentReports);
+  }
+
+  private _saveOffline(): Promise<void> {
+    return this._offlineChangeCache.save({ ...this._currentCounts, reports: this._currentReports });
   }
 }

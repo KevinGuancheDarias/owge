@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { Unit, UnitType, SpeedImpactGroup } from '@owge/universe';
+import { Unit } from '@owge/universe';
+
+import { UnitType, SpeedImpactGroup } from '@owge/core';
 
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';

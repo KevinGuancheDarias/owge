@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { TypeWithMissionLimitation, MissionSupport } from '@owge/universe';
+import { TypeWithMissionLimitation, MissionSupport } from '@owge/core';
 
 @Component({
   selector: 'app-can-do-missions-crud',

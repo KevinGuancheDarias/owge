@@ -1,4 +1,3 @@
-import { MissionSupport } from './mission-support.type';
 import { SpeedImpactGroup } from './speed-impact-group.type';
 import { TypeWithMissionLimitation } from './type-with-mission-limitation.type';
 

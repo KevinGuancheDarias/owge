@@ -18,6 +18,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
@@ -50,6 +51,9 @@ public class SocketIoService {
 
 	@Autowired
 	private UserStorageBo userStorageBo;
+
+	@Autowired
+	private AsyncRunnerBo asyncRunnerBo;
 
 	@Autowired
 	@Lazy
@@ -112,12 +116,15 @@ public class SocketIoService {
 		}
 		if (!userSockets.isEmpty()) {
 			T sendValue = messageContent.get();
-			userSockets.forEach(client -> {
+			asyncRunnerBo.runAssyncWithoutContext(() -> userSockets.forEach(client -> {
+				if (TransactionSynchronizationManager.isActualTransactionActive()) {
+					LOCAL_LOGGER.warn("Should never happend, if everything is nice!!!");
+				}
 				LOCAL_LOGGER.trace("Sending message to socket");
 				TokenUser user = client.get(USER_TOKEN_KEY);
 				client.sendEvent("deliver_message",
 						new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
-			});
+			}));
 		} else if (notConnectedAction != null) {
 			notConnectedAction.run();
 		}
@@ -175,9 +182,7 @@ public class SocketIoService {
 	 */
 	public void clearCache() {
 		websocketEventsInformationBo.clear();
-		server.getAllClients().forEach(client -> {
-			client.sendEvent("cache_clear", "null");
-		});
+		server.getAllClients().forEach(client -> client.sendEvent("cache_clear", "null"));
 	}
 
 	private void registerUnauthenticatedEvents() {

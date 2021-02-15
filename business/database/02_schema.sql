@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.4
+-- version 5.0.4
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 192.168.99.1
--- Généré le : lun. 12 oct. 2020 à 16:41
+-- Généré le : Dim 31 jan. 2021 à 13:06
 -- Version du serveur :  5.7.19-log
--- Version de PHP : 7.4.1
+-- Version de PHP : 7.4.13
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -19,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `nightly_snapshot`
+-- Base de données : `u9_snapshot`
 --
 
 -- --------------------------------------------------------
@@ -307,6 +306,7 @@ CREATE TABLE `missions` (
   `type` smallint(5) UNSIGNED NOT NULL,
   `termination_date` datetime DEFAULT NULL,
   `required_time` double DEFAULT NULL,
+  `starting_date` datetime NOT NULL,
   `primary_resource` double DEFAULT NULL,
   `secondary_resource` double DEFAULT NULL,
   `required_energy` double DEFAULT NULL,
@@ -750,6 +750,18 @@ CREATE TABLE `speed_impact_groups` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `system_messages`
+--
+
+CREATE TABLE `system_messages` (
+  `id` smallint(5) UNSIGNED NOT NULL,
+  `content` text NOT NULL,
+  `creation_date` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `time_specials`
 --
 
@@ -953,6 +965,18 @@ CREATE TABLE `user_improvements` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `user_read_system_messages`
+--
+
+CREATE TABLE `user_read_system_messages` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `message_id` smallint(5) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `user_storage`
 --
 
@@ -970,7 +994,8 @@ CREATE TABLE `user_storage` (
   `primary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `secondary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `has_skipped_tutorial` tinyint(1) NOT NULL,
-  `points` double NOT NULL DEFAULT '0'
+  `points` double NOT NULL DEFAULT '0',
+  `can_alter_twitch_state` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';
 
 -- --------------------------------------------------------
@@ -1353,6 +1378,12 @@ ALTER TABLE `speed_impact_groups`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Index pour la table `system_messages`
+--
+ALTER TABLE `system_messages`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Index pour la table `time_specials`
 --
 ALTER TABLE `time_specials`
@@ -1447,6 +1478,14 @@ ALTER TABLE `upgrade_types`
 ALTER TABLE `user_improvements`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Index pour la table `user_read_system_messages`
+--
+ALTER TABLE `user_read_system_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `message_id` (`message_id`);
 
 --
 -- Index pour la table `user_storage`
@@ -1651,6 +1690,12 @@ ALTER TABLE `speed_impact_groups`
   MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `system_messages`
+--
+ALTER TABLE `system_messages`
+  MODIFY `id` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `time_specials`
 --
 ALTER TABLE `time_specials`
@@ -1721,6 +1766,12 @@ ALTER TABLE `upgrade_types`
 --
 ALTER TABLE `user_improvements`
   MODIFY `id` smallint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `user_read_system_messages`
+--
+ALTER TABLE `user_read_system_messages`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `visited_tutorial_entries`
@@ -1954,6 +2005,13 @@ ALTER TABLE `upgrades`
   ADD CONSTRAINT `upgrades_ibfk_1` FOREIGN KEY (`type`) REFERENCES `upgrade_types` (`id`),
   ADD CONSTRAINT `upgrades_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
   ADD CONSTRAINT `upgrades_ibfk_3` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
+
+--
+-- Contraintes pour la table `user_read_system_messages`
+--
+ALTER TABLE `user_read_system_messages`
+  ADD CONSTRAINT `fk_ursm_message_id` FOREIGN KEY (`message_id`) REFERENCES `system_messages` (`id`),
+  ADD CONSTRAINT `fk_ursm_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`);
 
 --
 -- Contraintes pour la table `user_storage`

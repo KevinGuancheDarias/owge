@@ -133,3 +133,8 @@ ALTER TABLE `user_storage` ADD `can_alter_twitch_state` BOOLEAN NOT NULL AFTER `
 -- v0.9.6
 ALTER TABLE `missions` ADD `starting_date` DATETIME NOT NULL AFTER `required_time`;
 UPDATE missions SET starting_date = '1970-01-01 00:00:00';
+
+-- v0.9.16
+CREATE TABLE `system_messages` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `content` TEXT NOT NULL , `creation_date` DATETIME NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+CREATE TABLE `user_read_system_messages` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `user_id` INT(11) UNSIGNED NOT NULL , `message_id` SMALLINT(5) UNSIGNED NOT NULL , PRIMARY KEY (`id`), INDEX (`user_id`), INDEX (`message_id`)) ENGINE = InnoDB;
+ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT; ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_message_id` FOREIGN KEY (`message_id`) REFERENCES `system_messages`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

@@ -9,7 +9,9 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User } from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
-import { OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage } from '@owge/universe';
+import {
+  OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService, SystemMessageService
+} from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
 
@@ -76,6 +78,8 @@ import { PlanetListComponent } from './components/planet-list/planet-list.compon
 import { SettingsComponent } from './components/settings/settings.component';
 import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
 import { TwitchService } from './services/twitch.service';
+import { FastExplorationButtonComponent } from './components/fast-exploration-button/fast-exploration-button.component';
+import { SystemMessagesComponent } from './components/system-messages/system-messages.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -106,6 +110,9 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'settings', component: SettingsComponent, canActivate: [LoginSessionService]
+  },
+  {
+    path: 'system-messages', component: SystemMessagesComponent, canActivate: [LoginSessionService]
   },
   { path: '**', component: PageNotFoundComponent }
 ];
@@ -151,7 +158,9 @@ export const APP_ROUTES: Routes = [
     TimeSpecialsComponent,
     PlanetListComponent,
     SettingsComponent,
-    TutorialOverlayComponent
+    TutorialOverlayComponent,
+    FastExplorationButtonComponent,
+    SystemMessagesComponent
   ],
   imports: [
     BrowserModule,
@@ -197,7 +206,8 @@ export const APP_ROUTES: Routes = [
     UpgradeTypeService,
     MissionService,
     TimeSpecialService,
-    TwitchService
+    TwitchService,
+    SystemMessageService
   ],
   bootstrap: [AppComponent]
 })
@@ -208,7 +218,8 @@ export class AppModule {
     private _translateService: TranslateService,
     private _configurationService: ConfigurationService,
     private _userStorage: UserStorage<User>,
-    private _universeGameService: UniverseGameService
+    private _universeGameService: UniverseGameService,
+    private _wsEventCacheService: WsEventCacheService
   ) {
     ServiceLocator.injector = this._injector;
     this._initWebsocket();
@@ -227,6 +238,7 @@ export class AppModule {
   }
 
   private _initWebsocket(): void {
+    this._wsEventCacheService.addCacheListeners(this._configurationService);
     this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
         this._websocketService.addEventHandler(
@@ -240,7 +252,8 @@ export class AppModule {
           this._injector.get(TimeSpecialService),
           this._injector.get(UpgradeTypeService),
           this._injector.get(PlanetListService),
-          this._injector.get(TwitchService)
+          this._injector.get(TwitchService),
+          this._injector.get(SystemMessageService)
         );
         this._universeGameService.isInGame().subscribe(async isInGame => {
           const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();

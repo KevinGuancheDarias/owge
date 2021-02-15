@@ -27,4 +27,5 @@ export interface WebsocketSyncResponse {
     upgrade_types_change?: any;
     user_data_change?: any;
     visited_tutorial_entry_change?: any;
+    system_message_change?: any;
 }

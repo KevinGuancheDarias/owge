@@ -8,6 +8,7 @@ import { Configuration } from '../types/configuration.type';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
 import { Observable } from 'rxjs';
 import { ConfigurationStore } from '../store/configuration.store';
+import { CacheListener } from 'projects/owge-universe/src/lib/interfaces/cache-listener.interface';
 
 /**
  *
@@ -18,11 +19,10 @@ import { ConfigurationStore } from '../store/configuration.store';
  * @class ConfigurationService
  */
 @Injectable()
-export class ConfigurationService {
+export class ConfigurationService implements CacheListener {
   private _configuration: Configuration<any>[];
-  private _otherConfiguration: Configuration<any>[];
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
-  foo: string;
+  private _cacheStore: StorageOfflineHelper<Configuration<any>[]>;
 
   constructor(
     private _universeGameService: UniverseGameService,
@@ -59,18 +59,16 @@ export class ConfigurationService {
   public async init(): Promise<void> {
     await this._universeCacheManagerService.loadUser();
     if (!this._configuration) {
-      const cache: StorageOfflineHelper<Configuration<any>[]> = this._universeCacheManagerService.getStore(
+      this._cacheStore = this._universeCacheManagerService.getStore(
         'configuration.data'
       );
-      const cachedValue = await cache.find();
+      const cachedValue = await this._cacheStore.find();
       if (cachedValue) {
         this._configuration = cachedValue;
       } else {
-        this._configuration = await this._universeGameService.getToUniverse('open/configuration').toPromise();
-        await cache.save(this._configuration);
+        this._configuration = await this._loadFromServer();
+        await this._cacheStore.save(this._configuration);
       }
-      this._otherConfiguration = this._configuration;
-      this.foo = '1234;';
       this._configurationStore.currentConfiguration.next(this._configuration);
     }
   }
@@ -146,7 +144,6 @@ export class ConfigurationService {
     return this.findParamOrDefault<validDeploymentValue>('DEPLOYMENT_CONFIG', 'FREEDOM').value;
   }
 
-
   /**
    * Observes the changes to the deployment configuration
    *
@@ -157,6 +154,19 @@ export class ConfigurationService {
   public observeDeploymentConfiguration(): Observable<validDeploymentValue> {
     return this.observeParamOrDefault<validDeploymentValue>('DEPLOYMENT_CONFIG', 'FREEDOM')
       .pipe(map(config => config.value), distinctUntilChanged());
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.15
+   * @returns
+   */
+  public async afterCacheClear(): Promise<void> {
+    this._configuration = await this._loadFromServer();
+    this._cacheStore.save(this._configuration);
+    this._configurationStore.currentConfiguration.next(this._configuration);
   }
 
   /**
@@ -180,5 +190,9 @@ export class ConfigurationService {
         value: defaultValue
       };
     }
+  }
+
+  private _loadFromServer(): Promise<Configuration<any>[]> {
+    return this._universeGameService.getToUniverse('open/configuration').toPromise();
   }
 }

@@ -6,11 +6,10 @@ import {
     CrudServiceAuthControl,
     WithRequirementsCrudMixin,
     WithImprovementsCrudMixin,
-    CrudConfig,
-    RequirementInformation
+    CrudConfig
 } from '@owge/universe';
 import { Faction, FactionUnitType } from '@owge/faction';
-import { validContext, ProgrammingError } from '@owge/core';
+import { validContext, ProgrammingError, RequirementInformation } from '@owge/core';
 import { Mixin } from 'ts-mixer';
 import { take } from 'rxjs/operators';
 import { WidgetFilter } from '@owge/widgets';

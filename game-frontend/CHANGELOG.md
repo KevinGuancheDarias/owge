@@ -2,11 +2,49 @@
 
 v0.10.0 (latest)
 =================
-* Merge v0.9.13
+* Merge v0.9.19
 * [class=Admin] __Feature:__ [As an admin I want to add invisible attribute to some units #23](https://github.com/KevinGuancheDarias/owge/issues/23)  
 * [class=Admin] __Feature:__ [As an admin I want to define units that can bypass unit shields #269](https://github.com/KevinGuancheDarias/owge/issues/269)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
+v0.9.19 (2021-02-15)
+=====================
+* __Improvement:__ [Allow to sort ranking by nickname #360](https://github.com/KevinGuancheDarias/owge/issues/360)  
+* __Fix:__ [Some missions fails randomly EPIC bug #378](https://github.com/KevinGuancheDarias/owge/issues/378)  
+* __Fix:__ [System messages appear in the wrong order #377](https://github.com/KevinGuancheDarias/owge/issues/377)  
+
+v0.9.18 (2021-02-07 14:43)
+===========================
+* __Improvement:__ Move missions icon above the unit limits in the game sidebar
+* [class=Advanced]__Improvement:__ Add strong logging information to ease debugging of random attack failures
+
+v0.9.17 (2021-02-04 19:13)
+=============================
+* __Fix:__ [Display the improved attributes for units, upgrades and time specials #369](https://github.com/KevinGuancheDarias/owge/issues/369)  
+* __Fix:__ [The game server crashes when there are toooooooo many messages to delete in the job #375](https://github.com/KevinGuancheDarias/owge/issues/375)  
+* __Fix:__ [When the player generates a lot of reports, the game may slow down (and drain a funny amount of battery) #373](https://github.com/KevinGuancheDarias/owge/issues/373)  
+* __Improvement:__ [Display the number of units been built #374](https://github.com/KevinGuancheDarias/owge/issues/374)  
+
+v0.9.16 (2021-01-31 20:05)
+============================
+* __Fix:__ [Remove messages when they are older than 15 days, this should be done in the night #367](https://github.com/KevinGuancheDarias/owge/issues/367)  
+* __Fix:__ [Prompt the user to confirm when cancelling unit build #372](https://github.com/KevinGuancheDarias/owge/issues/372)  
+* __Fix:__ [When a unit is been built, for stops been unlocked, for any reason, maybe time special expired, or special location was left, the pending time is no displayed #370](https://github.com/KevinGuancheDarias/owge/issues/370)  
+* __Improvement:__ [Allow to send system messages #368](https://github.com/KevinGuancheDarias/owge/issues/368)  
+
+v0.9.15 (2020-12-22 19:21)
+===========================
+* __Fix:__ [Missing fast explore icon in planet list #359](https://github.com/KevinGuancheDarias/owge/issues/359)  
+* __Fix:__ [Reports are not marked as read, if the information comes from a socket event #366](https://github.com/KevinGuancheDarias/owge/issues/366)  
+* __Fix:__ [Improvements are bugged in all sources, including upgrades, units, and time specials #363](https://github.com/KevinGuancheDarias/owge/issues/363)  
+* __Improvement:__ [Allow to disable the alliances #365](https://github.com/KevinGuancheDarias/owge/issues/365)  
+
+v0.9.14 (2020-12-05 17:26)
+==========================
+* __Improvement:__ [Allow to resize galaxies if world is empty, note, is not perfect #362](https://github.com/KevinGuancheDarias/owge/issues/362)  
+* __Fix:__ [Allow to limit alliances by % of world players, and max number configurable in admin panel #358](https://github.com/KevinGuancheDarias/owge/issues/358)  
+* __Fix:__ Reduce random errors in attacks
+* __Fix:__ [Removing negative units allows to add units without having to wait, nor losing resources #361](https://github.com/KevinGuancheDarias/owge/issues/361)  
 
 v0.9.13 (2020-11-15 13:33)
 ===========================

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -35,4 +36,6 @@ public interface MissionReportRepository extends JpaRepository<MissionReport, Lo
 	@Query("UPDATE MissionReport rp SET rp.userReadDate = CURRENT_DATE WHERE  rp.user.id = :userId AND rp.id IN :reportsIds")
 	@Modifying
 	void markAsReadIfUserIsOwner(List<Long> reportsIds, Integer userId);
+
+	List<MissionReport> findByReportDateLessThan(Date date, Pageable pageable);
 }

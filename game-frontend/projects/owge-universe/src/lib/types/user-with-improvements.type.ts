@@ -1,5 +1,4 @@
-import { User } from '@owge/core';
-import { Improvement } from './improvement.type';
+import { Improvement, User } from '@owge/core';
 
 /**
  *

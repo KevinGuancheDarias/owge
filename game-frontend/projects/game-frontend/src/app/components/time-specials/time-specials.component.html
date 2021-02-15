@@ -1,4 +1,4 @@
-<div class="owge-card-list">
+<div class="owge-card-list" *ngIf="userData">
     <owge-widgets-display-list-item *ngFor="let element of elements" [itemName]="element.name" [itemDescription]="element.description"  [image]="element.imageUrl"
         [hasToDisplayCountdown]="element.activeTimeSpecialDto?.state === 'ACTIVE' || element.activeTimeSpecialDto?.state === 'RECHARGE'"
         [countdownDate]="element.activeTimeSpecialDto?.browserComputedTerminationDate"
@@ -12,6 +12,13 @@
 
         <ng-template owgeCoreContent select="action-buttons">
             <a owgeUniverseOnClickIfWsConnected *ngIf="!element.activeTimeSpecialDto" class="btn btn-block" role="button" (clickAndConnected)="clickActivate(element.id)">{{ 'TIME_SPECIAL.BTN_ACTIVATE' | translate }}</a>
+        </ng-template>
+
+        <ng-template owgeCoreContent select="extra-section">
+            <owge-widgets-display-improvements
+                [improvement]="element.improvement" [prImage]="userData.faction.primaryResourceImageUrl" 
+                [srImage]="userData.faction.secondaryResourceImageUrl" [energyImage]="userData.faction.energyImageUrl"
+            ></owge-widgets-display-improvements>
         </ng-template>
     </owge-widgets-display-list-item>
     <h5 *ngIf="elements && !elements.length" class="owge-title">{{ 'TIME_SPECIAL.NONE_UNLOCKED' | translate }}</h5>

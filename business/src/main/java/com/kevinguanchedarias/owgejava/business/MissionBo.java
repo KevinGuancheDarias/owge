@@ -291,7 +291,7 @@ public class MissionBo extends AbstractMissionBo {
 			MissionInformation missionInformation = mission.getMissionInformation();
 			Unit unit = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
 			return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId.longValue()),
-					obtainedUnitBo.findLockedByMissionId(mission.getId()).get(0).getCount());
+					obtainedUnitBo.findByMissionId(mission.getId()).get(0).getCount());
 		} else {
 			return null;
 		}
@@ -404,7 +404,7 @@ public class MissionBo extends AbstractMissionBo {
 			Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
 			UserStorage user = mission.getUser();
 			Integer userId = user.getId();
-			obtainedUnitBo.findLockedByMissionId(missionId).forEach(current -> {
+			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
 				if (current.getUnit().getImprovement() != null) {
 					shouldClearImprovementsCache.remove(0);
 					shouldClearImprovementsCache.add(true);

@@ -6,6 +6,8 @@ import org.quartz.JobExecutionException;
 import org.quartz.SchedulerContext;
 import org.quartz.SchedulerException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import com.kevinguanchedarias.owgejava.business.MissionBo;
@@ -15,6 +17,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
+import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
 
 public class RealizationJob extends QuartzJobBean {
 	private static final Logger LOG = Logger.getLogger(RealizationJob.class);
@@ -22,6 +25,7 @@ public class RealizationJob extends QuartzJobBean {
 	private Long missionId;
 	private MissionBo missionBo;
 	private UnitMissionBo unitMissionBo;
+	private MysqlInformationRepository mysqlInformationRepository;
 
 	public Long getMissionId() {
 		return missionId;
@@ -67,6 +71,9 @@ public class RealizationJob extends QuartzJobBean {
 					missionBo.emitUnitBuildChange(user.getId());
 				} else {
 					throw new ProgrammingException("It's impossible!!!!");
+				}
+				if (e instanceof PessimisticLockingFailureException || e instanceof CannotAcquireLockException) {
+					LOG.error(mysqlInformationRepository.findInnoDbStatus());
 				}
 			}
 		}

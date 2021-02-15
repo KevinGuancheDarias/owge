@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
-import { SpeedImpactGroup } from '@owge/universe';
-
+import { SpeedImpactGroup } from '@owge/core';
 
 /**
  *

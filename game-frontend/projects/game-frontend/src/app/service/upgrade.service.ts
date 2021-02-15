@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { DateUtil, StorageOfflineHelper } from '@owge/core';
+import { DateUtil, Improvement } from '@owge/core';
 import {
   UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
-  AutoUpdatedResources, ResourceManagerService, ResourceRequirements, UniverseCacheManagerService, WsEventCacheService, Improvement
+  AutoUpdatedResources, ResourceManagerService, ResourceRequirements, WsEventCacheService
 } from '@owge/universe';
 
 import { AbstractWebsocketApplicationHandler } from '@owge/core';

@@ -15,6 +15,7 @@ public class MissionReportResponse {
 	private int page;
 	private long userUnread;
 	private long enemyUnread;
+	private boolean requiresFlush = false;
 	private List<MissionReportDto> reports;
 
 	/**
@@ -69,6 +70,26 @@ public class MissionReportResponse {
 	 */
 	public void setEnemyUnread(long enemyUnread) {
 		this.enemyUnread = enemyUnread;
+	}
+
+	/**
+	 * If true, the frontend should flush all the messages (ignore them)
+	 *
+	 * @return the requiresFlush
+	 * @since 0.9.16
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isRequiresFlush() {
+		return requiresFlush;
+	}
+
+	/**
+	 * @param requiresFlush the requiresFlush to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.16
+	 */
+	public void setRequiresFlush(boolean requiresFlush) {
+		this.requiresFlush = requiresFlush;
 	}
 
 	/**

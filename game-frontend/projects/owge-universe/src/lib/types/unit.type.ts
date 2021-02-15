@@ -1,5 +1,5 @@
+import { SpeedImpactGroup } from '@owge/core';
 import { ResourceRequirements } from '../pojos/resource-requirements.pojo';
-import { SpeedImpactGroup } from './speed-impact-group.type';
 
 /**
  * Represents an unit

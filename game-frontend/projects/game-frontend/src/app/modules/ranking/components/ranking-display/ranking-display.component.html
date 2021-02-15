@@ -1,14 +1,14 @@
 <table class="owge-table">
   <tr>
-    <th>{{ 'RANKING.POSITION' | translate }}</th>
-    <th>{{ 'RANKING.POINTS' | translate }}</th>
-    <th>{{ 'RANKING.USER' | translate }}</th>
-    <th>{{ 'RANKING.ALLIANCE' | translate }}</th>
+    <th>{{ 'RANKING.POSITION' | translate }} <owge-widgets-sort-list [isActive]="active === 'position'" [list]="entries" [property]="'position'" (sorted)="assignSorted($event, 'position')"></owge-widgets-sort-list> </th>
+    <th>{{ 'RANKING.POINTS' | translate }} <owge-widgets-sort-list [isActive]="active === 'points'" [list]="entries" [property]="'points'" (sorted)="assignSorted($event, 'points')"></owge-widgets-sort-list></th>
+    <th>{{ 'RANKING.USER' | translate }} <owge-widgets-sort-list [isActive]="active === 'username'" [list]="entries" [property]="'username'" (sorted)="assignSorted($event, 'username')"></owge-widgets-sort-list></th>
+    <th>{{ 'RANKING.ALLIANCE' | translate }} <owge-widgets-sort-list [isActive]="active === 'allianceName'" [list]="entries" [property]="'allianceName'" (sorted)="assignSorted($event, 'allianceName')"></owge-widgets-sort-list></th>
   </tr>
-  <tr *ngFor="let entry of entries">
-    <td>{{ entry.position}}</td>
-    <td>{{ entry.points}}</td>
-    <td>{{ entry.username}}</td>
-    <td>{{ entry.allianceName}}</td>
+  <tr *ngFor="let entry of sorted">
+    <td>{{ entry.position }}</td>
+    <td>{{ entry.points }}</td>
+    <td>{{ entry.username }}</td>
+    <td>{{ entry.allianceName }}</td>
   </tr>
 </table>
