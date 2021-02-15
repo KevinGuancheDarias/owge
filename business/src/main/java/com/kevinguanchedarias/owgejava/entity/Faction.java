@@ -81,8 +81,12 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
 	@Column(name = "custom_secondary_gather_percentage")
 	private Float customSecondaryGatherPercentage = 0F;
+
 	@OneToMany(mappedBy = "faction", fetch = FetchType.LAZY)
 	private List<UserStorage> users;
+
+	@OneToMany(mappedBy = "unitType", fetch = FetchType.LAZY)
+	private List<FactionUnitType> unitTypes;
 
 	@Override
 	public Integer getId() {
@@ -280,6 +284,24 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 	 */
 	public void setCustomSecondaryGatherPercentage(Float customSecondaryGatherPercentage) {
 		this.customSecondaryGatherPercentage = customSecondaryGatherPercentage;
+	}
+
+	/**
+	 * @return the unitTypes
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<FactionUnitType> getUnitTypes() {
+		return unitTypes;
+	}
+
+	/**
+	 * @param unitTypes the unitTypes to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setUnitTypes(List<FactionUnitType> unitTypes) {
+		this.unitTypes = unitTypes;
 	}
 
 }

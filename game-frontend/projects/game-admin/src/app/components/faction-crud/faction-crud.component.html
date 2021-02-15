@@ -1,4 +1,25 @@
-<app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="selectedEl = $event">
+<owge-core-modal *ngIf="selectedEl">
+    <div class="header">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.TITLE' | translate: {factionName: selectedEl.name} }}</div>
+    <div class="body">
+        <table>
+            <tr>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.OVERRIDE' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.UNIT_TYPE' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.MAX_COUNT' | translate }}</th>
+            </tr>
+            <tr *ngFor="let unitType of unitTypes">
+                <td><input type="checkbox" [(ngModel)]="unitType.isOverride"></td>
+                <td>{{ unitType.name }}</td>
+                <td><input [disabled]="!unitType.isOverride" type="number" [(ngModel)]="unitType.overrideMaxCount"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <button class="btn" (click)="saveOverrides()">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.BTN_SAVE' | translate }}</button>
+        <button class="btn" (click)="unitTypesOverridesModal.hide()"> {{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.BTN_CANCEL' | translate }} </button>
+    </div>
+</owge-core-modal>
+<app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="onSelected($event)">
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <div class="form-group col-md-6">
@@ -67,6 +88,10 @@
             <div class="form-group col-md-6">
                 <label for="custom-secondary-percentage">{{ 'CRUD.FACTION.CUSTOM_GATHER_SECONDARY_PERCENTAGE' | translate }}</label><br>
                 <input  id="custom-secondary-percentage" [min]="1" [max]="99" maxlength="2" type="number"  class="form-control" [(ngModel)]="selectedEl.customSecondaryGatherPercentage" (ngModelChange)="processSecondary()"  onkeypress="if (this.value.length > 1) return false;"/>
+            </div>
+
+            <div class="form-group col-md-6">
+                <button (click)="unitTypesOverridesModal.show()" class="btn">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.BTN_OPEN' | translate }}</button>
             </div>
 
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>

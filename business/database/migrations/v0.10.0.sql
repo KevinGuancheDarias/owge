@@ -8,3 +8,15 @@ ALTER TABLE `units` ADD `bypass_shield` BOOLEAN NOT NULL AFTER `speed_impact_gro
 ALTER TABLE `units` ADD `is_invisible` BOOLEAN NOT NULL AFTER `bypass_shield`;
 
 ALTER TABLE `factions` ADD `custom_primary_gather_percentage` FLOAT UNSIGNED NULL AFTER `cloned_improvements`, ADD `custom_secondary_gather_percentage` FLOAT UNSIGNED NULL AFTER `custom_primary_gather_percentage`;
+
+CREATE TABLE `factions_unit_types` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `faction_id` smallint(5) unsigned NOT NULL,
+  `unit_type_id` smallint(6) unsigned NOT NULL,
+  `max_count` int(10) unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_fut_faction_id` (`faction_id`),
+  KEY `fk_fut_unit_type_id` (`unit_type_id`),
+  CONSTRAINT `fk_fut_faction_id` FOREIGN KEY (`faction_id`) REFERENCES `factions` (`id`),
+  CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
