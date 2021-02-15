@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,17 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 
 	default List<E> findAll() {
 		return getRepository().findAll().stream().map(this::onFind).collect(Collectors.toList());
+	}
+
+	/**
+	 *
+	 * @param sort
+	 * @return
+	 * @since 0.9.19
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	default List<E> findAll(Sort sort) {
+		return getRepository().findAll(sort).stream().map(this::onFind).collect(Collectors.toList());
 	}
 
 	default long countAll() {
@@ -115,12 +127,25 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	 * Used to refresh the entity for example for lazy fetching FETCH-Joins<br />
 	 * This method is useful for example to refresh {@link SpecialLocation} galaxy
 	 *
+	 * @deprecated Use {@link BaseBo#refreshOptional(EntityWithId)} instead
 	 * @param entity Notice: doesn't refresh the source entity
 	 * @return The refreshed entity
 	 * @author Kevin Guanche Darias
 	 */
+	@Deprecated(since = "0.9.19")
 	default E refresh(E entity) {
 		return getRepository().findById(entity.getId()).get();
+	}
+
+	/**
+	 *
+	 * @param entity
+	 * @return
+	 * @since 0.9.19
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	default Optional<E> refreshOptional(E entity) {
+		return getRepository().findById(entity.getId());
 	}
 
 	default EntityManager getEntityManager() {

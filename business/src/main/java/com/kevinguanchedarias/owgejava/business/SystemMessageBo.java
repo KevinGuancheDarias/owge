@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -88,7 +90,8 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<SystemMessageUser> findReadByUser(int userId) {
-		return findAll().stream().map(message -> translateToUser(message, userId)).collect(Collectors.toList());
+		return findAll(Sort.by(Direction.DESC, "id")).stream().map(message -> translateToUser(message, userId))
+				.collect(Collectors.toList());
 	}
 
 	/**

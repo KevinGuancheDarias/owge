@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.19 (latest)
+==================
+* __Fix:__ [System messages appear in the wrong order #377](https://github.com/KevinGuancheDarias/owge/issues/377)  
+
 v0.9.18 (2021-02-07 14:43)
 ===========================
 * __Improvement:__ Move missions icon above the unit limits in the game sidebar
