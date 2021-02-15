@@ -1,0 +1,8 @@
+<ng-container *ngIf="planet">
+    <a href="javascript:void(0)" *ngIf="!runningExplorations[planet.id]" (click)="clickFastExplore(planet)" class="fast-explore" [class.available]="hasFastExplorerUnits">
+        <i class="fa fa-search"></i>
+    </a>
+    <owge-widgets-circular-percentage *ngIf="runningExplorations[planet.id]" [percentage]="runningExplorations[planet.id].currentCompletePercentage" [size]="30">
+        <i class="fa fa-search"></i>
+    </owge-widgets-circular-percentage>
+</ng-container>

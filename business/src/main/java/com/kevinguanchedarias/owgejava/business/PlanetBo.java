@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
@@ -75,17 +76,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 	@Override
 	public EntityManager getEntityManager() {
 		return entityManager;
-	}
-
-	/**
-	 *
-	 * @param id
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Planet findLockedById(Long id) {
-		return planetRepository.findLockedById(id);
 	}
 
 	/**
@@ -341,5 +331,16 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 			planetDto.setOwnerName(null);
 			planetDto.setSpecialLocation(null);
 		}
+	}
+
+	/**
+	 *
+	 * @param galaxyId
+	 * @since 0.9.14
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional(propagation = Propagation.MANDATORY)
+	public void deleteByGalaxy(Integer galaxyId) {
+		planetRepository.deleteByGalaxyId(galaxyId);
 	}
 }

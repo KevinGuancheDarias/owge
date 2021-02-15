@@ -1,6 +1,7 @@
 import { Input, Directive } from '@angular/core';
 
-import { UnitType, Unit } from '@owge/universe';
+import { UnitType } from '@owge/core';
+import { Unit } from '@owge/universe';
 
 import { BaseComponent } from '../base/base.component';
 import { ServiceLocator } from '../service-locator/service-locator';

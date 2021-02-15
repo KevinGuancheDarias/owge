@@ -1,6 +1,5 @@
 import { UnitType } from './unit-type.type';
 
-
 /**
  * @internal
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

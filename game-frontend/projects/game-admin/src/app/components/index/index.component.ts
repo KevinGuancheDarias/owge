@@ -3,6 +3,7 @@ import { LoadingService } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { take } from 'rxjs/operators';
+import { AdminSystemMessageService } from '../../services/admin-system-message.service';
 
 @Component({
   selector: 'app-index',
@@ -13,7 +14,11 @@ export class IndexComponent {
 
   public runningHangMissions = false;
 
-  constructor(private _loadingService: LoadingService, private _universeGameService: UniverseGameService) { }
+  constructor(
+    private _loadingService: LoadingService,
+    private _universeGameService: UniverseGameService,
+    private _adminSystemMessageService: AdminSystemMessageService
+  ) { }
 
 
   /**
@@ -55,5 +60,19 @@ export class IndexComponent {
     await this._universeGameService.requestWithAutorizationToContext('admin', 'post', 'system/run-hang-missions', 'true')
       .pipe(take(1)).toPromise();
     this.runningHangMissions = false;
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.16
+   */
+  public clickSendSystemMessage(): void {
+    const content = prompt(`Enter message, empty to discard, note, will NOT be able to delete after sending... for now`);
+    this._adminSystemMessageService.saveNew({
+      id: null,
+      content
+    }).toPromise();
   }
 }

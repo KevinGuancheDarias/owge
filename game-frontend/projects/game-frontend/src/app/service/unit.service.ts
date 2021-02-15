@@ -4,13 +4,11 @@ import { map, tap, distinctUntilChanged, filter, take } from 'rxjs/operators';
 import { Observable, Subscription, Subject } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
-import {
-  ProgrammingError, User, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, StorageOfflineHelper
-} from '@owge/core';
+import { ProgrammingError, User, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, Improvement } from '@owge/core';
 import {
   UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
   UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
-  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, Improvement, UserStorage
+  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, UserStorage
 } from '@owge/universe';
 import { PlanetService } from '@owge/galaxy';
 
@@ -113,11 +111,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @memberof UnitService
    * @author Kevin Guanche Darias
    */
-  public cancel(missionData: UnitBuildRunningMission) {
+  public cancel(missionData: UnitBuildRunningMission): Observable<void> {
     let params: HttpParams = new HttpParams();
     params = params.append('missionId', missionData.missionId);
-    this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params }).subscribe(() => {
-    });
+    return this._universeGameService.getWithAuthorizationToUniverse('unit/cancel', { params });
   }
 
   /**

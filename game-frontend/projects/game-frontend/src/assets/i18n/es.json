@@ -9,6 +9,7 @@
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Tu planeta ha sido conquistado",
     "I18N_ALLIANCE_NOT_DEFEATED": "Las unidades del dueño del planeta fueron derrotadas, pero unidades de sus aliados sobrevivieron",
     "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
+    "I18N_ERR_ALLIANCE_IS_FULL": "La alianza está llena, prueba más tarde, los límites son un máximo absoluto, o en universos pequeños... un porcentaje del total de jugadores",
     "APP": {
         "CONNECTED": "Conectado",
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",
@@ -105,13 +106,16 @@
                 "NUMBER": "Cantidad",
                 "ATTRIBUTES": "Atributos",
                 "REQUIREMENTS": "Requisitos",
+                "IMPROVEMENTS": "Mejoras",
                 "DELETE": "Borrar",
                 "BUILD": {
                     "CANCEL": "Cancelar",
                     "COUNT": "Cantidad",
                     "BTN_BUILD": "Construir",
                     "MIN_ONE": "Mínimo 1",
-                    "NO_RESOURCES": "Sin recursos"
+                    "NO_RESOURCES": "Sin recursos",
+                    "CANCEL_TITLE": "Confirma para cancelar",
+                    "CANCEL_TEXT": "¿Seguro qué quieres cancelar la construcción actual?"
                 }
             },
             "IN_PLANET": {
@@ -161,7 +165,8 @@
                 "ATTACK": {
                     "EARNED_POINTS": "Puntos ganados"
                 }
-            }
+            },
+            "SHOW_OLDER": "Mostrar anteriores"
         },
         "MY_ALLIANCE": "My alianza",
         "BROWSE": "Lista alianzas",
@@ -176,6 +181,7 @@
         "MENU_TIME_SPECIALS": "Especiales de tiempo",
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Configuración",
+        "MENU_SYSTEM_MESSAGES": "Mensajes del sistema",
         "MENU_LOGOUT": "Salir",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Misiones"

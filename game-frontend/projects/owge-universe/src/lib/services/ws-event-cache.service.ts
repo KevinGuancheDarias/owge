@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { CacheListener } from '../interfaces/cache-listener.interface';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UniverseGameService } from './universe-game.service';
@@ -50,10 +51,12 @@ export class WsEventCacheService {
         'unit_requirements_change',
         'visited_tutorial_entry_change',
         'user_data_change',
+        'system_message_change'
     ];
     private _eventsInformation: { [key: string]: WebsocketEventInformation };
     private _eventInformationStore: StorageOfflineHelper<{ [key: string]: WebsocketEventInformation }>;
     private _eventsOfflineStore: { [key: string]: StorageOfflineHelper<any> } = {};
+    private _cacheListeners: CacheListener[] = [];
 
     public constructor(
         private _universeCacheManagerService: UniverseCacheManagerService,
@@ -151,7 +154,7 @@ export class WsEventCacheService {
         });
     }
 
-    public applySync(): Promise<any> {
+    public applySync(): Promise<void> {
         return new Promise(async (resolve, reject) => {
             if (this._eventsInformation) {
                 const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil
@@ -268,6 +271,7 @@ export class WsEventCacheService {
         await AsyncCollectionUtil.forEach(Object.keys(this._eventsOfflineStore), async event => {
             await this._eventsOfflineStore[event].delete();
         });
+        await AsyncCollectionUtil.forEach(this._cacheListeners, listener => listener.afterCacheClear());
     }
 
     /**
@@ -280,6 +284,17 @@ export class WsEventCacheService {
      */
     public isSynchronizableEvent(event: string): boolean {
         return WsEventCacheService._ALLOWED_EVENTS.includes(<any>event);
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.15
+     * @param listeners
+     */
+    public addCacheListeners(...listeners: CacheListener[]): void {
+        this._cacheListeners = this._cacheListeners.concat(listeners);
     }
 
     private async _isValidCacheEntry(entry: WebsocketEventInformation, offlineStore: StorageOfflineHelper<any>): Promise<boolean> {

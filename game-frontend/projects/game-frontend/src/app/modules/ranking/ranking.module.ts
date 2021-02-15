@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RankingDisplayComponent } from './components/ranking-display/ranking-display.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { RankingService } from './services/ranking.service';
+import { OwgeWidgetsModule } from '@owge/widgets';
 
 /**
  *
@@ -15,7 +16,8 @@ import { RankingService } from './services/ranking.service';
 @NgModule({
   imports: [
     CommonModule,
-    TranslateModule.forChild()
+    TranslateModule.forChild(),
+    OwgeWidgetsModule
   ],
   declarations: [RankingDisplayComponent],
   providers: [

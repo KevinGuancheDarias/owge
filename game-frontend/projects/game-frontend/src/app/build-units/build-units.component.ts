@@ -1,12 +1,12 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { filter } from 'rxjs/operators';
+import { filter, take } from 'rxjs/operators';
 
 import { PlanetService } from '@owge/galaxy';
 
 import { UnitService } from './../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
 import { Unit, UnitBuildRunningMission } from '@owge/universe';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-build-units',
@@ -28,16 +28,21 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, On
 
   public ngOnInit() {
     this.requireUser();
-    this.findUnlocked();
+    this._subscriptions.add(this._findUnlocked().subscribe(unlockedUnits => this._unlockedUnits = unlockedUnits));
 
     this._subscriptions.add(this._planetService.findCurrentPlanet().subscribe(planet => {
       if (this._buildingSubscription) {
         this._buildingSubscription.unsubscribe();
         delete this._buildingSubscription;
       }
-      this._buildingSubscription = this._unitService.findBuildingMissionInMyPlanet(planet.id).subscribe(
-        buildingMission => this.building = buildingMission
-      );
+      this._buildingSubscription = this._unitService.findBuildingMissionInMyPlanet(planet.id).subscribe(async buildingMission => {
+        this.building = buildingMission;
+        const units = [...await this._findUnlocked().pipe(take(1)).toPromise()];
+        if (buildingMission && !units.some(unit => unit.id === buildingMission.unit.id)) {
+          units.push(buildingMission.unit);
+        }
+        this._unlockedUnits = units;
+      });
     }));
   }
 
@@ -48,7 +53,7 @@ export class BuildUnitsComponent extends BaseUnitComponent implements OnInit, On
     }
   }
 
-  private findUnlocked(): void {
-    this._subscriptions.add(this._unitService.findUnlocked().subscribe(unlockedUnits => this._unlockedUnits = unlockedUnits));
+  private _findUnlocked(): Observable<Unit[]> {
+    return this._unitService.findUnlocked();
   }
 }

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @EnableWebMvc
 @EnableCaching
 @EnableAsync
+@EnableScheduling
 @ImportResource("META-INF/quartz-context.xml")
 public class OwgeRestApplication {
 

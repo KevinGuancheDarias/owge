@@ -1,0 +1,15 @@
+a {
+    cursor: pointer;
+
+    &:hover {
+        color: #AFA;
+    }
+}
+.active {
+    color: green;
+
+    &:hover {
+        color: #151;
+        transition: 1s all;
+    }
+}

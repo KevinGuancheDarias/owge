@@ -2,10 +2,13 @@ import { Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation }
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
-import { MenuRoute, ROUTES, ModalComponent, SessionService, LoggerHelper } from '@owge/core';
+import { MenuRoute, ROUTES, ModalComponent, LoggerHelper, UnitType } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import { UnitType, MissionStore, ResourceManagerService, AutoUpdatedResources, Planet, UniverseGameService } from '@owge/universe';
+import {
+  MissionStore, ResourceManagerService,
+  AutoUpdatedResources, Planet, UniverseGameService, SystemMessageService
+} from '@owge/universe';
 
 import { version } from '../../../version';
 import { UnitTypeService } from '../../services/unit-type.service';
@@ -13,6 +16,9 @@ import { ReportService } from '../../services/report.service';
 import { TwitchState } from '../../types/twitch-state.type';
 import { TwitchService } from '../../services/twitch.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { ConfigurationService } from '../../modules/configuration/services/configuration.service';
+import { Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  *
@@ -89,6 +95,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       icon: 'fa fa-info'
     },
     this.twitchRoute,
+    this._createTranslatableMenuRoute('APP.MENU_SYSTEM_MESSAGES', ROUTES.SYSTEM_MESSAGES, 'fa fa-robot'),
     this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._universeGameService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
@@ -97,9 +104,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public userUnreadReports = 0;
   public enemyUnreadReports = 0;
   public isTwitchLive = false;
+  public unreadSystemMessages = 0;
 
   constructor(
-    _translateService: TranslateService,
     private _universeGameService: UniverseGameService,
     private _planetService: PlanetService,
     private _displayService: DisplayService,
@@ -107,13 +114,25 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _unitTypeService: UnitTypeService,
     private _missionStore: MissionStore,
     private _reportService: ReportService,
-    twitchService: TwitchService
+    private _systemMessageService: SystemMessageService,
+    twitchService: TwitchService,
+    translateService: TranslateService,
+    configurationService: ConfigurationService,
   ) {
-    super(_translateService);
+    super(translateService);
     twitchService.state().subscribe(value => {
       this.twitchRoute.cssClasses['is-twitch-live'] = value;
       this.isTwitchLive = value;
     });
+    const alliancesRoute: MenuRoute = this.menuRoutes[6];
+    const shouldDisplayAllianceSubject: Subject<boolean> = new Subject();
+    alliancesRoute.shouldDisplay = shouldDisplayAllianceSubject.asObservable();
+    configurationService.observeParamOrDefault('DISABLED_FEATURE_ALLIANCE', 'FALSE')
+      .pipe(
+        map(configuration => configuration.value === 'TRUE')
+      ).subscribe(isDisabled =>
+        shouldDisplayAllianceSubject.next(!isDisabled)
+      );
   }
 
   public async ngOnInit() {
@@ -133,6 +152,9 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._missionStore.missionsCount.subscribe(count => this.missionsCount = count);
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
     this._reportService.findUserUnreadCount().subscribe(result => this.userUnreadReports = result);
+    this._systemMessageService.findAll().pipe(
+      map(result => result.filter(message => !message.isRead).length)
+    ).subscribe(systemUnread => this.unreadSystemMessages = systemUnread);
     this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
     window.addEventListener('storage', e => {
       if (e.key === GameSidebarComponent._LS_DISPLAY_TWITCH_KEY) {

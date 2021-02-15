@@ -1,10 +1,10 @@
 import { Component, Input, OnChanges, OnInit, Output, EventEmitter, SimpleChanges } from '@angular/core';
 
-import { ObtainedUnit, UnitType } from '@owge/universe';
+import { ObtainedUnit } from '@owge/universe';
 
 import { SelectedUnit } from '../../shared/types/selected-unit.type';
 import { UnitTypeService } from '../../services/unit-type.service';
-import { ToastrService } from '@owge/core';
+import { ToastrService, UnitType } from '@owge/core';
 
 interface UnitsForEachUser {
   username: string;

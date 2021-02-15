@@ -2,8 +2,8 @@ import { Component, Input, OnChanges, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable } from 'rxjs';
 
-import { WithRequirementsCrudMixin, RequirementInformation } from '@owge/universe';
-import { ModalComponent, CommonEntity } from '@owge/core';
+import { WithRequirementsCrudMixin } from '@owge/universe';
+import { ModalComponent, CommonEntity, RequirementInformation } from '@owge/core';
 import { DisplayService } from '@owge/widgets';
 
 import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';

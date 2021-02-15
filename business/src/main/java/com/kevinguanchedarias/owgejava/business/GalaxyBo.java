@@ -52,9 +52,8 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	public Galaxy save(Galaxy galaxy) {
 		canSave(galaxy);
 
-		if (galaxy.getId() == null) {
-			prepareGalaxy(galaxy);
-		}
+		prepareGalaxy(galaxy);
+
 		return galaxyRepository.saveAndFlush(galaxy);
 	}
 
@@ -87,7 +86,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	 * @author Kevin Guanche Darias
 	 */
 	public Integer findRandomGalaxy() {
-		int count = countAll().intValue();
+		int count = (int) countAll();
 
 		if (count == 0) {
 			throw new SgtBackendNoGalaxiesFound("Este universo no posee galaxias");
@@ -168,6 +167,9 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	 * @author Kevin Guanche Darias
 	 */
 	private void prepareGalaxy(Galaxy galaxy) {
+		if (galaxy.getId() != null) {
+			planetBo.deleteByGalaxy(galaxy.getId());
+		}
 		Integer[] richnessPosibilities = generateRichnessPosibilities();
 
 		for (int sector = 1; sector <= galaxy.getSectors(); sector++) {

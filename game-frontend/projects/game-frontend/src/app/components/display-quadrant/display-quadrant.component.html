@@ -19,12 +19,7 @@
       <ng-template let-planet="planet">
         <img [src]="'mission.png' | uiIcon" [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate" (click)="sendMission(planet)" />
         <a href="javascript:void(0)"(click)="addEdit(planet)" ><i class="fa action" [class.fa-pen]="planetList[planet.id]" [class.fa-plus-circle]="!planetList[planet.id]"></i></a>
-        <a href="javascript:void(0)" *ngIf="!runningExplorations[planet.id]" (click)="clickFastExplore(planet)" class="fast-explore" [class.available]="hasFastExplorerUnits">
-          <i class="fa fa-search"></i>
-        </a>
-        <owge-widgets-circular-percentage *ngIf="runningExplorations[planet.id]" [percentage]="runningExplorations[planet.id].currentCompletePercentage" [size]="30">
-          <i class="fa fa-search"></i>
-        </owge-widgets-circular-percentage>
+        <app-fast-exploration-button [planet]="planet"></app-fast-exploration-button>
       </ng-template>
     </app-planet-selector>
   </div>

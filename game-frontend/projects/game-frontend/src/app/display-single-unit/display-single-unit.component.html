@@ -1,3 +1,8 @@
+<owge-widgets-confirmation-dialog 
+  (confirmResult)="cancelBuild($event)" 
+  [i18nTitle]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TITLE'"
+  [i18nText]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TEXT'"
+></owge-widgets-confirmation-dialog>
 <ng-container *ngIf="userData && unit && unitTypes">
   <owge-widgets-display-list-item [itemName]="unit.name" [itemDescription]="unit.description" 
     [image]="unit.imageUrl" [hideDesktopSections]="[0,0, isCompactView]"
@@ -9,6 +14,8 @@
     [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' | translate }}</a>
       <a class="btn" (click)="selectedView = 'attributes'"
         [ngClass]="{ 'selected-menu': selectedView === 'attributes'}">{{ 'APP.UNITS.DISPLAY_SINGLE.ATTRIBUTES' | translate }}</a>
+      <a class="btn" *ngIf="unit.improvement" (click)="selectedView = 'improvements'"
+        [ngClass]="{ 'selected-menu': selectedView === 'improvements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.IMPROVEMENTS' | translate }}</a>
       <app-display-requirements *ngIf="selectedView === 'requirements'" [requirements]="unit.requirements">
       </app-display-requirements>
       <ng-container *ngIf="selectedView === 'attributes'">
@@ -22,11 +29,23 @@
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge"></owge-widgets-display-improved-attribute>
         <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed"></owge-widgets-display-improved-attribute>
       </ng-container>
+      <owge-widgets-display-improvements *ngIf="selectedView === 'improvements'" 
+        [improvement]="unit.improvement" [prImage]="userData.faction.primaryResourceImageUrl" 
+        [srImage]="userData.faction.secondaryResourceImageUrl" [energyImage]="userData.faction.energyImageUrl"
+      ></owge-widgets-display-improvements>
     </ng-template>
     
     <ng-template owgeCoreContent select="action-buttons">
       <ng-container *ngIf="withBuildMode">
-        <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="cancelUnit()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
+        <ng-container *ngIf="building && building.unit.id === unit.id">
+          <ng-template owgeCoreIfDesktop>
+            <div class="in-planet-count">
+              <h5>{{ 'APP.UNITS.DISPLAY_SINGLE.NUMBER' | translate }}:</h5>
+              <h5> {{ building.count }}</h5>
+            </div>
+          </ng-template>
+        </ng-container>
+        <a owgeUniverseOnClickIfWsConnected class="btn btn-block do-cancel" *ngIf="building && building.unit.id === unit.id" role="button" (clickAndConnected)="confirmDialog.show()">{{ 'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL' | translate }}</a>
         <a owgeUniverseOnClickIfWsConnected *ngIf="building && building.unit.id !== unit.id" class="btn btn-block" role="button"
           (clickAndConnected)="otherUnitAlreadyRunning()">---</a>
         <ng-container *ngIf="!building">
@@ -51,10 +70,10 @@
         <a owgeUniverseOnClickIfWsConnected class="btn delete" [ngClass]="{ 'disabled': !isValidDeletion()}" (clickAndConnected)="deleteUnits()">{{ 'APP.UNITS.DISPLAY_SINGLE.DELETE' | translate }}</a>
       </ng-container>
     </ng-template>
-
     <ng-template owgeCoreContent select="image-container-prepend">
       <ng-template owgeCoreIfDesktop [negate]="true">
-        <div class="in-planet-count-mobile">{{ inPlanetCount }}</div>
+        <div *ngIf="withInPlanetMode" class="in-planet-count-mobile">{{ inPlanetCount }}</div>
+        <div *ngIf="withBuildMode && building && building.unit.id === unit.id"> {{ building.count }}</div>
       </ng-template>
     </ng-template>
   </owge-widgets-display-list-item> 

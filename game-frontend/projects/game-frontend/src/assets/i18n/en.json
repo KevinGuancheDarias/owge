@@ -9,6 +9,7 @@
     "I18N_YOUR_PLANET_WAS_CONQUISTED": "Your planet was conquisted",
     "I18N_ALLIANCE_NOT_DEFEATED": "Units of the owner of the planet were killed, but units from members of his alliance has survived",
     "I18N_APP_UPDATE_DETECTED": "The game has been updated, will reload soon, or reload by yourself",
+    "I18N_ERR_ALLIANCE_IS_FULL": "The alliance is full, check again later. the limits are defined by max, and by a percentage of current total players of the universe",
     "APP": {
         "CONNECTED": "Connected",
         "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",
@@ -105,13 +106,16 @@
                 "NUMBER": "Number",
                 "ATTRIBUTES": "Attributes",
                 "REQUIREMENTS": "Requirements",
+                "IMPROVEMENTS": "Improvements",
                 "DELETE": "Delete",
                 "BUILD": {
                     "CANCEL": "Cancel",
                     "COUNT": "Count",
                     "BTN_BUILD": "Build",
                     "MIN_ONE": "At least select 1",
-                    "NO_RESOURCES": "No resources"
+                    "NO_RESOURCES": "No resources",
+                    "CANCEL_TITLE": "Confirm cancel unit build",
+                    "CANCEL_TEXT": "Are you sure you want to cancel the current unit build?"
                 }
             },
             "IN_PLANET": {
@@ -161,7 +165,8 @@
                 "ATTACK": {
                     "EARNED_POINTS": "Earned points"
                 }
-            }
+            },
+            "SHOW_OLDER": "Show older"
         },
         "MY_ALLIANCE": "My alliance",
         "BROWSE": "Browse",
@@ -176,6 +181,7 @@
         "MENU_TIME_SPECIALS": "Time Specials",
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Settings",
+        "MENU_SYSTEM_MESSAGES": "System messages",
         "MENU_LOGOUT": "Logout",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Missions"

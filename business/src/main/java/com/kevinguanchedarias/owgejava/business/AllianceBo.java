@@ -33,6 +33,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	@Autowired
 	private AllianceJoinRequestBo allianceJoinRequestBo;
 
+	@Autowired
+	private ConfigurationBo configurationBo;
+
 	/**
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -44,7 +47,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
 	 */
 	@Override
@@ -55,7 +58,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	/**
 	 * Deletes an alliance <br>
 	 * <b>NOTICE: </b> Handles unsetting all users
-	 * 
+	 *
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -75,7 +78,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	 * Saves an alliance to the database <br>
 	 * <b>NOTICE:</b> Also sets the user alliance of the owner to the <i>newly</i>
 	 * created alliance
-	 * 
+	 *
 	 * @param alliance
 	 * @param invokerId User requesting the save
 	 * @throws ProgrammingException When the owner is null
@@ -84,6 +87,10 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	 */
 	@Transactional
 	public Alliance save(Alliance alliance, Integer invokerId) {
+		if (Boolean.parseBoolean(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE").getValue())) {
+			throw new SgtBackendInvalidInputException(
+					"You can't not create an alliance, while the idea is nice, it's not possible");
+		}
 		Alliance retVal;
 		if (alliance.getId() == null) {
 			UserStorage creator = userStorageBo.findById(invokerId);
@@ -106,7 +113,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Request the entrance in an alliance
-	 * 
+	 *
 	 * @param allianceId
 	 * @param ownerId
 	 * @return Persisted user
@@ -131,6 +138,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	public void acceptJoin(Integer joinRequestId, Number invoker) {
 		AllianceJoinRequest request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
 		checkInvokerIsOwner(request.getAlliance(), invoker);
+		checkIsLimitReached(request);
 		if (request.getUser().getAlliance() == null) {
 			request.getUser().setAlliance(request.getAlliance());
 			userStorageBo.save(request.getUser());
@@ -142,7 +150,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Rejects the join request
-	 * 
+	 *
 	 * @param joinRequestId
 	 * @param invoker
 	 * @since 0.7.0
@@ -156,7 +164,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Leaves an alliance
-	 * 
+	 *
 	 * @param userId
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -166,7 +174,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param allianceId
 	 * @return
 	 * @since 0.7.0
@@ -181,7 +189,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Deletes the alliance associated with the user
-	 * 
+	 *
 	 * @param transientUser
 	 * @throws SgtBackendInvalidInputException When user is not the owner of the
 	 *                                         alliance
@@ -201,7 +209,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Checks if the user is the owner of the request
-	 * 
+	 *
 	 * @param storedAlliance
 	 * @param user
 	 * @since 0.7.0
@@ -213,7 +221,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Checks if the alliance is of user property
-	 * 
+	 *
 	 * @param alliance
 	 * @param userId
 	 * @throws SgtBackendInvalidInputException When user is not the owner of the
@@ -230,7 +238,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	/**
 	 * Returns true if user has an alliance
-	 * 
+	 *
 	 * @param userId
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -238,5 +246,19 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	 */
 	public boolean isOwnerOfAnAlliance(Number userId) {
 		return repository.findOneByOwnerId(userId) != null;
+	}
+
+	private void checkIsLimitReached(AllianceJoinRequest request) {
+		long userCount = userStorageBo.countAll();
+		float allowedPercentage = Integer
+				.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7").getValue());
+		int max = Integer.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15").getValue());
+		float allowedByPercentage = userCount * (allowedPercentage / 100);
+		allowedByPercentage = allowedByPercentage < 2 ? 2 : allowedByPercentage;
+		int maxAllowed = (int) (allowedByPercentage < max ? allowedByPercentage : max);
+		if (maxAllowed <= userStorageBo.countByAlliance(request.getAlliance())) {
+			throw new SgtBackendInvalidInputException("I18N_ERR_ALLIANCE_IS_FULL");
+		}
+
 	}
 }

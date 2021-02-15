@@ -44,6 +44,7 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
 
   public async ngOnInit() {
     this.requireUser();
+    this._reportService.setDoSplit(false);
     this._screenDimensionsService.hasMinWidth(767, this._identifier).subscribe(val => this.isDesktop = val);
     this._subscriptions.add(this._reportService.findReports<NormalizedMissionReport>().pipe(
       tap(result => result.forEach(report => report.normalizedDate = this._findReportDate(report)))
@@ -56,7 +57,7 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
             .filter(current => !this._alreadyTaggedAsReaded.has(current.id));
           this._doWithLoading(
             this._reportService.markAsRead(markAsReadReports),
-            new Promise(resolve => {
+            new Promise<void>(resolve => {
               window.setTimeout(() => {
                 window.scrollTo(0, this._scrollPosition);
                 resolve();
@@ -72,6 +73,7 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
     super.ngOnDestroy();
     this._screenDimensionsService.removeHandler(this._identifier);
     this._markAsReadSubscriptions.unsubscribeAll();
+    this._reportService.setDoSplit(true);
   }
 
   public showReportDetails(report: MissionReport): void {

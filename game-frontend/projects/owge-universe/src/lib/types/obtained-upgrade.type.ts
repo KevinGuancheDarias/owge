@@ -1,7 +1,5 @@
 import { Upgrade } from './upgrade.type';
-import { Requirement } from './requirement.type';
 import { ResourceRequirements } from '../pojos/resource-requirements.pojo';
-
 
 /**
  *

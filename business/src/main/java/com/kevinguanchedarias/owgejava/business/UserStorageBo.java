@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 
@@ -126,6 +127,16 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return token != null ? convertTokenUserToUserStorage(token) : null;
 	}
 
+	/**
+	 *
+	 * @return
+	 * @since 0.9.16
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Integer> findAllIds() {
+		return userStorageRepository.findAllIds();
+	}
+
 	@Transactional
 	public UserStorage findLoggedInWithDetails() {
 		UserStorage tokenSimpleUser = findLoggedIn();
@@ -146,6 +157,17 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
 	public UserStorage findOneByMission(Mission mission) {
 		return userStorageRepository.findOneByMissions(mission);
+	}
+
+	/**
+	 *
+	 * @param alliance
+	 * @return
+	 * @since 0.9.14
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public int countByAlliance(Alliance alliance) {
+		return userStorageRepository.countByAlliance(alliance);
 	}
 
 	/**

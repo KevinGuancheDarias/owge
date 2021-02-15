@@ -1,10 +1,11 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
-import { TimeSpecial, UniverseGameService } from '@owge/universe';
+import { TimeSpecial } from '@owge/universe';
 import { LoggerHelper } from '@owge/core';
 
 import { TimeSpecialService } from '../../services/time-specials.service';
 import { BaseComponent } from '../../base/base.component';
+import { UserWithFaction } from '@owge/faction';
 
 /**
  * Component to display and handle the time specials
@@ -19,7 +20,7 @@ import { BaseComponent } from '../../base/base.component';
   styleUrls: ['./time-specials.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TimeSpecialsComponent extends BaseComponent implements OnInit {
+export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implements OnInit {
   private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
   public elements: TimeSpecial[];
 
@@ -31,6 +32,7 @@ export class TimeSpecialsComponent extends BaseComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.requireUser();
     this._subscriptions.add(this._timeSpecialService.findUnlocked().subscribe(elements => {
       this.elements = elements;
       this._cdr.detectChanges();

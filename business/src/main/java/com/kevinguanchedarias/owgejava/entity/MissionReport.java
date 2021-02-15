@@ -10,8 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 @Entity
 @Table(name = "mission_reports")
@@ -25,8 +25,8 @@ public class MissionReport implements EntityWithId<Long> {
 	@Column(name = "json_body", nullable = false)
 	private String jsonBody;
 
-	@Transient
-	private Mission relatedMission;
+	@OneToOne(mappedBy = "report", fetch = FetchType.LAZY)
+	private Mission mission;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
@@ -45,9 +45,9 @@ public class MissionReport implements EntityWithId<Long> {
 
 	}
 
-	public MissionReport(String jsonBody, Mission relatedMission) {
+	public MissionReport(String jsonBody, Mission mission) {
 		this.jsonBody = jsonBody;
-		this.relatedMission = relatedMission;
+		this.mission = mission;
 	}
 
 	@Override
@@ -63,12 +63,22 @@ public class MissionReport implements EntityWithId<Long> {
 		this.jsonBody = jsonBody;
 	}
 
-	public Mission getRelatedMission() {
-		return relatedMission;
+	/**
+	 * @return the mission
+	 * @since 0.9.16
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Mission getMission() {
+		return mission;
 	}
 
-	public void setRelatedMission(Mission relatedMission) {
-		this.relatedMission = relatedMission;
+	/**
+	 * @param mission the mission to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.9.16
+	 */
+	public void setMission(Mission mission) {
+		this.mission = mission;
 	}
 
 	public UserStorage getUser() {
