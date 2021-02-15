@@ -259,7 +259,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	protected void checkUserExists(Integer userId) {
-		if (userStorageBo.findById(userId) == null) {
+		if (!userStorageBo.exists(userId)) {
 			throw new UserNotFoundException("No user with id " + userId);
 		}
 	}

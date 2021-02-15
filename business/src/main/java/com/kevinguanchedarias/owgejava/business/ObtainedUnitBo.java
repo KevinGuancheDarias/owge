@@ -3,17 +3,20 @@ package com.kevinguanchedarias.owgejava.business;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -23,6 +26,7 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
@@ -135,11 +139,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return repository.findByUnit(unit);
 	}
 
-	@Transactional(propagation = Propagation.MANDATORY)
-	public List<ObtainedUnit> findLockedByMissionId(Long missionId) {
-		return repository.findLockedByMissionId(missionId);
-	}
-
 	public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetId(Integer userId, Integer unitId, Long sourcePlanetId) {
 		return repository.findOneByUserIdAndUnitIdAndSourcePlanetId(userId, unitId, sourcePlanetId);
 	}
@@ -242,6 +241,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @return new instance of saved obtained unit
 	 * @author Kevin Guanche Darias
 	 */
+	@Transactional(propagation = Propagation.MANDATORY)
 	public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit, Long targetPlanet) {
 		Integer unitId = obtainedUnit.getUnit().getId();
 		ObtainedUnit retVal;
@@ -251,8 +251,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		if (existingOne == null) {
 			retVal = save(obtainedUnit);
 		} else {
-			existingOne.setCount(existingOne.getCount() + obtainedUnit.getCount());
-			retVal = save(existingOne);
+			retVal = trySave(existingOne, obtainedUnit.getCount());
 			if (obtainedUnit.getId() != null) {
 				delete(obtainedUnit);
 			}
@@ -289,10 +288,8 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void emitObtainedUnitChange(Integer userId) {
-		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
-			socketIoService.sendMessage(userId, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
-					() -> toDto(findDeployedInUserOwnedPlanets(userId)));
-		}, 500);
+		asyncRunnerBo.runAssyncWithoutContextDelayed(() -> socketIoService.sendMessage(userId,
+				AbstractMissionBo.UNIT_OBTAINED_CHANGE, () -> toDto(findDeployedInUserOwnedPlanets(userId))), 500);
 	}
 
 	/**
@@ -304,7 +301,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @return saved obtained unit, null if the count is the same
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional
 	public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long substractionCount,
 			boolean handleImprovements) {
 		if (handleImprovements) {
@@ -317,13 +314,46 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 			throw new SgtBackendInvalidInputException(
 					"Can't not subtract because, obtainedUnit count is less than the amount to subtract");
 		} else if (obtainedUnit.getCount() > substractionCount) {
-			obtainedUnit.setCount(obtainedUnit.getCount() - substractionCount);
-			return save(obtainedUnit);
+			return trySave(obtainedUnit, -substractionCount);
 		} else if (obtainedUnit.getCount().equals(substractionCount)) {
 			delete(obtainedUnit);
 			return null;
 		} else {
 			throw new ProgrammingException("Should never ever happend");
+		}
+	}
+
+	/**
+	 * Tries to save the new sumValue, if fails, will try till it success <br>
+	 * This strategy can be used to avoid to lock table rows
+	 *
+	 * @param obtainedUnit
+	 * @param sumValue
+	 * @return
+	 * @since 0.9.19
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public ObtainedUnit trySave(ObtainedUnit obtainedUnit, long sumValue) {
+		long expectedSum = obtainedUnit.getCount() + sumValue;
+		obtainedUnit.setCount(expectedSum);
+		save(obtainedUnit);
+		Optional<ObtainedUnit> savedValueOptional = refreshOptional(obtainedUnit);
+		if (savedValueOptional.isPresent()) {
+			ObtainedUnit savedValue = savedValueOptional.get();
+			if (!savedValue.getCount().equals(expectedSum)) {
+				try {
+					Thread.sleep(RandomUtils.nextLong(0, 50));
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					throw new CommonException("trySave failed for surprising reasons", e);
+				}
+				return trySave(savedValue, sumValue);
+			} else {
+				return savedValue;
+			}
+		} else {
+			throw new OwgeElementSideDeletedException("Element " + obtainedUnit.getClass().getName() + " with id "
+					+ obtainedUnit.getId() + " has been side-deleted");
 		}
 	}
 
