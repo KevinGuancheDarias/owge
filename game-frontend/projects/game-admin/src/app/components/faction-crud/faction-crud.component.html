@@ -3,9 +3,9 @@
     <div class="body">
         <table>
             <tr>
-                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.OVERRIDE' | translate }}</th>
-                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.UNIT_TYPE' | translate }}</th>
-                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.TABLE.HEADER.MAX_COUNT' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.TABLE.HEADER.OVERRIDE' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.TABLE.HEADER.UNIT_TYPE' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.TABLE.HEADER.MAX_COUNT' | translate }}</th>
             </tr>
             <tr *ngFor="let unitType of unitTypes">
                 <td><input type="checkbox" [(ngModel)]="unitType.isOverride"></td>

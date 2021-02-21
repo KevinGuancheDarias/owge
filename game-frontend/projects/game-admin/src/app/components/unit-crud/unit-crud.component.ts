@@ -1,13 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Unit } from '@owge/universe';
 
-import { UnitType, SpeedImpactGroup } from '@owge/core';
+import { UnitType, SpeedImpactGroup, ModalComponent } from '@owge/core';
 
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
+import { InterceptableSpeedGroup } from 'projects/owge-universe/src/lib/types/interceptable-speed-group.type';
+
+interface InterceptedSpeedImpactGroup extends SpeedImpactGroup {
+  isIntercepted?: boolean;
+}
+
 
 /**
  *
@@ -22,11 +28,12 @@ import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-
   styleUrls: ['./unit-crud.component.scss']
 })
 export class UnitCrudComponent implements OnInit {
+  @ViewChild(ModalComponent) public interceptableGroupsModal: ModalComponent;
 
   public selectedEl: Unit;
   public elsObservable: Observable<Unit[]>;
   public unitTypes: UnitType[];
-  public speedImpactGroups: SpeedImpactGroup[] = [];
+  public speedImpactGroups: InterceptedSpeedImpactGroup[] = [];
 
   public constructor(
     public adminUnitService: AdminUnitService,
@@ -41,5 +48,35 @@ export class UnitCrudComponent implements OnInit {
 
   public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
     return a === b || (a && b && a.id === b.id);
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.10.0
+   */
+  public async onSelected(unit: Unit): Promise<void> {
+    this.selectedEl = { ...unit };
+    this.selectedEl.interceptableSpeedGroups = await this.adminUnitService.findInterceptedGroups(unit.id).toPromise();
+    const interceptedGroups: Partial<InterceptableSpeedGroup>[] = this.selectedEl.interceptableSpeedGroups;
+    if (interceptedGroups && interceptedGroups.length) {
+      this.speedImpactGroups.forEach(speedGroup =>
+        speedGroup.isIntercepted = interceptedGroups.some(intercepted => intercepted.speedImpactGroup.id === speedGroup.id)
+      );
+    }
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.10.0
+   */
+  public clickSaveIntercepted(): void {
+    this.selectedEl.interceptableSpeedGroups = this.speedImpactGroups
+      .filter(group => group.isIntercepted).map(group => ({ speedImpactGroup: group }));
+    this.adminUnitService.saveInterceptableGroups(this.selectedEl.id, this.selectedEl.interceptableSpeedGroups)
+      .subscribe(() => this.interceptableGroupsModal.hide());
   }
 }

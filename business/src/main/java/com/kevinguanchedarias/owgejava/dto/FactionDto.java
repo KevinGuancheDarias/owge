@@ -3,7 +3,11 @@ package com.kevinguanchedarias.owgejava.dto;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hibernate.Hibernate;
+import org.springframework.util.CollectionUtils;
+
 import com.kevinguanchedarias.owgejava.entity.Faction;
+import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
 import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
@@ -46,6 +50,7 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 	@Override
 	public void dtoFromEntity(Faction entity) {
 		super.dtoFromEntity(entity);
+		unitTypes = null;
 		ImageStore primaryResourceImageEntity = entity.getPrimaryResourceImage();
 		ImageStore secondaryResourceImageEntity = entity.getSecondaryResourceImage();
 		ImageStore energyImageEntity = entity.getEnergyImage();
@@ -60,6 +65,15 @@ public class FactionDto extends CommonDtoWithImageStore<Integer, Faction>
 		if (energyImageEntity != null) {
 			energyImage = energyImageEntity.getId();
 			energyImageUrl = energyImageEntity.getUrl();
+		}
+
+		List<FactionUnitType> factionUnitTypes = entity.getUnitTypes();
+		if (Hibernate.isInitialized(factionUnitTypes) && !CollectionUtils.isEmpty(factionUnitTypes)) {
+			factionUnitTypes.stream().map(current -> {
+				FactionUnitTypeDto dto = new FactionUnitTypeDto();
+				dto.dtoFromEntity(current);
+				return dto;
+			}).collect(Collectors.toList());
 		}
 
 		DtoWithImprovements.super.dtoFromEntity(entity);

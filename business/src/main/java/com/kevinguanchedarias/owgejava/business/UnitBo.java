@@ -10,12 +10,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kevinguanchedarias.owgejava.dto.InterceptableSpeedGroupDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
+import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
+import com.kevinguanchedarias.owgejava.repository.InterceptableSpeedGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 
 @Component
@@ -36,6 +39,12 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 
 	@Autowired
 	private ImprovementBo improvementBo;
+
+	@Autowired
+	private transient InterceptableSpeedGroupRepository interceptableSpeedGroupRepository;
+
+	@Autowired
+	private SpeedImpactGroupBo speedImpactGroupBo;
 
 	@Override
 	public JpaRepository<Unit, Integer> getRepository() {
@@ -166,5 +175,25 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 					"Unit with id " + unit.getId() + " has been already build by user " + user.getId());
 		}
 
+	}
+
+	/**
+	 *
+	 * @param interceptableSpeedGroupDtos
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@Transactional
+	public void saveSpeedImpactGroupInterceptors(int unitId,
+			List<InterceptableSpeedGroupDto> interceptableSpeedGroupDtos) {
+		Unit unit = getOne(unitId);
+		interceptableSpeedGroupRepository.deleteByUnit(unit);
+		interceptableSpeedGroupDtos.forEach(current -> {
+			InterceptableSpeedGroup interceptableSpeedGroup = new InterceptableSpeedGroup();
+			interceptableSpeedGroup.setUnit(unit);
+			interceptableSpeedGroup
+					.setSpeedImpactGroup(speedImpactGroupBo.getOne(current.getSpeedImpactGroup().getId()));
+			interceptableSpeedGroupRepository.save(interceptableSpeedGroup);
+		});
 	}
 }

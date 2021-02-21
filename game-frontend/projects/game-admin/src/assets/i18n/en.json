@@ -67,7 +67,22 @@
             "INITIAL_ENERGY": "Initial energy",
             "MAX_PLANETS": "Max planets",
             "CUSTOM_GATHER_PRIMARY_PERCENTAGE": "Custom gather primary percentage",
-            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Custom gather secondary percentage"
+            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Custom gather secondary percentage",
+            "UNIT_TYPES_OVERRIDES": {
+                "BTN_OPEN": "Open unit types overrides",
+                "MODAL": {
+                    "TITLE": "Editing unit types overrides for faction {{factionName}} ",
+                    "TABLE": {
+                        "HEADER": {
+                            "OVERRIDE": "Is override",
+                            "UNIT_TYPE": "Unit Type",
+                            "MAX_COUNT": "Max count"
+                        }
+                    },
+                    "BTN_SAVE": "Save",
+                    "BTN_CANCEL": "Cancel"
+                }
+            }
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Display name",
@@ -101,7 +116,21 @@
             "CHARGE": "Charge",
             "SPEED": "Speed",
             "BYPASS_SHIELDS": "Bypass shields",
-            "IS_INVISIBLE": "Is invisible"
+            "IS_INVISIBLE": "Is invisible",
+            "BTN_OPEN_INTERCEPTABLES_MODAL": "Manage interceptables",
+            "INTERCEPTABLE_GROUPS": {
+                "MODAL": {
+                    "TITLE": "Editing interceptable speed groups for {{unitName}} ",
+                    "TABLE": {
+                        "HEADER": {
+                            "INTERCEPTED": "Is intercepted",
+                            "SPEED_GROUP": "Speed group"
+                        }
+                    },
+                    "BTN_SAVE": "Save",
+                    "BTN_CANCEL": "Cancel"
+                }
+            }
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxy",

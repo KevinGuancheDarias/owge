@@ -1,11 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cascade;
@@ -83,6 +86,9 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
 
 	@Column(name = "is_invisible", nullable = false)
 	private Boolean isInvisible = false;
+
+	@OneToMany(mappedBy = "unit", fetch = FetchType.LAZY)
+	private List<InterceptableSpeedGroup> interceptableSpeedGroups;
 
 	/**
 	 * @return the hasToDisplayInRequirements
@@ -326,6 +332,24 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
 	 */
 	public void setIsInvisible(Boolean isInvisible) {
 		this.isInvisible = isInvisible;
+	}
+
+	/**
+	 * @return the interceptableSpeedGroups
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<InterceptableSpeedGroup> getInterceptableSpeedGroups() {
+		return interceptableSpeedGroups;
+	}
+
+	/**
+	 * @param interceptableSpeedGroups the interceptableSpeedGroups to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setInterceptableSpeedGroups(List<InterceptableSpeedGroup> interceptableSpeedGroups) {
+		this.interceptableSpeedGroups = interceptableSpeedGroups;
 	}
 
 }

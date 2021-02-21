@@ -1,5 +1,6 @@
 import { SpeedImpactGroup } from '@owge/core';
 import { ResourceRequirements } from '../pojos/resource-requirements.pojo';
+import { InterceptableSpeedGroup } from './interceptable-speed-group.type';
 
 /**
  * Represents an unit
@@ -42,4 +43,9 @@ export interface Unit {
      * @since 0.10.0
      */
     isInvisible: boolean;
+
+    /**
+     * @since 0.10.0
+     */
+    interceptableSpeedGroups: Partial<InterceptableSpeedGroup>[];
 }

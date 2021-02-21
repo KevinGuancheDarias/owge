@@ -57,7 +57,22 @@
             "INITIAL_ENERGY": "Energía inicial",
             "MAX_PLANETS": "Máximo de planetas",
             "CUSTOM_GATHER_PRIMARY_PERCENTAGE": "Porcentaje custom de recolección de primario",
-            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Porcentaje custom de recolección de secundario"
+            "CUSTOM_GATHER_SECONDARY_PERCENTAGE": "Porcentaje custom de recolección de secundario",
+            "UNIT_TYPES_OVERRIDES": {
+                "BTN_OPEN": "Abrir sobreescrituras para tipos de unidad",
+                "MODAL": {
+                    "TITLE": "Sobreescrituras para la raza {{factionName}} ",
+                    "TABLE": {
+                        "HEADER": {
+                            "OVERRIDE": "¿Está sobreescrito?",
+                            "UNIT_TYPE": "Tipo de unidad",
+                            "MAX_COUNT": "Cantidad máxima"
+                        }
+                    },
+                    "BTN_SAVE": "Guardar",
+                    "BTN_CANCEL": "Cancelar"
+                }
+            }
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Nombre a mostrar",
@@ -91,7 +106,21 @@
             "CHARGE": "Carga",
             "SPEED": "Velocidad",
             "BYPASS_SHIELDS": "Atraviesa escudos",
-            "IS_INVISIBLE": "Es invisible"
+            "IS_INVISIBLE": "Es invisible",
+            "BTN_OPEN_INTERCEPTABLES_MODAL": "Gestionar interceptables",
+            "INTERCEPTABLE_GROUPS": {
+                "MODAL": {
+                    "TITLE": "Interceptando grupos de velocidad interceptables por {{unitName}} ",
+                    "TABLE": {
+                        "HEADER": {
+                            "INTERCEPTED": "¿Está interceptado?",
+                            "SPEED_GROUP": "Grupo de velocidad"
+                        }
+                    },
+                    "BTN_SAVE": "Guardar",
+                    "BTN_CANCEL": "Cancelar"
+                }
+            }
         },
         "SPECIAL_LOCATION": {
             "TARGET_GALAXY": "Galaxia",
