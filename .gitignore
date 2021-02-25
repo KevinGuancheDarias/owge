@@ -3,3 +3,5 @@
 !/dynamic/.gitkeep
 .factorypath
 /backend.php
+.idea
+*.iml

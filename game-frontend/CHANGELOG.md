@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.9.20 (latest)
+=================
+* __Fix:__ [Reports are not added automatically under unknown situations #376](https://github.com/KevinGuancheDarias/owge/issues/376)  
+
 v0.9.19 (2021-02-15)
 =====================
 * __Improvement:__ [Allow to sort ranking by nickname #360](https://github.com/KevinGuancheDarias/owge/issues/360)  

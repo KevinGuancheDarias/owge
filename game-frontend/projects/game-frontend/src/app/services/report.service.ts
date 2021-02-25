@@ -165,7 +165,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     content.missionDate = new Date(content.missionDate);
     if (emit) {
       if (this._doSplit && this._currentReports.length > ReportService._MAX_ALLOWED_LOCAL_NEW_STORE) {
-        this._currentReports = this._currentReports.slice(ReportService._MAX_ALLOWED_LOCAL_NEW_STORE * -1);
+        this._currentReports.splice(-1, this._currentReports.length - ReportService._MAX_ALLOWED_LOCAL_NEW_STORE);
         this._alreadyDownloadedReports = new Set;
         this._currentReports.forEach(report => this._alreadyDownloadedReports.add(report.id));
       }
