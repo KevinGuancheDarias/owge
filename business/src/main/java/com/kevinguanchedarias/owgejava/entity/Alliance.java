@@ -1,16 +1,16 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import java.util.List;
 
 /**
  * Represents an alliance of players
@@ -30,6 +30,9 @@ public class Alliance extends CommonEntityWithImage<Integer> {
 
 	@OneToMany(mappedBy = "alliance")
 	private List<UserStorage> users;
+
+	@OneToMany(mappedBy = "alliance", cascade = CascadeType.REMOVE)
+	private List<AllianceJoinRequest> requests;
 
 	/**
 	 * @since 0.7.0

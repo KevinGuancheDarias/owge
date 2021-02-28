@@ -2,6 +2,10 @@
 
 v0.9.20 (latest)
 =================
+* __Fix:__ Fix speed not working properly
+* __Fix:__ Conquest no longer fail when the planet doesn't have owner
+* __Fix:__ Not able to delete an alliance when there are join requests pending
+* __Improvement:__ Improve stability of concurrent events
 * __Improvement:__ [Display unit types that a specific unit can attack to #381](https://github.com/KevinGuancheDarias/owge/issues/381)  
 * __Fix:__ [Reports are not added automatically under unknown situations #376](https://github.com/KevinGuancheDarias/owge/issues/376)  
 

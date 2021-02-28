@@ -1,7 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.Date;
-import java.util.List;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,9 +15,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "missions")
@@ -72,7 +71,7 @@ public class Mission implements EntityWithId<Long> {
 	@Fetch(FetchMode.JOIN)
 	private MissionInformation missionInformation;
 
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "related_mission", nullable = true)
 	private Mission relatedMission;
 

@@ -1,18 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -37,6 +25,20 @@ import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunning
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MissionBo extends AbstractMissionBo {
@@ -50,6 +52,7 @@ public class MissionBo extends AbstractMissionBo {
 	private static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
 	private static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
 	private static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
+	private static final int DAYS = 60;
 
 	@Autowired
 	private transient EntityManager entityManager;
@@ -62,6 +65,9 @@ public class MissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private transient AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
+	private TransactionUtilService transactionUtilService;
 
 	@PostConstruct
 	public void init() {
@@ -77,6 +83,17 @@ public class MissionBo extends AbstractMissionBo {
 						() -> userStorageBo.findMaxEnergy(userId));
 			});
 		});
+	}
+
+	@EventListener(ApplicationReadyEvent.class)
+	public void onApplicationReady() {
+		deleteOldMissions();
+	}
+
+	@Scheduled(cron = "0 0 2 * * *")
+	public void deleteOldMissions() {
+		Date limitDate = new Date(new Date().getTime() - (86400000L * DAYS));
+		transactionUtilService.runWithRequired(() -> missionRepository.deleteByResolvedTrueAndTerminationDateLessThan(limitDate));
 	}
 
 	@Override
@@ -190,7 +207,6 @@ public class MissionBo extends AbstractMissionBo {
 	 * @param userId
 	 * @param planetId
 	 * @param unitId
-	 * @param finalCount
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
@@ -398,10 +414,12 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public void processBuildUnit(Long missionId) {
 		Mission mission = findById(missionId);
-		final List<Boolean> shouldClearImprovementsCache = new ArrayList<>(1);
-		shouldClearImprovementsCache.add(false);
 		if (mission != null) {
 			Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
+			Planet sourcePlanet = planetBo.findById(sourcePlanetId);
+			waitForMissionAffectingPlanet(sourcePlanet);
+			final List<Boolean> shouldClearImprovementsCache = new ArrayList<>(1);
+			shouldClearImprovementsCache.add(false);
 			UserStorage user = mission.getUser();
 			Integer userId = user.getId();
 			obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
@@ -409,7 +427,7 @@ public class MissionBo extends AbstractMissionBo {
 					shouldClearImprovementsCache.remove(0);
 					shouldClearImprovementsCache.add(true);
 				}
-				current.setSourcePlanet(planetBo.findById(sourcePlanetId));
+				current.setSourcePlanet(sourcePlanet);
 				obtainedUnitBo.moveUnit(current, userId, sourcePlanetId);
 				requirementBo.triggerUnitBuildCompleted(user, current.getUnit());
 			});
@@ -481,7 +499,6 @@ public class MissionBo extends AbstractMissionBo {
 	 * throw an exception
 	 *
 	 * @param userId
-	 * @param type
 	 * @throws SgtLevelUpMissionAlreadyRunningException
 	 * @author Kevin Guanche Darias
 	 */
