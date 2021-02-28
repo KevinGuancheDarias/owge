@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.9.20 (latest)
-=================
+v0.9.20 (2021-02-28 21:12)
+===========================
 * __Fix:__ Fix speed not working properly
 * __Fix:__ Conquest no longer fail when the planet doesn't have owner
 * __Fix:__ Not able to delete an alliance when there are join requests pending
