@@ -1,3 +1,4 @@
+import { AttackRule } from './attack-rule.type';
 import { SpeedImpactGroup } from './speed-impact-group.type';
 import { TypeWithMissionLimitation } from './type-with-mission-limitation.type';
 
@@ -19,4 +20,12 @@ export interface UnitType extends TypeWithMissionLimitation {
     userBuilt: number;
     speedImpactGroup: SpeedImpactGroup;
     hasToInheritImprovements: boolean;
+    attackRule: AttackRule;
+
+    /**
+     * If the unit type is used by any unit
+     *
+     * @since 0.9.20
+     */
+    used: boolean;
 }

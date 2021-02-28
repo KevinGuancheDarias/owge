@@ -2,7 +2,10 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper, UnitType } from '@owge/core';
+import {
+  ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper,
+  UnitType, AttackRule, LoggerHelper, AttackRuleEntry
+} from '@owge/core';
 import {
   UniverseGameService, Planet, UnitTypeStore, UniverseCacheManagerService,
   WsEventCacheService
@@ -107,6 +110,41 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     });
   }
 
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.20
+   */
+  public canAttack(attackRule: AttackRule, target: UnitType): boolean {
+    if (!attackRule || !attackRule.entries || !attackRule.entries.length) {
+      return true;
+    } else {
+      const appliedRule: AttackRuleEntry = attackRule.entries
+        .find(entry => entry.target === 'UNIT_TYPE' && this._findUnitTypeMatchingRule(entry, target));
+
+      return appliedRule ? appliedRule.canAttack : true;
+    }
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.20
+   * @param unitType
+   * @returns
+   */
+  public findAppliedAttackRule(unitType: UnitType): AttackRule {
+    if (unitType.attackRule) {
+      return unitType.attackRule;
+    } else if (unitType.parent) {
+      return this.findAppliedAttackRule(unitType.parent);
+    } else {
+      return null;
+    }
+  }
+
   protected async _onUnitTypeChange(content: UnitType[]): Promise<void> {
     content.map(current => {
       if (!current.userBuilt) {
@@ -129,5 +167,15 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
 
   private _findShareMaxCountRoot(unitType: UnitType): UnitType {
     return unitType.shareMaxCount ? unitType.shareMaxCount : unitType;
+  }
+
+  private _findUnitTypeMatchingRule(entry: AttackRuleEntry, unitType: UnitType): UnitType {
+    if (entry.referenceId === unitType.id) {
+      return unitType;
+    } else if (unitType.parent) {
+      return this._findUnitTypeMatchingRule(entry, unitType.parent);
+    } else {
+      return null;
+    }
   }
 }

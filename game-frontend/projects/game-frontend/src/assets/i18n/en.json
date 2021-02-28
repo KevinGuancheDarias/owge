@@ -10,6 +10,9 @@
     "I18N_ALLIANCE_NOT_DEFEATED": "Units of the owner of the planet were killed, but units from members of his alliance has survived",
     "I18N_APP_UPDATE_DETECTED": "The game has been updated, will reload soon, or reload by yourself",
     "I18N_ERR_ALLIANCE_IS_FULL": "The alliance is full, check again later. the limits are defined by max, and by a percentage of current total players of the universe",
+    "GLOBAL": {
+        "BTN_CLOSE": "Close"
+    },
     "APP": {
         "CONNECTED": "Connected",
         "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",
@@ -116,6 +119,12 @@
                     "NO_RESOURCES": "No resources",
                     "CANCEL_TITLE": "Confirm cancel unit build",
                     "CANCEL_TEXT": "Are you sure you want to cancel the current unit build?"
+                },
+                "EXTRA_INFO": {
+                    "MODAL": {
+                        "TITLE": "Full unit information for <b>{{name}}</b>",
+                        "ATTACKABLE_TYPES": "Attackable types"
+                    }
                 }
             },
             "IN_PLANET": {

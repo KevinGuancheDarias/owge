@@ -1,15 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -28,33 +20,11 @@ import org.springframework.util.CollectionUtils;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.AttackRule;
-import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
-import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
-import com.kevinguanchedarias.owgejava.entity.Galaxy;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
-import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
-import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
-import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
+import com.kevinguanchedarias.owgejava.enumerations.*;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.exception.NotFoundException;
-import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
-import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
-import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
+import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
@@ -437,7 +407,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * If the user has an alliance, removes all those users that are not in the user
 		 * alliance
 		 *
-		 * @param current
 		 * @return
 		 * @since 0.7.0
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -910,7 +879,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has to
 	 * remove the firstDeploymentMission
 	 *
-	 * @param origin
 	 * @param unit
 	 * @return
 	 * @since 0.7.4
@@ -1255,7 +1223,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * some cases, cannot)
 	 *
 	 * @param currentObtainedUnit
-	 * @param missionType
 	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -1309,7 +1276,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Checks if the input Unit <i>id</i> exists, and returns the associated
 	 * ObtainedUnit
 	 *
-	 * @param id
 	 * @param isDeployedMission If true will search for a deployed obtained unit,
 	 *                          else for an obtained unit with a <i>null<i> mission
 	 * @return the expected obtained id
@@ -1386,12 +1352,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Emits a local mission change to the target user
 	 *
 	 * @param mission
-	 * @param transactionAffected When specified, will search in the result of find
-	 *                            user missions one with the same id, and replace it
-	 *                            with that <br>
-	 *                            This is require because, entity relations may not
-	 *                            has been populated, as transaction is not done
-	 * @param user
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private void emitLocalMissionChangeAfterCommit(Mission mission) {
@@ -1509,7 +1469,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 *
-	 * @param missionId
 	 * @param user
 	 * @param targetPlanet
 	 * @return True if should continue the mission

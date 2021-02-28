@@ -2,6 +2,7 @@
 
 v0.9.20 (latest)
 =================
+* __Improvement:__ [Display unit types that a specific unit can attack to #381](https://github.com/KevinGuancheDarias/owge/issues/381)  
 * __Fix:__ [Reports are not added automatically under unknown situations #376](https://github.com/KevinGuancheDarias/owge/issues/376)  
 
 v0.9.19 (2021-02-15)

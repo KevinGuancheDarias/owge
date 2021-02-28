@@ -31,6 +31,8 @@ export * from './lib/services/screen-dimensions.service';
 export * from './lib/services/session.service';
 export * from './lib/services/toastr.service';
 export * from './lib/store/session.store';
+export * from './lib/types/attack-rule.type';
+export * from './lib/types/attack-rule-entry.type';
 export * from './lib/types/backend-error.type';
 export * from './lib/types/common-entity.type';
 export * from './lib/types/date-representation.type';

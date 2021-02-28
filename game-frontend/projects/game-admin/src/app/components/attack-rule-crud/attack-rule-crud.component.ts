@@ -1,10 +1,8 @@
 import { Component, OnInit, Input, ViewChild, Output, EventEmitter, OnChanges } from '@angular/core';
-import { AttackRule } from '../../types/attack-rule.type';
-import { ModalComponent, ProgrammingError, LoggerHelper, UnitType } from '@owge/core';
+import { ModalComponent, ProgrammingError, LoggerHelper, UnitType, AttackRuleEntry, AttackRule } from '@owge/core';
 import { WidgetConfirmationDialogComponent, WidgetFilter } from '@owge/widgets';
 import { AdminAttackRuleService } from '../../services/admin-attack-rule.service';
 import { isEqual } from 'lodash-es';
-import { AttackRuleEntry } from '../../types/attack-rule-entry.type';
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { Unit } from '@owge/universe';

@@ -2,24 +2,15 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
 /**
+ * The type Unit type.
  *
  * @author Kevin Guanche Darias
- *
  */
 @Entity
 @Table(name = "unit_types")
@@ -66,6 +57,9 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 
 	@Column(name = "has_to_inherit_improvements")
 	private Boolean hasToInheritImprovements = false;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "type")
+	private List<Unit> units;
 
 	public UnitType() {
 		super();
@@ -206,6 +200,28 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	 */
 	public void setAttackRule(AttackRule attackRule) {
 		this.attackRule = attackRule;
+	}
+
+	/**
+	 * Gets units.
+	 *
+	 * @return the units
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<Unit> getUnits() {
+		return units;
+	}
+
+	/**
+	 * Sets units.
+	 *
+	 * @param units the units
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setUnits(List<Unit> units) {
+		this.units = units;
 	}
 
 	/**
