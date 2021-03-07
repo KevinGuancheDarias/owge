@@ -49,6 +49,13 @@
             "DEPLOY": "Desplegar",
             "DEPLOYED": "Desplegado"
         },
+        "SPONSORS": {
+            "MENU": {
+                "BTN_COMPANIES": "Empresas",
+                "BTN_INDIVIDUALS": "Individuos"
+            },
+            "DONATION_TEXT": "Si quieres aparecer aquí, sólo necesitas {{donatedForIndividuals}}€/mes, si quieres tener un link a tu página en tu nombre {{donatedForIndividualsWithSite}}€/mes. Si eres una empresa y quieres que tu logo y tu sitio aparezcan serían {{donatedForCompanies}}€/mes. Sólo Paypal subscription, Patreon, o Github sponsor, donaciones puntuales no cuentan, aunque siempre se agraecen, gracias a todos"
+        },
         "MISSION_LIST": {
             "HEADER_MISSION_TYPE_FROM_USER": "{{missionType}} de {{userName}}",
             "ORIGIN": "Origen",
@@ -191,6 +198,7 @@
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Configuración",
         "MENU_SYSTEM_MESSAGES": "Mensajes del sistema",
+        "MENU_SPONSORS": "Patrocinadores",
         "MENU_LOGOUT": "Salir",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Misiones"

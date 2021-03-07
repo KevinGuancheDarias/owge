@@ -48,6 +48,7 @@ export * from './lib/types/requirement-information.type';
 export * from './lib/types/requirement.type';
 export * from './lib/types/router-data.type';
 export * from './lib/types/speed-impact-group.type';
+export * from './lib/types/sponsor.type';
 export * from './lib/types/tutorial-event.type';
 export * from './lib/types/type-with-mission-limitation.type';
 export * from './lib/types/unit-type.type';

@@ -52,7 +52,7 @@ export interface MenuRoute {
      */
     isNgIfOk?: boolean;
 
-    shouldDisplay?: Observable<boolean>;
+    shouldDisplay?: boolean;
 
     /**
      * If Internet connection is required to use this section

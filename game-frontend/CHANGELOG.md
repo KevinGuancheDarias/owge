@@ -1,5 +1,11 @@
 # OWGE changelog
 
+v0.9.21 (latest)
+==================
+* __Fix:__ Random bug in all missions (due to socket message save)
+* __Fix:__ Alliance icon doesn't appear sometimes in the sidebar
+* __Improvement:__ Add the sponsors interface
+
 v0.9.20 (2021-02-28 21:12)
 ===========================
 * __Fix:__ Fix speed not working properly

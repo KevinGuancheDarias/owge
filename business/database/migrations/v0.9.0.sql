@@ -141,3 +141,7 @@ ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_user_id` FOREIGN
 ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_message_id` FOREIGN KEY (`message_id`) REFERENCES `system_messages`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 ALTER TABLE `missions` ADD `wait_for_mission` BIGINT UNSIGNED AFTER `related_mission`, ADD INDEX (`wait_for_mission`);
 
+
+-- v0.9.21
+CREATE TABLE `u9_snapshot`.`sponsors` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(200) NOT NULL , `description` TEXT NULL , `image_id` BIGINT UNSIGNED NULL , `url` VARCHAR(200) NULL , `type` ENUM('COMPANY','INDIVIDUAL') NOT NULL , `expiration_date` DATE NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+ALTER TABLE `sponsors` ADD CONSTRAINT `fk_sponsors_image_id` FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

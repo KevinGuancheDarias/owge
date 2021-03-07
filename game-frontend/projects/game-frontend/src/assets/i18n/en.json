@@ -49,6 +49,13 @@
             "DEPLOY": "Deploy",
             "DEPLOYED": "Deployed"
         },
+        "SPONSORS": {
+            "MENU": {
+                "BTN_COMPANIES": "Companies",
+                "BTN_INDIVIDUALS": "Individuals"
+            },
+            "DONATION_TEXT": "If you want to appear here, you just need {{donatedForIndividuals}}€/monthly, if you want to have a link to your page in your name {{donatedForIndividualsWithSite}}€/monthly. If you are a company and you want your logo and webpage to appear it's {{donatedForCompanies}}€/monthly. Paypal subscription, or Patreon, or Github Sponsors only, one-time donations won't appear here, while it's always loved, thanks to all "
+        },
         "MISSION_LIST": {
             "HEADER_MISSION_TYPE_FROM_USER": "{{missionType}} from player {{userName}}",
             "ORIGIN": "Origin",
@@ -191,6 +198,7 @@
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Settings",
         "MENU_SYSTEM_MESSAGES": "System messages",
+        "MENU_SPONSORS": "Sponsors",
         "MENU_LOGOUT": "Logout",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Missions"
