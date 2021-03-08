@@ -19,7 +19,7 @@ CREATE TABLE `factions_unit_types` (
   KEY `fk_fut_unit_type_id` (`unit_type_id`),
   CONSTRAINT `fk_fut_faction_id` FOREIGN KEY (`faction_id`) REFERENCES `factions` (`id`),
   CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `interceptable_speed_group` ( 
   `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT ,
@@ -29,5 +29,5 @@ CREATE TABLE `interceptable_speed_group` (
   INDEX (`unit_id`), 
   INDEX (`speed_impact_group_id`),
   CONSTRAINT `fk_isg_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`), 
-  CONSTRAINT `fk_isg_speed_impact_group_id` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups`(`id`);
+  CONSTRAINT `fk_isg_speed_impact_group_id` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups`(`id`)
 ) ENGINE = InnoDB;
