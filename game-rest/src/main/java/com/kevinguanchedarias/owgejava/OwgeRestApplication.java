@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.quartz.SchedulerFactoryBeanCustomizer;
@@ -11,12 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class,
 		UserDetailsServiceAutoConfiguration.class })
@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @EnableCaching
 @EnableAsync
 @EnableScheduling
+@EnableRetry
 @ImportResource("META-INF/quartz-context.xml")
 public class OwgeRestApplication {
 

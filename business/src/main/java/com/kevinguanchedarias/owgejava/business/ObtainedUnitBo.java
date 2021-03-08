@@ -1,21 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -33,6 +17,21 @@ import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, ImprovementSource {
@@ -61,6 +60,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
 	@Autowired
 	private transient AsyncRunnerBo asyncRunnerBo;
+
+	@Autowired
+	private EntityManager entityManager;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -182,8 +184,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 *
 	 * @param userId
-	 * @param id
-	 * @param id2
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
@@ -283,7 +283,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Emits changed obtained units
 	 *
-	 * @param user
+	 * @param userId
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -336,13 +336,12 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	public ObtainedUnit trySave(ObtainedUnit obtainedUnit, long sumValue) {
 		long expectedSum = obtainedUnit.getCount() + sumValue;
 		obtainedUnit.setCount(expectedSum);
-		save(obtainedUnit);
-		Optional<ObtainedUnit> savedValueOptional = refreshOptional(obtainedUnit);
-		if (savedValueOptional.isPresent()) {
-			ObtainedUnit savedValue = savedValueOptional.get();
+		ObtainedUnit savedValue = saveAndFlush(obtainedUnit);
+		try {
+			entityManager.refresh(obtainedUnit);
 			if (!savedValue.getCount().equals(expectedSum)) {
 				try {
-					Thread.sleep(RandomUtils.nextLong(0, 50));
+					Thread.sleep(RandomUtils.nextLong(0, 300));
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					throw new CommonException("trySave failed for surprising reasons", e);
@@ -351,7 +350,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 			} else {
 				return savedValue;
 			}
-		} else {
+		} catch (EntityNotFoundException e) {
 			throw new OwgeElementSideDeletedException("Element " + obtainedUnit.getClass().getName() + " with id "
 					+ obtainedUnit.getId() + " has been side-deleted");
 		}
@@ -436,7 +435,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * Finds the involved units in an attack
 	 *
 	 * @param attackedPlanet
-	 * @param attackMission
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

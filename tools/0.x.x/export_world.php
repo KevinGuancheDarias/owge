@@ -33,8 +33,8 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 echo '-- Kevin Guanche Darias :: OWGE world exporter' . PHP_EOL;
 
-if($argc < 4) {
-    echo 'Missing parameters, usage: ' . basename(__FILE__) . ' dbuser dbpassword sourcedatabase' . PHP_EOL;
+if($argc < 5) {
+    echo 'Missing parameters, usage: ' . basename(__FILE__) . ' dbhost dbuser dbpassword sourcedatabase' . PHP_EOL;
     echo 'Env: DUMP_TARGET_SQL to display the queries to the target database';
     exit(1);
 }
@@ -50,8 +50,8 @@ function applyFilters(string $table, array $row, string $column) {
     return $retVal;
 }
 
-list($_, $user, $password, $sourceDb) = $argv;
-$connetion = new mysqli('127.0.0.1', $user, $password, $sourceDb);
+list($_, $host, $user, $password, $sourceDb) = $argv;
+$connetion = new mysqli($host, $user, $password, $sourceDb);
 $connetion->set_charset('utf8');
 
 $output = <<<SQL_MARKER

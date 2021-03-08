@@ -137,4 +137,11 @@ UPDATE missions SET starting_date = '1970-01-01 00:00:00';
 -- v0.9.16
 CREATE TABLE `system_messages` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `content` TEXT NOT NULL , `creation_date` DATETIME NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
 CREATE TABLE `user_read_system_messages` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `user_id` INT(11) UNSIGNED NOT NULL , `message_id` SMALLINT(5) UNSIGNED NOT NULL , PRIMARY KEY (`id`), INDEX (`user_id`), INDEX (`message_id`)) ENGINE = InnoDB;
-ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT; ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_message_id` FOREIGN KEY (`message_id`) REFERENCES `system_messages`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `user_read_system_messages` ADD CONSTRAINT `fk_ursm_message_id` FOREIGN KEY (`message_id`) REFERENCES `system_messages`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+ALTER TABLE `missions` ADD `wait_for_mission` BIGINT UNSIGNED AFTER `related_mission`, ADD INDEX (`wait_for_mission`);
+
+
+-- v0.9.21
+CREATE TABLE `sponsors` ( `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , `name` VARCHAR(200) NOT NULL , `description` TEXT NULL , `image_id` BIGINT UNSIGNED NULL , `url` VARCHAR(200) NULL , `type` ENUM('COMPANY','INDIVIDUAL') NOT NULL , `expiration_date` DATE NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;
+ALTER TABLE `sponsors` ADD CONSTRAINT `fk_sponsors_image_id` FOREIGN KEY (`image_id`) REFERENCES `images_store`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

@@ -7,7 +7,23 @@ v0.10.0 (latest)
 * [class=Admin] __Feature:__ [As an admin I want to add invisible attribute to some units #23](https://github.com/KevinGuancheDarias/owge/issues/23)  
 * [class=Admin] __Feature:__ [As an admin I want to define units that can bypass unit shields #269](https://github.com/KevinGuancheDarias/owge/issues/269)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to use the requirement HAVE_UNIT #271](https://github.com/KevinGuancheDarias/owge/issues/271)  
-* [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)
+* [class=Admin] __Feature:__ [As an admin I want to be able to define negative bonuses (penalties) #277](https://github.com/KevinGuancheDarias/owge/issues/277)  
+
+v0.9.21 (2021-03-07 20:36)
+===========================
+* __Fix:__ Random bug in all missions (due to socket message save)
+* __Fix:__ Alliance icon doesn't appear sometimes in the sidebar
+* __Improvement:__ Add the sponsors interface
+
+v0.9.20 (2021-02-28 21:12)
+===========================
+* __Fix:__ Fix speed not working properly
+* __Fix:__ Conquest no longer fail when the planet doesn't have owner
+* __Fix:__ Not able to delete an alliance when there are join requests pending
+* __Improvement:__ Improve stability of concurrent events
+* __Improvement:__ [Display unit types that a specific unit can attack to #381](https://github.com/KevinGuancheDarias/owge/issues/381)  
+* __Fix:__ [Reports are not added automatically under unknown situations #376](https://github.com/KevinGuancheDarias/owge/issues/376)  
+
 v0.9.19 (2021-02-15)
 =====================
 * __Improvement:__ [Allow to sort ranking by nickname #360](https://github.com/KevinGuancheDarias/owge/issues/360)  

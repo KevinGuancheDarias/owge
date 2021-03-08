@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 
-import { UnitType, MissionSupport, SpeedImpactGroup } from '@owge/core';
+import { UnitType, MissionSupport, SpeedImpactGroup, AttackRule } from '@owge/core';
 
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
-import { AttackRule } from '../../types/attack-rule.type';
 import { take } from 'rxjs/operators';
 
 /**

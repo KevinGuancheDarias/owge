@@ -89,6 +89,16 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjweaver</artifactId>
 		</dependency>
@@ -179,6 +189,11 @@
 			<version>v1.1.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
 
 	</dependencies>
 	<build>
@@ -221,5 +236,4 @@
 		</plugins>
 	</build>
 
-	<reporting></reporting>
 </project>
