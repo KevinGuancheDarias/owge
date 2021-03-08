@@ -1,9 +1,15 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -14,6 +20,7 @@ import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.business.UnitBo;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
+import com.kevinguanchedarias.owgejava.dto.InterceptableSpeedGroupDto;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.Unit;
@@ -92,6 +99,35 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 		}
 		CrudWithFullRestService.super.beforeSave(parsedDto, entity);
 		return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
+	}
+
+	/**
+	 *
+	 * @param unitId
+	 * @return
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@GetMapping("{unitId}/interceptableSpeedGroups")
+	public List<InterceptableSpeedGroupDto> findInterceptables(@PathVariable Integer unitId) {
+		return unitBo.findByIdOrDie(unitId).getInterceptableSpeedGroups().stream().map(current -> {
+			InterceptableSpeedGroupDto dto = new InterceptableSpeedGroupDto();
+			dto.dtoFromEntity(current);
+			return dto;
+		}).collect(Collectors.toList());
+	}
+
+	/**
+	 *
+	 * @param unitId
+	 * @param interceptables
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@PutMapping("{unitId}/interceptableSpeedGroups")
+	public void saveInterceptables(@PathVariable Integer unitId,
+			@RequestBody List<InterceptableSpeedGroupDto> interceptables) {
+		unitBo.saveSpeedImpactGroupInterceptors(unitId, interceptables);
 	}
 
 	/*

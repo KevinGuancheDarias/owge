@@ -1,7 +1,12 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.hibernate.Hibernate;
+import org.springframework.util.CollectionUtils;
+
+import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 
@@ -28,10 +33,12 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private Boolean bypassShield = false;
 	private Boolean isInvisible = false;
 	private List<RequirementInformationDto> requirements;
+	private List<InterceptableSpeedGroupDto> interceptableSpeedGroups;
 
 	@Override
 	public void dtoFromEntity(Unit entity) {
 		super.dtoFromEntity(entity);
+		interceptableSpeedGroups = null;
 		UnitType typeEntity = entity.getType();
 		typeId = typeEntity.getId();
 		typeName = typeEntity.getName();
@@ -42,6 +49,15 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 		if (entity.getAttackRule() != null) {
 			attackRule = new AttackRuleDto();
 			attackRule.dtoFromEntity(entity.getAttackRule());
+		}
+		List<InterceptableSpeedGroup> interceptableSpeedGroupsEntity = entity.getInterceptableSpeedGroups();
+		if (Hibernate.isInitialized(interceptableSpeedGroupsEntity)
+				&& !CollectionUtils.isEmpty(interceptableSpeedGroupsEntity)) {
+			interceptableSpeedGroups = interceptableSpeedGroupsEntity.stream().map(current -> {
+				InterceptableSpeedGroupDto dto = new InterceptableSpeedGroupDto();
+				dto.dtoFromEntity(current);
+				return dto;
+			}).collect(Collectors.toList());
 		}
 		DtoWithImprovements.super.dtoFromEntity(entity);
 	}
@@ -302,6 +318,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	 */
 	public void setRequirements(List<RequirementInformationDto> requirements) {
 		this.requirements = requirements;
+	}
+
+	/**
+	 * @return the interceptableSpeedGroups
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public List<InterceptableSpeedGroupDto> getInterceptableSpeedGroups() {
+		return interceptableSpeedGroups;
+	}
+
+	/**
+	 * @param interceptableSpeedGroups the interceptableSpeedGroups to set
+	 * @author Kevin Guanche Darias
+	 * @since 0.10.0
+	 */
+	public void setInterceptableSpeedGroups(List<InterceptableSpeedGroupDto> interceptableSpeedGroups) {
+		this.interceptableSpeedGroups = interceptableSpeedGroups;
 	}
 
 }

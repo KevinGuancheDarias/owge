@@ -1,4 +1,23 @@
-<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="selectedEl = $event" [customElementsSource]="elsObservable">
+<owge-core-modal *ngIf="selectedEl">
+    <div class="header">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.TITLE' | translate: {unitName: selectedEl.name} }}</div>
+    <div class="body">
+        <table>
+            <tr>
+                <th>{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.TABLE.HEADER.INTERCEPTED' | translate }}</th>
+                <th>{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.TABLE.HEADER.SPEED_GROUP' | translate }}</th>
+            </tr>
+            <tr *ngFor="let speedImpactGroup of speedImpactGroups">
+                <td><input type="checkbox" [(ngModel)]="speedImpactGroup.isIntercepted"></td>
+                <td>{{ speedImpactGroup.name }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <button (click)="clickSaveIntercepted()" class="btn">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_SAVE' | translate }}</button>
+        <button (click)="interceptableGroupsModal.hide()" class="btn">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>
+<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)" [customElementsSource]="elsObservable">
     <ng-template #beforeList>
         <app-requirements-filter [service]="adminUnitService" (filteredSource)="elsObservable = $event">
 
@@ -64,6 +83,10 @@
                     <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate}} </option>
                     <option *ngFor="let speedImpactGroup of speedImpactGroups" [ngValue]="speedImpactGroup">{{ speedImpactGroup.name}}</option>
                 </select>
+            </div>
+
+            <div class="form-group col-md-6">
+                <button (click)="interceptableGroupsModal.show()" class="btn">{{ 'CRUD.UNIT.BTN_OPEN_INTERCEPTABLES_MODAL' | translate }}</button>
             </div>
 
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>

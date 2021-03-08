@@ -5,6 +5,8 @@ import {
 } from '@owge/universe';
 import { validContext } from '@owge/core';
 import { Mixin } from 'ts-mixer';
+import { InterceptableSpeedGroup } from 'projects/owge-universe/src/lib/types/interceptable-speed-group.type';
+import { Observable } from 'rxjs';
 
 export interface AdminUnitService
     extends AbstractCrudService<Unit, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -24,6 +26,31 @@ export class AdminUnitService extends AbstractCrudService<Unit, number> {
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.10.0
+     */
+    public findInterceptedGroups(unitId: number): Observable<InterceptableSpeedGroup[]> {
+        return this._universeGameService.requestWithAutorizationToContext('admin', 'get', `unit/${unitId}/interceptableSpeedGroups`);
+    }
+
+    /**
+     *
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.10.0
+     */
+    public saveInterceptableGroups(unitId: number, interceptables: Partial<InterceptableSpeedGroup>[]): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'put',
+            `unit/${unitId}/interceptableSpeedGroups`,
+            interceptables
+        );
     }
 
     protected _getEntity(): string {
