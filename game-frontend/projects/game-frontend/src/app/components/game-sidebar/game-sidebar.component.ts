@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PlanetService } from '@owge/galaxy';
@@ -17,7 +17,6 @@ import { TwitchState } from '../../types/twitch-state.type';
 import { TwitchService } from '../../services/twitch.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { ConfigurationService } from '../../modules/configuration/services/configuration.service';
-import { Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 /**
@@ -52,7 +51,7 @@ import { map } from 'rxjs/operators';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit {
+export class GameSidebarComponent extends AbstractSidebarComponent implements OnInit, AfterViewInit {
 
   private static readonly _LS_DISPLAY_TWITCH_KEY = 'do_display_twitch';
   private static readonly _LS_ASK_IS_OTHER_PLAYING_UNMUTED = 'ask_is_other_playing_twitch';
@@ -96,6 +95,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     },
     this.twitchRoute,
     this._createTranslatableMenuRoute('APP.MENU_SYSTEM_MESSAGES', ROUTES.SYSTEM_MESSAGES, 'fa fa-robot'),
+    this._createTranslatableMenuRoute('APP.MENU_SPONSORS', ROUTES.SPONSORS, 'fas fa-heart', true),
     this._createTranslatableMenuRoute('APP.MENU_LOGOUT', () => this._universeGameService.logout(), 'fa fa-times')
   ];
   public missionsCount: number;
@@ -115,24 +115,15 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _missionStore: MissionStore,
     private _reportService: ReportService,
     private _systemMessageService: SystemMessageService,
+    private _configurationService: ConfigurationService,
     twitchService: TwitchService,
     translateService: TranslateService,
-    configurationService: ConfigurationService,
   ) {
     super(translateService);
     twitchService.state().subscribe(value => {
       this.twitchRoute.cssClasses['is-twitch-live'] = value;
       this.isTwitchLive = value;
     });
-    const alliancesRoute: MenuRoute = this.menuRoutes[6];
-    const shouldDisplayAllianceSubject: Subject<boolean> = new Subject();
-    alliancesRoute.shouldDisplay = shouldDisplayAllianceSubject.asObservable();
-    configurationService.observeParamOrDefault('DISABLED_FEATURE_ALLIANCE', 'FALSE')
-      .pipe(
-        map(configuration => configuration.value === 'TRUE')
-      ).subscribe(isDisabled =>
-        shouldDisplayAllianceSubject.next(!isDisabled)
-      );
   }
 
   public async ngOnInit() {
@@ -166,6 +157,10 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       hasToDisplay: this.hasToDisplayTwitch,
       isPrimary: this.isPrimaryTwitch
     });
+  }
+
+  public ngAfterViewInit(): void {
+    this._handleShouldDisplay();
   }
 
   public displayPlanetSelectionModal(): void {
@@ -230,5 +225,15 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       GameSidebarComponent._LOG.debug('Twitch is playing as primary in this tab');
     }
     return retVal;
+  }
+
+  private _handleShouldDisplay(): void {
+    const alliancesRoute: MenuRoute = this.menuRoutes[6];
+    this._configurationService.observeParamOrDefault('DISABLED_FEATURE_ALLIANCE', 'FALSE')
+      .pipe(
+        map(configuration => configuration.value === 'TRUE')
+      ).subscribe(isDisabled => {
+        alliancesRoute.shouldDisplay = !isDisabled;
+      });
   }
 }

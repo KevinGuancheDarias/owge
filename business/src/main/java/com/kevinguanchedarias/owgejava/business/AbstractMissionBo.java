@@ -1,18 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.Date;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
@@ -30,6 +17,20 @@ import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Contains methods and properties shared between all MissionBo types
@@ -345,12 +346,12 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	}
 
 	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
-			List<UserStorage> users) {
+										   List<UserStorage> users) {
 		users.forEach(currentUser -> handleMissionReportSave(mission, builder, isEnemy, currentUser));
 	}
 
 	protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
-			UserStorage user) {
+										   UserStorage user) {
 		MissionReport missionReport = new MissionReport("{}", mission);
 		missionReport.setUser(user);
 		missionReport = missionReportBo.save(missionReport);
@@ -424,6 +425,24 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	 */
 	protected void abortMissionJob(Mission mission) {
 		missionSchedulerService.abortMissionJob(getGroupName(), mission);
+	}
+
+
+	/**
+	 * Wait for mission affecting planet.
+	 *
+	 * @param planet the planet
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	@SneakyThrows(InterruptedException.class)
+	protected void waitForMissionAffectingPlanet(Planet planet) {
+		Date offsetStart = new Date(new Date().getTime() - 2000);
+		Date offset = new Date(offsetStart.getTime() + 2000);
+		if (missionRepository.existsByTerminationDateBetweenAndTargetPlanetAndResolvedFalse(offsetStart, offset, planet)) {
+			Thread.sleep(100 * RandomUtils.nextLong(10, 15));
+			waitForMissionAffectingPlanet(planet);
+		}
 	}
 
 	private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {

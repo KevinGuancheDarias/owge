@@ -1,3 +1,20 @@
+<owge-core-modal [hasCloseButton]="true">
+  <div class="header" [innerHTML]="'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.TITLE' | translate: {name: unit.name }">
+  </div>
+  <div class="body">
+    <h3 class="owge-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.ATTACKABLE_TYPES' | translate }}</h3>
+    <div class="owge-card-list">
+      <div class="card owge attackable-card" [class.is-attackable]="unitType.isAttackable" *ngFor="let unitType of attackableUnitTypes">
+        <div class="card-block ">
+          {{ unitType.name }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <button class="btn">{{ 'GLOBAL.BTN_CLOSE' | translate}}</button>
+  </div>
+</owge-core-modal>
 <owge-widgets-confirmation-dialog 
   (confirmResult)="cancelBuild($event)" 
   [i18nTitle]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TITLE'"
@@ -75,6 +92,9 @@
         <div *ngIf="withInPlanetMode" class="in-planet-count-mobile">{{ inPlanetCount }}</div>
         <div *ngIf="withBuildMode && building && building.unit.id === unit.id"> {{ building.count }}</div>
       </ng-template>
+      <span class="unit-info-icon" (click)="clickOpenUnitInfo()">
+        <i class="fas fa-info-circle"></i>
+      </span>
     </ng-template>
   </owge-widgets-display-list-item> 
 </ng-container>

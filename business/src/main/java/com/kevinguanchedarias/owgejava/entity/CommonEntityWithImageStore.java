@@ -1,14 +1,10 @@
-/**
- *
- */
 package com.kevinguanchedarias.owgejava.entity;
-
-import java.io.Serializable;
 
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import java.io.Serializable;
 
 /**
  *
@@ -19,7 +15,7 @@ import javax.persistence.MappedSuperclass;
 public class CommonEntityWithImageStore<K extends Serializable> extends CommonEntity<K> {
 	private static final long serialVersionUID = -5307305337524410867L;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id")
 	private ImageStore image;
 

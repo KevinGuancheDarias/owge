@@ -22,7 +22,8 @@ export const ROUTES = {
     RANKING: '/ranking',
     VERSION: '/version',
     SETTINGS: '/settings',
-    SYSTEM_MESSAGES: '/system-messages'
+    SYSTEM_MESSAGES: '/system-messages',
+    SPONSORS: '/sponsors'
 };
 
 export class Config {

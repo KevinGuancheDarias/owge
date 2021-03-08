@@ -1,17 +1,21 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * The interface Mission repository.
+ * @since 0.9.20
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ */
 public interface MissionRepository extends JpaRepository<Mission, Long>, Serializable {
 	public Mission findOneByUserIdAndTypeCode(Integer userId, String type);
 
@@ -49,7 +53,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<Mission> findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(Integer userId, String name,
-			Long targetPlanet);
+																				  Long targetPlanet);
 
 	/**
 	 * Counts the number of missions that a user has running
@@ -69,4 +73,37 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<Mission> findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(Date date);
+
+
+	/**
+	 * Exists by termination date between and target planet.
+	 *
+	 * @param now the now
+	 * @param endDate the endDate
+	 * @param planet the planet
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	boolean existsByTerminationDateBetweenAndTargetPlanetAndResolvedFalse(Date now, Date endDate, Planet planet);
+
+
+	/**
+	 * Delete by resolved true and termination date less than.
+	 *
+	 * @param limitDate the limit date
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	void deleteByResolvedTrueAndTerminationDateLessThan(Date limitDate);
+
+	/**
+	 * Find by target planet and resolved false and termination date between.
+	 *
+	 * @param targetPlanet the target planet 
+	 * @param start the start 
+	 * @param end the end 
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	void findByTargetPlanetAndResolvedFalseAndTerminationDateBetween(Planet targetPlanet, Date start, Date end);
 }

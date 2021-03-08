@@ -1,17 +1,16 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
+import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
+import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
+import com.kevinguanchedarias.owgejava.repository.WebsocketEventsInformationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
-import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
-import com.kevinguanchedarias.owgejava.repository.WebsocketEventsInformationRepository;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -58,7 +57,7 @@ public class WebsocketEventsInformationBo
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public void save(WebsocketEventsInformation websocketEventsInformation) {
 		Optional<WebsocketEventsInformation> existing = repository
 				.findById(websocketEventsInformation.getEventNameUserId());

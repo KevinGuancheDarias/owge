@@ -1,37 +1,10 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.text.WordUtils;
-import org.apache.log4j.Logger;
-import org.joda.time.Instant;
-import org.joda.time.Interval;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
-import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -50,6 +23,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
+import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -59,6 +33,33 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.text.WordUtils;
+import org.apache.log4j.Logger;
+import org.joda.time.Instant;
+import org.joda.time.Interval;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
@@ -419,10 +420,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
 				userUnits.stream().filter(currentUnit -> !currentUnit.finalCount.equals(0L)
 						&& !currentUnit.initialCount.equals(currentUnit.finalCount)).forEach(currentUnit -> {
-							long killed = currentUnit.initialCount - currentUnit.finalCount;
-							obtainedUnitBo.trySave(currentUnit.obtainedUnit, -killed);
-							alteredUsers.add(attackUserInformation.getUser().getId());
-						});
+					long killed = currentUnit.initialCount - currentUnit.finalCount;
+					try {
+						obtainedUnitBo.trySave(currentUnit.obtainedUnit, -killed);
+						alteredUsers.add(attackUserInformation.getUser().getId());
+					} catch (OwgeElementSideDeletedException e) {
+						LOG.warn("Element side deleted", e);
+					}
+				});
 			});
 			usersWithChangedCounts.forEach(alteredUsers::add);
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
@@ -437,7 +442,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 		 * If the user has an alliance, removes all those users that are not in the user
 		 * alliance
 		 *
-		 * @param current
 		 * @return
 		 * @since 0.7.0
 		 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -795,16 +799,23 @@ public class UnitMissionBo extends AbstractMissionBo {
 		boolean areUnitsHavingToReturn = false;
 		AttackInformation attackInformation = processAttack(missionId, false);
 		UserStorage oldOwner = targetPlanet.getOwner();
-		boolean isOldOwnerDefeated = attackInformation.getUsers().containsKey(oldOwner.getId())
-				? attackInformation.getUsers().get(oldOwner.getId()).units.stream()
-						.noneMatch(current -> current.finalCount > 0L)
-				: true;
-		boolean isAllianceDefeated = isOldOwnerDefeated
-				&& (oldOwner.getAlliance() == null || attackInformation.getUsers().entrySet().stream()
-						.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
-								&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
-						.allMatch(currentUser -> currentUser.getValue().units.stream()
-								.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+		boolean isOldOwnerDefeated;
+		boolean isAllianceDefeated;
+		if (oldOwner == null) {
+			isOldOwnerDefeated = true;
+			isAllianceDefeated = true;
+		} else {
+			isOldOwnerDefeated = !attackInformation.getUsers().containsKey(oldOwner.getId())
+					|| attackInformation.getUsers().get(oldOwner.getId()).units.stream().noneMatch(current -> current.finalCount > 0L);
+			isAllianceDefeated = isOldOwnerDefeated
+					&& (oldOwner.getAlliance() == null || attackInformation.getUsers().entrySet().stream()
+					.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
+							&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
+					.allMatch(currentUser -> currentUser.getValue().units.stream()
+							.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+		}
+
+
 		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
 			if (!attackInformation.isMissionRemoved()) {
 				adminRegisterReturnMission(mission);
@@ -825,8 +836,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 			if (targetPlanet.getSpecialLocation() != null) {
 				requirementBo.triggerSpecialLocation(oldOwner, targetPlanet.getSpecialLocation());
 			}
-			planetBo.emitPlanetOwnedChange(oldOwner);
-			emitEnemyMissionsChange(oldOwner);
+			if (oldOwner != null) {
+				planetBo.emitPlanetOwnedChange(oldOwner);
+				emitEnemyMissionsChange(oldOwner);
+			}
 			UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
 					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
 					.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
@@ -848,8 +861,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 			Integer userId = user.getId();
 			List<ObtainedUnit> alteredUnits = new ArrayList<>();
 			findUnitsInvolved(missionId).forEach(current -> {
-				// if(canDoMission(user, targetPlanet, entityWithMissionLimitation,
-				// missionType))
 				alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()));
 			});
 			resolveMission(mission);
@@ -910,7 +921,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * <b>IMPORTANT:</b> Will save the unit, because if the mission exists, has to
 	 * remove the firstDeploymentMission
 	 *
-	 * @param origin
 	 * @param unit
 	 * @return
 	 * @since 0.7.4
@@ -1018,6 +1028,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
+	@Retryable(
+			value = CannotAcquireLockException.class,
+			backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2)
+	)
 	public void runUnitMission(Long missionId, MissionType missionType) {
 		switch (missionType) {
 		case EXPLORE:
@@ -1147,7 +1161,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		missionTypeDivisor = missionTypeDivisor == 0 ? 1 : missionTypeDivisor;
 		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
 		float moveCost = calculateMoveCost(missionType, mission.getSourcePlanet(), mission.getTargetPlanet());
-		return (missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor);
+		double retVal = missionTypeTime + ((leftMultiplier * moveCost) * (100 - lowestUnitSpeed)) / missionTypeDivisor;
+		return Math.max(missionTypeTime, retVal);
 	}
 
 	/**
@@ -1165,22 +1180,22 @@ public class UnitMissionBo extends AbstractMissionBo {
 		Long targetQuadrant = mission.getTargetPlanet().getQuadrant();
 		Long sourceSector = mission.getSourcePlanet().getSector();
 		Long targetSector = mission.getTargetPlanet().getSector();
-		Galaxy sourceGalaxy = mission.getSourcePlanet().getGalaxy();
-		Galaxy targetGalaxy = mission.getTargetPlanet().getGalaxy();
+		Integer sourceGalaxy = mission.getSourcePlanet().getGalaxy().getId();
+		Integer targetGalaxy = mission.getTargetPlanet().getGalaxy().getId();
 		Integer defaultMultiplier;
 		String configurationName;
 		if (sourceQuadrant.equals(targetQuadrant) && sourceSector.equals(targetSector)
 				&& sourceGalaxy.equals(targetGalaxy)) {
-			configurationName = prefix + missionTypeName + "_SAME_Q_PENALTY";
+			configurationName = prefix + missionTypeName + "_SAME_Q";
 			defaultMultiplier = 50;
 		} else if (!sourceGalaxy.equals(targetGalaxy)) {
-			configurationName = prefix + missionTypeName + "_DIFF_G_PENALTY";
+			configurationName = prefix + missionTypeName + "_DIFF_G";
 			defaultMultiplier = 2000;
 		} else if (!sourceSector.equals(targetSector)) {
-			configurationName = prefix + missionTypeName + "_DIFF_S_PENALTY";
+			configurationName = prefix + missionTypeName + "_DIFF_S";
 			defaultMultiplier = 200;
 		} else {
-			configurationName = prefix + missionTypeName + "_DIFF_Q_PENALTY";
+			configurationName = prefix + missionTypeName + "_DIFF_Q";
 			defaultMultiplier = 100;
 		}
 		return NumberUtils.toInt(
@@ -1255,7 +1270,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * some cases, cannot)
 	 *
 	 * @param currentObtainedUnit
-	 * @param missionType
 	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -1309,7 +1323,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Checks if the input Unit <i>id</i> exists, and returns the associated
 	 * ObtainedUnit
 	 *
-	 * @param id
 	 * @param isDeployedMission If true will search for a deployed obtained unit,
 	 *                          else for an obtained unit with a <i>null<i> mission
 	 * @return the expected obtained id
@@ -1386,12 +1399,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * Emits a local mission change to the target user
 	 *
 	 * @param mission
-	 * @param transactionAffected When specified, will search in the result of find
-	 *                            user missions one with the same id, and replace it
-	 *                            with that <br>
-	 *                            This is require because, entity relations may not
-	 *                            has been populated, as transaction is not done
-	 * @param user
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private void emitLocalMissionChangeAfterCommit(Mission mission) {
@@ -1509,7 +1516,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	/**
 	 *
-	 * @param missionId
 	 * @param user
 	 * @param targetPlanet
 	 * @return True if should continue the mission

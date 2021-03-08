@@ -1,5 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
+import com.kevinguanchedarias.owgejava.job.RealizationJob;
 import org.apache.log4j.Logger;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -15,10 +18,6 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
-import com.kevinguanchedarias.owgejava.job.RealizationJob;
 
 /**
  * <b>NOTICE:</b> Due to changes in the way Spring Boot handles Quartz jobs, the

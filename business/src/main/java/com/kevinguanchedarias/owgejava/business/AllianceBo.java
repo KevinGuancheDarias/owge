@@ -1,12 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
@@ -14,6 +7,12 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  *
@@ -222,7 +221,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	/**
 	 * Checks if the alliance is of user property
 	 *
-	 * @param alliance
+	 * @param storedAlliance
 	 * @param userId
 	 * @throws SgtBackendInvalidInputException When user is not the owner of the
 	 *                                         alliance

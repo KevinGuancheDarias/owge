@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter, ViewChild } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 
-import { User, UnitType } from '@owge/core';
+import { User, UnitType, ModalComponent } from '@owge/core';
 import { Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage, ImprovementUtil } from '@owge/universe';
 
 import { BaseComponent } from './../base/base.component';
@@ -12,6 +12,10 @@ import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { UserWithFaction } from '@owge/faction';
 
 export type validViews = 'requirements' | 'attributes' | 'improvements';
+
+export interface AttackableUnitType extends UnitType {
+  isAttackable?: boolean;
+}
 
 @Component({
   selector: 'app-display-single-unit',
@@ -66,6 +70,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   public defaultView: validViews = 'attributes';
 
   @ViewChild(WidgetConfirmationDialogComponent) public confirmDialog: WidgetConfirmationDialogComponent;
+  @ViewChild(ModalComponent) public modal: ModalComponent;
 
   public selectedView: validViews;
   public numberToDelete: number;
@@ -75,6 +80,8 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   public moreHealth: number;
   public moreCharge: number;
   public unitTypes: UnitType[];
+  public unitType: UnitType;
+  public attackableUnitTypes: AttackableUnitType[];
 
   public get count(): any {
     return this._count.value;
@@ -134,6 +141,24 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
 
   public otherUnitAlreadyRunning(): void {
     this.displayError('Ya hay otras unidades en construcción');
+  }
+
+  /**
+   *
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.9.20
+   */
+  public clickOpenUnitInfo(): void {
+    const unitUnitType: UnitType = this.unitTypes.find(current => current.id === this.unit.typeId);
+    this.attackableUnitTypes = this.unitTypes.filter(unitType => unitType.used);
+    this.attackableUnitTypes.forEach(
+      unitType => unitType.isAttackable = this._unitTypeService.canAttack(
+        this._unitTypeService.findAppliedAttackRule(unitUnitType),
+        unitType
+      )
+    );
+    this.modal.show();
   }
 
   public cancelBuild(confirm: boolean): void {

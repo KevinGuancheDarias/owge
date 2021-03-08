@@ -1,0 +1,19 @@
+<div class="page-selector">
+    <a class="btn btn-block" (click)="defineTab('COMPANY')" [ngClass]="{'selected-menu' : activeTab === 'COMPANY'}">{{ 'APP.SPONSORS.MENU.BTN_COMPANIES' | translate }}</a>
+    <a class="btn btn-block"  (click)="defineTab('INDIVIDUAL')" [ngClass]="{'selected-menu' : activeTab === 'INDIVIDUAL'}">{{ 'APP.SPONSORS.MENU.BTN_INDIVIDUALS' | translate }}</a>
+</div>
+<div class="clearFloat"></div>
+<ng-container *ngIf="sponsors">
+    <owge-widgets-display-list-item *ngFor="let sponsor of filteredSponsors" 
+    [itemName]="sponsor.name" [itemDescription]="sponsor.description" [image]="sponsor.imageUrl">
+        <ng-template owgeCoreContent select="action-buttons">
+            <a [href]="sponsor.url" target="_blank">
+                <i class="fas fa-home"></i>
+            </a>
+        </ng-template>
+    </owge-widgets-display-list-item>
+</ng-container>
+<p class="owge-base-colors">
+  <i class="fa fa-info"></i>
+  {{ 'APP.SPONSORS.DONATION_TEXT' | translate: donationTextTranslation }}
+</p>

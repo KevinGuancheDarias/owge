@@ -10,6 +10,9 @@
     "I18N_ALLIANCE_NOT_DEFEATED": "Las unidades del dueño del planeta fueron derrotadas, pero unidades de sus aliados sobrevivieron",
     "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
     "I18N_ERR_ALLIANCE_IS_FULL": "La alianza está llena, prueba más tarde, los límites son un máximo absoluto, o en universos pequeños... un porcentaje del total de jugadores",
+    "GLOBAL": {
+        "BTN_CLOSE": "Cerrar"
+    },
     "APP": {
         "CONNECTED": "Conectado",
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",
@@ -45,6 +48,13 @@
             "CONQUEST": "Conquistar",
             "DEPLOY": "Desplegar",
             "DEPLOYED": "Desplegado"
+        },
+        "SPONSORS": {
+            "MENU": {
+                "BTN_COMPANIES": "Empresas",
+                "BTN_INDIVIDUALS": "Individuos"
+            },
+            "DONATION_TEXT": "Si quieres aparecer aquí, sólo necesitas {{donatedForIndividuals}}€/mes, si quieres tener un link a tu página en tu nombre {{donatedForIndividualsWithSite}}€/mes. Si eres una empresa y quieres que tu logo y tu sitio aparezcan serían {{donatedForCompanies}}€/mes. Sólo Paypal subscription, Patreon, o Github sponsor, donaciones puntuales no cuentan, aunque siempre se agraecen, gracias a todos"
         },
         "MISSION_LIST": {
             "HEADER_MISSION_TYPE_FROM_USER": "{{missionType}} de {{userName}}",
@@ -116,6 +126,12 @@
                     "NO_RESOURCES": "Sin recursos",
                     "CANCEL_TITLE": "Confirma para cancelar",
                     "CANCEL_TEXT": "¿Seguro qué quieres cancelar la construcción actual?"
+                },
+                "EXTRA_INFO": {
+                    "MODAL": {
+                        "TITLE": "Información completa de unidad <b>{{name}}</b>",
+                        "ATTACKABLE_TYPES": "Tipos atacables"
+                    }
                 }
             },
             "IN_PLANET": {
@@ -182,6 +198,7 @@
         "MENU_RANKING": "Ranking",
         "MENU_SETTINGS": "Configuración",
         "MENU_SYSTEM_MESSAGES": "Mensajes del sistema",
+        "MENU_SPONSORS": "Patrocinadores",
         "MENU_LOGOUT": "Salir",
         "SIDEBAR": {
             "MISSIONS_RESOURCE_NAME": "Misiones"

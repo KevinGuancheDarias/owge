@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AbstractCrudService, CrudServiceAuthControl, UniverseGameService } from '@owge/universe';
-import { AttackRule } from '../types/attack-rule.type';
-import { validContext } from '@owge/core';
+import { validContext, AttackRule } from '@owge/core';
 
 /**
  *

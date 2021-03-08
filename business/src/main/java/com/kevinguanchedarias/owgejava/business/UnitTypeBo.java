@@ -123,6 +123,18 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	}
 
 	/**
+	 * Is used boolean.
+	 *
+	 * @param id the id
+	 * @return the boolean
+	 * @since 0.9.20
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public boolean isUsed(Integer id) {
+		return unitTypeRepository.existsByUnitsTypeId(id);
+	}
+
+	/**
 	 *
 	 * @param userId
 	 * @return

@@ -80,6 +80,7 @@ import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial
 import { TwitchService } from './services/twitch.service';
 import { FastExplorationButtonComponent } from './components/fast-exploration-button/fast-exploration-button.component';
 import { SystemMessagesComponent } from './components/system-messages/system-messages.component';
+import { SponsorsComponent } from './components/sponsors/sponsors.component';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -113,6 +114,9 @@ export const APP_ROUTES: Routes = [
   },
   {
     path: 'system-messages', component: SystemMessagesComponent, canActivate: [LoginSessionService]
+  },
+  {
+    path: 'sponsors', component: SponsorsComponent, canActivate: [LoginSessionService]
   },
   { path: '**', component: PageNotFoundComponent }
 ];
@@ -160,7 +164,8 @@ export const APP_ROUTES: Routes = [
     SettingsComponent,
     TutorialOverlayComponent,
     FastExplorationButtonComponent,
-    SystemMessagesComponent
+    SystemMessagesComponent,
+    SponsorsComponent
   ],
   imports: [
     BrowserModule,

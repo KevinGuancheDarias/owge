@@ -69,8 +69,8 @@ export class ConfigurationService implements CacheListener {
         this._configuration = await this._loadFromServer();
         await this._cacheStore.save(this._configuration);
       }
-      this._configurationStore.currentConfiguration.next(this._configuration);
     }
+    this._configurationStore.currentConfiguration.next(this._configuration);
   }
 
   /**
@@ -114,7 +114,7 @@ export class ConfigurationService implements CacheListener {
    */
   public observeParamOrDefault<T = any>(name: string, defaultValue: T): Observable<Configuration<T>> {
     return this.observeParam(name).pipe(
-      map(config => this._handleDefaultable(config, defaultValue))
+      map(config => this._handleDefaultable(config, name, defaultValue))
     );
   }
 
@@ -129,7 +129,7 @@ export class ConfigurationService implements CacheListener {
    * @memberof ConfigurationService
    */
   public findParamOrDefault<T = any>(name: string, defaultValue: T): Configuration<T> {
-    return this._handleDefaultable<T>(this.findParam(name), defaultValue);
+    return this._handleDefaultable<T>(this.findParam(name), name, defaultValue);
   }
 
   /**
@@ -179,7 +179,7 @@ export class ConfigurationService implements CacheListener {
    * @param {T} defaultValue
    * @returns {Configuration<T>}
    */
-  private _handleDefaultable<T = any>(configuration: Configuration<T>, defaultValue: T): Configuration<T> {
+  private _handleDefaultable<T = any>(configuration: Configuration<T>, name: string, defaultValue: T): Configuration<T> {
     if (configuration) {
       return configuration;
     } else {
