@@ -904,7 +904,7 @@ CREATE TABLE `units` (
   `speed` double DEFAULT '0',
   `improvement_id` smallint UNSIGNED NOT NULL,
   `cloned_improvements` tinyint NOT NULL,
-  `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL
+  `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL,
   `bypass_shield` tinyint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

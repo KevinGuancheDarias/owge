@@ -19,9 +19,6 @@
       <div class="card-block" *ngIf="isMovable && runningUnitMission.type === 'DEPLOYED'">
         <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">{{ 'APP.MISSION_LIST.BTN_MOVE_UNITS' | translate }}</a>
       </div>
-      <ng-template #tooltipPlanetComponent>
-        <app-display-single-planet [planet]="tooltipPlanet"></app-display-single-planet>
-      </ng-template>
       <div class="card-block">
         <div class="card-title">
             <div class="row planet-names">

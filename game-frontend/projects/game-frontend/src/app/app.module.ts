@@ -171,7 +171,7 @@ export const APP_ROUTES: Routes = [
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
-    RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: true }),
+    RouterModule.forRoot(APP_ROUTES, { onSameUrlNavigation: 'reload', initialNavigation: 'enabled' }),
     HttpClientModule,
     OwgeUserModule,
     AllianceModule.forRoot(),

@@ -39,7 +39,11 @@
               "projects/game-admin/src/styles.less",
               "node_modules/ngx-toastr/toastr.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "socket.io-client",
+              "ts-mixer"
+            ]
           },
           "configurations": {
             "localDrupal": {
@@ -67,7 +71,6 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -161,7 +164,7 @@
       "prefix": "owge-core",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-core/tsconfig.lib.json",
             "project": "projects/owge-core/ng-package.json"
@@ -201,7 +204,7 @@
       "prefix": "owge-universe",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-universe/tsconfig.lib.json",
             "project": "projects/owge-universe/ng-package.json"
@@ -234,46 +237,6 @@
         }
       }
     },
-    "owge-user": {
-      "projectType": "library",
-      "root": "projects/owge-user",
-      "sourceRoot": "projects/owge-user/src",
-      "prefix": "owge-user",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
-          "options": {
-            "tsConfig": "projects/owge-user/tsconfig.lib.json",
-            "project": "projects/owge-user/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-user/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-user/src/test.ts",
-            "tsConfig": "projects/owge-user/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-user/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/owge-user/tsconfig.lib.json",
-              "projects/owge-user/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
-      }
-    },
     "owge-alliance": {
       "projectType": "library",
       "root": "projects/owge-alliance",
@@ -281,7 +244,7 @@
       "prefix": "owge-alliance",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-alliance/tsconfig.lib.json",
             "project": "projects/owge-alliance/ng-package.json"
@@ -321,7 +284,7 @@
       "prefix": "owge-widgets",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-widgets/tsconfig.lib.json",
             "project": "projects/owge-widgets/ng-package.json"
@@ -390,10 +353,10 @@
               "shared/styles/styles.scss",
               "node_modules/ngx-toastr/toastr.css"
             ],
-            "scripts": [
-              "node_modules/jquery/dist/jquery.js",
-              "node_modules/popper.js/dist/umd/popper.js",
-              "node_modules/bootstrap/dist/js/bootstrap.js"
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "socket.io-client",
+              "ts-mixer"
             ]
           },
           "configurations": {
@@ -450,7 +413,6 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
-              "extractCss": true,
               "namedChunks": false,
               "extractLicenses": true,
               "vendorChunk": false,
@@ -550,7 +512,7 @@
       "prefix": "owge-galaxy",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-galaxy/tsconfig.lib.json",
             "project": "projects/owge-galaxy/ng-package.json"
@@ -590,7 +552,7 @@
       "prefix": "owge-faction",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-ng-packagr:build",
+          "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "tsConfig": "projects/owge-faction/tsconfig.lib.json",
             "project": "projects/owge-faction/ng-package.json"

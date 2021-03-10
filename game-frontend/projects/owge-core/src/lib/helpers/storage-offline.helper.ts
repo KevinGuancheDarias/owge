@@ -1,4 +1,3 @@
-import * as LZString from 'lz-string';
 import Dexie from 'dexie';
 
 /**
@@ -60,7 +59,7 @@ export class StorageOfflineHelper<T> {
                 this._dexieTable.add(content, 'store_data');
             });
         } else {
-            this._browserStore.setItem(StorageOfflineHelper._PREFIX + this._storeName, LZString.compress(JSON.stringify(content)));
+            this._browserStore.setItem(StorageOfflineHelper._PREFIX + this._storeName, JSON.stringify(content));
         }
     }
 
@@ -75,7 +74,7 @@ export class StorageOfflineHelper<T> {
         if (this._browserStore instanceof Storage) {
             const data: string = this._browserStore.getItem(StorageOfflineHelper._PREFIX + this._storeName);
             if (data) {
-                return JSON.parse(LZString.decompress(data));
+                return JSON.parse(data);
             } else {
                 return null;
             }

@@ -1,6 +1,9 @@
 {
   "name": "@owge/galaxy",
   "version": "0.10.0",
+  "dependencies": {
+    "tslib": "^2.0.0"
+  },
   "peerDependencies": {
     "@angular/common": "^8.2.0",
     "@angular/core": "^8.2.0"

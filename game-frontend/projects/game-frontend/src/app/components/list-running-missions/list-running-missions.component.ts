@@ -37,9 +37,6 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   @Output()
   public missionDone: EventEmitter<void> = new EventEmitter();
 
-  @ViewChild('tooltipPlanet', { read: ElementRef })
-  public tooltipPlanetComponent: ElementRef;
-
   public tooltipPlanet: PlanetPojo;
   public isDisplayingModal = false;
 
@@ -63,11 +60,6 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
       this.isDisplayingModal = false;
       this.missionDone.emit();
     });
-  }
-
-  public onMouseEnter(planet: PlanetPojo): void {
-    this.tooltipPlanet = planet;
-    $(this.tooltipPlanetComponent.nativeElement).detach().appendTo('.tooltip');
   }
 
   public async cancelMission(runningUnitMissions: UnitRunningMission): Promise<void> {

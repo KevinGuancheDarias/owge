@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this._defineKgdwLang(this._translateService.currentLang ? this._translateService.currentLang : this._translateService.defaultLang);
-    this._translateService.onLangChange.subscribe(lang => this._defineKgdwLang(lang));
+    this._translateService.onLangChange.subscribe(lang => this._defineKgdwLang(lang.lang));
     if (this._sessionService.hasLoginDomain() && this._sessionService.isLoginDomain() && this._sessionService.isLoggedIn()) {
       this._sessionService.logout();
     } else if (this._sessionService.hasLoginDomain() && !this._sessionService.isLoginDomain()) {
