@@ -23,7 +23,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ -z "$2" ] ||[ ! -d "$2" ]; then
-	echo "Directory for owge-data/static not specified, aborting";
+	echo "Directory for owge-data/static not specified, aborting $2";
 	exit 1;
 fi
 
@@ -161,13 +161,11 @@ if OWGE_DB_URL=$no_db_query check_mysql_query_fails "SELECT 1"; then
 	log error "Invalid mysql server, or invalid credentials"
 	exit 1;
 fi
-
 mysql_db=`echo "$OWGE_DB_URL" | cut -d '/' -f 2`;
 if OWGE_DB_URL=$no_db_query check_mysql_query_fails "SHOW DATABASES" "grep $mysql_db"; then
 	log error "No such database $mysql_db"
 	exit 1;
 fi
-
 business_dir="$PWD"/../../business;
 trap ctrl_c INT
 if check_mysql_query_fails "SHOW TABLES"; then

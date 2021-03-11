@@ -1,4 +1,4 @@
-FROM mysql:5.7
+FROM mysql:8
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 # COPY *.sql /tmp/ (Asterisk is evil as Docker would use a cached version of the files, even if there are changes) /tmp/

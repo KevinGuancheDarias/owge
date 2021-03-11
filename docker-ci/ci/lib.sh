@@ -163,7 +163,7 @@ function gitGetCurrentBranch () {
 }
 
 function gitVersionExists () {
-	if ! echo "$1" | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]$" &> /dev/null; then
+	if ! echo "$1" | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$" &> /dev/null; then
                 echo "FATAL, malformed version passed to gitVersionExists(), exit()ing script";
                 return 1;
         fi
