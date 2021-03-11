@@ -39,7 +39,10 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
   public constructor(private _userStore: UserStorage<User>, adminUserStore: AdminUserStore, translateService: TranslateService) {
     super(translateService);
     const adminUserRoute: MenuRoute = this._createTranslatableMenuRoute('APP.MENU_ADMIN_USERS', 'admin-users', 'fa fa-user');
-    adminUserRoute.shouldDisplay = adminUserStore.adminUser.pipe(map(adminUser => adminUser.canAddAdmins));
+    adminUserRoute.shouldDisplay = false;
+    adminUserStore.adminUser
+      .pipe(map(adminUser => adminUser.canAddAdmins))
+      .subscribe(val => adminUserRoute.shouldDisplay = true);
     this.sidebarRoutes.push(adminUserRoute);
   }
 

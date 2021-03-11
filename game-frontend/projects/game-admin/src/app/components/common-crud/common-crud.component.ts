@@ -219,7 +219,20 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * @param el
    */
   public clickSelect(el: T): void {
-    this.choosen.emit(el);
+    this.choosen.emit({ ...el });
+  }
+
+  /**
+   * Updates the original
+   * <br>
+   * Must be invoked by outside's component
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 0.10.0
+   * @param newOriginal
+   */
+  public updateOriginal(newOriginal: T): void {
+    this.originalElement = { ...newOriginal };
   }
 
   /**
