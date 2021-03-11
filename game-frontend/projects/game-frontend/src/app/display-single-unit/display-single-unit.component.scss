@@ -13,6 +13,10 @@ app-display-single-unit {
     width: 98%;
     flex-wrap: wrap;
 
+    .extra-attributes {
+        box-shadow: 2px 2px 2px black;
+        padding-bottom: 5px;
+    }
 
     .unit-info-icon {
         position: absolute;
