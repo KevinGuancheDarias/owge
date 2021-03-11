@@ -2,7 +2,8 @@
 
 v0.10.0 (latest)
 =================
-* Merge v0.9.21  
+* Merge v0.9.21
+* __Feature:__ [As a player I want to have units capable of bypassing the unit shield #270](https://github.com/KevinGuancheDarias/owge/issues/270)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define units that can intercept units with a given speed group #21](https://github.com/KevinGuancheDarias/owge/issues/21)  
 * [class=Admin] __Feature:__ [As an Admin I want to be able to override the maxCount of a certain unit type for a given faction #273](https://github.com/KevinGuancheDarias/owge/issues/273)  
 * [class=Admin] __Feature:__ [As an admin I want to add invisible attribute to some units #23](https://github.com/KevinGuancheDarias/owge/issues/23)  

@@ -353,14 +353,21 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
 			Double myAttack = source.pendingAttack;
-			Double victimHealth = target.availableHealth + target.availableShield;
+			boolean bypassShield = source.obtainedUnit.getUnit().getBypassShield();
+			Double victimHealth = bypassShield
+					? target.availableHealth
+					: target.availableHealth + target.availableShield;
 			addPointsAndUpdateCount(myAttack, source, target);
 			if (victimHealth > myAttack) {
 				source.pendingAttack = 0D;
 				source.noAttack = true;
-				double attackDistribruted = myAttack / 2;
-				target.availableShield -= attackDistribruted;
-				target.availableHealth -= attackDistribruted;
+				if (bypassShield) {
+					target.availableHealth -= myAttack;
+				} else {
+					double attackDistributed = myAttack / 2;
+					target.availableShield -= attackDistributed;
+					target.availableHealth -= attackDistributed;
+				}
 				if (target.availableShield < 0.0D) {
 					target.availableHealth += target.availableShield;
 				}
@@ -401,7 +408,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 		private void addPointsAndUpdateCount(double usedAttack, AttackObtainedUnit source,
 				AttackObtainedUnit victimUnit) {
-			Double healthForEachUnit = (victimUnit.totalHealth + victimUnit.totalShield) / victimUnit.initialCount;
+			Double healthForEachUnit = Boolean.TRUE.equals(source.obtainedUnit.getUnit().getBypassShield())
+					? victimUnit.totalHealth / victimUnit.initialCount
+					: (victimUnit.totalHealth + victimUnit.totalShield) / victimUnit.initialCount;
 			Long killedCount = (long) Math.floor(usedAttack / healthForEachUnit);
 			if (killedCount > victimUnit.finalCount) {
 				killedCount = victimUnit.finalCount;
