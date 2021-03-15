@@ -106,4 +106,6 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	void findByTargetPlanetAndResolvedFalseAndTerminationDateBetween(Planet targetPlanet, Date start, Date end);
+
+	List<Mission> findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
 }

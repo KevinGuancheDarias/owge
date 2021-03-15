@@ -1,13 +1,5 @@
 package com.kevinguanchedarias.owgejava.builder;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.BeanUtils;
-
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,14 +13,20 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public class UnitMissionReportBuilder {
 
-	private Map<String, Object> createdMap = new HashMap<>();
-	private DtoUtilService dtoUtilService = new DtoUtilService();
-	private ObjectMapper mapper = new ObjectMapper();
+	private final Map<String, Object> createdMap = new HashMap<>();
+	private final DtoUtilService dtoUtilService = new DtoUtilService();
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	public static UnitMissionReportBuilder create(UserStorage user, Planet sourcePlanet, Planet targetPlanet,
-			List<ObtainedUnit> selectedUnits) {
+												  List<ObtainedUnit> selectedUnits) {
 		return create().withSenderUser(user).withSourcePlanet(sourcePlanet).withTargetPlanet(targetPlanet)
 				.withInvolvedUnits(selectedUnits);
 	}
@@ -45,12 +43,6 @@ public class UnitMissionReportBuilder {
 	 */
 	public Map<String, Object> build() {
 		return createdMap;
-	}
-
-	public Map<String, Object> buildClone() {
-		Map<String, Object> target = new HashMap<>();
-		BeanUtils.copyProperties(createdMap, target);
-		return target;
 	}
 
 	public String buildJson() {
@@ -88,8 +80,8 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
-	public UnitMissionReportBuilder withExploredInformation(List<ObtainedUnit> unitsInPlanet) {
-		createdMap.put("unitsInPlanet", obtainedUnitToDto(unitsInPlanet));
+	public UnitMissionReportBuilder withExploredInformation(List<ObtainedUnitDto> unitsInPlanet) {
+		createdMap.put("unitsInPlanet", handleAllDtos(unitsInPlanet));
 		return this;
 	}
 
@@ -130,10 +122,6 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
-	public UnitMissionReportBuilder withConquestInformation(Boolean status) {
-		return withConquestInformation(status, "");
-	}
-
 	public UnitMissionReportBuilder withConquestInformation(Boolean status, String statusStr) {
 		createdMap.put("conquestStatus", status);
 		createdMap.put("conquestStatusStr", statusStr);
@@ -155,15 +143,24 @@ public class UnitMissionReportBuilder {
 	}
 
 	private ObtainedUnitDto obtainedUnitToDto(ObtainedUnit unit) {
-		ObtainedUnitDto retVal = dtoUtilService.dtoFromEntity(ObtainedUnitDto.class, unit);
-		retVal.getUnit().setImprovement(null);
-		retVal.setSourcePlanet(null);
-		retVal.setTargetPlanet(null);
-		retVal.setMission(null);
-		return retVal;
+		return obtainedUnitToDto(dtoUtilService.dtoFromEntity(ObtainedUnitDto.class, unit));
+	}
+
+	private ObtainedUnitDto obtainedUnitToDto(ObtainedUnitDto unit) {
+		if (unit.getUnit() != null) {
+			unit.getUnit().setImprovement(null);
+		}
+		unit.setSourcePlanet(null);
+		unit.setTargetPlanet(null);
+		unit.setMission(null);
+		return unit;
 	}
 
 	private List<ObtainedUnitDto> obtainedUnitToDto(List<ObtainedUnit> units) {
+		return units.stream().map(this::obtainedUnitToDto).collect(Collectors.toList());
+	}
+
+	private List<ObtainedUnitDto> handleAllDtos(List<ObtainedUnitDto> units) {
 		return units.stream().map(this::obtainedUnitToDto).collect(Collectors.toList());
 	}
 

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
@@ -620,7 +621,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		if (!planetBo.isExplored(user, targetPlanet)) {
 			planetBo.defineAsExplored(user, targetPlanet);
 		}
-		List<ObtainedUnit> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(mission, targetPlanet);
+		List<ObtainedUnitDto> unitsInPlanet = obtainedUnitBo.explorePlanetUnits(mission, targetPlanet);
 		adminRegisterReturnMission(mission);
 		UnitMissionReportBuilder builder = UnitMissionReportBuilder
 				.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
@@ -1157,6 +1158,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
 			}
 		}
+		mission.setInvisible(obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
 		save(mission);
 		scheduleMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
@@ -1423,7 +1425,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	private void emitLocalMissionChange(Mission mission, Integer userId) {
 		entityManager.refresh(mission);
-		emitEnemyMissionsChange(mission);
+		if (Boolean.FALSE.equals(mission.getInvisible())) {
+			emitEnemyMissionsChange(mission);
+		}
 		emitMissions(userId);
 	}
 

@@ -85,8 +85,10 @@ public class Mission implements EntityWithId<Long> {
 	@Column(nullable = false)
 	private Integer attemps = 1;
 
-	@Column(nullable = true)
 	private Boolean resolved = false;
+
+	@Column(nullable = false)
+	private Boolean invisible = false;
 
 	@Override
 	public Long getId() {
@@ -240,6 +242,28 @@ public class Mission implements EntityWithId<Long> {
 
 	public void setResolved(Boolean resolved) {
 		this.resolved = resolved;
+	}
+
+	/**
+	 * Gets invisible.
+	 *
+	 * @return the invisible
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public Boolean getInvisible() {
+		return invisible;
+	}
+
+	/**
+	 * Sets invisible.
+	 *
+	 * @param invisible the invisible
+	 * @since 0.10.0
+	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 */
+	public void setInvisible(Boolean invisible) {
+		this.invisible = invisible;
 	}
 
 	@Override
