@@ -16,6 +16,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
@@ -226,8 +227,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public List<ObtainedUnit> explorePlanetUnits(Mission exploreMission, Planet targetPlanet) {
-		return repository.findByExplorePlanet(exploreMission.getId(), targetPlanet.getId());
+	public List<ObtainedUnitDto> explorePlanetUnits(Mission exploreMission, Planet targetPlanet) {
+		List<ObtainedUnitDto> retVal = toDto(repository.findByExplorePlanet(exploreMission.getId(), targetPlanet.getId()));
+		ObtainedUnitUtil.handleInvisible(retVal);
+		return retVal;
 	}
 
 	/**

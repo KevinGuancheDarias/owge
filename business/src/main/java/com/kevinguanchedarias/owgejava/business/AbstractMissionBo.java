@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.log4j.Logger;
@@ -217,7 +218,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 	@Transactional
 	public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
 		List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
-		return missionRepository.findByTargetPlanetInAndResolvedFalseAndUserNot(myPlanets, user).stream()
+		return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user).stream()
 				.map(current -> {
 					UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
 					retVal.nullifyInvolvedUnitsPlanets();
@@ -225,6 +226,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 						retVal.setSourcePlanet(null);
 						retVal.setUser(null);
 					}
+					ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
 					return retVal;
 				}).collect(Collectors.toList());
 	}

@@ -9,7 +9,8 @@
             {{ obtainedUnit.count }}
           </span>
         </div>
-        <img [src]="obtainedUnit.unit.imageUrl" />
+        <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />
+        <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'"></owge-widgets-display-image>
       </div>
       <div class="card-block input-count" *ngIf="selectable">
         <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>
@@ -29,7 +30,8 @@
               {{ obtainedUnit.count }}
             </span>
           </div>
-          <img [src]="obtainedUnit.unit.imageUrl" />
+          <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />
+          <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'"></owge-widgets-display-image>
         </div>
         <div class="card-block input-count" *ngIf="selectable">
           <input class="owge-base-colors" min="0" [max]="obtainedUnit.count" type="number" [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]" (ngModelChange)="selectionChanged()"/>

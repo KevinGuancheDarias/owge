@@ -31,3 +31,5 @@ CREATE TABLE `interceptable_speed_group` (
   CONSTRAINT `fk_isg_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `units`(`id`), 
   CONSTRAINT `fk_isg_speed_impact_group_id` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups`(`id`)
 ) ENGINE = InnoDB;
+
+ALTER TABLE `missions` ADD `invisible` TINYINT NOT NULL AFTER `resolved`;
