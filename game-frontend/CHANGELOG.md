@@ -2,6 +2,8 @@
 
 v0.10.0 (latest)
 =================
+* __Fix:__ changelog not getting generated after removing it from the repo
+* __Fix:__ Not able to use the custom cors Origin
 * __Fix:__ [Conquest are failing when planet has not owner #385](https://github.com/KevinGuancheDarias/owge/issues/385)  
 * Merge v0.9.21
 * __Feature:__ [As a player I want to have invisible units #11](https://github.com/KevinGuancheDarias/owge/issues/11)  

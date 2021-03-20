@@ -18,7 +18,7 @@ import com.kevinguanchedarias.owgejava.filter.OwgeNullSecurityContextRepository;
 
 @Configuration
 class CorsFilterConfiguration extends WebSecurityConfigurerAdapter {
-	@Value("${${OWGE_CORS_CUSTOM_ORIGIN:}")
+	@Value("${OWGE_CORS_CUSTOM_ORIGIN:}")
 	private String customOrigin;
 
 	@Override
