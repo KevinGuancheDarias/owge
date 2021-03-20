@@ -2,6 +2,7 @@
 
 v0.10.0 (latest)
 =================
+* __Fix:__ [Conquest are failing when planet has not owner #385](https://github.com/KevinGuancheDarias/owge/issues/385)  
 * Merge v0.9.21
 * __Feature:__ [As a player I want to have invisible units #11](https://github.com/KevinGuancheDarias/owge/issues/11)  
 * __Feature:__ [As a player I want to have units capable of bypassing the unit shield #270](https://github.com/KevinGuancheDarias/owge/issues/270)  

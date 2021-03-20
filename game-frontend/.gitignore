@@ -3,5 +3,5 @@ node_modules.old
 yarn.lock
 .scannerwork
 dist
-src/assets/html/changelog.html
+changelog.html
 .angulardoc.json

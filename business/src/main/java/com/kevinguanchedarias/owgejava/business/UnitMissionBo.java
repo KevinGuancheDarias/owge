@@ -821,11 +821,11 @@ public class UnitMissionBo extends AbstractMissionBo {
 			if (oldOwner != null) {
 				planetBo.emitPlanetOwnedChange(oldOwner);
 				emitEnemyMissionsChange(oldOwner);
+				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
+						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
+						.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
+				handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
 			}
-			UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
-					.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
-					.withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
-			handleMissionReportSave(mission, enemyReportBuilder, true, oldOwner);
 
 		}
 		handleMissionReportSave(mission, builder);
