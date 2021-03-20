@@ -1,39 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.AttackRule;
-import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
-import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
-import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
-import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
-import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.exception.NotFoundException;
-import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
-import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
-import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
-import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
-import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
-import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
-import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityManager;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -49,18 +21,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.entity.*;
+import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
+import com.kevinguanchedarias.owgejava.enumerations.*;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.*;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
+import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
@@ -355,8 +327,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
 			Double myAttack = source.pendingAttack;
 			boolean bypassShield = source.obtainedUnit.getUnit().getBypassShield();
-			Double victimHealth = bypassShield
-					? target.availableHealth
+			Double victimHealth = bypassShield ? target.availableHealth
 					: target.availableHealth + target.availableShield;
 			addPointsAndUpdateCount(myAttack, source, target);
 			if (victimHealth > myAttack) {
@@ -430,14 +401,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
 				userUnits.stream().filter(currentUnit -> !currentUnit.finalCount.equals(0L)
 						&& !currentUnit.initialCount.equals(currentUnit.finalCount)).forEach(currentUnit -> {
-					long killed = currentUnit.initialCount - currentUnit.finalCount;
-					try {
-						obtainedUnitBo.trySave(currentUnit.obtainedUnit, -killed);
-						alteredUsers.add(attackUserInformation.getUser().getId());
-					} catch (OwgeElementSideDeletedException e) {
-						LOG.warn("Element side deleted", e);
-					}
-				});
+							long killed = currentUnit.initialCount - currentUnit.finalCount;
+							try {
+								obtainedUnitBo.trySave(currentUnit.obtainedUnit, -killed);
+								alteredUsers.add(attackUserInformation.getUser().getId());
+							} catch (OwgeElementSideDeletedException e) {
+								LOG.warn("Element side deleted", e);
+							}
+						});
 			});
 			usersWithChangedCounts.forEach(alteredUsers::add);
 			TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
@@ -766,6 +737,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		returnMission.setTargetPlanet(mission.getTargetPlanet());
 		returnMission.setUser(mission.getUser());
 		returnMission.setRelatedMission(mission);
+		returnMission.setInvisible(Boolean.TRUE.equals(mission.getInvisible()));
 		List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
 		missionRepository.saveAndFlush(returnMission);
 		obtainedUnits.forEach(current -> current.setMission(returnMission));
@@ -816,15 +788,15 @@ public class UnitMissionBo extends AbstractMissionBo {
 			isAllianceDefeated = true;
 		} else {
 			isOldOwnerDefeated = !attackInformation.getUsers().containsKey(oldOwner.getId())
-					|| attackInformation.getUsers().get(oldOwner.getId()).units.stream().noneMatch(current -> current.finalCount > 0L);
+					|| attackInformation.getUsers().get(oldOwner.getId()).units.stream()
+							.noneMatch(current -> current.finalCount > 0L);
 			isAllianceDefeated = isOldOwnerDefeated
 					&& (oldOwner.getAlliance() == null || attackInformation.getUsers().entrySet().stream()
-					.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
-							&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
-					.allMatch(currentUser -> currentUser.getValue().units.stream()
-							.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
+							.filter(attackedUser -> attackedUser.getValue().getUser().getAlliance() != null
+									&& attackedUser.getValue().getUser().getAlliance().equals(oldOwner.getAlliance()))
+							.allMatch(currentUser -> currentUser.getValue().units.stream()
+									.noneMatch(currentUserUnit -> currentUserUnit.finalCount > 0L)));
 		}
-
 
 		if (!isOldOwnerDefeated || !isAllianceDefeated || maxPlanets || planetBo.isHomePlanet(targetPlanet)) {
 			if (!attackInformation.isMissionRemoved()) {
@@ -1038,10 +1010,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional
-	@Retryable(
-			value = CannotAcquireLockException.class,
-			backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2)
-	)
+	@Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
 	public void runUnitMission(Long missionId, MissionType missionType) {
 		switch (missionType) {
 		case EXPLORE:
@@ -1158,7 +1127,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 				mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
 			}
 		}
-		mission.setInvisible(obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
+		mission.setInvisible(
+				obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
 		save(mission);
 		scheduleMission(mission);
 		emitLocalMissionChangeAfterCommit(mission);
