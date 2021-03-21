@@ -160,7 +160,7 @@ export class WsEventCacheService {
                 const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil
                     .filter(WsEventCacheService._ALLOWED_EVENTS, async event =>
                         this.isSynchronizableEvent(event)
-                        && !(await this._isValidCacheEntry(this._eventsInformation[event], this._eventsOfflineStore[event]))
+                            && (!this._eventsInformation[event] || this._eventsInformation[event].changed)
                     );
                 if (wantedKeys.length) {
                     this._universeGameService.requestWithAutorizationToContext<WebsocketSyncResponse>(
