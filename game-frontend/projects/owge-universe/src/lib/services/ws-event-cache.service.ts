@@ -1,17 +1,17 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
+import { AsyncCollectionUtil, Instant, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CacheListener } from '../interfaces/cache-listener.interface';
-import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
+import { WebsocketSyncItem, WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UniverseGameService } from './universe-game.service';
 
 interface WebsocketEventInformation {
     eventName: string;
     userId: number;
-    lastSent: number;
+    lastSent: Instant;
 
     /**
      * Changed computes at browser by comparing cached lastSent with remote
@@ -95,8 +95,14 @@ export class WsEventCacheService {
             }
         });
         content.forEach(current => {
-            current.changed = !this._eventsInformation[current.eventName]
-                || this._eventsInformation[current.eventName].lastSent !== current.lastSent;
+            if(current.eventName === 'unit_obtained_change') {
+                console.log('Usando valor almacenado', this._eventsInformation[current.eventName]?.lastSent?.epochSecond);
+                console.log('Valor que comparo con respuesta', current?.lastSent?.epochSecond);
+            }
+            if(!current.eventName.startsWith('_universe_id:')) {
+                current.changed = !this._eventsInformation[current.eventName]
+                    || this._eventsInformation[current.eventName].lastSent.epochSecond !== current.lastSent.epochSecond;
+            }
             this._eventsInformation[current.eventName] = current;
         });
         this._eventInformationStore.save(this._eventsInformation);
@@ -114,35 +120,6 @@ export class WsEventCacheService {
     public hasChanged(eventName: string): boolean {
         const entry = this._eventsInformation[eventName];
         return entry && entry.changed;
-    }
-
-    /**
-     * Finds value or runs action if not in cache
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @template T
-     * @param eventName The websocket event name
-     * @param cacheStore The store that holds or saves the value sent by the event
-     * @param action Action to do to refresh the value (tipically an HTTPClient get request)
-     * @returns
-     */
-    public async findFromCacheOrRun<T>(
-        eventName: keyof WebsocketSyncResponse,
-        cacheStore: StorageOfflineHelper<T>,
-        action: () => Promise<T>
-    ): Promise<T> {
-        const entry = this._eventsInformation[eventName];
-        const storedValue = await cacheStore.find();
-        if (await this._isValidCacheEntry(entry, cacheStore)) {
-            return storedValue;
-        } else {
-            const retVal: T = await action();
-            await cacheStore.save(retVal);
-            this._markEventAsUnchanged(eventName);
-            await this._eventInformationStore.save(this._eventsInformation);
-            return retVal;
-        }
     }
 
     public async createOfflineStores(): Promise<void> {
@@ -180,8 +157,21 @@ export class WsEventCacheService {
                         wantedKeys.filter(key => typeof events[key] === 'undefined').forEach(key => events[key] = null);
                         const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
                         await AsyncCollectionUtil.forEach(keys, async key => {
-                            await this._eventsOfflineStore[key].save(events[key]);
-                            this._markEventAsUnchanged(key);
+                            await this._eventsOfflineStore[key].save(events[key].data);
+                            if(!this._eventsInformation[key]) {
+                                this._eventsInformation[key] = {
+                                    eventName: key,
+                                    changed: false,
+                                    userId: -1,
+                                    lastSent: { epochSecond: events[key].lastSent}
+                                }
+                            } else {
+                                this._eventsInformation[key].lastSent = { epochSecond: events[key].lastSent };
+                            }
+                            if(key === 'unit_obtained_change') {
+                                console.log('Guardando valor', events[key]?.lastSent);
+                            }
+                            this._markEventAsUnchanged(key, events[key]);
                         });
                         await this._eventInformationStore.save(this._eventsInformation);
                         resolve();
@@ -220,21 +210,6 @@ export class WsEventCacheService {
      */
     public async updateWithFrontendComputedData(event: keyof WebsocketSyncResponse, data: any): Promise<void> {
         await this._eventsOfflineStore[event].save(data);
-    }
-
-    /**
-     *
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.6
-     * @param {keyof WebsocketSyncResponse} event
-     * @param data
-     * @returns
-     */
-    public async updateOfflineStore(event: keyof WebsocketSyncResponse, data: any): Promise<void> {
-        await this._eventsOfflineStore[event].save(data);
-        this._markEventAsUnchanged(event);
-        await this._eventInformationStore.save(this._eventsInformation);
     }
 
     /**
@@ -297,22 +272,19 @@ export class WsEventCacheService {
         this._cacheListeners = this._cacheListeners.concat(listeners);
     }
 
-    private async _isValidCacheEntry(entry: WebsocketEventInformation, offlineStore: StorageOfflineHelper<any>): Promise<boolean> {
-        return (!entry || !entry.changed) && await offlineStore.isPresent();
-    }
-
     private _findCacheKey(event: keyof WebsocketSyncResponse): string {
         return `ws_cache::${event}`;
     }
 
-    private _markEventAsUnchanged(event: keyof WebsocketSyncResponse): void {
+    private _markEventAsUnchanged(event: keyof WebsocketSyncResponse, info: WebsocketSyncItem): void {
         if (this._eventsInformation[event]) {
             this._eventsInformation[event].changed = false;
+            this._eventsInformation[event].lastSent = { epochSecond: info.lastSent };
         } else {
             this._eventsInformation[event] = {
                 changed: false,
                 eventName: event,
-                lastSent: -1,
+                lastSent: { epochSecond: info.lastSent },
                 userId: -1
             };
         }

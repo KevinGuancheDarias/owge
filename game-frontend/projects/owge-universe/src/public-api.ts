@@ -5,6 +5,7 @@
 export * from './lib/components/image-selector/image-selector.component';
 export * from './lib/directives/on-click-if-ws-conected.directive';
 export * from './lib/initializers/universe.initializer';
+export * from './lib/interfaces/cache-listener.interface';
 export * from './lib/mixins/services/with-improvements-crud.mixin';
 export * from './lib/mixins/services/with-read-crud.mixin';
 export * from './lib/mixins/services/with-requirements-crud.mixin';
@@ -38,6 +39,7 @@ export * from './lib/types/alive-death-obtained-unit.type';
 export * from './lib/types/crud-config.type';
 export * from './lib/types/crud-service-auth-control.type';
 export * from './lib/types/image-store.type';
+export * from './lib/types/interceptable-speed-group.type';
 export * from './lib/types/obtained-unit.type';
 export * from './lib/types/obtained-upgrade.type';
 export * from './lib/types/planet-units-representation.type';

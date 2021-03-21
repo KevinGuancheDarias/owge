@@ -1,7 +1,8 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
@@ -25,7 +26,7 @@ public class WebsocketEventsInformation implements Serializable {
 	@EmbeddedId
 	private EventNameUserId eventNameUserId;
 	@Column(name = "last_sent", nullable = false)
-	private Date lastSenT = dateWithoutMs();
+	private Instant lastSenT = dateWithoutMs();
 
 	/**
 	 *
@@ -73,7 +74,7 @@ public class WebsocketEventsInformation implements Serializable {
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Date getLastSenT() {
+	public Instant getLastSent() {
 		return lastSenT;
 	}
 
@@ -82,13 +83,11 @@ public class WebsocketEventsInformation implements Serializable {
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 */
-	public void setLastSenT(Date lastSenT) {
+	public void setLastSent(Instant lastSenT) {
 		this.lastSenT = lastSenT;
 	}
 
-	private Date dateWithoutMs() {
-		Date now = new Date();
-		long removedMs = now.getTime() / 1000;
-		return new Date(removedMs * 1000);
+	private Instant dateWithoutMs() {
+		return Instant.now().truncatedTo(ChronoUnit.SECONDS);
 	}
 }

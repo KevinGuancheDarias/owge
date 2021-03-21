@@ -1,3 +1,9 @@
+import { Instant } from "@owge/core";
+
+export interface WebsocketSyncItem {
+    data: any;
+    lastSent: number;
+}
 
 /**
  * Represents the response from the server
@@ -7,25 +13,25 @@
  * @export
  */
 export interface WebsocketSyncResponse {
-    enemy_mission_change?: any;
-    mission_report_change?: any;
-    missions_count_change?: any;
-    obtained_upgrades_change?: any;
-    planet_owned_change?: any;
-    planet_user_list_change?: any;
-    running_upgrade_change?: any;
-    speed_impact_group_unlocked_change?: any;
-    time_special_change?: any;
-    tutorial_entries_change?: any;
-    twitch_state_change?: any;
-    unit_mission_change?: any;
-    unit_build_mission_change?: any;
-    unit_obtained_change?: any;
-    unit_requirements_change?: any;
-    unit_type_change?: any;
-    unit_unlocked_change?: any;
-    upgrade_types_change?: any;
-    user_data_change?: any;
-    visited_tutorial_entry_change?: any;
-    system_message_change?: any;
+    enemy_mission_change?: WebsocketSyncItem;
+    mission_report_change?: WebsocketSyncItem;
+    missions_count_change?: WebsocketSyncItem;
+    obtained_upgrades_change?: WebsocketSyncItem;
+    planet_owned_change?: WebsocketSyncItem;
+    planet_user_list_change?: WebsocketSyncItem;
+    running_upgrade_change?: WebsocketSyncItem;
+    speed_impact_group_unlocked_change?: WebsocketSyncItem;
+    time_special_change?: WebsocketSyncItem;
+    tutorial_entries_change?: WebsocketSyncItem;
+    twitch_state_change?: WebsocketSyncItem;
+    unit_mission_change?: WebsocketSyncItem;
+    unit_build_mission_change?: WebsocketSyncItem;
+    unit_obtained_change?: WebsocketSyncItem;
+    unit_requirements_change?: WebsocketSyncItem;
+    unit_type_change?: WebsocketSyncItem;
+    unit_unlocked_change?: WebsocketSyncItem;
+    upgrade_types_change?: WebsocketSyncItem;
+    user_data_change?: WebsocketSyncItem;
+    visited_tutorial_entry_change?: WebsocketSyncItem;
+    system_message_change?: WebsocketSyncItem;
 }

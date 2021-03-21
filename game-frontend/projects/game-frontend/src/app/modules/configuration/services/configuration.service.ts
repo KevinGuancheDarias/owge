@@ -8,7 +8,7 @@ import { Configuration } from '../types/configuration.type';
 import { validDeploymentValue } from '../types/valid-deployment-value.type';
 import { Observable } from 'rxjs';
 import { ConfigurationStore } from '../store/configuration.store';
-import { CacheListener } from 'projects/owge-universe/src/lib/interfaces/cache-listener.interface';
+import { CacheListener } from '@owge/universe';
 
 /**
  *

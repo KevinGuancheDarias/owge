@@ -37,12 +37,6 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
     this._offlineUnitTypes = this._universeCacheManagerService.getStore('unit_type.values');
   }
 
-  public async workaroundSync(): Promise<void> {
-    this._onUnitTypeChange(await this._wsEventCacheService.findFromCacheOrRun('unit_type_change', this._offlineUnitTypes, async () =>
-      await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'unitType/').toPromise()
-    ));
-  }
-
   public async workaroundInitialOffline(): Promise<void> {
     await this._offlineUnitTypes.doIfNotNull(content => this._onUnitTypeChange(content));
   }

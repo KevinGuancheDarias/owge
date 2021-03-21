@@ -57,22 +57,6 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     return <any>this._reportStore.reports.asObservable();
   }
 
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   */
-  public async workaroundSync(): Promise<void> {
-    this._onChange(
-      await this._wsEventCacheService.findFromCacheOrRun(
-        'mission_report_change',
-        this._offlineChangeCache,
-        async () => await this._doDownloadPage().toPromise()
-      )
-    );
-  }
-
   public async workaroundInitialOffline(): Promise<void> {
     await this._offlineChangeCache.doIfNotNull(content => this._onChange(content));
     await this._offlineCountChangeCache.doIfNotNull(content => this._onCountChange(content));

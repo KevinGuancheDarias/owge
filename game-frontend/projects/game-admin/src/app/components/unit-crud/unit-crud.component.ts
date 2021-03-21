@@ -8,7 +8,7 @@ import { UnitType, SpeedImpactGroup, ModalComponent } from '@owge/core';
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
-import { InterceptableSpeedGroup } from 'projects/owge-universe/src/lib/types/interceptable-speed-group.type';
+import { InterceptableSpeedGroup } from '@owge/universe';
 import { CommonCrudComponent } from '../common-crud/common-crud.component';
 import { CommonCrudWithImageComponent } from '../common-crud-with-image/common-crud-with-image.component';
 

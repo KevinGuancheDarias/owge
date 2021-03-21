@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.repository;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,22 +20,17 @@ import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
 public interface WebsocketEventsInformationRepository
 		extends JpaRepository<WebsocketEventsInformation, EventNameUserId> {
 
-	/**
-	 *
-	 * @param userId
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<WebsocketEventsInformation> findByEventNameUserIdUserId(Integer userId);
+	Optional<WebsocketEventsInformation> findOneByEventNameUserIdEventNameAndEventNameUserIdUserId(String event,
+			Integer userId);
 
 	/**
 	 *
-	 *
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
+	List<WebsocketEventsInformation> findByEventNameUserIdUserId(Integer userId);
+
 	@Modifying
-	@Query(value = "TRUNCATE TABLE websocket_events_information", nativeQuery = true)
-	public void truncateTable();
+	@Query("UPDATE WebsocketEventsInformation wei SET wei.lastSenT = ?2 WHERE wei.eventNameUserId.userId = ?1")
+	void updateLastSent(Integer userId, Date lastSentDate);
 }

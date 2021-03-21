@@ -36,22 +36,6 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
     this._offlinePlanetOwnedChange = this._universeCacheManagerService.getStore('planet.owned_list');
   }
 
-  /**
-   *
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @since 0.9.0
-   * @returns
-   */
-  public async workaroundSync(): Promise<void> {
-    this._onPlanetOwnedChange(await this._wsEventCacheService.findFromCacheOrRun('planet_owned_change', this._offlinePlanetOwnedChange,
-      async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'planet/findMyPlanets').toPromise()
-    ));
-    if (this._wsEventCacheService.hasChanged('planet_explored_event')) {
-      this._onPlanetExploredEvent(null);
-    }
-  }
-
   public async workaroundInitialOffline(): Promise<void> {
     await this._offlinePlanetOwnedChange.doIfNotNull(content => this._onPlanetOwnedChange(content));
   }

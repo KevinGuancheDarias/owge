@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +43,10 @@ public class WebsocketSyncService {
 	@Autowired
 	private UserStorageBo userStorageBo;
 
-	private Map<String, Function<UserStorage, Object>> handlers = new HashMap<>();
+	@Autowired
+	private WebsocketEventsInformationBo websocketEventsInformationBo;
+
+	private final Map<String, Function<UserStorage, Object>> handlers = new HashMap<>();
 
 	@PostConstruct
 	public void init() {
@@ -61,8 +66,6 @@ public class WebsocketSyncService {
 	/**
 	 * Executes the find query to return all the wanted data
 	 *
-	 * @param keys
-	 * @return
 	 * @since 0.9.6
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -70,19 +73,26 @@ public class WebsocketSyncService {
 	public Map<String, Object> findWantedData(List<String> keys) {
 		Map<String, Object> retVal = new HashMap<>();
 		Map<String, CompletableFuture<Object>> runningHandlers = new HashMap<>();
+		UserStorage loggedUser = userStorageBo.findLoggedIn();
 		keys.forEach(key -> {
 			if (handlers.containsKey(key)) {
-				runningHandlers.put(key, asyncRunnerBo.runAssync(userStorageBo.findLoggedIn(), handlers.get(key)));
+				runningHandlers.put(key, asyncRunnerBo.runAssync(loggedUser, handlers.get(key)));
 			} else {
 				throw new SgtBackendInvalidInputException("Invalid key specified, specified: " + key + ", of allowed: "
 						+ String.join(",", handlers.keySet()));
 			}
 		});
 		Collection<CompletableFuture<Object>> values = runningHandlers.values();
-		CompletableFuture.allOf(values.toArray(new CompletableFuture[values.size()])).join();
+		CompletableFuture.allOf(values.toArray(new CompletableFuture[0])).join();
 		runningHandlers.forEach((key, handler) -> {
 			try {
-				retVal.put(key, handler.get());
+				Map<String, Object> pair = new HashMap<>();
+				Instant date = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+				pair.put("data", handler.get());
+				pair.put("lastSent", date);
+				Integer userId = loggedUser.getId();
+				websocketEventsInformationBo.save(key, userId, date);
+				retVal.put(key, pair);
 			} catch (InterruptedException | ExecutionException e) {
 				LOG.error(e);
 				Thread.currentThread().interrupt();

@@ -5,7 +5,7 @@ import {
 } from '@owge/universe';
 import { validContext } from '@owge/core';
 import { Mixin } from 'ts-mixer';
-import { InterceptableSpeedGroup } from 'projects/owge-universe/src/lib/types/interceptable-speed-group.type';
+import { InterceptableSpeedGroup } from '@owge/universe';
 import { Observable } from 'rxjs';
 
 export interface AdminUnitService

@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import java.util.Date;
+import java.time.Instant;
 
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
@@ -14,14 +14,14 @@ import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
 public class WebsocketEventsInformationDto implements DtoFromEntity<WebsocketEventsInformation> {
 	private String eventName;
 	private Integer userId;
-	private Date lastSent;
+	private Instant lastSent;
 
 	@Override
 	public void dtoFromEntity(WebsocketEventsInformation entity) {
 		EventNameUserId eventNameAndUserId = entity.getEventNameUserId();
 		eventName = eventNameAndUserId.getEventName();
 		userId = eventNameAndUserId.getUserId();
-		lastSent = entity.getLastSenT();
+		lastSent = entity.getLastSent();
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class WebsocketEventsInformationDto implements DtoFromEntity<WebsocketEve
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Date getLastSent() {
+	public Instant getLastSent() {
 		return lastSent;
 	}
 
@@ -74,7 +74,7 @@ public class WebsocketEventsInformationDto implements DtoFromEntity<WebsocketEve
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.0
 	 */
-	public void setLastSent(Date lastSent) {
+	public void setLastSent(Instant lastSent) {
 		this.lastSent = lastSent;
 	}
 }

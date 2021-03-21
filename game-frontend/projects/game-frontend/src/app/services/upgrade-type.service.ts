@@ -28,12 +28,6 @@ export class UpgradeTypeService extends AbstractWebsocketApplicationHandler {
     this._offlineStore = this._universeCacheManagerService.getStore('upgrade_types.available');
   }
 
-  public async workaroundSync(): Promise<void> {
-    this._onChange(await this._wsEventCacheService.findFromCacheOrRun('upgrade_types_change', this._offlineStore, async () =>
-      await this._universeGameService.getWithAuthorizationToUniverse('upgradeType/').toPromise()
-    ));
-  }
-
   public async workaroundInitialOffline(): Promise<void> {
     await this._offlineStore.doIfNotNull(content => this._onChange(content));
   }

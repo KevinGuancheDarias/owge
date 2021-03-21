@@ -43,16 +43,7 @@ export class SpeedImpactGroupService extends AbstractWebsocketApplicationHandler
     public async createStores(): Promise<void> {
         this._offlineUnlockedIdsStore = this._universeCacheManagerService.getStore('speed_impact_group.unlocked_ids');
     }
-
-    public async workaroundSync(): Promise<void> {
-        this._onUnlockedChange(await this._wsEventCacheService.findFromCacheOrRun(
-            'speed_impact_group_unlocked_change',
-            this._offlineUnlockedIdsStore,
-            async () => await this._universeGameService.requestWithAutorizationToContext('game', 'get', 'speed-impact-group/unlocked-ids')
-                .toPromise()
-        ));
-    }
-
+    
     public async workaroundInitialOffline(): Promise<void> {
         await this._offlineUnlockedIdsStore.doIfNotNull(content => this._onUnlockedChange(content));
     }

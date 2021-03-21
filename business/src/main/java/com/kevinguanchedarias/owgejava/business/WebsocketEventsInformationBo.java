@@ -1,16 +1,20 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
-import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
-import com.kevinguanchedarias.owgejava.repository.WebsocketEventsInformationRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
+import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
+import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
+import com.kevinguanchedarias.owgejava.repository.WebsocketEventsInformationRepository;
 
 /**
  *
@@ -24,6 +28,9 @@ public class WebsocketEventsInformationBo
 	@Autowired
 	private WebsocketEventsInformationRepository repository;
 
+	@Autowired
+	private UserStorageBo userStorageBo;
+
 	@Override
 	public Class<WebsocketEventsInformationDto> getDtoClass() {
 		return WebsocketEventsInformationDto.class;
@@ -31,8 +38,6 @@ public class WebsocketEventsInformationBo
 
 	/**
 	 *
-	 * @param userId
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -48,25 +53,42 @@ public class WebsocketEventsInformationBo
 	 */
 	@Transactional
 	public void clear() {
-		repository.truncateTable();
+		Date date = new Date();
+		userStorageBo.findAllIds().forEach(userId -> repository.updateLastSent(userId, date));
 	}
 
 	/**
 	 *
-	 * @param websocketEventsInformation
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS)
-	public void save(WebsocketEventsInformation websocketEventsInformation) {
+	public WebsocketEventsInformation save(WebsocketEventsInformation websocketEventsInformation) {
 		Optional<WebsocketEventsInformation> existing = repository
 				.findById(websocketEventsInformation.getEventNameUserId());
 		if (existing.isPresent()) {
 			WebsocketEventsInformation existingEntity = existing.get();
-			existingEntity.setLastSenT(new Date());
-			repository.save(existingEntity);
+			existingEntity.setLastSent(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+			return repository.save(existingEntity);
 		} else {
-			repository.save(websocketEventsInformation);
+			return repository.save(websocketEventsInformation);
+		}
+	}
+
+	@Transactional
+	public void save(String event, Integer userId, Instant lastSent) {
+		Optional<WebsocketEventsInformation> existing = repository
+				.findOneByEventNameUserIdEventNameAndEventNameUserIdUserId(event, userId);
+		if (existing.isPresent()) {
+			existing.get().setLastSent(lastSent);
+		} else {
+			WebsocketEventsInformation eventsInformation = new WebsocketEventsInformation();
+			EventNameUserId id = new EventNameUserId();
+			id.setEventName(event);
+			id.setUserId(userId);
+			eventsInformation.setEventNameUserId(id);
+			eventsInformation.setLastSent(lastSent);
+			save(eventsInformation);
 		}
 	}
 }

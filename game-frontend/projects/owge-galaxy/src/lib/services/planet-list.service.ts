@@ -71,15 +71,6 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
     public delete(planetId: number): Observable<void> {
         return this._universeGameService.requestWithAutorizationToContext('game', 'delete', `planet-list/${planetId}`);
     }
-
-    public async workaroundSync(): Promise<void> {
-        this._onPlanetUserListChange(await this._wsEventCacheService.findFromCacheOrRun(
-            'planet_user_list_change',
-            this._offlineStore,
-            async () => await this._getFromBackend()
-        ));
-    }
-
     public async workaroundInitialOffline(): Promise<void> {
         await this._offlineStore.doIfNotNull(content => this._onPlanetUserListChange(content));
     }

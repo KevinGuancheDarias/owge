@@ -40,6 +40,7 @@ export * from './lib/types/entity-with-image.type';
 export * from './lib/types/http-options.type';
 export * from './lib/types/improvement-unit-type.type';
 export * from './lib/types/improvement.type';
+export * from './lib/types/instant.type';
 export * from './lib/types/menu-route.type';
 export * from './lib/types/mission-support.type';
 export * from './lib/types/mission.type';

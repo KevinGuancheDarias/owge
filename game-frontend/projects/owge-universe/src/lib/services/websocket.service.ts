@@ -234,6 +234,7 @@ export class WebsocketService {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
+        console.log('Information valor', message);
         const handlers: AbstractWebsocketApplicationHandler[] = this._getValidHandlers(eventName);
         if (handlers.length) {
           handlers.forEach(async handler => {
