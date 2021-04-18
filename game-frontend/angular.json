@@ -131,15 +131,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/game-admin/tsconfig.app.json",
-              "projects/game-admin/tsconfig.spec.json",
-              "projects/game-admin/e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/game-admin/**/*.ts",
+              "projects/game-admin/**/*.html"
             ]
           }
         },
@@ -184,14 +180,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-core/tsconfig.lib.json",
-              "projects/owge-core/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-core/**/*.ts",
+              "projects/owge-core/**/*.html"
             ]
           }
         }
@@ -224,14 +217,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-universe/tsconfig.lib.json",
-              "projects/owge-universe/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-universe/**/*.ts",
+              "projects/owge-universe/**/*.html"
             ]
           }
         }
@@ -264,14 +254,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-alliance/tsconfig.lib.json",
-              "projects/owge-alliance/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-alliance/**/*.ts",
+              "projects/owge-alliance/**/*.html"
             ]
           }
         }
@@ -304,14 +291,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-widgets/tsconfig.lib.json",
-              "projects/owge-widgets/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-widgets/**/*.ts",
+              "projects/owge-widgets/**/*.html"
             ]
           }
         }
@@ -479,15 +463,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/game-frontend/tsconfig.app.json",
-              "projects/game-frontend/tsconfig.spec.json",
-              "projects/game-frontend/e2e/tsconfig.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/game-frontend/**/*.ts",
+              "projects/game-frontend/**/*.html"
             ]
           }
         },
@@ -532,14 +512,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-galaxy/tsconfig.lib.json",
-              "projects/owge-galaxy/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-galaxy/**/*.ts",
+              "projects/owge-galaxy/**/*.html"
             ]
           }
         }
@@ -572,14 +549,11 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/owge-faction/tsconfig.lib.json",
-              "projects/owge-faction/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
+            "lintFilePatterns": [
+              "projects/owge-faction/**/*.ts",
+              "projects/owge-faction/**/*.html"
             ]
           }
         }
@@ -595,5 +569,8 @@
     "@schematics/angular:directive": {
       "prefix": "app"
     }
+  },
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
   }
 }
