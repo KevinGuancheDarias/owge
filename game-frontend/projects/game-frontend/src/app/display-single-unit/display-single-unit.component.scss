@@ -13,6 +13,22 @@ app-display-single-unit {
     width: 98%;
     flex-wrap: wrap;
 
+    .intercepted-image-container {
+        position: relative;
+        img {
+            width: 25px;
+            height: 25px;
+        }
+        span {
+            position: absolute;
+            left: 3px;
+            top: 0px;
+            color: red;
+            background-color: black;
+            border-radius: 5px;
+            opacity: 0.8;
+        }
+    }
     .extra-attributes {
         box-shadow: 2px 2px 2px black;
         padding-bottom: 5px;

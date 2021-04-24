@@ -33,3 +33,4 @@ CREATE TABLE `interceptable_speed_group` (
 ) ENGINE = InnoDB;
 
 ALTER TABLE `missions` ADD `invisible` TINYINT NOT NULL AFTER `resolved`;
+ALTER TABLE `speed_impact_groups` ADD `image_id` BIGINT UNSIGNED NULL AFTER `can_deploy`;

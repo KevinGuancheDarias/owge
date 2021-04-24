@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
 import { SpeedImpactGroup } from '@owge/core';
+import { ImageStore } from '@owge/universe';
 
 /**
  *
@@ -33,6 +34,20 @@ export class SpeedImpactGroupCrudComponent implements OnInit {
       el.canCounterattack = 'ANY';
       el.canConquest = 'ANY';
       el.canDeploy = 'ANY';
+    }
+  }
+
+  /**
+   *
+   * @param  image
+   */
+   public setImage(image: ImageStore): void {
+    if(image) {
+      this.selectedEl.image = image.id;
+      this.selectedEl.imageUrl = image.url;
+    } else {
+      this.selectedEl.image = null;
+      this.selectedEl.imageUrl = null;
     }
   }
 

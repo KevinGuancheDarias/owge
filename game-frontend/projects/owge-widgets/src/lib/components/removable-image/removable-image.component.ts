@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 import { LoggerHelper } from '@owge/core';
 
@@ -31,8 +31,10 @@ export class RemovableImageComponent {
   /**
    * The passed image
    */
+  @Input() public imageId: number;
+  @Output() public imageIdChange: EventEmitter<number> = new EventEmitter;
   @Input() public imageUrl: string;
-  @Output() public imageUrlChange: EventEmitter<string> = new EventEmitter();
+  @Output() public imageUrlChange: EventEmitter<string> = new EventEmitter;
 
   /**
    * Fires when the image has been removed, has the old image value
@@ -44,7 +46,8 @@ export class RemovableImageComponent {
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _undoInterval: number;
-  private _originalImage: string;
+  private _originalImageId: number;
+  private _originalImageUrl: string;
 
   /**
    * Removes the image (usually on click on delete icon xD)
@@ -53,10 +56,11 @@ export class RemovableImageComponent {
    * @since 0.8.0
    */
   public remove(): void {
-    this._originalImage = this.imageUrl;
-    this._log.debug(`Removed image ${this._originalImage}`);
+    this._originalImageId = this.imageId;
+    this._originalImageUrl = this.imageUrl;
+    this._log.debug(`Removed image ${this._originalImageUrl}`);
     this.deleted.emit(this.imageUrl);
-    this._changeImage(null);
+    this._changeImage();
     this.undoTimer = this.undoDelay;
     this._undoInterval = window.setInterval(() => {
       this.undoTimer--;
@@ -68,13 +72,15 @@ export class RemovableImageComponent {
 
   public undo(): void {
     if (this._undoInterval) {
-      this._changeImage(this._originalImage);
+      this._changeImage(this._originalImageId, this._originalImageUrl);
       this._removeInterval();
     }
   }
 
-  private _changeImage(image: string = null): void {
-    this.imageUrl = image;
+  private _changeImage(id: number = null, url: string = null): void {
+    this.imageId = id;
+    this.imageUrl = url;
+    this.imageIdChange.emit(this.imageId);
     this.imageUrlChange.emit(this.imageUrl);
   }
 

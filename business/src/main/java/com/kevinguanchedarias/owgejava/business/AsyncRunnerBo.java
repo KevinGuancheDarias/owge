@@ -65,4 +65,8 @@ public class AsyncRunnerBo {
 		thread.start();
 	}
 
+	public void runAssyncWithoutContextDelayed(Runnable task) {
+		runAssyncWithoutContextDelayed(task, 200);
+	}
+
 }

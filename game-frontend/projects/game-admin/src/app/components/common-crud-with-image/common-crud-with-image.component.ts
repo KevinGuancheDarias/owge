@@ -35,8 +35,13 @@ export class CommonCrudWithImageComponent<K, T extends CommonEntity<K> & EntityW
    * @param  image
    */
   public setImage(newElement: T, image: ImageStore): void {
-    newElement.image = image.id;
-    newElement.imageUrl = image.url;
+    if(image) {
+      newElement.image = image.id;
+      newElement.imageUrl = image.url;
+    } else {
+      newElement.image = null;
+      newElement.imageUrl = null;
+    }
   }
 
   /**

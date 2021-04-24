@@ -9,12 +9,6 @@ import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WidgetDisplayImageComponent implements OnChanges {
-  /**
-     * Returns the full path to the image
-     *
-     * @author Kevin Guanche Darias
-     */
-  public parsedImage: string;
 
   @Input()
   public image: string;
@@ -33,6 +27,8 @@ export class WidgetDisplayImageComponent implements OnChanges {
    */
   @Input()
   public customClass: string;
+
+  public parsedImage: string;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
 

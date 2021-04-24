@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -111,13 +112,15 @@ public class UnitRestService implements SyncSource {
 		List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
 				unlockedRelationBo.findByUserIdAndObjectType(user.getId(), RequirementTargetObject.UNIT));
 
-		UnitDto convert = new UnitDto();
+		units.forEach(current -> Hibernate.initialize(current.getInterceptableSpeedGroups()));
+		var convert = new UnitDto();
 		return convert.dtoFromEntity(UnitDto.class, units);
 	}
 
 	private List<ObtainedUnitDto> findInMyPlanets(UserStorage user) {
 		List<ObtainedUnit> entities = obtainedUnitBo.findDeployedInUserOwnedPlanets(user.getId());
 		entities.forEach(current -> current.getUnit().getSpeedImpactGroup().setRequirementGroups(null));
+		entities.forEach(current -> Hibernate.initialize(current.getUnit().getInterceptableSpeedGroups()));
 		return obtainedUnitBo.toDto(entities);
 	}
 

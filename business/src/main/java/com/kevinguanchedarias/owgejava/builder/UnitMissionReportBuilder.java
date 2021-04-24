@@ -1,5 +1,11 @@
 package com.kevinguanchedarias.owgejava.builder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,13 +17,8 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
+import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class UnitMissionReportBuilder {
 
@@ -26,7 +27,7 @@ public class UnitMissionReportBuilder {
 	private final ObjectMapper mapper = new ObjectMapper();
 
 	public static UnitMissionReportBuilder create(UserStorage user, Planet sourcePlanet, Planet targetPlanet,
-												  List<ObtainedUnit> selectedUnits) {
+			List<ObtainedUnit> selectedUnits) {
 		return create().withSenderUser(user).withSourcePlanet(sourcePlanet).withTargetPlanet(targetPlanet)
 				.withInvolvedUnits(selectedUnits);
 	}
@@ -133,6 +134,20 @@ public class UnitMissionReportBuilder {
 		return this;
 	}
 
+	public UnitMissionReportBuilder withInterceptionInformation(List<InterceptedUnitsInformation> interceptedUnits) {
+		List<Map<String, Object>> interceptionInfo = new ArrayList<>();
+		interceptedUnits.forEach(current -> {
+			Map<String, Object> interceptedEntryMap = new HashMap<>();
+			interceptedEntryMap.put("interceptorUser", current.getInterceptorUser().getUsername());
+			interceptedEntryMap.put("interceptorUnit", obtainedUnitToDto(current.getInterceptorUnit()));
+			interceptedEntryMap.put("units",
+					current.getInterceptedUnits().stream().map(this::obtainedUnitToDto).collect(Collectors.toList()));
+			interceptionInfo.add(interceptedEntryMap);
+		});
+		createdMap.put("interceptionInfo", interceptionInfo);
+		return this;
+	}
+
 	/**
 	 * A builder class can't be instantiate
 	 *
@@ -174,5 +189,4 @@ public class UnitMissionReportBuilder {
 		retVal.setUsername(user.getUsername());
 		return retVal;
 	}
-
 }
