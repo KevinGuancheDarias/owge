@@ -171,7 +171,8 @@
                 "ESTABLISH_BASE": "Establish base",
                 "ESTABLISH_BASE_ERROR": "Error establishg base, maybe you have the max possible planets",
                 "ESTABLISH_BASE_SUCCESS": "Success, now the planet is of your property",
-                "CONQUEST": "Conquest"
+                "CONQUEST": "Conquest",
+                "INTERCEPTED": "Intercepted"
             },
             "BODY": {
                 "USERNAME": "Username: {{username}}",

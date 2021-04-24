@@ -11,8 +11,7 @@
       "parserOptions": {
         "project": [
           "projects/game-admin/tsconfig.app.json",
-          "projects/game-admin/tsconfig.spec.json",
-          "projects/game-admin/e2e/tsconfig.json"
+          "projects/game-admin/tsconfig.spec.json"
         ],
         "createDefaultProgram": true
       },

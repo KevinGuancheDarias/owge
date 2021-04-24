@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.kevinguanchedarias.owgejava.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -11,10 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
@@ -111,6 +108,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 		if (target.getId() != null) {
 			objectRelationToObjectRelationRepository.deleteByMasterId(target.getId());
 		}
+		target.setImage(speedImpactGroup.getImage());
 		target.setRequirementGroups(new ArrayList<>());
 		return BaseBo.super.save(target);
 	}
@@ -118,7 +116,6 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 	/**
 	 * Finds the ids of the unlocked cross galaxy speed impact
 	 *
-	 * @param user
 	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -126,7 +123,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 	public List<Integer> findCrossGalaxyUnlocked(UserStorage user) {
 		List<SpeedImpactGroup> speedImpactGroups = unlockedRelationBo.unboxToTargetEntity(
 				unlockedRelationBo.findByUserIdAndObjectType(user.getId(), ObjectEnum.SPEED_IMPACT_GROUP));
-		return speedImpactGroups.stream().map(current -> current.getId()).collect(Collectors.toList());
+		return speedImpactGroups.stream().map(EntityWithMissionLimitation::getId).collect(Collectors.toList());
 	}
 
 }

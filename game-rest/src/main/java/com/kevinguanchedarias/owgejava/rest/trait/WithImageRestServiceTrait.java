@@ -24,15 +24,14 @@ public interface WithImageRestServiceTrait<N extends Number, E extends CommonEnt
 
 	/**
 	 * 
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
+	RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
-	public default Optional<E> beforeSave(D parsedDto, E entity) {
+	default Optional<E> beforeSave(D parsedDto, E entity) {
 		if (parsedDto.getImage() != null) {
 			entity.setImage(getRestCrudConfigBuilder().build().getBeanFactory().getBean(ImageStoreBo.class)
 					.findByIdOrDie(parsedDto.getImage()));

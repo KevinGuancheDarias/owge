@@ -2,15 +2,13 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRelationListener;
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRequirementGroupsListener;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents a speed group, the special conditions to move units <br>
@@ -52,14 +50,17 @@ public class SpeedImpactGroup extends EntityWithMissionLimitation<Integer> imple
 	@Column(name = "mission_counterattack", nullable = false)
 	private Double missionCounterattack = 0D;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "image_id")
+	@Getter
+	@Setter
+	private ImageStore image;
+
 	@Transient
 	private ObjectRelation relation;
 
 	@Transient
 	private transient List<RequirementGroup> requirementGroups;
-
-	@Transient
-	private Boolean isUnlocked = false;
 
 	public String getName() {
 		return name;
@@ -175,24 +176,6 @@ public class SpeedImpactGroup extends EntityWithMissionLimitation<Integer> imple
 	@Override
 	public void setRequirementGroups(List<RequirementGroup> requirementGroups) {
 		this.requirementGroups = requirementGroups;
-	}
-
-	/**
-	 * @return the isUnlocked
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Boolean getIsUnlocked() {
-		return isUnlocked;
-	}
-
-	/**
-	 * @param isUnlocked the isUnlocked to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setIsUnlocked(Boolean isUnlocked) {
-		this.isUnlocked = isUnlocked;
 	}
 
 	@Override

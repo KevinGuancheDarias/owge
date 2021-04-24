@@ -24,11 +24,7 @@ public class RestCrudConfigBuilder<K extends Serializable, E extends EntityWithI
 
 	/**
 	 * Creates an instance of the builder
-	 * 
-	 * @param <N>
-	 * @param <E>
-	 * @param <S>
-	 * @param <D>
+	 *
 	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

@@ -45,9 +45,13 @@
         <owge-widgets-display-improved-attribute *ngIf="unit.charge" [name]="'Charge'" [value]="unit.charge"
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge"></owge-widgets-display-improved-attribute>
         <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed"></owge-widgets-display-improved-attribute>
-        <div class="extra-attributes" *ngIf="unit.bypassShield || unit.isInvisible">
+        <div class="extra-attributes">
           <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" [image]="'bypass-shield.png'" [customClass]="'resourceImage'"></owge-widgets-display-image>
           <owge-widgets-display-image *ngIf="unit.isInvisible" [assetsImage]="true" [image]="'invisible.png'" [customClass]="'resourceImage'"></owge-widgets-display-image>
+          <div class="resourceImage intercepted-image-container" *ngFor="let interceptable of unit.interceptableSpeedGroups">
+            <owge-widgets-display-image [image]="interceptable.speedImpactGroup.imageUrl"></owge-widgets-display-image>
+            <span class="fas fa-shield-alt"></span>
+          </div>
         </div>
       </ng-container>
       <owge-widgets-display-improvements *ngIf="selectedView === 'improvements'" 

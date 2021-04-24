@@ -19,4 +19,6 @@ export interface SpeedImpactGroup extends TypeWithMissionLimitation {
     missionConquest: number;
     missionCounterattack: number;
     requirementsGroups: RequirementGroup[];
+    image: number;
+    imageUrl: string;
 }

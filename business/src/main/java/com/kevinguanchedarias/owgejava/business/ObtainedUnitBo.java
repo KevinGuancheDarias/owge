@@ -30,6 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -281,6 +282,30 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId));
 		emitObtainedUnitChange(userId);
 		return retVal;
+	}
+
+	/**
+	 * Emits changes to elements affected by an unit alteration, for example, energy, or type's count
+	 */
+	public void emitSideChanges(List<ObtainedUnit> obtainedUnits) {
+		if(!obtainedUnits.isEmpty()) {
+			UserStorage user = obtainedUnits.get(0).getUser();
+			Integer userId = user.getId();
+
+			if(obtainedUnits.stream().anyMatch(unit -> unit.getUnit().getEnergy() > 0)) {
+				asyncRunnerBo.runAssyncWithoutContextDelayed(() ->  userStorageBo.emitUserData(user));
+			}
+			asyncRunnerBo.runAssyncWithoutContextDelayed(() ->
+					socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId))
+			);
+			emitObtainedUnitChange(userId);
+		}
+	}
+
+	@Override
+	public void delete(List<ObtainedUnit> entities) {
+		emitSideChanges(entities);
+		BaseBo.super.delete(entities);
 	}
 
 	/**

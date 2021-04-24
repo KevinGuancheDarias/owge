@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
+import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +16,8 @@ import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithRequirementGroupsRestServiceTrait;
+
+import java.util.Optional;
 
 /**
  *
@@ -48,4 +52,14 @@ public class AdminSpeedImpactGroupRestService
 				.withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
 	}
 
+	@Override
+	public Optional<SpeedImpactGroup> beforeSave(SpeedImpactGroupDto parsedDto, SpeedImpactGroup entity) {
+		if (parsedDto.getImage() == null) {
+			entity.setImage(null);
+		} else {
+			entity.setImage(getRestCrudConfigBuilder().build().getBeanFactory().getBean(ImageStoreBo.class)
+					.findByIdOrDie(parsedDto.getImage()));
+		}
+		return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
+	}
 }

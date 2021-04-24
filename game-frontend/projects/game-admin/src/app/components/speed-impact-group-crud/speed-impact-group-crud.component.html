@@ -3,6 +3,13 @@
         <ng-container *ngIf="selectedEl">
             <div class="form-row">
                 <div class="form-group col-md-6">
+                    <label>{{ 'CRUD_WITH_IMAGE.IMAGE' | translate }}</label><br>
+                    <owge-widgets-removable-image [(imageUrl)]="selectedEl.imageUrl" [(imageId)]="selectedEl.image"></owge-widgets-removable-image>
+                </div>
+                <div class="form-group col-md-6">
+                    <owge-universe-image-selector (selected)="setImage($event)"></owge-universe-image-selector>
+                </div>
+                <div class="form-group col-md-6">
                     <label>{{ 'CRUD.SPEED_IMPACT_GROUP.IS_FIXED' | translate }}</label>
                     <input type="checkbox" class="form-control" [(ngModel)]="selectedEl.isFixed"/>
                 </div>
@@ -46,5 +53,9 @@
                 </ng-container>
             </div>
         </ng-container>
+    </ng-template>
+
+    <ng-template #middleOfCard let-element>
+        <img *ngIf="element.imageUrl" [src]="element.imageUrl">
     </ng-template>
 </app-common-crud>

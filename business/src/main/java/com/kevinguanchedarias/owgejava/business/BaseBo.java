@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -91,6 +92,10 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
 	 */
 	default void delete(K id) {
 		delete(findByIdOrDie(id));
+	}
+
+	default  void delete(List<E> entities) {
+		getRepository().deleteAll(entities);
 	}
 
 	default boolean exists(E entity) {

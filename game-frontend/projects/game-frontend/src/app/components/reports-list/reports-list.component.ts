@@ -1,13 +1,12 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 
-import { ModalComponent, ScreenDimensionsService, LoadingService, ObservableSubscriptionsHelper } from '@owge/core';
+import { ModalComponent, ScreenDimensionsService, ObservableSubscriptionsHelper } from '@owge/core';
 
 import { ReportService } from '../../services/report.service';
 import { BaseComponent } from '../../base/base.component';
 import { MissionReport, WebsocketService } from '@owge/universe';
 import { UserWithFaction } from '@owge/faction';
 import { tap, filter } from 'rxjs/operators';
-import { Subscription } from 'rxjs';
 
 interface NormalizedMissionReport extends MissionReport {
   normalizedDate?: Date;
@@ -20,12 +19,12 @@ interface NormalizedMissionReport extends MissionReport {
 })
 export class ReportsListComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
 
+  @ViewChild('reportDetailsModal', { static: true })
+  private _modal: ModalComponent;
+
   public reports: NormalizedMissionReport[];
   public selectedReport: NormalizedMissionReport;
   public isDesktop: boolean;
-
-  @ViewChild('reportDetailsModal', { static: true })
-  private _modal: ModalComponent;
 
   private _page = 1;
   private _identifier: string;
