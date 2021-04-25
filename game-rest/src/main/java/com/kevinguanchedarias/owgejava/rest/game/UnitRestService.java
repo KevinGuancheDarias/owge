@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -60,8 +59,6 @@ public class UnitRestService implements SyncSource {
 	/**
 	 *
 	 * @deprecated Find in all planets instead
-	 * @param planetId
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Deprecated(since = "0.9.0")
@@ -93,7 +90,7 @@ public class UnitRestService implements SyncSource {
 		return "\"OK\"";
 	}
 
-	@RequestMapping(value = "delete", method = RequestMethod.POST)
+	@PostMapping("delete")
 	public String delete(@RequestBody ObtainedUnitDto obtainedUnitDto) {
 		obtainedUnitDto.setUserId(userStorageBo.findLoggedIn().getId());
 		obtainedUnitBo.saveWithSubtraction(obtainedUnitDto, true);

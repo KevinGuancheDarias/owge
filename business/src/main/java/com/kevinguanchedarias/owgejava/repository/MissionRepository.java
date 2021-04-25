@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The interface Mission repository.
@@ -108,4 +109,6 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	void findByTargetPlanetAndResolvedFalseAndTerminationDateBetween(Planet targetPlanet, Date start, Date end);
 
 	List<Mission> findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
+
+	Optional<Mission> findOneByResolvedFalseAndTypeCodeAndMissionInformationValue(String typeCode, Double planetId);
 }

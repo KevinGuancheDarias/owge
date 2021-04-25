@@ -381,6 +381,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	@Autowired
 	private transient EntityManager entityManager;
 
+	@Autowired
+	private  MissionBo missionBo;
+
 	@Override
 	public String getGroupName() {
 		return JOB_GROUP_NAME;
@@ -616,6 +619,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			if (oldOwner != null) {
 				planetBo.emitPlanetOwnedChange(oldOwner);
+				findUnitBuildMission(targetPlanet).ifPresent(buildMission -> missionBo.cancelBuildUnit(buildMission.getId()));
 				emitEnemyMissionsChange(oldOwner);
 				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
 						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
@@ -629,6 +633,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 			emitLocalMissionChangeAfterCommit(mission);
 		}
 		return builder;
+	}
+
+	public Optional<Mission> findUnitBuildMission(Planet planet) {
+		return missionRepository.findOneByResolvedFalseAndTypeCodeAndMissionInformationValue(MissionType.BUILD_UNIT.name(), planet.getId().doubleValue());
 	}
 
 	@Transactional
@@ -679,9 +687,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 			save(mission);
 			long nowMillis = new Instant().getMillis();
 			long terminationMillis = mission.getTerminationDate().getTime();
-			long durationMillis = 0L;
+			var durationMillis = 0L;
 			if (terminationMillis >= nowMillis) {
-				Interval interval = new Interval(nowMillis, terminationMillis);
+				var interval = new Interval(nowMillis, terminationMillis);
 				durationMillis = (long) (interval.toDurationMillis() / 1000D);
 			}
 			adminRegisterReturnMission(mission, mission.getRequiredTime() - durationMillis);

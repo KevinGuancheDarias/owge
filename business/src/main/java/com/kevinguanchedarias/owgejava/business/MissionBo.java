@@ -213,12 +213,12 @@ public class MissionBo extends AbstractMissionBo {
 	public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
 		planetBo.myCheckIsOfUserProperty(planetId);
 		checkUnitBuildMissionDoesNotExists(userId, planetId);
-		ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UNIT,
+		var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UNIT,
 				unitId);
 		checkUnlockedUnit(userId, relation);
-		UserStorage user = userStorageBo.findById(userId);
+		var user = userStorageBo.findById(userId);
 		checkMissionLimitNotReached(user);
-		Unit unit = unitBo.findByIdOrDie(unitId);
+		var unit = unitBo.findByIdOrDie(unitId);
 		Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
 		unitBo.checkIsUniqueBuilt(user, unit);
 		ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
@@ -229,11 +229,11 @@ public class MissionBo extends AbstractMissionBo {
 				.setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
 						improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
 		obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
-		MissionInformation missionInformation = new MissionInformation();
+		var missionInformation = new MissionInformation();
 		missionInformation.setRelation(relation);
 		missionInformation.setValue(planetId.doubleValue());
 
-		Mission mission = new Mission();
+		var mission = new Mission();
 		mission.setStartingDate(new Date());
 		mission.setMissionInformation(missionInformation);
 		if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {

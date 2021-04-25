@@ -2,6 +2,7 @@
 
 v0.10.0 (latest)
 =================
+* __Fix:__ [When a conquest succeed, is not deleting the building mission #389](https://github.com/KevinGuancheDarias/owge/issues/389)  
 * __Fix:__ [Conquest are failing when the planet is a special location, and the owner left it before the conquest completed #387](https://github.com/KevinGuancheDarias/owge/issues/387)  
 * __Feature:__ [As a player I want to be able to intercept a enemy units with a speed group when I have a unit capable of doing so #9](https://github.com/KevinGuancheDarias/owge/issues/9)  
 * __Fix:__ [Sync system is way too unstable, specially on mobile devices #386](https://github.com/KevinGuancheDarias/owge/issues/386)  
