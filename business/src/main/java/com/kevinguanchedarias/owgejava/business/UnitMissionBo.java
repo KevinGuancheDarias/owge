@@ -1,11 +1,41 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-
+import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.entity.AttackRule;
+import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
+import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
+import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
+import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
+import com.kevinguanchedarias.owgejava.entity.Unit;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
+import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
+import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
+import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
+import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.exception.NotFoundException;
+import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
+import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
+import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
+import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
+import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
+import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
+import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -21,19 +51,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.*;
-import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
-import com.kevinguanchedarias.owgejava.enumerations.*;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.exception.*;
-import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
-import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
-import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
-import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
@@ -619,7 +648,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 			if (oldOwner != null) {
 				planetBo.emitPlanetOwnedChange(oldOwner);
-				findUnitBuildMission(targetPlanet).ifPresent(buildMission -> missionBo.cancelBuildUnit(buildMission.getId()));
+				findUnitBuildMission(targetPlanet).ifPresent(missionBo::adminCancelBuildMission);
 				emitEnemyMissionsChange(oldOwner);
 				UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
 						.create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)

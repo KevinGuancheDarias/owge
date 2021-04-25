@@ -384,6 +384,7 @@ public class MissionBo extends AbstractMissionBo {
 					missionUser.addtoPrimary(mission.getPrimaryResource());
 					missionUser.addToSecondary(mission.getSecondaryResource());
 					userStorageBo.save(missionUser);
+					emitUserAftercommit(missionUser.getId());
 					break;
 				default:
 					throw new CommonException("No such mission type " + mission.getType().getCode());
@@ -458,7 +459,6 @@ public class MissionBo extends AbstractMissionBo {
 	public void cancelBuildUnit(Long missionId) {
 		UserStorage user = findById(missionId).getUser();
 		cancelMission(missionId);
-		emitUserAftercommit(user.getId());
 	}
 
 	/**
