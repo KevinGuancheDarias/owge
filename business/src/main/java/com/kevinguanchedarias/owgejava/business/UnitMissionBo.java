@@ -339,7 +339,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private void updatePoints() {
 			Set<Integer> alteredUsers = new HashSet<>();
 			users.entrySet().forEach(current -> {
-				AttackUserInformation attackUserInformation = current.getValue();
+				var attackUserInformation = current.getValue();
 				List<AttackObtainedUnit> userUnits = attackUserInformation.units;
 				userStorageBo.addPointsToUser(attackUserInformation.getUser(), attackUserInformation.earnedPoints);
 				userUnits.stream().filter(currentUnit -> !currentUnit.finalCount.equals(0L)

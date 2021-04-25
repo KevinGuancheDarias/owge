@@ -67,7 +67,7 @@ public class MissionBo extends AbstractMissionBo {
 	private transient AsyncRunnerBo asyncRunnerBo;
 
 	@Autowired
-	private TransactionUtilService transactionUtilService;
+	private transient TransactionUtilService transactionUtilService;
 
 	@PostConstruct
 	public void init() {
@@ -77,12 +77,12 @@ public class MissionBo extends AbstractMissionBo {
 				unitTypeBo.emitUserChange(userId);
 			}
 		});
-		improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) -> {
-			TransactionUtil.doAfterCommit(() -> {
-				socketIoService.sendMessage(userId, "user_max_energy_change",
-						() -> userStorageBo.findMaxEnergy(userId));
-			});
-		});
+		improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) ->
+				TransactionUtil.doAfterCommit(() ->
+						socketIoService.sendMessage(userId, "user_max_energy_change",
+								() -> userStorageBo.findMaxEnergy(userId))
+				)
+		);
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
@@ -359,7 +359,6 @@ public class MissionBo extends AbstractMissionBo {
 	/**
 	 * Should be invoked from the context
 	 *
-	 * @param mission
 	 * @author Kevin Guanche Darias
 	 */
 	@Transactional
@@ -367,9 +366,9 @@ public class MissionBo extends AbstractMissionBo {
 		if (mission == null) {
 			throw new MissionNotFoundException("The mission was not found, or was not passed to cancelMission()");
 		}
-		UserStorage missionUser = userStorageBo.findOneByMission(mission);
-		UserStorage loggedInUser = userStorageBo.findLoggedIn();
-		MissionType type = MissionType.valueOf(mission.getType().getCode());
+		var missionUser = userStorageBo.findOneByMission(mission);
+		var loggedInUser = userStorageBo.findLoggedIn();
+		var type = MissionType.valueOf(mission.getType().getCode());
 		if (missionUser == null) {
 			if (type == MissionType.BROADCAST_MESSAGE) {
 				throw new SgtBackendNotImplementedException("This feature has not been implemented");
@@ -378,23 +377,16 @@ public class MissionBo extends AbstractMissionBo {
 			}
 		} else if (missionUser.getId().equals(loggedInUser.getId())) {
 			switch (type) {
-			case BUILD_UNIT:
-				obtainedUnitBo.deleteByMissionId(mission.getId());
-				missionUser.addtoPrimary(mission.getPrimaryResource());
-				missionUser.addToSecondary(mission.getSecondaryResource());
-				userStorageBo.save(missionUser);
-				TransactionUtil.doAfterCommit(() -> {
-					socketIoService.sendMessage(missionUser, UNIT_BUILD_MISSION_CHANGE,
-							() -> findBuildMissions(missionUser.getId()));
-				});
-				break;
-			case LEVEL_UP:
-				missionUser.addtoPrimary(mission.getPrimaryResource());
-				missionUser.addToSecondary(mission.getSecondaryResource());
-				userStorageBo.save(missionUser);
-				break;
-			default:
-				throw new CommonException("No such mission type " + mission.getType().getCode());
+				case BUILD_UNIT:
+					adminCancelBuildMission(mission);
+					break;
+				case LEVEL_UP:
+					missionUser.addtoPrimary(mission.getPrimaryResource());
+					missionUser.addToSecondary(mission.getSecondaryResource());
+					userStorageBo.save(missionUser);
+					break;
+				default:
+					throw new CommonException("No such mission type " + mission.getType().getCode());
 			}
 		} else {
 			throw new CommonException(
@@ -402,6 +394,20 @@ public class MissionBo extends AbstractMissionBo {
 		}
 		delete(mission);
 		abortMissionJob(mission);
+	}
+
+	@Transactional
+	public void adminCancelBuildMission(Mission mission) {
+		UserStorage missionUser = mission.getUser();
+		obtainedUnitBo.deleteByMissionId(mission.getId());
+		missionUser.addtoPrimary(mission.getPrimaryResource());
+		missionUser.addToSecondary(mission.getSecondaryResource());
+		userStorageBo.save(missionUser);
+		TransactionUtil.doAfterCommit(() -> {
+			socketIoService.sendMessage(missionUser, UNIT_BUILD_MISSION_CHANGE,
+					() -> findBuildMissions(missionUser.getId()));
+			emitUser(missionUser.getId());
+		});
 	}
 
 	@Transactional
@@ -451,34 +457,40 @@ public class MissionBo extends AbstractMissionBo {
 	@Transactional
 	public void cancelBuildUnit(Long missionId) {
 		UserStorage user = findById(missionId).getUser();
-		Integer userId = user.getId();
 		cancelMission(missionId);
-		TransactionUtil.doAfterCommit(() -> {
-			unitTypeBo.emitUserChange(userId);
-			emitMissionCountChange(userId);
-		});
+		emitUserAftercommit(user.getId());
 	}
 
 	/**
-	 *
 	 * @param missionId
 	 * @param missionType
-	 * @since 0.9.9
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.9
 	 */
 	@Transactional
 	public void runMission(Long missionId, MissionType missionType) {
 		switch (missionType) {
-		case BUILD_UNIT:
-			processBuildUnit(missionId);
-			break;
-		case LEVEL_UP:
-			processLevelUpAnUpgrade(missionId);
-			break;
-		default:
-			LOG.warn("Not a upgrade level mission nor unit build");
-			break;
+			case BUILD_UNIT:
+				processBuildUnit(missionId);
+				break;
+			case LEVEL_UP:
+				processLevelUpAnUpgrade(missionId);
+				break;
+			default:
+				LOG.warn("Not a upgrade level mission nor unit build");
+				break;
 		}
+	}
+
+	private void emitUserAftercommit(Integer userId) {
+		TransactionUtil.doAfterCommit(() -> {
+			emitUser(userId);
+		});
+	}
+
+	private void emitUser(Integer userId) {
+		unitTypeBo.emitUserChange(userId);
+		emitMissionCountChange(userId);
 	}
 
 	/**
