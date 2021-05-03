@@ -4,10 +4,11 @@ import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,29 +16,23 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- *
- * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.7.0
  */
+@AllArgsConstructor
 @Service
 public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	private static final long serialVersionUID = 2632768998010477053L;
 
-	@Autowired
-	private AllianceRepository repository;
-
-	@Autowired
-	private UserStorageBo userStorageBo;
-
-	@Autowired
-	private AllianceJoinRequestBo allianceJoinRequestBo;
-
-	@Autowired
-	private ConfigurationBo configurationBo;
+	private final AllianceRepository repository;
+	private final UserStorageBo userStorageBo;
+	private final AllianceJoinRequestBo allianceJoinRequestBo;
+	private final ConfigurationBo configurationBo;
+	private final AuditBo auditBo;
 
 	/**
-	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.7.0
 	 */
 	@Override
 	public JpaRepository<Alliance, Integer> getRepository() {
@@ -78,7 +73,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	 * <b>NOTICE:</b> Also sets the user alliance of the owner to the <i>newly</i>
 	 * created alliance
 	 *
-	 * @param alliance
 	 * @param invokerId User requesting the save
 	 * @throws ProgrammingException When the owner is null
 	 * @since 0.7.0
@@ -92,16 +86,17 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 		}
 		Alliance retVal;
 		if (alliance.getId() == null) {
-			UserStorage creator = userStorageBo.findById(invokerId);
+			var creator = userStorageBo.findById(invokerId);
 			if (creator.getAlliance() != null) {
 				throw new SgtBackendInvalidInputException("You already have an alliance, leave it first");
 			}
 			alliance.setOwner(creator);
 			retVal = WithNameBo.super.save(alliance);
 			retVal.getOwner().setAlliance(retVal);
+			auditBo.doAudit(AuditActionEnum.JOIN_ALLIANCE);
 			userStorageBo.save(retVal.getOwner());
 		} else {
-			Alliance storedAlliance = findById(alliance.getId());
+			var storedAlliance = findById(alliance.getId());
 			checkInvokerIsOwner(storedAlliance, invokerId);
 			storedAlliance.setName(alliance.getName());
 			storedAlliance.setDescription(alliance.getDescription());
@@ -127,7 +122,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 		if (user.getAlliance() != null) {
 			throw new SgtBackendInvalidInputException("You are already in an alliance, nice try!");
 		}
-		AllianceJoinRequest retVal = new AllianceJoinRequest();
+		var retVal = new AllianceJoinRequest();
 		retVal.setAlliance(alliance);
 		retVal.setUser(user);
 		return allianceJoinRequestBo.save(retVal);
@@ -135,11 +130,15 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
 	@Transactional
 	public void acceptJoin(Integer joinRequestId, Number invoker) {
-		AllianceJoinRequest request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
+		var request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
 		checkInvokerIsOwner(request.getAlliance(), invoker);
 		checkIsLimitReached(request);
 		if (request.getUser().getAlliance() == null) {
-			request.getUser().setAlliance(request.getAlliance());
+			var alliance = request.getAlliance();
+			request.getUser().setAlliance(alliance);
+			alliance.getUsers()
+					.forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.USER_INTERACTION, "JOIN_ALLIANCE", request.getUser(), user.getId()));
+			auditBo.doAudit(AuditActionEnum.ACCEPT_JOIN_ALLIANCE, null, request.getUser().getId());
 			userStorageBo.save(request.getUser());
 			allianceJoinRequestBo.deleteByUser(request.getUser().getId());
 		} else {
@@ -150,13 +149,11 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	/**
 	 * Rejects the join request
 	 *
-	 * @param joinRequestId
-	 * @param invoker
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void rejectJoin(Integer joinRequestId, Number invoker) {
-		AllianceJoinRequest request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
+		var request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
 		checkInvokerIsOwner(request.getAlliance(), invoker);
 		allianceJoinRequestBo.delete(request);
 	}
@@ -238,10 +235,8 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 	/**
 	 * Returns true if user has an alliance
 	 *
-	 * @param userId
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @return
 	 */
 	public boolean isOwnerOfAnAlliance(Number userId) {
 		return repository.findOneByOwnerId(userId) != null;
@@ -251,7 +246,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 		long userCount = userStorageBo.countAll();
 		float allowedPercentage = Integer
 				.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7").getValue());
-		int max = Integer.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15").getValue());
+		var max = Integer.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15").getValue());
 		float allowedByPercentage = userCount * (allowedPercentage / 100);
 		allowedByPercentage = allowedByPercentage < 2 ? 2 : allowedByPercentage;
 		int maxAllowed = (int) (allowedByPercentage < max ? allowedByPercentage : max);

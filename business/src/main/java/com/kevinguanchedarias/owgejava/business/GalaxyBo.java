@@ -1,14 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.ArrayList;
-
-import org.apache.commons.lang3.RandomUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.owgejava.dto.GalaxyDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -16,6 +7,14 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNoGalaxiesFound;
 import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import org.apache.commons.lang3.RandomUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 
 @Service
 public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
@@ -36,12 +35,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	public JpaRepository<Galaxy, Integer> getRepository() {
 		return galaxyRepository;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
-	 */
+	
 	@Override
 	public Class<GalaxyDto> getDtoClass() {
 		return GalaxyDto.class;
@@ -60,9 +54,8 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	/**
 	 * Will check if it's possible to save the galaxy
 	 *
-	 * @param galaxy
-	 * @author Kevin Guanche Darias
 	 * @throws SgtBackendInvalidInputException When it's not possible to save
+	 * @author Kevin Guanche Darias
 	 */
 	public void canSave(Galaxy galaxy) {
 		checkInput(galaxy);
@@ -70,10 +63,17 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 	}
 
 	/**
+	 * Returns the coordinates as a string with their numeric value
+	 * <br>
+	 * for example for galaxyId 2, sector 4, quadrant 1, would return <i>2-4-1</i>
+	 */
+	public String coordinatesToString(int galaxyId, long sector, long quadrant) {
+		return String.valueOf(galaxyId) + '-' + sector + '-' + quadrant;
+	}
+
+	/**
 	 * Returns number of planets galaxy will have
 	 *
-	 * @param galaxy
-	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public Long computedPlanetsCount(Galaxy galaxy) {
@@ -82,7 +82,6 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
 	/**
 	 * @return Returns a random galaxy
-	 * @throws SgtBackendNoGalaxiesFound
 	 * @author Kevin Guanche Darias
 	 */
 	public Integer findRandomGalaxy() {
@@ -92,7 +91,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 			throw new SgtBackendNoGalaxiesFound("Este universo no posee galaxias");
 		}
 
-		int selectedGalaxy = RandomUtils.nextInt(0, count);
+		var selectedGalaxy = RandomUtils.nextInt(0, count);
 
 		return galaxyRepository.findAll(PageRequest.of(selectedGalaxy, 1)).getContent().get(0).getId();
 	}

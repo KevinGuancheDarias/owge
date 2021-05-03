@@ -1,4 +1,7 @@
 {
+    "I18N_WARN_TOR": "Está usando Tor, es muy probable que seas baneado automáticamente, luego no llores, please",
+    "I18N_WARN_MULTI_ACCOUNT": "Estás usando múltiples cuentas, que están interactuando, no puede haber interacción entre tus cuentas, puede que seas baneado, luego no llores",
+    "I18N_ERR_BANNED": "Tu cuenta está baneada :(",
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "Has excedido tu límite de misiones",
     "I18N_ERR_DEPLOY_ITSELF": "El planeta de destino no puede ser el mismo que el de origen",
     "ERR_I18N_CAN_NOT_LEAVE_PLANET": "NO se puede dejar el planeta, asegúrate de no tener construcciones en curso, y que no sea tu planeta home",

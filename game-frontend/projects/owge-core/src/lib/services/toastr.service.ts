@@ -1,10 +1,10 @@
 import { IndividualConfig, ToastrService as SourceService } from 'ngx-toastr';
 import { Injectable } from '@angular/core';
-import { Observable, throwError, combineLatest } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { HttpUtil } from '../utils/http.util';
 
-type allowedTypes = 'info' | 'error';
+type AllowedTypes = 'info' | 'error' | 'warning';
 /**
  *
  *
@@ -43,8 +43,12 @@ export class ToastrService {
      * @param [i18nTitle]
      * @param i18nInterpolation
      */
-    public info(i18nText: string, i18nTitle?: string, i18nInterpolation?: Object, toastrConfig?: IndividualConfig): void {
+    public info(i18nText: string, i18nTitle?: string, i18nInterpolation?: Record<string, unknown>, toastrConfig?: IndividualConfig): void {
         this._show('info', i18nText, i18nTitle, i18nInterpolation, toastrConfig);
+    }
+
+    public warn(i18nText: string, i18nTitle?: string, i18nInterpolation?: Record<string, unknown>, toastrConfig?: IndividualConfig): void {
+        this._show('warning', i18nText, i18nTitle, i18nInterpolation, toastrConfig);
     }
 
     /**
@@ -56,15 +60,15 @@ export class ToastrService {
      * @param [i18nTitle]
      * @param i18nInterpolation
      */
-    public error(i18nText: string, i18nTitle?: string, i18nInterpolation?: Object): void {
+    public error(i18nText: string, i18nTitle?: string, i18nInterpolation?: Record<string, unknown>): void {
         this._show('error', i18nText, i18nTitle, i18nInterpolation);
     }
 
     private _show(
-        type: allowedTypes,
+        type: AllowedTypes,
         i18nText: string,
         i18nTitle?: string,
-        i18nInterpolation: Object = {},
+        i18nInterpolation: Record<string, unknown> = {},
         toastrConfig?: IndividualConfig
     ): void {
         this._translateService.get([i18nText, i18nTitle || 'this_is_just_to_make_hapy_translateService_its not used'], i18nInterpolation)

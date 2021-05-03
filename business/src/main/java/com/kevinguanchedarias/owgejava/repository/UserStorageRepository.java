@@ -1,17 +1,18 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
+import com.kevinguanchedarias.owgejava.entity.Alliance;
+import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.kevinguanchedarias.owgejava.entity.Alliance;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 public interface UserStorageRepository extends JpaRepository<UserStorage, Integer>, Serializable {
 	public UserStorage findOneByIdAndFactionId(Integer userId, Integer factionId);
@@ -50,20 +51,20 @@ public interface UserStorageRepository extends JpaRepository<UserStorage, Intege
 	public void addResources(UserStorage user, Date now, Double primary, Double secondary);
 
 	/**
-	 *
-	 * @param alliance
-	 * @return
-	 * @since 0.9.14
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.14
 	 */
-	public int countByAlliance(Alliance alliance);
+	int countByAlliance(Alliance alliance);
 
 	/**
-	 *
-	 * @return
-	 * @since 0.9.16
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.16
 	 */
 	@Query("SELECT id FROM #{#entityName}")
-	public List<Integer> findAllIds();
+	List<Integer> findAllIds();
+
+	List<UserStorage> findByLastMultiAccountCheckLessThanOrLastMultiAccountCheckIsNullOrderByLastMultiAccountCheckAsc(LocalDateTime date, Pageable page);
+
+	@Query("SELECT us.banned FROM UserStorage us WHERE us.id = ?1")
+	boolean isBanned(Integer userId);
 }

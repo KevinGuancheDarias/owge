@@ -1,31 +1,36 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
-import java.util.Map;
-import java.util.function.Function;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
+import com.kevinguanchedarias.owgejava.business.AuditBo;
+import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
-import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("game/user")
 @ApplicationScope
+@AllArgsConstructor
 public class UserRestService implements SyncSource {
 
-	@Autowired
-	private UserStorageBo userStorageBo;
+	private final UserStorageBo userStorageBo;
+
+	private final AuditBo auditBo;
 
 	@GetMapping("exists")
-	public Object exists() {
+	public boolean exists(HttpServletRequest request, HttpServletResponse response) {
+		auditBo.creteCookieIfMissing(request, response);
 		return userStorageBo.exists(userStorageBo.findLoggedIn().getId());
 	}
 

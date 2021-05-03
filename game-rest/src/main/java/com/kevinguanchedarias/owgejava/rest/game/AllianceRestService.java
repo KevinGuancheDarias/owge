@@ -1,14 +1,15 @@
-/**
- * 
- */
 package com.kevinguanchedarias.owgejava.rest.game;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.kevinguanchedarias.owgejava.business.AllianceBo;
+import com.kevinguanchedarias.owgejava.business.AllianceJoinRequestBo;
+import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.dto.AllianceDto;
+import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
+import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
+import com.kevinguanchedarias.owgejava.entity.Alliance;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.rest.trait.BaseRestServiceTrait;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,17 +21,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.business.AllianceBo;
-import com.kevinguanchedarias.owgejava.business.AllianceJoinRequestBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
-import com.kevinguanchedarias.owgejava.dto.AllianceDto;
-import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
-import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
-import com.kevinguanchedarias.owgejava.entity.Alliance;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.rest.trait.BaseRestServiceTrait;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -63,7 +57,6 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	/**
 	 * Finds all alliances
 	 * 
-	 * @return
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -75,7 +68,6 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	/**
 	 * Finds Members for given alliances
 	 * 
-	 * @return
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -92,15 +84,13 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	/**
 	 * Saves an alliance
 	 * 
-	 * @param allianceDto
-	 * @return
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@RequestMapping(method = { RequestMethod.POST, RequestMethod.PUT })
 	public AllianceDto save(@RequestBody AllianceDto allianceDto) {
 		checkPost(allianceDto.getId(), request);
-		Alliance alliance = dtoUtilService.entityFromDto(Alliance.class, allianceDto);
+		var alliance = dtoUtilService.entityFromDto(Alliance.class, allianceDto);
 		alliance = allianceBo.save(alliance, userStorageBo.findLoggedIn().getId());
 		return dtoUtilService.dtoFromEntity(AllianceDto.class, alliance);
 	}
@@ -112,8 +102,8 @@ public class AllianceRestService implements BaseRestServiceTrait {
 
 	@GetMapping(value = "/listRequest")
 	public List<AllianceJoinRequestDto> listRequest() {
-		UserStorage user = userStorageBo.findLoggedInWithDetails();
-		Alliance alliance = user.getAlliance();
+		var user = userStorageBo.findLoggedInWithDetails();
+		var alliance = user.getAlliance();
 		if (user.getAlliance() == null) {
 			throw new SgtBackendInvalidInputException("You don't have any alliance");
 		} else if (!user.getAlliance().getOwner().getId().equals(user.getId())) {
@@ -126,13 +116,12 @@ public class AllianceRestService implements BaseRestServiceTrait {
 	/**
 	 * Returns my list of join request
 	 * 
-	 * @return
 	 * @author Kevin Guanche Darias
 	 * @since 0.8.1
 	 */
 	@GetMapping(value = "/my-requests")
 	public List<AllianceJoinRequestDto> myRequests() {
-		UserStorage user = userStorageBo.findLoggedIn();
+		var user = userStorageBo.findLoggedIn();
 		return dtoUtilService.convertEntireArray(AllianceJoinRequestDto.class,
 				allianceJoinRequestBo.findByUserId(user.getId()));
 	}
