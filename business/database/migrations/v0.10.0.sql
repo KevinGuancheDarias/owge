@@ -43,13 +43,13 @@ CREATE TABLE `audit` (
   `ip` CHAR(15) NULL , 
   `user_agent` VARCHAR(255) NULL , 
   `cookie` VARCHAR(50) NULL , 
-  `is_tor` BOOLEAN NOT NULL;
+  `is_tor` BOOLEAN NOT NULL,
   `creation_date` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_audit_related_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB;
-ALTER TABLE `user_storage` ADD `last_multi_account_check` DATETIME NULL AFTER `can_alter_twitch_state`, ADD `multi_account_score` FLOAT NULL AFTER `last_multi_account_check`;
+ALTER TABLE `user_storage` ADD `last_multi_account_check` DATETIME NULL AFTER `can_alter_twitch_state`, ADD `multi_account_score` FLOAT NULL, `banned` tinyint NOT NULL AFTER `last_multi_account_check`;
 
 CREATE TABLE `tor_ip_data` ( 
   `ip` CHAR(15) NOT NULL , 
