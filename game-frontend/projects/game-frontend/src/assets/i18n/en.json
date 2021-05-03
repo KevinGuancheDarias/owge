@@ -1,4 +1,7 @@
 {
+    "I18N_WARN_TOR": "You are using Tor, you are most likely to get banned pretty soon, automatically, there's no place to cry",
+    "I18N_WARN_MULTI_ACCOUNT": "You are using multiple accounts, they are interacting, you can't interact between your accounts, ban may occur",
+    "I18N_ERR_BANNED": "Your account is banned :(",
     "I18N_ERR_MISSION_LIMIT_EXCEEDED": "You have exceeded your missions limit",
     "I18N_ERR_DEPLOY_ITSELF": "Target planet can't be origin planet",
     "ERR_I18N_CAN_NOT_LEAVE_PLANET": "Can't leave planet, make sure, it is NOT your home planets, nor running unit constructions",

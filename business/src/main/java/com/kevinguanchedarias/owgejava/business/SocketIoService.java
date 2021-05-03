@@ -1,21 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -28,9 +12,29 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Service
 public class SocketIoService {
+
+	private static final String EVENT_WARN_MESSAGE = "warn_message";
 
 	private static final String AUTHENTICATION = "authentication";
 	private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
@@ -56,7 +60,7 @@ public class SocketIoService {
 	private List<OwgeJwtAuthenticationFilter> authenticationFilters;
 
 	private SocketIOServer server;
-	private ObjectMapper mapper = new ObjectMapper();
+	private final ObjectMapper mapper = new ObjectMapper();
 
 	public SocketIoService() {
 		mapper.registerModule(new JsonOrgModule());
@@ -84,10 +88,7 @@ public class SocketIoService {
 	/**
 	 * Sends a message to all sockets from related target user, if any
 	 *
-	 * @param <T>
 	 * @param targetUserId       If 0 will broadcast to all connected users
-	 * @param eventName
-	 * @param messageContent
 	 * @param notConnectedAction Action to run if the user is not connected
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -143,10 +144,6 @@ public class SocketIoService {
 	/**
 	 * Sends a message to all sockets from related target user, if any
 	 *
-	 * @param <T>
-	 * @param user
-	 * @param eventName
-	 * @param messageContent
 	 * @param notConnectedAction Action to run if the user is not connected
 	 * @since 0.9.2
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -159,22 +156,22 @@ public class SocketIoService {
 	/**
 	 * Sends a message to all sockets from related target user, if any
 	 *
-	 * @param <T>
-	 * @param user
-	 * @param eventName
-	 * @param messageContent
-	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.0
 	 */
 	public <T> void sendMessage(UserStorage user, String eventName, Supplier<T> messageContent) {
 		sendMessage(user == null ? 0 : user.getId(), eventName, messageContent, null);
 	}
 
+	public void sendWarning(UserStorage user, String i18nWarningText) {
+		sendMessage(user, EVENT_WARN_MESSAGE, () -> i18nWarningText);
+	}
+
 	/**
 	 * Removes all the cache entries
 	 *
-	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.0
 	 */
 	public void clearCache() {
 		websocketEventsInformationBo.clear();

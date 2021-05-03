@@ -1,27 +1,15 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.EntityManager;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.entity.Galaxy;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.NotYourPlanetException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -30,6 +18,18 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Operations with user <b>in this universe</b>
@@ -67,13 +67,17 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	private ImprovementBo improvementBo;
 
 	@Autowired
-	private EntityManager entityManager;
+	private transient EntityManager entityManager;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Autowired
 	private DtoUtilService dtoUtilService;
+
+	@Autowired
+	@Lazy
+	private AuditBo auditBo;
 
 	@Override
 	public JpaRepository<UserStorage, Integer> getRepository() {
@@ -93,8 +97,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	/**
 	 * User exists <b>in this universe</b>
 	 *
-	 * @param id
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Override
@@ -106,7 +108,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * User exists <b>in this universe</b>
 	 *
 	 * @param user Typically comes from a user token
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Override
@@ -119,17 +120,15 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * Only id, email, and username will be returned, used
 	 * findLoggedInWithDetailts() for everything
 	 *
-	 * @return
 	 * @author Kevin Guanche Darias
 	 */
 	public UserStorage findLoggedIn() {
-		TokenUser token = authenticationBo.findTokenUser();
+		var token = authenticationBo.findTokenUser();
 		return token != null ? convertTokenUserToUserStorage(token) : null;
 	}
 
 	/**
 	 *
-	 * @return
 	 * @since 0.9.16
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -161,8 +160,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
 	/**
 	 *
-	 * @param alliance
-	 * @return
 	 * @since 0.9.14
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -190,8 +187,8 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 			return false;
 		}
 
-		Faction selectedFaction = factionBo.findById(factionId);
-		Planet selectedPlanet = planetBo.findRandomPlanet(null);
+		var selectedFaction = factionBo.findById(factionId);
+		var selectedPlanet = planetBo.findRandomPlanet(null);
 		user.setFaction(selectedFaction);
 		user.setHomePlanet(selectedPlanet);
 		user.setPrimaryResource(selectedFaction.getInitialPrimaryResource().doubleValue());
@@ -207,6 +204,9 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
 		requirementBo.triggerFactionSelection(user);
 		requirementBo.triggerHomeGalaxySelection(user);
+		if (user.getId() > 0) {
+			auditBo.doAudit(AuditActionEnum.SUBSCRIBE_TO_WORLD);
+		}
 		return user.getId() > 0;
 	}
 
@@ -223,10 +223,10 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	@Transactional
 	public void triggerResourcesUpdate(Integer userId) {
 		UserStorage user = findByIdOrDie(userId);
-		Faction faction = user.getFaction();
+		var faction = user.getFaction();
 		GroupedImprovement userImprovements = improvementBo.findUserImprovement(user);
-		Date now = new Date();
-		Date lastLogin = user.getLastAction();
+		var now = new Date();
+		var lastLogin = user.getLastAction();
 		userStorageRepository.addResources(user, now,
 				calculateSum(now, lastLogin,
 						computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
@@ -242,13 +242,12 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	/**
 	 * Checks if you own the specified planet
 	 *
-	 * @param planetId
 	 * @throws PlanetNotFoundException when planet doesn't exists
 	 * @throws NotYourPlanetException  When you do not own the planet
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public void checkOwnPlanet(Long planetId) {
-		Planet planet = planetBo.findById(planetId);
+		var planet = planetBo.findById(planetId);
 		if (planet == null) {
 			throw new PlanetNotFoundException("No such planet, with id " + planetId);
 		}
@@ -267,8 +266,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
 	/**
 	 *
-	 * @param userId
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -277,9 +274,9 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	}
 
 	public Double findMaxEnergy(UserStorage user) {
-		GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
-		Faction faction = user.getFaction();
-		return improvementBo.computeImprovementValue(Float.valueOf(faction.getInitialEnergy()),
+		var groupedImprovement = improvementBo.findUserImprovement(user);
+		var faction = user.getFaction();
+		return improvementBo.computeImprovementValue(faction.getInitialEnergy().floatValue(),
 				groupedImprovement.getMoreEnergyProduction());
 	}
 
@@ -287,8 +284,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * Returns the available energy of the user <br>
 	 * <b>NOTICE: Expensive method </b>
 	 *
-	 * @param user
-	 * @return
 	 * @todo For god's sake create a cache system
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -300,8 +295,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * Defines the new alliance for all the users having and old alliance <br>
 	 * Usually used to delete an alliance
 	 *
-	 * @param oldAlliance
-	 * @param newAlliance
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -312,7 +305,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	}
 
 	/**
-	 * @param userId
 	 * @since 0.7.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -330,9 +322,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * Saves the user <br>
 	 * <b>NOTICE:</b> Emits the change to all connected websockets
 	 *
-	 * @param user
-	 * @param emitChange
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -357,19 +346,18 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	/**
 	 * Finds all the user data as a DTO
 	 *
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public UserStorageDto findData(UserStorage user) {
-		UserStorageDto userDto = new UserStorageDto();
+		var userDto = new UserStorageDto();
 		userDto.dtoFromEntity(user);
 		userDto.setImprovements(improvementBo.findUserImprovement(user));
 		userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, user.getFaction()));
 		userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
 		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
 
-		Galaxy galaxyData = user.getHomePlanet().getGalaxy();
+		var galaxyData = user.getHomePlanet().getGalaxy();
 		userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
 		userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
 		userDto.setConsumedEnergy(findConsumedEnergy(user));
@@ -377,18 +365,28 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 		return userDto;
 	}
 
+	public boolean isBanned(Integer userId) {
+		return userStorageRepository.isBanned(userId);
+	}
+
+	public List<UserStorage> findByLastMultiAccountCheckNewerThan(LocalDateTime date) {
+		return userStorageRepository
+				.findByLastMultiAccountCheckLessThanOrLastMultiAccountCheckIsNullOrderByLastMultiAccountCheckAsc(
+						date,
+						PageRequest.of(0, 50)
+				);
+	}
+
 	/**
-	 *
-	 * @param userId
-	 * @since 0.9.7
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.7
 	 */
 	public void emitUserData(UserStorage user) {
 		socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
 	}
 
 	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
-		UserStorage user = new UserStorage();
+		var user = new UserStorage();
 		user.setId(tokenUser.getId().intValue());
 		user.setEmail(tokenUser.getEmail());
 		user.setUsername(tokenUser.getUsername());
@@ -400,7 +398,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 * @param now            datetime representing now!
 	 * @param lastAction     datetime representing the last time value was update
 	 * @param perSecondValue Value to increase each second
-	 * @param value          current value
 	 * @return the new value for the given resource
 	 * @author Kevin Guanche Darias
 	 */
@@ -415,7 +412,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 	 *
 	 * @param factionResource     The faction resource production
 	 * @param resourceImprovement The improvement resource production
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {

@@ -7,6 +7,7 @@ server{
 	location /game_api/ {
 		include /etc/nginx/include/configuracion_proxy.inc;
 		proxy_pass http://${OWGE_BACKEND_SERVER}/${OWGE_REST_CONTEXT_PATH}/;
+		proxy_cookie_path ~*^/.* /;
 	}
 
 	location /websocket/ {
@@ -20,6 +21,8 @@ server{
 	location /admin/ {
 		include /etc/nginx/include/configuracion_proxy.inc;
 		proxy_pass http://${OWGE_ADMIN_FRONTEND_SERVER};
+		proxy_cookie_path ~*^/.* /;
+
 	}
 
 	location /account/ {

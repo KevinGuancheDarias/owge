@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.listener.ImageStoreListener;
 import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
+import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -93,8 +94,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 		private Double totalHealth;
 
 		public AttackObtainedUnit(ObtainedUnit obtainedUnit, GroupedImprovement userImprovement) {
-			Unit unit = obtainedUnit.getUnit();
-			UnitType unitType = unit.getType();
+			var unit = obtainedUnit.getUnit();
+			var unitType = unit.getType();
 			initialCount = obtainedUnit.getCount();
 			finalCount = initialCount;
 			double totalAttack = initialCount.doubleValue() * unit.getAttack();
@@ -192,7 +193,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 				user = new AttackUserInformation(userEntity);
 				users.put(userEntity.getId(), user);
 			}
-			AttackObtainedUnit unit = new AttackObtainedUnit(unitEntity, user.userImprovement);
+			var unit = new AttackObtainedUnit(unitEntity, user.userImprovement);
 			unit.user = user;
 			user.units.add(unit);
 			units.add(unit);
@@ -259,7 +260,7 @@ public class UnitMissionBo extends AbstractMissionBo {
 							return ruleEntry.getCanAttack();
 						}
 					} else if (ruleEntry.getTarget() == AttackableTargetEnum.UNIT_TYPE) {
-						UnitType unitType = findUnitTypeMatchingRule(ruleEntry,
+						var unitType = findUnitTypeMatchingRule(ruleEntry,
 								target.obtainedUnit.getUnit().getType());
 						if (unitType != null) {
 							return ruleEntry.getCanAttack();
@@ -411,7 +412,10 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private transient EntityManager entityManager;
 
 	@Autowired
-	private  MissionBo missionBo;
+	private MissionBo missionBo;
+
+	@Autowired
+	private AuditBo auditBo;
 
 	@Override
 	public String getGroupName() {
@@ -982,8 +986,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 	}
 
 	private AttackInformation processAttack(Mission mission, boolean survivorsDoReturn) {
-		Planet targetPlanet = mission.getTargetPlanet();
-		AttackInformation attackInformation = buildAttackInformation(targetPlanet, mission);
+		var targetPlanet = mission.getTargetPlanet();
+		var attackInformation = buildAttackInformation(targetPlanet, mission);
 		attackInformation.startAttack();
 		if (survivorsDoReturn && !attackInformation.isMissionRemoved()) {
 			adminRegisterReturnMission(mission);
@@ -996,10 +1000,14 @@ public class UnitMissionBo extends AbstractMissionBo {
 		handleMissionReportSave(mission, builder, true,
 				attackInformation.users.values().stream().map(attackUserInformation -> attackUserInformation.user)
 						.filter(user -> !user.getId().equals(invoker.getId())).collect(Collectors.toList()));
+		attackInformation.users.entrySet().stream()
+				.map(userEntry -> userEntry.getValue().user)
+				.filter(user -> !mission.getUser().getId().equals(user.getId()))
+				.forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.ATTACK_INTERACTION, null, mission.getUser(), user.getId()));
 		if (attackInformation.isMissionRemoved()) {
 			emitLocalMissionChangeAfterCommit(mission);
 		}
-		UserStorage owner = targetPlanet.getOwner();
+		var owner = targetPlanet.getOwner();
 		if (owner != null && !attackInformation.usersWithDeletedMissions.isEmpty()) {
 			emitEnemyMissionsChange(owner);
 		}
@@ -1094,9 +1102,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
 		List<ObtainedUnit> obtainedUnits = new ArrayList<>();
 		missionInformation.setMissionType(missionType);
-		UserStorage user = userStorageBo.findLoggedIn();
-		if (!missionType.equals(MissionType.DEPLOY)
-				|| !planetBo.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
+		var user = userStorageBo.findLoggedIn();
+		var isDeployMission = missionType.equals(MissionType.DEPLOY);
+		if (!isDeployMission || !planetBo.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
 			checkMissionLimitNotReached(user);
 		}
 		UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
@@ -1108,11 +1116,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 					"Can't send this mission, because target planet is not explored ");
 		}
 		Map<Integer, ObtainedUnit> dbUnits = checkAndLoadObtainedUnits(missionInformation);
-		Mission mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
+		var mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
+		auditMissionRegistration(mission, isDeployMission);
 		targetMissionInformation.getInvolvedUnits().forEach(current -> {
-			ObtainedUnit currentObtainedUnit = new ObtainedUnit();
+			var currentObtainedUnit = new ObtainedUnit();
 			currentObtainedUnit.setMission(mission);
-			Mission firstDeploymentMission = dbUnits.get(current.getId()).getFirstDeploymentMission();
+			var firstDeploymentMission = dbUnits.get(current.getId()).getFirstDeploymentMission();
 			currentObtainedUnit.setFirstDeploymentMission(firstDeploymentMission);
 			currentObtainedUnit.setCount(current.getCount());
 			currentObtainedUnit.setUser(user);
@@ -1153,8 +1162,24 @@ public class UnitMissionBo extends AbstractMissionBo {
 				() -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
 	}
 
+	private void auditMissionRegistration(Mission mission, boolean isDeploy) {
+		var planetOwner = mission.getTargetPlanet().getOwner();
+		if (planetOwner == null || planetOwner.getId().equals(mission.getUser().getId())) {
+			auditBo.doAudit(AuditActionEnum.REGISTER_MISSION, mission.getType().getCode(), null);
+		} else {
+			auditBo.doAudit(AuditActionEnum.REGISTER_MISSION, mission.getType().getCode(), planetOwner.getId());
+		}
+		if (isDeploy) {
+			obtainedUnitBo.findInPlanetOrInMissiontoPlanet(mission.getTargetPlanet()).stream()
+					.filter(unit -> !unit.getUser().getId().equals(mission.getUser().getId()))
+					.map(ObtainedUnit::getUser)
+					.distinct()
+					.forEach(unitUser -> auditBo.doAudit(AuditActionEnum.USER_INTERACTION, "DEPLOY", unitUser.getId()));
+		}
+	}
+
 	private double calculateTimeUsingSpeed(Mission mission, MissionType missionType, double missionTypeTime,
-			double lowestUnitSpeed) {
+										   double lowestUnitSpeed) {
 		int missionTypeDivisor = findMissionTypeDivisor(missionType);
 		missionTypeDivisor = missionTypeDivisor == 0 ? 1 : missionTypeDivisor;
 		int leftMultiplier = findSpeedLeftMultiplier(mission, missionType);
