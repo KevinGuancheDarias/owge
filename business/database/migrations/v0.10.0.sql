@@ -34,3 +34,26 @@ CREATE TABLE `interceptable_speed_group` (
 
 ALTER TABLE `missions` ADD `invisible` TINYINT NOT NULL AFTER `resolved`;
 ALTER TABLE `speed_impact_groups` ADD `image_id` BIGINT UNSIGNED NULL AFTER `can_deploy`;
+CREATE TABLE `audit` ( 
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+  `action` ENUM('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES', 'USER_INTERACTION', 'JOIN_ALLIANCE', 'ACCEPT_JOIN_ALLIANCE') NOT NULL , 
+  `action_detail` VARCHAR(100) NULL , 
+  `user_id` INT UNSIGNED NOT NULL , 
+  `related_user_id` INT UNSIGNED NULL , 
+  `ip` CHAR(15) NULL , 
+  `user_agent` VARCHAR(255) NULL , 
+  `cookie` VARCHAR(50) NULL , 
+  `is_tor` BOOLEAN NOT NULL;
+  `creation_date` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_audit_related_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB;
+ALTER TABLE `user_storage` ADD `last_multi_account_check` DATETIME NULL AFTER `can_alter_twitch_state`, ADD `multi_account_score` FLOAT NULL AFTER `last_multi_account_check`;
+
+CREATE TABLE `tor_ip_data` ( 
+  `ip` CHAR(15) NOT NULL , 
+  `last_checked_date` DATETIME NOT NULL , 
+  `is_tor` BOOLEAN NOT NULL , 
+  PRIMARY KEY (`ip`)
+) ENGINE = MyIsam;

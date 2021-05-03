@@ -7,7 +7,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { Injector } from '@angular/core';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
-import { RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User } from '@owge/core';
+import {
+  RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, WarningWebsocketApplicationHandlerService
+} from '@owge/core';
 import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
 import {
   OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService, SystemMessageService
@@ -258,7 +260,8 @@ export class AppModule {
           this._injector.get(UpgradeTypeService),
           this._injector.get(PlanetListService),
           this._injector.get(TwitchService),
-          this._injector.get(SystemMessageService)
+          this._injector.get(SystemMessageService),
+          this._injector.get(WarningWebsocketApplicationHandlerService)
         );
         this._universeGameService.isInGame().subscribe(async isInGame => {
           const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
@@ -272,6 +275,7 @@ export class AppModule {
   }
 }
 
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
 export function findHttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http, './assets/i18n/');
 }

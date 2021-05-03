@@ -1,5 +1,17 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.entity.Configuration;
+import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFoundException;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,20 +20,6 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.kevinguanchedarias.owgejava.entity.Configuration;
-import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFoundException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
 
 @Service
 public class ConfigurationBo implements Serializable {
@@ -227,7 +225,6 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionExploreBaseTime() {
@@ -238,7 +235,6 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionGatherBaseTime() {
@@ -260,7 +256,6 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionAttackBaseTime() {
@@ -271,7 +266,6 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionConquestBaseTime() {
@@ -282,7 +276,6 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionCounterattackBaseTime() {
@@ -293,34 +286,11 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 *
 	 * @deprecated Use findMissionBaseTime(String)
-	 * @return
 	 */
 	@Deprecated(since = "0.8.1")
 	public Long findMissionDeployBaseTime() {
 		return findMissionBaseTime(MISSION_TIME_DEPLOY_KEY,
 				MISSION_DEFAULT_CONFIG_STORE.get(MISSION_TIME_DEPLOY_KEY).time);
-	}
-
-	/**
-	 * Checks if the input email is system Email
-	 *
-	 * @param email
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public boolean isSystemEmail(String email) {
-		return email.equals(findConfigurationParam(SYSTEM_EMAIL_KEY).getValue());
-	}
-
-	/**
-	 * Checks if the password is the admin password
-	 *
-	 * @param password
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public boolean isSystemPassword(String password) {
-		return password.equals(findConfigurationParam(SYSTEM_SECRET_KEY).getValue());
 	}
 
 	public Configuration findOrSetDefault(String name, String defaultValue) {
@@ -333,12 +303,15 @@ public class ConfigurationBo implements Serializable {
 		}
 	}
 
+	public int findIntOrSetDefault(String name, String defaultValue) {
+		return Integer.parseInt(findOrSetDefault(name, defaultValue).getValue());
+	}
+
 	/**
 	 * Finds the current value for DEPLOYMENT_CONFIG
 	 *
-	 * @return
-	 * @since 0.7.4
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.7.4
 	 */
 	public DeployMissionConfigurationEnum findDeployMissionConfiguration() {
 		DeployMissionConfigurationEnum value;
@@ -364,9 +337,6 @@ public class ConfigurationBo implements Serializable {
 
 	}
 
-	/**
-	 * @return
-	 */
 	private ArrayList<String> createMissionsKeyArray() {
 		ArrayList<String> missionKeys = new ArrayList<>();
 		missionKeys.add(MISSION_TIME_EXPLORE_KEY);
@@ -391,9 +361,7 @@ public class ConfigurationBo implements Serializable {
 	/**
 	 * Checks if the configuration refers to the base time of a mission
 	 *
-	 * @param configuration
 	 * @throws SgtBackendInvalidInputException Number is below the expected value
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	private boolean isOfTypeMissionTime(Configuration configuration) {

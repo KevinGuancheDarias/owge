@@ -1,10 +1,9 @@
 package com.kevinguanchedarias.owgejava.event;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.FilterEventHandler;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ResourceAutoUpdateEventHandler implements FilterEventHandler {
 
@@ -18,8 +17,11 @@ public class ResourceAutoUpdateEventHandler implements FilterEventHandler {
 
 	@Override
 	public void doAfter() {
-		UserStorage user = userStorageBo.findLoggedIn();
+		var user = userStorageBo.findLoggedIn();
 		if (userStorageBo.exists(user)) {
+			if (userStorageBo.isBanned(user.getId())) {
+				throw new AccessDeniedException("I18N_ERR_BANNED");
+			}
 			userStorageBo.triggerResourcesUpdate(user.getId());
 		}
 	}

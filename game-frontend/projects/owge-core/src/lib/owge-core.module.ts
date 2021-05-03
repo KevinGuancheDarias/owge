@@ -19,6 +19,7 @@ import { ToastrService } from './services/toastr.service';
 import { FormatNumberPipe } from './pipes/format-number.pipe';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { LanguageHttpInterceptor } from './http-interceptors/language.http-interceptor';
+import { WarningWebsocketApplicationHandlerService } from './services/warning-websocket-application-handler.service';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -63,6 +64,17 @@ import { LanguageHttpInterceptor } from './http-interceptors/language.http-inter
 export class CoreModule {
 
   /**
+   * Creates an instance of CoreModule.
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param accountConfig
+   */
+   public constructor(accountConfig: OwgeCoreConfig) {
+    Config.accountServerUrl = accountConfig.url;
+    Config.accountLoginendpoint = accountConfig.loginEndpoint;
+  }
+
+  /**
    *
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -78,19 +90,10 @@ export class CoreModule {
         { provide: HTTP_INTERCEPTORS, useClass: LanguageHttpInterceptor, multi: true },
         ScreenDimensionsService,
         LocalConfigurationService,
-        ToastrService
+        ToastrService,
+        WarningWebsocketApplicationHandlerService
       ]
     };
   }
 
-  /**
-   * Creates an instance of CoreModule.
-   *
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param accountConfig
-   */
-  public constructor(accountConfig: OwgeCoreConfig) {
-    Config.accountServerUrl = accountConfig.url;
-    Config.accountLoginendpoint = accountConfig.loginEndpoint;
-  }
 }

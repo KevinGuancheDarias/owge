@@ -1,8 +1,5 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.Date;
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +10,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "user_storage")
@@ -72,6 +72,10 @@ public class UserStorage implements EntityWithId<Integer> {
 	@Column(name = "can_alter_twitch_state", nullable = false)
 	private Boolean canAlterTwitchState = false;
 
+	private LocalDateTime lastMultiAccountCheck;
+	private Float multiAccountScore;
+	private boolean banned = false;
+
 	@Transient
 	@Deprecated(since = "0.8.0")
 	private Double computedPrimaryResourceGenerationPerSecond;
@@ -86,20 +90,6 @@ public class UserStorage implements EntityWithId<Integer> {
 
 	public void addToSecondary(Double value) {
 		secondaryResource += value;
-	}
-
-	/**
-	 * Returns a new instance of {@link UserStorage} with only id and username <br>
-	 * Potentially useful when wanting to remove ORM proxies
-	 *
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public UserStorage toBasicInformation() {
-		UserStorage retVal = new UserStorage();
-		retVal.setId(id);
-		retVal.setUsername(username);
-		return retVal;
 	}
 
 	@Override
@@ -179,7 +169,6 @@ public class UserStorage implements EntityWithId<Integer> {
 	/**
 	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Deprecated(since = "0.8.0")
@@ -200,7 +189,6 @@ public class UserStorage implements EntityWithId<Integer> {
 	/**
 	 *
 	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Deprecated(since = "0.8.0")
@@ -298,7 +286,6 @@ public class UserStorage implements EntityWithId<Integer> {
 	 *
 	 * @deprecated Transient properties of UserStorage are not longer required, we
 	 *             calculate in the frontend and in the backend
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@Deprecated(since = "0.8.0")
@@ -307,14 +294,36 @@ public class UserStorage implements EntityWithId<Integer> {
 	}
 
 	/**
-	 * @deprecated Transient properties of UserStorage are not longer required, we
-	 *             calculate in the frontend and in the backend
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @deprecated Transient properties of UserStorage are not longer required, we
+	 * calculate in the frontend and in the backend
 	 */
 	@Deprecated(since = "0.8.0")
 	public Double getComputedSecondaryResourceGenerationPerSecond() {
 		return computedSecondaryResourceGenerationPerSecond;
 	}
 
+	public LocalDateTime getLastMultiAccountCheck() {
+		return lastMultiAccountCheck;
+	}
+
+	public void setLastMultiAccountCheck(LocalDateTime lastMultiAccountCheck) {
+		this.lastMultiAccountCheck = lastMultiAccountCheck;
+	}
+
+	public Float getMultiAccountScore() {
+		return multiAccountScore;
+	}
+
+	public void setMultiAccountScore(Float multiAccountScore) {
+		this.multiAccountScore = multiAccountScore;
+	}
+
+	public boolean isBanned() {
+		return banned;
+	}
+
+	public void setBanned(boolean banned) {
+		this.banned = banned;
+	}
 }

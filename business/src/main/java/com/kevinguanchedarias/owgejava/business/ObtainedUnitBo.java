@@ -30,7 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,13 +57,13 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	private ImprovementBo improvementBo;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Autowired
 	private transient AsyncRunnerBo asyncRunnerBo;
 
 	@Autowired
-	private EntityManager entityManager;
+	private transient EntityManager entityManager;
 
 	@Override
 	public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -450,29 +449,32 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	/**
 	 * Finds all units that belong to given user and are not involved in any mission
 	 *
-	 * @param userId
-	 * @return
-	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.0
 	 */
 	public List<ObtainedUnit> findDeployedInUserOwnedPlanets(Integer userId) {
 		return repository.findBySourcePlanetNotNullAndMissionNullAndUserId(userId);
 	}
 
+	public List<ObtainedUnit> findInPlanetOrInMissiontoPlanet(Planet planet) {
+		List<ObtainedUnit> retVal = new ArrayList<>();
+		retVal.addAll(repository.findBySourcePlanetIdAndMissionIsNull(planet.getId()));
+		retVal.addAll(repository.findByTargetPlanetIdAndMissionTypeCode(planet.getId(),
+				MissionType.DEPLOYED.toString()));
+		return retVal;
+	}
+
+
 	/**
 	 * Finds the involved units in an attack
 	 *
-	 * @param attackedPlanet
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet) {
 		List<ObtainedUnit> retVal = new ArrayList<>();
 		List<String> allowedMissions = new ArrayList<>();
 		allowedMissions.add(MissionType.CONQUEST.name());
-		retVal.addAll(repository.findBySourcePlanetIdAndMissionIsNull(attackedPlanet.getId()));
-		retVal.addAll(repository.findByTargetPlanetIdAndMissionTypeCode(attackedPlanet.getId(),
-				MissionType.DEPLOYED.toString()));
+		retVal.addAll(findInPlanetOrInMissiontoPlanet(attackedPlanet));
 		retVal.addAll(repository.findByTargetPlanetIdWhereReferencePercentageTimePassed(attackedPlanet.getId(), 0.1d,
 				allowedMissions, new Date()));
 		return retVal;
