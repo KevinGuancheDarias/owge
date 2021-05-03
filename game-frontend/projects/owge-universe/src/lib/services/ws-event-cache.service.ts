@@ -108,6 +108,11 @@ export class WsEventCacheService {
         this._eventInformationStore.save(this._eventsInformation);
     }
 
+    public async deleteEvents(...events: string[]): Promise<void> {
+        events.forEach(event => delete this._eventsInformation[event]);
+        this._eventInformationStore.save(this._eventsInformation);
+    }
+
 
     /**
      * Returns true if the entry has changed, known because it exists, and has the change prop defined
@@ -150,7 +155,7 @@ export class WsEventCacheService {
                         }
                     ).pipe(
                         catchError(err => {
-                            reject(err);
+                            this.deleteEvents(...wantedKeys).then(() => reject(err));
                             return throwError(err);
                         })
                     ).subscribe(async events => {
@@ -164,7 +169,7 @@ export class WsEventCacheService {
                                     changed: false,
                                     userId: -1,
                                     lastSent: { epochSecond: events[key].lastSent}
-                                }
+                                };
                             } else {
                                 this._eventsInformation[key].lastSent = { epochSecond: events[key].lastSent };
                             }
@@ -217,9 +222,9 @@ export class WsEventCacheService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.6
-     * @param {WebsocketEventInformation} eventData
-     * @param {*} data
-     * @returns {Promise<void>}
+     * @param eventData
+     * @param data
+     * @returns
      */
     public async saveEventData(eventData: WebsocketEventInformation, data: any): Promise<void> {
         if (this.isSynchronizableEvent(eventData.eventName)) {

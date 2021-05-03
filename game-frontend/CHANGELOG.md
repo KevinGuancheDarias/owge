@@ -2,6 +2,7 @@
 
 v0.10.0 (latest)
 =================
+* __Fix:__ [When an error occur in the sync endpoint, the sync breaks completely, bug due to #386 ....  #390](https://github.com/KevinGuancheDarias/owge/issues/390)  
 * __Feature:__ [As a player I want the game to have a multiaccount detection system #380](https://github.com/KevinGuancheDarias/owge/issues/380)  
 * __Fix:__ [When a conquest succeed, is not deleting the building mission #389](https://github.com/KevinGuancheDarias/owge/issues/389)  
 * __Fix:__ [Conquest are failing when the planet is a special location, and the owner left it before the conquest completed #387](https://github.com/KevinGuancheDarias/owge/issues/387)  

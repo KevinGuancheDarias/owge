@@ -10,8 +10,10 @@ import { TwitchService } from './services/twitch.service';
 import { delay, filter } from 'rxjs/operators';
 import { SwUpdate } from '@angular/service-worker';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 declare const Twitch: {
-  Player: typeof Player
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  Player: typeof Player;
 };
 
 @Component({

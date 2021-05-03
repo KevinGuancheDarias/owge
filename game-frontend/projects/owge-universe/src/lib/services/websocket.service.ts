@@ -40,8 +40,6 @@ export class WebsocketService {
   private _isWantedDisconnection: boolean;
   private _isCachePanic: Subject<boolean> = new BehaviorSubject(false);
 
-  private _onBeforeWorkaroundSyncHandlers: Array<() => Promise<void>> = [];
-
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
     private _sessionService: SessionService,
@@ -272,6 +270,7 @@ export class WebsocketService {
         await this._wsEventCacheService.setEventsInformation(response.value);
         await this._wsEventCacheService.createOfflineStores();
         await this._wsEventCacheService.applySync();
+        this._isCachePanic.next(false);
       });
     } catch (e) {
       this._isCachePanic.next(true);
@@ -289,6 +288,7 @@ export class WebsocketService {
   private async _runWithSyncedData(): Promise<void> {
     await AsyncCollectionUtil.forEach([...this._eventHandlers], async handler => {
       const eventMap = handler.getEventsMap();
+      const failedHandlers: string[] = [];
       await AsyncCollectionUtil.forEach(Object.keys(eventMap), async (event: keyof WebsocketSyncResponse) => {
         // Initial run with synced data
         if (this._wsEventCacheService.isSynchronizableEvent(event)) {
@@ -303,9 +303,11 @@ export class WebsocketService {
           } catch (e) {
             this._toastrService.error(`Sync failed for ${handler.constructor.name} on event ${event}`);
             console.error(e);
+            failedHandlers.push(event);
           }
         }
       });
+      await this._wsEventCacheService.deleteEvents(...failedHandlers);
     });
   }
 }
