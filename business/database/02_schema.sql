@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.0.4
+-- version 5.1.0
 -- https://www.phpmyadmin.net/
 --
--- Hôte : 10.0.2.15
--- Généré le : lun. 08 mars 2021 à 14:12
+-- Hôte : host.docker.internal
+-- Généré le : lun. 03 mai 2021 à 08:28
 -- Version du serveur :  8.0.23
--- Version de PHP : 7.4.14
+-- Version de PHP : 7.4.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -80,28 +80,6 @@ CREATE TABLE `alliance_join_request` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `aranking`
---
-
-CREATE TABLE `aranking` (
-  `PosicionTotal` int NOT NULL,
-  `PosicionMejoras` int NOT NULL,
-  `PosicionTropas` int NOT NULL,
-  `PosicionNaves` int NOT NULL,
-  `PosicionDefensas` int NOT NULL,
-  `alianzacd` int NOT NULL,
-  `PuntosTotales` int NOT NULL,
-  `PuntosMejoras` int NOT NULL,
-  `PuntosTropas` int NOT NULL,
-  `PuntosNaves` int NOT NULL,
-  `PuntosDefensas` int NOT NULL,
-  `Imagen320x240` char(255) NOT NULL,
-  `Imagen640x240` char(255) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `attack_rules`
 --
 
@@ -123,6 +101,25 @@ CREATE TABLE `attack_rule_entries` (
   `reference_id` smallint UNSIGNED NOT NULL,
   `can_attack` tinyint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `audit`
+--
+
+CREATE TABLE `audit` (
+  `id` bigint UNSIGNED NOT NULL,
+  `action` enum('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES','USER_INTERACTION','JOIN_ALLIANCE','ATTACK_INTERACTION','ACCEPT_JOIN_ALLIANCE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `action_detail` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `user_id` int UNSIGNED NOT NULL,
+  `related_user_id` int UNSIGNED DEFAULT NULL,
+  `ip` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `user_agent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `cookie` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `is_tor` tinyint(1) NOT NULL,
+  `creation_date` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -150,24 +147,6 @@ CREATE TABLE `configuration` (
   `display_name` varchar(400) DEFAULT NULL,
   `value` varchar(200) NOT NULL,
   `privileged` tinyint NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `especialesderaza`
---
-
-CREATE TABLE `especialesderaza` (
-  `cd` int NOT NULL,
-  `Oculto` tinyint NOT NULL DEFAULT '1',
-  `rcd` int NOT NULL,
-  `Nombre` varchar(50) NOT NULL,
-  `Descripcion` text NOT NULL,
-  `Duracion` int NOT NULL COMMENT 'Tiempo que dura el especial',
-  `Recarga` int NOT NULL COMMENT 'Tiempo que tarda en volver a estar disponible el especial',
-  `Atributos` text NOT NULL,
-  `cdImagen` int NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -210,7 +189,22 @@ CREATE TABLE `factions` (
   `secondary_resource_production` float NOT NULL COMMENT 'Per minut',
   `max_planets` tinyint UNSIGNED NOT NULL COMMENT 'Max number of planets',
   `improvement_id` smallint UNSIGNED DEFAULT NULL,
-  `cloned_improvements` tinyint NOT NULL
+  `cloned_improvements` tinyint NOT NULL,
+  `custom_primary_gather_percentage` float UNSIGNED DEFAULT NULL,
+  `custom_secondary_gather_percentage` float UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `factions_unit_types`
+--
+
+CREATE TABLE `factions_unit_types` (
+  `id` int UNSIGNED NOT NULL,
+  `faction_id` smallint UNSIGNED NOT NULL,
+  `unit_type_id` smallint UNSIGNED NOT NULL,
+  `max_count` int UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -256,8 +250,8 @@ CREATE TABLE `improvements` (
   `more_energy_production` smallint DEFAULT NULL,
   `more_charge_capacity` smallint DEFAULT NULL,
   `more_missions_value` tinyint DEFAULT NULL,
-  `more_upgrade_research_speed` float UNSIGNED DEFAULT NULL,
-  `more_unit_build_speed` float UNSIGNED DEFAULT NULL
+  `more_upgrade_research_speed` float DEFAULT NULL,
+  `more_unit_build_speed` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -277,40 +271,14 @@ CREATE TABLE `improvements_unit_types` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `killed`
+-- Structure de la table `interceptable_speed_group`
 --
 
-CREATE TABLE `killed` (
-  `id` bigint UNSIGNED NOT NULL DEFAULT '0',
-  `user_id` int UNSIGNED NOT NULL,
+CREATE TABLE `interceptable_speed_group` (
+  `id` smallint UNSIGNED NOT NULL,
   `unit_id` smallint UNSIGNED NOT NULL,
-  `count` bigint UNSIGNED NOT NULL,
-  `source_planet` bigint UNSIGNED DEFAULT NULL,
-  `target_planet` bigint UNSIGNED DEFAULT NULL,
-  `mission_id` bigint UNSIGNED DEFAULT NULL,
-  `first_deployment_mission` bigint UNSIGNED DEFAULT NULL COMMENT 'Has the id of the first deployment executed mission',
-  `expiration` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `mensajes`
---
-
-CREATE TABLE `mensajes` (
-  `cd` int NOT NULL,
-  `TipoMision` int NOT NULL COMMENT '0 para ninguno,1 para Exploración, 2 para recolección, 3 para ataque',
-  `Tiempo` int NOT NULL,
-  `Titulo` char(255) NOT NULL,
-  `Contenido` text NOT NULL,
-  `Destinatarios` text NOT NULL COMMENT 'En este caso se empieza por ,',
-  `Destino` int NOT NULL,
-  `Carpetacd` int NOT NULL,
-  `Leido` tinyint(1) NOT NULL,
-  `Notificado` int NOT NULL DEFAULT '0',
-  `Enviador` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `speed_impact_group_id` smallint UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -333,7 +301,8 @@ CREATE TABLE `missions` (
   `related_mission` bigint UNSIGNED DEFAULT NULL,
   `report_id` bigint UNSIGNED DEFAULT NULL,
   `attemps` tinyint UNSIGNED NOT NULL DEFAULT '1',
-  `resolved` tinyint NOT NULL
+  `resolved` tinyint NOT NULL,
+  `invisible` tinyint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -656,28 +625,6 @@ CREATE TABLE `QRTZ_TRIGGERS` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `ranking`
---
-
-CREATE TABLE `ranking` (
-  `PosicionTotal` int NOT NULL,
-  `PosicionMejoras` int NOT NULL,
-  `PosicionTropas` int NOT NULL,
-  `PosicionNaves` int NOT NULL,
-  `PosicionDefensas` int NOT NULL,
-  `usercd` int NOT NULL,
-  `PuntosTotales` int NOT NULL,
-  `PuntosMejoras` int NOT NULL,
-  `PuntosTropas` int NOT NULL,
-  `PuntosNaves` int NOT NULL,
-  `PuntosDefensas` int NOT NULL,
-  `Imagen320x240` char(255) NOT NULL,
-  `Imagen640x240` char(255) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `requirements`
 --
 
@@ -762,7 +709,8 @@ CREATE TABLE `speed_impact_groups` (
   `can_attack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
   `can_counterattack` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
   `can_conquest` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
-  `can_deploy` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY'
+  `can_deploy` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
+  `image_id` bigint UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -809,6 +757,18 @@ CREATE TABLE `time_specials` (
   `improvement_id` smallint UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `tor_ip_data`
+--
+
+CREATE TABLE `tor_ip_data` (
+  `ip` char(15) NOT NULL,
+  `last_checked_date` datetime NOT NULL,
+  `is_tor` tinyint(1) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -905,7 +865,8 @@ CREATE TABLE `units` (
   `improvement_id` smallint UNSIGNED NOT NULL,
   `cloned_improvements` tinyint NOT NULL,
   `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL,
-  `bypass_shield` tinyint NOT NULL
+  `bypass_shield` tinyint NOT NULL,
+  `is_invisible` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
@@ -1029,7 +990,10 @@ CREATE TABLE `user_storage` (
   `secondary_resource_generation_per_second` double UNSIGNED DEFAULT NULL,
   `has_skipped_tutorial` tinyint(1) NOT NULL,
   `points` double NOT NULL DEFAULT '0',
-  `can_alter_twitch_state` tinyint(1) NOT NULL
+  `can_alter_twitch_state` tinyint(1) NOT NULL,
+  `last_multi_account_check` datetime DEFAULT NULL,
+  `multi_account_score` float DEFAULT NULL,
+  `banned` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';
 
 -- --------------------------------------------------------
@@ -1108,12 +1072,6 @@ ALTER TABLE `alliance_join_request`
   ADD KEY `user_id` (`user_id`);
 
 --
--- Index pour la table `aranking`
---
-ALTER TABLE `aranking`
-  ADD KEY `PosicionMejoras` (`PosicionMejoras`);
-
---
 -- Index pour la table `attack_rules`
 --
 ALTER TABLE `attack_rules`
@@ -1127,6 +1085,14 @@ ALTER TABLE `attack_rule_entries`
   ADD KEY `attack_rule_id` (`attack_rule_id`);
 
 --
+-- Index pour la table `audit`
+--
+ALTER TABLE `audit`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_audit_user` (`user_id`),
+  ADD KEY `fk_audit_related_user` (`related_user_id`);
+
+--
 -- Index pour la table `carpetas`
 --
 ALTER TABLE `carpetas`
@@ -1137,12 +1103,6 @@ ALTER TABLE `carpetas`
 --
 ALTER TABLE `configuration`
   ADD PRIMARY KEY (`name`);
-
---
--- Index pour la table `especialesderaza`
---
-ALTER TABLE `especialesderaza`
-  ADD PRIMARY KEY (`cd`);
 
 --
 -- Index pour la table `explored_planets`
@@ -1163,6 +1123,14 @@ ALTER TABLE `factions`
   ADD KEY `primary_resource_image_id` (`primary_resource_image_id`),
   ADD KEY `secondary_resource_image_id` (`secondary_resource_image_id`),
   ADD KEY `energy_image_id` (`energy_image_id`);
+
+--
+-- Index pour la table `factions_unit_types`
+--
+ALTER TABLE `factions_unit_types`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_fut_faction_id` (`faction_id`),
+  ADD KEY `fk_fut_unit_type_id` (`unit_type_id`);
 
 --
 -- Index pour la table `galaxies`
@@ -1192,11 +1160,12 @@ ALTER TABLE `improvements_unit_types`
   ADD KEY `unit_type_id` (`unit_type_id`);
 
 --
--- Index pour la table `mensajes`
+-- Index pour la table `interceptable_speed_group`
 --
-ALTER TABLE `mensajes`
-  ADD PRIMARY KEY (`cd`),
-  ADD KEY `Destino` (`Destino`);
+ALTER TABLE `interceptable_speed_group`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `unit_id` (`unit_id`),
+  ADD KEY `speed_impact_group_id` (`speed_impact_group_id`);
 
 --
 -- Index pour la table `missions`
@@ -1432,6 +1401,12 @@ ALTER TABLE `time_specials`
   ADD KEY `image_id` (`image_id`);
 
 --
+-- Index pour la table `tor_ip_data`
+--
+ALTER TABLE `tor_ip_data`
+  ADD PRIMARY KEY (`ip`);
+
+--
 -- Index pour la table `translatables`
 --
 ALTER TABLE `translatables`
@@ -1593,15 +1568,15 @@ ALTER TABLE `attack_rule_entries`
   MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `audit`
+--
+ALTER TABLE `audit`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `carpetas`
 --
 ALTER TABLE `carpetas`
-  MODIFY `cd` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT pour la table `especialesderaza`
---
-ALTER TABLE `especialesderaza`
   MODIFY `cd` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -1615,6 +1590,12 @@ ALTER TABLE `explored_planets`
 --
 ALTER TABLE `factions`
   MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `factions_unit_types`
+--
+ALTER TABLE `factions_unit_types`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `galaxies`
@@ -1641,10 +1622,10 @@ ALTER TABLE `improvements_unit_types`
   MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT pour la table `mensajes`
+-- AUTO_INCREMENT pour la table `interceptable_speed_group`
 --
-ALTER TABLE `mensajes`
-  MODIFY `cd` int NOT NULL AUTO_INCREMENT;
+ALTER TABLE `interceptable_speed_group`
+  MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `missions`
@@ -1863,6 +1844,13 @@ ALTER TABLE `attack_rule_entries`
   ADD CONSTRAINT `fk_attack_rule` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`);
 
 --
+-- Contraintes pour la table `audit`
+--
+ALTER TABLE `audit`
+  ADD CONSTRAINT `fk_audit_related_user` FOREIGN KEY (`related_user_id`) REFERENCES `user_storage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+--
 -- Contraintes pour la table `explored_planets`
 --
 ALTER TABLE `explored_planets`
@@ -1880,11 +1868,25 @@ ALTER TABLE `factions`
   ADD CONSTRAINT `factions_ibfk_5` FOREIGN KEY (`energy_image_id`) REFERENCES `images_store` (`id`);
 
 --
+-- Contraintes pour la table `factions_unit_types`
+--
+ALTER TABLE `factions_unit_types`
+  ADD CONSTRAINT `fk_fut_faction_id` FOREIGN KEY (`faction_id`) REFERENCES `factions` (`id`),
+  ADD CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`);
+
+--
 -- Contraintes pour la table `improvements_unit_types`
 --
 ALTER TABLE `improvements_unit_types`
   ADD CONSTRAINT `improvements_unit_types_ibfk_1` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
   ADD CONSTRAINT `improvements_unit_types_ibfk_2` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`);
+
+--
+-- Contraintes pour la table `interceptable_speed_group`
+--
+ALTER TABLE `interceptable_speed_group`
+  ADD CONSTRAINT `fk_isg_speed_impact_group_id` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
+  ADD CONSTRAINT `fk_isg_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `units` (`id`);
 
 --
 -- Contraintes pour la table `mission_information`
