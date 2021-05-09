@@ -1,19 +1,18 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.kevinguanchedarias.owgejava.dto.AttackRuleDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -47,13 +46,13 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
 	@Override
 	@Transactional
 	public AttackRule save(AttackRuleDto dto) {
-		AttackRule attackRule = dtoUtilService.entityFromDto(AttackRule.class, dto);
+		var attackRule = dtoUtilService.entityFromDto(AttackRule.class, dto);
 		if (attackRule.getId() != null) {
 			attackRuleEntryRepository.deleteByAttackRuleId(attackRule.getId());
 		}
 		AttackRule saved = save(attackRule);
-		attackRule.setAttackRuleEntries(new ArrayList<>());
-		List<AttackRuleEntry> entries = attackRule.getAttackRuleEntries();
+		List<AttackRuleEntry> entries = new ArrayList<>();
+		attackRule.setAttackRuleEntries(entries);
 		dto.getEntries().forEach(current -> {
 			AttackRuleEntry entity = dtoUtilService.entityFromDto(AttackRuleEntry.class, current);
 			entity.setAttackRule(saved);

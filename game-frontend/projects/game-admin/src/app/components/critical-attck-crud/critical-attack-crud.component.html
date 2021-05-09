@@ -1,7 +1,7 @@
 <owge-widgets-choose-item-modal
     [isDisabled]="!isChanged || !editing?.name || !editing?.entries.length || !areEntriesValid"
-    [i18nModalTitle]="'CRUD.ATTACK_RULE.MODAL.TITLE'" [i18nNullValue]="'CRUD.ATTACK_RULE.NULL_VALUE'"
-    [itemName]="attackRule?.name" (save)="save()" (cancel)="editing = null" (delete)="delete()">
+    [i18nModalTitle]="'CRUD.CRITICAL_ATTACK.MODAL.TITLE'" [i18nNullValue]="'CRUD.ATTACK_RULE.NULL_VALUE'"
+    [itemName]="criticalAttack?.name" (save)="save()" (cancel)="editing = null" (delete)="delete()">
 
     <owge-widgets-warn-message i18nText="WARN.RULES_ORDER"></owge-widgets-warn-message>
     <div class="form-row" *ngIf="editing">
@@ -15,13 +15,13 @@
                     <tr>
                         <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET' | translate }}</th>
                         <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.TARGET_NAME' | translate }}</th>
-                        <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.CAN_ATTACK' | translate }}</th>
+                        <th>{{ 'CRUD.CRITICAL_ATTACK.MODAL.TABLE.VALUE' | translate }}</th>
                         <th>{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.ACTIONS' | translate }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngIf="!editing.entries.length">
-                        <td colspan="3">{{ 'CRUD.ATTACK_RULE.MODAL.TABLE.IS_EMPTY' | translate }}</td>
+                        <td colspan="3">{{ 'CRUD.CRITICAL_ATTACK.MODAL.TABLE.IS_EMPTY' | translate }}</td>
                     </tr>
                     <tr *ngFor="let entry of editing.entries">
                         <td>
@@ -47,8 +47,9 @@
                             </select>
                         </td>
                         <td>
-                            <input type="checkbox" [(ngModel)]="entry.canAttack" />
+                            <input type="number" [(ngModel)]="entry.value" step="0.25" />
                         </td>
+
                         <td>
                             <button class="btn-secondary" (click)="removeEntry(entry)">{{
                                 'CRUD.ATTACK_RULE.MODAL.TABLE.BTN_DELETE' | translate }}</button>

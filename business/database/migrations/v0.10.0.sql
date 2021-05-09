@@ -36,7 +36,7 @@ ALTER TABLE `missions` ADD `invisible` TINYINT NOT NULL AFTER `resolved`;
 ALTER TABLE `speed_impact_groups` ADD `image_id` BIGINT UNSIGNED NULL AFTER `can_deploy`;
 CREATE TABLE `audit` ( 
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
-  `action` ENUM('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES', 'USER_INTERACTION', 'JOIN_ALLIANCE', 'ACCEPT_JOIN_ALLIANCE') NOT NULL , 
+  `action` ENUM('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES', 'USER_INTERACTION', 'JOIN_ALLIANCE', 'ACCEPT_JOIN_ALLIANCE', 'ATTACK_INTERACTION') NOT NULL , 
   `action_detail` VARCHAR(100) NULL , 
   `user_id` INT UNSIGNED NOT NULL , 
   `related_user_id` INT UNSIGNED NULL , 
@@ -57,3 +57,25 @@ CREATE TABLE `tor_ip_data` (
   `is_tor` BOOLEAN NOT NULL , 
   PRIMARY KEY (`ip`)
 ) ENGINE = MyIsam;
+
+
+CREATE TABLE `critical_attack` ( 
+  `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , 
+  `name` VARCHAR(100) NOT NULL , 
+  PRIMARY KEY (`id`)
+) ENGINE = InnoDB;
+
+CREATE TABLE `critical_attack_entries` ( 
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , 
+  `critical_attack_id` SMALLINT UNSIGNED NOT NULL , 
+  `target` ENUM('UNIT','UNIT_TYPE') NOT NULL , 
+  `reference_id` INT UNSIGNED NOT NULL , 
+  `value` FLOAT NOT NULL , 
+  PRIMARY KEY (`id`)
+) ENGINE = InnoDB;
+
+ALTER TABLE `unit_types` ADD `critical_attack_id` SMALLINT UNSIGNED NULL AFTER `speed_impact_group_id`;
+ALTER TABLE `unit_types` ADD CONSTRAINT `unit_types_critical_attack` FOREIGN KEY (`critical_attack_id`) REFERENCES `critical_attack`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
+
+ALTER TABLE `units` ADD `critical_attack_id` SMALLINT UNSIGNED NULL AFTER `speed_impact_group_id`;
+ALTER TABLE `units` ADD CONSTRAINT `units_critical_attack` FOREIGN KEY (`critical_attack_id`) REFERENCES `critical_attack`(`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;

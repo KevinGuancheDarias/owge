@@ -36,6 +36,8 @@ export * from './lib/types/attack-rule.type';
 export * from './lib/types/attack-rule-entry.type';
 export * from './lib/types/backend-error.type';
 export * from './lib/types/common-entity.type';
+export * from './lib/types/critical-attack.type';
+export * from './lib/types/critical-attack-entry.type';
 export * from './lib/types/date-representation.type';
 export * from './lib/types/entity-with-image.type';
 export * from './lib/types/http-options.type';

@@ -1,14 +1,16 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.hibernate.Hibernate;
-import org.springframework.util.CollectionUtils;
-
 import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.Hibernate;
+import org.springframework.util.CollectionUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements DtoWithImprovements {
 	private Boolean hasToDisplayInRequirements;
@@ -30,6 +32,12 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 	private Boolean clonedImprovements = false;
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
+
+	@Getter
+	@Setter
+	private CriticalAttackDto criticalAttack;
+	
+
 	private Boolean bypassShield = false;
 	private Boolean isInvisible = false;
 	private List<RequirementInformationDto> requirements;
@@ -50,11 +58,17 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 			attackRule = new AttackRuleDto();
 			attackRule.dtoFromEntity(entity.getAttackRule());
 		}
+		var criticalAttackEntity = entity.getCriticalAttack();
+		if (criticalAttackEntity != null) {
+			criticalAttack = new CriticalAttackDto();
+			criticalAttack.dtoFromEntity(criticalAttackEntity);
+			criticalAttack.setEntries(DtoUtilService.staticDtosFromEntities(CriticalAttackEntryDto.class, criticalAttackEntity.getEntries()));
+		}
 		List<InterceptableSpeedGroup> interceptableSpeedGroupsEntity = entity.getInterceptableSpeedGroups();
 		if (Hibernate.isInitialized(interceptableSpeedGroupsEntity)
 				&& !CollectionUtils.isEmpty(interceptableSpeedGroupsEntity)) {
 			interceptableSpeedGroups = interceptableSpeedGroupsEntity.stream().map(current -> {
-				InterceptableSpeedGroupDto dto = new InterceptableSpeedGroupDto();
+				var dto = new InterceptableSpeedGroupDto();
 				dto.dtoFromEntity(current);
 				return dto;
 			}).collect(Collectors.toList());

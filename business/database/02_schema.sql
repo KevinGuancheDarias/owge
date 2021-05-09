@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : host.docker.internal
--- Généré le : lun. 03 mai 2021 à 08:28
+-- Généré le : sam. 08 mai 2021 à 11:44
 -- Version du serveur :  8.0.23
 -- Version de PHP : 7.4.16
 
@@ -148,6 +148,31 @@ CREATE TABLE `configuration` (
   `value` varchar(200) NOT NULL,
   `privileged` tinyint NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `critical_attack`
+--
+
+CREATE TABLE `critical_attack` (
+  `id` smallint UNSIGNED NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `critical_attack_entries`
+--
+
+CREATE TABLE `critical_attack_entries` (
+  `id` int UNSIGNED NOT NULL,
+  `critical_attack_id` smallint UNSIGNED NOT NULL,
+  `target` enum('UNIT','UNIT_TYPE') NOT NULL,
+  `reference_id` int UNSIGNED NOT NULL,
+  `value` float NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -865,6 +890,7 @@ CREATE TABLE `units` (
   `improvement_id` smallint UNSIGNED NOT NULL,
   `cloned_improvements` tinyint NOT NULL,
   `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL,
+  `critical_attack_id` smallint UNSIGNED DEFAULT NULL,
   `bypass_shield` tinyint NOT NULL,
   `is_invisible` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -891,6 +917,7 @@ CREATE TABLE `unit_types` (
   `can_conquest` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `can_deploy` enum('NONE','OWNED_ONLY','ANY') NOT NULL DEFAULT 'ANY',
   `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL,
+  `critical_attack_id` smallint UNSIGNED DEFAULT NULL,
   `has_to_inherit_improvements` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'If true applied benefits to parent unit type will also apply to this'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1103,6 +1130,18 @@ ALTER TABLE `carpetas`
 --
 ALTER TABLE `configuration`
   ADD PRIMARY KEY (`name`);
+
+--
+-- Index pour la table `critical_attack`
+--
+ALTER TABLE `critical_attack`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `critical_attack_entries`
+--
+ALTER TABLE `critical_attack_entries`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Index pour la table `explored_planets`
@@ -1449,7 +1488,8 @@ ALTER TABLE `units`
   ADD KEY `improvement_id` (`improvement_id`),
   ADD KEY `image_id` (`image_id`),
   ADD KEY `speed_impact_group_id` (`speed_impact_group_id`),
-  ADD KEY `units__attack_rules` (`attack_rule_id`);
+  ADD KEY `units__attack_rules` (`attack_rule_id`),
+  ADD KEY `units_critical_attack` (`critical_attack_id`);
 
 --
 -- Index pour la table `unit_types`
@@ -1461,7 +1501,8 @@ ALTER TABLE `unit_types`
   ADD KEY `speed_impact_group_id` (`speed_impact_group_id`),
   ADD KEY `unit_types__attack_rules` (`attack_rule_id`),
   ADD KEY `unit_types_share_count` (`share_max_count`),
-  ADD KEY `unit_types_parent_type` (`parent_type`);
+  ADD KEY `unit_types_parent_type` (`parent_type`),
+  ADD KEY `unit_types_critical_attack` (`critical_attack_id`);
 
 --
 -- Index pour la table `unlocked_relation`
@@ -1578,6 +1619,18 @@ ALTER TABLE `audit`
 --
 ALTER TABLE `carpetas`
   MODIFY `cd` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `critical_attack`
+--
+ALTER TABLE `critical_attack`
+  MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `critical_attack_entries`
+--
+ALTER TABLE `critical_attack_entries`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `explored_planets`
@@ -2023,6 +2076,7 @@ ALTER TABLE `tutorial_sections_entries`
 ALTER TABLE `units`
   ADD CONSTRAINT `units__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`),
   ADD CONSTRAINT `units__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
+  ADD CONSTRAINT `units_critical_attack` FOREIGN KEY (`critical_attack_id`) REFERENCES `critical_attack` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `units_ibfk_1` FOREIGN KEY (`type`) REFERENCES `unit_types` (`id`),
   ADD CONSTRAINT `units_ibfk_2` FOREIGN KEY (`improvement_id`) REFERENCES `improvements` (`id`),
   ADD CONSTRAINT `units_ibfk_3` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`);
@@ -2033,6 +2087,7 @@ ALTER TABLE `units`
 ALTER TABLE `unit_types`
   ADD CONSTRAINT `unit_types__attack_rules` FOREIGN KEY (`attack_rule_id`) REFERENCES `attack_rules` (`id`),
   ADD CONSTRAINT `unit_types__speed_impact` FOREIGN KEY (`speed_impact_group_id`) REFERENCES `speed_impact_groups` (`id`),
+  ADD CONSTRAINT `unit_types_critical_attack` FOREIGN KEY (`critical_attack_id`) REFERENCES `critical_attack` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `unit_types_ibfk_1` FOREIGN KEY (`image_id`) REFERENCES `images_store` (`id`),
   ADD CONSTRAINT `unit_types_parent_type` FOREIGN KEY (`parent_type`) REFERENCES `unit_types` (`id`),
   ADD CONSTRAINT `unit_types_share_count` FOREIGN KEY (`share_max_count`) REFERENCES `unit_types` (`id`);

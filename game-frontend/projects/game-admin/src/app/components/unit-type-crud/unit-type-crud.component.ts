@@ -29,6 +29,8 @@ export class UnitTypeCrudComponent implements OnInit {
   public isUnlimitedMaxAmount: boolean;
   public speedImpactGroups: SpeedImpactGroup[] = [];
   public beforeAttackRuleDeleteBinded: () => Promise<void>;
+  public beforeCriticalAttackDeleteBinded: () => Promise<void>;
+
 
   constructor(public adminUnitTypeService: AdminUnitTypeService, private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService) { }
 
@@ -66,6 +68,10 @@ export class UnitTypeCrudComponent implements OnInit {
 
   public async beforeAttackRuleDelete(): Promise<void> {
     return this.adminUnitTypeService.unsetAttackRule(this.unitType).pipe(take(1)).toPromise();
+  }
+
+  public async beforeCriticalAttackDelete(): Promise<void> {
+    return this.adminUnitTypeService.unsetCriticalAttack(this.unitType).pipe(take(1)).toPromise();
   }
 
   private _computeAvailableTypesForSelects() {

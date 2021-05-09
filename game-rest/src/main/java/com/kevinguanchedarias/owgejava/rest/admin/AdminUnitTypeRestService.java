@@ -3,8 +3,16 @@
  */
 package com.kevinguanchedarias.owgejava.rest.admin;
 
-import java.util.Optional;
-
+import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
+import com.kevinguanchedarias.owgejava.business.CriticalAttackBo;
+import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
+import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
+import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
+import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
+import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.transaction.annotation.Propagation;
@@ -15,15 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
-import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
-import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
-import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
-import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
-import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
-import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
-import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
+import java.util.Optional;
 
 /**
  *
@@ -48,6 +48,9 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 	@Autowired
 	private AttackRuleBo attackRuleBo;
 
+	@Autowired
+	private CriticalAttackBo criticalAttackBo;
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public Optional<UnitType> beforeSave(UnitTypeDto parsedDto, UnitType entity) {
@@ -61,6 +64,10 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 		if (parsedDto.getAttackRule() != null && parsedDto.getAttackRule().getId() != null) {
 			entity.setAttackRule(attackRuleBo.findByIdOrDie(parsedDto.getAttackRule().getId()));
 		}
+		if (parsedDto.getCriticalAttack() != null && parsedDto.getCriticalAttack().getId() != null) {
+			entity.setCriticalAttack(criticalAttackBo.getOne(parsedDto.getCriticalAttack().getId()));
+		}
+
 		if (parsedDto.getParent() != null && parsedDto.getParent().getId() != null) {
 			entity.setParent(unitTypeBo.findByIdOrDie(parsedDto.getParent().getId()));
 		}
@@ -86,14 +93,20 @@ public class AdminUnitTypeRestService implements CrudRestServiceTrait<Integer, U
 
 	/**
 	 *
-	 * @param unitTypeId
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@DeleteMapping("{unitTypeId}/attackRule")
 	public void unsetAttackRule(@PathVariable Integer unitTypeId) {
-		UnitType unitType = unitTypeBo.findById(unitTypeId);
+		var unitType = unitTypeBo.findByIdOrDie(unitTypeId);
 		unitType.setAttackRule(null);
+		unitTypeBo.save(unitType);
+	}
+
+	@DeleteMapping("{unitTypeId}/criticalAttack")
+	public void unsetCriticalAttack(@PathVariable Integer unitTypeId) {
+		var unitType = unitTypeBo.findByIdOrDie(unitTypeId);
+		unitType.setCriticalAttack(null);
 		unitTypeBo.save(unitType);
 	}
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, ViewChild, Input } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, Input } from '@angular/core';
 import { ModalComponent } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '../widget-confirmation-dialog/widget-confirmation-dialog.component';
 

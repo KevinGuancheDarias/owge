@@ -1,4 +1,7 @@
 {
+    "WARN": {
+        "RULES_ORDER": "Note: the rules should go from more specific to more general, for example if an unit has type B, and you put first a rule to type B and then to the unit, the unit one would never be applied, as the first match is the type B, the same goes to type hierarchy, if B is a child of A, and you specify first an option to A, the B value would be ignored"
+    },
     "APP": {
         "MENU_HOME": "Home",
         "MENU_UPGRADES": "Upgrades",
@@ -168,6 +171,16 @@
                     "CAN_ATTACK": "Can attack",
                     "ACTIONS": "Actions",
                     "BTN_DELETE": "Delete"
+                }
+            }
+        },
+        "CRITICAL_ATTACK": {
+            "LABEL": "Critical attack",
+            "MODAL": {
+                "TITLE": "Edit critical attack",
+                "TABLE": {
+                    "VALUE": "Value",
+                    "IS_EMPTY": "No critical attack is defined"
                 }
             }
         }

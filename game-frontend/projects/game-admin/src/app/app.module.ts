@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 import {
-  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService, CoreHttpService
+  CoreModule, OwgeUserModule, SessionService, JwtTokenUtil, LoadingService
 } from '@owge/core';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { OwgeUniverseModule } from '@owge/universe';
@@ -16,7 +16,6 @@ import { environment } from '../environments/environment';
 import { LoginComponent } from './components/login/login.component';
 import { IndexComponent } from './components/index/index.component';
 import { AdminLoginService } from './services/admin-login.service';
-import { AdminUserStore } from './store/admin-user.store';
 import { AdminTimeSpecialService } from './services/admin-time-special.service';
 import { CommonCrudComponent } from './components/common-crud/common-crud.component';
 import { TimeSpecialCrudComponent } from './components/time-special-crud/time-special-crud.component';
@@ -54,6 +53,7 @@ import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-grou
 import { CanDoMissionsCrudComponent } from './components/can-do-missions-crud/can-do-missions-crud.component';
 import { AttackRuleCrudComponent } from './components/attack-rule-crud/attack-rule-crud.component';
 import { AdminAttackRuleService } from './services/admin-attack-rule.service';
+import { AdminCriticalAttackService } from './services/admin-critical-attack.service';
 import { TutorialComponent } from './components/tutorial/tutorial.component';
 import { AdminTutorialService } from './services/admin-tutorial.service';
 import { TranslatableComponent } from './components/translatable/translatable.component';
@@ -61,6 +61,7 @@ import { AdminTutorialEntryService } from './services/admin-tutorial-entry.servi
 import { AdminTranslatableService } from './services/admin-translatable.service';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { AdminSystemMessageService } from './services/admin-system-message.service';
+import { CriticalAttackCrudComponent } from './components/critical-attck-crud/critical-attack-crud.component';
 
 @NgModule({
   declarations: [
@@ -90,7 +91,8 @@ import { AdminSystemMessageService } from './services/admin-system-message.servi
     CanDoMissionsCrudComponent,
     AttackRuleCrudComponent,
     TutorialComponent,
-    TranslatableComponent
+    TranslatableComponent,
+    CriticalAttackCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -134,6 +136,7 @@ import { AdminSystemMessageService } from './services/admin-system-message.servi
     AdminRequirementService,
     AdminSpeedImpactGroupService,
     AdminAttackRuleService,
+    AdminCriticalAttackService,
     AdminTutorialService,
     AdminTutorialEntryService,
     AdminTranslatableService,

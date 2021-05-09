@@ -21,6 +21,7 @@
         "plugin:@angular-eslint/template/process-inline-templates"
       ],
       "rules": {
+        "no-multi-spaces": "error",
         "new-parens": "off",
         "@angular-eslint/component-selector": [
           "error",
@@ -38,7 +39,9 @@
             "style": "camelCase"
           }
         ],
-        "@typescript-eslint/no-unused-vars": ["error"],
+        "@typescript-eslint/no-unused-vars": [
+          "error"
+        ],
         "@typescript-eslint/consistent-type-definitions": "error",
         "@typescript-eslint/dot-notation": "off",
         "@typescript-eslint/explicit-member-accessibility": [
