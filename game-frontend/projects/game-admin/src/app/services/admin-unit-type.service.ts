@@ -34,6 +34,14 @@ export class AdminUnitTypeService extends AbstractCrudService<UnitType> {
         );
     }
 
+    public unsetCriticalAttack(unitType: UnitType) {
+        return this._universeGameService.requestWithAutorizationToContext(
+            this._getContextPathPrefix(),
+            'delete',
+            `unit_type/${unitType.id}/criticalAttack`
+        );
+    }
+
     protected _getEntity(): string {
         return 'unit_type';
     }

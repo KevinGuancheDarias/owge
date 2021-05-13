@@ -1,11 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -19,7 +19,6 @@ public interface WithToDtoTrait<E, D extends DtoFromEntity<E>> {
 
 	/**
 	 *
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -28,8 +27,6 @@ public interface WithToDtoTrait<E, D extends DtoFromEntity<E>> {
 	/**
 	 * Converts the entity to a DTO
 	 *
-	 * @param entity
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -43,8 +40,6 @@ public interface WithToDtoTrait<E, D extends DtoFromEntity<E>> {
 
 	/**
 	 *
-	 * @param dto
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -55,8 +50,6 @@ public interface WithToDtoTrait<E, D extends DtoFromEntity<E>> {
 	/**
 	 * Converts an entire entity list to DTO list
 	 *
-	 * @param entities
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

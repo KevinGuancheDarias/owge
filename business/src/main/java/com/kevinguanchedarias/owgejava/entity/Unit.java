@@ -1,6 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
+import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,13 +16,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-
-import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
+import java.util.List;
 
 @Entity
 @Table(name = "units")
@@ -65,21 +65,28 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
 	@ManyToOne(fetch = FetchType.LAZY)
 	@Fetch(FetchMode.JOIN)
 	@JoinColumn(name = "improvement_id")
-	@Cascade({ CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DELETE })
+	@Cascade({CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DELETE})
 	private Improvement improvement;
 
 	@Column(name = "cloned_improvements")
 	private Boolean clonedImprovements = false;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "speed_impact_group_id")
 	@Fetch(FetchMode.JOIN)
 	private SpeedImpactGroup speedImpactGroup;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "attack_rule_id", nullable = true)
+	@JoinColumn(name = "attack_rule_id")
 	@Fetch(FetchMode.JOIN)
 	private AttackRule attackRule;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "critical_attack_id")
+	@Fetch(FetchMode.JOIN)
+	@Getter
+	@Setter
+	private CriticalAttack criticalAttack;
 
 	@Column(name = "bypass_shield", nullable = false)
 	private Boolean bypassShield = false;
@@ -298,7 +305,6 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
 
 	/**
 	 *
-	 * @return
 	 * @since 0.10.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -308,7 +314,6 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
 
 	/**
 	 *
-	 * @param bypassShield
 	 * @since 0.10.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

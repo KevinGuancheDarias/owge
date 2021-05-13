@@ -1,11 +1,21 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
-
-import javax.persistence.*;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.List;
 
 /**
  * The type Unit type.
@@ -23,21 +33,21 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 
 	private String name;
 
-	@Column(name = "max_count", nullable = true)
+	@Column(name = "max_count")
 	private Long maxCount;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "share_max_count")
 	private UnitType shareMaxCount;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_type")
 	private UnitType parent;
 
 	@OneToMany(mappedBy = "parent")
 	private List<UnitType> children;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "image_id")
 	@Fetch(FetchMode.JOIN)
 	private ImageStore image;
@@ -45,15 +55,22 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "unitType")
 	private List<ImprovementUnitType> upgradeEnhancements;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "speed_impact_group_id")
 	@Fetch(FetchMode.JOIN)
 	private SpeedImpactGroup speedImpactGroup;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "attack_rule_id", nullable = true)
+	@JoinColumn(name = "attack_rule_id")
 	@Fetch(FetchMode.JOIN)
 	private AttackRule attackRule;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "critical_attack_id")
+	@Fetch(FetchMode.JOIN)
+	@Getter
+	@Setter
+	private CriticalAttack criticalAttack;
 
 	@Column(name = "has_to_inherit_improvements")
 	private Boolean hasToInheritImprovements = false;
@@ -97,7 +114,6 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 	 * Specifies the maximum units of this type that a user can have <br>
 	 * <b>NOTICE: Null value means unlimited</b>
 	 *
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Long getMaxCount() {

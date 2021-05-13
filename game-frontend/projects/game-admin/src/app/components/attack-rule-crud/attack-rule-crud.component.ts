@@ -1,16 +1,15 @@
-import { Component, OnInit, Input, ViewChild, Output, EventEmitter, OnChanges } from '@angular/core';
-import { ModalComponent, ProgrammingError, LoggerHelper, UnitType, AttackRuleEntry, AttackRule } from '@owge/core';
-import { WidgetConfirmationDialogComponent, WidgetFilter } from '@owge/widgets';
-import { AdminAttackRuleService } from '../../services/admin-attack-rule.service';
-import { isEqual } from 'lodash-es';
-import { AdminUnitService } from '../../services/admin-unit.service';
-import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
+import { AttackRule, AttackRuleEntry, LoggerHelper, ProgrammingError, UnitType } from '@owge/core';
+import { Faction } from '@owge/faction';
 import { Unit } from '@owge/universe';
+import { WidgetChooseItemModalComponent, WidgetFilter } from '@owge/widgets';
+import { cloneDeep, isEqual } from 'lodash-es';
 import { combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { AdminAttackRuleService } from '../../services/admin-attack-rule.service';
 import { AdminFactionService } from '../../services/admin-faction.service';
-import { Faction } from '@owge/faction';
-import { cloneDeep } from 'lodash-es';
+import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { AdminUnitService } from '../../services/admin-unit.service';
 
 interface ValidReference {
   id: number;
@@ -36,8 +35,7 @@ interface AttackRuleEntryWithReferenceInfo extends AttackRuleEntry {
   styleUrls: ['./attack-rule-crud.component.scss']
 })
 export class AttackRuleCrudComponent implements OnInit, OnChanges {
-  @ViewChild(ModalComponent) public modal: ModalComponent;
-  @ViewChild(WidgetConfirmationDialogComponent) public confirmationDialog: WidgetConfirmationDialogComponent;
+  @ViewChild(WidgetChooseItemModalComponent) public modal: WidgetChooseItemModalComponent;
   @Input() public attackRule: AttackRule;
   @Input() public beforeDelete: (attackRule?: AttackRule) => Promise<void>;
   @Output() public attackRuleChange: EventEmitter<AttackRule> = new EventEmitter;
@@ -78,10 +76,6 @@ export class AttackRuleCrudComponent implements OnInit, OnChanges {
     });
   }
 
-  public showModal() {
-    this._setEditing();
-    this.modal.show();
-  }
 
   public addEntry(): void {
     const entry: AttackRuleEntryWithReferenceInfo = {
@@ -93,6 +87,7 @@ export class AttackRuleCrudComponent implements OnInit, OnChanges {
     this.editing.entries.push(entry);
     this.detectIsChanged();
   }
+
   public computeTargetForEntry(entry: AttackRuleEntryWithReferenceInfo): void {
     if (entry.target) {
       if (entry.target === 'UNIT') {

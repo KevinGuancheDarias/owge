@@ -1,14 +1,14 @@
 package com.kevinguanchedarias.owgejava.util;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
-import com.kevinguanchedarias.owgejava.exception.CommonException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DtoUtilService implements Serializable {
@@ -21,8 +21,6 @@ public class DtoUtilService implements Serializable {
 	 * 
 	 * @todo In the future find out a way to remove the static thingy, as is hard to
 	 *       mock
-	 * @param targetDtoClass
-	 * @param entity
 	 * @return If the <i>entity</i> is null, will return null, else the generated
 	 *         dto
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -41,13 +39,19 @@ public class DtoUtilService implements Serializable {
 		}
 	}
 
+	public static <E, P extends DtoFromEntity<E>> List<P> staticDtosFromEntities(Class<P> dtoClass, List<E> entities) {
+		return entities == null
+				? null
+				: entities.stream().map(entity -> staticDtoFromEntity(dtoClass, entity)).collect(Collectors.toList());
+	}
+
 	public <E, P extends DtoFromEntity<E>> P dtoFromEntity(Class<P> targetDtoClass, E entity) {
 		return DtoUtilService.staticDtoFromEntity(targetDtoClass, entity);
 	}
 
 	/**
 	 * Converts an entire array of entities into an array of pojos
-	 * 
+	 *
 	 * @param targetDtoClass Dto class to use
 	 * @param entities       entities array
 	 * @return an array of dtos
@@ -56,7 +60,7 @@ public class DtoUtilService implements Serializable {
 	public <E, P extends DtoFromEntity<E>> List<P> convertEntireArray(Class<P> targetDtoClass, List<E> entities) {
 		List<P> retVal = new ArrayList<>();
 		entities.forEach(current -> {
-			P currentPojo = DtoUtilService.staticDtoFromEntity(targetDtoClass, current);
+			var currentPojo = DtoUtilService.staticDtoFromEntity(targetDtoClass, current);
 			retVal.add(currentPojo);
 		});
 		return retVal;
@@ -66,14 +70,11 @@ public class DtoUtilService implements Serializable {
 	 * Returns the entity created from the dto <br>
 	 * <b>NOTICE:</b> For now only primitive types are copied, in the future should
 	 * be different
-	 * 
-	 * @param targetEntityClass
-	 * @param pojo
-	 * @return
+	 *
 	 * @todo In the future create a method toEntity() in {@link DtoFromEntity} to
-	 *       allow custom entity creations
-	 * @since 0.7.0
+	 * allow custom entity creations
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.7.0
 	 */
 	public <P extends DtoFromEntity<E>, E> E entityFromDto(Class<E> targetEntityClass, P pojo) {
 		try {

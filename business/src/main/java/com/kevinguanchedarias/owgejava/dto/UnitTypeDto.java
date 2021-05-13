@@ -1,10 +1,13 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import java.util.List;
-
 import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.dto.base.DtoWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
 
 public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEntity<UnitType> {
 
@@ -19,6 +22,11 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 	private Long userBuilt;
 	private SpeedImpactGroupDto speedImpactGroup;
 	private AttackRuleDto attackRule;
+
+	@Getter
+	@Setter
+	private CriticalAttackDto criticalAttack;
+
 	private Boolean hasToInheritImprovements = false;
 	private List<InheritedImprovementUnitType> inheritedImprovementUnitTypes;
 
@@ -44,6 +52,12 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 		if (entity.getAttackRule() != null) {
 			attackRule = new AttackRuleDto();
 			attackRule.dtoFromEntity(entity.getAttackRule());
+		}
+		var criticalAttackEntity = entity.getCriticalAttack();
+		if (criticalAttackEntity != null) {
+			criticalAttack = new CriticalAttackDto();
+			criticalAttack.dtoFromEntity(criticalAttackEntity);
+			criticalAttack.setEntries(DtoUtilService.staticDtosFromEntities(CriticalAttackEntryDto.class, criticalAttackEntity.getEntries()));
 		}
 	}
 

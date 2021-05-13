@@ -1,4 +1,5 @@
 import { AttackRule } from './attack-rule.type';
+import { CriticalAttack } from './critical-attack.type';
 import { SpeedImpactGroup } from './speed-impact-group.type';
 import { TypeWithMissionLimitation } from './type-with-mission-limitation.type';
 
@@ -21,6 +22,7 @@ export interface UnitType extends TypeWithMissionLimitation {
     speedImpactGroup: SpeedImpactGroup;
     hasToInheritImprovements: boolean;
     attackRule: AttackRule;
+    criticalAttack: CriticalAttack;
 
     /**
      * If the unit type is used by any unit

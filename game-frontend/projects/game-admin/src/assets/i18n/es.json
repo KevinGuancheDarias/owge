@@ -1,4 +1,7 @@
 {
+    "WARN": {
+        "RULES_ORDER": "Aviso: Las reglas deberían ir del más específico al más general, por ejemplo si una unidad tiene tipo B, y pones primero una regla al tipo B y debajo/luego a la unidad, el de la unidad nunca sería aplicado, ya que coincide primero el del tipo al que ésta pertenece, lo mismo aplica con la herencia, si el tipo de unidad B es hijo del A, Y especificas primero el del tipo A, el del tipo B nunca se aplicaría"
+    },
     "APP": {
         "MENU_HOME": "Inicio",
         "MENU_UPGRADES": "Mejoras",
@@ -146,6 +149,8 @@
             "TITLE": "Editar reglas de ataque",
             "NAME": "Nombre",
             "MODAL": {
+                "TITLE": "Editar reglas de ataque",
+                "NAME": "Nombre",
                 "TABLE": {
                     "TARGET": "Tipo objetivo",
                     "TARGET_TYPE": {
@@ -156,6 +161,16 @@
                     "CAN_ATTACK": "Puede atacar",
                     "ACTIONS": "Acciones",
                     "BTN_DELETE": "Borrar"
+                }
+            }
+        },
+        "CRITICAL_ATTACK": {
+            "LABEL": "Ataques críticos",
+            "MODAL": {
+                "TITLE": "Editar ataque crítico",
+                "TABLE": {
+                    "VALUE": "Valor",
+                    "IS_EMPTY": "No hay ataques críticos definidos"
                 }
             }
         },

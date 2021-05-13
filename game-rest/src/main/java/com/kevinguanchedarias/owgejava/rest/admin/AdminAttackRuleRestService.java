@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
+import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
+import com.kevinguanchedarias.owgejava.dto.AttackRuleDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,9 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
-
-import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
-import com.kevinguanchedarias.owgejava.dto.AttackRuleDto;
 
 /**
  *
@@ -28,7 +27,6 @@ public class AdminAttackRuleRestService {
 
 	/**
 	 *
-	 * @param body
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -39,8 +37,6 @@ public class AdminAttackRuleRestService {
 
 	/**
 	 *
-	 * @param id
-	 * @param body
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
