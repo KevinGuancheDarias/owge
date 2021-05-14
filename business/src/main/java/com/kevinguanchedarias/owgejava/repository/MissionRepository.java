@@ -92,10 +92,10 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
 	 * Delete by resolved true and termination date less than.
 	 *
 	 * @param limitDate the limit date
-	 * @since 0.9.20
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+	 * @since 0.9.20
 	 */
-	void deleteByResolvedTrueAndTerminationDateLessThan(Date limitDate);
+	List<Mission> findByResolvedTrueAndTerminationDateLessThan(Date limitDate);
 
 	/**
 	 * Find by target planet and resolved false and termination date between.

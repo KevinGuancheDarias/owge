@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -74,6 +76,11 @@ public class Mission implements EntityWithId<Long> {
 	@OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.REMOVE)
 	@JoinColumn(name = "related_mission", nullable = true)
 	private Mission relatedMission;
+
+	@OneToMany(mappedBy = "relatedMission")
+	@Getter
+	@Setter
+	private List<Mission> linkedRelated;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	@JoinColumn(name = "report_id", nullable = true)

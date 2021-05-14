@@ -8,9 +8,9 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -31,17 +31,34 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
 @Log4j2
 public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
+    private static final long serialVersionUID = -890947636309038855L;
+
     private static final String CONTROL_COOKIE_NAME = "OWGE_TMAS";
     private static final int DAYS = 365;
+    private static final String TRUSTED_PRIVATE_NET_KEYWORD = "PRIVATE";
 
     private final transient AuditRepository repository;
     private final UserStorageBo userStorageBo;
     private final transient TorClientBo torClientBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
-    private final transient  SocketIoService socketIoService;
+    private final transient SocketIoService socketIoService;
+
+    @Value("${OWGE_PROXY_TRUSTED_NETWORKS:PRIVATE}")
+    private String proxyTrustedNetworks;
+
+    @Value("${OWGE_PROXY_TRUSTED_HEADER:X-OWGE-RMT-IP}")
+    private String proxyTrustedHeader;
+
+    public AuditBo(AuditRepository repository, UserStorageBo userStorageBo, TorClientBo torClientBo, AsyncRunnerBo asyncRunnerBo, SocketIoService socketIoService) {
+        this.repository = repository;
+        this.userStorageBo = userStorageBo;
+        this.torClientBo = torClientBo;
+        this.asyncRunnerBo = asyncRunnerBo;
+        this.socketIoService = socketIoService;
+    }
+
 
     @Override
     public JpaRepository<Audit, Long> getRepository() {
@@ -130,15 +147,15 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
             }
             detectTorBrowser(
                 repository.save(Audit.builder()
-                    .action(action)
-                    .actionDetail(actionDetails)
-                    .user(userStorageBo.getOne(userStorageBo.findLoggedIn().getId()))
-                    .relatedUser(userStorageBo.getOne(relatedUserId))
-                    .ip(request.getRemoteAddr())
-                    .userAgent(request.getHeader("User-Agent"))
-                    .cookie(cookie.getValue())
-                    .creationDate(LocalDateTime.now())
-                    .build()
+                        .action(action)
+                        .actionDetail(actionDetails)
+                        .user(userStorageBo.getOne(userStorageBo.findLoggedIn().getId()))
+                        .relatedUser(userStorageBo.getOne(relatedUserId))
+                        .ip(resolveIp(request))
+                        .userAgent(request.getHeader("User-Agent"))
+                        .cookie(cookie.getValue())
+                        .creationDate(LocalDateTime.now())
+                        .build()
                 )
             );
         }
@@ -149,20 +166,50 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         return repository.findByRelatedUser(user);
     }
 
+    private String resolveIp(HttpServletRequest request) {
+        var ip = request.getRemoteAddr();
+        if (proxyTrustedHeader.isEmpty() || !isTrustedProxyIp(ip)) {
+            return ip;
+        } else {
+            return request.getHeader(proxyTrustedHeader);
+        }
+    }
+
+    private boolean isTrustedProxyIp(String ip) {
+        return List.of(proxyTrustedNetworks.split(",")).stream().anyMatch(trusted ->
+                (trusted.equals(TRUSTED_PRIVATE_NET_KEYWORD) && isPrivate(ip))
+                        || trusted.equals(ip)
+        );
+    }
+
     private void detectTorBrowser(Audit audit) {
         asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
             var ip = audit.getIp();
             try {
                 var inetAddress = InetAddress.getByName(ip);
                 var host = inetAddress.getHostName();
-                if (!inetAddress.isLoopbackAddress() && !inetAddress.isSiteLocalAddress() && (host.contains("tor-exit") || isInTorList(ip))) {
+                if (!isPrivate(inetAddress) && (host.contains("tor-exit") || isInTorList(ip))) {
                     audit.setTor(true);
                     socketIoService.sendWarning(audit.getUser(), "I18N_WARN_TOR");
                 }
             } catch (UnknownHostException e) {
-                log.trace("Can't resolve name for ip {}", ip);
+                log.warn("Can't resolve name for ip {}", ip);
             }
         }, 3000);
+    }
+
+    private boolean isPrivate(String ip) {
+        try {
+            return isPrivate(InetAddress.getByName(ip));
+        } catch (UnknownHostException e) {
+            log.warn("Passed argument is not an IP, passed: {} ", ip);
+            return false;
+        }
+
+    }
+
+    private boolean isPrivate(InetAddress inetAddress) {
+        return inetAddress.isLoopbackAddress() || inetAddress.isSiteLocalAddress();
     }
 
     private boolean isInTorList(String ip) {
