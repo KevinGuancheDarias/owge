@@ -92,8 +92,14 @@ public class MissionBo extends AbstractMissionBo {
 
 	@Scheduled(cron = "0 0 2 * * *")
 	public void deleteOldMissions() {
-		Date limitDate = new Date(new Date().getTime() - (86400000L * DAYS));
-		transactionUtilService.runWithRequired(() -> missionRepository.deleteByResolvedTrueAndTerminationDateLessThan(limitDate));
+		var limitDate = new Date(new Date().getTime() - (86400000L * DAYS));
+		transactionUtilService.runWithRequired(() ->
+				missionRepository.findByResolvedTrueAndTerminationDateLessThan(limitDate)
+						.forEach(mission -> {
+							mission.getLinkedRelated().forEach(linked -> linked.setRelatedMission(null));
+							delete(mission);
+						})
+		);
 	}
 
 	@Override

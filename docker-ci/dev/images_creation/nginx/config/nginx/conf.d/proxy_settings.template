@@ -3,11 +3,19 @@ server{
     listen 80;
 	
 	include /etc/nginx/include/cloudflare_real_ip.inc;
+	if ($http_x_owge_rmt_ip ~ "^$") {
+		set $target_remote $remote_addr;
+	} 
+	
+	if ($http_x_owge_rmt_ip) {
+		set $target_remote $http_x_owge_rmt_ip;
+	}
 
 	location /game_api/ {
 		include /etc/nginx/include/configuracion_proxy.inc;
 		proxy_pass http://${OWGE_BACKEND_SERVER}/${OWGE_REST_CONTEXT_PATH}/;
 		proxy_cookie_path ~*^/.* /;
+		proxy_set_header X-OWGE-RMT-IP $target_remote;
 	}
 
 	location /websocket/ {
