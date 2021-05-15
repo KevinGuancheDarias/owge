@@ -110,10 +110,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 		return repository.findByUserAndNotBuilding(userId);
 	}
 
-	public boolean hasUnitsInPlanet(UserStorage user, Planet planet) {
-		return hasUnitsInPlanet(user.getId(), planet.getId());
-	}
-
 	/**
 	 * Note: Takes into account also the units involved in missions that originate
 	 * from this planet, even if they are outside now
@@ -201,15 +197,12 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	public Long countByUserAndUnitType(UserStorage user, Integer typeId) {
-		UnitType type = unitTypeBo.findById(typeId);
+		var type = unitTypeBo.findById(typeId);
 		return countByUserAndUnitType(user, type);
 	}
 
 	/**
 	 *
-	 * @param user
-	 * @param type
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
@@ -223,8 +216,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * Ideally used to explore a planet
 	 *
 	 * @param exploreMission mission that is executing the explore
-	 * @param targetPlanet
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<ObtainedUnitDto> explorePlanetUnits(Mission exploreMission, Planet targetPlanet) {
@@ -238,7 +229,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	 * <b>IMPORTANT:</b> it may change the id, use the resultant value <br>
 	 * Will add the count to existing one, <b>if it exists in the planet</b>
 	 *
-	 * @param userId
 	 * @param obtainedUnit <b>NOTICE:</b> Won't be changed from inside
 	 * @param targetPlanet Planet to where you are adding the units
 	 * @return new instance of saved obtained unit
@@ -263,24 +253,16 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 	}
 
 	@Transactional
-	public ObtainedUnitDto saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
-		ObtainedUnitDto retVal;
+	public void saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
 		ObtainedUnit unitBeforeDeletion = findByIdOrDie(obtainedUnitDto.getId());
-		ObtainedUnit obtainedUnit = saveWithSubtraction(unitBeforeDeletion, obtainedUnitDto.getCount(),
+		saveWithSubtraction(unitBeforeDeletion, obtainedUnitDto.getCount(),
 				handleImprovements);
-		if (obtainedUnit != null) {
-			retVal = new ObtainedUnitDto();
-			retVal.dtoFromEntity(obtainedUnit);
-		} else {
-			retVal = null;
-		}
 		Integer userId = obtainedUnitDto.getUserId();
 		if (unitBeforeDeletion.getUnit().getEnergy() > 0) {
 			userStorageBo.emitUserData(unitBeforeDeletion.getUser());
 		}
 		socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId));
 		emitObtainedUnitChange(userId);
-		return retVal;
 	}
 
 	/**

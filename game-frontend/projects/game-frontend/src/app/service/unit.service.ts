@@ -1,20 +1,25 @@
-import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { map, tap, distinctUntilChanged, filter, take } from 'rxjs/operators';
-import { Observable, Subscription, Subject } from 'rxjs';
-import { isEqual } from 'lodash-es';
-
-import { ProgrammingError, User, LoggerHelper, DateUtil, AbstractWebsocketApplicationHandler, Improvement } from '@owge/core';
-import {
-  UniverseGameService, Unit, ResourceRequirements, ResourceManagerService, AutoUpdatedResources,
-  UnitStore, ObtainedUnit, UnitBuildRunningMission, PlanetsUnitsRepresentation,
-  ObtainedUpgrade, WsEventCacheService, Planet, UnitUpgradeRequirements, UserStorage
-} from '@owge/universe';
+import { Injectable } from '@angular/core';
+import { AbstractWebsocketApplicationHandler, DateUtil, Improvement, LoggerHelper, ProgrammingError, User } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
+import {
+  AutoUpdatedResources,
+  ObtainedUnit,
+  ObtainedUpgrade, Planet, PlanetsUnitsRepresentation, ResourceManagerService, ResourceRequirements, Unit,
+  UnitBuildRunningMission, UnitStore,
+  UnitUpgradeRequirements, UniverseGameService,
 
-import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { UpgradeService } from './upgrade.service';
+  UserStorage, WsEventCacheService
+} from '@owge/universe';
+import { isEqual } from 'lodash-es';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
+import { SelectedUnit } from '../shared/types/selected-unit.type';
+import { CriticalAttackInformation } from '../types/critical-attack-information.type';
+import { UpgradeService } from './upgrade.service';
+
+
 
 @Injectable()
 export class UnitService extends AbstractWebsocketApplicationHandler {
@@ -37,8 +42,11 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   ) {
     super();
     this._eventsMap = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       unit_unlocked_change: '_onUnlockedChange',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       unit_obtained_change: '_onObtainedChange',
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       unit_build_mission_change: '_onBuildMissionChange'
     };
     this._userStore.currentUserImprovements.pipe(distinctUntilChanged(isEqual)).subscribe(improvement => this._improvement = improvement);
@@ -107,7 +115,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   /**
    * Cancels a unit build mission
    *
-   * @param {RunningUnitPojo} missionData
+   * @param missionData
    * @memberof UnitService
    * @author Kevin Guanche Darias
    */
@@ -124,12 +132,12 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    *
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {number} planetId
-   * @returns {Observable<ObtainedUnit[]>}
+   * @param planetId
+   * @returns
    * @memberof UnitService
    */
   public findInMyPlanet(planetId: number): Observable<ObtainedUnit[]> {
-    (<any>window).exposedIsEqual = isEqual;
+    (window as any).exposedIsEqual = isEqual;
     return this._unitStore.obtained.pipe(
       map(content => content.planets[planetId] || []),
       distinctUntilChanged((a, b) => isEqual(a, b))
@@ -154,9 +162,9 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * Deletes specified obtainedUnit, if count is exactly the totally available, will completely remove the obtainedUnit
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {ObtainedUnit} unit Should contain at least the id, and the count to delete
+   * @param unit Should contain at least the id, and the count to delete
    * @param count
-   * @returns {Promise<void>}
+   * @returns
    * @throws {ProgrammingError} Invalid unit was passed
    * @memberof UnitService
    */
@@ -170,19 +178,17 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
-    return obtainedUnits.map(current => {
-      return {
+    return obtainedUnits.map(current => ({
         unit: current.unit,
         count: current.count
-      };
-    });
+      }));
   }
 
   /**
    * Find unit upgrade requirements for given logged user faction
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns {Observable<UnitUpgradeRequirements[]>}
+   * @returns
    * @memberof UnitService
    */
   public findUnitUpgradeRequirements(): Observable<UnitUpgradeRequirements[]> {
@@ -200,6 +206,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    */
   public findUnlocked(): Observable<Unit[]> {
     return this._unitStore.unlocked.asObservable();
+  }
+
+  public findCriticalAttackInformation(unit: Unit): Observable<CriticalAttackInformation[]> {
+    return this._universeGameService.requestWithAutorizationToContext('game', 'get', `unit/${unit.id}/criticalAttack`);
   }
 
   protected async _onUnlockedChange(content: Unit[]): Promise<void> {
@@ -263,7 +273,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
         collection.push(unit);
       }
     });
-    const planetUnitsRepresentation: PlanetsUnitsRepresentation<ObtainedUnit[]> = <any>{ planets: {} };
+    const planetUnitsRepresentation: PlanetsUnitsRepresentation<ObtainedUnit[]> = { planets: {} } as any;
     unitsMap.forEach((value, key) => planetUnitsRepresentation.planets[key] = value);
     return planetUnitsRepresentation;
   }
