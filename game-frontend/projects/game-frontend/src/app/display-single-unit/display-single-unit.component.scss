@@ -7,6 +7,16 @@
     }
 }
 
+.modal table.critical-information tr{
+    td+td {
+        text-align: left;
+        padding-left: 18px;
+    }
+    td+td+td {
+        text-align: right;
+    }
+}
+
 app-display-single-unit {
     margin: 0 auto;
     display: flex;

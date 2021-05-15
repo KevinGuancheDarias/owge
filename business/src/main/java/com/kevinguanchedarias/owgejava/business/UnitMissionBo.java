@@ -37,6 +37,7 @@ import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -74,6 +75,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 	private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
 	private static final String JOB_GROUP_NAME = "UnitMissions";
 	private static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
+
+	@AllArgsConstructor
+	public class AttackObtainedUnitWithScore {
+		AttackObtainedUnit attackObtainedUnit;
+		float score = 0;
+	}
 
 	/**
 	 * Represents an ObtainedUnit, its full attack, and the pending attack is has
@@ -234,26 +241,37 @@ public class UnitMissionBo extends AbstractMissionBo {
 		}
 
 		private void doAttack() {
-			units.forEach(unit -> {
-				List<AttackObtainedUnit> attackableByUnit = unit.user.attackableUnits.stream().filter(target -> {
-					Unit unitEntity = unit.obtainedUnit.getUnit();
-					AttackRule attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
-							findAttackRule(unitEntity.getType()));
-					return canAttack(attackRule, target);
-				}).collect(Collectors.toList());
-				for (AttackObtainedUnit target : attackableByUnit) {
-					attackTarget(unit, target);
-					if (unit.noAttack) {
+			units.forEach(attackerUnit -> {
+				List<AttackObtainedUnitWithScore> attackableByUnit = attackerUnit.user.attackableUnits.stream()
+						.filter(target -> {
+							var unitEntity = attackerUnit.obtainedUnit.getUnit();
+							var attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
+									findAttackRule(unitEntity.getType()));
+							return canAttack(attackRule, target);
+						})
+						.map(target -> new AttackObtainedUnitWithScore(target, findScore(attackerUnit, target)))
+						.sorted((a, b) -> (int) (b.score - a.score))
+						.collect(Collectors.toList());
+				for (AttackObtainedUnitWithScore target : attackableByUnit) {
+					attackTarget(attackerUnit, target);
+					if (attackerUnit.noAttack) {
 						break;
 					}
 				}
 			});
 		}
 
+		private float findScore(AttackObtainedUnit attacker, AttackObtainedUnit target) {
+			var unit = attacker.obtainedUnit.getUnit();
+			var criticalAttack = ObjectUtils.firstNonNull(unit.getCriticalAttack(), criticalAttackBo.findUsedCriticalAttack(unit.getType()));
+			var criticalAttackRule = criticalAttackBo.findApplicableCriticalEntry(criticalAttack, target.obtainedUnit.getUnit());
+			return criticalAttackRule == null
+					? 1F
+					: criticalAttackRule.getValue();
+		}
+
 		private boolean canAttack(AttackRule attackRule, AttackObtainedUnit target) {
-			if (attackRule == null || attackRule.getAttackRuleEntries() == null) {
-				return true;
-			} else {
+			if (attackRule != null && attackRule.getAttackRuleEntries() != null) {
 				for (AttackRuleEntry ruleEntry : attackRule.getAttackRuleEntries()) {
 					if (ruleEntry.getTarget() == AttackableTargetEnum.UNIT) {
 						if (target.obtainedUnit.getUnit().getId().equals(ruleEntry.getReferenceId())) {
@@ -269,8 +287,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 						throw new ProgrammingException("unexpected code path");
 					}
 				}
-				return true;
 			}
+			return true;
 		}
 
 		private UnitType findUnitTypeMatchingRule(AttackRuleEntry ruleEntry, UnitType unitType) {
@@ -298,10 +316,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 			}
 		}
 
-		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnit target) {
-			Double myAttack = source.pendingAttack;
+		private void attackTarget(AttackObtainedUnit source, AttackObtainedUnitWithScore targetWithScore) {
+			var originalAttackValue = source.pendingAttack;
+			var myAttack = source.pendingAttack * targetWithScore.score;
 			boolean bypassShield = source.obtainedUnit.getUnit().getBypassShield();
-			Double victimHealth = bypassShield ? target.availableHealth
+			var target = targetWithScore.attackObtainedUnit;
+			var victimHealth = bypassShield ? target.availableHealth
 					: target.availableHealth + target.availableShield;
 			addPointsAndUpdateCount(myAttack, source, target);
 			if (victimHealth > myAttack) {
@@ -322,6 +342,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 				}
 			} else {
 				source.pendingAttack = myAttack - victimHealth;
+				if (source.pendingAttack > originalAttackValue) {
+					source.pendingAttack = originalAttackValue;
+				}
 				target.availableHealth = 0D;
 				target.availableShield = 0D;
 				obtainedUnitBo.delete(target.obtainedUnit);
@@ -416,6 +439,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
 	@Autowired
 	private AuditBo auditBo;
+
+	@Autowired
+	private transient CriticalAttackBo criticalAttackBo;
 
 	@Override
 	public String getGroupName() {

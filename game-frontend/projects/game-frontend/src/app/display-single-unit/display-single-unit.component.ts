@@ -1,15 +1,16 @@
-import { Component, OnInit, Input, ViewEncapsulation, OnDestroy, Output, EventEmitter, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ModalComponent, UnitType, User } from '@owge/core';
+import { UserWithFaction } from '@owge/faction';
+import { ImprovementUtil, ObtainedUnit, Unit, UnitBuildRunningMission, UserStorage } from '@owge/universe';
+import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { BehaviorSubject, Subscription } from 'rxjs';
-
-import { User, UnitType, ModalComponent } from '@owge/core';
-import { Unit, UnitBuildRunningMission, ObtainedUnit, UserStorage, ImprovementUtil } from '@owge/universe';
-
+import { filter, take } from 'rxjs/operators';
+import { UnitTypeService } from '../services/unit-type.service';
+import { CriticalAttackInformation } from '../types/critical-attack-information.type';
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';
-import { UnitTypeService } from '../services/unit-type.service';
-import { filter, take } from 'rxjs/operators';
-import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { UserWithFaction } from '@owge/faction';
+
+
 
 export type validViews = 'requirements' | 'attributes' | 'improvements';
 
@@ -82,6 +83,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   public unitTypes: UnitType[];
   public unitType: UnitType;
   public attackableUnitTypes: AttackableUnitType[];
+  public criticalAttackInformations: CriticalAttackInformation[];
 
   public get count(): any {
     return this._count.value;
@@ -159,6 +161,9 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
       )
     );
     this.modal.show();
+    this._loadingService.addPromise(
+      this._unitService.findCriticalAttackInformation(this.unit).toPromise()
+    ).then(result => this.criticalAttackInformations = result);
   }
 
   public cancelBuild(confirm: boolean): void {
@@ -193,7 +198,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
    * If unit is unique should not allow more than one as <i>count</i> value
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns {boolean}
+   * @returns
    * @memberof DisplaySingleUnitComponent
    */
   public isValidCount(): boolean {

@@ -1,13 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
-
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
@@ -16,8 +8,14 @@ import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
-import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
@@ -43,7 +41,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	private UserStorageBo userStorageBo;
 
 	@Autowired
-	private SocketIoService socketIoService;
+	private transient SocketIoService socketIoService;
 
 	@Override
 	public JpaRepository<UnitType, Integer> getRepository() {
@@ -65,9 +63,6 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
 	 * find the improvement</b>
 	 *
-	 * @param user
-	 * @param typeId
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public Long findUniTypeLimitByUser(UserStorage user, Integer typeId) {
@@ -80,16 +75,13 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
 	 * find the improvement</b>
 	 *
-	 * @param user
-	 * @param type
-	 * @return
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 * @since 0.8.1
 	 */
 	public Long findUniTypeLimitByUser(UserStorage user, UnitType type) {
-		Long retVal = 0L;
+		var retVal = 0L;
 		if (type.hasMaxCount()) {
-			GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+			var groupedImprovement = improvementBo.findUserImprovement(user);
 			retVal = (long) Math.floor(improvementBo.computeImprovementValue(type.getMaxCount(),
 					groupedImprovement.findUnitTypeImprovement(ImprovementTypeEnum.AMOUNT, type)));
 		}
@@ -105,7 +97,6 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 	 *                     if required)
 	 * @param unitType     Unit type to test
 	 * @param type         Mission to execute
-	 * @return
 	 * @deprecated Please Use
 	 *             {@link UnitMissionBo#canDoMission(UserStorage, Planet, com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation, MissionType)}
 	 * @throws SgtCorruptDatabaseException     Value in unit types database table is
@@ -136,8 +127,6 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	/**
 	 *
-	 * @param userId
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -147,14 +136,12 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
 	/**
 	 *
-	 * @param user
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	public List<UnitTypeDto> findUnitTypesWithUserInfo(UserStorage user) {
 		return findAll().stream().map(current -> {
-			UnitTypeDto currentDto = new UnitTypeDto();
+			var currentDto = new UnitTypeDto();
 			currentDto.dtoFromEntity(current);
 			currentDto.setComputedMaxCount(findUniTypeLimitByUser(user, current));
 			if (current.hasMaxCount()) {
@@ -162,16 +149,6 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 			}
 			return currentDto;
 		}).collect(Collectors.toList());
-	}
-
-	/**
-	 *
-	 * @param user
-	 * @since 0.9.7
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void emitUserChange(UserStorage user) {
-		emitUserChange(user.getId());
 	}
 
 	public void emitUserChange(Integer userId) {

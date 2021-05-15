@@ -133,7 +133,23 @@
                 "EXTRA_INFO": {
                     "MODAL": {
                         "TITLE": "Full unit information for <b>{{name}}</b>",
-                        "ATTACKABLE_TYPES": "Attackable types"
+                        "ATTACKABLE_TYPES": "Attackable types",
+                        "CRITICAL_INFORMATION_TITLE": "Critical attack information",
+                        "CRITICAL_INFORMATION": {
+                            "TABLE": {
+                                "HEADER": {
+                                    "TYPE": "Type",
+                                    "NAME": "Name",
+                                    "VALUE": "Value"
+                                },
+                                "BODY": {
+                                    "TARGET": {
+                                        "UNIT": "Unit",
+                                        "UNIT_TYPE": "Unit type"
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },

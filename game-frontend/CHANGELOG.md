@@ -3,6 +3,8 @@
 v0.10.0 (latest)
 =================
 
+* __Fix:__ Unit information modal close button, doesn't work
+* __Feature:__ [As a player I want to be able to add "critical attack" #259](https://github.com/KevinGuancheDarias/owge/issues/259)  
 * [class=Admin] __Feature:__ [As an admin I want to add critical attack to certain unit types or units #266](https://github.com/KevinGuancheDarias/owge/issues/266)  
 * [class=Admin] __Fix:__ Unit attack rule not closing afer saving
 * __Fix:__ [When an error occur in the sync endpoint, the sync breaks completely, bug due to #386 ....  #390](https://github.com/KevinGuancheDarias/owge/issues/390)  
