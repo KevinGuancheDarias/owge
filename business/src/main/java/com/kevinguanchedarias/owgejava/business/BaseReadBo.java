@@ -5,15 +5,13 @@ import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface BaseReadBo<K extends Serializable,  E extends EntityWithId<K>> {
+public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
 
     JpaRepository<E, K> getRepository();
 
@@ -23,9 +21,8 @@ public interface BaseReadBo<K extends Serializable,  E extends EntityWithId<K>> 
     }
 
     /**
-     *
-     * @since 0.9.19
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.19
      */
     default List<E> findAll(Sort sort) {
         return getRepository().findAll(sort).stream().map(this::onFind).collect(Collectors.toList());
@@ -38,10 +35,9 @@ public interface BaseReadBo<K extends Serializable,  E extends EntityWithId<K>> 
     /**
      * Returns a reference, useful to execute update operations
      *
-     * @since 0.7.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
      */
-    @Transactional(propagation = Propagation.MANDATORY)
     default E getOne(K id) {
         return id == null
                 ? null
@@ -63,8 +59,8 @@ public interface BaseReadBo<K extends Serializable,  E extends EntityWithId<K>> 
     /**
      * Can be used to alter all calls to findBy
      *
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     default E onFind(E entity) {
         return entity;
@@ -79,9 +75,8 @@ public interface BaseReadBo<K extends Serializable,  E extends EntityWithId<K>> 
     }
 
     /**
-     *
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     default void existsOrDie(K id) {
         if (!exists(id)) {

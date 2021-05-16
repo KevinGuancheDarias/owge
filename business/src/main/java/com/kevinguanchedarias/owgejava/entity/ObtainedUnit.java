@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.Date;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,128 +14,113 @@ import javax.persistence.Table;
 
 @Table(name = "obtained_units")
 @Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ObtainedUnit implements EntityWithId<Long> {
-	private static final long serialVersionUID = -373057104230776167L;
+    private static final long serialVersionUID = -373057104230776167L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @EqualsAndHashCode.Include
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
-	private UserStorage user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserStorage user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "unit_id", nullable = false)
-	private Unit unit;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "unit_id", nullable = false)
+    private Unit unit;
 
-	private Long count;
+    private Long count;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "source_planet", nullable = true)
-	private Planet sourcePlanet;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_planet")
+    private Planet sourcePlanet;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "target_planet", nullable = true)
-	private Planet targetPlanet;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_planet")
+    private Planet targetPlanet;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "mission_id", nullable = true)
-	private Mission mission;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mission_id")
+    private Mission mission;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "first_deployment_mission", nullable = true)
-	private Mission firstDeploymentMission;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "first_deployment_mission")
+    private Mission firstDeploymentMission;
 
-	private Date expiration;
+    @Override
+    public Long getId() {
+        return id;
+    }
 
-	public void addCount(Long count) {
-		if (this.count == null) {
-			this.count = 0L;
-		}
-		this.count += count;
-	}
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	@Override
-	public Long getId() {
-		return id;
-	}
+    public UserStorage getUser() {
+        return user;
+    }
 
-	@Override
-	public void setId(Long id) {
-		this.id = id;
-	}
+    public void setUser(UserStorage user) {
+        this.user = user;
+    }
 
-	public UserStorage getUser() {
-		return user;
-	}
+    public Unit getUnit() {
+        return unit;
+    }
 
-	public void setUser(UserStorage user) {
-		this.user = user;
-	}
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
 
-	public Unit getUnit() {
-		return unit;
-	}
+    public Long getCount() {
+        return count;
+    }
 
-	public void setUnit(Unit unit) {
-		this.unit = unit;
-	}
+    public void setCount(Long count) {
+        this.count = count;
+    }
 
-	public Long getCount() {
-		return count;
-	}
+    public Planet getSourcePlanet() {
+        return sourcePlanet;
+    }
 
-	public void setCount(Long count) {
-		this.count = count;
-	}
+    public void setSourcePlanet(Planet sourcePlanet) {
+        this.sourcePlanet = sourcePlanet;
+    }
 
-	public Planet getSourcePlanet() {
-		return sourcePlanet;
-	}
+    public Planet getTargetPlanet() {
+        return targetPlanet;
+    }
 
-	public void setSourcePlanet(Planet sourcePlanet) {
-		this.sourcePlanet = sourcePlanet;
-	}
+    public void setTargetPlanet(Planet targetPlanet) {
+        this.targetPlanet = targetPlanet;
+    }
 
-	public Planet getTargetPlanet() {
-		return targetPlanet;
-	}
+    public Mission getMission() {
+        return mission;
+    }
 
-	public void setTargetPlanet(Planet targetPlanet) {
-		this.targetPlanet = targetPlanet;
-	}
+    public void setMission(Mission mission) {
+        this.mission = mission;
+    }
 
-	public Mission getMission() {
-		return mission;
-	}
+    /**
+     * @return the firstDeploymentMission
+     * @since 0.7.4
+     */
+    public Mission getFirstDeploymentMission() {
+        return firstDeploymentMission;
+    }
 
-	public void setMission(Mission mission) {
-		this.mission = mission;
-	}
-
-	/**
-	 * @since 0.7.4
-	 * @return the firstDeploymentMission
-	 */
-	public Mission getFirstDeploymentMission() {
-		return firstDeploymentMission;
-	}
-
-	/**
-	 * @since 0.7.4
-	 * @param firstDeploymentMission the firstDeploymentMission to set
-	 */
-	public void setFirstDeploymentMission(Mission firstDeploymentMission) {
-		this.firstDeploymentMission = firstDeploymentMission;
-	}
-
-	public Date getExpiration() {
-		return expiration;
-	}
-
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
-	}
+    /**
+     * @param firstDeploymentMission the firstDeploymentMission to set
+     * @since 0.7.4
+     */
+    public void setFirstDeploymentMission(Mission firstDeploymentMission) {
+        this.firstDeploymentMission = firstDeploymentMission;
+    }
 
 }
