@@ -23,7 +23,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunni
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
@@ -60,7 +59,6 @@ public class MissionBo extends AbstractMissionBo {
     private final transient ConfigurationBo configurationBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
-    private final ObtainedUnitRepository obtainedUnitRepository;
 
     @PostConstruct
     public void init() {
@@ -115,10 +113,10 @@ public class MissionBo extends AbstractMissionBo {
     @Transactional
     public void registerLevelUpAnUpgrade(Integer userId, Integer upgradeId) {
         checkUpgradeMissionDoesNotExists(userId);
-        ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgradeId);
+        var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgradeId);
         checkUpgradeIsAvailable(obtainedUpgrade);
 
-        UserStorage user = userStorageBo.findById(userId);
+        var user = userStorageBo.findById(userId);
         checkMissionLimitNotReached(user);
         ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
         if (!resourceRequirements.canRun(user, userStorageBo)) {
@@ -131,14 +129,14 @@ public class MissionBo extends AbstractMissionBo {
                     .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
                             improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
         }
-        ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
+        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
                 obtainedUpgrade.getUpgrade().getId());
 
-        MissionInformation missionInformation = new MissionInformation();
+        var missionInformation = new MissionInformation();
         missionInformation.setRelation(relation);
         missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
 
-        Mission mission = new Mission();
+        var mission = new Mission();
         mission.setStartingDate(new Date());
         mission.setMissionInformation(missionInformation);
         attachRequirementstoMission(mission, resourceRequirements);
@@ -159,7 +157,6 @@ public class MissionBo extends AbstractMissionBo {
     }
 
     /**
-     * @param user
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
@@ -175,13 +172,13 @@ public class MissionBo extends AbstractMissionBo {
      */
     @Transactional
     public void processLevelUpAnUpgrade(Long missionId) {
-        Mission mission = findById(missionId);
+        var mission = findById(missionId);
         if (mission != null) {
-            MissionInformation missionInformation = mission.getMissionInformation();
-            Upgrade upgrade = objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+            var missionInformation = mission.getMissionInformation();
+            var upgrade = (Upgrade) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
             UserStorage user = mission.getUser();
             Integer userId = user.getId();
-            ObtainedUpgrade obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
+            var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
             obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
             obtainedUpgradeBo.save(obtainedUpgrade);
             requirementBo.triggerLevelUpCompleted(user, upgrade.getId());
