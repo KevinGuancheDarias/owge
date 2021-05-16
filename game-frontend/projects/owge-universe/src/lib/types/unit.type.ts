@@ -1,4 +1,4 @@
-import { SpeedImpactGroup } from '@owge/core';
+import { CriticalAttack, SpeedImpactGroup } from '@owge/core';
 import { ResourceRequirements } from '../pojos/resource-requirements.pojo';
 import { InterceptableSpeedGroup } from './interceptable-speed-group.type';
 
@@ -33,6 +33,7 @@ export interface Unit {
     typeName?: string;
     requirements?: ResourceRequirements;
     speedImpactGroup: SpeedImpactGroup;
+    criticalAttack: CriticalAttack;
 
     /**
      * @since 0.10.0

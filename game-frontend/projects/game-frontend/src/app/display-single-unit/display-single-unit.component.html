@@ -13,6 +13,11 @@
     </div>
     <h3 class="owge-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION_TITLE' | translate
       }}</h3>
+    <div class="owge-base-colors" *ngIf="criticalAttackInformations?.length">
+      <input type="checkbox" [(ngModel)]="isDefaultCriticalDisplayed" />
+      {{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION.CHECKBOX_DEFAULT_CRITICAL_DISPLAYED' |
+      translate}}
+    </div>
     <table class="owge-table critical-information">
       <thead>
         <tr>
@@ -22,11 +27,18 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let criticalAttack of criticalAttackInformations">
-          <td>{{ criticalAttack.target | translate}}</td>
-          <td>{{ criticalAttack.targetName }}</td>
-          <td>{{ criticalAttack.value }}x</td>
+        <tr *ngIf="criticalAttackInformations && !criticalAttackInformations.length">
+          <td colspan="3">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION.TABLE.BODY_EMPTY' |
+            translate }}</td>
         </tr>
+        <ng-container *ngFor="let criticalAttack of criticalAttackInformations">
+          <tr *ngIf="isDefaultCriticalDisplayed || criticalAttack.value !== 1">
+            <td>{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION.TABLE.BODY.TARGET.' +
+              criticalAttack.target | translate}}</td>
+            <td>{{ criticalAttack.targetName }}</td>
+            <td>{{ criticalAttack.value }}x</td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
   </div>

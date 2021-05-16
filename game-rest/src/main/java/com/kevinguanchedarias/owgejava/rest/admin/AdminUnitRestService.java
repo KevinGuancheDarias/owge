@@ -1,20 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.annotation.ApplicationScope;
-
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.CriticalAttackBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
@@ -30,6 +17,20 @@ import com.kevinguanchedarias.owgejava.rest.trait.CrudWithFullRestService;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.annotation.ApplicationScope;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -64,6 +65,9 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 	@Autowired
 	private RequirementBo requirementBo;
 
+	@Autowired
+	private CriticalAttackBo criticalAttackBo;
+
 	/*
 	 * (non-Javadoc)
 	 *
@@ -97,21 +101,23 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 		if (parsedDto.getSpeedImpactGroup() != null && parsedDto.getSpeedImpactGroup().getId() != null) {
 			entity.setSpeedImpactGroup(speedImpactGroupBo.findByIdOrDie(parsedDto.getSpeedImpactGroup().getId()));
 		}
+		if (parsedDto.getCriticalAttack() != null && parsedDto.getCriticalAttack().getId() != null) {
+			entity.setCriticalAttack(criticalAttackBo.getOne(parsedDto.getCriticalAttack().getId()));
+		}
+		entity.setInterceptableSpeedGroups(null);
 		CrudWithFullRestService.super.beforeSave(parsedDto, entity);
 		return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
 	}
 
 	/**
 	 *
-	 * @param unitId
-	 * @return
 	 * @since 0.10.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@GetMapping("{unitId}/interceptableSpeedGroups")
 	public List<InterceptableSpeedGroupDto> findInterceptables(@PathVariable Integer unitId) {
 		return unitBo.findByIdOrDie(unitId).getInterceptableSpeedGroups().stream().map(current -> {
-			InterceptableSpeedGroupDto dto = new InterceptableSpeedGroupDto();
+			var dto = new InterceptableSpeedGroupDto();
 			dto.dtoFromEntity(current);
 			return dto;
 		}).collect(Collectors.toList());
@@ -119,15 +125,20 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
 
 	/**
 	 *
-	 * @param unitId
-	 * @param interceptables
 	 * @since 0.10.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PutMapping("{unitId}/interceptableSpeedGroups")
 	public void saveInterceptables(@PathVariable Integer unitId,
-			@RequestBody List<InterceptableSpeedGroupDto> interceptables) {
+								   @RequestBody List<InterceptableSpeedGroupDto> interceptables) {
 		unitBo.saveSpeedImpactGroupInterceptors(unitId, interceptables);
+	}
+
+	@DeleteMapping("{unitId}/criticalAttack")
+	public void unsetCriticalAttack(@PathVariable Integer unitId) {
+		var unit = unitBo.findByIdOrDie(unitId);
+		unit.setCriticalAttack(null);
+		unitBo.save(unit);
 	}
 
 	/*

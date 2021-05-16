@@ -84,6 +84,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   public unitType: UnitType;
   public attackableUnitTypes: AttackableUnitType[];
   public criticalAttackInformations: CriticalAttackInformation[];
+  public isDefaultCriticalDisplayed = false;
 
   public get count(): any {
     return this._count.value;

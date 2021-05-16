@@ -1,16 +1,16 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { ModalComponent, SpeedImpactGroup, UnitType } from '@owge/core';
+import { InterceptableSpeedGroup, Unit } from '@owge/universe';
 import { Observable } from 'rxjs';
-
-import { Unit } from '@owge/universe';
-
-import { UnitType, SpeedImpactGroup, ModalComponent } from '@owge/core';
-
-import { AdminUnitService } from '../../services/admin-unit.service';
-import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { take } from 'rxjs/operators';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
-import { InterceptableSpeedGroup } from '@owge/universe';
-import { CommonCrudComponent } from '../common-crud/common-crud.component';
+import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { AdminUnitService } from '../../services/admin-unit.service';
 import { CommonCrudWithImageComponent } from '../common-crud-with-image/common-crud-with-image.component';
+import { CommonCrudComponent } from '../common-crud/common-crud.component';
+
+
+
 
 interface InterceptedSpeedImpactGroup extends SpeedImpactGroup {
   isIntercepted?: boolean;
@@ -37,6 +37,7 @@ export class UnitCrudComponent implements OnInit {
   public elsObservable: Observable<Unit[]>;
   public unitTypes: UnitType[];
   public speedImpactGroups: InterceptedSpeedImpactGroup[] = [];
+  public beforeCriticalAttackDeleteBinded: () => Promise<void>;
 
   public constructor(
     public adminUnitService: AdminUnitService,
@@ -45,6 +46,7 @@ export class UnitCrudComponent implements OnInit {
   ) { }
 
   public ngOnInit() {
+    this.beforeCriticalAttackDeleteBinded = this.beforeCriticalAttackDelete.bind(this);
     this._adminUnitTypeservice.findAll().subscribe(val => this.unitTypes = val);
     this._adminSpeedImpactGroupService.findAll().subscribe(result => this.speedImpactGroups = result);
   }
@@ -83,5 +85,10 @@ export class UnitCrudComponent implements OnInit {
       .filter(group => group.isIntercepted).map(group => ({ speedImpactGroup: group }));
     this.adminUnitService.saveInterceptableGroups(this.selectedEl.id, this.selectedEl.interceptableSpeedGroups)
       .subscribe(() => this.interceptableGroupsModal.hide());
+  }
+
+  public async beforeCriticalAttackDelete(): Promise<void> {
+    await this.adminUnitService.unsetCriticalAttack(this.selectedEl).pipe(take(1)).toPromise();
+    delete this.selectedEl.criticalAttack;
   }
 }

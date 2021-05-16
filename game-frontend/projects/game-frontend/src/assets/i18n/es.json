@@ -136,6 +136,7 @@
                         "ATTACKABLE_TYPES": "Tipos atacables",
                         "CRITICAL_INFORMATION_TITLE": "Información críticos",
                         "CRITICAL_INFORMATION": {
+                            "CHECKBOX_DEFAULT_CRITICAL_DISPLAYED": "Mostrar críticos por defecto",
                             "TABLE": {
                                 "HEADER": {
                                     "TYPE": "Tipo",

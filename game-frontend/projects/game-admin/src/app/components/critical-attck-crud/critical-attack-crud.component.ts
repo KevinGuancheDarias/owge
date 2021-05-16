@@ -36,6 +36,7 @@ export class CriticalAttackCrudComponent implements OnInit, OnChanges {
   @Input() public beforeDelete: (criticalAttack?: CriticalAttack) => Promise<void>;
   @Input() public criticalAttack: CriticalAttack;
   @Output() public criticalAttackChange: EventEmitter<CriticalAttack> = new EventEmitter;
+  @Output() public deleteError: EventEmitter<void> = new EventEmitter;
 
   public editing: Omit<CriticalAttack, 'entries'> & { entries: CriticalAttackEntryWithReferenceInfo[] };;
   public isChanged = false;
@@ -85,8 +86,15 @@ export class CriticalAttackCrudComponent implements OnInit, OnChanges {
     });
   }
 
-  public delete(): void {
-    throw new Error('no babe');
+  public async delete(): Promise<void> {
+    try {
+      if(this.beforeDelete) {
+        await this.beforeDelete(this.editing);
+      }
+      await this._adminCriticalAttackService.delete(this.editing.id).toPromise();
+    }catch (e) {
+      this.deleteError.emit();
+    }
   }
 
   public selectedTargetChanged(entry: CriticalAttackEntryWithReferenceInfo): void {

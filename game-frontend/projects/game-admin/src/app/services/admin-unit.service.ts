@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import {
-    Unit,
-    AbstractCrudService, WithRequirementsCrudMixin, WithImprovementsCrudMixin, CrudConfig, UniverseGameService, CrudServiceAuthControl
-} from '@owge/universe';
 import { validContext } from '@owge/core';
-import { Mixin } from 'ts-mixer';
-import { InterceptableSpeedGroup } from '@owge/universe';
+import {
+    AbstractCrudService, CrudConfig, CrudServiceAuthControl, InterceptableSpeedGroup, Unit,
+    UniverseGameService, WithImprovementsCrudMixin, WithRequirementsCrudMixin
+} from '@owge/universe';
 import { Observable } from 'rxjs';
+import { Mixin } from 'ts-mixer';
 
 export interface AdminUnitService
     extends AbstractCrudService<Unit, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -53,6 +52,14 @@ export class AdminUnitService extends AbstractCrudService<Unit, number> {
         );
     }
 
+    public unsetCriticalAttack(unit: Unit) {
+        return this._universeGameService.requestWithAutorizationToContext(
+            this._getContextPathPrefix(),
+            'delete',
+            `unit/${unit.id}/criticalAttack`
+        );
+    }
+
     protected _getEntity(): string {
         return 'unit';
     }
@@ -67,4 +74,4 @@ export class AdminUnitService extends AbstractCrudService<Unit, number> {
         };
     }
 }
-(<any>AdminUnitService) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, <any>AdminUnitService);
+(AdminUnitService as any) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, AdminUnitService as any);
