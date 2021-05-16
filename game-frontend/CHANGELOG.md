@@ -3,6 +3,7 @@
 v0.10.0 (latest)
 =================
 
+* __Feature:__ [As a player I want to be able to unlock units, upgrades, or time specials when I have built some unit #272](https://github.com/KevinGuancheDarias/owge/issues/272)  
 * [class=Admin] __Fix:__ Unit doesn't save when already exists, and has interceptable groups added
 * __Fix:__ Unit information modal close button, doesn't work
 * __Feature:__ [As a player I want to be able to add "critical attack" #259](https://github.com/KevinGuancheDarias/owge/issues/259)  

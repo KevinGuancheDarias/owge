@@ -10,6 +10,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.InterceptableSpeedGroupRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -17,166 +18,116 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @AllArgsConstructor
 public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockableBo<Integer, Unit, UnitDto> {
-	private static final long serialVersionUID = 8956360591688432113L;
+    private static final long serialVersionUID = 8956360591688432113L;
 
-	private final UnitRepository unitRepository;
+    private final UnitRepository unitRepository;
 
-	private final UnlockedRelationBo unlockedRelationBo;
+    private final UnlockedRelationBo unlockedRelationBo;
 
-	private final ObjectRelationBo objectRelationBo;
+    private final ObjectRelationBo objectRelationBo;
 
-	private final ObtainedUnitBo obtainedUnitBo;
+    private final ImprovementBo improvementBo;
 
-	private final ImprovementBo improvementBo;
+    private final transient InterceptableSpeedGroupRepository interceptableSpeedGroupRepository;
 
-	private final transient InterceptableSpeedGroupRepository interceptableSpeedGroupRepository;
+    private final SpeedImpactGroupBo speedImpactGroupBo;
 
-	private final SpeedImpactGroupBo speedImpactGroupBo;
+    private final transient CriticalAttackBo criticalAttackBo;
 
-	private final transient CriticalAttackBo criticalAttackBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
 
-	@Override
-	public JpaRepository<Unit, Integer> getRepository() {
-		return unitRepository;
-	}
+    @Override
+    public JpaRepository<Unit, Integer> getRepository() {
+        return unitRepository;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
-	 */
-	@Override
-	public Class<UnitDto> getDtoClass() {
-		return UnitDto.class;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+     */
+    @Override
+    public Class<UnitDto> getDtoClass() {
+        return UnitDto.class;
+    }
 
-	@Override
-	public UnlockedRelationBo getUnlockedRelationBo() {
-		return unlockedRelationBo;
-	}
+    @Override
+    public UnlockedRelationBo getUnlockedRelationBo() {
+        return unlockedRelationBo;
+    }
 
-	@Override
-	public ObjectEnum getObject() {
-		return ObjectEnum.UNIT;
-	}
+    @Override
+    public ObjectEnum getObject() {
+        return ObjectEnum.UNIT;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
-	 * owgejava.entity.EntityWithId)
-	 */
-	@Override
-	public Unit save(Unit entity) {
-		improvementBo.clearCacheEntriesIfRequired(entity, obtainedUnitBo);
-		return WithNameBo.super.save(entity);
-	}
+    @Transactional
+    @Override
+    public void delete(Integer id) {
+        delete(findByIdOrDie(id));
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
-	 */
-	@Override
-	public void save(List<Unit> entities) {
-		improvementBo.clearCacheEntries(obtainedUnitBo);
-		WithNameBo.super.save(entities);
-	}
+    /**
+     * Calculates the requirements according to the count to operate!
+     *
+     * @throws SgtBackendInvalidInputException can't be negative
+     * @author Kevin Guanche Darias
+     */
+    public ResourceRequirementsPojo calculateRequirements(Unit unit, Long count) {
+        if (count < 1) {
+            throw new SgtBackendInvalidInputException("Input can't be negative");
+        }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see
-	 * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
-	 */
-	@Transactional
-	@Override
-	public void delete(Unit unit) {
-		objectRelationBo.delete(objectRelationBo.findOneByObjectTypeAndReferenceId(getObject(), unit.getId()));
-		Set<UserStorage> affectedUsers = new HashSet<>();
-		obtainedUnitBo.findByUnit(unit).forEach(obtainedUnit -> affectedUsers.add(obtainedUnit.getUser()));
-		obtainedUnitBo.deleteByUnit(unit);
-		improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitBo);
-		affectedUsers.forEach(user -> {
-			obtainedUnitBo.emitObtainedUnitChange(user.getId());
-			if (unit.getImprovement() != null) {
-				improvementBo.emitUserImprovement(user);
-			}
-		});
-		WithNameBo.super.delete(unit);
-	}
+        var retVal = new ResourceRequirementsPojo();
+        retVal.setRequiredPrimary((double) (unit.getPrimaryResource() * count));
+        retVal.setRequiredSecondary((double) (unit.getSecondaryResource() * count));
+        retVal.setRequiredTime((double) (unit.getTime() * count));
+        retVal.setRequiredEnergy((double) (ObjectUtils.firstNonNull(unit.getEnergy(), 0) * count));
+        return retVal;
+    }
 
-	@Transactional
-	@Override
-	public void delete(Integer id) {
-		delete(findByIdOrDie(id));
-	}
+    public boolean isUnique(Unit unit) {
+        return unit.getIsUnique();
+    }
 
-	/**
-	 * Calculates the requirements according to the count to operate!
-	 *
-	 * @throws SgtBackendInvalidInputException can't be negative
-	 * @author Kevin Guanche Darias
-	 */
-	public ResourceRequirementsPojo calculateRequirements(Unit unit, Long count) {
-		if (count < 1) {
-			throw new SgtBackendInvalidInputException("Input can't be negative");
-		}
+    /**
+     * Checks if the unique unit has been build by the user
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void checkIsUniqueBuilt(UserStorage user, Unit unit) {
+        if (isUnique(unit) && obtainedUnitRepository.countByUserAndUnit(user, unit) > 0) {
+            throw new SgtBackendInvalidInputException(
+                    "Unit with id " + unit.getId() + " has been already build by user " + user.getId());
+        }
 
-		var retVal = new ResourceRequirementsPojo();
-		retVal.setRequiredPrimary((double) (unit.getPrimaryResource() * count));
-		retVal.setRequiredSecondary((double) (unit.getSecondaryResource() * count));
-		retVal.setRequiredTime((double) (unit.getTime() * count));
-		retVal.setRequiredEnergy((double) (ObjectUtils.firstNonNull(unit.getEnergy(), 0) * count));
-		return retVal;
-	}
+    }
 
-	public boolean isUnique(Unit unit) {
-		return unit.getIsUnique();
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.10.0
+     */
+    @Transactional
+    public void saveSpeedImpactGroupInterceptors(int unitId,
+                                                 List<InterceptableSpeedGroupDto> interceptableSpeedGroupDtos) {
+        var unit = getOne(unitId);
+        interceptableSpeedGroupRepository.deleteByUnit(unit);
+        interceptableSpeedGroupDtos.forEach(current -> {
+            var interceptableSpeedGroup = new InterceptableSpeedGroup();
+            interceptableSpeedGroup.setUnit(unit);
+            interceptableSpeedGroup
+                    .setSpeedImpactGroup(speedImpactGroupBo.getOne(current.getSpeedImpactGroup().getId()));
+            interceptableSpeedGroupRepository.save(interceptableSpeedGroup);
+        });
+    }
 
-	/**
-	 * Checks if the unique unit has been build by the user
-	 *
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void checkIsUniqueBuilt(UserStorage user, Unit unit) {
-		if (isUnique(unit) && obtainedUnitBo.countByUserAndUnitId(user, unit.getId()) > 0) {
-			throw new SgtBackendInvalidInputException(
-					"Unit with id " + unit.getId() + " has been already build by user " + user.getId());
-		}
-
-	}
-
-	/**
-	 *
-	 * @since 0.10.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public void saveSpeedImpactGroupInterceptors(int unitId,
-			List<InterceptableSpeedGroupDto> interceptableSpeedGroupDtos) {
-		var unit = getOne(unitId);
-		interceptableSpeedGroupRepository.deleteByUnit(unit);
-		interceptableSpeedGroupDtos.forEach(current -> {
-			var interceptableSpeedGroup = new InterceptableSpeedGroup();
-			interceptableSpeedGroup.setUnit(unit);
-			interceptableSpeedGroup
-					.setSpeedImpactGroup(speedImpactGroupBo.getOne(current.getSpeedImpactGroup().getId()));
-			interceptableSpeedGroupRepository.save(interceptableSpeedGroup);
-		});
-	}
-
-	public CriticalAttack findUsedCriticalAttack(int unitId) {
-		var unit = findByIdOrDie(unitId);
-		return ObjectUtils.firstNonNull(unit.getCriticalAttack(), criticalAttackBo.findUsedCriticalAttack(unit.getType()));
-	}
+    public CriticalAttack findUsedCriticalAttack(int unitId) {
+        var unit = findByIdOrDie(unitId);
+        return ObjectUtils.firstNonNull(unit.getCriticalAttack(), criticalAttackBo.findUsedCriticalAttack(unit.getType()));
+    }
 }
