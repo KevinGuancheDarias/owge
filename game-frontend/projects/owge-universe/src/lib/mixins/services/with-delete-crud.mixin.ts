@@ -1,7 +1,7 @@
 
 import { Observable } from 'rxjs';
-import { UniverseGameService } from '../../services/universe-game.service';
 import { AbstractConfigurationCrudService } from '../../services/abstract-configuration-crud.service';
+import { UniverseGameService } from '../../services/universe-game.service';
 
 
 /**
@@ -28,11 +28,13 @@ export class WithDeleteCrudMixin<T, K> extends AbstractConfigurationCrudService<
     public delete(id: K): Observable<T[]> {
         const path = this._findOneEntityPath(id);
         this._universeGameService.requestWithAutorizationToContext(this._getContextPathPrefix(), 'delete', path).subscribe(() => {
-            if (this._data) {
+            if (this._data && this._subject) {
                 this._data = this._data.filter(current => <any>current[this._getIdKey()] !== id);
                 this._syncSubject();
             }
         });
-        return this._subject.asObservable();
+        return this._subject
+            ? this._subject.asObservable()
+            : null;
     }
 }

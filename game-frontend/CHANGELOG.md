@@ -3,6 +3,7 @@
 v0.10.0 (latest)
 =================
 
+* [class=Admin] __Fix:__ Unit doesn't save when already exists, and has interceptable groups added
 * __Fix:__ Unit information modal close button, doesn't work
 * __Feature:__ [As a player I want to be able to add "critical attack" #259](https://github.com/KevinGuancheDarias/owge/issues/259)  
 * [class=Admin] __Feature:__ [As an admin I want to add critical attack to certain unit types or units #266](https://github.com/KevinGuancheDarias/owge/issues/266)  

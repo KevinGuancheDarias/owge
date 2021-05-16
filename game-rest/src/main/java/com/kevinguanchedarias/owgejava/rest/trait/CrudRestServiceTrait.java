@@ -3,13 +3,6 @@
  */
 package com.kevinguanchedarias.owgejava.rest.trait;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
@@ -18,6 +11,12 @@ import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.SupportedOperations;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Has basic crud methods used by most of the internal entities <br>
@@ -48,7 +47,6 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
 	 * @throws SgtBackendInvalidInputException If the body object has id (it MUST
 	 *                                         not)
 	 * @param entityDto The request body
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -58,15 +56,15 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
 		if (!findSupportedOperations().canCreate()) {
 			throw AccessDeniedException.fromUnsupportedOperation();
 		}
-		D parsedDto = beforeConversion(entityDto).orElse(entityDto);
-		E transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
-		E parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
+		var parsedDto = beforeConversion(entityDto).orElse(entityDto);
+		var transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
+		var parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
 		if (hasId(parsedEntity)) {
 			throw new SgtBackendInvalidInputException(
 					"New entities can't have an id, use PUT instead if you wish to update an entity");
 		}
-		E savedEntity = getBo().save(parsedEntity);
-		D finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
+		var savedEntity = getBo().save(parsedEntity);
+		var finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
 		return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
 	}
 
@@ -77,7 +75,6 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
 	 *                                         doesn't match path/body one
 	 * @param id        The path param id
 	 * @param entityDto request body
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
@@ -87,14 +84,14 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
 		if (!findSupportedOperations().canUpdateAny()) {
 			throw AccessDeniedException.fromUnsupportedOperation();
 		}
-		D parsedDto = beforeConversion(entityDto).orElse(entityDto);
-		E transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
-		E parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
+		var parsedDto = beforeConversion(entityDto).orElse(entityDto);
+		var transientEntity = getDtoUtilService().entityFromDto(getEntityClass(), parsedDto);
+		var parsedEntity = beforeSave(parsedDto, transientEntity).orElse(transientEntity);
 		if (!hasId(parsedEntity) || !id.equals(parsedEntity.getId())) {
 			throw new SgtBackendInvalidInputException("Id not specified, or path id doesn't match body id");
 		}
-		E savedEntity = getBo().save(parsedEntity);
-		D finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
+		var savedEntity = getBo().save(parsedEntity);
+		var finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
 		return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
 	}
 

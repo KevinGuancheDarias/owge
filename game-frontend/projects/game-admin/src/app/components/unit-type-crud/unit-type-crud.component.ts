@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-
-import { UnitType, MissionSupport, SpeedImpactGroup, AttackRule } from '@owge/core';
-
-import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
-import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
+import { AttackRule, MissionSupport, SpeedImpactGroup, UnitType } from '@owge/core';
 import { take } from 'rxjs/operators';
+import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
+import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+
+
 
 /**
  *
@@ -36,6 +36,7 @@ export class UnitTypeCrudComponent implements OnInit {
 
   public ngOnInit(): void {
     this.beforeAttackRuleDeleteBinded = this.beforeAttackRuleDelete.bind(this);
+    this.beforeCriticalAttackDeleteBinded = this.beforeCriticalAttackDelete.bind(this);
     this.adminUnitTypeService.findAll().subscribe(result => {
       this.unitTypes = result;
       this._computeAvailableTypesForSelects();
@@ -71,7 +72,8 @@ export class UnitTypeCrudComponent implements OnInit {
   }
 
   public async beforeCriticalAttackDelete(): Promise<void> {
-    return this.adminUnitTypeService.unsetCriticalAttack(this.unitType).pipe(take(1)).toPromise();
+    await this.adminUnitTypeService.unsetCriticalAttack(this.unitType).pipe(take(1)).toPromise();
+    delete this.unitType.criticalAttack;
   }
 
   private _computeAvailableTypesForSelects() {

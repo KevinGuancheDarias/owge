@@ -136,12 +136,14 @@
                         "ATTACKABLE_TYPES": "Attackable types",
                         "CRITICAL_INFORMATION_TITLE": "Critical attack information",
                         "CRITICAL_INFORMATION": {
+                            "CHECKBOX_DEFAULT_CRITICAL_DISPLAYED": "Display default criticals",
                             "TABLE": {
                                 "HEADER": {
                                     "TYPE": "Type",
                                     "NAME": "Name",
                                     "VALUE": "Value"
                                 },
+                                "BODY_EMPTY": "Unit has not criticals",
                                 "BODY": {
                                     "TARGET": {
                                         "UNIT": "Unit",

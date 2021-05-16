@@ -1,5 +1,6 @@
 <owge-core-modal *ngIf="selectedEl">
-    <div class="header">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.TITLE' | translate: {unitName: selectedEl.name} }}</div>
+    <div class="header">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.TITLE' | translate: {unitName: selectedEl.name} }}
+    </div>
     <div class="body">
         <table>
             <tr>
@@ -13,11 +14,14 @@
         </table>
     </div>
     <div class="footer">
-        <button (click)="clickSaveIntercepted()" class="btn">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_SAVE' | translate }}</button>
-        <button (click)="interceptableGroupsModal.hide()" class="btn">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_CANCEL' | translate }}</button>
+        <button (click)="clickSaveIntercepted()" class="btn">{{ 'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_SAVE' |
+            translate }}</button>
+        <button (click)="interceptableGroupsModal.hide()" class="btn">{{
+            'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_CANCEL' | translate }}</button>
     </div>
 </owge-core-modal>
-<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)" [customElementsSource]="elsObservable">
+<app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)"
+    [customElementsSource]="elsObservable">
     <ng-template #beforeList>
         <app-requirements-filter [service]="adminUnitService" (filteredSource)="elsObservable = $event">
 
@@ -25,19 +29,22 @@
     </ng-template>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
-            <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="false" [el]="selectedEl"></app-resource-requirements-crud>
+            <app-resource-requirements-crud class="form-row" [isEnergyHidden]="false" [el]="selectedEl">
+            </app-resource-requirements-crud>
             <div class="form-group col-md-6">
                 <label for="input-unique">{{ 'CRUD.UNIT.UNIQUE' | translate }}</label>
                 <input class="form-control" type="checkbox" id="input-unique" [(ngModel)]="selectedEl.isUnique">
             </div>
             <div class="form-group col-md-6">
                 <label for="input-fast-explore">{{ 'CRUD.UNIT.CAN_FAST_EXPLORE' | translate }}</label>
-                <input class="form-control" type="checkbox" id="input-fast-explore" [(ngModel)]="selectedEl.canFastExplore">
+                <input class="form-control" type="checkbox" id="input-fast-explore"
+                    [(ngModel)]="selectedEl.canFastExplore">
             </div>
 
             <div class="form-group col-md-6">
                 <label for="input-show-in-requirements">{{ 'CRUD.UNIT.SHOW_IN_REQUIREMENTS' | translate }}</label>
-                <input class="form-control" type="checkbox" id="input-show-in-requirements" [(ngModel)]="selectedEl.hasToDisplayInRequirements">
+                <input class="form-control" type="checkbox" id="input-show-in-requirements"
+                    [(ngModel)]="selectedEl.hasToDisplayInRequirements">
             </div>
 
             <div class="form-group col-md-6">
@@ -64,36 +71,49 @@
 
             <div class="form-group col-md-6">
                 <label for="input-bypass-shields">{{ 'CRUD.UNIT.BYPASS_SHIELDS' | translate }}</label>
-                <input class="form-control" type="checkbox" id="input-bypass-shields" [(ngModel)]="selectedEl.bypassShield">
+                <input class="form-control" type="checkbox" id="input-bypass-shields"
+                    [(ngModel)]="selectedEl.bypassShield">
             </div>
 
             <div class="form-group col-md-6">
                 <label for="input-is-invisible">{{ 'CRUD.UNIT.IS_INVISIBLE' | translate }}</label>
-                <input class="form-control" type="checkbox" id="input-is-invisible" [(ngModel)]="selectedEl.isInvisible">
+                <input class="form-control" type="checkbox" id="input-is-invisible"
+                    [(ngModel)]="selectedEl.isInvisible">
             </div>
 
             <div class="form-group col-md-6">
                 <label for="unit-type">{{ 'CRUD.UNIT.TYPE' | translate }}</label>
-                <owge-widgets-id-name-dropdown class="form-control" [useIdAsValue]="true" [inputId]="'unit-type'" [elementsList]="unitTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
+                <owge-widgets-id-name-dropdown class="form-control" [useIdAsValue]="true" [inputId]="'unit-type'"
+                    [elementsList]="unitTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
             </div>
 
             <div class="form-group col-md-6">
-                <label>{{ 'CRUD.UNIT_TYPE.SPEED_IMPACT_GROUP' | translate  }}</label>
+                <label>{{ 'CRUD.UNIT_TYPE.SPEED_IMPACT_GROUP' | translate }}</label>
                 <select class="form-control" [(ngModel)]="selectedEl.speedImpactGroup" [compareWith]="isSameObject">
                     <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate}} </option>
-                    <option *ngFor="let speedImpactGroup of speedImpactGroups" [ngValue]="speedImpactGroup">{{ speedImpactGroup.name}}</option>
+                    <option *ngFor="let speedImpactGroup of speedImpactGroups" [ngValue]="speedImpactGroup">{{
+                        speedImpactGroup.name}}</option>
                 </select>
             </div>
 
+            <div class="form-group">
+                <label>{{ 'CRUD.CRITICAL_ATTACK.LABEL' | translate }}</label>
+                <app-critical-attack-crud [beforeDelete]="beforeCriticalAttackDeleteBinded"
+                    [(criticalAttack)]="selectedEl.criticalAttack" class="form-control"></app-critical-attack-crud>
+            </div>
+
             <div class="form-group col-md-6">
-                <button (click)="interceptableGroupsModal.show()" class="btn">{{ 'CRUD.UNIT.BTN_OPEN_INTERCEPTABLES_MODAL' | translate }}</button>
+                <button (click)="interceptableGroupsModal.show()" class="btn">{{
+                    'CRUD.UNIT.BTN_OPEN_INTERCEPTABLES_MODAL' | translate }}</button>
             </div>
 
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
-            <app-object-improvements-crud [service]="adminUnitService" [entityId]="selectedEl.id"></app-object-improvements-crud>
+            <app-object-improvements-crud [service]="adminUnitService" [entityId]="selectedEl.id">
+            </app-object-improvements-crud>
             <div class="col-md-12 owge-form-header">{{ 'CRUD.REQUIREMENTS' | translate }}</div>
             <div class="form-group col-md-12">
-                <app-object-requirements-crud [service]="adminUnitService" [entityId]="selectedEl.id" ></app-object-requirements-crud>
+                <app-object-requirements-crud [service]="adminUnitService" [entityId]="selectedEl.id">
+                </app-object-requirements-crud>
             </div>
         </ng-container>
     </ng-template>
