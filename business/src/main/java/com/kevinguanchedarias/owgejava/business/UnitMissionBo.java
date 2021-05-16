@@ -958,7 +958,8 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     private UnitMissionReportBuilder processGather(Mission mission, List<ObtainedUnit> involvedUnits) {
         UserStorage user = mission.getUser();
-        Planet targetPlanet = mission.getTargetPlanet();
+        var faction = user.getFaction();
+        var targetPlanet = mission.getTargetPlanet();
         boolean continueMission = triggerAttackIfRequired(mission, user, targetPlanet);
         if (continueMission) {
             adminRegisterReturnMission(mission);
@@ -966,11 +967,20 @@ public class UnitMissionBo extends AbstractMissionBo {
                     .map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
                     .reduce(0L, Long::sum);
             double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
-            GroupedImprovement groupedImprovement = improvementBo.findUserImprovement(user);
+            var groupedImprovement = improvementBo.findUserImprovement(user);
             double withUserImprovement = withPlanetRichness
                     + (withPlanetRichness * improvementBo.findAsRational(groupedImprovement.getMoreChargeCapacity()));
-            Double primaryResource = withUserImprovement * 0.5;
-            Double secondaryResource = withUserImprovement * 0.5;
+            var customPrimary = faction.getCustomPrimaryGatherPercentage();
+            var customSecondary = faction.getCustomSecondaryGatherPercentage();
+            double primaryResource;
+            double secondaryResource;
+            if (customPrimary != null && customSecondary != null && customPrimary > 0 && customSecondary > 0) {
+                primaryResource = withUserImprovement * (customPrimary / 100);
+                secondaryResource = withUserImprovement * (customSecondary / 100);
+            } else {
+                primaryResource = withUserImprovement * 0.5;
+                secondaryResource = withUserImprovement * 0.5;
+            }
             user.addtoPrimary(primaryResource);
             user.addToSecondary(secondaryResource);
             UnitMissionReportBuilder builder = UnitMissionReportBuilder

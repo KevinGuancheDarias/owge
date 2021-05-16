@@ -3,9 +3,10 @@
 v0.10.0 (latest)
 =================
 
+* __Feature:__ [As a player I want to be able to have different gather percentages by primary and secondary for each faction #276](https://github.com/KevinGuancheDarias/owge/issues/276)  
 * __Feature:__ [As a player I want to be able to unlock units, upgrades, or time specials when I have built some unit #272](https://github.com/KevinGuancheDarias/owge/issues/272)  
-* [class=Admin] __Fix:__ Unit doesn't save when already exists, and has interceptable groups added
-* __Fix:__ Unit information modal close button, doesn't work
+* [class=Admin] __Fix:__ Unit doesn't save when already exists, and has interceptable groups added  
+* __Fix:__ Unit information modal close button, doesn't work  
 * __Feature:__ [As a player I want to be able to add "critical attack" #259](https://github.com/KevinGuancheDarias/owge/issues/259)  
 * [class=Admin] __Feature:__ [As an admin I want to add critical attack to certain unit types or units #266](https://github.com/KevinGuancheDarias/owge/issues/266)  
 * [class=Admin] __Fix:__ Unit attack rule not closing afer saving
