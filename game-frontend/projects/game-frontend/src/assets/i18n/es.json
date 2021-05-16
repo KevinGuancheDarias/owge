@@ -143,6 +143,7 @@
                                     "NAME": "Nombre",
                                     "VALUE": "Valor"
                                 },
+                                "BODY_EMPTY": "La unidad no tiene críticos",
                                 "BODY": {
                                     "TARGET": {
                                         "UNIT": "Unidad",
