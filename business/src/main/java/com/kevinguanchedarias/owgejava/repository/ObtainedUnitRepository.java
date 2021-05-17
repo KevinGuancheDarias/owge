@@ -37,7 +37,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
     Long countByUserAndUnit(UserStorage user, Unit unit);
 
-    Long deleteByMissionId(Long missionId);
+    void deleteByMissionId(Long missionId);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
