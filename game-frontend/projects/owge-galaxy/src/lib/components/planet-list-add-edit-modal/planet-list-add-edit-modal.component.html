@@ -1,27 +1,30 @@
 <owge-core-modal #childModal [hasCloseButton]="true">
-    <div class="header" *ngIf="addingOrEditing">
-      <span *ngIf="!addingOrEditing.userId">{{ 'APP.PLANET_LIST.ADD' | translate}}</span>
-      <span *ngIf="addingOrEditing.userId">{{ 'APP.PLANET_LIST.EDIT' | translate: {el: originalName} }}</span>
-    </div>
-    <div class="body" *ngIf="addingOrEditing">
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label>{{ 'APP.PLANET_LIST.LABEL_NAME' | translate}}</label>
-          <input [(ngModel)]="addingOrEditing.name" maxlength="150" [placeholder]="'APP.PLANET_LIST.PLACEHOLDER' | translate" class="owge-base-colors"/>
-          </div>
+  <div class="header" *ngIf="addingOrEditing">
+    <span *ngIf="!addingOrEditing.userId">{{ 'APP.PLANET_LIST.ADD' | translate}}</span>
+    <span *ngIf="addingOrEditing.userId">{{ 'APP.PLANET_LIST.EDIT' | translate: {el: originalName} }}</span>
+  </div>
+  <div class="body" *ngIf="addingOrEditing">
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label>{{ 'APP.PLANET_LIST.LABEL_NAME' | translate}}</label>
+        <input [(ngModel)]="addingOrEditing.name" maxlength="150"
+          [placeholder]="'APP.PLANET_LIST.PLACEHOLDER' | translate" class="owge-theme-base-colors" />
       </div>
     </div>
-    <div class="footer" *ngIf="addingOrEditing">
-      <div class="btn-group display-quadrant-planet-list-btns">
-        <button (click)="savePlanetList()" class="btn btn-primary">{{ 'APP.PLANET_LIST.BTN_SAVE' |
-          translate}}</button>
-        <button (click)="cancelAddEdit()" class="btn btn-secondary">{{ 'APP.PLANET_LIST.BTN_CANCEL'| translate }} </button>
-        <button (click)="confirmDialog.show()" class="btn btn-secondary">{{ 'APP.PLANET_LIST.BTN_DELETE' |
-            translate}}</button>
-      </div>
+  </div>
+  <div class="footer" *ngIf="addingOrEditing">
+    <div class="btn-group display-quadrant-planet-list-btns">
+      <button (click)="savePlanetList()" class="btn btn-primary">{{ 'APP.PLANET_LIST.BTN_SAVE' |
+        translate}}</button>
+      <button (click)="cancelAddEdit()" class="btn btn-secondary">{{ 'APP.PLANET_LIST.BTN_CANCEL'| translate }}
+      </button>
+      <button (click)="confirmDialog.show()" class="btn btn-secondary">{{ 'APP.PLANET_LIST.BTN_DELETE' |
+        translate}}</button>
     </div>
+  </div>
 </owge-core-modal>
 
-<owge-widgets-confirmation-dialog (confirmResult)="canDelete($event)" [text]="'APP.PLANET_LIST.CONFIRM_DELETE' | translate: {el: originalName} ">
+<owge-widgets-confirmation-dialog (confirmResult)="canDelete($event)"
+  [text]="'APP.PLANET_LIST.CONFIRM_DELETE' | translate: {el: originalName} ">
 
 </owge-widgets-confirmation-dialog>

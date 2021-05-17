@@ -23,7 +23,7 @@ export class SponsorsComponent extends BaseComponent implements OnInit {
   public donatedForCompanies = 20;
   public donatedForIndividuals = 5;
   public donatedForIndividualsWithSite = 10;
-  public donationTextTranslation: object;
+  public donationTextTranslation: Record<string, unknown>;
 
   public constructor(private _sponsorService: SponsorService) {
     super();

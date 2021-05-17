@@ -4,38 +4,44 @@
       {{ 'APP.REPORTS.NO_REPORTS' | translate }}
     </div>
     <div class="card owge report-card" *ngFor="let report of reports">
-      <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)" [image]="report.parsedJson?.targetPlanet | planetImage"
-        [hideDesktopSections]="[0,0,1]"
-      >
+      <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)"
+        [image]="report.parsedJson?.targetPlanet | planetImage" [hideDesktopSections]="[0,0,1]">
         <ng-template owgeCoreContent [select]="'extra-header'">
-          <h6 class="text-muted">{{ report?.normalizedDate |  date: commonDateFormat }}</h6>
+          <h6 class="text-muted">{{ report?.normalizedDate | date: commonDateFormat }}</h6>
         </ng-template>
         <ng-template owgeCoreContent [select]="'extra-section'">
           <div class="report-collapsable-list">
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SOURCE_PLANET' | translate" [maxWidth]="isDesktop && 130">
-              <owge-widgets-display-simple-item [itemName]="report.parsedJson?.sourcePlanet | planetDisplayName" 
-                [itemImage]="report.parsedJson?.sourcePlanet | planetImage"
-              ></owge-widgets-display-simple-item>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SOURCE_PLANET' | translate"
+              [maxWidth]="isDesktop && 130">
+              <owge-widgets-display-simple-item [itemName]="report.parsedJson?.sourcePlanet | planetDisplayName"
+                [itemImage]="report.parsedJson?.sourcePlanet | planetImage"></owge-widgets-display-simple-item>
             </owge-widgets-collapsable-item>
 
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SENT_UNITS' | translate" *ngIf="report.parsedJson?.involvedUnits?.length">
-              <app-deployed-units-list  [obtainedUnits]="report.parsedJson?.involvedUnits"></app-deployed-units-list>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.SENT_UNITS' | translate"
+              *ngIf="report.parsedJson?.involvedUnits?.length">
+              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.involvedUnits"></app-deployed-units-list>
             </owge-widgets-collapsable-item>
 
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.EXPLORE' | translate" *ngIf="report.parsedJson?.unitsInPlanet">
-              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.unitsInPlanet" [showUsername]="true" ></app-deployed-units-list>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.EXPLORE' | translate"
+              *ngIf="report.parsedJson?.unitsInPlanet">
+              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.unitsInPlanet" [showUsername]="true">
+              </app-deployed-units-list>
             </owge-widgets-collapsable-item>
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ESTABLISH_BASE' | translate" *ngIf="report.parsedJson?.establishBaseStatus !== undefined">
-                <div class="owge-base-colors">
-                  {{ (report.parsedJson.establishBaseStatusStr ? report.parsedJson.establishBaseStatusStr : 'APP.REPORTS.RESULTS.ESTABLISH_BASE_SUCCESS') | translate}}
-                </div>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ESTABLISH_BASE' | translate"
+              *ngIf="report.parsedJson?.establishBaseStatus !== undefined">
+              <div class="owge-theme-base-colors">
+                {{ (report.parsedJson.establishBaseStatusStr ? report.parsedJson.establishBaseStatusStr :
+                'APP.REPORTS.RESULTS.ESTABLISH_BASE_SUCCESS') | translate}}
+              </div>
             </owge-widgets-collapsable-item>
 
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ERROR' | translate" *ngIf="report.parsedJson?.errorText">
-              <p class="owge-base-colors">{{ report.parsedJson?.errorText }}</p>
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ERROR' | translate"
+              *ngIf="report.parsedJson?.errorText">
+              <p class="owge-theme-base-colors">{{ report.parsedJson?.errorText }}</p>
             </owge-widgets-collapsable-item>
 
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ATTACK' | translate" *ngIf="report.parsedJson?.attackInformation">
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.ATTACK' | translate"
+              *ngIf="report.parsedJson?.attackInformation">
               <div class="card owge" *ngFor="let currentUser of report.parsedJson?.attackInformation">
                 <div class="card-block">
                   {{ 'APP.REPORTS.BODY.USERNAME' | translate: {username: currentUser.userInfo.username} }}
@@ -46,8 +52,9 @@
               </div>
             </owge-widgets-collapsable-item>
 
-            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.CONQUEST' | translate" *ngIf="report.parsedJson?.conquestStatus !== undefined">
-              <div class="owge-base-colors">
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.CONQUEST' | translate"
+              *ngIf="report.parsedJson?.conquestStatus !== undefined">
+              <div class="owge-theme-base-colors">
                 {{ report.parsedJson.conquestStatusStr | translate}}
               </div>
             </owge-widgets-collapsable-item>
@@ -58,19 +65,19 @@
               <app-display-single-resource [resourceName]="userData.faction.primaryResourceName"
                 [resourceImage]="userData.faction.primaryResourceImageUrl"
                 [resourceValue]="report.parsedJson?.gatheredPrimary">
-    
+
               </app-display-single-resource>
-    
+
               <app-display-single-resource [resourceName]="userData.faction.secondaryResourceName"
                 [resourceImage]="userData.faction.secondaryResourceImageUrl"
                 [resourceValue]="report.parsedJson?.gatheredSecondary">
-    
+
               </app-display-single-resource>
             </owge-widgets-collapsable-item>
 
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.INTERCEPTED' | translate"
               *ngIf="report.parsedJson.interceptionInfo">
-              <owge-widgets-display-list-item *ngFor="let interceptionInfo of report.parsedJson.interceptionInfo" 
+              <owge-widgets-display-list-item *ngFor="let interceptionInfo of report.parsedJson.interceptionInfo"
                 [itemName]="'Interceptor: ' + interceptionInfo.interceptorUnit.unit.name"
                 [image]="interceptionInfo.interceptorUnit.unit.imageUrl">
                 <ng-template owgeCoreContent [select]="'extra-description'">
@@ -78,11 +85,12 @@
                 </ng-template>
               </owge-widgets-display-list-item>
             </owge-widgets-collapsable-item>
-            
+
           </div>
         </ng-template>
       </owge-widgets-display-list-item>
     </div>
-    <button (click)="downloadNextPage()" class="owge-base-colors btn btn-block" style="margin: 10px auto;">{{ 'APP.REPORTS.SHOW_OLDER' | translate }} </button>
+    <button (click)="downloadNextPage()" class="owge-theme-base-colors btn btn-block" style="margin: 10px auto;">{{
+      'APP.REPORTS.SHOW_OLDER' | translate }} </button>
   </ng-container>
 </owge-core-loading>

@@ -1,17 +1,10 @@
-@import '../../../../../../shared/styles/partials/colors';
-
 .page-selector .btn {
     color: white;
-
-    &.selected-menu {
-        color: $bgColorAlpha;
-    }
 }
 
-p.owge-base-colors {
+p.owge-theme-base-colors {
     position: relative;
     padding: 20px;
-    border-top: 2px solid $bgColorOther;
     .fa-info {
         position: absolute;
         top: 5px;

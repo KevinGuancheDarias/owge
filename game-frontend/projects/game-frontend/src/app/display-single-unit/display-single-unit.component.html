@@ -2,7 +2,8 @@
   <div class="header" [innerHTML]="'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.TITLE' | translate: {name: unit.name }">
   </div>
   <div class="body">
-    <h3 class="owge-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.ATTACKABLE_TYPES' | translate }}</h3>
+    <h3 class="owge-theme-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.ATTACKABLE_TYPES' | translate }}
+    </h3>
     <div class="owge-card-list">
       <div class="card owge attackable-card" [class.is-attackable]="unitType.isAttackable"
         *ngFor="let unitType of attackableUnitTypes">
@@ -11,9 +12,10 @@
         </div>
       </div>
     </div>
-    <h3 class="owge-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION_TITLE' | translate
+    <h3 class="owge-theme-base-colors">{{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION_TITLE' |
+      translate
       }}</h3>
-    <div class="owge-base-colors" *ngIf="criticalAttackInformations?.length">
+    <div class="owge-theme-base-colors" *ngIf="criticalAttackInformations?.length">
       <input type="checkbox" [(ngModel)]="isDefaultCriticalDisplayed" />
       {{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.CRITICAL_INFORMATION.CHECKBOX_DEFAULT_CRITICAL_DISPLAYED' |
       translate}}
@@ -102,7 +104,7 @@
       <ng-container *ngIf="withBuildMode">
         <ng-container *ngIf="building && building.unit.id === unit.id">
           <ng-template owgeCoreIfDesktop>
-            <div class="in-planet-count">
+            <div class="in-planet-count owge-theme-background-color-over-background-color owge-theme-border-solid">
               <h5>{{ 'APP.UNITS.DISPLAY_SINGLE.NUMBER' | translate }}:</h5>
               <h5> {{ building.count }}</h5>
             </div>
@@ -147,7 +149,7 @@
         <div *ngIf="withBuildMode && building && building.unit.id === unit.id"> {{ building.count }}</div>
       </ng-template>
       <span class="unit-info-icon" (click)="clickOpenUnitInfo()">
-        <i class="fas fa-info-circle"></i>
+        <i class="fas fa-info-circle owge-theme-color-alt"></i>
       </span>
     </ng-template>
   </owge-widgets-display-list-item>

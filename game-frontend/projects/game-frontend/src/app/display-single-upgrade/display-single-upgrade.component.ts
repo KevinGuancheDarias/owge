@@ -1,22 +1,19 @@
-import { Component, OnInit, Input, ViewChild, OnDestroy } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-
-import { User, ScreenDimensionsService } from '@owge/core';
+import { ScreenDimensionsService, User } from '@owge/core';
+import { UserWithFaction } from '@owge/faction';
+import { ObtainedUpgrade, TutorialService, Upgrade, UpgradeRunningMission, UserStorage } from '@owge/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { Upgrade, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
-
+import { distinctUntilChanged } from 'rxjs/operators';
 import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
-import { distinctUntilChanged } from 'rxjs/operators';
-import { UserWithFaction } from '@owge/faction';
+
+
 
 @Component({
   selector: 'app-display-single-upgrade',
   templateUrl: './display-single-upgrade.component.html',
-  styleUrls: [
-    './display-single-upgrade.component.less',
-    './display-single-upgrade.component.scss',
-  ]
+  styleUrls: [ './display-single-upgrade.component.scss']
 })
 export class DisplaySingleUpgradeComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
 
@@ -74,7 +71,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent<UserWithFaction
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.2
-   * @returns {Promise<void>}
+   * @returns
    * @memberof DisplaySingleUpgradeComponent
    */
   public async clickCancelUpgrade(): Promise<void> {

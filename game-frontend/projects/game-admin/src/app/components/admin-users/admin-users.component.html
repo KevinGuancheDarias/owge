@@ -16,12 +16,13 @@
         <a (click)="clickAdd()" class="btn btn-block">{{ 'APP.ADMIN_USERS.MODAL.BTN_ADD' | translate}}</a>
     </div>
 </owge-core-modal>
-<a (click)="selectedAdmin = null; modal.show()" role="button" class="btn btn-block owge-base-colors">{{ 'APP.ADMIN_USERS.BTN_ADD_ADMIN' | translate}}</a>
+<a (click)="selectedAdmin = null; modal.show()" role="button" class="btn btn-block owge-theme-base-colors">{{
+    'APP.ADMIN_USERS.BTN_ADD_ADMIN' | translate}}</a>
 <div class="content">
     <ng-container *ngFor="let user of added">
         <owge-widgets-display-list-item [itemName]="user.username" [itemDescription]="'Has admin privileges'">
             <ng-template owgeCoreContent select="action-buttons">
-                <a (click)="clickDelete(user)" class="btn">{{ 'APP.ADMIN_USERS.BTN_DELETE' | translate }}</a>    
+                <a (click)="clickDelete(user)" class="btn">{{ 'APP.ADMIN_USERS.BTN_DELETE' | translate }}</a>
             </ng-template>
         </owge-widgets-display-list-item>
     </ng-container>

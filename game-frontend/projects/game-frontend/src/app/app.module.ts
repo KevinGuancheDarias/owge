@@ -1,88 +1,87 @@
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Injector, NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { take } from 'rxjs/operators';
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
-import { Injector } from '@angular/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
-
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { AllianceModule, ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from '@owge/alliance';
 import {
-  RouterRootComponent, OwgeUserModule, CoreModule, LoadingService, User, WarningWebsocketApplicationHandlerService
+  CoreModule, LoadingService, OwgeUserModule, RouterRootComponent, ThemeService, User, WarningWebsocketApplicationHandlerService
 } from '@owge/core';
-import { ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA, AllianceModule } from '@owge/alliance';
+import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
-  OwgeUniverseModule, WebsocketService, UniverseGameService, UserStorage, WsEventCacheService, SystemMessageService
+  OwgeUniverseModule, SystemMessageService, UniverseGameService, UserStorage, WebsocketService, WsEventCacheService
 } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
-import { OwgeGalaxyModule, PlanetService, PlanetListService } from '@owge/galaxy';
-
+import { Level, Log } from 'ng2-logger/browser';
+import { take } from 'rxjs/operators';
 import { environment } from '../environments/environment';
-import { ServiceLocator } from './service-locator/service-locator';
-import { LoginSessionService } from './login-session/login-session.service';
-import { NavigationService } from './service/navigation.service';
-import { UnitService } from './service/unit.service';
-import { UpgradeService } from './service/upgrade.service';
-
 import { AppComponent } from './app.component';
-import { LoginComponent } from './login/login.component';
-import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
-import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
-import { DisplaySingleUniverseComponent } from './display-single-universe/display-single-universe.component';
-import { GameIndexComponent } from './game-index/game-index.component';
-import { FactionSelectorComponent } from './faction-selector/faction-selector.component';
+import { BuildUnitsComponent } from './build-units/build-units.component';
+import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
+import { CountdownComponent } from './components/countdown/countdown.component';
+import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
+import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
+import { FastExplorationButtonComponent } from './components/fast-exploration-button/fast-exploration-button.component';
+import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
+import { ListRunningMissionsComponent } from './components/list-running-missions/list-running-missions.component';
+import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
+import { NavigationComponent } from './components/navigation/navigation.component';
+import { PlanetListComponent } from './components/planet-list/planet-list.component';
+import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
+import { ReportsListComponent } from './components/reports-list/reports-list.component';
+import { SettingsComponent } from './components/settings/settings.component';
+import { SponsorsComponent } from './components/sponsors/sponsors.component';
+import { SynchronizeCredentialsComponent } from './components/synchronize-credentials/synchronize-credentials.component';
+import { SystemMessagesComponent } from './components/system-messages/system-messages.component';
+import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
+import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
+import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
+import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
+import { VersionInformationComponent } from './components/version-information/version-information.component';
+import { DeployedUnitsBigComponent } from './deployed-units-big/deployed-units-big.component';
+import { DisplayDynamicImageComponent } from './display-dynamic-image/display-dynamic-image.component';
+import { DisplayRequirementsComponent } from './display-requirements/display-requirements.component';
 import { DisplaySingleFactionComponent } from './display-single-faction/display-single-faction.component';
 import { DisplaySinglePlanetComponent } from './display-single-planet/display-single-planet.component';
 import { DisplaySingleResourceComponent } from './display-single-resource/display-single-resource.component';
-import { DisplayDynamicImageComponent } from './display-dynamic-image/display-dynamic-image.component';
-import { UpgradesComponent } from './upgrades/upgrades.component';
-import { DisplaySingleUpgradeComponent } from './display-single-upgrade/display-single-upgrade.component';
-import { DisplayRequirementsComponent } from './display-requirements/display-requirements.component';
-import { UnitsComponent } from './units/units.component';
-import { BuildUnitsComponent } from './build-units/build-units.component';
-import { DeployedUnitsBigComponent } from './deployed-units-big/deployed-units-big.component';
 import { DisplaySingleUnitComponent } from './display-single-unit/display-single-unit.component';
-import { NavigationComponent } from './components/navigation/navigation.component';
-import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
-import { DisplayQuadrantComponent } from './components/display-quadrant/display-quadrant.component';
-import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
-import { PingWebsocketApplicationHandler } from './class/ping-websocket-application-handler';
-import { DeployedUnitsListComponent } from './components/deployed-units-list/deployed-units-list.component';
-import { MissionService } from './services/mission.service';
-import { ReportsListComponent } from './components/reports-list/reports-list.component';
-import { ReportService } from './services/report.service';
-import { UnitsAliveDeathListComponent } from './components/units-alive-death-list/units-alive-death-list.component';
-import { ListRunningMissionsComponent } from './components/list-running-missions/list-running-missions.component';
-import { DisplayUsernamePipe } from './pipes/display-username.pipe';
-import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
-import { SynchronizeCredentialsComponent } from './components/synchronize-credentials/synchronize-credentials.component';
-import { SanitizeService } from './services/sanitize.service';
-import { VersionInformationComponent } from './components/version-information/version-information.component';
-import { UnitRequirementsComponent } from './components/unit-requirements/unit-requirements.component';
-import { UnitTypeService } from './services/unit-type.service';
-import { UpgradeTypeService } from './services/upgrade-type.service';
-import { CountdownComponent } from './components/countdown/countdown.component';
-import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
-import { PlanetSelectorComponent } from './components/planet-selector/planet-selector.component';
+import { DisplaySingleUniverseComponent } from './display-single-universe/display-single-universe.component';
+import { DisplaySingleUpgradeComponent } from './display-single-upgrade/display-single-upgrade.component';
+import { FactionSelectorComponent } from './faction-selector/faction-selector.component';
+import { GameIndexComponent } from './game-index/game-index.component';
+import { LoginSessionService } from './login-session/login-session.service';
+import { LoginComponent } from './login/login.component';
 import { MissionModalComponent } from './mission-modal/mission-modal.component';
-import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
-import { RankingModule } from './modules/ranking/ranking.module';
 import { ConfigurationModule } from './modules/configuration/configuration.module';
 import { ConfigurationService } from './modules/configuration/services/configuration.service';
-import { GameSidebarComponent } from './components/game-sidebar/game-sidebar.component';
-import { TimeSpecialsComponent } from './components/time-specials/time-specials.component';
+import { RankingModule } from './modules/ranking/ranking.module';
+import { RANKING_ROUTES } from './modules/ranking/ranking.routes';
+import { PageNotFoundComponent } from './page-not-found/page-not-found.component';
+import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
+import { DisplayUsernamePipe } from './pipes/display-username.pipe';
+import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
+import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
+import { ServiceLocator } from './service-locator/service-locator';
+import { NavigationService } from './service/navigation.service';
+import { UnitService } from './service/unit.service';
+import { UpgradeService } from './service/upgrade.service';
+import { MissionService } from './services/mission.service';
+import { ReportService } from './services/report.service';
+import { SanitizeService } from './services/sanitize.service';
 import { TimeSpecialService } from './services/time-specials.service';
-import { Log, Level } from 'ng2-logger/browser';
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { PlanetListComponent } from './components/planet-list/planet-list.component';
-import { SettingsComponent } from './components/settings/settings.component';
-import { TutorialOverlayComponent } from './components/tutorial-overlay/tutorial-overlay.component';
 import { TwitchService } from './services/twitch.service';
-import { FastExplorationButtonComponent } from './components/fast-exploration-button/fast-exploration-button.component';
-import { SystemMessagesComponent } from './components/system-messages/system-messages.component';
-import { SponsorsComponent } from './components/sponsors/sponsors.component';
+import { UnitTypeService } from './services/unit-type.service';
+import { UpgradeTypeService } from './services/upgrade-type.service';
+import { UnitsComponent } from './units/units.component';
+import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
+import { UpgradesComponent } from './upgrades/upgrades.component';
+
+
+
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -214,7 +213,8 @@ export const APP_ROUTES: Routes = [
     MissionService,
     TimeSpecialService,
     TwitchService,
-    SystemMessageService
+    SystemMessageService,
+    ThemeService
   ],
   bootstrap: [AppComponent]
 })
@@ -226,11 +226,13 @@ export class AppModule {
     private _configurationService: ConfigurationService,
     private _userStorage: UserStorage<User>,
     private _universeGameService: UniverseGameService,
-    private _wsEventCacheService: WsEventCacheService
+    private _wsEventCacheService: WsEventCacheService,
+    themeService: ThemeService
   ) {
     ServiceLocator.injector = this._injector;
+    themeService.useDefaultTheme();
     this._initWebsocket();
-    ((<any>window).owgeDebug = isEnabled => {
+    (window as any).owgeDebug = (isEnabled => {
       if (!isEnabled || environment.production) {
         Log.onlyLevel(Level.INFO, Level.WARN, Level.ERROR);
       } else if (!isEnabled && !environment.production) {

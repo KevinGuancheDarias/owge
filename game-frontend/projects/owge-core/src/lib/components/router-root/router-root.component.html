@@ -1,8 +1,8 @@
 <ng-container *ngIf="routerData">
     <div *ngIf="routerData.routes">
         <ng-container *ngFor="let route of routerData.routes">
-            <a *ngIf="route.isNgIfOk" class="btn btn-block owge-base-colors"
-                routerLink="{{ route.path }}" routerLinkActive="selected-menu">{{ route.text | translate }}</a>
+            <a *ngIf="route.isNgIfOk" class="btn btn-block owge-theme-base-colors" routerLink="{{ route.path }}"
+                routerLinkActive="selected-menu">{{ route.text | translate }}</a>
         </ng-container>
     </div>
 </ng-container>

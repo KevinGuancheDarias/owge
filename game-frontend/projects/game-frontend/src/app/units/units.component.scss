@@ -42,7 +42,7 @@ div.clearFloat {
     }
 
     a.btn, select.btn {
-        width: 120px;
+        width: 120px !important;
         float: left;
         &+a, &+select{
             margin-left: 4px;

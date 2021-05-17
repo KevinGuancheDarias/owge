@@ -3,17 +3,21 @@
 
 </owge-galaxy-planet-list-add-edit-modal>
 
-<div class="filters use-compact owge-base-colors">
-    <input #checkbox type="checkbox" [(ngModel)]="wantOwnedOnly" (ngModelChange)="onChange()"/>
+<div class="filters use-compact owge-theme-base-colors">
+    <input #checkbox type="checkbox" [(ngModel)]="wantOwnedOnly" (ngModelChange)="onChange()" />
     <span class="clickable" (click)="checkbox.click()">{{ 'APP.PLANET_LIST.OWNED_ONLY' | translate }}</span>
 </div>
-<span *ngIf="filteredList && !filteredList.length" class="owge-base-colors">{{ 'APP.PLANET_LIST.EMPTY' | translate }}</span>
+<span *ngIf="filteredList && !filteredList.length" class="owge-theme-base-colors">{{ 'APP.PLANET_LIST.EMPTY' | translate
+    }}</span>
 <ng-container *ngFor="let item of filteredList">
-    <owge-widgets-display-list-item [itemName]="item.name || (item.planet | planetDisplayName)" [itemDescription]="item.planet | planetDescription | async" [image]="item.planet | planetImage">
+    <owge-widgets-display-list-item [itemName]="item.name || (item.planet | planetDisplayName)"
+        [itemDescription]="item.planet | planetDescription | async" [image]="item.planet | planetImage">
         <ng-template owgeCoreContent select="action-buttons">
             <div class="planet-list-actions">
-                <img class="icon-mission" [src]="'mission.png' | uiIcon" [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate" (click)="sendMission(item.planet)" />
-                <a href="javascript:void(0)"(click)="addEdit(item)" ><i class="fa action fa-pen"></i></a>
+                <img class="icon-mission" [src]="'mission.png' | uiIcon"
+                    [title]="'APP.DISPLAY_QUADRANT.TOOLTIP_SEND_MISSION' | translate"
+                    (click)="sendMission(item.planet)" />
+                <a href="javascript:void(0)" (click)="addEdit(item)"><i class="fa action fa-pen"></i></a>
                 <app-fast-exploration-button [planet]="item.planet"></app-fast-exploration-button>
             </div>
         </ng-template>

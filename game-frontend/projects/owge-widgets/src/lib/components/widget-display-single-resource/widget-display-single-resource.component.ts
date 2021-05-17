@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
 
 /**
  *
@@ -9,10 +9,7 @@ import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular
 @Component({
   selector: 'owge-widgets-display-single-resource',
   templateUrl: './widget-display-single-resource.component.html',
-  styleUrls: [
-    './widget-display-single-resource.component.less',
-    './widget-display-single-resource.component.scss'
-  ]
+  styleUrls: [ './widget-display-single-resource.component.scss']
 })
 export class WidgetDisplaySingleResourceComponent implements AfterViewInit {
 
@@ -31,6 +28,7 @@ export class WidgetDisplaySingleResourceComponent implements AfterViewInit {
   /**
    * Allows to specify if the number is formatted <br>
    * In previous versions this was always formatted
+   *
    * @since 0.9.17
    */
   @Input() public doFormat = true;

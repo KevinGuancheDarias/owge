@@ -1,29 +1,26 @@
-<app-game-sidebar *ngIf="isInGame" (displayTwitch)="onDisplayTwitch($event)"></app-game-sidebar>
+<ng-container *ngIf="isInGame">
+    <app-game-sidebar *owgeCoreIfTheme="'classic'" (displayTwitch)="onDisplayTwitch($event)"></app-game-sidebar>
+</ng-container>
 <div class="app-container">
     <router-outlet></router-outlet>
-        <div class="twitch-scroll" *ngIf="hasToDisplayTwitch">
-            <!-- Forces an scroll to be available on mobile devices-->
-        </div>
+    <div class="twitch-scroll" *ngIf="hasToDisplayTwitch">
+        <!-- Forces an scroll to be available on mobile devices-->
+    </div>
     <div *ngIf="isPanic" class="panic-wrapper">
         <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' | translate }}</button>
     </div>
 </div>
-<div *ngIf="isInGame" class="is-connected" [ngClass]="panicClass || connectedClass" [@toggleConnected]="hasToShow || isPanic ? 'show' : 'hide'">
+<div *ngIf="isInGame" class="is-connected" [ngClass]="panicClass || connectedClass"
+    [@toggleConnected]="hasToShow || isPanic ? 'show' : 'hide'">
     <ng-container *ngIf="isConnected && !isPanic">{{ 'APP.CONNECTED' | translate }}</ng-container>
     <ng-container *ngIf="!isConnected && !isPanic">{{ 'APP.NOT_CONNECTED' | translate }}</ng-container>
     <ng-container *ngIf="isPanic">{{ 'APP.SYNC_ERROR' | translate}}</ng-container>
 </div>
 
-<div *ngIf="isLoading" class="is-loading">
-    <div>
-
-    </div>
-</div>
-
 <div id="twitch-display" [style.display]="hasToDisplayTwitch?.hasToDisplay ? 'block' : 'none'">
-    
+
 </div>
 
 <app-tutorial-overlay>
-    
+
 </app-tutorial-overlay>

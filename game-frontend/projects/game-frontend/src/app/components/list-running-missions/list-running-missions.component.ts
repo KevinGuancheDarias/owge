@@ -1,18 +1,16 @@
-import { Component, Input, ElementRef, ViewChild, ViewChildren, QueryList, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ModalComponent } from '@owge/core';
-
-import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { BaseComponent } from '../../base/base.component';
-import { UnitRunningMission } from '../../shared/types/unit-running-mission.type';
-import { MissionService } from '../../services/mission.service';
-import { MissionInformationStore } from '../../store/mission-information.store';
 import { UnitService } from '../../service/unit.service';
+import { MissionService } from '../../services/mission.service';
+import { PlanetPojo } from '../../shared-pojo/planet.pojo';
+import { UnitRunningMission } from '../../shared/types/unit-running-mission.type';
+import { MissionInformationStore } from '../../store/mission-information.store';
 
-declare const $;
 @Component({
   selector: 'app-list-running-missions',
   templateUrl: './list-running-missions.component.html',
-  styleUrls: ['./list-running-missions.component.less'],
+  styleUrls: ['./list-running-missions.component.scss'],
   providers: [MissionInformationStore]
 })
 export class ListRunningMissionsComponent extends BaseComponent implements OnInit {
@@ -37,14 +35,12 @@ export class ListRunningMissionsComponent extends BaseComponent implements OnIni
   @Output()
   public missionDone: EventEmitter<void> = new EventEmitter();
 
-  public tooltipPlanet: PlanetPojo;
-  public isDisplayingModal = false;
-
   @ViewChild('navigationModal', { static: true })
   private _navigationModal: ModalComponent;
 
-  @ViewChildren('missionRoot')
-  private _components: QueryList<ElementRef>;
+  public tooltipPlanet: PlanetPojo;
+  public isDisplayingModal = false;
+
 
   public constructor(
     private _missionService: MissionService,

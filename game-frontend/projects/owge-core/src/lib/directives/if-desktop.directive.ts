@@ -1,6 +1,6 @@
-import { TemplateRef, ViewContainerRef, Input, OnInit, OnDestroy, Directive, Output, EventEmitter } from '@angular/core';
-import { ScreenDimensionsService } from '../services/screen-dimensions.service';
+import { Directive, EventEmitter, Input, OnDestroy, OnInit, Output, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { ScreenDimensionsService } from '../services/screen-dimensions.service';
 
 /**
  * ngIf like directive that applies when in desktop <br>
@@ -50,7 +50,7 @@ export class OwgeCoreIfDesktopDirective implements OnInit, OnDestroy {
      */
     public ngOnInit(): void {
         this._subscription = this._screenDimensionsService.hasMinWidth(this.minWidth, this._sdsIdentifier).subscribe(val => {
-            const afterNegation: boolean = !!(<any>val - <any>this.negate);
+            const afterNegation = !!(val as any - (this.negate as any));
             if (afterNegation) {
                 this._viewContainer.createEmbeddedView(this._templateRef);
             } else {

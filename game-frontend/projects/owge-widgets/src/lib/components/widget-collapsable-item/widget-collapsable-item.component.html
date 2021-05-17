@@ -1,9 +1,9 @@
-<div class="owge-collapsable-item owge-base-colors">
-    <div class="header btn owge-base-colors" [ngClass]="{'selected-menu': !isCollapsed}" (click)="clickToggle()">
+<div class="owge-collapsable-item owge-theme-base-colors">
+    <div class="header btn owge-theme-base-colors" [ngClass]="{'selected-menu': !isCollapsed}" (click)="clickToggle()">
         <span class="fa" [ngClass]="{ 'fa-plus-square' : isCollapsed, 'fa-minus-square': !isCollapsed }"></span>
         <h5 [innerText]="title"></h5>
     </div>
-    <div class="body" *ngIf="!isCollapsed" [ngStyle]="{ 'max-width': maxWidth ? (maxWidth + 'px') : undefined }" >
+    <div class="body" *ngIf="!isCollapsed" [ngStyle]="{ 'max-width': maxWidth ? (maxWidth + 'px') : undefined }">
         <ng-content></ng-content>
     </div>
 </div>

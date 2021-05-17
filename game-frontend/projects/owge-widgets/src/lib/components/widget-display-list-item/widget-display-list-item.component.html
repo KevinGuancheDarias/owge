@@ -1,52 +1,51 @@
-  <!-- mobile view -->
+<!-- mobile view -->
 <div class="card owge mobile-view" *ngIf="!isDesktop" [ngClass]="classes">
-    <div class="card-block" *ngIf="!hideMobileSections[0]">
-        <h5 class="card-title">{{ itemName | hideDuplicatedName }}</h5>
-        <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
-    </div>
-    <div class="image-container" *ngIf="!hideMobileSections[1] && image">
-      <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
-      <img [src]="image" alt="image of the item"/>
-    </div>
-    <div class="upgrading-countdown" *ngIf="hasToDisplayCountdown && !hideMobileSections[1]">
-        <owge-widgets-countdown *ngIf="countdownDate || countdownMillis" [targetDate]="countdownDate" [pendingMillis]="countdownMillis"
-            (timeOver)="timeOver.emit()">
-        </owge-widgets-countdown>
-    </div>  
-    <div class="card-block item-description" *ngIf="!hideMobileSections[2]">
-        <p class="card-text">{{ itemDescription }}</p>
-        <ng-container *ngTemplateOutlet="extraDescriptionTemplate"></ng-container>
-    </div>
-    <div class="card-block" *ngIf="!hideMobileSections[3]">
-      <ng-container *ngTemplateOutlet="extraSectionTemplate"></ng-container>
-    </div>
-    <ng-container *ngIf="!hideMobileSections[4]">
-      <ng-container *ngTemplateOutlet="actionButtonsTemplate"></ng-container>
-    </ng-container>
+  <div class="card-block" *ngIf="!hideMobileSections[0]">
+    <h5 class="card-title">{{ itemName | hideDuplicatedName }}</h5>
+    <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
+  </div>
+  <div class="image-container" *ngIf="!hideMobileSections[1] && image">
+    <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
+    <img [src]="image" alt="image of the item" />
+  </div>
+  <div class="upgrading-countdown" *ngIf="hasToDisplayCountdown && !hideMobileSections[1]">
+    <owge-widgets-countdown *ngIf="countdownDate || countdownMillis" [targetDate]="countdownDate"
+      [pendingMillis]="countdownMillis" (timeOver)="timeOver.emit()">
+    </owge-widgets-countdown>
+  </div>
+  <div class="card-block item-description" *ngIf="!hideMobileSections[2]">
+    <p class="card-text">{{ itemDescription }}</p>
+    <ng-container *ngTemplateOutlet="extraDescriptionTemplate"></ng-container>
+  </div>
+  <div class="card-block" *ngIf="!hideMobileSections[3]">
+    <ng-container *ngTemplateOutlet="extraSectionTemplate"></ng-container>
+  </div>
+  <ng-container *ngIf="!hideMobileSections[4]">
+    <ng-container *ngTemplateOutlet="actionButtonsTemplate"></ng-container>
+  </ng-container>
 </div>
 
 <!-- desktop view -->
 <ng-container *ngIf="isDesktop">
-  <div class="desktop-view-header owge-base-colors" *ngIf="!hideDesktopSections[0]">
+  <div class="desktop-view-header owge-theme-base-colors" *ngIf="!hideDesktopSections[0]">
     <h5>
       {{ itemName | hideDuplicatedName }}
     </h5>
   </div>
-  <div class="d-flex desktop-view owge-base-colors" [ngClass]="classes" >
+  <div class="d-flex desktop-view owge-theme-base-colors" [ngClass]="classes">
     <div class="p-2" *ngIf="!hideDesktopSections[1]">
       <div>
-          <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
+        <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
       </div>
-      <div class="image-and-actions" >
-        <div class="image-container" *ngIf="image">
+      <div class="image-and-actions">
+        <div class="image-container owge-theme-background-color-alt" *ngIf="image">
           <ng-container *ngTemplateOutlet="imageContainerPrependTemplate"></ng-container>
-          <img [src]="image" alt="image of the item"/>
+          <img [src]="image" alt="image of the item" />
         </div>
         <div class="upgrading-countdown" *ngIf="hasToDisplayCountdown">
-            <owge-widgets-countdown *ngIf="countdownDate || countdownMillis"
-                [targetDate]="countdownDate" [pendingMillis]="countdownMillis"
-                (timeOver)="timeOver.emit()">
-            </owge-widgets-countdown>
+          <owge-widgets-countdown *ngIf="countdownDate || countdownMillis" [targetDate]="countdownDate"
+            [pendingMillis]="countdownMillis" (timeOver)="timeOver.emit()">
+          </owge-widgets-countdown>
         </div>
         <ng-container *ngTemplateOutlet="actionButtonsTemplate"></ng-container>
       </div>

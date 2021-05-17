@@ -1,0 +1,122 @@
+@import './partials/colors';
+@import './modules/owge-widgets/widget-sidebar.scss';
+
+.owge-theme.owge-theme-classic {
+    body.tutorial-blocker {
+        a.btn, a[role=button], button, input, .owge-tutorial-item {
+            opacity: 0.5;
+        }
+
+        .tutorial-overlay, .tutorial-text, .tutorial-target-node {
+            opacity: 1 !important;
+            * {
+                opacity: 1 !important;
+            }
+        }
+    }
+
+    .app-container {
+        margin-bottom: 30px;
+    }
+
+    input {
+        padding: 5px 10px;
+
+        &.owge-theme-base-colors {
+            background-color: scale-color($color: $bgColor, $lightness: 10%, $saturation: 7.5%);
+
+            &::placeholder {
+                color: #CCC;
+                text-align: center;
+            }
+            &::-ms-input-placeholder {
+                color: #CCC;
+                text-align: center;
+            }
+        }
+    }
+
+    select {
+        &.owge-theme-base-colors.form-control {
+            width: auto;
+            height: auto;
+
+            &:hover {
+                text-shadow: none;
+            }
+        }
+    }
+    .btn {
+        color: $mainColor;
+        background-color: $bgColor;
+        border-color: none;
+
+        &:hover {
+            color: scale-color($color: $mainColor, $saturation: -40%, $lightness: -30%); 
+        }
+    }
+
+    .owge-btn {
+        background-image: url('/assets/img/oldmetalnew.jpg');
+        overflow: hidden;
+        text-align: center;
+        text-shadow: 0px 0px 1px black;
+        background-position: top;
+        background-size: 100% 100%;
+        border: outset 2px black;
+        box-shadow: 0px 0px 3px black, 0px 0px 6px black inset;
+        font-weight: bold;
+        font-size: 12pt;
+        color: silver;
+    }
+
+    .btn.selected-menu {
+        color: $bgColor;
+        background-color: $mainColor;
+        border: solid 2px $borderColor;
+        
+        &.owge-theme-base-colors {
+            text-shadow: none;
+        }
+
+        &:hover {
+            color: scale-color($color: $bgColor, $saturation: 40%, $lightness: 40%);
+        }
+    }
+    .owge-card-list {
+        flex-wrap: wrap;
+    }
+
+    .disabled-for-offline {
+        background-color: lighten($color: $bgColorAlpha, $amount: 100);
+        background-image: none;
+        cursor: not-allowed;
+
+        &.selected-menu-link {
+            color: white;
+        }
+    }
+
+    .modal .modal-content .modal-footer .footer.ng-star-inserted {
+        width: 100%;
+    }
+
+    .clickable {
+        cursor: pointer;
+    }
+
+    .owge-errors {
+        background-color: #600;
+    }
+
+    .required {
+        &::after {
+            content: '*';
+            color: red;
+        }
+    }
+
+    .is-twitch-active a {
+        color: #6441a5;
+    }
+}

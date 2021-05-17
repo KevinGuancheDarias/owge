@@ -6,7 +6,7 @@
         <div class="form-row" *ngIf="newGroup">
             <div class="form-group col-md-6">
                 <label (click)="groupName.focus()">{{ 'CRUD.ELEMENT_NAME' | translate }}</label>
-                <input #groupName [(ngModel)]="newGroup.name" class="form-control"/>
+                <input #groupName [(ngModel)]="newGroup.name" class="form-control" />
             </div>
         </div>
     </div>
@@ -16,14 +16,17 @@
     </div>
 </owge-core-modal>
 <app-requirements-modal [newRequirement]="newRequirement" (save)="save($event)"></app-requirements-modal>
-<owge-widgets-confirmation-dialog [text]="deleteGroupConfirmText" (confirmResult)="confirmDelete($event)"></owge-widgets-confirmation-dialog>
+<owge-widgets-confirmation-dialog [text]="deleteGroupConfirmText" (confirmResult)="confirmDelete($event)">
+</owge-widgets-confirmation-dialog>
 
-<button class="btn btn-block" (click)="newGroup = {}; addGroupModal.show();">{{ 'OBJECT_REQUIREMENT_GROUPS.BTN_ADD' | translate }}</button>
+<button class="btn btn-block" (click)="newGroup = {}; addGroupModal.show();">{{ 'OBJECT_REQUIREMENT_GROUPS.BTN_ADD' |
+    translate }}</button>
 
 <div *ngFor="let group of requirementGroups">
-    <h2 class="owge-base-colors">
-        {{ 'OBJECT_REQUIREMENT_GROUPS.GROUP' | translate: {name: group.name || ''} }} 
+    <h2 class="owge-theme-base-colors">
+        {{ 'OBJECT_REQUIREMENT_GROUPS.GROUP' | translate: {name: group.name || ''} }}
         <i class="fas fa-times" (click)="clickDeleteGroup(group)"> </i>
     </h2>
-    <app-requirements-table *ngIf="entityId" [requirements]="group.requirements" (clickAdd)="add(group)" (clickDelete)="delete(group,$event)"></app-requirements-table>
+    <app-requirements-table *ngIf="entityId" [requirements]="group.requirements" (clickAdd)="add(group)"
+        (clickDelete)="delete(group,$event)"></app-requirements-table>
 </div>

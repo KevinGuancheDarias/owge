@@ -12,7 +12,7 @@
     </div>
 </owge-core-modal>
 <owge-widgets-confirmation-dialog (confirmResult)="clickDelete($event)"></owge-widgets-confirmation-dialog>
-<span class="owge-base-colors">
+<span class="owge-theme-base-colors">
     {{ itemName || (i18nNullValue | translate) }}
     <i class="fa action fa-pen" (click)="modal.show()"></i>
     <i class="fas fa-times" (click)="confirmationDialog.show()"></i>

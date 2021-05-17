@@ -1,10 +1,10 @@
-import { Component, Input, OnChanges, OnInit, Output, EventEmitter, SimpleChanges } from '@angular/core';
-
-import { ObtainedUnit } from '@owge/universe';
-
-import { SelectedUnit } from '../../shared/types/selected-unit.type';
-import { UnitTypeService } from '../../services/unit-type.service';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ToastrService, UnitType } from '@owge/core';
+import { ObtainedUnit } from '@owge/universe';
+import { UnitTypeService } from '../../services/unit-type.service';
+import { SelectedUnit } from '../../shared/types/selected-unit.type';
+
+
 
 interface UnitsForEachUser {
   username: string;
@@ -14,7 +14,7 @@ interface UnitsForEachUser {
 @Component({
   selector: 'app-deployed-units-list',
   templateUrl: './deployed-units-list.component.html',
-  styleUrls: ['./deployed-units-list.component.less', './deployed-units-list.component.scss']
+  styleUrls: ['./deployed-units-list.component.scss']
 })
 export class DeployedUnitsListComponent implements OnInit, OnChanges {
 
@@ -94,13 +94,11 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   public async selectionChanged(): Promise<void> {
     this.areAllSelected = false;
     this.selection.emit(
-      this.selectedCounts.map<SelectedUnit>((current, index) => {
-        return {
+      this.selectedCounts.map<SelectedUnit>((current, index) => ({
           id: this.obtainedUnits[index].unit.id,
           count: current,
           unit: this.obtainedUnits[index].unit
-        };
-      }).filter(current => current.count)
+        })).filter(current => current.count)
     );
     const ids: number[] = this.selectedCounts.map<number>(
       (current, index) => current ? this.obtainedUnits[index].unit.typeId : null

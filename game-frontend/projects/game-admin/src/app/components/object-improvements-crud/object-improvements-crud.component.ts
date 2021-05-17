@@ -1,10 +1,10 @@
-import { Component, OnChanges, Input, HostBinding, ViewChild } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, ViewChild } from '@angular/core';
+import { Improvement, ImprovementUnitType, LoadingService, ModalComponent, UnitType } from '@owge/core';
+import { WithImprovementsCrudMixin } from '@owge/universe';
 import { isEqual } from 'lodash-es';
 import { take } from 'rxjs/operators';
-
-import { WithImprovementsCrudMixin } from '@owge/universe';
-import { LoadingService, ModalComponent, UnitType, Improvement, ImprovementUnitType } from '@owge/core';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+
 
 @Component({
   selector: 'app-object-improvements-crud',
@@ -26,7 +26,7 @@ export class ObjectImprovementsCrudComponent implements OnChanges {
 
   @ViewChild('improvementsUnitTypesModal', { static: true }) protected _improvementsUnitTypesModal: ModalComponent;
   @ViewChild('improvementsModal', { static: true }) protected _improvementsModal: ModalComponent;
-  @HostBinding('class') private readonly _classes = 'row owge-base-colors';
+  @HostBinding('class') private readonly _classes = 'row owge-theme-base-colors';
 
   constructor(private _loadingService: LoadingService, private _adminUnitTypeService: AdminUnitTypeService) {
 

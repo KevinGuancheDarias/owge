@@ -1,11 +1,12 @@
-<select *ngIf="upgradeTypes" class="owge-base-colors form-control btn-block" [(ngModel)]="upgradeType" (ngModelChange)="onTypeChange()"
-  [compareWith]="isEqualByIdOrIsNull">
+<select *ngIf="upgradeTypes" class="owge-theme-base-colors form-control btn-block" [(ngModel)]="upgradeType"
+  (ngModelChange)="onTypeChange()" [compareWith]="isEqualByIdOrIsNull">
   <option [ngValue]="null">All upgrades</option>
   <option *ngFor="let currentType of upgradeTypes" [ngValue]="currentType">{{ currentType.name }}</option>
 </select>
 <div class="owge-card-list">
   <ng-container *ngFor="let obtainedUpgrade of obtainedUpgrades">
-    <app-display-single-upgrade *ngIf="isOfTypeOrNullFilter(obtainedUpgrade.upgrade, 'upgradeType') && obtainedUpgrade.available"
+    <app-display-single-upgrade
+      *ngIf="isOfTypeOrNullFilter(obtainedUpgrade.upgrade, 'upgradeType') && obtainedUpgrade.available"
       [obtainedUpgrade]="obtainedUpgrade"></app-display-single-upgrade>
   </ng-container>
 </div>

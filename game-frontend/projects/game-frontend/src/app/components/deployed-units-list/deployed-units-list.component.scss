@@ -1,4 +1,17 @@
-@import '../../../../../../shared/styles/partials/colors';
+owge-core-loading {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.owge.card {
+    padding-top: 0px;
+    .card-block .card-title{
+        
+        margin-bottom: 0px;
+        font-size: 8pt;        
+    }
+}
+
 
 h2 {
     position: relative;
@@ -29,7 +42,6 @@ h2 {
 
         &:hover {
             cursor: pointer;
-            color: $bgColorOther;
         }
     }
 }

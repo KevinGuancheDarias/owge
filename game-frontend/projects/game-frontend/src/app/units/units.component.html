@@ -1,21 +1,25 @@
 <div class="page-selector">
-  <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selected-menu' : isDeployedRoute()}">{{ 'APP.UNITS.MENU.BTN_IN_PLANET' | translate }}</a>
-  <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selected-menu' : isBuildRoute()}">{{ 'APP.UNITS.MENU.BTN_BUILD' | translate }}</a>
-  <a class="btn btn-block" routerLink="{{ REQUIREMENTS_URL }}"
-    [ngClass]="{'selected-menu' : isRequirementsRoute()}">{{ 'APP.UNITS.MENU.BTN_REQUIREMENTS' | translate }}</a>
-  <select *ngIf="unitTypes" class="owge-base-colors form-control" [(ngModel)]="unitType" (ngModelChange)="onUnitTypeChange()"
-    [compareWith]="isEqualByIdOrIsNull">
+  <a class="btn btn-block" routerLink="{{ DEPLOYED_URL }}" [ngClass]="{'selected-menu' : isDeployedRoute()}">{{
+    'APP.UNITS.MENU.BTN_IN_PLANET' | translate }}</a>
+  <a class="btn btn-block" routerLink="{{ BUILD_URL }}" [ngClass]="{'selected-menu' : isBuildRoute()}">{{
+    'APP.UNITS.MENU.BTN_BUILD' | translate }}</a>
+  <a class="btn btn-block" routerLink="{{ REQUIREMENTS_URL }}" [ngClass]="{'selected-menu' : isRequirementsRoute()}">{{
+    'APP.UNITS.MENU.BTN_REQUIREMENTS' | translate }}</a>
+  <select *ngIf="unitTypes" class="owge-theme-base-colors form-control" [(ngModel)]="unitType"
+    (ngModelChange)="onUnitTypeChange()" [compareWith]="isEqualByIdOrIsNull">
     <option [ngValue]="null">{{ 'APP.UNITS.MENU.SELECT_ALL_UNITS' | translate }}</option>
     <option *ngFor=" let currentType of unitTypes" [ngValue]="currentType">{{ currentType.name }}</option>
   </select>
   <ng-template owgeCoreIfDesktop (changed)="viewChanged($event)">
-    <div class="use-compact owge-base-colors" *ngIf="!isRequirementsRoute()" >
+    <div class="use-compact owge-theme-base-colors" *ngIf="!isRequirementsRoute()">
       <span (click)="inputElement.click()">{{ 'APP.UNITS.HIDE_DESCRIPTION' | translate}}: </span>
-      <input #inputHideDescription  type="checkbox" [(ngModel)]="hideDescription" (ngModelChange)="onCheckboxChanged()"/>
+      <input #inputHideDescription type="checkbox" [(ngModel)]="hideDescription"
+        (ngModelChange)="onCheckboxChanged()" />
     </div>
   </ng-template>
 </div>
 <div class="clearFloat"></div>
 <app-build-units *ngIf="isBuildRoute()" [unitType]="unitType" [isCompactView]="hideDescription"></app-build-units>
-<app-deployed-units-big *ngIf="isDeployedRoute()" [unitType]="unitType" [isCompactView]="hideDescription"></app-deployed-units-big>
+<app-deployed-units-big *ngIf="isDeployedRoute()" [unitType]="unitType" [isCompactView]="hideDescription">
+</app-deployed-units-big>
 <app-unit-requirements *ngIf="isRequirementsRoute()" [unitType]="unitType"></app-unit-requirements>

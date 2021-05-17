@@ -1,5 +1,3 @@
-@import '../../../../../shared/styles/partials/colors';
-
 .modal .attackable-card {
     background-color: red;;
     &.is-attackable {
@@ -48,18 +46,17 @@ app-display-single-unit {
         position: absolute;
         top: 0px;
         left: 0px;
-        color: $bgColorOverBgColor;
         font-size: 14pt;
-        &:hover {
+        i {
             transition: all  1s;
-            color: chocolate;
+        }
+        &:hover i {
+            color: chocolate !important;
             cursor: pointer;
         }
     }
 
     .in-planet-count {
-        background-color: $bgColorOverBgColor;
-        border: solid 1px $borderColor;
         display: flex;
         justify-content: space-around;
 

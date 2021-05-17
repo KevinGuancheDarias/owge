@@ -1,10 +1,13 @@
 <ng-container *ngIf="value">
-    <div *ngIf="placeHolderTranslationObservable | async as placeHolderTranslation" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()">
-        <owge-widgets-display-image *ngIf="image" [image]="image" [title]="name" [customClass]="'resourceImage'" [staticImage]="staticImage"
-        [assetsImage]="assetsImage"></owge-widgets-display-image>
+    <div class="owge-theme-box-shadow owge-theme-mix-color"
+        *ngIf="placeHolderTranslationObservable | async as placeHolderTranslation" (mouseenter)="onMouseEnter()"
+        (mouseleave)="onMouseLeave()">
+        <owge-widgets-display-image *ngIf="image" [image]="image" [title]="name" [customClass]="'resourceImage'"
+            [staticImage]="staticImage" [assetsImage]="assetsImage"></owge-widgets-display-image>
         <span *ngIf="icon"><i [ngClass]="icon" class="resourceImage"></i></span>
-        <p #textElement>
-            <owge-widgets-span-with-placeholder *ngIf="isMouseOver" [placeholder]="placeHolderTranslation" [placeholderWidth]="'100px'">
+        <p #textElement class="owge-theme-text-shadow owge-theme-mix-color">
+            <owge-widgets-span-with-placeholder *ngIf="isMouseOver" [placeholder]="placeHolderTranslation"
+                [placeholderWidth]="'100px'">
                 {{ value | number: numberFormat }} + {{ improvementAdd | number: numberFormat }}
             </owge-widgets-span-with-placeholder>
             <span *ngIf="isMouseOver"></span>

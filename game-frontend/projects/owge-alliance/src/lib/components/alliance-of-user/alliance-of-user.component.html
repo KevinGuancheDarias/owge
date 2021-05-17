@@ -7,12 +7,13 @@
     <form #form="ngForm" *ngIf="editingalliance" id="alliance-creation-form" (ngSubmit)="save()">
       <div class="form-group">
         <label for="alliance-name">{{ 'ALLIANCE.NAME' | translate }}</label>
-        <input id="alliance-name" class="form-control" name="name" [(ngModel)]="editingalliance.name" placeholder="Borg empire!" />
+        <input id="alliance-name" class="form-control" name="name" [(ngModel)]="editingalliance.name"
+          placeholder="Borg empire!" />
       </div>
       <div class="form-group">
         <label for="alliance-description">{{ 'ALLIANCE.DESCRIPTION' | translate }}</label>
-        <textarea id="alliance-description" name="description" [(ngModel)]="editingalliance.description" class="form-control"
-          placeholder="Implantes para asimilarlos a todos"></textarea>
+        <textarea id="alliance-description" name="description" [(ngModel)]="editingalliance.description"
+          class="form-control" placeholder="Implantes para asimilarlos a todos"></textarea>
       </div>
     </form>
   </div>
@@ -28,8 +29,9 @@
 
   </owge-alliance-details>
   <ng-container *ngIf="userAlliance === null">
-    <h1 class="owge-title">{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
+    <h1 class="owge-theme-title">{{ 'ALLIANCE.NOT_IN_ALLIANCE' | translate }} </h1>
     <button (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.CREATE' | translate }}</button>
   </ng-container>
-  <button *ngIf="userAlliance" (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.EDIT' | translate }}</button>
+  <button *ngIf="userAlliance" (click)="createEditAlliance()" class="btn btn-block">{{ 'ALLIANCE.EDIT' | translate
+    }}</button>
 </owge-core-loading>

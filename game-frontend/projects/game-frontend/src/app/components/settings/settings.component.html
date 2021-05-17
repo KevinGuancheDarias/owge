@@ -1,5 +1,12 @@
-<div class="owge-base-colors">
-    <button [disabled]="isSyncing" (click)="triggerResync()" class="btn btn-primary">{{ 'SETTINGS.BTN_FORCE_SYNC' | translate }}</button>
+<div class="owge-theme-base-colors">
+    <button [disabled]="isSyncing" (click)="triggerResync()" class="btn btn-primary">{{ 'SETTINGS.BTN_FORCE_SYNC' |
+        translate }}</button>
 
-    <button class="btn btn-primary" (click)="askTwitchState()" *ngIf="user?.canAlterTwitchState">Change twitch state</button>
+    <select class="owge-theme-base-colors" *ngIf="currentTheme" [(ngModel)]="currentTheme"
+        (ngModelChange)="onThemeChange($event)">
+        <option *ngFor="let theme of availableThemes" [value]="theme">{{ theme }}</option>
+    </select>
+
+    <button class="btn btn-primary" (click)="askTwitchState()" *ngIf="user?.canAlterTwitchState">Change twitch
+        state</button>
 </div>

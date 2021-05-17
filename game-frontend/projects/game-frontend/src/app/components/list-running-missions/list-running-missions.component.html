@@ -8,38 +8,42 @@
 </owge-core-modal>
 <owge-core-loading [isReady]="runningUnitMissions">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
-    <div #missionRoot class="card owge auto-expand" *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
-      <h3 *ngIf="displayUser" class="card-header">{{ 'APP.MISSION_LIST.HEADER_MISSION_TYPE_FROM_USER' | translate:{missionType: runningUnitMission.type | displayMissionType | async, userName: runningUnitMission.user | displayUsername} }} </h3>
+    <div #missionRoot class="card owge auto-expand"
+      *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
+      <h3 *ngIf="displayUser" class="card-header">{{ 'APP.MISSION_LIST.HEADER_MISSION_TYPE_FROM_USER' |
+        translate:{missionType: runningUnitMission.type | displayMissionType | async, userName: runningUnitMission.user
+        | displayUsername} }} </h3>
       <h3 *ngIf="!displayUser" class="card-header">{{ runningUnitMission.type | displayMissionType | async }}</h3>
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
         (click)="cancelMission(runningUnitMission)" class="fas fa-times"></i>
       <span class="display-time">
-        <owge-widgets-countdown *ngIf="runningUnitMission.pendingMillis && runningUnitMission.pendingMillis !== -1" [targetDate]="runningUnitMission.browserComputedTerminationDate"></owge-widgets-countdown>
+        <owge-widgets-countdown *ngIf="runningUnitMission.pendingMillis && runningUnitMission.pendingMillis !== -1"
+          [targetDate]="runningUnitMission.browserComputedTerminationDate"></owge-widgets-countdown>
       </span>
       <div class="card-block" *ngIf="isMovable && runningUnitMission.type === 'DEPLOYED'">
-        <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">{{ 'APP.MISSION_LIST.BTN_MOVE_UNITS' | translate }}</a>
+        <a class="btn btn-block btn-move-units" role="button" (click)="moveUnit(runningUnitMission)">{{
+          'APP.MISSION_LIST.BTN_MOVE_UNITS' | translate }}</a>
       </div>
       <div class="card-block">
         <div class="card-title">
-            <div class="row planet-names">
-              <div>
-                <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
-                <a data-html="true" placement="bottom"
-                  (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
-                  (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
-              </div>
-              <div>
-                <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
-                <a data-html="true" placement="bottom"
-                  (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
-                  (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
-              </div>
+          <div class="row planet-names">
+            <div class="owge-theme-border-solid">
+              <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
+              <a data-html="true" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
+                (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
             </div>
+            <div class="owge-theme-border-solid">
+              <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
+              <a data-html="true" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
+                (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
+            </div>
+          </div>
         </div>
       </div>
       <div class="card-block">
         <h5>Involved units</h5>
-        <app-deployed-units-list [obtainedUnits]="runningUnitMission.involvedUnits" [useTiny]="true"></app-deployed-units-list>
+        <app-deployed-units-list [obtainedUnits]="runningUnitMission.involvedUnits" [useTiny]="true">
+        </app-deployed-units-list>
       </div>
     </div>
   </ng-container>

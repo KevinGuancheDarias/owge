@@ -1,24 +1,26 @@
-import { NgModule, ModuleWithProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { LoadingComponent } from './components/loading/loading.component';
-import { RouterRootComponent } from './components/router-root/router-root.component';
-import { RouterModule } from '@angular/router';
-import { CoreHttpService } from './services/core-http.service';
-import { ModalComponent } from './components/modal/modal.component';
-import { TranslateModule } from '@ngx-translate/core';
-import { OwgeCoreConfig } from './pojos/owge-core-config';
-import { Config } from './pojos/config.pojo';
-import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { ScreenDimensionsService } from './services/screen-dimensions.service';
-import { HideDuplicatedNamePipe } from './pipes/hide-duplicated-name.pipe';
-import { OwgeContentDirective } from './directives/owge-content.directive';
-import { OwgeCoreIfDesktopDirective } from './directives/if-desktop.directive';
-import { LocalConfigurationService } from './services/local-configuration.service';
-import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
-import { ToastrService } from './services/toastr.service';
-import { FormatNumberPipe } from './pipes/format-number.pipe';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { LoadingComponent } from './components/loading/loading.component';
+import { ModalComponent } from './components/modal/modal.component';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { RouterRootComponent } from './components/router-root/router-root.component';
+import { OwgeCoreIfDesktopDirective } from './directives/if-desktop.directive';
+import { OwgeCoreIfThemeDirective } from './directives/if-theme.directive';
+import { OwgeContentDirective } from './directives/owge-content.directive';
 import { LanguageHttpInterceptor } from './http-interceptors/language.http-interceptor';
+import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
+import { FormatNumberPipe } from './pipes/format-number.pipe';
+import { HideDuplicatedNamePipe } from './pipes/hide-duplicated-name.pipe';
+import { Config } from './pojos/config.pojo';
+import { OwgeCoreConfig } from './pojos/owge-core-config';
+import { CoreHttpService } from './services/core-http.service';
+import { LocalConfigurationService } from './services/local-configuration.service';
+import { ScreenDimensionsService } from './services/screen-dimensions.service';
+import { ThemeService } from './services/theme.service';
+import { ToastrService } from './services/toastr.service';
 import { WarningWebsocketApplicationHandlerService } from './services/warning-websocket-application-handler.service';
 
 /**
@@ -43,7 +45,8 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
     DynamicImagePipe,
-    FormatNumberPipe
+    FormatNumberPipe,
+    OwgeCoreIfThemeDirective
   ],
   providers: [
     ScreenDimensionsService,
@@ -58,7 +61,8 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     OwgeContentDirective,
     OwgeCoreIfDesktopDirective,
     DynamicImagePipe,
-    FormatNumberPipe
+    FormatNumberPipe,
+    OwgeCoreIfThemeDirective
   ],
 })
 export class CoreModule {
@@ -91,7 +95,8 @@ export class CoreModule {
         ScreenDimensionsService,
         LocalConfigurationService,
         ToastrService,
-        WarningWebsocketApplicationHandlerService
+        WarningWebsocketApplicationHandlerService,
+        ThemeService
       ]
     };
   }

@@ -26,7 +26,7 @@
               "projects/game-admin/src/assets",
               {
                 "glob": "**/*",
-                "input": "./shared/assets/",
+                "input": "./shared/themes/classic/assets/",
                 "output": "./assets"
               }
             ],
@@ -34,8 +34,9 @@
               "node_modules/bootstrap/dist/css/bootstrap.css",
               "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
               "node_modules/@fortawesome/fontawesome-free/css/solid.css",
-              "shared/styles/styles.scss",
-              "shared/styles/styles.less",
+              "shared/themes/classic/styles/styles.scss",
+              "shared/themes/classic/styles/theme_overrides.sass",
+              "shared/themes/classic/styles/styles.less",
               "projects/game-admin/src/styles.less",
               "node_modules/ngx-toastr/toastr.css"
             ],
@@ -333,8 +334,9 @@
               "node_modules/@fortawesome/fontawesome-free/css/fontawesome.css",
               "node_modules/@fortawesome/fontawesome-free/css/solid.css",
               "node_modules/@fortawesome/fontawesome-free/css/brands.css",
-              "shared/styles/styles.less",
-              "shared/styles/styles.scss",
+              "shared/themes/classic/styles/styles.less",
+              "shared/themes/classic/styles/styles.scss",
+              "shared/themes/classic/styles/theme_overrides.sass",
               "node_modules/ngx-toastr/toastr.css"
             ],
             "scripts": [],

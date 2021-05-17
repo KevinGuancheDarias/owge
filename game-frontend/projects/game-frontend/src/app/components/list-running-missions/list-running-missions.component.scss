@@ -1,4 +1,3 @@
-@import '../../../../../../shared/styles/colors.less';
 .card.owge{
     width: 100%;
 
@@ -56,7 +55,6 @@ i.fas.fa-times {
     justify-content: center;
 
     > div {
-        border: 1px solid @bgColor;
         padding: 4px;
     }
 

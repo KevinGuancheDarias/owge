@@ -1,8 +1,8 @@
-<div>
-  <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="customImageClass" [staticImage]="staticImage"
-    [assetsImage]="assetsImage"></owge-widgets-display-image>
+<div class="owge-theme-mix-color owge-theme-box-shadow">
+  <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="customImageClass"
+    [staticImage]="staticImage" [assetsImage]="assetsImage"></owge-widgets-display-image>
   <ng-content></ng-content>
-  <p #textElement [class.limited-max]="limitedMax">
+  <p #textElement [class.limited-max]="limitedMax" class="owge-theme-text-shadow">
     <ng-container *ngIf="doFormat; else noDoFormat">
       {{ resourceValue | formatNumber | async }}
     </ng-container>
@@ -10,6 +10,7 @@
 
 
     <span [title]="resourceMaxValue" *ngIf="usePercentage && resourceMaxValue"> % </span>
-    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | formatNumber | async }} </span>
+    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | formatNumber |
+      async }} </span>
   </p>
 </div>

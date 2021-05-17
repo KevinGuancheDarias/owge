@@ -1,0 +1,77 @@
+@use "sass:color"
+@import './partials/colors.scss'
+
+// Contains the overrides for the defaults that components can used across themes
+.owge-theme-classic
+    .owge-theme-color
+        color: $bgColor
+    .owge-theme-color-alt
+        color: $bgColorOverBgColor
+    .owge-theme-box-shadow
+        box-shadow: 3px 3px 3px black
+
+        &:hover
+            box-shadow: 2px 2px 2px black
+
+    .owge-theme-text-shadow
+        text-shadow: 2px 1px 3px black
+
+    .owge-theme-background-color
+        background-color: $bgColor
+    .owge-theme-background-color-alt
+        background-color: $bgColorOther
+    .owge-theme-background-color-over-background-color
+        background-color: $bgColorOverBgColor
+    .owge-theme-background-color-alpha
+        background-color: $bgColorAlpha
+    %owge-theme-mix-color
+        color: $mainColor
+        background-color: $bgColor
+    .owge-theme-mix-color
+        @extend  %owge-theme-mix-color
+    .owge-theme-border-solid
+        border: 1px solid $bgColor
+    .owge-theme-hover-background-color-alt:hover
+        background-color: $bgColorOther
+
+    %owge-theme-base-colors
+        @extend %owge-theme-mix-color
+        box-shadow: 3px 3px 3px black
+        text-shadow: 2px 1px 3px black
+
+    .owge-theme-base-colors
+        @extend %owge-theme-base-colors
+
+    .owge-theme-title
+        @extend  %owge-theme-base-colors
+        font-size: 14pt
+        text-indent: 5px
+        padding: 3px
+        margin-bottom: 0px
+        text-shadow: 2px 1px 3px black
+
+    table.owge-table
+        th,td
+            @extend  %owge-theme-base-colors
+            border: 2px lighten($bgColor, 20%) solid
+            padding: 7px
+        td
+            background-color: lighten($bgColor, 10%)
+
+    td
+        background-color: lighten($bgColor, 10%)
+
+    .owge-form-header
+        font-weight: bold
+        border-bottom: 4px solid color.mix($bgColor,#999)
+        margin-bottom: 2px
+
+    .owge-table-caption
+        position: relative
+        width: 100%
+        padding: 8px
+
+        button
+            position: absolute
+            bottom: 4px
+            right: 4px
