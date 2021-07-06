@@ -1,0 +1,8 @@
+$mainColor: rgba(241, 228, 232, 1);
+$bgColor: #AAF;
+$borderColor: scale-color($color: $bgColor, $lightness: 15%, $saturation: 30%);
+$bgColorOverBgColor: scale-color($color: $bgColor, $lightness: 10%, $saturation: 20%);
+$bgColorAlpha: rgb(170, 170, 255, 0.6);
+$bgColorOther: rgb(15,86,120);
+$selectedMenuColor: rgba(56,154,209,1);
+$neonShadow01: #07cff6;

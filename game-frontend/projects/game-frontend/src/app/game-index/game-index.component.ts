@@ -1,21 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-
-import { User } from '@owge/core';
-
-import { BaseComponent } from '../base/base.component';
-import { MissionService } from '../services/mission.service';
-import { UpgradeService } from '../service/upgrade.service';
-import { UnitRunningMission, UpgradeRunningMission, ObtainedUpgrade, UserStorage, TutorialService } from '@owge/universe';
-import { take } from 'rxjs/operators';
 import { UserWithAlliance } from '@owge/alliance';
+import { User } from '@owge/core';
+import { ObtainedUpgrade, TutorialService, UnitRunningMission, UpgradeRunningMission, UserStorage } from '@owge/universe';
+import { BaseComponent } from '../base/base.component';
+import { UpgradeService } from '../service/upgrade.service';
+import { MissionService } from '../services/mission.service';
 
 @Component({
   selector: 'app-game-index',
-  templateUrl: './game-index.component.html',
-  styleUrls: [
-    './game-index.component.less',
-    './game-index.component.scss'
-  ]
+  templateUrl: './game-index.component.html'
 })
 export class GameIndexComponent extends BaseComponent<UserWithAlliance> implements OnInit {
 

@@ -3,11 +3,12 @@
 
 </owge-galaxy-planet-list-add-edit-modal>
 
-<div class="filters use-compact owge-theme-base-colors">
+<div class="filters use-compact owge-theme-base-colors owge-theme-background-01">
     <input #checkbox type="checkbox" [(ngModel)]="wantOwnedOnly" (ngModelChange)="onChange()" />
     <span class="clickable" (click)="checkbox.click()">{{ 'APP.PLANET_LIST.OWNED_ONLY' | translate }}</span>
 </div>
-<span *ngIf="filteredList && !filteredList.length" class="owge-theme-base-colors">{{ 'APP.PLANET_LIST.EMPTY' | translate
+<span *ngIf="filteredList && !filteredList.length"
+    class="owge-theme-base-colors owge-empty-collection owge-theme-background-01">{{ 'APP.PLANET_LIST.EMPTY' | translate
     }}</span>
 <ng-container *ngFor="let item of filteredList">
     <owge-widgets-display-list-item [itemName]="item.name || (item.planet | planetDisplayName)"

@@ -1,10 +1,14 @@
 <owge-core-loading [isReady]="building !== undefined" [ngClass]="{ 'compact-view' : isCompactView}">
   <ng-container *ngIf="unlockedUnits !== undefined">
-    <div *ngIf="!unlockedUnits.length" class="owge-theme-base-colors no-units">{{ 'APP.UNITS.UNLOCKED.NO_UNITS' |
+    <div *ngIf="!unlockedUnits.length"
+      class="owge-theme-base-colors no-units owge-empty-collection owge-theme-background-01">{{
+      'APP.UNITS.UNLOCKED.NO_UNITS' |
       translate }}</div>
-    <ng-container *ngFor="let unit of unlockedUnits">
-      <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit)" [isCompactView]="isCompactView" [unit]="unit"
-        [withBuildMode]="true" [building]="building" [defaultView]="'requirements'"></app-display-single-unit>
-    </ng-container>
+    <div *ngIf="unlockedUnits.length" class="owge-card-list">
+      <ng-container *ngFor="let unit of unlockedUnits">
+        <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit)" [isCompactView]="isCompactView" [unit]="unit"
+          [withBuildMode]="true" [building]="building" [defaultView]="'requirements'"></app-display-single-unit>
+      </ng-container>
+    </div>
   </ng-container>
 </owge-core-loading>

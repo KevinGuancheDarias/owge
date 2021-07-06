@@ -1,22 +1,28 @@
 <div *ngIf="userData" class="game-index">
-  <app-display-single-upgrade *ngIf="runningUpgrade && relatedObtainedUpgrade"
-    [obtainedUpgrade]="relatedObtainedUpgrade"></app-display-single-upgrade>
+  <ng-template owgeCoreIfTheme="classic">
+    <app-display-single-upgrade *ngIf="runningUpgrade && relatedObtainedUpgrade"
+      [obtainedUpgrade]="relatedObtainedUpgrade"></app-display-single-upgrade>
+  </ng-template>
   <owge-core-loading [isReady]="myUnitRunningMissions">
     <h1 class="owge-theme-title">{{ 'APP.INDEX.TITLE_MY_MISSIONS' | translate }}</h1>
-    <div *ngIf="myUnitRunningMissions" class="owge-card-list">
+    <div *ngIf="myUnitRunningMissions"
+      class="owge-card-list owge-theme-background-color owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
       <app-list-running-missions [runningUnitMissions]="myUnitRunningMissions" [isMovable]="true" [isCancellable]="true"
         (missionDone)="findMyMissions()"></app-list-running-missions>
-      <p *ngIf="!myUnitRunningMissions.length" class="owge-theme-base-colors no-missions">
+      <p *ngIf="!myUnitRunningMissions.length"
+        class="owge-theme-base-colors no-missions owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
         {{ 'APP.INDEX.NO_MY_MISSIONS' | translate }}
       </p>
     </div>
   </owge-core-loading>
   <owge-core-loading [isReady]="enemyRunningMissions">
     <h1 class="owge-theme-title">{{ 'APP.INDEX.TITLE_ENEMY_MISSIONS' | translate }}</h1>
-    <div *ngIf="enemyRunningMissions" class="owge-card-list">
+    <div *ngIf="enemyRunningMissions"
+      class="owge-card-list owge-theme-background-color owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
       <app-list-running-missions [runningUnitMissions]="enemyRunningMissions" [displayUser]="true"
         (missionDone)="findEnemyMissions()"></app-list-running-missions>
-      <p *ngIf="!enemyRunningMissions.length" class="owge-theme-base-colors no-missions">
+      <p *ngIf="!enemyRunningMissions.length"
+        class="owge-theme-base-colors no-missions owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
         {{ 'APP.INDEX.NO_ENEMY_MISSIONS' | translate }}
       </p>
     </div>
@@ -24,10 +30,12 @@
 
   <owge-core-loading [isReady]="unknownRunningMissions">
     <h1 class="owge-theme-title">{{ 'APP.INDEX.TITLE_UNKNOWN_MISSIONS' | translate }}</h1>
-    <div *ngIf="unknownRunningMissions" class="owge-card-list">
+    <div *ngIf="unknownRunningMissions"
+      class="owge-card-list owge-theme-background-color owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
       <app-list-running-missions [runningUnitMissions]="unknownRunningMissions" [displayUser]="true"
         (missionDone)="findEnemyMissions()"></app-list-running-missions>
-      <p *ngIf="!unknownRunningMissions.length" class="owge-theme-base-colors no-missions">
+      <p *ngIf="!unknownRunningMissions.length"
+        class="owge-theme-base-colors no-missions owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
         {{ 'APP.INDEX.NO_UNKNOWN_MISSIONS' | translate }}
       </p>
     </div>
@@ -35,10 +43,12 @@
 
   <owge-core-loading [isReady]="alliesRunningMissions">
     <h1 class="owge-theme-title">{{ 'APP.INDEX.TITLE_ALLIES_MISSIONS' | translate }}</h1>
-    <div *ngIf="alliesRunningMissions" class="owge-card-list">
+    <div *ngIf="alliesRunningMissions"
+      class="owge-card-list owge-theme-background-color owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
       <app-list-running-missions [runningUnitMissions]="alliesRunningMissions" [displayUser]="true"
         (missionDone)="findEnemyMissions()"></app-list-running-missions>
-      <p *ngIf="!alliesRunningMissions.length" class="owge-theme-base-colors no-missions">
+      <p *ngIf="!alliesRunningMissions.length"
+        class="owge-theme-base-colors no-missions owge-theme-background-01 owge-theme-box-shadow owge-theme-text-shadow">
         {{ 'APP.INDEX.NO_ALLIES_MISSIONS' | translate }}
       </p>
     </div>

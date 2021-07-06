@@ -1,0 +1,29 @@
+.owge-theme.owge-theme-classic {
+    .game-index > owge-core-loading  {
+
+        > .owge-card-list {
+            width: 100%;
+            color: silver;
+            > .no-missions {
+                padding-left: 25px;
+            }
+            > p {
+                width: 100%;
+            }
+            app-list-running-missions{
+                width: 100%;
+                display: flex;
+            }
+        }
+    }
+}
+
+@media (min-width:768px){
+    .owge-theme.owge-theme-classic {
+        .game-index > owge-core-loading > .owge-card-list {
+            p.owge-theme-base-colors {
+                margin-top: -7px;
+            }
+        }
+    }
+}

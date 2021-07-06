@@ -1,13 +1,14 @@
 import {
-  Component, Input, OnInit, OnChanges, ViewChild, ElementRef,
-  AfterContentInit, TemplateRef, ContentChildren, QueryList
+  AfterContentInit, Component,
+  ContentChildren, ElementRef, Input, OnChanges, OnInit,
+  QueryList, TemplateRef, ViewChild
 } from '@angular/core';
-
-import { MenuRoute, ScreenDimensionsService, ContentTransclusionUtil, OwgeContentDirective, SessionStore } from '@owge/core';
-import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { filter, takeUntil } from 'rxjs/operators';
-import { fromEvent, Subject, combineLatest } from 'rxjs';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ContentTransclusionUtil, MenuRoute, OwgeContentDirective, ScreenDimensionsService, SessionStore } from '@owge/core';
+import { combineLatest, fromEvent, Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
+
 
 /**
  * Creates a displayable sidebar
@@ -18,13 +19,14 @@ import { TranslateService } from '@ngx-translate/core';
  */
 @Component({
   selector: 'owge-widgets-sidebar',
-  templateUrl: './widget-sidebar.component.html',
-  styleUrls: ['./widget-sidebar.component.scss']
+  templateUrl: './widget-sidebar.component.html'
 })
 export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentInit {
   private static readonly _ICON_WIDTH = 40;
 
   @Input() public sidebarRoutes: MenuRoute[];
+  @ViewChild('largestRouteEl') private _largestRouteEl: ElementRef;
+  @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   public selectedRoute: MenuRoute;
   public computedLength = '100%';
@@ -34,9 +36,6 @@ export class WidgetSideBarComponent implements OnInit, OnChanges, AfterContentIn
   public isDesktop: boolean;
   public extraButtonContent: TemplateRef<any>;
   public isConnected = true;
-
-  @ViewChild('largestRouteEl') private _largestRouteEl: ElementRef;
-  @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   private _changedSubject: Subject<void>;
   private _sdsWidthId: string;

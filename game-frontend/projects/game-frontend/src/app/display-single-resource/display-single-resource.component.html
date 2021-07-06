@@ -1,10 +1,11 @@
-<div>
-  <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'" [staticImage]="staticImage"
-    [assetsImage]="assetsImage"></owge-widgets-display-image>
-  <p #textElement [class.limited-max]="limitedMax">
+<div class="owge-theme-mix-color owge-theme-box-shadow owge-theme-background-01 owge-theme-border-01-small">
+  <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="'resourceImage'"
+    [staticImage]="staticImage" [assetsImage]="assetsImage"></owge-widgets-display-image>
+  <p #textElement [class.limited-max]="limitedMax" class="owge-theme-text-shadow">
     {{ resourceValue | formatNumber | async }}
 
     <span [title]="resourceMaxValue" *ngIf="usePercentage && resourceMaxValue"> % </span>
-    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | formatNumber | async }} </span>
+    <span [title]="resourceMaxValue" *ngIf="!usePercentage && resourceMaxValue"> / {{ resourceMaxValue | formatNumber |
+      async }} </span>
   </p>
 </div>

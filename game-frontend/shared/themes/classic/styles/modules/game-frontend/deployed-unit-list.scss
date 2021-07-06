@@ -1,0 +1,53 @@
+.owge-theme.owge-theme-classic app-deployed-units-list {
+    owge-core-loading {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .owge.card {
+        padding-top: 0px;
+        .card-block .card-title{
+            
+            margin-bottom: 0px;
+            font-size: 8pt;        
+        }
+    }
+
+
+    h2 {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding-right: 150px;
+
+        button {
+            position: absolute;
+            padding: 10px;
+            top: 3px;
+            right: 0px;
+            max-width: 150px;
+            overflow-x: auto;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .input-count {
+        position: relative;
+        padding-left: 15px;
+
+        span {
+            position: absolute;
+            left: 0px;
+            top: 3px;
+            font-size: 16pt;
+
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+
+    div.username {
+        width: 100%;
+    }
+}

@@ -11,11 +11,13 @@
     <option *ngFor=" let currentType of unitTypes" [ngValue]="currentType">{{ currentType.name }}</option>
   </select>
   <ng-template owgeCoreIfDesktop (changed)="viewChanged($event)">
-    <div class="use-compact owge-theme-base-colors" *ngIf="!isRequirementsRoute()">
-      <span (click)="inputElement.click()">{{ 'APP.UNITS.HIDE_DESCRIPTION' | translate}}: </span>
-      <input #inputHideDescription type="checkbox" [(ngModel)]="hideDescription"
-        (ngModelChange)="onCheckboxChanged()" />
-    </div>
+    <ng-template owgeCoreIfTheme="classic">
+      <div class="use-compact owge-theme-base-colors" *ngIf="!isRequirementsRoute()">
+        <span (click)="inputElement.click()">{{ 'APP.UNITS.HIDE_DESCRIPTION' | translate}}: </span>
+        <input #inputHideDescription type="checkbox" [(ngModel)]="hideDescription"
+          (ngModelChange)="onCheckboxChanged()" />
+      </div>
+    </ng-template>
   </ng-template>
 </div>
 <div class="clearFloat"></div>

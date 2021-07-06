@@ -1,0 +1,38 @@
+.owge-theme.owge-theme-neon 
+    app-units
+        app-display-single-unit owge-widgets-display-list-item .extra-section img
+            width: auto
+            height: auto
+        owge-widgets-display-list-item
+            .extra-section 
+                > a
+                    display: block
+                    border-left: 1px solid $neonShadow01
+                    box-shadow: 2px 2px 1px $neonShadow01
+                > a+a
+                    margin-top: 5px
+                > a:last-of-type
+                    margin-bottom: 3px
+            .extra-section a.selected-menu
+                background-color: $neonShadow01
+                box-shadow: 2px 2px 1px #722
+                border-left: 1px solid #722
+            > .desktop-view
+                height: 407px
+        .owge-card-list app-display-single-unit
+            display: contents
+        owge-widgets-display-improved-attribute
+            img
+                filter: drop-shadow(2px 2px 2px $neonShadow01) brightness(15.5)
+        app-unit-requirements
+            owge-widgets-display-list-item 
+                > div.d-flex
+                    display: block !important
+                .extra-section
+                    max-height: 270px
+                    .fast-upgrade-div a
+                        
+                        &.fast-upgrade
+                            text-shadow: 2px 2px 2px #822
+                            &.available
+                                text-shadow: 1px 1px 2px $neonShadow01

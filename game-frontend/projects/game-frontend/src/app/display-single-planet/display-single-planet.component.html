@@ -1,10 +1,11 @@
-<div class="container" *ngIf="planet">
+<div class="planet-container owge-theme-mix-color owge-theme-text-shadow owge-theme-border-01-large owge-theme-background-02"
+    *ngIf="planet" (click)="clickPlanet()">
     <ng-content></ng-content>
     <p>
         <i *ngIf="planet.home" class="fa fa-home"></i><span class="planet-name">{{ planet | planetDisplayName }}</span>
 
     </p>
 
-    <img src="{{ planet | planetImage }}" />
+    <img class="owge-theme-planet-image" src="{{ planet | planetImage }}" />
 
 </div>

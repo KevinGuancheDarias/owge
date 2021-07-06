@@ -1,73 +1,142 @@
+<owge-widgets-confirmation-dialog *owgeCoreIfTheme="'neon'" #cancelUnitConfirmDialog
+      (confirmResult)="cancelBuild($event)" [i18nTitle]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TITLE'"
+      [i18nText]="'APP.UNITS.DISPLAY_SINGLE.BUILD.CANCEL_TEXT'">
+</owge-widgets-confirmation-dialog>
+
+<ng-template owgeCoreIfTheme="neon">
+      <owge-widgets-confirmation-dialog #cancelUpgradeConfirmDialog *ngIf="runningUpgrade$ | async as runningUpgrade"
+            (confirmResult)="cancelUpgrade($event)"
+            [text]="'UPGRADE.CANCEL_TEXT' | translate: { upgradeName: this.runningUpgrade.upgrade.name }">
+      </owge-widgets-confirmation-dialog>
+</ng-template>
+
 <owge-core-modal #planetSelectionModal [hasCloseButton]="true">
-    <div class="header">
-          Select the planet
-    </div>
-    <div class="body">
-          <div *ngFor="let planet of myPlanets" class="card owge planet-card">
-                <app-display-single-planet [planet]="planet"></app-display-single-planet>
-                <div class="card-block">
-                      <a class="owge-btn btn-block" (click)="selectPlanet(planet)">Select</a>
-                </div>
-                <div class="card-block">
-                      <a owgeUniverseOnClickIfWsConnected *ngIf="!planet.home" class="owge-btn btn-block" (clickAndConnected)="leavePlanet(planet)">Leave</a>
-                </div>
-          </div>
-    </div>
+      <div class="header">
+            Select the planet
+      </div>
+      <div class="body">
+            <div *ngFor="let planetWrapper of myPlanets" class="card owge planet-card">
+                  <app-display-single-planet [planet]="planetWrapper.planet"></app-display-single-planet>
+                  <div class="card-block">
+                        <a class="owge-btn btn-block" (click)="selectPlanet(planetWrapper.planet)">Select</a>
+                  </div>
+                  <div class="card-block">
+                        <a owgeUniverseOnClickIfWsConnected *ngIf="!planetWrapper.planet.home"
+                              class="owge-btn btn-block"
+                              (clickAndConnected)="leavePlanet(planetWrapper.planet)">Leave</a>
+                  </div>
+            </div>
+      </div>
 </owge-core-modal>
+<div *owgeCoreIfTheme="'neon'" class="invisible" [ngStyle]="{ height: invisibleHeight + 'px'}">
+
+</div>
 <owge-widgets-sidebar [sidebarRoutes]="menuRoutes">
       <ng-template owgeCoreContent select="extra-button-content" let-route>
             <ng-container *ngIf="route.path === '/reports'">
-                  <a *ngIf="userUnreadReports" class="owge-sidebar-menu-btn-overlay-top-left" role="button" routerLink="{{ route.path }}">{{ userUnreadReports }} </a>
-                  <a *ngIf="enemyUnreadReports" class="owge-sidebar-menu-btn-overlay-bottom-right" style="color: #F33" role="button" routerLink="{{ route.path }}">{{ enemyUnreadReports }} </a>
+                  <a *ngIf="userUnreadReports" class="owge-sidebar-menu-btn-overlay-top-left" role="button"
+                        routerLink="{{ route.path }}">{{ userUnreadReports }} </a>
+                  <a *ngIf="enemyUnreadReports" class="owge-sidebar-menu-btn-overlay-bottom-right" style="color: #F33"
+                        role="button" routerLink="{{ route.path }}">{{ enemyUnreadReports }} </a>
             </ng-container>
             <ng-container *ngIf="route.path === '/system-messages'">
-                  <a *ngIf="unreadSystemMessages" class="owge-sidebar-menu-btn-overlay-top-left" role="button" routerLink="{{ route.path }}">{{ unreadSystemMessages }}</a>
+                  <a *ngIf="unreadSystemMessages" class="owge-sidebar-menu-btn-overlay-top-left" role="button"
+                        routerLink="{{ route.path }}">{{ unreadSystemMessages }}</a>
             </ng-container>
             <ng-container *ngIf="route.icon.includes('twitch')">
-                  <a *ngIf="isTwitchLive" class="owge-sidebar-menu-btn-overlay-top-left twitch-live-animated" href="javascript:void(0)" (click)="route.action()">
+                  <a *ngIf="isTwitchLive" class="owge-sidebar-menu-btn-overlay-top-left twitch-live-animated"
+                        href="javascript:void(0)" (click)="route.action()">
                         <i class="fas fa-video"></i>
-                        <span class="live-animated-text" [@goRight]="animationState" (@goRight.done)="toggleStateAnimation()">)))</span>
+                        <span class="live-animated-text" [@goRight]="animationState"
+                              (@goRight.done)="toggleStateAnimation()">)))</span>
                   </a>
             </ng-container>
       </ng-template>
       <div class="body">
-            <div class="selected-planet">
-                  <app-display-single-planet [planet]="selectedPlanet">
-                        <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()" class="fa fa-globe"></i>
-                  </app-display-single-planet>
-            </div>
-            <div *ngIf="user && resources" class="resource-data">
-                  <app-display-single-resource [resourceName]="user.faction.primaryResourceName"
-                        [resourceImage]="user.faction.primaryResourceImageUrl"
-                        [resourceValue]="resources.currentPrimaryResource">
-
-                  </app-display-single-resource>
-
-                  <app-display-single-resource [resourceName]="user.faction.secondaryResourceName"
-                        [resourceImage]="user.faction.secondaryResourceImageUrl"
-                        [resourceValue]="resources.currentSecondaryResource">
-
-                  </app-display-single-resource>
-
-                  <app-display-single-resource [resourceName]="user.faction.energyName"
-                        [resourceImage]="user.faction.energyImageUrl"
-                        [resourceValue]="resources.currentEnergy"
-                        [resourceMaxValue]="resources.currentMaxEnergy">
-                  </app-display-single-resource>
-
-                  <app-display-single-resource *ngIf="maxMissions"
-                        [resourceName]="'APP.SIDEBAR.MISSIONS_RESOURCE_NAME' | translate"
-                        [resourceValue]="missionsCount"
-                        [staticImage]="true" [resourceImage]="'ui_icons/mission.png'"
-                        [resourceMaxValue]="maxMissions">
-                  </app-display-single-resource>
-
-                  <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
-                        [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
-                        [resourceValue]="unitType.userBuilt"
-                        [resourceMaxValue]="unitType.computedMaxCount">
-
-                  </app-display-single-resource>
+            <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+            <div class="fixed-duplicates">
+                  <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
             </div>
       </div>
 </owge-widgets-sidebar>
+<ng-template #sidebarBody>
+      <div class="selected-planet" *owgeCoreIfTheme="'classic'">
+            <app-display-single-planet [planet]="selectedPlanet">
+                  <i *ngIf="myPlanets && myPlanets.length > 1" (click)="displayPlanetSelectionModal()"
+                        class="fa fa-globe"></i>
+            </app-display-single-planet>
+      </div>
+      <ng-template owgeCoreIfTheme="neon">
+            <div class="selected-planet" *ngFor="let planetWrapper of myPlanets"
+                  [class.active-planet]="planetWrapper.planet === selectedPlanet">
+                  <app-display-single-planet [planet]="planetWrapper.planet"
+                        (clicked)="selectPlanet(planetWrapper.planet)">
+                  </app-display-single-planet>
+                  <div class="owge-theme-planet-building-unit"
+                        *ngIf="planetWrapper.buildingMission$ | async as buildingMission">
+                        <owge-widgets-display-image [image]="buildingMission.unit.imageUrl">
+                        </owge-widgets-display-image>
+                        <owge-widgets-countdown [targetDate]="buildingMission.browserComputedTerminationDate">
+                        </owge-widgets-countdown>
+                        <span class="owge-theme-overlay-top-left owge-theme-base-colors">{{ buildingMission.count
+                              }}</span>
+                        <a owgeUniverseOnClickIfWsConnected
+                              class="owge-theme-cancel-icon owge-theme-cancel-unit-building"
+                              (clickAndConnected)="showCancel(buildingMission)"><i class="fas fa-ban"></i></a>
+                  </div>
+                  <a owgeUniverseOnClickIfWsConnected *ngIf="!planetWrapper.planet.home"
+                        class="neon-leave-planet-button"
+                        (clickAndConnected)="leavePlanet(planetWrapper.planet)"><i class="fas fa-times"></i></a>
+            </div>
+      </ng-template>
+      <div *ngIf="user && resources" class="resource-data">
+            <i *owgeCoreIfTheme="'neon'" class="fas fa-arrow-down"></i>
+            <app-display-single-resource [resourceName]="user.faction.primaryResourceName"
+                  [resourceImage]="user.faction.primaryResourceImageUrl"
+                  [resourceValue]="resources.currentPrimaryResource">
+
+            </app-display-single-resource>
+
+            <app-display-single-resource [resourceName]="user.faction.secondaryResourceName"
+                  [resourceImage]="user.faction.secondaryResourceImageUrl"
+                  [resourceValue]="resources.currentSecondaryResource">
+
+            </app-display-single-resource>
+
+            <app-display-single-resource [resourceName]="user.faction.energyName"
+                  [resourceImage]="user.faction.energyImageUrl" [resourceValue]="resources.currentEnergy"
+                  [resourceMaxValue]="resources.currentMaxEnergy">
+            </app-display-single-resource>
+
+            <app-display-single-resource *ngIf="maxMissions"
+                  [resourceName]="'APP.SIDEBAR.MISSIONS_RESOURCE_NAME' | translate"
+                  [resourceValue]="missionsCount" [staticImage]="true" [resourceImage]="'ui_icons/mission.png'"
+                  [resourceMaxValue]="maxMissions">
+            </app-display-single-resource>
+
+            <app-display-single-resource *ngFor="let unitType of withLimitUnitTypes"
+                  [resourceName]="unitType.name" [resourceImage]="unitType.imageUrl"
+                  [resourceValue]="unitType.userBuilt" [resourceMaxValue]="unitType.computedMaxCount">
+
+            </app-display-single-resource>
+
+            <ng-template owgeCoreIfTheme="neon">
+                  <owge-widgets-display-single-resource *ngIf="runningUpgrade$ | async as runningUpgrade" (mouseover)="renderUpgradeDetails = true"
+                        class="owge-theme-neon running-upgrade" [doFormat]="false"
+                        [resourceName]="runningUpgrade.upgrade.name"
+                        [resourceImage]="runningUpgrade.upgrade.imageUrl"
+                        [resourceValue]="'APP.UPGRADES.LEVEL' | translate: { upgradeLevel: runningUpgrade.level }">
+                        <owge-widgets-countdown [targetDate]="runningUpgrade?.browserComputedTerminationDate">
+
+                        </owge-widgets-countdown>
+                        <a owgeUniverseOnClickIfWsConnected
+                              class="owge-theme-cancel-icon owge-theme-cancel-upgrading"
+                              (clickAndConnected)="showCancelUpgrade()"><i class="fas fa-ban"></i></a>
+                              <owge-widgets-display-improvements *ngIf="renderUpgradeDetails" [improvement]="runningUpgrade.upgrade.improvement"
+                              [prImage]="user.faction.primaryResourceImageUrl" [srImage]="user.faction.secondaryResourceImageUrl"
+                              [energyImage]="user.faction.energyImageUrl"></owge-widgets-display-improvements>
+
+                  </owge-widgets-display-single-resource>
+            </ng-template>
+      </div>
+</ng-template>

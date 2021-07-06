@@ -7,9 +7,10 @@
     <div class="card owge" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
       <div class="card-block card-header-block">
         <div class="card-title owge-theme-background-color-alpha">
-          <span>
-            {{ obtainedUnit.count }}
-          </span>
+          <span *owgeCoreIfTheme="'classic'">{{ obtainedUnit.count }}</span>
+          <ng-template owgeCoreIfTheme="neon">
+            <span *ngFor="let num of obtainedUnit.count.toString().split('')">{{ num }}</span>
+          </ng-template>
         </div>
         <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />
         <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'">
@@ -33,9 +34,10 @@
       <div class="card owge" *ngFor="let obtainedUnit of userUnits.obtainedUnits, let i = index">
         <div class="card-block card-header-block">
           <div class="card-title owge-theme-background-color-alpha">
-            <span>
-              {{ obtainedUnit.count }}
-            </span>
+            <span *owgeCoreIfTheme="'classic'">{{ obtainedUnit.count }}</span>
+            <ng-template owgeCoreIfTheme="neon">
+              <span *ngFor="let num of obtainedUnit.count.toString().split('')">{{ num }}</span>
+            </ng-template>
           </div>
           <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />
           <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'">

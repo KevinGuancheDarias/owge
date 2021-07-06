@@ -1,0 +1,306 @@
+@use "sass:color"
+
+@mixin owge-sidebar-menu-btn-overlay
+    position: absolute
+    font-size: 12pt
+    padding: 1px 3px
+    color: white
+    width: auto
+    text-shadow: 2px 2px 2px red
+
+@font-face
+    font-family: old-standard-tt-bold
+    src: url('/theme/assets/neon/font/old_standard_tt_bold.ttf')
+@import './partials/colors.scss'
+
+%owge-theme-mix-color
+    color: $mainColor
+    background-color: transparent
+%neon-before-background
+    content: ""
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+
+%owge-theme-base-colors
+    @extend %owge-theme-mix-color
+    box-shadow: 3px 3px 3px black
+    text-shadow: 2px 1px 3px black
+// Contains the overrides for the defaults that components can used across themes
+.owge-theme-neon .app-container
+    margin-top: 10px
+body.owge-theme-neon
+    background-image: url('/theme/assets/neon/bg/universe_mobile.jpg')
+    background-repeat: no-repeat
+    background-size: cover
+    background-attachment: fixed
+.owge-theme-neon
+    .disabled-for-offline 
+        cursor: not-allowed
+    
+    .owge-theme-color
+        color: $bgColor
+    .owge-theme-color-alt
+        color: $bgColorOverBgColor
+    .owge-theme-box-shadow
+        box-shadow: 4px 4px 3px $bgColorOther
+        &:hover
+            box-shadow: 2px 2px 2px $bgColor
+
+    input[type="number"] 
+        -webkit-appearance: textfield
+        -moz-appearance: textfield
+        appearance: textfield
+        &::-webkit-inner-spin-button, &::-webkit-outer-spin-button 
+            -webkit-appearance: none
+
+    .owge-theme-text-shadow
+        text-shadow: 1px 1px 3px $neonShadow01
+
+    .owge-theme-background-color
+        background-color: $bgColor
+    .owge-theme-background-color-alt
+        background-color: $bgColorOther
+    .owge-theme-background-color-over-background-color
+        background-color: black
+    .owge-theme-background-color-alpha
+        background-color: transparentize(#000, 0.4 )
+    .owge-theme-mix-color
+        @extend  %owge-theme-mix-color
+    .owge-theme-border-solid
+        border: 1px solid $bgColor
+    .owge-theme-hover-background-color-alt:hover
+        background-color: $bgColorOther
+    .owge-theme-base-colors
+        @extend %owge-theme-base-colors
+    .owge-theme-padding-box
+        padding: 5px
+    .owge-theme-title
+        position: relative
+        font-size: 14pt
+        text-indent: 5px
+        padding: 2px 4px 10px 2px
+        margin-bottom: 3px
+        text-shadow: 2px 1px 3px black
+        color: white
+        text-shadow: 1px 1px 3px $neonShadow01
+        border: 1px solid silver
+        border-bottom: 0px
+
+        &::before
+            @extend  %neon-before-background
+            z-index: -1
+            filter: blur(6px) brightness(0.75)
+            background-image: url('/theme/assets/neon/bg/border_metal.png')
+        &::after
+            content: ""
+            position: absolute
+            bottom: 0px
+            left: 0px
+            height: 10px
+            width: 100%
+            z-index: -2
+            background-image: url('/theme/assets/neon/bg/metal_3.png')
+            filter: brightness(1.25)
+    .owge-theme-planet-image
+        filter: drop-shadow(2px 0px 4px $bgColorOther)
+        &:hover
+            filter: drop-shadow(3px 0px 6px $bgColorOther)
+
+    .owge-theme-border-01-large
+        border: 10px solid
+        border-image-slice: 5 5
+        border-image-repeat: round
+        border-image-source: url('/theme/assets/neon/bg/metal_3.png')
+    .owge-theme-border-01-small
+        border: 5px solid
+        border-image-slice: 5 5
+        border-image-repeat: round
+        border-image-source: url('/theme/assets/neon/bg/metal_3.png')
+    .owge-theme-background-02
+        background-color: rgba(150,150,150,0.7)
+        &:before
+            content: ""
+            position: absolute
+            top: 0 
+            left: 0
+            width: 100% 
+            height: 100%  
+            opacity: .7 
+            z-index: -1
+            background-image: url('/theme/assets/neon/bg/border_metal.png')
+            background-origin: border-box
+            background-clip: content-box, border-box
+    .owge-theme-background-01
+        position: relative
+        font-size: 14pt
+        background-color: rgba(150,150,150,0.7)
+
+        &:before
+            content: ""
+            position: absolute
+            top: 0 
+            left: 0
+            width: 100% 
+            height: 100%  
+            opacity: .5
+            z-index: -1
+            background-image: url('/theme/assets/neon/bg/metal.png')
+
+    .owge-card-list
+        display: flex
+        flex-wrap: wrap
+        .card.owge
+            padding: 10px
+            position: relative
+            margin: 3px
+            background-color: transparent
+            z-index: 0
+            &:hover
+                &::before
+                    filter: grayscale(60%) blur(1px)
+                img:hover 
+                    filter: drop-shadow( 1px 1px 6px #722)
+
+            &::before
+                content: ""
+                background-image: url('/theme/assets/neon/bg/neon.jpg')
+                position: absolute
+                top: 0
+                left: 0
+                width: 100%
+                height: 100%
+                z-index: -1
+                opacity: 1
+                filter: grayscale(90%) blur(2px)
+            img
+                width: 130px
+                height: 110px
+                filter: drop-shadow(2px 0px 4px $neonShadow01)
+
+
+        &.tiny-imgs .card.owge img
+            width: 65px
+            height: 50px
+
+        .card-title
+            text-align: right
+        input
+            width: 100%
+            text-align: right
+
+    .owge-empty-collection
+        padding: 4px
+        padding-left: 10px
+    table.owge-table
+        @extend  %owge-theme-base-colors
+        text-shadow: 1px 1px 3px $neonShadow01
+        background-image: url('/theme/assets/neon/bg/stars.jpg')
+        background-size: 25%
+        background-repeat: repeat
+        th,td
+            border: 2px solid $neonShadow01
+            padding: 7px
+
+    .owge-form-header
+        font-weight: bold
+        border-bottom: 4px solid color.mix($bgColor,#999)
+        margin-bottom: 2px
+
+    .owge-table-caption
+        position: relative
+        width: 100%
+        padding: 8px
+
+        button
+            position: absolute
+            bottom: 4px
+            right: 4px
+
+    .btn
+        @extend  .owge-theme-background-01
+        @extend  .owge-theme-text-shadow
+        color: white
+        cursor: pointer
+        transition: opacify 2s
+        &::before
+            transition: opacity 2s
+        &::after
+            transition: opacity 2s
+            transition: box-shadow 3s
+            content: ""
+            position: absolute
+            top: -3px
+            left: -3px
+            z-index: -3
+            width: calc(100% + 6px)
+            height: calc(100% + 6px)
+            background-image: url('/theme/assets/neon/bg/stars.jpg')
+            background-size: 25%
+            background-repeat: repeat
+            border-radius: 5px
+            box-shadow: 2px 2px 3px $neonShadow01
+        &:hover
+            &::before
+                opacity: 0
+            &::after
+                opacity: 1
+                box-shadow: 1px 1px 2px #A55
+    select, select.owge-theme-base-colors, input, input.owge-theme-base-colors
+        background-color: transparentize(#000,  0.3)
+        text-shadow: 1px 1px 2px $neonShadow01
+        border: 1px solid $neonShadow01
+        color: white
+        option
+            background-color: transparentize(#000, 0.2)
+        &:hover
+            filter: brightness(1.25)
+            box-shadow: 1px 2px 3px #733
+    h3.owge-theme-base-colors
+        padding: 5px
+    .item-info-icon
+        position: absolute
+        top: 2px
+        left: 5px
+        font-size: 14pt
+        i
+            transition: all  1s
+            filter: brightness(0.75)
+            &.owge-theme-color-alt
+                color: white
+                text-shadow: 1px 1px 5px $neonShadow01
+        
+        &:hover i
+            color: $neonShadow01
+            text-shadow: 1px 1px 5px black
+            cursor: pointer
+            filter: brightness(1.15)
+            
+            
+@media ( aspect-ratio: 4/3  )
+    body.owge-theme-neon
+        background-image: url('/theme/assets/neon/bg/universe_common_aspect.jpg')
+@media ( min-aspect-ratio: 16/9  ) 
+    body.owge-theme-neon
+        background-image: url('/theme/assets/neon/bg/universe_desktop.jpg')
+
+@keyframes moveGradient 
+  50% 
+    background-position: 100% 50%
+
+@import './modules/bootstrap/modal.sass'
+@import './modules/owge-widgets/widget-sidebar.sass'
+@import './modules/owge-widgets/widget-list-item.sass'
+@import './modules/owge-widgets/widgets-display-improvements.sass'
+@import './modules/game-frontend/alliances.sass'
+@import './modules/game-frontend/game-sidebar.sass'
+@import './modules/game-frontend/game-index.sass'
+@import './modules/game-frontend/list-running-missions.sass'
+@import './modules/game-frontend/deployed-unit-list.sass'
+@import './modules/game-frontend/navigation-controls.sass'
+@import './modules/game-frontend/display-quadrant.sass'
+@import './modules/game-frontend/reports.sass'
+@import './modules/game-frontend/units.sass'
+@import './modules/game-frontend/upgrades.sass'

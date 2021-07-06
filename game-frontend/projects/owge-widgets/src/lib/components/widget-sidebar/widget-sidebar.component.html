@@ -1,28 +1,50 @@
 <div class="owge-side-bar-root" *ngIf="sidebarRoutes">
       <div class="magic-overflow">
-            <a *ngIf="selectedRoute" class="owge-sidebar-btn-menu selected-menu" role="button" routerLink="{{ selectedRoute.path }}">
-                  <span><i [class]="selectedRoute.icon"></i></span>
-                  <svg *ngIf="isGreaterThanViewportWidth || isDesktop" xmlns="http://www.w3.org/2000/svg">
-                        <g>
-                        <text y="70%" [attr.textLength]="computedLength" lengthAdjust="spacingAndGlyphs">{{ selectedRoute.text }}</text>
-                        </g>
-                  </svg>
-                  <span class="selected-route-text" *ngIf="!isGreaterThanViewportWidth && !isDesktop">{{ selectedRoute.text }}</span>
-                  <span #largestRouteEl *ngIf="largestRouteName && !computedTitleWidth" class="hidden-magic-computation">{{ largestRouteName.text }}</span>
-            </a>
+            <ng-template owgeCoreIfTheme="classic">
+                  <a *ngIf="selectedRoute" class="owge-sidebar-btn-menu selected-menu" role="button"
+                        routerLink="{{ selectedRoute.path }}">
+                        <span><i [class]="selectedRoute.icon"></i></span>
+                        <svg *ngIf="isGreaterThanViewportWidth || isDesktop" xmlns="http://www.w3.org/2000/svg">
+                              <g>
+                                    <text y="70%" [attr.textLength]="computedLength" lengthAdjust="spacingAndGlyphs">{{
+                                          selectedRoute.text }}</text>
+                              </g>
+                        </svg>
+                        <span class="selected-route-text" *ngIf="!isGreaterThanViewportWidth && !isDesktop">{{
+                              selectedRoute.text }}</span>
+                        <span #largestRouteEl *ngIf="largestRouteName && !computedTitleWidth"
+                              class="hidden-magic-computation">{{ largestRouteName.text }}</span>
+                  </a>
+            </ng-template>
             <ng-container *ngFor="let route of sidebarRoutes">
-                  
-                  <div class="owge-sidebar-option" [ngClass]="route.cssClasses" *ngIf="route.shouldDisplay === undefined  || (route.shouldDisplay)">
-                        <a *ngIf="route.path" class="owge-sidebar-btn-menu" [ngClass]="!isConnected && route.isConnectionRequired ? 'disabled-for-offline' : ''" role="button" [routerLink]="(isConnected || !route.isConnectionRequired) ? route.path : undefined"
-                        routerLinkActive="selected-menu-link" (click)="checkRequiredConnection($event, route)">
-                              <span><i [class]="route.icon"></i></span>
-                        </a>
-                        <a *ngIf="route.action" class="owge-sidebar-btn-menu" role="button" href="javascript:void(0)" (click)="route.action()">
-                              <span><i [class]="route.icon"></i></span>
-                        </a>
-                        <ng-container *ngTemplateOutlet="extraButtonContent; context: {$implicit: route}"></ng-container>
-                  </div>
+                  <ng-container *ngTemplateOutlet="iterateOptions; context: { $implicit: route}"></ng-container>
             </ng-container>
       </div>
+      <ng-template owgeCoreIfTheme="neon">
+            <div class="fixed-duplicates route-options">
+                  <ng-container *ngFor="let route of sidebarRoutes">
+                        <ng-container *ngTemplateOutlet="iterateOptions; context: { $implicit: route}"></ng-container>
+                  </ng-container>
+            </div>
+      </ng-template>
       <ng-content select=".body"></ng-content>
 </div>
+<ng-template #iterateOptions let-route>
+      <div class="owge-sidebar-option" [ngClass]="route.cssClasses" routerLinkActive="active-option"
+            [routerLinkActiveOptions]="{exact: true}"
+            *ngIf="route.shouldDisplay === undefined  || (route.shouldDisplay)">
+            <a *ngIf="route.path" class="owge-sidebar-btn-menu"
+                  [ngClass]="!isConnected && route.isConnectionRequired ? 'disabled-for-offline' : ''"
+                  role="button"
+                  [routerLink]="(isConnected || !route.isConnectionRequired) ? route.path : undefined"
+                  routerLinkActive="selected-menu-link" (click)="checkRequiredConnection($event, route)">
+                  <span><i [class]="route.icon"></i></span>
+            </a>
+            <a *ngIf="route.action" class="owge-sidebar-btn-menu" role="button" href="javascript:void(0)"
+                  (click)="route.action()">
+                  <span><i [class]="route.icon"></i></span>
+            </a>
+            <ng-container *ngTemplateOutlet="extraButtonContent; context: {$implicit: route}">
+            </ng-container>
+      </div>
+</ng-template>

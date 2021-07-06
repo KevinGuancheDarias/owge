@@ -227,10 +227,10 @@ export class AppModule {
     private _userStorage: UserStorage<User>,
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    themeService: ThemeService
+    private themeService: ThemeService
   ) {
     ServiceLocator.injector = this._injector;
-    themeService.useDefaultTheme();
+    themeService.useUserDefinedOrDefault();
     this._initWebsocket();
     (window as any).owgeDebug = (isEnabled => {
       if (!isEnabled || environment.production) {
@@ -251,7 +251,7 @@ export class AppModule {
     this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
       .subscribe(conf => {
         this._websocketService.addEventHandler(
-          new PingWebsocketApplicationHandler(),
+          new PingWebsocketApplicationHandler(this.themeService),
           this._injector.get(MissionService),
           this._injector.get(UpgradeService),
           this._injector.get(UnitService),

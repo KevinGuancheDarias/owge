@@ -4,9 +4,9 @@
   <div class="header">
     {{ 'APP.MISSION_MODAL.HEADER' | translate: { planetName: targetPlanet | planetDisplayName} }}
   </div>
-  <div class="body owge-theme-base-colors" *ngIf="deploymentConfig">
+  <div class="body owge-theme-base-colors mission-modal" *ngIf="deploymentConfig">
     <ng-container *ngIf="sourcePlanet && targetPlanet">
-      <div>
+      <div class="mission-type">
         <span>{{ 'APP.MISSION_MODAL.MISSION_TYPE' | translate}}:</span>
         <select class="owge-theme-base-colors mission-type" *ngIf="targetPlanet" [(ngModel)]="missionType"
           (ngModelChange)="onMissionTypeChange()">

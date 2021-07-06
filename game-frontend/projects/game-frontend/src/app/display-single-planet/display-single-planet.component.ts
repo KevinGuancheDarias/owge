@@ -1,15 +1,14 @@
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
-import { Component, OnInit, Input } from '@angular/core';
 
 @Component({
   selector: 'app-display-single-planet',
   templateUrl: './display-single-planet.component.html',
-  styleUrls: [
-    './display-single-planet.component.less',
-    './display-single-planet.component.scss'
-  ]
+  styleUrls: ['./display-single-planet.component.scss']
 })
-export class DisplaySinglePlanetComponent implements OnInit {
+export class DisplaySinglePlanetComponent {
+
+  @Output() clicked: EventEmitter<void> = new EventEmitter;
 
   private _planet: PlanetPojo;
 
@@ -24,10 +23,9 @@ export class DisplaySinglePlanetComponent implements OnInit {
     return this._planet;
   }
 
-  constructor() { }
-
-  ngOnInit() {
-
+  public clickPlanet(): void {
+    this.clicked.emit();
   }
+
 
 }

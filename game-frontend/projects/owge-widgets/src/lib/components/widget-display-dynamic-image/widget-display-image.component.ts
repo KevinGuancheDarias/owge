@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-
-import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy } from '@angular/core';
+import { LoggerHelper, MEDIA_ROUTES, ThemeService } from '@owge/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'owge-widgets-display-image',
@@ -8,7 +8,7 @@ import { MEDIA_ROUTES, LoggerHelper } from '@owge/core';
   styleUrls: ['./widget-display-image.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WidgetDisplayImageComponent implements OnChanges {
+export class WidgetDisplayImageComponent implements OnChanges, OnDestroy {
 
   @Input()
   public image: string;
@@ -31,19 +31,40 @@ export class WidgetDisplayImageComponent implements OnChanges {
   public parsedImage: string;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
+  private currentTheme: string;
+  private assetsSubscription: Subscription;
 
-  public constructor(private _cdr: ChangeDetectorRef) { }
+  public constructor(private _cdr: ChangeDetectorRef, private themeService: ThemeService) {}
 
   public ngOnChanges(): void {
-    this.parsedImage = this._findFullPath(this.image);
-    this._cdr.detectChanges();
+    if(this.assetsImage) {
+      this.assetsSubscription = this.themeService.currentTheme$.subscribe(theme => {
+          this.currentTheme = theme;
+          this.parsedImage = this._findFullPath(this.image);
+        });
+    } else {
+      this.unsubscribeAssets();
+      this.parsedImage = this._findFullPath(this.image);
+      this._cdr.detectChanges();
+    }
+  }
+
+  public ngOnDestroy(): void {
+    this.unsubscribeAssets();
+  }
+
+  private unsubscribeAssets(): void {
+    if(this.assetsSubscription) {
+      this.assetsSubscription.unsubscribe();
+      delete this.assetsSubscription;
+    }
   }
 
   private _findFullPath(image: string) {
     if (this.staticImage) {
       return MEDIA_ROUTES.STATIC_IMAGES_ROOT + image;
     } else if (this.assetsImage) {
-      return `/assets/img/${image}`;
+      return `/theme/assets/${this.currentTheme}/img/${image}`;
     } else if (this._isAbsoluteUrl(image) || this._isDynamicAbsolutePath(image)) {
       return image;
     } else {

@@ -2,41 +2,72 @@
 
 </owge-widgets-confirmation-dialog>
 
+<owge-core-modal [hasCloseButton]="true">
+  <div class="header" [innerHTML]="'APP.UPGRADES.DISPLAY_INFO_MODAL.TITLE' | translate: {name: upgrade.name }">
+  </div>
+  <div class="body upgrade-info-modal owge-theme-border-01-small">
+    <h3 class="owge-theme-base-colors owge-theme-box-shadow owge-theme-background-color-alpha">
+      {{
+      'APP.UPGRADES.DISPLAY_INFO_MODAL.DESCRIPTION' |
+      translate }}
+    </h3>
+    <div class="owge-theme-mix-color owge-theme-background-color-alpha owge-theme-padding-box">{{ upgrade.description }}
+    </div>
+  </div>
+  <div class="footer">
+    <button class="btn" (click)="modal.hide()">{{ 'GLOBAL.BTN_CLOSE' | translate}}</button>
+  </div>
+</owge-core-modal>
+
 <ng-container *ngIf="userData">
-  <owge-widgets-display-list-item [itemName]="upgrade.name" [itemDescription]="upgrade.description" [image]="upgrade.imageUrl"
-    [hasToDisplayCountdown]="runningUpgrade && runningUpgrade.upgrade.id === upgrade.id" [countdownDate]="runningUpgrade?.browserComputedTerminationDate"
-  >
+  <owge-widgets-display-list-item [itemName]="upgrade.name" [itemDescription]="upgrade.description"
+    [image]="upgrade.imageUrl"
+    [hasToDisplayCountdown]="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id"
+    [countdownDate]="runningUpgrade?.browserComputedTerminationDate"
+    [class.is-upgrading]="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id">
     <ng-template owgeCoreContent select="extra-header">
       <div>
-        <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">{{ 'APP.UPGRADES.LEVEL' | translate: { upgradeLevel: obtainedUpgrade.level } }}
-          <br /> {{ obtainedUpgrade.upgrade.typeName }}</h6>
+        <h6 *ngIf="obtainedUpgrade" class="card-subtitle text-muted">{{ 'APP.UPGRADES.LEVEL' | translate: {
+          upgradeLevel: obtainedUpgrade.level } }}
+          <br /> {{ obtainedUpgrade.upgrade.typeName }}
+        </h6>
       </div>
     </ng-template>
     <ng-template owgeCoreContent select="action-buttons">
-      <a *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block" role="button"
-        (click)="otherUpgradeAlreadyRunning()">
+      <a *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id !== runningUpgrade.upgrade.id" class="btn btn-block"
+        role="button" (click)="otherUpgradeAlreadyRunning()">
         ---
       </a>
       <ng-container *ngIf="!runningUpgrade">
-        <a owgeUniverseOnClickIfWsConnected *ngIf="obtainedUpgrade?.requirements?.runnable" class="btn btn-block do-upgrade" role="button"
-          (clickAndConnected)="updateSelectedUpgrade(obtainedUpgrade)">{{ 'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
-        <a *ngIf="!obtainedUpgrade?.requirements?.runnable" class="btn btn-block" role="button">{{ 'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
+        <a owgeUniverseOnClickIfWsConnected *ngIf="obtainedUpgrade?.requirements?.runnable"
+          class="btn btn-block do-upgrade" role="button" (clickAndConnected)="updateSelectedUpgrade(obtainedUpgrade)">{{
+          'APP.UPGRADES.DO_UPGRADE' | translate }}</a>
+        <a *ngIf="!obtainedUpgrade?.requirements?.runnable" class="btn btn-block" role="button">{{
+          'APP.UPGRADES.NO_ENOUGH_RESOURCES' | translate }}</a>
       </ng-container>
-      <a owgeUniverseOnClickIfWsConnected class="btn btn-block cancel-upgrade" *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button" (clickAndConnected)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
+      <a owgeUniverseOnClickIfWsConnected class="btn btn-block cancel-upgrade"
+        *ngIf="runningUpgrade && obtainedUpgrade.upgrade.id === runningUpgrade.upgrade.id" role="button"
+        (clickAndConnected)="clickCancelUpgrade()">{{ 'APP.UPGRADES.CANCEL' | translate }}</a>
     </ng-template>
     <ng-template owgeCoreContent select="extra-section">
-      <a class="btn" *ngIf="obtainedUpgrade.requirements"  (click)="selectedView = 'requirements'"
-        [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' | translate }}</a>
+      <a class="btn" *ngIf="obtainedUpgrade.requirements" (click)="selectedView = 'requirements'"
+        [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' |
+        translate }}</a>
       <a class="btn" *ngIf="upgrade.improvement" (click)="selectedView = 'improvements'"
-        [ngClass]="{ 'selected-menu': selectedView === 'improvements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.IMPROVEMENTS' | translate }}</a>
+        [ngClass]="{ 'selected-menu': selectedView === 'improvements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.IMPROVEMENTS' |
+        translate }}</a>
 
       <div *ngIf="obtainedUpgrade.requirements && selectedView === 'requirements'">
         <app-display-requirements [requirements]="obtainedUpgrade.requirements"></app-display-requirements>
       </div>
-      <owge-widgets-display-improvements *ngIf="selectedView === 'improvements'" 
-        [improvement]="upgrade.improvement" [prImage]="userData.faction.primaryResourceImageUrl" 
-        [srImage]="userData.faction.secondaryResourceImageUrl" [energyImage]="userData.faction.energyImageUrl"
-      ></owge-widgets-display-improvements>
+      <owge-widgets-display-improvements *ngIf="selectedView === 'improvements'" [improvement]="upgrade.improvement"
+        [prImage]="userData.faction.primaryResourceImageUrl" [srImage]="userData.faction.secondaryResourceImageUrl"
+        [energyImage]="userData.faction.energyImageUrl"></owge-widgets-display-improvements>
     </ng-template>
-</owge-widgets-display-list-item> 
+    <ng-template owgeCoreContent select="image-container-prepend">
+      <span *owgeCoreIfTheme="'neon'" class="item-info-icon" (click)="modal.show()">
+        <i class="fas fa-info-circle owge-theme-color-alt"></i>
+      </span>
+    </ng-template>
+  </owge-widgets-display-list-item>
 </ng-container>

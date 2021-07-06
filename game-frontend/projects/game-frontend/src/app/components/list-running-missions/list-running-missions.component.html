@@ -8,7 +8,7 @@
 </owge-core-modal>
 <owge-core-loading [isReady]="runningUnitMissions">
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
-    <div #missionRoot class="card owge auto-expand"
+    <div #missionRoot class="card owge auto-expand owge-list-running-missions"
       *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
       <h3 *ngIf="displayUser" class="card-header">{{ 'APP.MISSION_LIST.HEADER_MISSION_TYPE_FROM_USER' |
         translate:{missionType: runningUnitMission.type | displayMissionType | async, userName: runningUnitMission.user
@@ -27,16 +27,28 @@
       <div class="card-block">
         <div class="card-title">
           <div class="row planet-names">
-            <div class="owge-theme-border-solid">
-              <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
-              <a data-html="true" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.sourcePlanet"
-                (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
-            </div>
-            <div class="owge-theme-border-solid">
-              <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
-              <a data-html="true" placement="bottom" (mouseenter)="tooltipPlanet = runningUnitMission.targetPlanet"
-                (mouseleave)="toolTipPlanet = null">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
-            </div>
+            <ng-template owgeCoreIfTheme="classic">
+              <div class="owge-theme-border-solid">
+                <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
+                <a data-html="true" placement="bottom">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
+              </div>
+              <div class="owge-theme-border-solid">
+                <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
+                <a data-html="true" placement="bottom">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
+              </div>
+            </ng-template>
+            <ng-template owgeCoreIfTheme="neon">
+              <div *ngIf="runningUnitMission.sourcePlanet">
+                <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
+                <img class="owge-theme-planet-image" [src]="runningUnitMission.sourcePlanet | planetImage" />
+                <span>{{ runningUnitMission.sourcePlanet | planetDisplayName }}</span>
+              </div>
+              <div *ngIf="runningUnitMission.targetPlanet">
+                <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
+                <img class="owge-theme-planet-image" [src]="runningUnitMission.targetPlanet | planetImage" />
+                <span>{{ runningUnitMission.targetPlanet | planetDisplayName }}</span>
+              </div>
+            </ng-template>
           </div>
         </div>
       </div>

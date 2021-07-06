@@ -1,16 +1,13 @@
-import { Component, OnInit, Input, OnChanges, OnDestroy } from '@angular/core';
-import { MilisToDaysHoursMinutesSeconds, DateTimeUtil } from '../shared/util/date-time.util';
+import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
+import { ScreenDimensionsService } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { ResourceRequirements, UserStorage } from '@owge/universe';
-import { ScreenDimensionsService } from '@owge/core';
+import { DateTimeUtil, MilisToDaysHoursMinutesSeconds } from '../shared/util/date-time.util';
 
 @Component({
   selector: 'app-display-requirements',
   templateUrl: './display-requirements.component.html',
-  styleUrls: [
-    './display-requirements.component.less',
-    './display-requirements.component.scss'
-  ]
+  styleUrls: ['./display-requirements.component.scss']
 })
 export class DisplayRequirementsComponent implements OnInit, OnChanges, OnDestroy {
 

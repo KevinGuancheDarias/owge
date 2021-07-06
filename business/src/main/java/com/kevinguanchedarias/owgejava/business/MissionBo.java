@@ -26,6 +26,7 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
+import org.hibernate.Hibernate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -283,6 +284,9 @@ public class MissionBo extends AbstractMissionBo {
         if (mission != null) {
             var missionInformation = mission.getMissionInformation();
             var upgrade = (Upgrade) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+            if (upgrade.getImprovement() != null) {
+                Hibernate.initialize(upgrade.getImprovement());
+            }
             return new RunningUpgradeDto(upgrade, mission);
         } else {
             return null;

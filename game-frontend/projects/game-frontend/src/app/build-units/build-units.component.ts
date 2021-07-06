@@ -1,12 +1,11 @@
-import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { filter, take } from 'rxjs/operators';
-
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlanetService } from '@owge/galaxy';
-
-import { UnitService } from './../service/unit.service';
-import { BaseUnitComponent } from '../shared/base-unit.component';
 import { Unit, UnitBuildRunningMission } from '@owge/universe';
 import { Observable, Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
+import { BaseUnitComponent } from '../shared/base-unit.component';
+import { UnitService } from './../service/unit.service';
+
 
 @Component({
   selector: 'app-build-units',

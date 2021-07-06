@@ -4,11 +4,11 @@ import { ProgrammingError } from '../errors/programming.error';
 
 @Injectable()
 export class ThemeService {
-
+    private readonly selectedThemeLocalStorageKey = 'owge_theme';
     private supportedThemes = ['classic', 'neon'];
     private currentThemeSubject: Subject<string> = new ReplaySubject(1);
     private currentTheme: string;
-    private defaultTheme = 'classic';
+    private defaultTheme = 'neon';
 
     public get currentTheme$(): Observable<string> {
         return this.currentThemeSubject.asObservable();
@@ -16,6 +16,15 @@ export class ThemeService {
 
     public findAll(): Observable<string[]> {
         return of(this.supportedThemes);
+    }
+
+    public useUserDefinedOrDefault(): void {
+        const userSelected: string = localStorage[this.selectedThemeLocalStorageKey];
+        if(userSelected) {
+            this.useTheme(userSelected);
+        } else {
+            this.useDefaultTheme();
+        }
     }
 
     public useDefaultTheme(): void {
@@ -32,6 +41,7 @@ export class ThemeService {
         bodyClasses.add('owge-theme');
         this.currentTheme = themeName;
         this.currentThemeSubject.next(themeName);
+        localStorage[this.selectedThemeLocalStorageKey] = themeName;
     }
 
     private resolveThemeName(inputTheme: string): string {

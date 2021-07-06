@@ -1,5 +1,10 @@
 @import './partials/colors';
 @import './modules/owge-widgets/widget-sidebar.scss';
+@import './modules/game-frontend/game-sidebar.scss';
+@import './modules/game-frontend/list-running-missions.scss';
+@import './modules/game-frontend/game-index.scss';
+@import './modules/game-frontend/deployed-unit-list.scss';
+@import './modules/game-frontend/navigation-controls.scss';
 
 .owge-theme.owge-theme-classic {
     body.tutorial-blocker {
@@ -57,7 +62,7 @@
     }
 
     .owge-btn {
-        background-image: url('/assets/img/oldmetalnew.jpg');
+        background-image: url('/theme/assets/classic/img/oldmetalnew.jpg');
         overflow: hidden;
         text-align: center;
         text-shadow: 0px 0px 1px black;

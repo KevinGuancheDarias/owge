@@ -1,8 +1,19 @@
 <owge-core-loading [isReady]="reports">
   <ng-container *ngIf="reports">
-    <div *ngIf="!reports.length" class="owge-empty-collection">
+    <div *ngIf="!reports.length" class="owge-empty-collection owge-theme-base-colors owge-theme-background-01">
       {{ 'APP.REPORTS.NO_REPORTS' | translate }}
     </div>
+    <div class="owge-card-list" *owgeCoreIfTheme="'neon'">
+      <ng-container *ngTemplateOutlet="reportContent"></ng-container>
+    </div>
+    <ng-container *owgeCoreIfTheme="'classic'">
+      <ng-container *ngTemplateOutlet="reportContent"></ng-container>
+    </ng-container>
+    <button (click)="downloadNextPage()" class="owge-theme-base-colors btn btn-block" style="margin: 10px auto;">{{
+      'APP.REPORTS.SHOW_OLDER' | translate }} </button>
+  </ng-container>
+
+  <ng-template #reportContent>
     <div class="card owge report-card" *ngFor="let report of reports">
       <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)"
         [image]="report.parsedJson?.targetPlanet | planetImage" [hideDesktopSections]="[0,0,1]">
@@ -90,7 +101,5 @@
         </ng-template>
       </owge-widgets-display-list-item>
     </div>
-    <button (click)="downloadNextPage()" class="owge-theme-base-colors btn btn-block" style="margin: 10px auto;">{{
-      'APP.REPORTS.SHOW_OLDER' | translate }} </button>
-  </ng-container>
+  </ng-template>
 </owge-core-loading>
