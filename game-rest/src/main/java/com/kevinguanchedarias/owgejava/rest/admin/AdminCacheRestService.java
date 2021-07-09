@@ -1,41 +1,38 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kevinguanchedarias.owgejava.business.ImprovementBo;
+import com.kevinguanchedarias.owgejava.business.SocketIoService;
+import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
-import com.kevinguanchedarias.owgejava.business.SocketIoService;
-
 /**
  * Temporary allows to drop all cache entries from admin panel
  *
+ * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @todo In the far future, the system should selectively drop caches
  * @since 0.9.0
- * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
  */
 @RestController
 @RequestMapping("admin/cache")
 @ApplicationScope
+@AllArgsConstructor
 public class AdminCacheRestService {
-	@Autowired
-	private ImprovementBo improvementBo;
+    private final ImprovementBo improvementBo;
+    private final SocketIoService socketIoService;
+    private final RequirementInformationDao requirementInformationDao;
 
-	@Autowired
-	private SocketIoService socketIoService;
-
-	/**
-	 *
-	 *
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@DeleteMapping("drop-all")
-	public void dropAll() {
-		improvementBo.getImprovementSources().forEach(current -> improvementBo.clearCacheEntries(current));
-		socketIoService.clearCache();
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    @DeleteMapping("drop-all")
+    public void dropAll() {
+        requirementInformationDao.clearCache();
+        improvementBo.getImprovementSources().forEach(improvementBo::clearCacheEntries);
+        socketIoService.clearCache();
+    }
 }

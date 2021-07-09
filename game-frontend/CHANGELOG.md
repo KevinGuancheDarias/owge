@@ -3,6 +3,7 @@
 v0.10.0 (latest)
 =================
 
+* Fix admin panel not allowing to clear cache due to changes produced in #386 solution
 * __Feature:__ [As a player I want to have factions with different unit type initial max counts #274](https://github.com/KevinGuancheDarias/owge/issues/274)  
 * __Feature:__ [As a player I want to be able to have different gather percentages by primary and secondary for each faction #276](https://github.com/KevinGuancheDarias/owge/issues/276)  
 * __Feature:__ [As a player I want to be able to unlock units, upgrades, or time specials when I have built some unit #272](https://github.com/KevinGuancheDarias/owge/issues/272)  

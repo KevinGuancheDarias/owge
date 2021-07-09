@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,5 +28,5 @@ public interface WebsocketEventsInformationRepository
 
     @Modifying
     @Query("UPDATE WebsocketEventsInformation wei SET wei.lastSenT = ?2 WHERE wei.eventNameUserId.userId = ?1")
-    void updateLastSent(Integer userId, Date lastSentDate);
+    void updateLastSent(Integer userId, Instant lastSentDate);
 }
