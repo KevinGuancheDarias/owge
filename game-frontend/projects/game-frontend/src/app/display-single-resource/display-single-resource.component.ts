@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { LoggerHelper } from '@owge/core';
 
 /**
@@ -11,10 +11,7 @@ import { LoggerHelper } from '@owge/core';
 @Component({
   selector: 'app-display-single-resource',
   templateUrl: './display-single-resource.component.html',
-  styleUrls: [
-    './display-single-resource.component.less',
-    './display-single-resource.component.scss'
-  ]
+  styleUrls: ['./display-single-resource.component.scss']
 })
 export class DisplaySingleResourceComponent implements AfterViewInit {
 

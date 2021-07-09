@@ -1,8 +1,8 @@
-import { Injectable, Type } from '@angular/core';
-import { Observable, Subject, BehaviorSubject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, fromEvent, Observable, Subject } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
-
 import { LoggerHelper } from '../helpers/logger.helper';
+
 
 type targetWindowProp = 'innerWidth' | 'innerHeight';
 
@@ -42,7 +42,9 @@ export class ScreenDimensionsService {
             this._subjects.forEach(current => {
                 this._resizeHandler(current);
             });
+            this.updateDocumentBodyClassHandler();
         });
+        this.updateDocumentBodyClassHandler();
     }
 
     /**
@@ -136,4 +138,32 @@ export class ScreenDimensionsService {
     private _isGreaterThanExpectedWidth(targetProp: targetWindowProp, expectedPx: number): boolean {
         return window[targetProp] >= expectedPx;
     }
+
+    private updateDocumentBodyClassHandler() {
+        const classList: DOMTokenList = window.document.body.classList;
+        this.hasMinWidth(814, 'body-update-class').subscribe(isDesktop => {
+            const desktopClass = 'owge-screen-desktop';
+            const mobileClass = 'owge-screen-mobile';
+            if(isDesktop) {
+                classList.remove(mobileClass);
+                classList.add(desktopClass);
+            } else {
+                classList.remove(desktopClass);
+                classList.add(mobileClass);
+            }
+        });
+        const scrollClass = 'owge-scroll';
+        const noScrollClass = 'owge-no-scroll';
+        classList.add(noScrollClass);
+        fromEvent(document,'scroll').subscribe(() => {
+            if(window.document.scrollingElement.scrollTop > 250) {
+                classList.add(scrollClass);
+                classList.remove(noScrollClass);
+            } else {
+                classList.add(noScrollClass);
+                classList.remove(scrollClass);
+            }
+        });
+    }
+
 }

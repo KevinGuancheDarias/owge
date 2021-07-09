@@ -105,7 +105,11 @@
             "DO_UPGRADE": "Level up",
             "NO_ENOUGH_RESOURCES": "No resources",
             "CANCEL": "Cancel",
-            "LEVEL": "Level {{upgradeLevel}}"
+            "LEVEL": "Level {{upgradeLevel}}",
+            "DISPLAY_INFO_MODAL": {
+                "TITLE": "Full upgrade information for <b>{{name}}</b>",
+                "DESCRIPTION": "Description"
+            }
         },
         "UNITS": {
             "HIDE_DESCRIPTION": "Hide descriptions",

@@ -1,11 +1,15 @@
 <owge-core-loading [isReady]="obtainedUnits" [ngClass]="{ 'compact-view' : isCompactView}">
   <ng-container *ngIf="obtainedUnits">
-    <div *ngIf="!obtainedUnits.length" class="owge-theme-base-colors no-units">{{ 'APP.UNITS.IN_PLANET.NO_UNITS' |
+    <div *ngIf="!obtainedUnits.length"
+      class="owge-theme-base-colors no-units owge-empty-collection owge-theme-background-01">{{
+      'APP.UNITS.IN_PLANET.NO_UNITS' |
       translate }}</div>
-    <ng-container *ngFor="let unit of obtainedUnits">
-      <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" [unit]="unit.unit" [isDeletable]="true"
-        [isCompactView]="isCompactView" [withInPlanetMode]="true" [inPlanetCount]="unit.count" [obtainedUnit]="unit">
-      </app-display-single-unit>
-    </ng-container>
+    <div *ngIf="obtainedUnits.length" class="owge-card-list">
+      <ng-container *ngFor="let unit of obtainedUnits">
+        <app-display-single-unit *ngIf="isOfUnitTypeOrNullFilter(unit.unit)" [unit]="unit.unit" [isDeletable]="true"
+          [isCompactView]="isCompactView" [withInPlanetMode]="true" [inPlanetCount]="unit.count" [obtainedUnit]="unit">
+        </app-display-single-unit>
+      </ng-container>
+    </div>
   </ng-container>
 </owge-core-loading>

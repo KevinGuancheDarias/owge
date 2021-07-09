@@ -15,4 +15,5 @@
         ></owge-widgets-display-single-resource>
     </ng-container>
 </ng-container>
+<div *ngIf="!improvement" style="display: none;">Oli</div>
 <owge-widgets-display-unit-improvements *ngIf="improvement?.unitTypesUpgrades.length" [unitTypeImprovements]="improvement.unitTypesUpgrades"></owge-widgets-display-unit-improvements>

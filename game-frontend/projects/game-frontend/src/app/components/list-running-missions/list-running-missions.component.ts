@@ -10,7 +10,6 @@ import { MissionInformationStore } from '../../store/mission-information.store';
 @Component({
   selector: 'app-list-running-missions',
   templateUrl: './list-running-missions.component.html',
-  styleUrls: ['./list-running-missions.component.scss'],
   providers: [MissionInformationStore]
 })
 export class ListRunningMissionsComponent extends BaseComponent implements OnInit {

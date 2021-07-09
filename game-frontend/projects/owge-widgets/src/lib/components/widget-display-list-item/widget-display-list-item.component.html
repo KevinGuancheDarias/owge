@@ -1,5 +1,5 @@
 <!-- mobile view -->
-<div class="card owge mobile-view" *ngIf="!isDesktop" [ngClass]="classes">
+<div class="card owge mobile-view" *ngIf="!isDesktop && currentTheme !== 'neon'" [ngClass]="classes">
   <div class="card-block" *ngIf="!hideMobileSections[0]">
     <h5 class="card-title">{{ itemName | hideDuplicatedName }}</h5>
     <ng-container *ngTemplateOutlet="extraHeaderTemplate"></ng-container>
@@ -26,7 +26,7 @@
 </div>
 
 <!-- desktop view -->
-<ng-container *ngIf="isDesktop">
+<ng-container *ngIf="isDesktop || currentTheme === 'neon'">
   <div class="desktop-view-header owge-theme-base-colors" *ngIf="!hideDesktopSections[0]">
     <h5>
       {{ itemName | hideDuplicatedName }}
@@ -51,11 +51,11 @@
       </div>
     </div>
 
-    <div class="p-2 flex-grow-1" *ngIf="!hideDesktopSections[2]">
+    <div class="p-2 flex-grow-1 desktop-list-item-description" *ngIf="!hideDesktopSections[2]">
       {{ itemDescription }}
       <ng-container *ngTemplateOutlet="extraDescriptionTemplate"></ng-container>
     </div>
-    <div class="p-2" *ngIf="!hideDesktopSections[3]">
+    <div class="p-2 extra-section" *ngIf="!hideDesktopSections[3]">
       <ng-container *ngTemplateOutlet="extraSectionTemplate"></ng-container>
     </div>
   </div>

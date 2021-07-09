@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { ScreenDimensionsService, User } from '@owge/core';
+import { ModalComponent, ScreenDimensionsService, User } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import { ObtainedUpgrade, TutorialService, Upgrade, UpgradeRunningMission, UserStorage } from '@owge/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
@@ -23,6 +23,7 @@ export class DisplaySingleUpgradeComponent extends BaseComponent<UserWithFaction
   @Input()
   public obtainedUpgrade: ObtainedUpgrade;
 
+  @ViewChild(ModalComponent) public modal: ModalComponent;
   @ViewChild(WidgetConfirmationDialogComponent, { static: true }) public confirmDialog: WidgetConfirmationDialogComponent;
 
   public runningUpgrade: UpgradeRunningMission;

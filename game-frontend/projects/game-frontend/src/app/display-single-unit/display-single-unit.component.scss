@@ -42,20 +42,6 @@ app-display-single-unit {
         padding-bottom: 5px;
     }
 
-    .unit-info-icon {
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        font-size: 14pt;
-        i {
-            transition: all  1s;
-        }
-        &:hover i {
-            color: chocolate !important;
-            cursor: pointer;
-        }
-    }
-
     .in-planet-count {
         display: flex;
         justify-content: space-around;

@@ -13,8 +13,7 @@ interface UnitsForEachUser {
 
 @Component({
   selector: 'app-deployed-units-list',
-  templateUrl: './deployed-units-list.component.html',
-  styleUrls: ['./deployed-units-list.component.scss']
+  templateUrl: './deployed-units-list.component.html'
 })
 export class DeployedUnitsListComponent implements OnInit, OnChanges {
 

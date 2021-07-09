@@ -1,0 +1,191 @@
+@import '../../partials/colors'
+.owge-theme-neon.owge-screen-mobile
+    &.owge-no-scroll owge-widgets-sidebar .fixed-duplicates
+        display: none
+    &.owge-scroll
+        owge-widgets-sidebar 
+            .fixed-duplicates
+                &.route-options
+                    
+                .owge-sidebar-option
+                    width: 30px
+                    height: 30px
+                    .owge-sidebar-btn-menu
+                        margin-left: 0px
+                        padding-top: 2px
+                        padding-left: 2px
+                        font-size: 12pt
+                        height: 31px
+                .owge-sidebar-option:nth-child(-n+6)
+                    position: fixed
+                    top: 0px
+                    left: 170px
+                    z-index: 65534
+                    background-color: black
+                .owge-sidebar-option:nth-child(1)
+                    left: 0px
+                .owge-sidebar-option:nth-child(2)
+                    left: 34px
+                .owge-sidebar-option:nth-child(3)
+                    left: 68px
+                .owge-sidebar-option:nth-child(4)
+                    left: 102px
+                .owge-sidebar-option:nth-child(5)
+                    left: 136px
+                .owge-sidebar-option:nth-child(n+7), .owge-sidebar-option:nth-child(13), .owge-sidebar-option:nth-child(15)
+                    position: fixed
+                    bottom: 0px
+                    left: 170px
+                .owge-sidebar-option:nth-child(7)
+                    left: 0px
+                .owge-sidebar-option:nth-child(8)
+                    left: 34px
+                .owge-sidebar-option:nth-child(9)
+                    left: 68px
+                .owge-sidebar-option:nth-child(10)
+                    left: 102px
+                .owge-sidebar-option:nth-child(13)
+                    left: 136px
+            .body > .fixed-duplicates
+                position: fixed
+                display: flex
+                flex-flow: row nowrap
+                align-items: stretch
+                top: 22px
+                left: 0px
+                width: 100%
+                .selected-planet 
+                    max-width: 60px
+                    .planet-container
+                        min-width: 60px
+                        height: 62px
+                        border: none
+                        .fa-home
+                            position: absolute
+                            z-index: 1000
+                            top: 0px
+                            right: 0px
+                        .planet-name
+                            display: none
+                        .owge-theme-planet-image
+                            max-width: 60px
+                            max-height: 60px
+                    .owge-theme-planet-building-unit
+                        img
+                            bottom: 15px
+                            width: 50px
+                            height: 50px
+                        .kgd-countdown
+                            padding: 0px
+                            width: 59px
+                            text-overflow: ellipsis
+                            overflow: hidden
+                            white-space: nowrap
+                            span
+                                padding-left: 0px
+                            .fa-clock
+                                position: absolute
+                                top: -10px
+                                left: 0px
+                    &:hover .planet-name
+                        position: absolute
+                        display: block
+                        bottom: -35px
+                        left: 0px
+                        background-color: gray
+                        color: white
+                        padding: 5px
+                        border-radius: 4px
+                        
+
+.owge-theme-neon.owge-screen-desktop
+    .fixed-duplicates 
+        display: none
+
+.owge-theme-neon
+    .owge-sidebar-menu-btn-overlay-top-left
+        @include owge-sidebar-menu-btn-overlay()
+        top: 0px
+        left: 0px
+
+    .owge-sidebar-menu-btn-overlay-bottom-right
+        @include owge-sidebar-menu-btn-overlay()
+        bottom: 0px
+        right: 0px
+
+    .magic-overflow
+        margin: 0 auto
+        display: flex
+        flex-direction: row
+        flex-wrap: wrap
+
+    .owge-sidebar-option
+        margin-left: 3px
+        width: 51px
+        height: 51px
+        position: relative
+        transition: 0.5s all
+        .owge-sidebar-btn-menu
+            margin-left: 1%
+            height: 50px
+            border-radius: 5%
+            margin-top: 1px
+            padding-top: 5px
+            padding-left: 10px
+
+            overflow: hidden
+
+            display: block
+
+            font-size: 35px
+            text-align: center
+            text-shadow: 2px 2px 2px #411
+            background-position: top
+            background-size: 100% 100%
+
+            box-shadow: 0px 0px 3px black, 0px 0px 6px black inset
+            font-size: bold
+            font-weight: bold
+            font-size: 180%
+            color: #194162
+            transition: all 0.5s
+            &::before
+                content: ""
+                position: absolute
+                top: 0 
+                left: 0
+                width: 100% 
+                height: 100%
+                z-index: -1
+                background-image: url('/theme/assets/neon/bg/transparent_metal.png')
+                background-size: cover
+                filter: drop-shadow(2px 2px 2px $neonShadow01)
+                    
+            &.selected-menu-link
+                text-shadow: 1px 1px 3px red
+
+            &.disabled-for-offline
+                filter: blur(3px) grayscale(50%)
+                &::before
+                    filter: blur(3px) grayscale(50%)
+                &:hover
+                    filter: blur(1px) grayscale(25%)
+            &:hover
+                text-shadow: 1px 1px 3px #833
+                &::before
+                    filter: brightness(1.5) drop-shadow(2px 2px 2px red)
+                span i 
+                    filter: brightness(1.25)
+
+        & span i
+            float: left
+            margin-top: 5px
+            margin-left: -5px
+
+            width: 35px
+            height: 35px
+        &.active-option  
+            .owge-sidebar-btn-menu::before
+                filter: drop-shadow(2px 2px 2px red) brightness(1.25)
+            span i
+                filter: brightness(1,15)

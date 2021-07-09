@@ -1,10 +1,22 @@
-.time {
+div.time{
+    width: 100%;
     margin-top: 2px;
+    height: 50px;
+    border-radius: 6px;
+    clear: both;
 
     p.limited-max {
         white-space: nowrap;
         overflow: hidden;
         max-width: 95px;
         text-overflow: ellipsis;
+    }
+
+    p {
+        padding-top: 6px;
+        display: block;
+        float: right;
+        margin-right: 10px;
+        padding-left: 10px;
     }
 }

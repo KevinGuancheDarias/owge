@@ -1,0 +1,51 @@
+.owge-theme-classic {
+    app-game-sidebar {
+        .selected-planet .planet-container {
+            height: 160px;
+        }
+
+        .selected-planet i:not(.fa-home){    
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: silver;
+        } 
+        .is-twitch-live {
+            color: green;
+        }
+
+        .owge-sidebar-menu-btn-overlay-top-left.twitch-live-animated {
+            border: none;
+            background-color: red;
+            font-size: 10pt;
+            cursor: pointer;
+
+            &:hover {
+                color: white;
+            }
+
+            .live-animated-text {
+                color: red;
+                font-size: 15pt;
+                font-weight: bold;
+                position: absolute;
+                top: -7px;
+            }
+        }
+        .resource-data{
+            width: 50%;
+            float: left;
+        }
+        
+        @media (min-width:768px){
+        
+            .resource-data{
+                width: 100%;
+            }
+        
+            owge-core-modal .planet-card {
+                float: left;
+            }
+        }
+    }
+}

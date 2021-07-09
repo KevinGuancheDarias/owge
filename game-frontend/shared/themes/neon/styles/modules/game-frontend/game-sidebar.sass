@@ -1,0 +1,178 @@
+@import '../../partials/colors'
+
+.owge-theme-neon.owge-screen-mobile
+    app-game-sidebar
+        .body > .resource-data 
+            .fas.fa-arrow-down
+                display: none
+    &.owge-scroll app-game-sidebar
+        .body > .resource-data 
+            opacity: 0
+        .fixed-duplicates .resource-data
+            position: absolute
+            top: 83px
+            left: 4px
+            background-color: black
+            overflow: visible
+            display: flex
+            flex-wrap: wrap
+            > app-display-single-resource, > owge-widgets-display-single-resource
+                display: none
+            .fas.fa-arrow-down 
+                color: $neonShadow01
+                padding: 6px
+                border-radius: 10px
+            &:hover
+                > app-display-single-resource, > owge-widgets-display-single-resource
+                    display: block
+                .fas.fa-arrow-down
+                    display: none
+
+.owge-theme-neon.owge-screen-desktop
+    .owge-side-bar-root
+        width: 100%
+        position: fixed
+        left: 0px
+        top: 0px
+.owge-theme-neon app-game-sidebar
+    .invisible
+        visibility: hidden
+    .owge-side-bar-root
+        position: relative
+        background-image: url('/theme/assets/neon/bg/stars.jpg')
+        background-color: black
+        background-repeat: repeat-x
+        box-shadow: 1px 6px 15px $bgColorOther
+        z-index: 1000
+    .neon-leave-planet-button
+        > i.fas.fa-times
+            position: absolute
+            top: 8px
+            right: -1px
+            font-size: 14pt
+            color: #833
+            transition: color 2s
+            cursor: pointer
+            text-shadow: 2px 2px 4px $neonShadow01
+            &:hover
+                color: #F33
+    .owge-theme-cancel-icon 
+        position: absolute
+        color: red
+        text-shadow: 2px 2px 4px $neonShadow01
+        cursor: pointer
+        &:hover
+            filter: brightness(1.5)
+    .owge-theme-cancel-unit-building
+        top: -26px
+        right: 4px
+
+    .owge-theme-cancel-upgrading
+        top: -2px
+        font-size: 12pt
+        right: 0px
+    .resource-data
+        transition: opacity 1s
+        clear: both
+    .owge-theme-neon.running-upgrade 
+        position: relative
+        owge-widgets-display-improvements
+            display: none
+            position: absolute
+            top: 45px
+            min-width: auto
+            padding: 5px
+            padding-bottom: 10px
+            background-image: url('/theme/assets/neon/bg/stars.jpg')
+            background-color: black
+            background-repeat: repeat-x
+            border: 1px solid $neonShadow01
+        &:hover owge-widgets-display-improvements
+            display: block
+        owge-widgets-countdown
+            position: absolute
+            top: 20px
+            left: 20px
+            .kgd-countdown
+                border: none
+                box-shadow: none
+                .fa.fa-clock
+                    display: none
+    .selected-planet
+        position: relative
+        max-width: 140px
+        float: left
+        margin-left: 4px
+        margin-bottom: 2px
+        .planet-container
+            min-width: 130px
+            height: 160px
+            border-radius: 5px
+            box-shadow: 2px 2px 4px $bgColorOther
+            .owge-theme-planet-image
+                max-width: 90px
+                max-height: 90px
+            &:hover
+                cursor: pointer
+        &.active-planet
+            border-radius: 20px
+            background: linear-gradient(90deg, rgba(58,82,126,0.9220063025210083) 0%, rgba(25,111,190,0.639093137254902) 50%, rgba(0,168,255,0.26934523809523814) 100%)
+            .planet-container
+                background: linear-gradient(90deg, rgba(58,82,126,0.9220063025210083) 0%, rgba(25,111,190,0.639093137254902) 50%, rgba(0,168,255,0.26934523809523814) 100%)
+                p i.fa-home
+                    text-shadow: 1px 1px 1px red
+                .planet-name
+                    text-shadow: 1px 1px 1px #F88
+                img
+                    background: linear-gradient(90deg, rgba(58,82,126,0.9220063025210083) 0%, rgba(25,111,190,0.639093137254902) 50%, rgba(0,168,255,0.26934523809523814) 100%)
+                .kgd-countdown
+                    background: linear-gradient(90deg, rgba(58,82,126,0.9220063025210083) 0%, rgba(25,111,190,0.639093137254902) 50%, rgba(0,168,255,0.26934523809523814) 100%)
+                    color: white
+                    text-shadow: 1px 1px 1px black
+        .owge-theme-planet-building-unit
+            position: relative
+            .kgd-countdown
+                position: absolute
+                bottom: 0px
+                color: white
+                background-color: rgba(0,0,0,0.3)
+                text-shadow: 1px 1px 1px $neonShadow01
+            img
+                position: absolute
+                bottom: 25px
+                left: 0
+            .owge-theme-overlay-top-left
+                background-color: #448
+                box-shadow: 2px 2px 2px #66F
+                padding: 4px
+                position: absolute
+                bottom: 95px
+                left: 2px
+
+    app-display-single-resource, owge-widgets-display-single-resource
+            display: inline-block
+            margin-left: 5px
+            font-weight: 500
+            letter-spacing: 2px
+            div
+                font-family: 'old-standard-tt-bold', Arial, Helvetica, sans-serif
+                margin-top: 9px
+                border-radius: 6px
+                border: 5px solid
+                p
+                    font-size: 14pt
+                img
+                    filter: drop-shadow(2px 2px 2px $neonShadow01)
+                    width: 25px
+                    height: 25px
+
+    @media (max-width:540px)
+        .owge-theme-neon app-game-sidebar
+            .selected-planet
+                max-width: none
+                width: 48%
+                .planet-container
+                    min-width: 48%
+    @media ( min-width: 700px  )
+        .resource-data
+            clear: none !important

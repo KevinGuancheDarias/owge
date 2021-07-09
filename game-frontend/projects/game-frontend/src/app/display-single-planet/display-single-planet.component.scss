@@ -1,3 +1,16 @@
-.container {
+.planet-container {
     position: relative;
+    text-align: center;
+}
+@media (min-width:768px){
+
+    .planet-container{
+        width: 100%;
+        margin-top: 10px;
+        letter-spacing: 2px;
+
+        i {
+            color: lightgray;
+        }
+    }
 }

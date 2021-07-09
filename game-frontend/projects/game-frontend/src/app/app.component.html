@@ -1,5 +1,5 @@
 <ng-container *ngIf="isInGame">
-    <app-game-sidebar *owgeCoreIfTheme="'classic'" (displayTwitch)="onDisplayTwitch($event)"></app-game-sidebar>
+    <app-game-sidebar (displayTwitch)="onDisplayTwitch($event)"></app-game-sidebar>
 </ng-container>
 <div class="app-container">
     <router-outlet></router-outlet>

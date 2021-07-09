@@ -1,0 +1,19 @@
+.owge-theme.owge-theme-neon app-display-quadrant
+    .navigation-controls
+        background-color: transparent
+    app-planet-selector
+        .owge-planet-card
+            background-color: transparentize(#000, 0.4)
+            box-shadow: 3px 3px 3px $neonShadow01
+            filter: brightness(0.85)
+            &:hover
+                filter: brightness(1.15)
+    h4 
+        box-shadow: none
+    .navigation-status
+        &:hover > div
+            filter: brightness(1.20)
+        > div
+            border-bottom: 2px solid $neonShadow01
+            box-shadow: -1px -1px 2px $neonShadow01
+            background-color: transparentize(#000, 0.5)

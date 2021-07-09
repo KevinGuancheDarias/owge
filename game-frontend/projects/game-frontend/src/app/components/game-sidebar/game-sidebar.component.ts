@@ -1,23 +1,31 @@
-import { AfterViewInit, Component, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-
-import { PlanetService } from '@owge/galaxy';
-import { MenuRoute, ROUTES, ModalComponent, LoggerHelper, UnitType } from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
-import { DisplayService, AbstractSidebarComponent } from '@owge/widgets';
-import {
-  MissionStore, ResourceManagerService,
-  AutoUpdatedResources, Planet, UniverseGameService, SystemMessageService
-} from '@owge/universe';
-
-import { version } from '../../../version';
-import { UnitTypeService } from '../../services/unit-type.service';
-import { ReportService } from '../../services/report.service';
-import { TwitchState } from '../../types/twitch-state.type';
-import { TwitchService } from '../../services/twitch.service';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { LoggerHelper, MenuRoute, ModalComponent, ROUTES, ThemeService, UnitType } from '@owge/core';
+import { UserWithFaction } from '@owge/faction';
+import { PlanetService } from '@owge/galaxy';
+import {
+  AutoUpdatedResources, MissionStore,
+  Planet, ResourceManagerService,
+  SystemMessageService, UnitBuildRunningMission, UniverseGameService, UpgradeRunningMission
+} from '@owge/universe';
+import { AbstractSidebarComponent, DisplayService, WidgetConfirmationDialogComponent } from '@owge/widgets';
+import { combineLatest, EMPTY, fromEvent, Observable, Subscription } from 'rxjs';
+import { delay, map, startWith, take } from 'rxjs/operators';
+import { version } from '../../../version';
 import { ConfigurationService } from '../../modules/configuration/services/configuration.service';
-import { map } from 'rxjs/operators';
+import { UnitService } from '../../service/unit.service';
+import { UpgradeService } from '../../service/upgrade.service';
+import { ReportService } from '../../services/report.service';
+import { TwitchService } from '../../services/twitch.service';
+import { UnitTypeService } from '../../services/unit-type.service';
+import { TwitchState } from '../../types/twitch-state.type';
+
+class PlanetWrapper {
+  constructor(public planet: Planet, public buildingMission$: Observable<UnitBuildRunningMission>) {
+
+  }
+}
 
 /**
  *
@@ -29,10 +37,6 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-game-sidebar',
   templateUrl: './game-sidebar.component.html',
-  styleUrls: [
-    './game-sidebar.component.less',
-    './game-sidebar.component.scss'
-  ],
   animations: [
     trigger('goRight', [
       state('left', style({
@@ -59,13 +63,15 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   private static readonly _LOG: LoggerHelper = new LoggerHelper(GameSidebarComponent.name);
 
   @Output() public displayTwitch: EventEmitter<TwitchState> = new EventEmitter;
+  @ViewChild('cancelUnitConfirmDialog') public cancelUnitConfirmDialog: WidgetConfirmationDialogComponent;
+  @ViewChild('cancelUpgradeConfirmDialog') public cancelUpgradeConfirmDialog: WidgetConfirmationDialogComponent;
   @ViewChild('planetSelectionModal', { static: true }) private _modalComponent: ModalComponent;
   public selectedPlanet: Planet;
-  public myPlanets: Planet[];
+  public myPlanets: PlanetWrapper[];
   public user: UserWithFaction;
   public withLimitUnitTypes: UnitType[];
   public resources: AutoUpdatedResources;
-  public hasToDisplayTwitch: boolean = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
+  public hasToDisplayTwitch = !!localStorage.getItem(GameSidebarComponent._LS_DISPLAY_TWITCH_KEY);
   public isPrimaryTwitch = false;
   public twitchRoute = this._createTranslatableMenuRoute(
     'APP.MENU_TWITCH',
@@ -85,7 +91,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._createTranslatableMenuRoute('APP.MENU_PLANET_LIST', ROUTES.PLANET_LIST, 'fas fa-list'),
     this._createTranslatableMenuRoute('APP.MENU_REPORTS', ROUTES.REPORTS, 'fa fa-envelope'),
     this._createTranslatableMenuRoute('APP.MENU_ALLIANCES', ROUTES.ALLIANCE, 'fas fa-user-friends', true),
-    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', '/time_specials', 'fa fa-clock'),
+    this._createTranslatableMenuRoute('APP.MENU_TIME_SPECIALS', '/time_specials', 'fas fa-arrow-down'),
     this._createTranslatableMenuRoute('APP.MENU_RANKING', ROUTES.RANKING, 'fa fa-trophy', true),
     this._createTranslatableMenuRoute('APP.MENU_SETTINGS', ROUTES.SETTINGS, 'fas fa-cog'),
     {
@@ -105,6 +111,12 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   public enemyUnreadReports = 0;
   public isTwitchLive = false;
   public unreadSystemMessages = 0;
+  public invisibleHeight: number;
+  public runningUpgrade$: Observable<UpgradeRunningMission> = EMPTY;
+  public renderUpgradeDetails = false;
+
+  private neonThemeSubscription: Subscription;
+  private building: UnitBuildRunningMission;
 
   constructor(
     private _universeGameService: UniverseGameService,
@@ -116,6 +128,10 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     private _reportService: ReportService,
     private _systemMessageService: SystemMessageService,
     private _configurationService: ConfigurationService,
+    private _el: ElementRef<HTMLElement>,
+    private themeService: ThemeService,
+    private unitService: UnitService,
+    private upgradeService: UpgradeService,
     twitchService: TwitchService,
     translateService: TranslateService,
   ) {
@@ -127,13 +143,13 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
   }
 
   public async ngOnInit() {
+    this.subscribeMyPlanets();
     window.addEventListener('storage', e => {
       if (e.key === GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED && e.newValue === '1') {
         localStorage.setItem(GameSidebarComponent._LS_ASK_IS_OTHER_PLAYING_UNMUTED, '0');
         localStorage.setItem(GameSidebarComponent._LS_YEAH_IS_PLAYING, this.isPrimaryTwitch ? '1' : '0');
       }
     });
-    this._planetService.findMyPlanets().subscribe(planets => this.myPlanets = planets);
     this._universeGameService.findLoggedInUserData<UserWithFaction>().subscribe(user => this.user = user);
     this._unitTypeService.getUnitTypes().subscribe(unitTypes => this.withLimitUnitTypes = unitTypes.filter(current => current.maxCount));
     this.resources = new AutoUpdatedResources(this._resourceManagerService);
@@ -161,6 +177,19 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
 
   public ngAfterViewInit(): void {
     this._handleShouldDisplay();
+    window.setTimeout(() => this._handleNeon(), 500);
+  }
+
+  public cancelBuild(confirm: boolean): void {
+    if (confirm) {
+      this.unitService.cancel(this.building).pipe(take(1)).subscribe();
+    }
+  }
+
+  public cancelUpgrade(confirm: boolean): void {
+    if(confirm) {
+      this.upgradeService.cancelUpgrade();
+    }
   }
 
   public displayPlanetSelectionModal(): void {
@@ -179,6 +208,26 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
 
   public toggleStateAnimation(): void {
     this.animationState = this.animationState === 'left' ? 'right' : 'left';
+  }
+
+  public showCancel(building: UnitBuildRunningMission) {
+    this.building = building;
+    this.cancelUnitConfirmDialog.show();
+  }
+
+  public showCancelUpgrade() {
+    this.cancelUpgradeConfirmDialog.show();
+  }
+
+  public cancelRender(): void {
+    console.log('cancel');
+    window.setTimeout(() => this.renderUpgradeDetails = false, 100);
+  }
+
+  private subscribeMyPlanets() {
+    this._planetService.findMyPlanets().subscribe(planets => {
+      this.myPlanets = planets.map(planet => new PlanetWrapper(planet, this.unitService.findBuildingMissionInMyPlanet(planet.id)));
+    });
   }
 
   private _clickTwitch(): void {
@@ -235,5 +284,32 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
       ).subscribe(isDisabled => {
         alliancesRoute.shouldDisplay = !isDisabled;
       });
+  }
+
+  private _handleNeon(): void {
+    this.themeService.currentTheme$.subscribe(theme => {
+      if(theme === 'neon') {
+        const sidebar: HTMLElement = this._el.nativeElement.querySelector('.owge-side-bar-root');
+        this.neonThemeSubscription = combineLatest(
+          fromEvent(window, 'resize').pipe(startWith(null)),
+          fromEvent(document, 'scroll').pipe(startWith(null)),
+          this._planetService.findMyPlanets().pipe(startWith(null))
+        ).pipe(delay(300))
+        .subscribe(() => {
+          const classList: DOMTokenList = document.body.classList;
+          if(classList.contains('owge-screen-desktop')) {
+            this.invisibleHeight = sidebar.offsetHeight;
+          } else {
+            this.invisibleHeight = 0;
+          }
+        });
+
+        this.runningUpgrade$ = this.upgradeService.findRunningLevelUp();
+      } else if(this.neonThemeSubscription) {
+        this.neonThemeSubscription.unsubscribe();
+        delete this.neonThemeSubscription;
+        this.runningUpgrade$ = EMPTY;
+      }
+    });
   }
 }

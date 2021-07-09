@@ -1,0 +1,55 @@
+.owge-theme.owge-theme-neon
+    owge-widgets-display-list-item
+        width: auto
+
+        > * > .extra-section
+            overflow-y: auto
+            overflow-x: hidden
+            &::-webkit-scrollbar
+                width: 16px
+                background-color: transparentize(black, 0.8 )
+                &:hover
+                    &::-webkit-scrollbar-button
+                        background-color: red
+            &::-webkit-scrollbar-button 
+                background-color: transparentize($neonShadow01, 0.6)
+                height: 13px
+                width: 16px
+                border-style: solid
+                &:start
+                    border-top-left-radius: 5px
+                    border-top-right-radius: 5px
+                    border-width: 0 8px 8px 8px
+                    border-color: transparent transparent $neonShadow01 transparent
+                &:end
+                    border-bottom-left-radius: 5px
+                    border-bottom-right-radius: 5px
+                    border-width: 8px 8px 0 8px
+                    border-color: $neonShadow01 transparent transparent transparent
+            &::-webkit-scrollbar-thumb
+                background: transparentize($neonShadow01, 0.8)
+                -webkit-border-radius: 1ex
+                -webkit-box-shadow: 0px 1px 2px $neonShadow01
+        > .desktop-view-header
+            margin-top: 5px
+            margin-left: 5px
+            background-color: red
+            background-image: url('/theme/assets/neon/bg/stars.jpg')
+            background-size: 50% 50%
+            background-repeat: repeat
+            border: 1px solid $neonShadow01
+            border-bottom: 0px
+            border-top-left-radius: 5px
+            border-top-right-radius: 5px
+            filter: brightness(1.25)
+        > .desktop-view
+            width: 330px
+            height: 263px
+            margin-left: 5px
+            overflow: visible
+            background-image: url('/theme/assets/neon/bg/stars.jpg')
+            background-size: 50% 50%
+            background-repeat: repeat
+            box-shadow: 1px 1px 3px $neonShadow01
+            > .desktop-list-item-description
+                display: none

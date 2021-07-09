@@ -1,0 +1,35 @@
+.owge-theme.owge-theme-neon
+    .modal.fade.in
+        transition: background-color 2s
+        background-color: transparentize(#622, 0.3)
+        &:hover
+            background-color: transparentize($neonShadow01, 0.8 )
+            .modal-content
+                opacity: 0.4
+                
+                filter: blur(4px)
+        .modal-content
+            @extend  .owge-theme-background-01
+            color: white
+            transition: opacity 1.2s
+            box-shadow: 2px 2px 5px $neonShadow01
+            border-left: 1px solid $neonShadow01
+            opacity: 0.8
+            border: 7px solid
+            border-image-slice: 5 5
+            border-image-repeat: round
+            border-image-source: url('/theme/assets/neon/bg/metal_3.png')
+            text-shadow: 1px 1px 1px $neonShadow01
+            &::before
+                filter: blur(4px)
+            &:hover
+                filter: blur(0px)
+                opacity: 1
+                &::before
+                    filter: blur(0px) brightness(0.25)
+            .modal-header
+                color: white
+                text-shadow: 1px 1px 2px $neonShadow01
+                background-color: transparentize(#FFF, 0.7 )
+                box-shadow: 2px 2px 4px $neonShadow01
+                filter: brightness(1.1)

@@ -1,18 +1,26 @@
 import {
-  Component,
-  Input,
-  OnInit,
+  AfterContentInit, Component,
+
+
+
+
+
+  ContentChildren, EventEmitter, Input,
+
+
+
+  OnDestroy, OnInit,
   Output,
-  EventEmitter,
-  OnDestroy,
-  ContentChildren,
+
+
+
   QueryList,
-  AfterContentInit,
+
   TemplateRef
 } from '@angular/core';
+import { ContentTransclusionUtil, OwgeContentDirective, ProgrammingError, ScreenDimensionsService, ThemeService } from '@owge/core';
 import { Subscription } from 'rxjs';
 
-import { ProgrammingError, ScreenDimensionsService, OwgeContentDirective, ContentTransclusionUtil } from '@owge/core';
 
 /**
  * Widget to display an element <br>
@@ -47,6 +55,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   @Input() public hideMobileSections = [];
   @Input() public classes: any = {};
   @Output() public timeOver: EventEmitter<void> = new EventEmitter();
+  @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   public isDesktop: boolean;
   public extraSectionTemplate: TemplateRef<any>;
@@ -54,14 +63,15 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   public actionButtonsTemplate: TemplateRef<any>;
   public imageContainerPrependTemplate: TemplateRef<any>;
   public extraDescriptionTemplate: TemplateRef<any>;
-
-  @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
+  public currentTheme: string;
 
   private _sdsIdentifier: string;
   private _subscription: Subscription;
+  private currentThemeSubscription: Subscription;
 
-  public constructor(private _screenDimensionsService: ScreenDimensionsService) {
+  public constructor(private _screenDimensionsService: ScreenDimensionsService, themeService: ThemeService) {
     this._sdsIdentifier = this._screenDimensionsService.generateIdentifier(this);
+    this.currentThemeSubscription = themeService.currentTheme$.subscribe(theme => this.currentTheme = theme);
   }
 
   /**
@@ -89,6 +99,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   public ngOnDestroy(): void {
     this._subscription.unsubscribe();
     this._screenDimensionsService.removeHandler(this._sdsIdentifier);
+    this.currentThemeSubscription.unsubscribe();
   }
 
 }

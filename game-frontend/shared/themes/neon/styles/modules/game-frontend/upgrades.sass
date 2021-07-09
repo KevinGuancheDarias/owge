@@ -1,0 +1,50 @@
+.owge-theme.owge-theme-neon
+    .upgrade-info-modal
+        > div
+            margin-top: -8px
+            box-shadow: 1px 2px 4px $neonShadow01
+    app-display-single-upgrade
+        width: 400px
+        display: contents
+        owge-widgets-display-list-item
+            .extra-section 
+                > a
+                    display: block
+                    border-left: 1px solid $neonShadow01
+                    box-shadow: 2px 2px 1px $neonShadow01
+                > a+a
+                    margin-top: 5px
+                > a:last-of-type
+                    margin-bottom: 3px
+            .extra-section a.selected-menu
+                background-color: $neonShadow01
+                box-shadow: 2px 2px 1px #722
+                border-left: 1px solid #722
+            &.is-upgrading 
+                .desktop-view-header
+                    animation: animate-upgrading-header 1.5s infinite
+                .desktop-view
+                    animation: animate-upgrading 1.5s infinite
+                    filter: brightness(1.15)
+                    border-left: 1px solid #722
+                    box-shadow: 1px 1px 2px red
+
+
+@keyframes animate-upgrading-header
+    0%
+        box-shadow: 1px 1px 2px red
+        border: 1px solid #722
+        border-bottom: none
+    100%
+        box-shadow: 2px 2px 4px #722
+        border: 1px solid red
+        border-bottom: none
+    
+@keyframes animate-upgrading
+    0%
+        box-shadow: 1px 1px 2px red
+        border-left: 1px solid #722
+    100%
+        box-shadow: 2px 2px 4px #722
+        border-left: 1px solid red
+        

@@ -1,0 +1,77 @@
+.owge-theme.owge-theme-classic {
+    app-list-running-missions owge-core-loading {
+        width: 100%;
+    }
+    .owge-list-running-missions {
+        > h5 {
+            font-size: 10pt;
+        }
+        > .card-header {
+            font-size: 10pt;
+            right: 5px;
+            padding: 8px;
+            background-color: rgba(255,255,255, 0.3);
+            font-weight: bold;
+            margin-top: -10px;
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+
+        > div.card-block {
+            .btn-move-units {
+                margin-top: 0px;
+                margin-bottom: 0px;
+            }
+            > .card-title {
+                text-align: center;
+                margin-top: 11px;
+                font-size: 8pt;
+            }
+    
+            .planet-names {
+                display: flex;
+                justify-content: center;
+    
+                > div {
+                    padding: 4px;
+                }
+    
+                h4 {
+                    font-size: 10pt;
+                }
+            }
+        }
+
+        > i.fas.fa-times {
+            position: absolute;
+            top: 7px;
+            right: 10px;
+            color: #833;
+            transition: color 2s;
+
+            &:hover {
+                color: #F33;
+            }
+        }
+
+        > .display-time {
+            margin-top:5px;
+            width: 100%;
+            text-align: center;
+        }
+    }
+}
+
+@media (min-width:768px){
+    .owge-theme.owge-theme-classic {
+        .owge-list-running-missions {
+            width: 263px;
+            color:silver;
+            margin:0px 5px;
+        }
+        app-list-running-missions owge-core-loading {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    }
+}

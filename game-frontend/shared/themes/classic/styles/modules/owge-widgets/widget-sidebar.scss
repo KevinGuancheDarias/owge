@@ -9,28 +9,31 @@
     border: 1px solid $borderColor;
     width: auto;
 }
-.owge-sidebar-menu-btn-overlay-top-left {
-    @include owge-sidebar-menu-btn-overlay();
-    top: 6px;
-    left: 8px;
-    border-top-left-radius: 13px;
-}
 
-.owge-sidebar-menu-btn-overlay-bottom-right {
-    @include owge-sidebar-menu-btn-overlay();
-    bottom: 6px;
-    right: 0px;
-    border-bottom-right-radius: 13px;
-}
+.owge-theme.owge-theme-classic {
+    .owge-sidebar-menu-btn-overlay-top-left {
+        @include owge-sidebar-menu-btn-overlay();
+        top: 6px;
+        left: 8px;
+        border-top-left-radius: 13px;
+    }
 
-@media (min-width:768px) and (min-height:760px) {
-    .owge-side-bar-root {
-        .owge-sidebar-menu-btn-overlay-top-left {
-            width: auto;
-            margin-left: 0px;
-        }
-        .owge-sidebar-menu-btn-overlay-bottom-right {
-            width: auto;
+    .owge-sidebar-menu-btn-overlay-bottom-right {
+        @include owge-sidebar-menu-btn-overlay();
+        bottom: 6px;
+        right: 0px;
+        border-bottom-right-radius: 13px;
+    }
+
+    @media (min-width:768px) and (min-height:760px) {
+        .owge-side-bar-root {
+            .owge-sidebar-menu-btn-overlay-top-left {
+                width: auto;
+                margin-left: 0px;
+            }
+            .owge-sidebar-menu-btn-overlay-bottom-right {
+                width: auto;
+            }
         }
     }
 }
