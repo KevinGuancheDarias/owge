@@ -54,9 +54,11 @@
       </ng-template>
       <div class="body">
             <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
-            <div class="fixed-duplicates">
-                  <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
-            </div>
+            <ng-template owgeCoreIfTheme="neon">
+                  <div class="fixed-duplicates">
+                        <ng-container *ngTemplateOutlet="sidebarBody"></ng-container>
+                  </div>
+            </ng-template>
       </div>
 </owge-widgets-sidebar>
 <ng-template #sidebarBody>
