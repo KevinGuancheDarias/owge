@@ -2,6 +2,8 @@
 
 v0.10.1 (latest)
 =================
+* [class=Admin] __Fix:__ [Displaying the improvement for unit types, won't display to which unit the improvement affect #413](https://github.com/KevinGuancheDarias/owge/issues/413)  
+![Displaying the improvement for unit types, won't display to which unit the improvement affect #413](https://user-images.githubusercontent.com/6832422/125175159-1a88a580-e1c2-11eb-90b6-f7fe6e03f7aa.png)  
 * [class=Admin] __Fix:__ [Fix all the admin missing literals #414](https://github.com/KevinGuancheDarias/owge/issues/414)  
 * __Fix:__ In classic theme fix duplicated planets
 

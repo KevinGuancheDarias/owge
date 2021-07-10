@@ -50,7 +50,7 @@
             <tbody>
                 <tr *ngFor="let current of improvementUnitTypes">
                     <td>{{ current.type }}</td>
-                    <td>{{ current.unitTypeName }} </td>
+                    <td>{{ current.unitType.name }} </td>
                     <td>{{ current.value }}</td>
                     <td><button class="btn" (click)="clickDelete(current)">{{ 'OBJECT_IMPROVEMENTS_CRUD.TABLE.BTN_DELETE' | translate }} </button></td>
                 </tr>
