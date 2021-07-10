@@ -49,9 +49,7 @@ export class DisplaySingleResourceComponent implements AfterViewInit {
     this._loggerHelper.warnDeprecated('DisplaySingleResourceComponent', '0.9.17', 'WidgetDisplaySingleResourceComponent');
     this._textElement.nativeElement.style.visibility = 'hidden';
     const intervalId = setInterval(() => {
-      if (this._textElement.nativeElement.offsetWidth > this._maxTextWidth) {
-        this._textElement.nativeElement.style.fontSize = `${this._findTextSize(this._textElement.nativeElement) - 1}pt`;
-      } else if (typeof this.resourceValue === 'number') {
+      if (typeof this.resourceValue === 'number') {
         this._textElement.nativeElement.style.visibility = 'visible';
         clearInterval(intervalId);
       }
