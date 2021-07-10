@@ -261,6 +261,7 @@
             "ATTACK": "More attack",
             "DEFENSE": "More health",
             "SHIELD": "More shield",
+            "SPEED": "More speed",
             "AMOUNT": "More amount"
         }
     },
