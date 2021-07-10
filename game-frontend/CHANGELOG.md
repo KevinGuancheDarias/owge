@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.10.0 (latest)
-=================
+v0.10.0 (2021-07-10 20:08)
+===========================
 
 * Fix admin panel not allowing to clear cache due to changes produced in #386 solution
 * __Feature:__ [As a player I want to have factions with different unit type initial max counts #274](https://github.com/KevinGuancheDarias/owge/issues/274)  
