@@ -250,6 +250,7 @@
             "ATTACK": "Más ataque",
             "DEFENSE": "Más vida",
             "SHIELD": "Más escudo",
+            "SPEED": "Más velocidad",
             "AMOUNT": "Más cantidad"
         }
     },
