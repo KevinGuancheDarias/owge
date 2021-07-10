@@ -1,5 +1,10 @@
 # OWGE changelog
 
+v0.10.1 (latest)
+=================
+* [class=Admin] __Fix:__ [Fix all the admin missing literals #414](https://github.com/KevinGuancheDarias/owge/issues/414)  
+* __Fix:__ In classic theme fix duplicated planets
+
 v0.10.0 (2021-07-10 20:08)
 ===========================
 

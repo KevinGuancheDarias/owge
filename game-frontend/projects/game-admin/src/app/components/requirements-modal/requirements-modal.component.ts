@@ -1,13 +1,13 @@
-import { Component, Input, EventEmitter, Output } from '@angular/core';
-import { AbstractModalContainerComponent, CommonEntity, ProgrammingError } from '@owge/core';
-import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { AdminFactionService } from '../../services/admin-faction.service';
-import { AdminUpgradeService } from '../../services/admin-upgrade.service';
-import { Observable } from 'rxjs';
-import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
+import { AbstractModalContainerComponent, CommonEntity, ProgrammingError } from '@owge/core';
 import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
+import { Observable } from 'rxjs';
+import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
 import { AdminUnitService } from '../../services/admin-unit.service';
+import { AdminUpgradeService } from '../../services/admin-upgrade.service';
+import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';
 
 /**
  *
@@ -78,7 +78,7 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   }
 
   public findRequirementDescription(code: string): Observable<string> {
-    return this._translateService.get(`REQUIREMENTS.DESCRIPTIONS.${code}`);
+    return this._translateService.get(`REQUIREMENTS.DESCRIPTIONS.${code}`, {thirdValue: ''});
   }
 
   public cancel() {

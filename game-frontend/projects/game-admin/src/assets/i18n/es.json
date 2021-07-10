@@ -40,6 +40,10 @@
             "CAN_COUNTERATTACK": "Puede contratacar",
             "CAN_CONQUEST": "Puede conquistar",
             "CAN_DEPLOY": "Puede desplegar",
+            "SHARE_MAX_COUNT": "Compartir máximo",
+            "OWN_COUNT": "Este tipo tiene su propio máximo",
+            "PARENT": "Tipo padre",
+            "ROOT_TYPE": "Sin padre",
             "VALID_CAN": {
                 "ANY": "Cualquier planeta",
                 "OWNED_ONLY": "Planeta propio",
@@ -224,11 +228,13 @@
         "DESCRIPTIONS": {
             "BEEN_RACE": "Pertenecer a facción",
             "UPGRADE_LEVEL": "Tener mejora a nivel {{thirdValue}}",
+            "HAVE_SPECIAL_LOCATION": "Tener ubicación especial",
             "HAVE_UNIT": "Tener unidad construida"
         },
         "TARGETS": {
             "BEEN_RACE": "Facción necesaria",
             "UPGRADE_LEVEL": "Mejora necesaria",
+            "HAVE_SPECIAL_LOCATION": "Ubicación especial",
             "HAVE_UNIT": "Unidad necesaria"
         },
         "THIRD_VALUES": {

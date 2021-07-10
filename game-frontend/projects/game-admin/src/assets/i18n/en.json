@@ -50,6 +50,10 @@
             "CAN_COUNTERATTACK": "Can counterattack",
             "CAN_CONQUEST": "Can conquest",
             "CAN_DEPLOY": "Can deploy",
+            "SHARE_MAX_COUNT": "Share max count",
+            "OWN_COUNT": "This type has his own count",
+            "PARENT": "Parent type",
+            "ROOT_TYPE": "No parent",
             "VALID_CAN": {
                 "ANY": "Any planet",
                 "OWNED_ONLY": "Owned planet",
@@ -235,11 +239,13 @@
         "DESCRIPTIONS": {
             "BEEN_RACE": "Is of faction",
             "UPGRADE_LEVEL": "Have upgrade to level {{thirdValue}}",
+            "HAVE_SPECIAL_LOCATION": "Have special location",
             "HAVE_UNIT": "Have unit built"
         },
         "TARGETS": {
             "BEEN_RACE": "Required faction",
             "UPGRADE_LEVEL": "Required upgrade",
+            "HAVE_SPECIAL_LOCATION": "Special location",
             "HAVE_UNIT": "Required unit"
         },
         "THIRD_VALUES": {
