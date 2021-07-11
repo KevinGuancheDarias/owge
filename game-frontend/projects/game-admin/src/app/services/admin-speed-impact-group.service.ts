@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
+import { SpeedImpactGroup, validContext } from '@owge/core';
 import {
-    AbstractCrudService, WithRequirementsCrudMixin, CrudConfig, UniverseGameService, CrudServiceAuthControl
+    AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService, WithRequirementsCrudMixin
 } from '@owge/universe';
+import { WidgetFilter } from '@owge/widgets';
+import { take } from 'rxjs/operators';
 import { mix } from 'ts-mixer';
-import { validContext, SpeedImpactGroup } from '@owge/core';
 
 export interface AdminSpeedImpactGroupService extends AbstractCrudService<SpeedImpactGroup>, WithRequirementsCrudMixin { }
 
@@ -22,6 +24,14 @@ export class AdminSpeedImpactGroupService extends AbstractCrudService<SpeedImpac
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
+    }
+
+    public async buildFilter(): Promise<WidgetFilter<SpeedImpactGroup>> {
+        return {
+            name: 'FILTER.BY_SPEED_GROUP',
+            data: await this.findAll().pipe(take(1)).toPromise(),
+            filterAction: async (input: { speedImpactGroup: SpeedImpactGroup}, selected) => input.speedImpactGroup.id === selected.id
+        };
     }
 
     protected _getEntity(): string {

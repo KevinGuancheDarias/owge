@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-
-import { AbstractCrudService, UniverseGameService, CrudServiceAuthControl } from '@owge/universe';
-import { validContext, UnitType } from '@owge/core';
+import { UnitType, validContext } from '@owge/core';
+import { AbstractCrudService, CrudServiceAuthControl, UniverseGameService } from '@owge/universe';
+import { WidgetFilter } from '@owge/widgets';
 import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
+
 
 /**
  * admin service for managing unit types
@@ -17,6 +19,13 @@ export class AdminUnitTypeService extends AbstractCrudService<UnitType> {
         super(_universeGameService);
     }
 
+    public async buildFilter(): Promise<WidgetFilter<UnitType>> {
+        return {
+            name: 'FILTER.UNIT.TYPE',
+            data: await this.findAll().pipe(take(1)).toPromise(),
+            filterAction: async (input: {typeId: number}, selected) => input.typeId && input.typeId === selected.id
+        };
+    }
 
     /**
      *

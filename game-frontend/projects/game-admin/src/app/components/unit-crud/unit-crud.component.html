@@ -21,12 +21,7 @@
     </div>
 </owge-core-modal>
 <app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)"
-    [customElementsSource]="elsObservable">
-    <ng-template #beforeList>
-        <app-requirements-filter [service]="adminUnitService" (filteredSource)="elsObservable = $event">
-
-        </app-requirements-filter>
-    </ng-template>
+    [customElementsSource]="elsObservable" [displayFilter]="true" [customFilters]="unitFilters">
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <app-resource-requirements-crud class="form-row" [isEnergyHidden]="false" [el]="selectedEl">

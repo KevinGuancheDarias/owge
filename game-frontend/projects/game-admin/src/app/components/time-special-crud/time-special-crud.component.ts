@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
-
+import { Faction } from '@owge/faction';
 import { TimeSpecial } from '@owge/universe';
-import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
+import { WidgetFilter } from '@owge/widgets';
 import { Observable } from 'rxjs';
+import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
+
 
 /**
  *
@@ -20,6 +23,9 @@ export class TimeSpecialCrudComponent {
 
   public selectedEl: TimeSpecial;
   public elsObservable: Observable<TimeSpecial[]>;
+  public filters: WidgetFilter<Faction>[] = [];
 
-  constructor(public adminTimeSpecialService: AdminTimeSpecialService) { }
+  constructor(public adminTimeSpecialService: AdminTimeSpecialService, adminFactionService: AdminFactionService) {
+    adminFactionService.buildFilter(adminTimeSpecialService).then(filter => this.filters.push(filter));
+  }
 }

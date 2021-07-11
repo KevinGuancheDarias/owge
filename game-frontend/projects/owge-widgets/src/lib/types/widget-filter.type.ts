@@ -28,11 +28,13 @@ export interface WidgetFilter<T> {
      * <ul>
      * <li>text = for text input</li>
      * <li>number = for numeric input</li>
+     * <li>checkbox = Use checkbox
+     * <l
      * </ul>
      *
      * @since 0.10.0
      */
-    inputType?: 'number' | 'text';
+    inputType?: 'number' | 'text' | 'checkbox';
 
     /**
      * The data (required, if inputType is null)

@@ -1,4 +1,6 @@
-<app-common-crud-with-image [_crudService]="adminUpgradeService" (elementSelected)="selectedEl = $event">
+<app-common-crud-with-image [_crudService]="adminUpgradeService" (elementSelected)="selectedEl = $event" 
+    [displayFilter]="true" [customFilters]="customFilters"
+>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">
             <app-resource-requirements-crud class="form-row"  [isEnergyHidden]="true" [el]="selectedEl"></app-resource-requirements-crud>

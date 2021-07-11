@@ -8,7 +8,9 @@
  */
 export class AsyncCollectionUtil {
 
-
+    private constructor() {
+        // Util class doesn't have a constructor
+    }
 
     /**
      *
@@ -66,7 +68,4 @@ export class AsyncCollectionUtil {
         return true;
     }
 
-    private constructor() {
-        // Util class doesn't have a constructor
-    }
 }

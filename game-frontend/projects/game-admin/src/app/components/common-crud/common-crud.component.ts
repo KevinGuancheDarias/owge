@@ -1,12 +1,11 @@
-import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter, OnChanges, OnDestroy } from '@angular/core';
-
-import { CommonEntity, LoadingService } from '@owge/core';
-import { AbstractCrudService } from '@owge/universe';
-import { ModalComponent } from '@owge/core';
-import { DisplayService } from '@owge/widgets';
+import { Component, ContentChild, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { CommonEntity, LoadingService, ModalComponent } from '@owge/core';
+import { AbstractCrudService } from '@owge/universe';
+import { DisplayService, WidgetFilter } from '@owge/widgets';
 import { isEqual } from 'lodash-es';
 import { Observable, Subscription } from 'rxjs';
+
 
 /**
  * Used to handle the default Crud <br>
@@ -33,28 +32,31 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
   @Input() public hasDescription = true;
   @Input() public idField: keyof T = 'id';
-  @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
+  @Input() public hideSections: { id?: boolean; name?: boolean; description?: boolean };
   @Input() public customElementsSource: Observable<T[]>;
   @Input() public customNewFiller: (el: T) => Promise<T>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
   @Input() public allowSelection = false;
   @Input() public disableName = false;
-  @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
+  @Input() public displayFilter = false;
+  @Input() public customFilters: WidgetFilter<any>[] = [];
+  @Input() public noDefaultFilter = false;
+  @Output() public elementsLoaded: EventEmitter<T[]> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   @Output() public saveResult: EventEmitter<T> = new EventEmitter;
-
 
   /**
    * When allowSelection is defined, can be used to control selection <br>
    * <b>NOTICE:</b> don't confuse with elementSelected which is used to control the creation/edition modal
    *
    * @since 0.9.0
-  */
+   */
   @Output() public choosen: EventEmitter<T> = new EventEmitter;
   public elements: T[];
   public newElement: T;
   public originalElement: T;
   public isChanged: boolean;
+  public filteredElements: T[];
 
   @Input() protected _crudService: AbstractCrudService<T, K>;
   @ViewChild('crudModal', { static: true }) protected _crudModal: ModalComponent;
@@ -75,7 +77,8 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public ngOnChanges(): void {
     const onSubscribeAction = elements => {
       this.elements = elements;
-      this.elementsLoaded.emit();
+      this.filteredElements = elements;
+      this.elementsLoaded.emit(elements);
     };
     if (this.customElementsSource) {
       if (this._customSubscription) {
@@ -118,7 +121,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * @since 0.8.0
    */
   public async new(): Promise<void> {
-    this.newElement = <any>{};
+    this.newElement = {} as any;
     if (this.customNewFiller) {
       this.newElement = await this.customNewFiller(this.newElement);
     }
@@ -137,7 +140,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public delete(el: T): void {
     this._translateService.get('CRUD.CONFIRM_DELETE', { elName: el.name }).subscribe(async val => {
       if (await this._displayService.confirm(val)) {
-        this._crudService.delete(el[<any>this.idField]).subscribe(elements => {
+        this._crudService.delete(el[this.idField as any]).subscribe(elements => {
           this.elements = elements;
           this._crudModal.hide();
         });

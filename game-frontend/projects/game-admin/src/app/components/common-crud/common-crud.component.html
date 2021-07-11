@@ -29,8 +29,11 @@
     </div>
 </owge-core-modal>
 <ng-container *ngTemplateOutlet="beforeList"></ng-container>
+<app-items-filter *ngIf="displayFilter" [elements]="elements" (elementsChange)="filteredElements = $event" 
+    [customFilters]="customFilters" [noDefaultFilter]="noDefaultFilter"
+></app-items-filter>
 <div *ngIf="elements" class="owge-card-list">
-    <div class="card owge" *ngFor="let element of elements, let i = index">
+    <div class="card owge" *ngFor="let element of filteredElements, let i = index">
         <div class="card-block">
             <div class="card-title" *ngIf="!hideSections || !hideSections.name">
                 <span>{{ element.name }}</span>

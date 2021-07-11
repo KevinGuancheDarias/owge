@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges, Output, EventEmitter, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
+import { AsyncCollectionUtil, ModalComponent, ProgrammingError } from '@owge/core';
 import { WidgetFilter } from '../../types/widget-filter.type';
-import { ProgrammingError, AsyncCollectionUtil, ModalComponent } from '@owge/core';
 
 /**
  * Applies a filter to a collection and displays a select <br>
@@ -45,15 +45,21 @@ export class WidgetFiltrableSelectComponent implements OnChanges {
       filtered = await AsyncCollectionUtil.filter(this.collection, async (current) =>
         await AsyncCollectionUtil.every(
           this.filters,
-          async filter => !filter.isEnabled || !filter.selected || await filter.filterAction(current, filter.selected)
+          async filter => !filter.isEnabled || !this.isSelected(filter) || await filter.filterAction(current, filter.selected)
         )
       );
-      this.isFiltered = this.filters.some(filter => filter.isEnabled && filter.selected);
+      this.isFiltered = this.filters.some(filter => filter.isEnabled && this.isSelected(filter));
     } else {
       filtered = this.collection;
       this.isFiltered = false;
     }
     this.filteredcollection.emit(filtered);
+  }
+
+  private isSelected(filter: WidgetFilter<any>): boolean {
+    return filter.inputType !== 'checkbox'
+      ? filter.selected
+      : true;
   }
 
   private _compareById(a: any, b: any) {

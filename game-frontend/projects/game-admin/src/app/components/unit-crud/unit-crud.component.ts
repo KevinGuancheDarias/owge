@@ -1,8 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent, SpeedImpactGroup, UnitType } from '@owge/core';
 import { InterceptableSpeedGroup, Unit } from '@owge/universe';
+import { WidgetFilter } from '@owge/widgets';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminUnitService } from '../../services/admin-unit.service';
@@ -15,7 +17,6 @@ import { CommonCrudComponent } from '../common-crud/common-crud.component';
 interface InterceptedSpeedImpactGroup extends SpeedImpactGroup {
   isIntercepted?: boolean;
 }
-
 
 /**
  *
@@ -38,17 +39,28 @@ export class UnitCrudComponent implements OnInit {
   public unitTypes: UnitType[];
   public speedImpactGroups: InterceptedSpeedImpactGroup[] = [];
   public beforeCriticalAttackDeleteBinded: () => Promise<void>;
+  public unitFilters: WidgetFilter<any>[] = [];
 
   public constructor(
     public adminUnitService: AdminUnitService,
     private _adminUnitTypeservice: AdminUnitTypeService,
-    private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService
-  ) { }
+    private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService,
+    private adminSpecialLocationService: AdminSpecialLocationService
+  ) {
+    this.unitFilters.push(adminUnitService.buildUniqueFilter());
+    this.unitFilters.push(adminSpecialLocationService.buildRequiresSpecialLocationFilter());
+    adminSpecialLocationService.buildFilterByRequires()
+      .then(filter => this.unitFilters.push(filter));
+  }
 
-  public ngOnInit() {
+  public async ngOnInit() {
     this.beforeCriticalAttackDeleteBinded = this.beforeCriticalAttackDelete.bind(this);
     this._adminUnitTypeservice.findAll().subscribe(val => this.unitTypes = val);
     this._adminSpeedImpactGroupService.findAll().subscribe(result => this.speedImpactGroups = result);
+    this.unitFilters.push(await this.adminUnitService.buildAttributeFilter());
+    this.unitFilters.push(await this._adminUnitTypeservice.buildFilter());
+    this.unitFilters.push(await this.adminSpecialLocationService.buildFilterByRequires());
+    this.unitFilters.push(await this._adminSpeedImpactGroupService.buildFilter());
   }
 
   public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {

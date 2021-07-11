@@ -303,6 +303,23 @@
         }
     },
     "FILTER": {
-        "BY_FACTION": "Faction"
+        "BY_FACTION": "Faction",
+        "BY_SPEED_GROUP": "Speed group",
+        "UNIT": {
+            "BY_UNIQUE": "Is unique/hero unit",
+            "TYPE": "Type",
+            "BY_ATTRIBUTE": "Attribute",
+            "ATTRIBUTE_INVISIBLE": "Is invisible",
+            "ATTRIBUTE_BYPASS_SHIELDS": "Bypass shields",
+            "ATTRIBUTE_SHOW_IN_REQUIREMENTS": "Shown in faction requirements",
+            "ATTRIBUTE_CAN_FAST_EXPLORE": "Can fast explore"
+        },
+        "UPGRADE": {
+            "TYPE": "Type"
+        },
+        "SPECIAL_LOCATION": {
+            "BY_REQUIRES": "Requires any special location",
+            "REQUIRES_SPECIFIED": "Special Location"
+        }
     }
 }

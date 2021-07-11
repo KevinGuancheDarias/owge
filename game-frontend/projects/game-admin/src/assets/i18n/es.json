@@ -25,6 +25,7 @@
         "BTN_SAVE": "Guardar",
         "BTN_CANCEL": "Cancelar",
         "BTN_CLOSE": "Cerrar",
+        "SELECT": "Seleccionar...",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
         "TIME_SPECIAL": {
             "DURATION": "Duración",
@@ -292,6 +293,23 @@
         }
     },
     "FILTER": {
-        "BY_FACTION": "Facción"
+        "BY_FACTION": "Facción",
+        "BY_SPEED_GROUP": "Grupo de velocidad",
+        "UNIT": {
+            "BY_UNIQUE": "Unidad única/heroe",
+            "TYPE": "Tipo",
+            "BY_ATTRIBUTE": "Atributo",
+            "ATTRIBUTE_INVISIBLE": "Es invisible",
+            "ATTRIBUTE_BYPASS_SHIELDS": "Atraviesa escudos",
+            "ATTRIBUTE_SHOW_IN_REQUIREMENTS": "Visible en la pantalla de requisitos de la raza",
+            "ATTRIBUTE_CAN_FAST_EXPLORE": "Puede hacer fast explore"
+        },
+        "UPGRADE": {
+            "TYPE": "Tipo"
+        },
+        "SPECIAL_LOCATION": {
+            "BY_REQUIRES": "Requiere una ubicación especial",
+            "REQUIRES_SPECIFIED": "Ubicación especial"
+        }
     }
 }

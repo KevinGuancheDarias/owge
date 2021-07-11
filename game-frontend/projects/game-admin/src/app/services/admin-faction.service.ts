@@ -1,21 +1,16 @@
 import { Injectable } from '@angular/core';
-
-import {
-    AbstractCrudService,
-    UniverseGameService,
-    CrudServiceAuthControl,
-    WithRequirementsCrudMixin,
-    WithImprovementsCrudMixin,
-    CrudConfig
-} from '@owge/universe';
+import { validContext } from '@owge/core';
 import { Faction, FactionUnitType } from '@owge/faction';
-import { validContext, ProgrammingError, RequirementInformation } from '@owge/core';
-import { Mixin } from 'ts-mixer';
-import { take } from 'rxjs/operators';
-import { WidgetFilter } from '@owge/widgets';
+import {
+    AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService, WithImprovementsCrudMixin, WithRequirementsCrudMixin
+} from '@owge/universe';
+import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
 import { Observable } from 'rxjs';
-
+import { take } from 'rxjs/operators';
+import { Mixin } from 'ts-mixer';
 import { UnitTypeWithOverrides } from '../types/unit-type-with-overrides.type';
+
+
 
 export interface AdminFactionService
     extends AbstractCrudService<Faction>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -47,17 +42,15 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
      * @since 0.9.0
      * @returns
      */
-    public async buildFilter(): Promise<WidgetFilter<Faction>> {
+    public async buildFilter(requirementsFetcher?: WithRequirementsCrudMixin): Promise<WidgetFilter<Faction>> {
         return {
             name: 'FILTER.BY_FACTION',
             data: await this.findAll().pipe(take(1)).toPromise(),
             filterAction: async (input, selectedFaction) => {
-                const requirements: RequirementInformation[] = input.requirements;
-                if (!requirements) {
-                    throw new ProgrammingError('Can NOT filter when the input has not requirements');
-                }
-                return requirements.some(requirement =>
-                    requirement.requirement.code === 'BEEN_RACE' && requirement.secondValue === selectedFaction.id
+                await WidgetFilterUtil.loadRequirementsIfRequired(input, requirementsFetcher);
+                return WidgetFilterUtil.runRequirementsFilter(
+                    input,
+                    requirement => requirement.requirement.code === 'BEEN_RACE' && requirement.secondValue === selectedFaction.id
                 );
             }
         };
@@ -100,4 +93,4 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
         };
     }
 }
-(<any>AdminFactionService) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, <any>AdminFactionService);
+(AdminFactionService as any) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, AdminFactionService as any);

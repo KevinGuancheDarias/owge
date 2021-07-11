@@ -60,6 +60,7 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
 import { AdminUpgradeService } from './services/admin-upgrade.service';
 import { AdminUserService } from './services/admin-user.service';
+import { ItemsFilterComponent } from './components/items-filter/items-filter.component';
 
 
 
@@ -92,7 +93,8 @@ import { AdminUserService } from './services/admin-user.service';
     AttackRuleCrudComponent,
     TutorialComponent,
     TranslatableComponent,
-    CriticalAttackCrudComponent
+    CriticalAttackCrudComponent,
+    ItemsFilterComponent
   ],
   imports: [
     BrowserModule,

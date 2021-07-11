@@ -14,7 +14,7 @@
                             </option>
                         </select> 
                     </ng-container>
-                    <ng-container *ngIf="filter.inputType">
+                    <ng-container *ngIf="filter.inputType && filter.inputType !== 'checkbox'">
                         <input [disabled]="!filter.isEnabled" class="form-control" [type]="filter.inputType" [(ngModel)]="filter.selected"  (ngModelChange)="triggerFilter()"/>
                     </ng-container>
                 </div>
