@@ -12,7 +12,7 @@ import { UnitService } from './../service/unit.service';
 
 
 
-export type validViews = 'requirements' | 'attributes' | 'improvements';
+export type ValidViews = 'requirements' | 'attributes' | 'improvements';
 
 export interface AttackableUnitType extends UnitType {
   isAttackable?: boolean;
@@ -64,22 +64,23 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
    * What to display by default?, requirements?, or attributes? <br>
    * Defaults to <b>attributes</b>
    *
-   * @type {validViews}
+   * @type {ValidViews}
    * @memberof DisplaySingleUnitComponent
    */
   @Input()
-  public defaultView: validViews = 'attributes';
+  public defaultView: ValidViews = 'attributes';
 
   @ViewChild(WidgetConfirmationDialogComponent) public confirmDialog: WidgetConfirmationDialogComponent;
   @ViewChild(ModalComponent) public modal: ModalComponent;
 
-  public selectedView: validViews;
+  public selectedView: ValidViews;
   public numberToDelete: number;
   public isDescriptionDisplayed = false;
   public moreAttack: number;
   public moreShield: number;
   public moreHealth: number;
   public moreCharge: number;
+  public moreSpeed: number;
   public unitTypes: UnitType[];
   public unitType: UnitType;
   public attackableUnitTypes: AttackableUnitType[];
@@ -132,6 +133,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
           this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', unitTypeOfUnit);
           this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', unitTypeOfUnit);
           this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', unitTypeOfUnit);
+          this.moreSpeed = ImprovementUtil.findUnitTypeImprovement(improvement, 'SPEED', unitTypeOfUnit);
         } else {
           console.warn(`Unit with id ${this.unit.id} doesn't have a unitType`);
         }

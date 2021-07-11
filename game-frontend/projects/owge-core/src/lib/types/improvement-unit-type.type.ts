@@ -5,7 +5,7 @@ import { UnitType } from './unit-type.type';
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
-export type validImprovementType = 'ATTACK' | 'DEFENSE' | 'SHIELD' | 'AMOUNT';
+export type validImprovementType = 'ATTACK' | 'DEFENSE' | 'SHIELD' | 'SPEED' | 'AMOUNT';
 /**
  * Represents an improvement Unit Type
  *

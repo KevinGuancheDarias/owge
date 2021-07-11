@@ -9,6 +9,10 @@ import { Improvement, UnitType, validImprovementType } from '@owge/core';
  */
 export class ImprovementUtil {
 
+    private constructor() {
+        // Util class doesn't have a constructor
+    }
+
     /**
      * Finds all unit type improvements of the same type for one target unit type id
      *
@@ -37,9 +41,5 @@ export class ImprovementUtil {
             }
         }
         return retVal;
-    }
-
-    private constructor() {
-        // Util class doesn't have a constructor
     }
 }

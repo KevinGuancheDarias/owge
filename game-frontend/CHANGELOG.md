@@ -2,6 +2,8 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I want to be able to increase units speed #401](https://github.com/KevinGuancheDarias/owge/issues/401)  
+* [class=Admin] __Feature:__ [As an admin I want to be able to define improvements that improve the speed of units having speed #400](https://github.com/KevinGuancheDarias/owge/issues/400)  
 
 v0.10.0 (2021-07-10 20:08)
 ===========================
