@@ -2,6 +2,7 @@
 
 v0.10.1 (latest)
 =================
+* [class=Admin] __Fix:__ [When saving an improvement for unit type, the frontend makes infinite request to the backend #411](https://github.com/KevinGuancheDarias/owge/issues/411)  
 * [class=Admin] __Fix:__ [When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://github.com/KevinGuancheDarias/owge/issues/412)  
 ![When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://user-images.githubusercontent.com/6832422/125175135-e319f900-e1c1-11eb-834e-834b23a9a4dd.png)
 * [class=Admin] __Fix:__ [Displaying the improvement for unit types, won't display to which unit the improvement affect #413](https://github.com/KevinGuancheDarias/owge/issues/413)  

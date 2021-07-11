@@ -1,12 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, empty } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-
-import { BackendError, ProgrammingError, LoggerHelper, Improvement, ImprovementUnitType } from '@owge/core';
+import { BackendError, Improvement, ImprovementUnitType, LoggerHelper, ProgrammingError } from '@owge/core';
 import { DisplayService } from '@owge/widgets';
-
+import { EMPTY, Observable, of } from 'rxjs';
 import { UniverseGameService } from '../../services/universe-game.service';
 import { CrudConfig } from '../../types/crud-config.type';
+
+
 
 /**
  * Adds support for the improvements to the specified service <br>
@@ -143,19 +143,23 @@ export class WithImprovementsCrudMixin<K> {
             if (backendErr.message === 'I18N_ERR_NULL_IMPROVEMENT') {
                 return of({});
             } else {
-                if (!this._translateService || !item.type) {
-                    if (item.type) {
-                        this._wicmGetLog().warn('Can NOT translate because, TranslateService is not available');
+                try {
+                    if (!this._translateService || !item.type) {
+                        if (item.type) {
+                            this._wicmGetLog().warn('Can NOT translate because, TranslateService is not available');
+                        }
+                        this._getDisplayService().showBackendError(backendErr, item);
+                    } else {
+                        const itemCopied = { ...item };
+                        this._translateService.get(`IMPROVEMENTS.TYPES.${item.type}`).subscribe(translation => {
+                            itemCopied.type = translation;
+                            this._getDisplayService().showBackendError(backendErr, itemCopied);
+                        });
                     }
-                    this._getDisplayService().showBackendError(backendErr, item);
-                } else {
-                    const itemCopied = { ...item };
-                    this._translateService.get(`IMPROVEMENTS.TYPES.${item.type}`).subscribe(translation => {
-                        itemCopied.type = translation;
-                        this._getDisplayService().showBackendError(backendErr, itemCopied);
-                    });
+                } catch (e) {
+                    this._wicmGetLog().warn('An error occured when trying to properly handle error', e);
                 }
-                return empty();
+                return EMPTY;
             }
         } else {
             return chain;
