@@ -1,6 +1,6 @@
-import { Subject, Observable, ReplaySubject } from 'rxjs';
-import { UniverseGameService } from '../../services/universe-game.service';
+import { Observable, ReplaySubject } from 'rxjs';
 import { AbstractConfigurationCrudService } from '../../services/abstract-configuration-crud.service';
+import { UniverseGameService } from '../../services/universe-game.service';
 
 /**
  * This mixing adds findAll and findOneById

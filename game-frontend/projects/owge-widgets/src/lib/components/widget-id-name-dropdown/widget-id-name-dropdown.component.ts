@@ -1,5 +1,8 @@
-import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, Output, EventEmitter } from '@angular/core';
-
+import {
+  ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter,
+  Input, OnChanges, OnInit, Output, SimpleChanges
+} from '@angular/core';
+import { ProgrammingError } from 'projects/owge-core/src/lib/errors/programming.error';
 
 /**
  * Displays an HTML dropdown by id (as value) and name as label
@@ -14,7 +17,7 @@ import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, O
   styleUrls: ['./widget-id-name-dropdown.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class WidgetIdNameDropdownComponent implements OnChanges {
+export class WidgetIdNameDropdownComponent implements OnChanges, OnInit {
 
   @Input() public useIdAsValue = false;
   @Input() public nullSelectionI18NName = 'WIDGETS.ID_NAME_DROPDOWN.SELECT';
@@ -27,17 +30,37 @@ export class WidgetIdNameDropdownComponent implements OnChanges {
   @Input() public model: any;
   @Input() public extraHtmlClass: string;
   @Input() public nullValue: null | undefined | '' = undefined;
+
+  /**
+   * If enabled, when an id only is passed as model, will convert it internally to object,
+   * and when selection changes will return the number only too
+   */
+  @Input() public handleObjectIds = false;
+
   @Output() public modelChange: EventEmitter<any> = new EventEmitter();
 
   constructor(private _cdr: ChangeDetectorRef) { }
 
-  public ngOnChanges(): void {
+  ngOnInit(): void {
+    if(this.useIdAsValue && this.handleObjectIds) {
+      throw new ProgrammingError('Can NOT use both useIdAsValue and handleObjectIds');
+    }
+  }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+    if(this.handleObjectIds && changes['model'] && typeof this.model !== 'object') {
+      this.model = this.elementsList.find(element => element[this.idField] === this.model);
+    }
     this._cdr.detectChanges();
   }
 
   public onModelChange(value: any) {
     this.model = value;
-    this.modelChange.emit(value);
+    if(this.handleObjectIds && (value.id || value === null)) {
+      this.modelChange.emit(value.id);
+    } else {
+      this.modelChange.emit(value);
+    }
   }
 
   public compareById(a: any, b: any): boolean {
