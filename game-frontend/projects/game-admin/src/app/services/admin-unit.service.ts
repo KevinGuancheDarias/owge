@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { validContext } from '@owge/core';
 import {
     AbstractCrudService, CrudConfig, CrudServiceAuthControl, InterceptableSpeedGroup, Unit,
     UniverseGameService, WithImprovementsCrudMixin, WithRequirementsCrudMixin
 } from '@owge/universe';
+import { DisplayService } from '@owge/widgets';
 import { Observable } from 'rxjs';
 import { Mixin } from 'ts-mixer';
 
@@ -22,7 +24,11 @@ export interface AdminUnitService
 export class AdminUnitService extends AbstractCrudService<Unit, number> {
     protected _crudConfig: CrudConfig;
 
-    public constructor(protected _universeGameService: UniverseGameService) {
+    public constructor(
+        protected _universeGameService: UniverseGameService,
+        protected _translateService: TranslateService,
+        protected _displayService: DisplayService
+    ) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
     }

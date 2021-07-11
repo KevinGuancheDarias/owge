@@ -1,16 +1,13 @@
 import { Injectable } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { validContext } from '@owge/core';
+import {
+    AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService, Upgrade,
+    WithImprovementsCrudMixin, WithRequirementsCrudMixin
+} from '@owge/universe';
+import { DisplayService } from '@owge/widgets';
 import { Mixin } from 'ts-mixer';
 
-import {
-    AbstractCrudService,
-    UniverseGameService,
-    CrudServiceAuthControl,
-    Upgrade,
-    WithRequirementsCrudMixin,
-    WithImprovementsCrudMixin,
-    CrudConfig
-} from '@owge/universe';
-import { validContext } from '@owge/core';
 
 export interface AdminUpgradeService
     extends AbstractCrudService<Upgrade, number>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -27,7 +24,11 @@ export class AdminUpgradeService extends AbstractCrudService<Upgrade, number> {
 
     protected _crudConfig: CrudConfig;
 
-    public constructor(protected _universeGameService: UniverseGameService) {
+    public constructor(
+        protected _universeGameService: UniverseGameService,
+        protected _translateService: TranslateService,
+        protected _displayService: DisplayService
+    ) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
     }
@@ -46,4 +47,4 @@ export class AdminUpgradeService extends AbstractCrudService<Upgrade, number> {
         };
     }
 }
-(<any>AdminUpgradeService) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, <any>AdminUpgradeService);
+(AdminUpgradeService as any) = Mixin(WithImprovementsCrudMixin, WithRequirementsCrudMixin, AdminUpgradeService as any);

@@ -2,6 +2,8 @@
 
 v0.10.1 (latest)
 =================
+* [class=Admin] __Fix:__ [When an improvements error occur in units, upgrades, no error is displayed #415](https://github.com/KevinGuancheDarias/owge/issues/415)  
+![When an improvements error occur in units, upgrades, no error is displayed #415](https://user-images.githubusercontent.com/6832422/125193606-29fd0280-e245-11eb-9c35-e229e7395ef6.png)  
 * [class=Admin] __Fix:__ [When saving an improvement for unit type, the frontend makes infinite request to the backend #411](https://github.com/KevinGuancheDarias/owge/issues/411)  
 * [class=Admin] __Fix:__ [When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://github.com/KevinGuancheDarias/owge/issues/412)  
 ![When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://user-images.githubusercontent.com/6832422/125175135-e319f900-e1c1-11eb-834e-834b23a9a4dd.png)
