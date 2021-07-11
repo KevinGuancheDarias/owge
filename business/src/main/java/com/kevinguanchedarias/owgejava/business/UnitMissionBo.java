@@ -80,7 +80,7 @@ public class UnitMissionBo extends AbstractMissionBo {
     @AllArgsConstructor
     public class AttackObtainedUnitWithScore {
         AttackObtainedUnit attackObtainedUnit;
-        float score = 0;
+        float score;
     }
 
     /**
@@ -1192,20 +1192,7 @@ public class UnitMissionBo extends AbstractMissionBo {
         }
         checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
         obtainedUnitBo.save(obtainedUnits);
-        if (!obtainedUnits.stream().allMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
-                && obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
-            Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
-                    .filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
-                            && (unit.getSpeedImpactGroup() == null || !unit.getSpeedImpactGroup().getIsFixed()))
-                    .map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
-            if (lowestSpeedOptional.isPresent()) {
-                double lowestSpeed = lowestSpeedOptional.get();
-                double missionTypeTime = calculateRequiredTime(missionType);
-                double requiredTime = calculateTimeUsingSpeed(mission, missionType, missionTypeTime, lowestSpeed);
-                mission.setRequiredTime(requiredTime);
-                mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
-            }
-        }
+        handleMissionTimeCalculation(obtainedUnits, mission, missionType);
         mission.setInvisible(
                 obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
         save(mission);
@@ -1213,6 +1200,36 @@ public class UnitMissionBo extends AbstractMissionBo {
         emitLocalMissionChangeAfterCommit(mission);
         TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
                 () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+    }
+
+    /**
+     * Alters the mission and adds the required time and the termination date
+     */
+    private void handleMissionTimeCalculation(List<ObtainedUnit> obtainedUnits, Mission mission, MissionType missionType) {
+        if (!obtainedUnits.stream().allMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
+                && obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
+            var user = mission.getUser();
+            Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
+                    .filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
+                            && (unit.getSpeedImpactGroup() == null || !unit.getSpeedImpactGroup().getIsFixed()))
+                    .map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
+            if (lowestSpeedOptional.isPresent()) {
+                double lowestSpeed = lowestSpeedOptional.get();
+                var unitType = obtainedUnits.stream()
+                        .map(ObtainedUnit::getUnit)
+                        .filter(unit -> lowestSpeed == unit.getSpeed())
+                        .map(Unit::getType)
+                        .findFirst()
+                        .orElseThrow(() -> new ProgrammingException("Should never ever happend, you know"));
+                var improvement = improvementBo.findUserImprovement(user);
+                var speedWithImprovement = lowestSpeed + (lowestSpeed * improvementBo.findAsRational(
+                        (double) improvement.findUnitTypeImprovement(ImprovementTypeEnum.SPEED, unitType)));
+                double missionTypeTime = calculateRequiredTime(missionType);
+                double requiredTime = calculateTimeUsingSpeed(mission, missionType, missionTypeTime, speedWithImprovement);
+                mission.setRequiredTime(requiredTime);
+                mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+            }
+        }
     }
 
     private void auditMissionRegistration(Mission mission, boolean isDeploy) {

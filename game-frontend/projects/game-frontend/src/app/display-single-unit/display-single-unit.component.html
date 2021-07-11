@@ -81,7 +81,7 @@
         <owge-widgets-display-improved-attribute *ngIf="unit.charge" [name]="'Charge'" [value]="unit.charge"
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge">
         </owge-widgets-display-improved-attribute>
-        <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed">
+        <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed" [improvementPercentage]="moreSpeed">
         </owge-widgets-display-improved-attribute>
         <div class="extra-attributes">
           <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" [image]="'bypass-shield.png'"
