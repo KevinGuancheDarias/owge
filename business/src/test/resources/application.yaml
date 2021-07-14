@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: ''
+    driver-class-name: org.h2.Driver
+    # data: classpath:data_for_test.sql
+
+  # JPA configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    database: h2
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: ''
+  main:
+    allow-bean-definition-overriding: true
+  cache:
+    type: simple

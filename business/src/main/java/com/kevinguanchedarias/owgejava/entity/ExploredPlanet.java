@@ -17,44 +17,44 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "explored_planets")
 public class ExploredPlanet implements EntityWithId<Long> {
-	private static final long serialVersionUID = -3912109333691756684L;
+    private static final long serialVersionUID = -3912109333691756684L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user", nullable = true)
-	private UserStorage user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user")
+    private UserStorage user;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "planet", nullable = true)
-	private Planet planet;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "planet")
+    private Planet planet;
 
-	@Override
-	public Long getId() {
-		return id;
-	}
+    @Override
+    public Long getId() {
+        return id;
+    }
 
-	@Override
-	public void setId(Long id) {
-		this.id = id;
-	}
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-	public UserStorage getUser() {
-		return user;
-	}
+    public UserStorage getUser() {
+        return user;
+    }
 
-	public void setUser(UserStorage user) {
-		this.user = user;
-	}
+    public void setUser(UserStorage user) {
+        this.user = user;
+    }
 
-	public Planet getPlanet() {
-		return planet;
-	}
+    public Planet getPlanet() {
+        return planet;
+    }
 
-	public void setPlanet(Planet planet) {
-		this.planet = planet;
-	}
+    public void setPlanet(Planet planet) {
+        this.planet = planet;
+    }
 
 }

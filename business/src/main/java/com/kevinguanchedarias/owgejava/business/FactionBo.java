@@ -20,15 +20,20 @@ import java.util.List;
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
     private static final long serialVersionUID = -6735454832872729630L;
 
-    @Autowired
-    private FactionRepository repository;
-
-    @Autowired
-    private transient FactionUnitTypeRepository factionUnitTypeRepository;
+    private final FactionRepository repository;
+    private final transient FactionUnitTypeRepository factionUnitTypeRepository;
 
     @Autowired
     @Lazy
     private UnitTypeBo unitTypeBo;
+
+    public FactionBo(
+            FactionRepository repository,
+            FactionUnitTypeRepository factionUnitTypeRepository
+    ) {
+        this.repository = repository;
+        this.factionUnitTypeRepository = factionUnitTypeRepository;
+    }
 
     @Override
     public JpaRepository<Faction, Integer> getRepository() {
@@ -59,14 +64,14 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
     @Override
     public Faction save(Faction faction) {
-        Float customPrimaryGatherPercentage = faction.getCustomPrimaryGatherPercentage();
+        var customPrimaryGatherPercentage = faction.getCustomPrimaryGatherPercentage();
+        var customSecondaryGatherPercentage = faction.getCustomSecondaryGatherPercentage();
         customPrimaryGatherPercentage = customPrimaryGatherPercentage != null ? customPrimaryGatherPercentage : 1;
-        Float customSecondaryGatherPercentage = faction.getCustomSecondaryGatherPercentage();
         customSecondaryGatherPercentage = customSecondaryGatherPercentage != null ? customSecondaryGatherPercentage : 1;
         if ((customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 0
                 && (customPrimaryGatherPercentage + customSecondaryGatherPercentage) > 100) {
             throw new SgtBackendInvalidInputException(
-                    "No, dear hacker, custom primary porcentage plus secondary CAN'T be higher than 100");
+                    "No, dear hacker, custom primary percentage plus secondary CAN'T be higher than 100");
 
         }
         return BaseBo.super.save(faction);

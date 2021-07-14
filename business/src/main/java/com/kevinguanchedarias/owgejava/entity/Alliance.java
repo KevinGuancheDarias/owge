@@ -15,57 +15,55 @@ import java.util.List;
 /**
  * Represents an alliance of players
  *
- * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.7.0
  */
 @Entity
 @Table(name = "alliances")
 public class Alliance extends CommonEntityWithImage<Integer> {
-	private static final long serialVersionUID = -3191006475065220996L;
+    private static final long serialVersionUID = -3191006475065220996L;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner_id", nullable = false)
-	@Fetch(FetchMode.JOIN)
-	private UserStorage owner;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    @Fetch(FetchMode.JOIN)
+    private UserStorage owner;
 
-	@OneToMany(mappedBy = "alliance")
-	private List<UserStorage> users;
+    @OneToMany(mappedBy = "alliance")
+    private List<UserStorage> users;
 
-	@OneToMany(mappedBy = "alliance", cascade = CascadeType.REMOVE)
-	private List<AllianceJoinRequest> requests;
+    @OneToMany(mappedBy = "alliance", cascade = CascadeType.REMOVE)
+    private List<AllianceJoinRequest> requests;
 
-	/**
-	 * @since 0.7.0
-	 * @return the owner
-	 */
-	public UserStorage getOwner() {
-		return owner;
-	}
+    /**
+     * @return the owner
+     * @since 0.7.0
+     */
+    public UserStorage getOwner() {
+        return owner;
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @param owner
-	 *            the owner to set
-	 */
-	public void setOwner(UserStorage owner) {
-		this.owner = owner;
-	}
+    /**
+     * @param owner the owner to set
+     * @since 0.7.0
+     */
+    public void setOwner(UserStorage owner) {
+        this.owner = owner;
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @return the users
-	 */
-	public List<UserStorage> getUsers() {
-		return users;
-	}
+    /**
+     * @return the users
+     * @since 0.7.0
+     */
+    public List<UserStorage> getUsers() {
+        return users;
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @param users
-	 *            the users to set
-	 */
-	public void setUsers(List<UserStorage> users) {
-		this.users = users;
-	}
+    /**
+     * @param users the users to set
+     * @since 0.7.0
+     */
+    public void setUsers(List<UserStorage> users) {
+        this.users = users;
+    }
 
 }
