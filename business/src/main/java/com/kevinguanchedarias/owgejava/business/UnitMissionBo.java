@@ -43,8 +43,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
-import org.joda.time.Instant;
-import org.joda.time.Interval;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.CannotAcquireLockException;
@@ -56,6 +54,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -750,12 +749,11 @@ public class UnitMissionBo extends AbstractMissionBo {
         } else {
             mission.setResolved(true);
             save(mission);
-            long nowMillis = new Instant().getMillis();
+            long nowMillis = Instant.now().toEpochMilli();
             long terminationMillis = mission.getTerminationDate().getTime();
             var durationMillis = 0L;
             if (terminationMillis >= nowMillis) {
-                var interval = new Interval(nowMillis, terminationMillis);
-                durationMillis = (long) (interval.toDurationMillis() / 1000D);
+                durationMillis = (long) ((terminationMillis - nowMillis) / 1000D);
             }
             adminRegisterReturnMission(mission, mission.getRequiredTime() - durationMillis);
         }

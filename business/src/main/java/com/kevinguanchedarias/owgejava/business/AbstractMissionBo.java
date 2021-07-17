@@ -21,13 +21,13 @@ import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
@@ -196,8 +196,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Returns all the running missions for the specified user
      *
-     * @param userId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     @Transactional
@@ -295,11 +293,10 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      * Returns the date that the mission will have according to the required time
      *
      * @param requiredTime ammount of time required (in seconds)
-     * @return
      * @author Kevin Guanche Darias
      */
     protected Date computeTerminationDate(Double requiredTime) {
-        return (new DateTime()).plusSeconds(requiredTime.intValue()).toDate();
+        return Date.from(Instant.now().plusSeconds(requiredTime.intValue()));
     }
 
     /**
