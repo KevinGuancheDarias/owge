@@ -1,8 +1,6 @@
-import { ProgrammingError } from '@owge/core';
-import { WithRequirementsCrudMixin } from '@owge/universe';
-import { RequirementInformation } from 'projects/owge-core/src/lib/types/requirement-information.type';
+import { ProgrammingError, RequirementInformation, WidgetFilter } from '@owge/core';
 import { take } from 'rxjs/operators';
-import { WidgetFilter } from '../types/widget-filter.type';
+import { WithRequirementsCrudMixin } from '../mixins/services/with-requirements-crud.mixin';
 
 /**
  * Common filters

@@ -61,6 +61,7 @@ export * from './lib/types/tutorial-event.type';
 export * from './lib/types/type-with-mission-limitation.type';
 export * from './lib/types/unit-type.type';
 export * from './lib/types/user.type';
+export * from './lib/types/widget-filter.type';
 export * from './lib/utils/async-collection.util';
 export * from './lib/utils/content-transclusion.util';
 export * from './lib/utils/date.util';

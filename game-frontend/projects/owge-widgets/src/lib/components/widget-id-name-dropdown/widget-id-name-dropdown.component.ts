@@ -2,7 +2,7 @@ import {
   ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter,
   Input, OnChanges, OnInit, Output, SimpleChanges
 } from '@angular/core';
-import { ProgrammingError } from 'projects/owge-core/src/lib/errors/programming.error';
+import { ProgrammingError } from '@owge/core';
 
 /**
  * Displays an HTML dropdown by id (as value) and name as label
