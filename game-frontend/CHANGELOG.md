@@ -1,7 +1,7 @@
 # OWGE changelog
 
-v0.10.1 (latest)
-=================
+v0.10.1 (2021-07-17 17:23)
+============================
 * [class=Admin] __Improvement:__ [Change time specials, upgrades and units main filter to be the widget one... which works properly #410](https://github.com/KevinGuancheDarias/owge/issues/410)  
 * [class=Admin] __Fix:__ [When an improvements error occur in units, upgrades, no error is displayed #415](https://github.com/KevinGuancheDarias/owge/issues/415)  
 ![When an improvements error occur in units, upgrades, no error is displayed #415](https://user-images.githubusercontent.com/6832422/125193606-29fd0280-e245-11eb-9c35-e229e7395ef6.png)  
