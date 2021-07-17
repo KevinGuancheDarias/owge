@@ -1,15 +1,15 @@
 
-import { Observable, throwError } from 'rxjs';
-import { switchMap, first, catchError } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-
-import { HttpOptions } from '../types/http-options.type';
+import { TranslateService } from '@ngx-translate/core';
+import { Observable, throwError } from 'rxjs';
+import { catchError, first, switchMap } from 'rxjs/operators';
+import { ProgrammingError } from '../errors/programming.error';
 import { LoggerHelper } from '../helpers/logger.helper';
 import { SessionStore } from '../store/session.store';
-import { ProgrammingError } from '../errors/programming.error';
-import { TranslateService } from '@ngx-translate/core';
+import { HttpOptions } from '../types/http-options.type';
 import { HttpUtil } from '../utils/http.util';
+
 
 export type validNonDataMethod = 'get' | 'delete';
 export type validWriteMethod = 'post' | 'put';
@@ -232,6 +232,7 @@ export class CoreHttpService {
     parsedOptions.headers = parsedOptions.headers
       ? parsedOptions.headers
       : new HttpHeaders();
+    parsedOptions.withCredentials = true;
     return parsedOptions;
   }
 
@@ -255,9 +256,7 @@ export class CoreHttpService {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
         return this[method](contextConfig.url, parsedOptions);
       }),
-      catchError((err, caught) => {
-        return this._handleObservableError(options, err, caught);
-      })
+      catchError((err, caught) => this._handleObservableError(options, err, caught))
     );
   }
 
@@ -277,9 +276,7 @@ export class CoreHttpService {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
         return this[method]<T>(contextConfig.url, body, parsedOptions);
       }),
-      catchError((err, caught) => {
-        return this._handleObservableError(options, err, caught);
-      })
+      catchError((err, caught) => this._handleObservableError(options, err, caught))
     );
   }
 
