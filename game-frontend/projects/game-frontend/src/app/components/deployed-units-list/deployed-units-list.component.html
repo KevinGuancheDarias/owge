@@ -36,7 +36,9 @@
           <div class="card-title owge-theme-background-color-alpha">
             <span *owgeCoreIfTheme="'classic'">{{ obtainedUnit.count }}</span>
             <ng-template owgeCoreIfTheme="neon">
-              <span *ngFor="let num of obtainedUnit.count.toString().split('')">{{ num }}</span>
+              <ng-container *ngIf="obtainedUnit.count">
+                <span *ngFor="let num of obtainedUnit.count.toString().split('')">{{ num }}</span>
+              </ng-container>
             </ng-template>
           </div>
           <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />

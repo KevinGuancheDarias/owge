@@ -1,26 +1,13 @@
 import {
   AfterContentInit, Component,
-
-
-
-
-
   ContentChildren, EventEmitter, Input,
-
-
-
   OnDestroy, OnInit,
   Output,
-
-
-
   QueryList,
-
   TemplateRef
 } from '@angular/core';
 import { ContentTransclusionUtil, OwgeContentDirective, ProgrammingError, ScreenDimensionsService, ThemeService } from '@owge/core';
 import { Subscription } from 'rxjs';
-
 
 /**
  * Widget to display an element <br>

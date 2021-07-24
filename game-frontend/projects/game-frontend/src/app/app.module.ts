@@ -80,9 +80,6 @@ import { UnitsComponent } from './units/units.component';
 import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
 import { UpgradesComponent } from './upgrades/upgrades.component';
 
-
-
-
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'synchronice-credentials', component: SynchronizeCredentialsComponent },

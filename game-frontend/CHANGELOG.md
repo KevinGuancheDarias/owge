@@ -2,6 +2,8 @@
 
 v0.10.2 (latest)
 =================
+* __Fix:__ Intercepted units not displaying in the Neon theme
+* __Fix:__ [Reports screen hangs on Neón #418](https://github.com/KevinGuancheDarias/owge/issues/418) 
 * __Fix:__ [Return missions and unit buildings are failing when terminating at almost the same time #417](https://github.com/KevinGuancheDarias/owge/issues/417)  
 
 v0.10.1 (2021-07-17 17:23)
