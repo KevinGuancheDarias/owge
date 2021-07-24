@@ -2,6 +2,8 @@
 
 v0.10.2 (latest)
 =================
+* __Fix:__ [Attackable types in info modal of unit doesn't display the colors, nor in classic, neither in neon #420](https://github.com/KevinGuancheDarias/owge/issues/420)  
+* __Fix:__ [Neón doesn't display the unit upgrade requirements colors #421](https://github.com/KevinGuancheDarias/owge/issues/421)  
 * __Fix:__ Intercepted units not displaying in the Neon theme
 * __Fix:__ [Reports screen hangs on Neón #418](https://github.com/KevinGuancheDarias/owge/issues/418) 
 * __Fix:__ [Return missions and unit buildings are failing when terminating at almost the same time #417](https://github.com/KevinGuancheDarias/owge/issues/417)  
