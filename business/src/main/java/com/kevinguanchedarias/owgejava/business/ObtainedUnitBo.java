@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -8,7 +7,6 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
@@ -18,7 +16,6 @@ import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,9 +40,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final ImprovementBo improvementBo;
     private final transient SocketIoService socketIoService;
     private final transient AsyncRunnerBo asyncRunnerBo;
-    private final transient EntityManager entityManager;
     private final RequirementBo requirementBo;
     private final UnitMissionBo unitMissionBo;
+    private final transient EntityManager entityManager;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -257,33 +253,15 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     }
 
     /**
-     * Tries to save the new sumValue, if fails, will try till it success <br>
-     * This strategy can be used to avoid to lock table rows
+     * Tries to save the new sumValue
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.19
      */
-    public ObtainedUnit trySave(ObtainedUnit obtainedUnit, long sumValue) {
-        long expectedSum = obtainedUnit.getCount() + sumValue;
-        obtainedUnit.setCount(expectedSum);
-        ObtainedUnit savedValue = saveAndFlush(obtainedUnit);
-        try {
-            entityManager.refresh(obtainedUnit);
-            if (!savedValue.getCount().equals(expectedSum)) {
-                try {
-                    Thread.sleep(RandomUtils.nextLong(0, 300));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new CommonException("trySave failed for surprising reasons", e);
-                }
-                return trySave(savedValue, sumValue);
-            } else {
-                return savedValue;
-            }
-        } catch (EntityNotFoundException e) {
-            throw new OwgeElementSideDeletedException("Element " + obtainedUnit.getClass().getName() + " with id "
-                    + obtainedUnit.getId() + " has been side-deleted");
-        }
+    public synchronized ObtainedUnit trySave(ObtainedUnit obtainedUnit, long sumValue) {
+        repository.addToCount(obtainedUnit, sumValue);
+        entityManager.refresh(obtainedUnit);
+        return obtainedUnit;
     }
 
     /**
@@ -322,11 +300,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
 
         }
         return retVal;
-    }
-
-    public List<ObtainedUnit> findInMyPlanet(Long planetId) {
-        userStorageBo.checkOwnPlanet(planetId);
-        return repository.findBySourcePlanetIdAndMissionNull(planetId);
     }
 
     /**

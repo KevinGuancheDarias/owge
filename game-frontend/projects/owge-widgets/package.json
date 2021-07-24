@@ -1,6 +1,6 @@
 {
   "name": "@owge/widgets",
-  "version": "0.10.0",
+  "version": "0.10.2",
   "dependencies": {
     "tslib": "^2.0.0"
   },
