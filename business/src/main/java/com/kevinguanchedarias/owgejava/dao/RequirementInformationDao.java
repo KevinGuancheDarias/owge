@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.business.SpecialLocationBo;
 import com.kevinguanchedarias.owgejava.business.UpgradeBo;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRequirementGroupsListener;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -22,6 +23,7 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -211,6 +213,7 @@ public class RequirementInformationDao implements Serializable {
         objectRelationsBo.checkValid(requirementInformation.getRelation());
         try {
             requirementInformation = requirementInformationRepository.save(requirementInformation);
+
         } catch (Exception e) {
             if (ExceptionUtilService.isSqlDuplicatedKey(e)) {
                 LOG.debug("Duplicated entry", e);
@@ -230,6 +233,7 @@ public class RequirementInformationDao implements Serializable {
         storedRequirementsInformation.add(requirementInformation);
         requirementInformation.getRelation().setRequirements(storedRequirementsInformation);
         requirementInformation.setRelation(objectRelationsBo.save(requirementInformation.getRelation()));
+        clearCache();
         return requirementInformation;
     }
 
@@ -322,21 +326,18 @@ public class RequirementInformationDao implements Serializable {
     }
 
     public void clearCache() {
-        var cache = this.cacheManager.getCache(CACHE_KEY);
+        doClearCache(CACHE_KEY);
+        doClearCache(EntityWithRequirementGroupsListener.CACHE_KEY);
+    }
+
+    private void doClearCache(String cacheKey) {
+        var cache = this.cacheManager.getCache(cacheKey);
         if (cache != null) {
             cache.clear();
         } else {
-            LOG.warn("Cache object is null, da' fuck??");
+            LOG.warn("Cache object for key " + cacheKey + " is null, da' fuck??");
         }
     }
-
-    /**
-     * Checks if the object relation reference_id exists
-     *
-     * @param relation {@link ObjectRelation}
-     *
-     * @author Kevin Guanche Darias
-     */
 
     /**
      * Returns the requirement by object relation, but if null, returns empty list

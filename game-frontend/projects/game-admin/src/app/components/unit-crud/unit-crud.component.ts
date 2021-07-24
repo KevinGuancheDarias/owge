@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent, SpeedImpactGroup, UnitType } from '@owge/core';
 import { InterceptableSpeedGroup, Unit } from '@owge/universe';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter } from '@owge/core';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { AdminSpecialLocationService } from '../../services/admin-special-location.service';

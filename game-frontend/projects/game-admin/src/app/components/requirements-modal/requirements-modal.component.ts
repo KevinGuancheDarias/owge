@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { AbstractModalContainerComponent, CommonEntity, ProgrammingError } from '@owge/core';
-import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
+import { AbstractModalContainerComponent, CommonEntity, ProgrammingError, WidgetFilter } from '@owge/core';
+import { WidgetFilterUtil } from '@owge/universe';
 import { Observable } from 'rxjs';
 import { AdminFactionService } from '../../services/admin-faction.service';
 import { AdminSpecialLocationService } from '../../services/admin-special-location.service';

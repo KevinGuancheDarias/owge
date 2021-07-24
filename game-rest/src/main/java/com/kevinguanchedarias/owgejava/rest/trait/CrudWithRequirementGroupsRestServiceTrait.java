@@ -36,25 +36,20 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
  * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  *
- * @param <N>
- * @param <E>
- * @param <S>
- * @param <D>
  */
 public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithRequirementGroups, S extends BaseBo<Integer, E, D>, D extends DtoFromEntity<E>>
 		extends CrudRestServiceNoOpEventsTrait<D, E> {
 
-	public RestCrudConfigBuilder<Integer, E, S, D> getRestCrudConfigBuilder();
+	RestCrudConfigBuilder<Integer, E, S, D> getRestCrudConfigBuilder();
 
 	/**
 	 * Returns the object the entity <i>E</i> represents in the {@link ObjectEntity}
 	 * table
 	 *
-	 * @return
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public ObjectEnum getObject();
+	ObjectEnum getObject();
 
 	/**
 	 * Test for correct {@link CrudWithRequirementsRestServiceTrait#getObject()}
@@ -62,25 +57,23 @@ public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithR
 	 * <b>NOTICE:</b> Won't work properly if you don't use @Scope,
 	 * note @ApplicationScope doesn't work properly
 	 *
-	 * @param objectEntityBo
 	 * @since 0.8.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostConstruct
 	@Autowired
-	public default void init() {
+	default void init() {
 		Logger.getLogger(getClass()).debug("Initializing crud with requirements");
 		getBeanFactory().getBean(ObjectEntityBo.class).existsByDescriptionOrDie(getObject());
 	}
 
 	/**
 	 *
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@GetMapping("{id}/requirement-group")
-	public default List<RequirementGroupDto> findRequirements(@PathVariable Integer id) {
+	default List<RequirementGroupDto> findRequirements(@PathVariable Integer id) {
 		DtoUtilService dtoUtilService = getBeanFactory().getBean(DtoUtilService.class);
 		return dtoUtilService.convertEntireArray(RequirementGroupDto.class,
 				getBo().findByIdOrDie(id).getRequirementGroups());
@@ -88,14 +81,11 @@ public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithR
 
 	/**
 	 *
-	 * @param id
-	 * @param requirementGroupDto
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostMapping("{id}/requirement-group")
-	public default RequirementGroupDto addGroup(@PathVariable Integer id,
+	default RequirementGroupDto addGroup(@PathVariable Integer id,
 			@RequestBody RequirementGroupDto requirementGroupDto) {
 		getBo().existsOrDie(id);
 		RequirementGroupBo requirementGroupBo = getBeanFactory().getBean(RequirementGroupBo.class);
@@ -105,14 +95,11 @@ public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithR
 	/**
 	 * Deletes a group
 	 *
-	 * @param id
-	 * @param groupId
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@DeleteMapping("{id}/requirement-group/{groupId}")
-	public default ResponseEntity<Void> deleteGroup(@PathVariable Integer id, @PathVariable Integer groupId) {
+	default ResponseEntity<Void> deleteGroup(@PathVariable Integer id, @PathVariable Integer groupId) {
 		RequirementGroupBo requirementGroupBo = getBeanFactory().getBean(RequirementGroupBo.class);
 		requirementGroupBo.delete(groupId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -120,15 +107,11 @@ public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithR
 
 	/**
 	 *
-	 * @param id
-	 * @param requirementGroupId
-	 * @param requirementInformationDto
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@PostMapping("{id}/requirement-group/{requirementGroupId}/requirement")
-	public default RequirementInformationDto addRequirement(@PathVariable Integer id,
+	default RequirementInformationDto addRequirement(@PathVariable Integer id,
 			@PathVariable Integer requirementGroupId,
 			@RequestBody RequirementInformationDto requirementInformationDto) {
 		getBo().existsOrDie(id);
@@ -139,13 +122,11 @@ public interface CrudWithRequirementGroupsRestServiceTrait<E extends EntityWithR
 
 	/**
 	 *
-	 * @param requirementInformationId
-	 * @return
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
 	@DeleteMapping("{id}/requirement-group/{requirementGroupId}/requirement/{requirementInformationId}")
-	public default ResponseEntity<Void> deleteRequirement(@PathVariable Integer requirementInformationId) {
+	default ResponseEntity<Void> deleteRequirement(@PathVariable Integer requirementInformationId) {
 		getBeanFactory().getBean(RequirementInformationBo.class).delete(requirementInformationId);
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}

@@ -19,7 +19,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 @Component
 public class RequirementGroupListener {
 
-	private RequirementBo requirementBo;
+	private final RequirementBo requirementBo;
 
 	@Lazy
 	public RequirementGroupListener(RequirementBo requirementBo) {
@@ -28,7 +28,6 @@ public class RequirementGroupListener {
 
 	/**
 	 *
-	 * @param requirementGroup
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

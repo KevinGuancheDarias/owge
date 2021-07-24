@@ -72,4 +72,5 @@ export * from './lib/types/upgrade-running-mission.type';
 export * from './lib/types/upgrade-type.type';
 export * from './lib/types/upgrade.type';
 export * from './lib/utils/improvement.util';
+export * from './lib/utils/widget-filter.util';
 export * from './lib/owge-universe.module';

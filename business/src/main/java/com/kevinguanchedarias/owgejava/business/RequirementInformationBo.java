@@ -133,6 +133,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     @Override
     public void delete(Integer id) {
         delete(findByIdOrDie(id));
+        requirementInformationDao.clearCache();
     }
 
     /*
@@ -148,6 +149,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
         entity.getRelation().getRequirements().removeIf(current -> current.getId().equals(entity.getId()));
         BaseBo.super.delete(entity);
         requirementBo.triggerRelationChanged(entity.getRelation());
-
+        requirementInformationDao.clearCache();
     }
 }

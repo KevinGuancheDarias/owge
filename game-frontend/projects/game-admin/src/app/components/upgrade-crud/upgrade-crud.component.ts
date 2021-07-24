@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Upgrade, UpgradeType } from '@owge/universe';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter } from '@owge/core';
 import { AdminUpgradeTypeService } from '../../services/admin-upgrade-type.service';
 import { AdminUpgradeService } from '../../services/admin-upgrade.service';
 

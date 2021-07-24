@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Faction } from '@owge/faction';
 import { TimeSpecial } from '@owge/universe';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter } from '@owge/core';
 import { Observable } from 'rxjs';
 import { AdminFactionService } from '../../services/admin-faction.service';
 import { AdminTimeSpecialService } from '../../services/admin-time-special.service';

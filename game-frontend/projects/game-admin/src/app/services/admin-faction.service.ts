@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { validContext } from '@owge/core';
+import { validContext, WidgetFilter } from '@owge/core';
 import { Faction, FactionUnitType } from '@owge/faction';
 import {
-    AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService, WithImprovementsCrudMixin, WithRequirementsCrudMixin
+    AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService,
+    WithImprovementsCrudMixin, WithRequirementsCrudMixin, WidgetFilterUtil
 } from '@owge/universe';
-import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Mixin } from 'ts-mixer';

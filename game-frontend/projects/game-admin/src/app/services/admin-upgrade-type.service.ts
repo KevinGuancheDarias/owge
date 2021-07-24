@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { validContext } from '@owge/core';
 import { AbstractCrudService, CrudServiceAuthControl, UniverseGameService, UpgradeType } from '@owge/universe';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter } from '@owge/core';
 import { take } from 'rxjs/operators';
 
 

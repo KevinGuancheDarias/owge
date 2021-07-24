@@ -26,11 +26,11 @@ import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
  */
 @Component
 public class EntityWithRequirementGroupsListener {
-	private static final String CACHE_KEY = "requirement_groups_listener";
+	public static final String CACHE_KEY = "requirement_groups_listener";
 
-	private ObjectRelationBo objectRelationBo;
-	private ObjectRelationToObjectRelationBo objectRelationToObjectRelationBo;
-	private CacheManager cacheManager;
+	private final ObjectRelationBo objectRelationBo;
+	private final ObjectRelationToObjectRelationBo objectRelationToObjectRelationBo;
+	private final CacheManager cacheManager;
 
 	@Lazy
 	public EntityWithRequirementGroupsListener(ObjectRelationBo objectRelationBo,
@@ -42,7 +42,6 @@ public class EntityWithRequirementGroupsListener {
 
 	/**
 	 *
-	 * @param entityWithGroupRequirements
 	 * @since 0.9.0
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */

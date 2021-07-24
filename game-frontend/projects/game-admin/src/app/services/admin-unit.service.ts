@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { AsyncCollectionUtil, validContext } from '@owge/core';
+import { AsyncCollectionUtil, validContext, WidgetFilter } from '@owge/core';
 import {
     AbstractCrudService, CrudConfig, CrudServiceAuthControl, InterceptableSpeedGroup, Unit,
     UniverseGameService, WithImprovementsCrudMixin, WithRequirementsCrudMixin
 } from '@owge/universe';
-import { DisplayService, WidgetFilter } from '@owge/widgets';
+import { DisplayService } from '@owge/widgets';
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { Mixin } from 'ts-mixer';

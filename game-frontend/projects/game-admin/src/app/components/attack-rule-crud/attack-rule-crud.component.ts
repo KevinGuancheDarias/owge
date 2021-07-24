@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
-import { AttackRule, AttackRuleEntry, LoggerHelper, ProgrammingError, UnitType } from '@owge/core';
+import { AttackRule, AttackRuleEntry, LoggerHelper, ProgrammingError, UnitType, WidgetFilter } from '@owge/core';
 import { Faction } from '@owge/faction';
 import { Unit } from '@owge/universe';
-import { WidgetChooseItemModalComponent, WidgetFilter } from '@owge/widgets';
+import { WidgetChooseItemModalComponent } from '@owge/widgets';
 import { cloneDeep, isEqual } from 'lodash-es';
 import { combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';

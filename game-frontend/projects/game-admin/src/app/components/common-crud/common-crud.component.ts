@@ -1,8 +1,8 @@
 import { Component, ContentChild, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { CommonEntity, LoadingService, ModalComponent } from '@owge/core';
+import { CommonEntity, LoadingService, ModalComponent, WidgetFilter } from '@owge/core';
 import { AbstractCrudService } from '@owge/universe';
-import { DisplayService, WidgetFilter } from '@owge/widgets';
+import { DisplayService } from '@owge/widgets';
 import { isEqual } from 'lodash-es';
 import { Observable, Subscription } from 'rxjs';
 

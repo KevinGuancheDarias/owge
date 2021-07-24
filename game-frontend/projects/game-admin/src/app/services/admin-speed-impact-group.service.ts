@@ -3,7 +3,7 @@ import { SpeedImpactGroup, validContext } from '@owge/core';
 import {
     AbstractCrudService, CrudConfig, CrudServiceAuthControl, UniverseGameService, WithRequirementsCrudMixin
 } from '@owge/universe';
-import { WidgetFilter } from '@owge/widgets';
+import { WidgetFilter } from '@owge/core';
 import { take } from 'rxjs/operators';
 import { mix } from 'ts-mixer';
 

@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, ViewChild } from '@angular/core';
-import { CriticalAttack, CriticalAttackEntry, ProgrammingError, UnitType } from '@owge/core';
+import { CriticalAttack, CriticalAttackEntry, ProgrammingError, UnitType, WidgetFilter } from '@owge/core';
 import { Faction } from '@owge/faction';
 import { Unit } from '@owge/universe';
-import { WidgetChooseItemModalComponent, WidgetConfirmationDialogComponent, WidgetFilter } from '@owge/widgets';
+import { WidgetChooseItemModalComponent, WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { cloneDeep, isEqual } from 'lodash-es';
 import { combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
