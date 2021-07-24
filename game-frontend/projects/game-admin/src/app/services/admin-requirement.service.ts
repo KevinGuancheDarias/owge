@@ -9,6 +9,7 @@ import { take } from 'rxjs/operators';
 import { ProgrammingError, RequirementInformation } from '@owge/core';
 import { AdminSpecialLocationService } from './admin-special-location.service';
 import { AdminUnitService } from './admin-unit.service';
+import { AdminTimeSpecialService } from './admin-time-special.service';
 
 
 /**
@@ -25,7 +26,8 @@ export class AdminRequirementService {
         private _adminFactionService: AdminFactionService,
         private _adminUpgradeService: AdminUpgradeService,
         private _adminSpecialLocationService: AdminSpecialLocationService,
-        private _adminUnitService: AdminUnitService
+        private _adminUnitService: AdminUnitService,
+        private adminTimeSpecialService: AdminTimeSpecialService
     ) { }
 
     /**
@@ -76,6 +78,9 @@ export class AdminRequirementService {
                     .pipe(take(1)).toPromise()).name;
             case 'HAVE_UNIT':
                 return (await this._adminUnitService.findOneById(requirementInformation.secondValue)
+                    .pipe(take(1)).toPromise()).name;
+            case 'HAVE_SPECIAL_ENABLED':
+                return (await this.adminTimeSpecialService.findOneById(requirementInformation.secondValue)
                     .pipe(take(1)).toPromise()).name;
             default:
                 throw new ProgrammingError(`Invalid requirement code ${requirementInformation.requirement.code}`);

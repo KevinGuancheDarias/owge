@@ -240,13 +240,15 @@
             "BEEN_RACE": "Is of faction",
             "UPGRADE_LEVEL": "Have upgrade to level {{thirdValue}}",
             "HAVE_SPECIAL_LOCATION": "Have special location",
-            "HAVE_UNIT": "Have unit built"
+            "HAVE_UNIT": "Have unit built",
+            "HAVE_SPECIAL_ENABLED": "Have special enabled"
         },
         "TARGETS": {
             "BEEN_RACE": "Required faction",
             "UPGRADE_LEVEL": "Required upgrade",
             "HAVE_SPECIAL_LOCATION": "Special location",
-            "HAVE_UNIT": "Required unit"
+            "HAVE_UNIT": "Required unit",
+            "HAVE_SPECIAL_ENABLED": "Special enabled"
         },
         "THIRD_VALUES": {
             "UPGRADE_LEVEL": "Upgrade level"

@@ -5,21 +5,8 @@ import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
-import com.kevinguanchedarias.owgejava.entity.EntityWithId;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
-import com.kevinguanchedarias.owgejava.entity.Requirement;
-import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
-import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
+import com.kevinguanchedarias.owgejava.entity.*;
+import com.kevinguanchedarias.owgejava.enumerations.*;
 import com.kevinguanchedarias.owgejava.exception.InvalidConfigurationException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
@@ -43,11 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -114,6 +97,9 @@ public class RequirementBo implements Serializable {
 
     @Autowired
     private UnitRepository unitRepository;
+
+    @Autowired
+    private ActiveTimeSpecialBo activeTimeSpecialBo;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -255,6 +241,11 @@ public class RequirementBo implements Serializable {
     public void triggerLevelUpCompleted(UserStorage user, Integer upgradeId) {
         processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.UPGRADE_LEVEL,
                 upgradeId.longValue()), user);
+    }
+
+    @Transactional
+    public void triggerSpecialEnabled(UserStorage user, Integer timeSpecialId) {
+        processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_SPECIAL_ENABLED, timeSpecialId.longValue()), user);
     }
 
     /**
@@ -429,6 +420,9 @@ public class RequirementBo implements Serializable {
                 case HAVE_SPECIAL_LOCATION:
                     status = checkSpecialLocationRequirement(currentRequirement, user);
                     break;
+                case HAVE_SPECIAL_ENABLED:
+                    status = hasSpecialEnabled(currentRequirement, user);
+                    break;
                 default:
                     throw new SgtBackendNotImplementedException(
                             "Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
@@ -474,6 +468,12 @@ public class RequirementBo implements Serializable {
         } else {
             return planet.getOwner().getId().equals(user.getId());
         }
+    }
+
+    private boolean hasSpecialEnabled(RequirementInformation requirementInformation, UserStorage user) {
+        var timeSpecialId = requirementInformation.getSecondValue();
+        var active = activeTimeSpecialBo.findOneByTimeSpecial(timeSpecialId.intValue(), user.getId());
+        return active != null && active.getState() == TimeSpecialStateEnum.ACTIVE;
     }
 
     private boolean checkBeenFactionRequirement(RequirementInformation requirement, Integer userId) {

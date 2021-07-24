@@ -1,7 +1,7 @@
 import { ProgrammingError, LoggerHelper, RequirementInformation, RequirementGroup } from '@owge/core';
 
 import { UniverseGameService } from '../../services/universe-game.service';
-import { Observable, Subject, Subscription, pipe } from 'rxjs';
+import { Observable, Subject, Subscription } from 'rxjs';
 import { CrudConfig } from '../../types/crud-config.type';
 import { HttpParams } from '@angular/common/http';
 import { StoreAwareService } from '../../interfaces/store-aware-service.interface';
@@ -21,6 +21,14 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
     protected _crudConfig: CrudConfig;
 
     private _wrcmLog: LoggerHelper = new LoggerHelper(WithRequirementsCrudMixin.name);
+
+    public findAllWithRequirements(): Observable<T[]> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'get',
+            `${this._crudConfig.entityPath}/with-requirements`, null
+        );
+    }
 
     /**
      * Finds the requirements for the given entity key id

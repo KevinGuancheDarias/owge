@@ -230,13 +230,15 @@
             "BEEN_RACE": "Pertenecer a facción",
             "UPGRADE_LEVEL": "Tener mejora a nivel {{thirdValue}}",
             "HAVE_SPECIAL_LOCATION": "Tener ubicación especial",
-            "HAVE_UNIT": "Tener unidad construida"
+            "HAVE_UNIT": "Tener unidad construida",
+            "HAVE_SPECIAL_ENABLED": "Tener especial activado"
         },
         "TARGETS": {
             "BEEN_RACE": "Facción necesaria",
             "UPGRADE_LEVEL": "Mejora necesaria",
             "HAVE_SPECIAL_LOCATION": "Ubicación especial",
-            "HAVE_UNIT": "Unidad necesaria"
+            "HAVE_UNIT": "Unidad necesaria",
+            "HAVE_SPECIAL_ENABLED": "Especial activo"
         },
         "THIRD_VALUES": {
             "UPGRADE_LEVEL": "Nivel de la mejora"
