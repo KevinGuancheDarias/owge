@@ -28,6 +28,13 @@
             owge-widgets-display-list-item 
                 > div.d-flex
                     display: block !important
+                    &.owge-red-shadow 
+                        box-shadow: 3px 3px 6px #822
+                        .image-and-actions
+                            filter: grayscale(95%) blur(1px)
+                            &:hover
+                                filter: grayscale(50%)
+
                 .extra-section
                     max-height: 270px
                     .fast-upgrade-div a
