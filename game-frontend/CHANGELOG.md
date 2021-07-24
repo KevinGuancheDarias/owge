@@ -1,5 +1,9 @@
 # OWGE changelog
 
+v0.10.2 (latest)
+=================
+* __Fix:__ [Return missions and unit buildings are failing when terminating at almost the same time #417](https://github.com/KevinGuancheDarias/owge/issues/417)  
+
 v0.10.1 (2021-07-17 17:23)
 ============================
 * [class=Admin] __Improvement:__ [Change time specials, upgrades and units main filter to be the widget one... which works properly #410](https://github.com/KevinGuancheDarias/owge/issues/410)  
