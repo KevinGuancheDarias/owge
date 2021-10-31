@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -30,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -90,6 +90,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     protected UnitTypeBo unitTypeBo;
 
     @Autowired
+    protected transient MissionConfigurationBo missionConfigurationBo;
+
+    @Autowired
     private MissionReportBo missionReportBo;
 
     @Autowired
@@ -118,11 +121,10 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     }
 
     /**
-     * @return True if the mission will continue to run
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     @Transactional
-    public boolean retryMissionIfPossible(Long missionId, MissionType missionType) {
+    public void retryMissionIfPossible(Long missionId, MissionType missionType) {
         Mission mission = findById(missionId);
         mission.setUser(userStorageBo.findOneByMission(mission));
         if (mission.getAttemps() >= MAX_ATTEMPS) {
@@ -138,24 +140,18 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
             } else {
                 throw new ProgrammingException("Should never ever happend");
             }
-            return false;
         } else {
             mission.setAttemps(mission.getAttemps() + 1);
             mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
             handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
             scheduleMission(mission);
             save(mission);
-            return true;
         }
     }
 
     /**
      * Finds a <b>not resolved </b>mission by userId, mission type and target planet
      *
-     * @param userId
-     * @param type
-     * @param targetPlanet
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.4
      */
@@ -172,8 +168,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Counts the number of missions that a user has running
      *
-     * @param userId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -184,8 +178,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Returns the max number of missions a user can run
      *
-     * @param user
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -230,7 +222,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Finds missions that couldn't execute with success
      *
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
@@ -241,9 +232,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Finds a mission by user id and mission type
      *
-     * @param userId
-     * @param type
-     * @return
      * @author Kevin Guanche Darias
      */
     protected Mission findByUserIdAndTypeCode(Integer userId, MissionType type) {
@@ -253,7 +241,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Checks if the user exists (in this universe), throws if not
      *
-     * @param userId
      * @throws UserNotFoundException If user doesn't exists
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
@@ -266,8 +253,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     /**
      * Checks if the input planet exists
      *
-     * @param planetId
-     * @throws PlanetNotFoundException
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     protected void checkPlanetExists(Long planetId) {
@@ -303,7 +288,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      * Defines the mission as resolved
      *
      * @param mission Mission to persist
-     * @return Persisted entity
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     protected void resolveMission(Mission mission) {
@@ -361,45 +345,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     }
 
     /**
-     * Finds the last mission in the relation tree that is not a RETURN_MISSION
-     *
-     * @param missionId
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.1
-     */
-    protected Mission findLastMissionInRelationTree(Long missionId) {
-        return findLastMissionInRelationTree(missionId,
-                mission -> MissionType.RETURN_MISSION.name().equals(mission.getType().getCode()));
-    }
-
-    /**
-     * Find the last mission in the relation tree that matches "false" to
-     * <i>ignore</i> lambda
-     *
-     * @param missionId
-     * @param ignore
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.1
-     */
-    protected Mission findLastMissionInRelationTree(Long missionId, Predicate<Mission> ignore) {
-        Mission mission = findById(missionId);
-        if (mission != null && mission.getRelatedMission() != null) {
-            if (ignore.test(mission)) {
-                return findLastMissionInRelationTree(missionId, ignore);
-            } else {
-                return mission;
-            }
-        } else if (mission != null && mission.getRelatedMission() == null) {
-            return mission;
-        } else {
-            throw new ProgrammingException("Passed null");
-        }
-    }
-
-    /**
-     * @param mission
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -408,7 +353,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     }
 
     /**
-     * @param mission
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */

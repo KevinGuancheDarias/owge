@@ -1467,7 +1467,7 @@ public class UnitMissionBo extends AbstractMissionBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private Double calculateRequiredTime(MissionType type) {
-        return (double) configurationBo.findMissionBaseTimeByType(type);
+        return (double) missionConfigurationBo.findMissionBaseTimeByType(type);
     }
 
     /**
