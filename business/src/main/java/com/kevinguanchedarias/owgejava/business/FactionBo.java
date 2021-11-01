@@ -6,33 +6,44 @@ import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
+import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
 import java.util.List;
 
 @Service
+@Slf4j
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
+    @Serial
     private static final long serialVersionUID = -6735454832872729630L;
 
     private final FactionRepository repository;
     private final transient FactionUnitTypeRepository factionUnitTypeRepository;
+    private final transient FactionSpawnLocationRepository factionSpawnLocationRepository;
+    private final transient ConversionService conversionService;
 
     @Autowired
     @Lazy
     private UnitTypeBo unitTypeBo;
 
-    public FactionBo(
-            FactionRepository repository,
-            FactionUnitTypeRepository factionUnitTypeRepository
+    public FactionBo(FactionRepository repository,
+                     FactionUnitTypeRepository factionUnitTypeRepository,
+                     FactionSpawnLocationRepository factionSpawnLocationRepository,
+                     ConversionService conversionService
     ) {
         this.repository = repository;
         this.factionUnitTypeRepository = factionUnitTypeRepository;
+        this.factionSpawnLocationRepository = factionSpawnLocationRepository;
+        this.conversionService = conversionService;
     }
 
     @Override

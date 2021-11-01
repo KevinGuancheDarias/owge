@@ -41,7 +41,7 @@ public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
     default E getOne(K id) {
         return id == null
                 ? null
-                : getRepository().getOne(id);
+                : getRepository().getById(id);
     }
 
     default E findById(K id) {

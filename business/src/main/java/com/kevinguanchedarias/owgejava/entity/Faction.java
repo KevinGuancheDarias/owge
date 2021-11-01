@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,6 +24,8 @@ import java.util.List;
 @Entity
 @Table(name = "factions")
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Faction extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
     private static final long serialVersionUID = -8190094507195501651L;
 

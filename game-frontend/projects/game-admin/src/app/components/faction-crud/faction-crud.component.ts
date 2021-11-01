@@ -1,12 +1,16 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { ModalComponent } from '@owge/core';
 import { Faction, FactionUnitType } from '@owge/faction';
+import { Galaxy } from '@owge/galaxy';
 import { ImageStore } from '@owge/universe';
+import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminGalaxyService } from '../../services/admin-galaxy.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { FactionSpawnLocation } from '../../types/faction-spawn-location.type';
 import { UnitTypeWithOverrides } from '../../types/unit-type-with-overrides.type';
 
 @Component({
@@ -14,15 +18,29 @@ import { UnitTypeWithOverrides } from '../../types/unit-type-with-overrides.type
   templateUrl: './faction-crud.component.html',
   styleUrls: ['./faction-crud.component.scss']
 })
-export class FactionCrudComponent {
+export class FactionCrudComponent implements OnInit, OnDestroy{
 
-  @ViewChild(ModalComponent) public unitTypesOverridesModal: ModalComponent;
+  @ViewChild('overrides') public unitTypesOverridesModal: ModalComponent;
+  @ViewChild('spawnLocations') public spawnLocationsModal: ModalComponent;
 
   public selectedEl: Faction;
   public unitTypes: UnitTypeWithOverrides[];
+  public galaxies: Array<Galaxy & {isSpawnLocation?: boolean}>;
 
-  constructor(public adminFactionService: AdminFactionService, private _adminUnitTypeService: AdminUnitTypeService) {
+  private galaxiesSuscription: Subscription;
 
+  constructor(
+    public adminFactionService: AdminFactionService,
+    private _adminUnitTypeService: AdminUnitTypeService,
+    private adminGalaxyService: AdminGalaxyService
+  ) {}
+
+  public ngOnInit(): void {
+    this.galaxiesSuscription = this.adminGalaxyService.findAll().subscribe(galaxies => this.galaxies = galaxies);
+  }
+
+  public ngOnDestroy(): void {
+    this.galaxiesSuscription.unsubscribe();
   }
 
   /**
@@ -80,7 +98,9 @@ export class FactionCrudComponent {
 
   public async onSelected(faction: Faction): Promise<void> {
     this.selectedEl = faction;
+    delete this.unitTypes;
     this.unitTypes = await this._adminUnitTypeService.findAll().pipe(take(1)).toPromise();
+    const spawnLocations: FactionSpawnLocation[] = await this.adminFactionService.findSpawnLocations(faction.id).toPromise();
     const overrides: FactionUnitType[] = await this.adminFactionService.findUnitTypes(faction.id).toPromise();
     overrides.forEach(override => {
       const unitType: UnitTypeWithOverrides = this.unitTypes.find(current => current.id === override.unitTypeId);
@@ -90,6 +110,10 @@ export class FactionCrudComponent {
         unitType.overrideMaxCount = override.maxCount;
       }
     });
+    this.galaxies.forEach(
+      galaxy => galaxy.isSpawnLocation = spawnLocations.some(
+        spawn => spawn.galaxyId === galaxy.id)
+      );
   }
 
   /**
@@ -101,5 +125,14 @@ export class FactionCrudComponent {
   public saveOverrides(): void {
     const overrideUnitTypes: UnitTypeWithOverrides[] = this.unitTypes.filter(current => current.isOverride);
     this.adminFactionService.saveUnitTypes(this.selectedEl.id, overrideUnitTypes).subscribe(() => this.unitTypesOverridesModal.hide());
+  }
+
+  public saveSpawnLocations(): void {
+    const factionSpawnLocations: Partial<FactionSpawnLocation>[] = this.galaxies
+      .filter(galaxy => galaxy.isSpawnLocation)
+      .map(galaxy => ({
+        galaxyId: galaxy.id,
+      }));
+    this.adminFactionService.saveSpawnLocations(this.selectedEl.id, factionSpawnLocations).subscribe(() => this.spawnLocationsModal.hide());
   }
 }

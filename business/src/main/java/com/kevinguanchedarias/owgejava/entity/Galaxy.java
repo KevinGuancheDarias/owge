@@ -1,6 +1,10 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -9,141 +13,142 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
+import java.util.List;
 
 @Entity
 @Table(name = "galaxies")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Galaxy implements EntityWithId<Integer> {
-	private static final long serialVersionUID = -230625496064517670L;
+    private static final long serialVersionUID = -230625496064517670L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-	private String name;
-	private Long sectors;
-	private Long quadrants;
+    private String name;
+    private Long sectors;
+    private Long quadrants;
 
-	@Column(name = "num_planets")
-	private Long numPlanets = 20L;
+    @Column(name = "num_planets")
+    private Long numPlanets = 20L;
 
-	@Column(name = "order_number")
-	private Integer orderNumber;
+    @Column(name = "order_number")
+    private Integer orderNumber;
 
-	@OneToMany(mappedBy = "galaxy")
-	@Cascade({ CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DELETE })
-	private List<Planet> planets;
+    @OneToMany(mappedBy = "galaxy")
+    @Cascade({CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DELETE})
+    private List<Planet> planets;
 
-	@Override
-	public Integer getId() {
-		return id;
-	}
+    @Override
+    public Integer getId() {
+        return id;
+    }
 
-	@Override
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    @Override
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public Long getSectors() {
-		return sectors;
-	}
+    public Long getSectors() {
+        return sectors;
+    }
 
-	public void setSectors(Long sectors) {
-		this.sectors = sectors;
-	}
+    public void setSectors(Long sectors) {
+        this.sectors = sectors;
+    }
 
-	public Long getQuadrants() {
-		return quadrants;
-	}
+    public Long getQuadrants() {
+        return quadrants;
+    }
 
-	public void setQuadrants(Long quadrants) {
-		this.quadrants = quadrants;
-	}
+    public void setQuadrants(Long quadrants) {
+        this.quadrants = quadrants;
+    }
 
-	/**
-	 * Number of planets for each quadrant
-	 *
-	 * @return the numPlanets
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Long getNumPlanets() {
-		return numPlanets;
-	}
+    /**
+     * Number of planets for each quadrant
+     *
+     * @return the numPlanets
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public Long getNumPlanets() {
+        return numPlanets;
+    }
 
-	/**
-	 * @param numPlanets the numPlanets to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setNumPlanets(Long numPlanets) {
-		this.numPlanets = numPlanets;
-	}
+    /**
+     * @param numPlanets the numPlanets to set
+     * @author Kevin Guanche Darias
+     * @since 0.9.0
+     */
+    public void setNumPlanets(Long numPlanets) {
+        this.numPlanets = numPlanets;
+    }
 
-	public Integer getOrderNumber() {
-		return orderNumber;
-	}
+    public Integer getOrderNumber() {
+        return orderNumber;
+    }
 
-	public void setOrderNumber(Integer orderNumber) {
-		this.orderNumber = orderNumber;
-	}
+    public void setOrderNumber(Integer orderNumber) {
+        this.orderNumber = orderNumber;
+    }
 
-	public List<Planet> getPlanets() {
-		return planets;
-	}
+    public List<Planet> getPlanets() {
+        return planets;
+    }
 
-	public void setPlanets(List<Planet> planets) {
-		this.planets = planets;
-	}
+    public void setPlanets(List<Planet> planets) {
+        this.planets = planets;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        return result;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Galaxy other = (Galaxy) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		return true;
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Galaxy other = (Galaxy) obj;
+        if (id == null) {
+            if (other.id != null) {
+                return false;
+            }
+        } else if (!id.equals(other.id)) {
+            return false;
+        }
+        return true;
+    }
 
 }

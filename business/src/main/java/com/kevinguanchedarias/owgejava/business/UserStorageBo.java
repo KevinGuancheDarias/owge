@@ -38,383 +38,382 @@ import java.util.List;
  */
 @Service
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
-	private static final long serialVersionUID = 2837362546838035726L;
+    private static final long serialVersionUID = 2837362546838035726L;
 
-	public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
+    public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
 
-	@Autowired
-	private UserStorageRepository userStorageRepository;
+    @Autowired
+    private UserStorageRepository userStorageRepository;
 
-	@Autowired
-	private FactionBo factionBo;
+    @Autowired
+    private FactionBo factionBo;
 
-	@Autowired
-	private PlanetBo planetBo;
+    @Autowired
+    private PlanetBo planetBo;
 
-	@Autowired
-	private RequirementBo requirementBo;
+    @Autowired
+    private RequirementBo requirementBo;
 
-	@Autowired
-	private ObtainedUnitBo obtainedUnitBo;
+    @Autowired
+    private ObtainedUnitBo obtainedUnitBo;
 
-	@Autowired
-	private AllianceBo allianceBo;
+    @Autowired
+    private AllianceBo allianceBo;
 
-	@Autowired
-	private AuthenticationBo authenticationBo;
+    @Autowired
+    private AuthenticationBo authenticationBo;
 
-	@Autowired
-	private ImprovementBo improvementBo;
+    @Autowired
+    private ImprovementBo improvementBo;
 
-	@Autowired
-	private transient EntityManager entityManager;
+    @Autowired
+    private transient EntityManager entityManager;
 
-	@Autowired
-	private transient SocketIoService socketIoService;
+    @Autowired
+    private transient SocketIoService socketIoService;
 
-	@Autowired
-	private DtoUtilService dtoUtilService;
+    @Autowired
+    private DtoUtilService dtoUtilService;
 
-	@Autowired
-	@Lazy
-	private AuditBo auditBo;
+    @Autowired
+    private FactionSpawnLocationBo factionSpawnLocationBo;
 
-	@Override
-	public JpaRepository<UserStorage, Integer> getRepository() {
-		return userStorageRepository;
-	}
+    @Autowired
+    @Lazy
+    private AuditBo auditBo;
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
-	 */
-	@Override
-	public Class<UserStorageDto> getDtoClass() {
-		return UserStorageDto.class;
-	}
+    @Override
+    public JpaRepository<UserStorage, Integer> getRepository() {
+        return userStorageRepository;
+    }
 
-	/**
-	 * User exists <b>in this universe</b>
-	 *
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Override
-	public boolean exists(Integer id) {
-		return userStorageRepository.existsById(id);
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.kevinguanchedarias.owgejava.business.BaseBo#getDtoClass()
+     */
+    @Override
+    public Class<UserStorageDto> getDtoClass() {
+        return UserStorageDto.class;
+    }
 
-	/**
-	 * User exists <b>in this universe</b>
-	 *
-	 * @param user Typically comes from a user token
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Override
-	public boolean exists(UserStorage user) {
-		return exists(user.getId());
-	}
+    /**
+     * User exists <b>in this universe</b>
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    @Override
+    public boolean exists(Integer id) {
+        return userStorageRepository.existsById(id);
+    }
 
-	/**
-	 * Finds the logged in user information ONLY the base one, and from token<br />
-	 * Only id, email, and username will be returned, used
-	 * findLoggedInWithDetailts() for everything
-	 *
-	 * @author Kevin Guanche Darias
-	 */
-	public UserStorage findLoggedIn() {
-		var token = authenticationBo.findTokenUser();
-		return token != null ? convertTokenUserToUserStorage(token) : null;
-	}
+    /**
+     * User exists <b>in this universe</b>
+     *
+     * @param user Typically comes from a user token
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    @Override
+    public boolean exists(UserStorage user) {
+        return exists(user.getId());
+    }
 
-	/**
-	 *
-	 * @since 0.9.16
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<Integer> findAllIds() {
-		return userStorageRepository.findAllIds();
-	}
+    /**
+     * Finds the logged in user information ONLY the base one, and from token<br />
+     * Only id, email, and username will be returned, used
+     * findLoggedInWithDetailts() for everything
+     *
+     * @author Kevin Guanche Darias
+     */
+    public UserStorage findLoggedIn() {
+        var token = authenticationBo.findTokenUser();
+        return token != null ? convertTokenUserToUserStorage(token) : null;
+    }
 
-	@Transactional
-	public UserStorage findLoggedInWithDetails() {
-		UserStorage tokenSimpleUser = findLoggedIn();
-		if (tokenSimpleUser != null) {
-			UserStorage dbFullUser = findById(tokenSimpleUser.getId());
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.16
+     */
+    public List<Integer> findAllIds() {
+        return userStorageRepository.findAllIds();
+    }
 
-			if (!tokenSimpleUser.getEmail().equals(dbFullUser.getEmail())
-					|| !tokenSimpleUser.getUsername().equals(dbFullUser.getUsername())) {
-				dbFullUser.setEmail(tokenSimpleUser.getEmail());
-				dbFullUser.setUsername(tokenSimpleUser.getUsername());
-				save(dbFullUser);
-			}
-			return dbFullUser;
-		} else {
-			return null;
-		}
-	}
+    @Transactional
+    public UserStorage findLoggedInWithDetails() {
+        UserStorage tokenSimpleUser = findLoggedIn();
+        if (tokenSimpleUser != null) {
+            UserStorage dbFullUser = findById(tokenSimpleUser.getId());
 
-	public UserStorage findOneByMission(Mission mission) {
-		return userStorageRepository.findOneByMissions(mission);
-	}
+            if (!tokenSimpleUser.getEmail().equals(dbFullUser.getEmail())
+                    || !tokenSimpleUser.getUsername().equals(dbFullUser.getUsername())) {
+                dbFullUser.setEmail(tokenSimpleUser.getEmail());
+                dbFullUser.setUsername(tokenSimpleUser.getUsername());
+                save(dbFullUser);
+            }
+            return dbFullUser;
+        } else {
+            return null;
+        }
+    }
 
-	/**
-	 *
-	 * @since 0.9.14
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public int countByAlliance(Alliance alliance) {
-		return userStorageRepository.countByAlliance(alliance);
-	}
+    public UserStorage findOneByMission(Mission mission) {
+        return userStorageRepository.findOneByMissions(mission);
+    }
 
-	/**
-	 * Will subscribe logged in user to this universe
-	 *
-	 * @param factionId Faction that the user wants to use
-	 * @return Success registering the user, if user exists already, it's not a
-	 *         success!
-	 * @author Kevin Guanche Darias
-	 */
-	@Transactional(propagation = Propagation.REQUIRED)
-	public boolean subscribe(Integer factionId) {
-		if (!factionBo.exists(factionId)) {
-			throw new SgtFactionNotFoundException("La facción escogida NO existe");
-		}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.14
+     */
+    public int countByAlliance(Alliance alliance) {
+        return userStorageRepository.countByAlliance(alliance);
+    }
 
-		UserStorage user = findLoggedIn();
+    /**
+     * Will subscribe logged in user to this universe
+     *
+     * @param factionId Faction that the user wants to use
+     * @return Success registering the user, if user exists already, it's not a
+     * success!
+     * @author Kevin Guanche Darias
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean subscribe(Integer factionId) {
+        if (!factionBo.exists(factionId)) {
+            throw new SgtFactionNotFoundException("La facción escogida NO existe");
+        }
 
-		if (userStorageRepository.existsById(user.getId())) {
-			return false;
-		}
+        UserStorage user = findLoggedIn();
 
-		var selectedFaction = factionBo.findById(factionId);
-		var selectedPlanet = planetBo.findRandomPlanet(null);
-		user.setFaction(selectedFaction);
-		user.setHomePlanet(selectedPlanet);
-		user.setPrimaryResource(selectedFaction.getInitialPrimaryResource().doubleValue());
-		user.setSecondaryResource(selectedFaction.getInitialSecondaryResource().doubleValue());
-		user.setEnergy(selectedFaction.getInitialEnergy().doubleValue());
-		user.setLastAction(new Date());
-		user = userStorageRepository.save(user);
+        if (userStorageRepository.existsById(user.getId())) {
+            return false;
+        }
 
-		selectedPlanet.setOwner(user);
-		selectedPlanet.setHome(true);
+        var selectedFaction = factionBo.findById(factionId);
+        var selectedPlanet = planetBo.findRandomPlanet(factionSpawnLocationBo.determineSpawnGalaxy(selectedFaction));
+        user.setFaction(selectedFaction);
+        user.setHomePlanet(selectedPlanet);
+        user.setPrimaryResource(selectedFaction.getInitialPrimaryResource().doubleValue());
+        user.setSecondaryResource(selectedFaction.getInitialSecondaryResource().doubleValue());
+        user.setEnergy(selectedFaction.getInitialEnergy().doubleValue());
+        user.setLastAction(new Date());
+        user = userStorageRepository.save(user);
 
-		planetBo.save(selectedPlanet);
+        selectedPlanet.setOwner(user);
+        selectedPlanet.setHome(true);
 
-		requirementBo.triggerFactionSelection(user);
-		requirementBo.triggerHomeGalaxySelection(user);
-		if (user.getId() > 0) {
-			auditBo.doAudit(AuditActionEnum.SUBSCRIBE_TO_WORLD);
-		}
-		return user.getId() > 0;
-	}
+        planetBo.save(selectedPlanet);
 
-	public Boolean isOfFaction(Integer factionId, Integer userId) {
-		return userStorageRepository.findOneByIdAndFactionId(userId, factionId) != null;
-	}
+        requirementBo.triggerFactionSelection(user);
+        requirementBo.triggerHomeGalaxySelection(user);
+        if (user.getId() > 0) {
+            auditBo.doAudit(AuditActionEnum.SUBSCRIBE_TO_WORLD);
+        }
+        return user.getId() > 0;
+    }
 
-	/**
-	 * Will update <b>logged in user</b> resources, based on seconds passed since
-	 * last resources update
-	 *
-	 * @author Kevin Guanche Darias
-	 */
-	@Transactional
-	public void triggerResourcesUpdate(Integer userId) {
-		UserStorage user = findByIdOrDie(userId);
-		var faction = user.getFaction();
-		GroupedImprovement userImprovements = improvementBo.findUserImprovement(user);
-		var now = new Date();
-		var lastLogin = user.getLastAction();
-		userStorageRepository.addResources(user, now,
-				calculateSum(now, lastLogin,
-						computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
-								userImprovements.getMorePrimaryResourceProduction())),
-				calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getSecondaryResourceProduction(),
-						userImprovements.getMoreSecondaryResourceProduction())));
-	}
+    public Boolean isOfFaction(Integer factionId, Integer userId) {
+        return userStorageRepository.findOneByIdAndFactionId(userId, factionId) != null;
+    }
 
-	public boolean isYourPlanet(Planet planet, UserStorage user) {
-		return planet.getOwner() != null && planet.getOwner().getId().equals(user.getId());
-	}
+    /**
+     * Will update <b>logged in user</b> resources, based on seconds passed since
+     * last resources update
+     *
+     * @author Kevin Guanche Darias
+     */
+    @Transactional
+    public void triggerResourcesUpdate(Integer userId) {
+        UserStorage user = findByIdOrDie(userId);
+        var faction = user.getFaction();
+        GroupedImprovement userImprovements = improvementBo.findUserImprovement(user);
+        var now = new Date();
+        var lastLogin = user.getLastAction();
+        userStorageRepository.addResources(user, now,
+                calculateSum(now, lastLogin,
+                        computeUserResourcePerSecond(faction.getPrimaryResourceProduction(),
+                                userImprovements.getMorePrimaryResourceProduction())),
+                calculateSum(now, lastLogin, computeUserResourcePerSecond(faction.getSecondaryResourceProduction(),
+                        userImprovements.getMoreSecondaryResourceProduction())));
+    }
 
-	/**
-	 * Checks if you own the specified planet
-	 *
-	 * @throws PlanetNotFoundException when planet doesn't exists
-	 * @throws NotYourPlanetException  When you do not own the planet
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void checkOwnPlanet(Long planetId) {
-		var planet = planetBo.findById(planetId);
-		if (planet == null) {
-			throw new PlanetNotFoundException("No such planet, with id " + planetId);
-		}
-		if (!isYourPlanet(planet, findLoggedIn())) {
-			throw new NotYourPlanetException("Yo do not own that planet, buy it in the black market?");
-		}
-	}
+    public boolean isYourPlanet(Planet planet, UserStorage user) {
+        return planet.getOwner() != null && planet.getOwner().getId().equals(user.getId());
+    }
 
-	public void addPointsToUser(UserStorage user, Double points) {
-		userStorageRepository.addPointsToUser(user, points);
-	}
+    /**
+     * Checks if you own the specified planet
+     *
+     * @throws PlanetNotFoundException when planet doesn't exists
+     * @throws NotYourPlanetException  When you do not own the planet
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void checkOwnPlanet(Long planetId) {
+        var planet = planetBo.findById(planetId);
+        if (planet == null) {
+            throw new PlanetNotFoundException("No such planet, with id " + planetId);
+        }
+        if (!isYourPlanet(planet, findLoggedIn())) {
+            throw new NotYourPlanetException("Yo do not own that planet, buy it in the black market?");
+        }
+    }
 
-	public Double findConsumedEnergy(UserStorage user) {
-		return obtainedUnitBo.findConsumeEnergyByUser(user);
-	}
+    public void addPointsToUser(UserStorage user, Double points) {
+        userStorageRepository.addPointsToUser(user, points);
+    }
 
-	/**
-	 *
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Double findMaxEnergy(Integer userId) {
-		return findMaxEnergy(findByIdOrDie(userId));
-	}
+    public Double findConsumedEnergy(UserStorage user) {
+        return obtainedUnitBo.findConsumeEnergyByUser(user);
+    }
 
-	public Double findMaxEnergy(UserStorage user) {
-		var groupedImprovement = improvementBo.findUserImprovement(user);
-		var faction = user.getFaction();
-		return improvementBo.computeImprovementValue(faction.getInitialEnergy().floatValue(),
-				groupedImprovement.getMoreEnergyProduction());
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public Double findMaxEnergy(Integer userId) {
+        return findMaxEnergy(findByIdOrDie(userId));
+    }
 
-	/**
-	 * Returns the available energy of the user <br>
-	 * <b>NOTICE: Expensive method </b>
-	 *
-	 * @todo For god's sake create a cache system
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Double findAvailableEnergy(UserStorage user) {
-		return findMaxEnergy(user) - findConsumedEnergy(user);
-	}
+    public Double findMaxEnergy(UserStorage user) {
+        var groupedImprovement = improvementBo.findUserImprovement(user);
+        var faction = user.getFaction();
+        return improvementBo.computeImprovementValue(faction.getInitialEnergy().floatValue(),
+                groupedImprovement.getMoreEnergyProduction());
+    }
 
-	/**
-	 * Defines the new alliance for all the users having and old alliance <br>
-	 * Usually used to delete an alliance
-	 *
-	 * @since 0.7.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
-		Alliance targetNewAlliance = newAlliance == null ? null : allianceBo.findById(newAlliance);
-		userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance), targetNewAlliance);
-	}
+    /**
+     * Returns the available energy of the user <br>
+     * <b>NOTICE: Expensive method </b>
+     *
+     * @todo For god's sake create a cache system
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public Double findAvailableEnergy(UserStorage user) {
+        return findMaxEnergy(user) - findConsumedEnergy(user);
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public void leave(Integer userId) {
-		UserStorage userRef = getOne(userId);
-		if (allianceBo.isOwnerOfAnAlliance(userId)) {
-			throw new SgtBackendInvalidInputException("You can't leave your own alliance");
-		}
-		userRef.setAlliance(null);
-		save(userRef);
-	}
+    /**
+     * Defines the new alliance for all the users having and old alliance <br>
+     * Usually used to delete an alliance
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
+     */
+    @Transactional
+    public void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
+        Alliance targetNewAlliance = newAlliance == null ? null : allianceBo.findById(newAlliance);
+        userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance), targetNewAlliance);
+    }
 
-	/**
-	 * Saves the user <br>
-	 * <b>NOTICE:</b> Emits the change to all connected websockets
-	 *
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public UserStorage save(UserStorage user, boolean emitChange) {
-		UserStorage savedUser = BaseBo.super.save(user);
-		if (emitChange && user.getId() != null) {
-			TransactionUtil.doAfterCommit(() -> {
-				entityManager.refresh(savedUser);
-				emitUserData(user);
-			});
-		}
-		return savedUser;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
+     */
+    @Transactional
+    public void leave(Integer userId) {
+        UserStorage userRef = getOne(userId);
+        if (allianceBo.isOwnerOfAnAlliance(userId)) {
+            throw new SgtBackendInvalidInputException("You can't leave your own alliance");
+        }
+        userRef.setAlliance(null);
+        save(userRef);
+    }
 
-	@Transactional
-	@Override
-	public UserStorage save(UserStorage user) {
-		return save(user, true);
-	}
+    /**
+     * Saves the user <br>
+     * <b>NOTICE:</b> Emits the change to all connected websockets
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    @Transactional
+    public UserStorage save(UserStorage user, boolean emitChange) {
+        UserStorage savedUser = BaseBo.super.save(user);
+        if (emitChange && user.getId() != null) {
+            TransactionUtil.doAfterCommit(() -> {
+                entityManager.refresh(savedUser);
+                emitUserData(user);
+            });
+        }
+        return savedUser;
+    }
 
-	/**
-	 * Finds all the user data as a DTO
-	 *
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public UserStorageDto findData(UserStorage user) {
-		var userDto = new UserStorageDto();
-		userDto.dtoFromEntity(user);
-		userDto.setImprovements(improvementBo.findUserImprovement(user));
-		userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, user.getFaction()));
-		userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
-		userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
+    @Transactional
+    @Override
+    public UserStorage save(UserStorage user) {
+        return save(user, true);
+    }
 
-		var galaxyData = user.getHomePlanet().getGalaxy();
-		userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
-		userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
-		userDto.setConsumedEnergy(findConsumedEnergy(user));
-		userDto.setMaxEnergy(findMaxEnergy(user));
-		return userDto;
-	}
+    /**
+     * Finds all the user data as a DTO
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public UserStorageDto findData(UserStorage user) {
+        var userDto = new UserStorageDto();
+        userDto.dtoFromEntity(user);
+        userDto.setImprovements(improvementBo.findUserImprovement(user));
+        userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, user.getFaction()));
+        userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
+        userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
 
-	public boolean isBanned(Integer userId) {
-		return userStorageRepository.isBanned(userId);
-	}
+        var galaxyData = user.getHomePlanet().getGalaxy();
+        userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
+        userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
+        userDto.setConsumedEnergy(findConsumedEnergy(user));
+        userDto.setMaxEnergy(findMaxEnergy(user));
+        return userDto;
+    }
 
-	public List<UserStorage> findByLastMultiAccountCheckNewerThan(LocalDateTime date) {
-		return userStorageRepository
-				.findByLastMultiAccountCheckLessThanOrLastMultiAccountCheckIsNullOrderByLastMultiAccountCheckAsc(
-						date,
-						PageRequest.of(0, 50)
-				);
-	}
+    public boolean isBanned(Integer userId) {
+        return userStorageRepository.isBanned(userId);
+    }
 
-	/**
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @since 0.9.7
-	 */
-	public void emitUserData(UserStorage user) {
-		socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
-	}
+    public List<UserStorage> findByLastMultiAccountCheckNewerThan(LocalDateTime date) {
+        return userStorageRepository
+                .findByLastMultiAccountCheckLessThanOrLastMultiAccountCheckIsNullOrderByLastMultiAccountCheckAsc(
+                        date,
+                        PageRequest.of(0, 50)
+                );
+    }
 
-	private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
-		var user = new UserStorage();
-		user.setId(tokenUser.getId().intValue());
-		user.setEmail(tokenUser.getEmail());
-		user.setUsername(tokenUser.getUsername());
-		return user;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.7
+     */
+    public void emitUserData(UserStorage user) {
+        socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
+    }
 
-	/**
-	 *
-	 * @param now            datetime representing now!
-	 * @param lastAction     datetime representing the last time value was update
-	 * @param perSecondValue Value to increase each second
-	 * @return the new value for the given resource
-	 * @author Kevin Guanche Darias
-	 */
-	private Double calculateSum(Date now, Date lastAction, Double perSecondValue) {
-		double difference = (now.getTime() - lastAction.getTime()) / (double) 1000;
-		return (difference * perSecondValue);
-	}
+    private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
+        var user = new UserStorage();
+        user.setId(tokenUser.getId().intValue());
+        user.setEmail(tokenUser.getEmail());
+        user.setUsername(tokenUser.getUsername());
+        return user;
+    }
 
-	/**
-	 * Computes the resource per second that one faction resource has according to
-	 * the current user improvement
-	 *
-	 * @param factionResource     The faction resource production
-	 * @param resourceImprovement The improvement resource production
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {
-		return improvementBo.computePlusPercertage(factionResource, resourceImprovement);
-	}
+    /**
+     * @param now            datetime representing now!
+     * @param lastAction     datetime representing the last time value was update
+     * @param perSecondValue Value to increase each second
+     * @return the new value for the given resource
+     * @author Kevin Guanche Darias
+     */
+    private Double calculateSum(Date now, Date lastAction, Double perSecondValue) {
+        double difference = (now.getTime() - lastAction.getTime()) / (double) 1000;
+        return (difference * perSecondValue);
+    }
+
+    /**
+     * Computes the resource per second that one faction resource has according to
+     * the current user improvement
+     *
+     * @param factionResource     The faction resource production
+     * @param resourceImprovement The improvement resource production
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    private double computeUserResourcePerSecond(Float factionResource, Float resourceImprovement) {
+        return improvementBo.computePlusPercertage(factionResource, resourceImprovement);
+    }
 }
