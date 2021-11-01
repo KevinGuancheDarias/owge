@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
 
@@ -17,7 +16,7 @@ public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
 
 
     default List<E> findAll() {
-        return getRepository().findAll().stream().map(this::onFind).collect(Collectors.toList());
+        return getRepository().findAll().stream().map(this::onFind).toList();
     }
 
     /**
@@ -25,7 +24,7 @@ public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
      * @since 0.9.19
      */
     default List<E> findAll(Sort sort) {
-        return getRepository().findAll(sort).stream().map(this::onFind).collect(Collectors.toList());
+        return getRepository().findAll(sort).stream().map(this::onFind).toList();
     }
 
     default long countAll() {

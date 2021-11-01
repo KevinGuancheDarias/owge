@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 @Service
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
+    @Serial
     private static final long serialVersionUID = 2837362546838035726L;
 
     public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
@@ -76,7 +78,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     private DtoUtilService dtoUtilService;
 
     @Autowired
-    private FactionSpawnLocationBo factionSpawnLocationBo;
+    private transient FactionSpawnLocationBo factionSpawnLocationBo;
 
     @Autowired
     @Lazy
