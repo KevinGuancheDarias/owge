@@ -1,4 +1,4 @@
-<owge-core-modal *ngIf="selectedEl">
+<owge-core-modal #overrides *ngIf="selectedEl">
     <div class="header">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.TITLE' | translate: {factionName: selectedEl.name} }}</div>
     <div class="body">
         <table>
@@ -17,6 +17,25 @@
     <div class="footer">
         <button class="btn" (click)="saveOverrides()">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.BTN_SAVE' | translate }}</button>
         <button class="btn" (click)="unitTypesOverridesModal.hide()"> {{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.MODAL.BTN_CANCEL' | translate }} </button>
+    </div>
+</owge-core-modal>
+<owge-core-modal #spawnLocations *ngIf="selectedEl">
+    <div class="header">{{ 'CRUD.FACTION.SPAWN_LOCATIONS.MODAL.TITLE' | translate: {factionName: selectedEl.name} }}</div>
+    <div class="body">
+        <table>
+            <tr>
+                <th>{{ 'CRUD.FACTION.SPAWN_LOCATIONS.MODAL.TABLE.HEADER.IS_SELECTED' | translate }}</th>
+                <th>{{ 'CRUD.FACTION.SPAWN_LOCATIONS.MODAL.TABLE.HEADER.GALAXY_NAME' | translate }}</th>
+            </tr>
+            <tr *ngFor="let galaxy of galaxies">
+                <td><input type="checkbox" [(ngModel)]="galaxy.isSpawnLocation"/></td>
+                <td>{{ galaxy.name }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <button class="btn" (click)="saveSpawnLocations()">{{ 'CRUD.FACTION.SPAWN_LOCATIONS.MODAL.BTN_SAVE' | translate }}</button>
+        <button class="btn" (click)="spawnLocationsModal.hide()"> {{ 'CRUD.FACTION.SPAWN_LOCATIONS.MODAL.BTN_CANCEL' | translate }} </button>
     </div>
 </owge-core-modal>
 <app-common-crud-with-image [_crudService]="adminFactionService" (elementSelected)="onSelected($event)">
@@ -92,6 +111,9 @@
 
             <div class="form-group col-md-6">
                 <button (click)="unitTypesOverridesModal.show()" class="btn">{{ 'CRUD.FACTION.UNIT_TYPES_OVERRIDES.BTN_OPEN' | translate }}</button>
+            </div>
+            <div class="form-group col-md-6">
+                <button (click)="spawnLocationsModal.show()" class="btn">{{ 'CRUD.FACTION.SPAWN_LOCATIONS.BTN_OPEN' | translate }}</button>
             </div>
 
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>

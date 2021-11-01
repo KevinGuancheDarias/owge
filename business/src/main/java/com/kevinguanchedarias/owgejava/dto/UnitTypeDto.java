@@ -4,14 +4,18 @@ import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil
 import com.kevinguanchedarias.owgejava.dto.base.DtoWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEntity<UnitType> {
 
+    @EqualsAndHashCode.Include
     private Integer id;
+
     private String name;
     private Long image;
     private String imageUrl;

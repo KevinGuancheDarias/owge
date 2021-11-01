@@ -1,5 +1,5 @@
 # Step Compile business, rest & admin
-FROM maven:3-jdk-11-openj9 as game-war-files
+FROM maven:3-openjdk-17-slim as game-war-files
 WORKDIR /build/business
 COPY business/pom.xml .
 RUN mvn dependency:go-offline
@@ -13,9 +13,9 @@ COPY game-rest/src /build/rest/src
 RUN mvn install -DskipTests
 
 # Tomcat base
-FROM maven:3-jdk-11-openj9 as spring-base
-RUN apt-get update && apt-get install -y mysql-client
-RUN addgroup spring && useradd  -g spring -d /nonexistent -s /bin/false spring
+FROM openjdk:17-jdk-alpine as spring-base
+RUN apk add  mysql-client
+RUN addgroup spring && adduser -S spring -G spring
 RUN mkdir /app
 RUN chown spring:spring /app
 USER spring:spring

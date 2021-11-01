@@ -85,7 +85,22 @@
                     "BTN_SAVE": "Save",
                     "BTN_CANCEL": "Cancel"
                 }
+            },
+            "SPAWN_LOCATIONS": {
+                "BTN_OPEN": "Open faction spawn locations",
+                "MODAL": {
+                    "TITLE": "Editing spawn locations for faction {{factionName}}",
+                    "TABLE": {
+                        "HEADER": {
+                            "IS_SELECTED": "Is selected",
+                            "GALAXY_NAME": "galaxy name"
+                        }
+                    },
+                    "BTN_SAVE": "Save",
+                    "BTN_CANCEL": "Cancel"
+                }
             }
+
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Display name",

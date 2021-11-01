@@ -1,11 +1,13 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.converter.faction.FactionSpawnLocationDtoToEntityConverter;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.fake.ImprovementHibernateProxy;
 import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
+import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,10 +15,15 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Collection;
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.OVERRIDE_MAX_COUNT;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.UNIT_TYPE_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenEntity;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenOverride;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,13 +39,17 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
         classes = {
-                FactionBo.class
+                FactionBo.class,
+                FactionSpawnLocationDtoToEntityConverter.class,
+                DefaultConversionService.class
         }
 )
 @MockBean({
         FactionRepository.class,
         FactionUnitTypeRepository.class,
-        UnitTypeBo.class
+        UnitTypeBo.class,
+        GalaxyBo.class,
+        FactionSpawnLocationRepository.class
 })
 class FactionBoTest {
 
@@ -52,12 +63,17 @@ class FactionBoTest {
             FactionBo factionBo,
             FactionRepository factionRepository,
             UnitTypeBo unitTypeBo,
-            FactionUnitTypeRepository factionUnitTypeRepository
+            FactionUnitTypeRepository factionUnitTypeRepository,
+            GalaxyBo galaxyBo,
+            FactionSpawnLocationRepository factionSpawnLocationRepository,
+            DefaultConversionService conversionService,
+            Collection<Converter<?, ?>> converters
     ) {
         this.factionBo = factionBo;
         this.factionRepository = factionRepository;
         this.unitTypeBo = unitTypeBo;
         this.factionUnitTypeRepository = factionUnitTypeRepository;
+        converters.forEach(conversionService::addConverter);
     }
 
     @Test
@@ -134,25 +150,21 @@ class FactionBoTest {
     void saveOverrides_should_delete_old_overrides_and_save_new_ones() {
         var factionId = 1;
         var givenFaction = givenEntity();
-        var overrideId = 128;
-        var maxCount = 14;
-        var unitType = UnitTypeMock.givenEntity(overrideId);
-        given(unitTypeBo.getOne(overrideId)).willReturn(unitType);
-        given(factionRepository.getOne(factionId)).willReturn(givenFaction);
+        var unitType = UnitTypeMock.givenEntity(UNIT_TYPE_ID);
+        given(unitTypeBo.getOne(UNIT_TYPE_ID)).willReturn(unitType);
+        given(factionRepository.getById(factionId)).willReturn(givenFaction);
 
-        this.factionBo.saveOverrides(factionId, List.of(givenOverride(overrideId, maxCount)));
+        this.factionBo.saveOverrides(factionId, List.of(givenOverride()));
 
         verify(factionUnitTypeRepository, times(1)).deleteByFactionId(factionId);
-        verify(unitTypeBo, times(1)).getOne(overrideId);
-        verify(factionRepository, times(1)).getOne(factionId);
+        verify(unitTypeBo, times(1)).getOne(UNIT_TYPE_ID);
+        verify(factionRepository, times(1)).getById(factionId);
         var captor = ArgumentCaptor.forClass(FactionUnitType.class);
         verify(factionUnitTypeRepository, times(1)).save(captor.capture());
         var result = captor.getValue();
         assertEquals(unitType, result.getUnitType());
         assertEquals(givenFaction, result.getFaction());
         assertNull(result.getId());
-        assertEquals(maxCount, result.getMaxCount());
-
-
+        assertEquals(OVERRIDE_MAX_COUNT, result.getMaxCount());
     }
 }

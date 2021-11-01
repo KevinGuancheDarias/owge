@@ -16,6 +16,7 @@ import { WidgetFilter } from '@owge/widgets';
 import { Observable } from 'rxjs';
 
 import { UnitTypeWithOverrides } from '../types/unit-type-with-overrides.type';
+import { FactionSpawnLocation } from '../types/faction-spawn-location.type';
 
 export interface AdminFactionService
     extends AbstractCrudService<Faction>, WithRequirementsCrudMixin<number>, WithImprovementsCrudMixin<number> { }
@@ -31,14 +32,12 @@ export interface AdminFactionService
  */
 @Injectable()
 export class AdminFactionService extends AbstractCrudService<Faction> {
-
     protected _crudConfig: CrudConfig;
 
     public constructor(protected _universeGameService: UniverseGameService) {
         super(_universeGameService);
         this._crudConfig = this.getCrudConfig();
     }
-
 
     /**
      * Will filter the input by the been faction requirement
@@ -84,6 +83,19 @@ export class AdminFactionService extends AbstractCrudService<Faction> {
      */
     public saveUnitTypes(factionId: number, overrides: UnitTypeWithOverrides[]): Observable<void> {
         return this._universeGameService.requestWithAutorizationToContext('admin', 'put', `faction/${factionId}/unitTypes`, overrides);
+    }
+
+    public findSpawnLocations(factionId: number): Observable<FactionSpawnLocation[]> {
+        return this._universeGameService.requestWithAutorizationToContext('admin', 'get', `faction/${factionId}/spawn-locations`);
+    }
+
+    public saveSpawnLocations(factionId: number, factionSpawnLocations: Partial<FactionSpawnLocation>[]): Observable<void> {
+        return this._universeGameService.requestWithAutorizationToContext(
+            'admin',
+            'put',
+            `faction/${factionId}/spawn-locations`,
+            factionSpawnLocations
+        );
     }
 
     protected _getEntity(): string {

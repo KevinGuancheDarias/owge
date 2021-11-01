@@ -2,6 +2,8 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I want my faction to spawn in certain locations #406](https://github.com/KevinGuancheDarias/owge/issues/406)  
+* [class=Admin] __Feature:__  [As an admin I want to define where certain factions can spawn their home planet #405](https://github.com/KevinGuancheDarias/owge/issues/405)  
 * __Feature:__ [As a player I want to be able to increase units speed #401](https://github.com/KevinGuancheDarias/owge/issues/401)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define improvements that improve the speed of units having speed #400](https://github.com/KevinGuancheDarias/owge/issues/400)  
 

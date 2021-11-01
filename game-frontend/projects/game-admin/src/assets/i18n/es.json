@@ -75,6 +75,20 @@
                     "BTN_SAVE": "Guardar",
                     "BTN_CANCEL": "Cancelar"
                 }
+            },
+            "SPAWN_LOCATIONS": {
+                "BTN_OPEN": "Ubicaciones para facción",
+                "MODAL": {
+                    "TITLE": "Editando ubicaciones para {{factionName}}",
+                    "TABLE": {
+                        "HEADER": {
+                            "IS_SELECTED": "Seleccionada",
+                            "GALAXY_NAME": "Nombre galaxia"
+                        }
+                    },
+                    "BTN_SAVE": "Guardar",
+                    "BTN_CANCEL": "Cancelar"
+                }
             }
         },
         "CONFIGURATION": {
