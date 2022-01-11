@@ -60,6 +60,15 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
 import { AdminUpgradeService } from './services/admin-upgrade.service';
 import { AdminUserService } from './services/admin-user.service';
+import { RulesModalComponent } from './components/rules-modal/rules-modal.component';
+import { AdminRuleService } from './services/admin-rule.service';
+import { ruleDestinationProviderServiceToken } from './services/rule-destination-provider/rule-destination-provider-service.interface';
+import { UnitRuleDestinationProviderService } from './services/rule-destination-provider/unit-rule-destination-provider.service';
+import { UnitTypeRuleDestinationProviderService } from './services/rule-destination-provider/unit-type-rule-destination-provider.service';
+import { ruleTypeDescriptorProviderToken } from './services/rule-type-descriptor-provider/rule-type-descriptor-provider-service.interface';
+import {
+  UnitCaptureRuleTypeDescriptorProviderService
+} from './services/rule-type-descriptor-provider/unit-capture-rule-type-descriptor-provider.service';
 
 
 
@@ -92,7 +101,8 @@ import { AdminUserService } from './services/admin-user.service';
     AttackRuleCrudComponent,
     TutorialComponent,
     TranslatableComponent,
-    CriticalAttackCrudComponent
+    CriticalAttackCrudComponent,
+    RulesModalComponent
   ],
   imports: [
     BrowserModule,
@@ -141,11 +151,12 @@ import { AdminUserService } from './services/admin-user.service';
     AdminTutorialEntryService,
     AdminTranslatableService,
     AdminSystemMessageService,
+    AdminRuleService,
     LoadingService,
-    {
-      provide: 'APPLICATION_CONTEXT',
-      useValue: 'admin'
-    }
+    { provide: 'APPLICATION_CONTEXT',useValue: 'admin'},
+    { provide: ruleDestinationProviderServiceToken, useClass: UnitRuleDestinationProviderService, multi: true },
+    { provide: ruleDestinationProviderServiceToken, useClass: UnitTypeRuleDestinationProviderService, multi: true },
+    { provide: ruleTypeDescriptorProviderToken, useClass: UnitCaptureRuleTypeDescriptorProviderService, multi: true}
   ],
   bootstrap: [AppComponent]
 })

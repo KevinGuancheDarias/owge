@@ -45,6 +45,7 @@ export * from './lib/types/critical-attack.type';
 export * from './lib/types/date-representation.type';
 export * from './lib/types/entity-with-image.type';
 export * from './lib/types/http-options.type';
+export * from './lib/types/id-name.type';
 export * from './lib/types/improvement-unit-type.type';
 export * from './lib/types/improvement.type';
 export * from './lib/types/instant.type';

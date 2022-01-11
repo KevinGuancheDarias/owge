@@ -1,5 +1,5 @@
 <select [class]="extraHtmlClass" [compareWith]="compareById.bind(this)" [id]="inputId" class="owge-theme-base-colors"
-    [ngModel]="model" (ngModelChange)="onModelChange($event)" [disabled]="disabled">
+    name="inputId" [ngModel]="model" (ngModelChange)="onModelChange($event)" [disabled]="disabled">
     <option *ngIf="hasNull" [ngValue]="nullValue">{{ nullSelectionI18NName | translate }}</option>
     <option *ngFor="let element of elementsList" [ngValue]="useIdAsValue ? element[idField] : element">{{
         element[nameField] }}</option>

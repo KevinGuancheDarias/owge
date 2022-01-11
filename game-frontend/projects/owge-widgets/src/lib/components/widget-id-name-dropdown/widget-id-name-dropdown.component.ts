@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, ChangeDetectionStrategy, ChangeDetectorRef, OnChanges, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 
 
 /**
@@ -18,7 +18,7 @@ export class WidgetIdNameDropdownComponent implements OnChanges {
 
   @Input() public useIdAsValue = false;
   @Input() public nullSelectionI18NName = 'WIDGETS.ID_NAME_DROPDOWN.SELECT';
-  @Input() public inputId: string;
+  @Input() public inputId = `generated-${Math.random().toString().replace('.', '')}`;
   @Input() public disabled = false;
   @Input() public idField = 'id';
   @Input() public nameField = 'name';
