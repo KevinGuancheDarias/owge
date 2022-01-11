@@ -20,6 +20,9 @@
             'CRUD.UNIT.INTERCEPTABLE_GROUPS.MODAL.BTN_CANCEL' | translate }}</button>
     </div>
 </owge-core-modal>
+<app-rules-modal *ngIf="selectedEl?.id" originType="UNIT" [originId]="selectedEl.id" [displayName]="selectedEl?.name">
+
+</app-rules-modal>
 <app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)"
     [customElementsSource]="elsObservable">
     <ng-template #beforeList>
@@ -114,6 +117,10 @@
             <div class="form-group col-md-12">
                 <app-object-requirements-crud [service]="adminUnitService" [entityId]="selectedEl.id">
                 </app-object-requirements-crud>
+            </div>
+            <div class="col-md-12 owge-form-header">{{ 'CRUD.RULES.TITLE' | translate }}</div>
+            <div class="form-group col-md-12">
+                <button (click)="rulesModal.show()" class="btn">{{ 'CRUD.RULES.BTN_RULES' | translate }}</button>
             </div>
         </ng-container>
     </ng-template>

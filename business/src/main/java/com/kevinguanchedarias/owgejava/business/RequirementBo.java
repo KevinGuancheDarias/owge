@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +55,7 @@ import java.util.stream.Stream;
 @Component
 @Transactional
 public class RequirementBo implements Serializable {
+    @Serial
     private static final long serialVersionUID = -7069590234333605969L;
 
     private static final Logger LOG = Logger.getLogger(RequirementBo.class);
