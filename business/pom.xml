@@ -29,7 +29,8 @@
             **/*Configuration.java,
             **/com/kevinguanchedarias/owgejava/entity/**/*,
             **/com/kevinguanchedarias/owgejava/pojo/**/*,
-            **/com/kevinguanchedarias/owgejava/security/**/*
+            **/com/kevinguanchedarias/owgejava/security/**/*,
+            **/com/kevinguanchedarias/owgejava/mock/**/*
         </sonar.exclusions>
         <sonar.report>target/site/jacoco/jacoco.xml</sonar.report>
     </properties>
