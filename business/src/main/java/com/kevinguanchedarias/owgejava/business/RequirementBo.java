@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
@@ -116,6 +117,9 @@ public class RequirementBo implements Serializable {
 
     @Autowired
     private UnitRepository unitRepository;
+
+    @Autowired
+    private List<RequirementSource> requirementSources;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -412,7 +416,8 @@ public class RequirementBo implements Serializable {
     private boolean checkRequirementsAreMet(ObjectRelation objectRelation, UserStorage user) {
         for (RequirementInformation currentRequirement : objectRelation.getRequirements()) {
             boolean status;
-            switch (RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode())) {
+            var requirementType = RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode());
+            switch (requirementType) {
                 case UPGRADE_LEVEL:
                     status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
                     break;
@@ -432,14 +437,22 @@ public class RequirementBo implements Serializable {
                     status = checkSpecialLocationRequirement(currentRequirement, user);
                     break;
                 default:
-                    throw new SgtBackendNotImplementedException(
-                            "Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
+                    status = runRequirementSources(requirementType, currentRequirement, user);
+                    break;
             }
             if (!status) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean runRequirementSources(RequirementTypeEnum requirementType, RequirementInformation requirementInformation, UserStorage user) {
+        return requirementSources.stream()
+                .filter(requirementSource -> requirementSource.supports(requirementType.name()))
+                .findFirst()
+                .map(requirementSource -> requirementSource.checkRequirementIsMet(requirementInformation, user))
+                .orElseThrow(() -> new SgtBackendNotImplementedException("Not implemented requirement type: " + requirementInformation.getRequirement().getCode()));
     }
 
     private boolean checkUpgradeLevelRequirement(RequirementInformation requirementInformation, Integer userId) {
@@ -517,7 +530,6 @@ public class RequirementBo implements Serializable {
                 case TIME_SPECIAL:
                     emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
                     break;
-
                 case REQUIREMENT_GROUP:
                     break;
                 case SPEED_IMPACT_GROUP:
