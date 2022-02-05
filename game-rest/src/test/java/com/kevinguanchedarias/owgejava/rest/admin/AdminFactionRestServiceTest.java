@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.rest.admin;
 import com.kevinguanchedarias.owgejava.OwgeTestConfiguration;
 import com.kevinguanchedarias.owgejava.business.FactionBo;
 import com.kevinguanchedarias.owgejava.business.FactionSpawnLocationBo;
-import com.kevinguanchedarias.owgejava.business.GalaxyBo;
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.dto.FactionSpawnLocationDto;
@@ -52,7 +51,6 @@ import static org.springframework.http.HttpStatus.OK;
         FactionBo.class,
         ImageStoreBo.class,
         AutowireCapableBeanFactory.class,
-        GalaxyBo.class,
         FactionSpawnLocationBo.class
 })
 class AdminFactionRestServiceTest {
@@ -67,7 +65,6 @@ class AdminFactionRestServiceTest {
     public AdminFactionRestServiceTest(
             FactionBo factionBo,
             ImageStoreBo imageStoreBo,
-            AutowireCapableBeanFactory beanFactory,
             AdminFactionRestService adminFactionRestService,
             WebApplicationContext webApplicationContext,
             FactionSpawnLocationBo factionSpawnLocationBo

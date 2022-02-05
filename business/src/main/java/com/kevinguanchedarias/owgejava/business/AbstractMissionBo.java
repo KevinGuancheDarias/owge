@@ -15,10 +15,10 @@ import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
-import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.log4j.Logger;
@@ -93,6 +93,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     protected transient MissionConfigurationBo missionConfigurationBo;
 
     @Autowired
+    protected SocketIoService socketIoService;
+
+    @Autowired
     private MissionReportBo missionReportBo;
 
     @Autowired
@@ -118,6 +121,15 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     @Override
     public Class<MissionDto> getDtoClass() {
         return MissionDto.class;
+    }
+
+    /**
+     * @todo Think in a way to move this to a "MissionEventChangeEmitterService" service
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void emitUnitMissions(Integer userId) {
+        socketIoService.sendMessage(userId, "unit_mission_change",
+                () -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
     }
 
     /**
@@ -203,22 +215,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
     }
 
-    @Transactional
-    public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
-        List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
-        return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)
-                .stream().map(current -> {
-                    UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
-                    retVal.nullifyInvolvedUnitsPlanets();
-                    if (!planetBo.isExplored(user, current.getSourcePlanet())) {
-                        retVal.setSourcePlanet(null);
-                        retVal.setUser(null);
-                    }
-                    ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
-                    return retVal;
-                }).collect(Collectors.toList());
-    }
-
     /**
      * Finds missions that couldn't execute with success
      *
@@ -227,6 +223,19 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      */
     public List<Mission> findHangMissions() {
         return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(new Date());
+    }
+
+    /**
+     * @param type enum based mission type
+     * @return persisted mission type
+     * @author Kevin Guanche Darias
+     */
+    public com.kevinguanchedarias.owgejava.entity.MissionType findMissionType(MissionType type) {
+        com.kevinguanchedarias.owgejava.entity.MissionType retVal = missionTypeRepository.findOneByCode(type.name());
+        if (retVal == null) {
+            throw new SgtBackendInvalidInputException("No MissionType " + type.name() + " was found in the database");
+        }
+        return retVal;
     }
 
     /**
@@ -259,19 +268,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         if (!planetBo.exists(planetId)) {
             throw new PlanetNotFoundException("No such planet with id " + planetId);
         }
-    }
-
-    /**
-     * @param type enum based mission type
-     * @return persisted mission type
-     * @author Kevin Guanche Darias
-     */
-    protected com.kevinguanchedarias.owgejava.entity.MissionType findMissionType(MissionType type) {
-        com.kevinguanchedarias.owgejava.entity.MissionType retVal = missionTypeRepository.findOneByCode(type.name());
-        if (retVal == null) {
-            throw new SgtBackendInvalidInputException("No MissionType " + type.name() + " was found in the database");
-        }
-        return retVal;
     }
 
     /**
@@ -327,12 +323,8 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
     protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
                                            UserStorage user) {
-        MissionReport missionReport = new MissionReport("{}", mission);
-        missionReport.setUser(user);
-        missionReport = missionReportBo.save(missionReport);
-        missionReport.setReportDate(new Date());
-        missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-        missionReport.setIsEnemy(isEnemy);
+        MissionReport missionReport = missionReportBo.create(builder, isEnemy, user);
+        missionReport.setMission(mission);
         mission.setReport(missionReport);
     }
 

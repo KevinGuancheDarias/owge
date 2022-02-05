@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava;
 
 import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
+import com.kevinguanchedarias.owgejava.business.GalaxyBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.entity.Configuration;
 import com.kevinguanchedarias.owgejava.security.AdminTokenConfigLoader;
@@ -19,7 +20,8 @@ import static org.mockito.Mockito.when;
 @MockBean({
         ConfigurationBo.class,
         AdminTokenConfigLoader.class,
-        UserStorageBo.class
+        UserStorageBo.class,
+        GalaxyBo.class
 })
 @AllArgsConstructor
 public class OwgeTestConfiguration {

@@ -25,6 +25,8 @@
         "BTN_SAVE": "Guardar",
         "BTN_CANCEL": "Cancelar",
         "BTN_CLOSE": "Cerrar",
+        "BTN_EDIT": "Editar",
+        "BTN_DELETE": "Borrar",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
         "TIME_SPECIAL": {
             "DURATION": "Duración",
@@ -185,6 +187,43 @@
                 "TABLE": {
                     "VALUE": "Valor",
                     "IS_EMPTY": "No hay ataques críticos definidos"
+                }
+            }
+        },
+        "RULES": {
+            "TITLE": "Reglas",
+            "BTN_RULES": "Modificar reglas",
+            "MODAL": {
+                "TITLE": "Editar reglas para {{displayName}}",
+                "BTN_ADD_RULE": "Añadir regla",
+                "TABLE": {
+                    "TYPE": "Tipo",
+                    "DESTINATION_TYPE": "Tipo destino",
+                    "DESTINATION": "Destino",
+                    "ACTIONS_HEADER": "Acciones"
+                }
+            },
+            "CRUD_MODAL": {
+                "TITLE": "Editar regla",
+                "FORM_LABEL": {
+                    "TYPE": "Tipo",
+                    "DESTINATION_TYPE": "Tipo destino",
+                    "DESTINATION": "Destino",
+                    "TYPES": {
+                        "UNIT_CAPTURE": {
+                            "PROBABILITY_PERCENTAGE": "Probabilidad capturar (%)",
+                            "CAPTURE_PERCENTAGE": "Porcentage a capturar"
+                        }
+                    }
+                },
+                "FORM_INPUT": {
+                    "TYPES": {
+                        "UNIT_CAPTURE": "Captura de unidad"
+                    },
+                    "DESTINATION_TYPES": {
+                        "UNIT": "Unidad",
+                        "UNIT_TYPE": "Tipo de unidad"
+                    }
                 }
             }
         },

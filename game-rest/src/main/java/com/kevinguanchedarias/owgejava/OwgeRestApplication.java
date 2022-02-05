@@ -12,12 +12,10 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class})
 @EnableWebSecurity
-@EnableWebMvc
 @EnableCaching
 @EnableAsync
 @EnableScheduling

@@ -1,0 +1,90 @@
+<owge-core-modal #childModal [hasCloseButton]="true" [closeOnOverlayClick]="closeOnOverlayClick"
+    [isOpenOnLoad]="isOpenOnLoad" [hasCloseButton]="hasCloseButton">
+
+    <div class="header">
+        {{ 'CRUD.RULES.MODAL.TITLE' | translate: {displayName: displayName} }}
+    </div>
+    <div class="body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>{{ 'CRUD.RULES.MODAL.TABLE.TYPE' | translate }}</th>
+                    <th>{{ 'CRUD.RULES.MODAL.TABLE.DESTINATION_TYPE' | translate }}</th>
+                    <th>{{ 'CRUD.RULES.MODAL.TABLE.DESTINATION' | translate }}</th>
+                    <th>{{ 'CRUD.RULES.MODAL.TABLE.ACTIONS_HEADER' | translate }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let rule of rules$ | async">
+                    <td>{{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.TYPES.' + rule.type | translate }}</td>
+                    <td>{{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.DESTINATION_TYPES.' + rule.destinationType | translate }}
+                    </td>
+                    <td>{{ rule.destinationName$ | async }}</td>
+                    <td>
+                        <button (click)="clickEdit(rule)" class="btn">{{ 'CRUD.BTN_EDIT' |
+                            translate }}</button>
+                        <button (click)="clickDelete(rule)" class="btn">{{ 'CRUD.BTN_DELETE' |
+                            translate }}</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="footer">
+        <button class="btn" role="button" (click)="clickNew()">{{ 'CRUD.RULES.MODAL.BTN_ADD_RULE' | translate
+            }}</button>
+        <button class="btn" role="button" (click)="hide()">{{ 'CRUD.BTN_CLOSE' | translate }}</button>
+    </div>
+</owge-core-modal>
+
+<owge-core-modal #crudModal [hasCloseButton]="false" [closeOnOverlayClick]="false">
+    <div class="header">
+        {{ 'CRUD.RULES.CRUD_MODAL.TITLE' | translate: {displayName: displayName} }}
+    </div>
+    <div class="body" *ngIf="editingRule">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="rule-type">{{ 'CRUD.RULES.CRUD_MODAL.FORM_LABEL.TYPE' | translate }} </label>
+                <select class="form-control" id="rule-type" [(ngModel)]="editingRule.type"
+                    (ngModelChange)="onTypeChange()">
+                    <option [ngValue]="null">{{ 'CRUD.SELECT' | translate }}</option>
+                    <option *ngFor="let type of ruleTypes" [ngValue]="type.name">
+                        {{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.TYPES.' + type.name | translate }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="destination-type">{{ 'CRUD.RULES.CRUD_MODAL.FORM_LABEL.DESTINATION_TYPE' | translate
+                    }}</label>
+                <select class="form-control" id="destination-type" [(ngModel)]="editingRule.destinationType"
+                    (ngModelChange)="onDestinationTypeChange()">
+                    <option [ngValue]="null">{{ 'CRUD.SELECT' | translate }}</option>
+                    <option *ngFor="let type of destinationTypes" [ngValue]="type">
+                        {{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.DESTINATION_TYPES.' + type | translate }}
+                    </option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="destination-id">{{ 'CRUD.RULES.CRUD_MODAL.FORM_LABEL.DESTINATION' | translate }}</label>
+                <select id="destination-id" class="form-control" [disabled]="!destinationItems$"
+                    [(ngModel)]="editingRule.destinationId">
+                    <option [ngValue]="null">{{ 'CRUD.SELECT' | translate }}</option>
+                    <option *ngFor="let item of destinationItems$ | async" [ngValue]="item.id">{{ item.name }}</option>
+                </select>
+            </div>
+            <ng-container *ngIf="editingRule.type">
+                <div class="form-group col-md-6"
+                    *ngFor="let extraArg of editingRuleTypeDescriptor?.extraArgs; let i = index">
+                    <label [for]="'extra-arg' + extraArg.name">{{ 'CRUD.RULES.CRUD_MODAL.FORM_LABEL.TYPES.' +
+                        editingRuleTypeDescriptor.name + '.' + extraArg.name | translate }}</label>
+                    <input class="form-control" [type]="extraArg.formType" [(ngModel)]="editingRule.extraArgs[i]"
+                        [min]="extraArg.min || 0" />
+                </div>
+            </ng-container>
+        </div>
+    </div>
+    <div class="footer">
+        <button class="btn" role="button" (click)="clickSave()">{{ 'CRUD.BTN_SAVE' | translate }}</button>
+        <button class="btn" role="button" (click)="clickCancel()">{{ 'CRUD.BTN_CANCEL' | translate }}</button>
+    </div>
+</owge-core-modal>

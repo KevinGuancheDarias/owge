@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
+import { CoreHttpService, OwgeCoreConfig } from '@owge/core';
 import { UniverseGameService } from '@owge/universe';
 import { Observable } from 'rxjs';
-import { AdminUser } from '../types/admin-user.type';
-import { CoreHttpService, OwgeCoreConfig } from '@owge/core';
 import { AdminUserStore } from '../store/admin-user.store';
-
+import { AdminUser } from '../types/admin-user.type';
 
 /**
  *

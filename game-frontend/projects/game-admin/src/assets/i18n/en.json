@@ -34,6 +34,8 @@
         "BTN_SAVE": "Save",
         "BTN_CANCEL": "Cancel",
         "BTN_CLOSE": "Close",
+        "BTN_EDIT": "Edit",
+        "BTN_DELETE": "Delete",
         "SELECT": "Please select...",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
         "TIME_SPECIAL": {
@@ -100,7 +102,6 @@
                     "BTN_CANCEL": "Cancel"
                 }
             }
-
         },
         "CONFIGURATION": {
             "DISPLAY_NAME": "Display name",
@@ -196,6 +197,43 @@
                 "TABLE": {
                     "VALUE": "Value",
                     "IS_EMPTY": "No critical attack is defined"
+                }
+            }
+        },
+        "RULES": {
+            "TITLE": "Rules",
+            "BTN_RULES": "Modify rules",
+            "MODAL": {
+                "TITLE": "Edit rules for {{displayName}}",
+                "BTN_ADD_RULE": "Add rule",
+                "TABLE": {
+                    "TYPE": "Type",
+                    "DESTINATION_TYPE": "Destination type",
+                    "DESTINATION": "Destination",
+                    "ACTIONS_HEADER": "Actions"
+                }
+            },
+            "CRUD_MODAL": {
+                "TITLE": "Edit rule",
+                "FORM_LABEL": {
+                    "TYPE": "Type",
+                    "DESTINATION_TYPE": "Destination type",
+                    "DESTINATION": "Destination",
+                    "TYPES": {
+                        "UNIT_CAPTURE": {
+                            "PROBABILITY_PERCENTAGE": "Capture probability (%)",
+                            "CAPTURE_PERCENTAGE": "Percentage to capture"
+                        }
+                    }
+                },
+                "FORM_INPUT": {
+                    "TYPES": {
+                        "UNIT_CAPTURE": "Unit Capture"
+                    },
+                    "DESTINATION_TYPES": {
+                        "UNIT": "Unit",
+                        "UNIT_TYPE": "Unit Type"
+                    }
                 }
             }
         }

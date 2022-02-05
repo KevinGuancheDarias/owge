@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-
-import {
-  UniverseGameService, MissionReport, MissionReportResponse, ReportStore,
-  UniverseCacheManagerService, WsEventCacheService
-} from '@owge/universe';
 import { AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
-import { map, take, tap } from 'rxjs/operators';
+import {
+  MissionReport, MissionReportResponse, ReportStore,
+  UniverseCacheManagerService, UniverseGameService, WsEventCacheService
+} from '@owge/universe';
+import { Observable } from 'rxjs';
+import { map, take } from 'rxjs/operators';
+
 
 @Injectable()
 export class ReportService extends AbstractWebsocketApplicationHandler {
@@ -143,6 +143,15 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
   }
 
   protected _onNew(content: MissionReport, emit = true): void {
+    if (content?.parsedJson?.unitCaptureInformation) {
+      content.parsedJson.frontedParsedUnitCapturedInformation = content.parsedJson.unitCaptureInformation.map(
+        captureInfo => ({
+          count: captureInfo.capturedCount,
+          username: captureInfo.oldOwner.username,
+          unit: captureInfo.unit
+        })
+      );
+    }
     this._currentReports.push(content);
     this._currentReports = this._currentReports.sort((a, b) => a.id > b.id ? -1 : 1);
     this._alreadyDownloadedReports.add(content.id);

@@ -8,6 +8,7 @@ import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { CommonCrudWithImageComponent } from '../common-crud-with-image/common-crud-with-image.component';
 import { CommonCrudComponent } from '../common-crud/common-crud.component';
+import { RulesModalComponent } from '../rules-modal/rules-modal.component';
 
 
 
@@ -32,6 +33,7 @@ interface InterceptedSpeedImpactGroup extends SpeedImpactGroup {
 export class UnitCrudComponent implements OnInit {
   @ViewChild(ModalComponent) public interceptableGroupsModal: ModalComponent;
   @ViewChild(CommonCrudWithImageComponent) public commonCrudComponent: CommonCrudComponent<number, Unit>;
+  @ViewChild(RulesModalComponent) public rulesModal: RulesModalComponent;
 
   public selectedEl: Unit;
   public elsObservable: Observable<Unit[]>;

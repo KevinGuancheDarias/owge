@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.mock;
 
 import com.kevinguanchedarias.owgejava.entity.Improvement;
+import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -10,5 +11,9 @@ public class ImprovementMock {
         Improvement improvement = new Improvement();
         improvement.setId(1);
         return improvement;
+    }
+
+    public static GroupedImprovement givenUserImprovement() {
+        return new GroupedImprovement();
     }
 }

@@ -218,9 +218,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
                 cacheEntries.keySet().stream().filter(key -> !(key instanceof Integer))
                         .map(String.class::cast)
                         .filter(key -> key.startsWith(findSourceServiceName(source))).forEach(key -> {
-                    cache.evict(key);
-                    count.incrementAndGet();
-                });
+                            cache.evict(key);
+                            count.incrementAndGet();
+                        });
                 LOG.debug("Cleared " + count + " cache entries from " + findSourceServiceName(source));
             } else {
                 LOG.warn("Used cache backend, not supported for selective cache clearing, will clear ALL");
