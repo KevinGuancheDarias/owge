@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.MissionReportDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
@@ -31,24 +31,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class MissionReportBo implements BaseBo<Long, MissionReport, MissionReportDto> {
     @Serial
     private static final long serialVersionUID = -3125120788150047385L;
 
+    public static final String EMIT_NEW = "mission_report_new";
+    public static final String EMIT_COUNT_CHANGE = "mission_report_count_change";
+
     private static final Integer DEFAULT_PAGE_SIZE = 15;
     private static final int DAYS_TO_PRESERVE_MESSAGES = 15;
 
-    @Autowired
-    private MissionReportRepository missionReportRepository;
-
-    @Autowired
-    private MissionBo missionBo;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private ObjectMapper mapper;
+    private final MissionReportRepository missionReportRepository;
+    private final MissionBo missionBo;
+    private final transient SocketIoService socketIoService;
+    private final transient TransactionUtilService transactionUtilService;
+    private final ObjectMapper mapper;
 
     @Override
     public JpaRepository<MissionReport, Long> getRepository() {
@@ -71,7 +69,7 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
         MissionReport savedReport = BaseBo.super.save(entity);
         UserStorage user = entity.getUser();
 
-        TransactionUtil.doAfterCommit(() -> emitOneToUser(savedReport, user));
+        transactionUtilService.doAfterCommit(() -> emitOneToUser(savedReport, user));
         return savedReport;
     }
 
@@ -80,7 +78,7 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
      * @since 0.9.16
      */
     public void emitOneToUser(MissionReport report, UserStorage user) {
-        socketIoService.sendMessage(user, "mission_report_new", () -> toDto(report));
+        socketIoService.sendMessage(user, EMIT_NEW, () -> toDto(report));
         emitCountChange(user.getId());
     }
 
@@ -150,9 +148,9 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
         MissionReport missionReport = new MissionReport();
         missionReport.setUser(user);
         missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-        missionReport = save(missionReport);
         missionReport.setReportDate(new Date());
         missionReport.setIsEnemy(isEnemy);
+        missionReport = save(missionReport);
         return missionReport;
     }
 
@@ -214,7 +212,7 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     }
 
     private void emitCountChange(Integer userId) {
-        socketIoService.sendMessage(userId, "mission_report_count_change", () -> findUnreadCount(userId, null));
+        socketIoService.sendMessage(userId, EMIT_COUNT_CHANGE, () -> findUnreadCount(userId, null));
     }
 
 }

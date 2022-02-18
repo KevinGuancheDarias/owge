@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 @Service
 public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
+    @Serial
     private static final long serialVersionUID = 2632768998010477053L;
 
     private final AllianceRepository repository;

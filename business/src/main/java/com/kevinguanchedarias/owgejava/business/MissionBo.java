@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class MissionBo extends AbstractMissionBo {
-    private static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
+    public static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
     private static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
 
     @Serial
@@ -101,11 +101,6 @@ public class MissionBo extends AbstractMissionBo {
     @Override
     public String getGroupName() {
         return JOB_GROUP_NAME;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return LOG;
     }
 
     /**
@@ -476,7 +471,6 @@ public class MissionBo extends AbstractMissionBo {
         }
     }
 
-    @Transactional
     public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
         List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
         return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)

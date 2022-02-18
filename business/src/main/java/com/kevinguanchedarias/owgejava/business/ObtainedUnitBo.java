@@ -307,32 +307,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     }
 
     /**
-     * Deletes obtained units involved in passed mission <br>
-     * <b>NOTICE: </b> As of 0.7.3, the param <i>subtractImprovements</i> can be
-     * specified, for example to avoid removing improvements of a unit that has not
-     * been even built
-     *
-     * @param subtractImprovements If true will too subtract improvements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.3
-     * @deprecated Use the version without the <i>subtractImprovements</i> param, as
-     * it's not longer required
-     */
-    @Deprecated(since = "0.8.1")
-    @Transactional(propagation = Propagation.MANDATORY)
-    public int deleteByMissionId(Long missionId, boolean subtractImprovements) {
-        int retVal = repository.findByMissionId(missionId).stream().map(current -> {
-            delete(current);
-            return current;
-        }).toList().size();
-        if (subtractImprovements) {
-            improvementBo.clearCacheEntries(this);
-
-        }
-        return retVal;
-    }
-
-    /**
      * Finds all units that belong to given user and are not involved in any mission
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

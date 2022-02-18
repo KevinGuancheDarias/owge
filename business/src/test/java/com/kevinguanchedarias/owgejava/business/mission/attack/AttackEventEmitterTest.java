@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.attack;
 
+import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterAttackEndListener;
 import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterUnitKilledCalculationListener;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,17 +22,24 @@ import static org.mockito.Mockito.verify;
         classes = AttackEventEmitter.class
 )
 @MockBean({
-        AfterUnitKilledCalculationListener.class
+        AfterUnitKilledCalculationListener.class,
+        AfterAttackEndListener.class
 })
 class AttackEventEmitterTest {
     private final AttackEventEmitter attackEventEmitter;
     private final AfterUnitKilledCalculationListener afterUnitKilledCalculationListener;
+    private final AfterAttackEndListener afterAttackEndListener;
 
 
     @Autowired
-    public AttackEventEmitterTest(AttackEventEmitter attackEventEmitter, AfterUnitKilledCalculationListener afterUnitKilledCalculationListener) {
+    public AttackEventEmitterTest(
+            AttackEventEmitter attackEventEmitter,
+            AfterUnitKilledCalculationListener afterUnitKilledCalculationListener,
+            AfterAttackEndListener afterAttackEndListener
+    ) {
         this.attackEventEmitter = attackEventEmitter;
         this.afterUnitKilledCalculationListener = afterUnitKilledCalculationListener;
+        this.afterAttackEndListener = afterAttackEndListener;
     }
 
     @Test
@@ -44,5 +52,14 @@ class AttackEventEmitterTest {
 
         verify(afterUnitKilledCalculationListener, times(1))
                 .onAfterUnitKilledCalculation(givenAttackInformation(), attacker, victim, killed);
+    }
+
+    @Test
+    void emitAttackEnd_should_invoke_listeners() {
+        var information = givenAttackInformation();
+
+        attackEventEmitter.emitAttackEnd(information);
+
+        verify(afterAttackEndListener, times(1)).onAttackEnd(information);
     }
 }

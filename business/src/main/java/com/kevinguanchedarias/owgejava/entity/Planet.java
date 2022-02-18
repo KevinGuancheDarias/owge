@@ -1,6 +1,10 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.Column;
@@ -17,8 +21,12 @@ import java.io.Serial;
 
 @Entity
 @Table(name = "planets")
+@Data
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Planet implements EntityWithId<Long> {
     @Serial
     private static final long serialVersionUID = 1574111685072163032L;
@@ -54,87 +62,4 @@ public class Planet implements EntityWithId<Long> {
     public Double findRationalRichness() {
         return richness / (double) 100;
     }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Long getSector() {
-        return sector;
-    }
-
-    public void setSector(Long sector) {
-        this.sector = sector;
-    }
-
-    public Long getQuadrant() {
-        return quadrant;
-    }
-
-    public void setQuadrant(Long quadrant) {
-        this.quadrant = quadrant;
-    }
-
-    public Integer getPlanetNumber() {
-        return planetNumber;
-    }
-
-    public void setPlanetNumber(Integer planetNumber) {
-        this.planetNumber = planetNumber;
-    }
-
-    public UserStorage getOwner() {
-        return owner;
-    }
-
-    public void setOwner(UserStorage owner) {
-        this.owner = owner;
-    }
-
-    public Integer getRichness() {
-        return richness;
-    }
-
-    public void setRichness(Integer richness) {
-        this.richness = richness;
-    }
-
-    public Boolean getHome() {
-        return home;
-    }
-
-    public void setHome(Boolean home) {
-        this.home = home;
-    }
-
-    public Galaxy getGalaxy() {
-        return galaxy;
-    }
-
-    public void setGalaxy(Galaxy galaxy) {
-        this.galaxy = galaxy;
-    }
-
-    public SpecialLocation getSpecialLocation() {
-        return specialLocation;
-    }
-
-    public void setSpecialLocation(SpecialLocation specialLocation) {
-        this.specialLocation = specialLocation;
-    }
-
 }

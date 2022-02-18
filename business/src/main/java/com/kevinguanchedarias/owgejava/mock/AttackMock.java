@@ -39,6 +39,7 @@ public class AttackMock {
     public static AttackObtainedUnit givenAttackObtainedUnit(ObtainedUnit obtainedUnit) {
         return AttackObtainedUnit.builder()
                 .obtainedUnit(obtainedUnit)
+                .user(givenAttackUserInformation(obtainedUnit.getUser()))
                 .pendingAttack(PENDING_ATTACK)
                 .totalHealth(TOTAL_HEALTH)
                 .totalShield(TOTAL_SHIELD)
@@ -60,8 +61,12 @@ public class AttackMock {
                 .build();
     }
 
+    public static AttackUserInformation givenAttackUserInformation(UserStorage user) {
+        return new AttackUserInformation(user, givenUserImprovement());
+    }
+
     public static AttackUserInformation givenAttackUserInformation(UserStorage user, AttackObtainedUnit attackObtainedUnit) {
-        var userInformation = new AttackUserInformation(user, givenUserImprovement());
+        var userInformation = givenAttackUserInformation(user);
         userInformation.getUnits().add(attackObtainedUnit);
         return userInformation;
     }

@@ -1,5 +1,8 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,314 +19,312 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_storage")
+@ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class UserStorage implements EntityWithId<Integer> {
-	private static final long serialVersionUID = 3718075595543259580L;
+    private static final long serialVersionUID = 3718075595543259580L;
 
-	@Id
-	private Integer id;
+    @Id
+    @EqualsAndHashCode.Include
+    private Integer id;
 
-	private String username;
-	private String email;
+    private String username;
+    private String email;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "faction", nullable = false)
-	private Faction faction;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "faction", nullable = false)
+    private Faction faction;
 
-	@Column(name = "last_action")
-	private Date lastAction;
+    @Column(name = "last_action")
+    private Date lastAction;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "home_planet", nullable = false)
-	private Planet homePlanet;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "home_planet", nullable = false)
+    private Planet homePlanet;
 
-	@Column(name = "primary_resource")
-	private Double primaryResource;
+    @Column(name = "primary_resource")
+    private Double primaryResource;
 
-	@Column(name = "secondary_resource")
-	private Double secondaryResource;
+    @Column(name = "secondary_resource")
+    private Double secondaryResource;
 
-	@Column(nullable = false)
-	private Double energy;
+    @Column(nullable = false)
+    private Double energy;
 
-	@Column(name = "primary_resource_generation_per_second", nullable = true)
-	@Deprecated(since = "0.8.0")
-	private Double primaryResourceGenerationPerSecond = 0D;
+    @Column(name = "primary_resource_generation_per_second", nullable = true)
+    @Deprecated(since = "0.8.0")
+    private Double primaryResourceGenerationPerSecond = 0D;
 
-	@Column(name = "secondary_resource_generation_per_second", nullable = true)
-	@Deprecated(since = "0.8.0")
-	private Double secondaryResourceGenerationPerSecond = 0D;
+    @Column(name = "secondary_resource_generation_per_second", nullable = true)
+    @Deprecated(since = "0.8.0")
+    private Double secondaryResourceGenerationPerSecond = 0D;
 
-	@Column(name = "has_skipped_tutorial")
-	private Boolean hasSkippedTutorial = false;
+    @Column(name = "has_skipped_tutorial")
+    private Boolean hasSkippedTutorial = false;
 
-	@Column(nullable = false)
-	private Double points = 0D;
+    @Column(nullable = false)
+    private Double points = 0D;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-	private List<UnlockedRelation> unlockedRelations;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<UnlockedRelation> unlockedRelations;
 
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-	private List<Mission> missions;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Mission> missions;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = true)
-	@JoinColumn(name = "alliance_id")
-	private Alliance alliance;
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "alliance_id")
+    private Alliance alliance;
 
-	@Column(name = "can_alter_twitch_state", nullable = false)
-	private Boolean canAlterTwitchState = false;
+    @Column(name = "can_alter_twitch_state", nullable = false)
+    private Boolean canAlterTwitchState = false;
 
-	private LocalDateTime lastMultiAccountCheck;
-	private Float multiAccountScore;
-	private boolean banned = false;
+    private LocalDateTime lastMultiAccountCheck;
+    private Float multiAccountScore;
+    private boolean banned = false;
 
-	@Transient
-	@Deprecated(since = "0.8.0")
-	private Double computedPrimaryResourceGenerationPerSecond;
+    @Transient
+    @Deprecated(since = "0.8.0")
+    private Double computedPrimaryResourceGenerationPerSecond;
 
-	@Transient
-	@Deprecated(since = "0.8.0")
-	private Double computedSecondaryResourceGenerationPerSecond;
+    @Transient
+    @Deprecated(since = "0.8.0")
+    private Double computedSecondaryResourceGenerationPerSecond;
 
-	public void addtoPrimary(Double value) {
-		primaryResource += value;
-	}
+    public void addtoPrimary(Double value) {
+        primaryResource += value;
+    }
 
-	public void addToSecondary(Double value) {
-		secondaryResource += value;
-	}
+    public void addToSecondary(Double value) {
+        secondaryResource += value;
+    }
 
-	@Override
-	public Integer getId() {
-		return id;
-	}
+    @Override
+    public Integer getId() {
+        return id;
+    }
 
-	@Override
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    @Override
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public String getUsername() {
-		return username;
-	}
+    public String getUsername() {
+        return username;
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public Faction getFaction() {
-		return faction;
-	}
+    public Faction getFaction() {
+        return faction;
+    }
 
-	public void setFaction(Faction faction) {
-		this.faction = faction;
-	}
+    public void setFaction(Faction faction) {
+        this.faction = faction;
+    }
 
-	public Date getLastAction() {
-		return lastAction;
-	}
+    public Date getLastAction() {
+        return lastAction;
+    }
 
-	public void setLastAction(Date lastAction) {
-		this.lastAction = lastAction;
-	}
+    public void setLastAction(Date lastAction) {
+        this.lastAction = lastAction;
+    }
 
-	public Planet getHomePlanet() {
-		return homePlanet;
-	}
+    public Planet getHomePlanet() {
+        return homePlanet;
+    }
 
-	public void setHomePlanet(Planet homePlanet) {
-		this.homePlanet = homePlanet;
-	}
+    public void setHomePlanet(Planet homePlanet) {
+        this.homePlanet = homePlanet;
+    }
 
-	public Double getPrimaryResource() {
-		return primaryResource;
-	}
+    public Double getPrimaryResource() {
+        return primaryResource;
+    }
 
-	public void setPrimaryResource(Double primaryResource) {
-		this.primaryResource = primaryResource;
-	}
+    public void setPrimaryResource(Double primaryResource) {
+        this.primaryResource = primaryResource;
+    }
 
-	public Double getSecondaryResource() {
-		return secondaryResource;
-	}
+    public Double getSecondaryResource() {
+        return secondaryResource;
+    }
 
-	public void setSecondaryResource(Double secondaryResource) {
-		this.secondaryResource = secondaryResource;
-	}
+    public void setSecondaryResource(Double secondaryResource) {
+        this.secondaryResource = secondaryResource;
+    }
 
-	public Double getEnergy() {
-		return energy;
-	}
+    public Double getEnergy() {
+        return energy;
+    }
 
-	public void setEnergy(Double energy) {
-		this.energy = energy;
-	}
+    public void setEnergy(Double energy) {
+        this.energy = energy;
+    }
 
-	/**
-	 *
-	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public Double getPrimaryResourceGenerationPerSecond() {
-		return primaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Not used, it's a calculated value by UserStorage
+     */
+    @Deprecated(since = "0.8.0")
+    public Double getPrimaryResourceGenerationPerSecond() {
+        return primaryResourceGenerationPerSecond;
+    }
 
-	/**
-	 *
-	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public void setPrimaryResourceGenerationPerSecond(Double primaryResourceGenerationPerSecond) {
-		this.primaryResourceGenerationPerSecond = primaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Not used, it's a calculated value by UserStorage
+     */
+    @Deprecated(since = "0.8.0")
+    public void setPrimaryResourceGenerationPerSecond(Double primaryResourceGenerationPerSecond) {
+        this.primaryResourceGenerationPerSecond = primaryResourceGenerationPerSecond;
+    }
 
-	/**
-	 *
-	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public Double getSecondaryResourceGenerationPerSecond() {
-		return secondaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Not used, it's a calculated value by UserStorage
+     */
+    @Deprecated(since = "0.8.0")
+    public Double getSecondaryResourceGenerationPerSecond() {
+        return secondaryResourceGenerationPerSecond;
+    }
 
-	/**
-	 *
-	 * @deprecated Not used, it's a calculated value by UserStorage
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public void setSecondaryResourceGenerationPerSecond(Double secondaryResourceGenerationPerSecond) {
-		this.secondaryResourceGenerationPerSecond = secondaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Not used, it's a calculated value by UserStorage
+     */
+    @Deprecated(since = "0.8.0")
+    public void setSecondaryResourceGenerationPerSecond(Double secondaryResourceGenerationPerSecond) {
+        this.secondaryResourceGenerationPerSecond = secondaryResourceGenerationPerSecond;
+    }
 
-	/**
-	 * @return the hasSkippedTutorial
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Boolean getHasSkippedTutorial() {
-		return hasSkippedTutorial;
-	}
+    /**
+     * @return the hasSkippedTutorial
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public Boolean getHasSkippedTutorial() {
+        return hasSkippedTutorial;
+    }
 
-	/**
-	 * @param hasSkippedTutorial the hasSkippedTutorial to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setHasSkippedTutorial(Boolean hasSkippedTutorial) {
-		this.hasSkippedTutorial = hasSkippedTutorial;
-	}
+    /**
+     * @param hasSkippedTutorial the hasSkippedTutorial to set
+     * @author Kevin Guanche Darias
+     * @since 0.9.0
+     */
+    public void setHasSkippedTutorial(Boolean hasSkippedTutorial) {
+        this.hasSkippedTutorial = hasSkippedTutorial;
+    }
 
-	public Double getPoints() {
-		return points;
-	}
+    public Double getPoints() {
+        return points;
+    }
 
-	public void setPoints(Double points) {
-		this.points = points;
-	}
+    public void setPoints(Double points) {
+        this.points = points;
+    }
 
-	public List<UnlockedRelation> getUnlockedRelations() {
-		return unlockedRelations;
-	}
+    public List<UnlockedRelation> getUnlockedRelations() {
+        return unlockedRelations;
+    }
 
-	public void setUnlockedRelations(List<UnlockedRelation> unlockedRelations) {
-		this.unlockedRelations = unlockedRelations;
-	}
+    public void setUnlockedRelations(List<UnlockedRelation> unlockedRelations) {
+        this.unlockedRelations = unlockedRelations;
+    }
 
-	public List<Mission> getMissions() {
-		return missions;
-	}
+    public List<Mission> getMissions() {
+        return missions;
+    }
 
-	public void setMissions(List<Mission> missions) {
-		this.missions = missions;
-	}
+    public void setMissions(List<Mission> missions) {
+        this.missions = missions;
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @return the alliance
-	 */
-	public Alliance getAlliance() {
-		return alliance;
-	}
+    /**
+     * @return the alliance
+     * @since 0.7.0
+     */
+    public Alliance getAlliance() {
+        return alliance;
+    }
 
-	/**
-	 * @since 0.7.0
-	 * @param alliance the alliance to set
-	 */
-	public void setAlliance(Alliance alliance) {
-		this.alliance = alliance;
-	}
+    /**
+     * @param alliance the alliance to set
+     * @since 0.7.0
+     */
+    public void setAlliance(Alliance alliance) {
+        this.alliance = alliance;
+    }
 
-	/**
-	 * @return the canAlterTwitchState
-	 * @since 0.9.5
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Boolean getCanAlterTwitchState() {
-		return canAlterTwitchState;
-	}
+    /**
+     * @return the canAlterTwitchState
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.5
+     */
+    public Boolean getCanAlterTwitchState() {
+        return canAlterTwitchState;
+    }
 
-	/**
-	 * @param canAlterTwitchState the canAlterTwitchState to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.5
-	 */
-	public void setCanAlterTwitchState(Boolean canAlterTwitchState) {
-		this.canAlterTwitchState = canAlterTwitchState;
-	}
+    /**
+     * @param canAlterTwitchState the canAlterTwitchState to set
+     * @author Kevin Guanche Darias
+     * @since 0.9.5
+     */
+    public void setCanAlterTwitchState(Boolean canAlterTwitchState) {
+        this.canAlterTwitchState = canAlterTwitchState;
+    }
 
-	/**
-	 *
-	 * @deprecated Transient properties of UserStorage are not longer required, we
-	 *             calculate in the frontend and in the backend
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public Double getComputedPrimaryResourceGenerationPerSecond() {
-		return computedPrimaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Transient properties of UserStorage are not longer required, we
+     * calculate in the frontend and in the backend
+     */
+    @Deprecated(since = "0.8.0")
+    public Double getComputedPrimaryResourceGenerationPerSecond() {
+        return computedPrimaryResourceGenerationPerSecond;
+    }
 
-	/**
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @deprecated Transient properties of UserStorage are not longer required, we
-	 * calculate in the frontend and in the backend
-	 */
-	@Deprecated(since = "0.8.0")
-	public Double getComputedSecondaryResourceGenerationPerSecond() {
-		return computedSecondaryResourceGenerationPerSecond;
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated Transient properties of UserStorage are not longer required, we
+     * calculate in the frontend and in the backend
+     */
+    @Deprecated(since = "0.8.0")
+    public Double getComputedSecondaryResourceGenerationPerSecond() {
+        return computedSecondaryResourceGenerationPerSecond;
+    }
 
-	public LocalDateTime getLastMultiAccountCheck() {
-		return lastMultiAccountCheck;
-	}
+    public LocalDateTime getLastMultiAccountCheck() {
+        return lastMultiAccountCheck;
+    }
 
-	public void setLastMultiAccountCheck(LocalDateTime lastMultiAccountCheck) {
-		this.lastMultiAccountCheck = lastMultiAccountCheck;
-	}
+    public void setLastMultiAccountCheck(LocalDateTime lastMultiAccountCheck) {
+        this.lastMultiAccountCheck = lastMultiAccountCheck;
+    }
 
-	public Float getMultiAccountScore() {
-		return multiAccountScore;
-	}
+    public Float getMultiAccountScore() {
+        return multiAccountScore;
+    }
 
-	public void setMultiAccountScore(Float multiAccountScore) {
-		this.multiAccountScore = multiAccountScore;
-	}
+    public void setMultiAccountScore(Float multiAccountScore) {
+        this.multiAccountScore = multiAccountScore;
+    }
 
-	public boolean isBanned() {
-		return banned;
-	}
+    public boolean isBanned() {
+        return banned;
+    }
 
-	public void setBanned(boolean banned) {
-		this.banned = banned;
-	}
+    public void setBanned(boolean banned) {
+        this.banned = banned;
+    }
 }
