@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -17,6 +18,7 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,14 +29,16 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, ImprovementSource {
+    @Serial
     private static final long serialVersionUID = -2056602917496640872L;
 
     private final ObtainedUnitRepository repository;
@@ -46,7 +50,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient EntityManager entityManager;
     private final RequirementBo requirementBo;
-    private final UnitMissionBo unitMissionBo;
+    private final transient MissionFinderBo missionFinderBo;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -268,7 +272,11 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         obtainedUnit.setCount(expectedSum);
         ObtainedUnit savedValue = saveAndFlush(obtainedUnit);
         try {
-            entityManager.refresh(obtainedUnit);
+            if (entityManager.contains(obtainedUnit)) {
+                entityManager.refresh(obtainedUnit);
+            } else {
+                log.error("OMG THE PROGRAMMER IS GOING CRAZY passed = {}, saved = {}", obtainedUnit, savedValue);
+            }
             if (!savedValue.getCount().equals(expectedSum)) {
                 try {
                     Thread.sleep(RandomUtils.nextLong(0, 300));
@@ -296,37 +304,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     public void deleteByMissionId(Long missionId) {
         repository.deleteByMissionId(missionId);
         improvementBo.clearCacheEntries(this);
-    }
-
-    /**
-     * Deletes obtained units involved in passed mission <br>
-     * <b>NOTICE: </b> As of 0.7.3, the param <i>subtractImprovements</i> can be
-     * specified, for example to avoid removing improvements of a unit that has not
-     * been even built
-     *
-     * @param subtractImprovements If true will too subtract improvements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.3
-     * @deprecated Use the version without the <i>subtractImprovements</i> param, as
-     * it's not longer required
-     */
-    @Deprecated(since = "0.8.1")
-    @Transactional(propagation = Propagation.MANDATORY)
-    public int deleteByMissionId(Long missionId, boolean subtractImprovements) {
-        int retVal = repository.findByMissionId(missionId).stream().map(current -> {
-            delete(current);
-            return current;
-        }).collect(Collectors.toList()).size();
-        if (subtractImprovements) {
-            improvementBo.clearCacheEntries(this);
-
-        }
-        return retVal;
-    }
-
-    public List<ObtainedUnit> findInMyPlanet(Long planetId) {
-        userStorageBo.checkOwnPlanet(planetId);
-        return repository.findBySourcePlanetIdAndMissionNull(planetId);
     }
 
     /**
@@ -380,7 +357,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     public ObtainedUnit moveUnit(ObtainedUnit unit, Integer userId, Long planetId) {
         var planet = planetBo.findById(planetId);
         ObtainedUnit savedUnit;
-        unit.setSourcePlanet(unit.getSourcePlanet());
         unit.setTargetPlanet(planet);
         if (planetBo.isOfUserProperty(userId, planetId)) {
             unit.setSourcePlanet(planet);
@@ -388,13 +364,13 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
             unit.setMission(null);
             unit.setTargetPlanet(null);
             unit.setFirstDeploymentMission(null);
-        } else if (MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
+        } else if (unit.getMission() != null && MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
             savedUnit = save(unit);
         } else {
             unit = saveWithAdding(userId, unit, planetId);
             savedUnit = unit;
-            if (MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
-                unit.setMission(unitMissionBo.findDeployedMissionOrCreate(unit));
+            if (unit.getMission() == null || MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
+                unit.setMission(missionFinderBo.findDeployedMissionOrCreate(unit));
                 savedUnit = save(unit);
             }
         }

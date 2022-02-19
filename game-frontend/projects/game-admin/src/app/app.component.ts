@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-
-import { User, MenuRoute, ROUTES } from '@owge/core';
-import { AbstractSidebarComponent } from '@owge/widgets';
 import { TranslateService } from '@ngx-translate/core';
-import { AdminUserStore } from './store/admin-user.store';
-import { map } from 'rxjs/operators';
+import { MenuRoute, ROUTES, User } from '@owge/core';
 import { UserStorage } from '@owge/universe';
+import { AbstractSidebarComponent } from '@owge/widgets';
+import { map } from 'rxjs/operators';
+import { AdminUserStore } from './store/admin-user.store';
+
 
 /**
  *
@@ -42,7 +42,7 @@ export class AppComponent extends AbstractSidebarComponent implements OnInit {
     adminUserRoute.shouldDisplay = false;
     adminUserStore.adminUser
       .pipe(map(adminUser => adminUser.canAddAdmins))
-      .subscribe(val => adminUserRoute.shouldDisplay = true);
+      .subscribe(() => adminUserRoute.shouldDisplay = true);
     this.sidebarRoutes.push(adminUserRoute);
   }
 

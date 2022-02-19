@@ -11,3 +11,5 @@ CREATE TABLE `rules` (
     destination_id SMALLINT NOT NULL,
     extra_args VARCHAR(100)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+ALTER TABLE `obtained_units` ADD `is_from_capture` TINYINT NOT NULL AFTER `first_deployment_mission`;

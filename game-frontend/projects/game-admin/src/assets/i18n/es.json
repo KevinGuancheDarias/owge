@@ -211,7 +211,8 @@
                     "DESTINATION": "Destino",
                     "TYPES": {
                         "UNIT_CAPTURE": {
-                            "PROBABILITY_PERCENTAGE": "Probabilidad capturar (%)"
+                            "PROBABILITY_PERCENTAGE": "Probabilidad capturar (%)",
+                            "CAPTURE_PERCENTAGE": "Porcentage a capturar"
                         }
                     }
                 },

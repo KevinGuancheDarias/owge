@@ -38,6 +38,6 @@ class UnitCaptureRuleTypeProviderBoTest {
         var result = unitCaptureRuleTypeProviderBo.findRuleTypeDescriptor();
 
         assertThat(result).isNotNull();
-        assertThat(result.getExtraArgs()).hasSize(1).containsAll(expectedExtraArgs);
+        assertThat(result.getExtraArgs()).hasSize(2).containsAll(expectedExtraArgs);
     }
 }

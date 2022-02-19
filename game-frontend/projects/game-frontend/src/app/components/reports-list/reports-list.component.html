@@ -97,6 +97,13 @@
               </owge-widgets-display-list-item>
             </owge-widgets-collapsable-item>
 
+            <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.CAPTURED_UNITS' | translate"
+              *ngIf="report.parsedJson.unitCaptureInformation">
+              <app-deployed-units-list [obtainedUnits]="report.parsedJson?.frontedParsedUnitCapturedInformation"
+                [showUsername]="true">
+              </app-deployed-units-list>
+            </owge-widgets-collapsable-item>
+
           </div>
         </ng-template>
       </owge-widgets-display-list-item>

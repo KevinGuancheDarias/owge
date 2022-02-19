@@ -12,8 +12,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -61,5 +63,20 @@ public class RuleBo {
                 .findFirst()
                 .map(RuleTypeProvider::findRuleTypeDescriptor)
                 .orElseThrow(() -> new SgtBackendInvalidInputException("No type " + type + " exists"));
+    }
+
+    public Optional<String> findExtraArg(Rule rule, int position) {
+        var splitted = rule.getExtraArgs().split(ARGS_DELIMITER);
+        return splitted.length > position
+                ? Optional.of(splitted[position])
+                : Optional.empty();
+    }
+
+    public List<String> findExtraArgs(Rule rule) {
+        return Arrays.asList(rule.getExtraArgs().split(ARGS_DELIMITER));
+    }
+
+    public boolean hasExtraArg(Rule rule, int position) {
+        return findExtraArg(rule, position).isPresent();
     }
 }

@@ -34,6 +34,18 @@ public class RuleMock {
                 .build();
     }
 
+    public static Rule givenUnitCaptureRule(Integer captureProbability) {
+        return Rule.builder()
+                .id(RULE_ID)
+                .type(TYPE)
+                .originType(ORIGIN_TYPE)
+                .originId(ORIGIN_ID)
+                .destinationType(DESTINATION_TYPE)
+                .destinationId(DESTINATION_ID)
+                .extraArgs(captureProbability.toString())
+                .build();
+    }
+
     public static RuleDto givenRuleDto() {
         return RuleDto.builder()
                 .id(RULE_ID)

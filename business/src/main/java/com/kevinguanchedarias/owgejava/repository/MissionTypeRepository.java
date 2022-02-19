@@ -1,11 +1,11 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.io.Serializable;
-
+import com.kevinguanchedarias.owgejava.entity.MissionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.kevinguanchedarias.owgejava.entity.MissionType;
+import java.io.Serializable;
+import java.util.Optional;
 
 public interface MissionTypeRepository extends JpaRepository<MissionType, Number>, Serializable {
-	public MissionType findOneByCode(String code);
+    Optional<MissionType> findOneByCode(String code);
 }

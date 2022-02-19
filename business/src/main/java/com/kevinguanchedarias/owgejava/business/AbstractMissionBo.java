@@ -15,19 +15,19 @@ import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
-import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
     public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
 
+    @Serial
     private static final long serialVersionUID = 3252246009672348672L;
 
     private static final Integer MAX_ATTEMPS = 3;
@@ -93,6 +94,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     protected transient MissionConfigurationBo missionConfigurationBo;
 
     @Autowired
+    protected transient SocketIoService socketIoService;
+
+    @Autowired
     private MissionReportBo missionReportBo;
 
     @Autowired
@@ -102,8 +106,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     private transient MissionSchedulerService missionSchedulerService;
 
     public abstract String getGroupName();
-
-    public abstract Logger getLogger();
 
     @Override
     public JpaRepository<Mission, Long> getRepository() {
@@ -118,6 +120,15 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     @Override
     public Class<MissionDto> getDtoClass() {
         return MissionDto.class;
+    }
+
+    /**
+     * @todo Think in a way to move this to a "MissionEventChangeEmitterService" service
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void emitUnitMissions(Integer userId) {
+        socketIoService.sendMessage(userId, "unit_mission_change",
+                () -> new MissionWebsocketMessage(countUserMissions(userId), findUserRunningMissions(userId)));
     }
 
     /**
@@ -150,22 +161,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     }
 
     /**
-     * Finds a <b>not resolved </b>mission by userId, mission type and target planet
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.4
-     */
-    public Mission findOneByUserIdAndTypeAndTargetPlanet(Integer userId, MissionType type, Long targetPlanet) {
-        List<Mission> missions = missionRepository.findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(userId,
-                type.name(), targetPlanet);
-        if (missions.isEmpty()) {
-            return null;
-        } else {
-            return missions.get(0);
-        }
-    }
-
-    /**
      * Counts the number of missions that a user has running
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -190,7 +185,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    @Transactional
     public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
         return missionRepository.findByUserIdAndResolvedFalse(userId).stream().map(mission -> {
             mission.setInvolvedUnits(obtainedUnitBo.findByMissionId(mission.getId()));
@@ -203,22 +197,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
     }
 
-    @Transactional
-    public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
-        List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
-        return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)
-                .stream().map(current -> {
-                    UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
-                    retVal.nullifyInvolvedUnitsPlanets();
-                    if (!planetBo.isExplored(user, current.getSourcePlanet())) {
-                        retVal.setSourcePlanet(null);
-                        retVal.setUser(null);
-                    }
-                    ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
-                    return retVal;
-                }).collect(Collectors.toList());
-    }
-
     /**
      * Finds missions that couldn't execute with success
      *
@@ -227,6 +205,16 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      */
     public List<Mission> findHangMissions() {
         return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(new Date());
+    }
+
+    /**
+     * @param type enum based mission type
+     * @return persisted mission type
+     * @author Kevin Guanche Darias
+     */
+    public com.kevinguanchedarias.owgejava.entity.MissionType findMissionType(MissionType type) {
+        return missionTypeRepository.findOneByCode(type.name())
+                .orElseThrow(() -> new SgtBackendInvalidInputException("No MissionType " + type.name() + " was found in the database"));
     }
 
     /**
@@ -259,19 +247,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         if (!planetBo.exists(planetId)) {
             throw new PlanetNotFoundException("No such planet with id " + planetId);
         }
-    }
-
-    /**
-     * @param type enum based mission type
-     * @return persisted mission type
-     * @author Kevin Guanche Darias
-     */
-    protected com.kevinguanchedarias.owgejava.entity.MissionType findMissionType(MissionType type) {
-        com.kevinguanchedarias.owgejava.entity.MissionType retVal = missionTypeRepository.findOneByCode(type.name());
-        if (retVal == null) {
-            throw new SgtBackendInvalidInputException("No MissionType " + type.name() + " was found in the database");
-        }
-        return retVal;
     }
 
     /**
@@ -327,12 +302,8 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
     protected void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
                                            UserStorage user) {
-        MissionReport missionReport = new MissionReport("{}", mission);
-        missionReport.setUser(user);
-        missionReport = missionReportBo.save(missionReport);
-        missionReport.setReportDate(new Date());
-        missionReport.setJsonBody(builder.withId(missionReport.getId()).buildJson());
-        missionReport.setIsEnemy(isEnemy);
+        MissionReport missionReport = missionReportBo.create(builder, isEnemy, user);
+        missionReport.setMission(mission);
         mission.setReport(missionReport);
     }
 

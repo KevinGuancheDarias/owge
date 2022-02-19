@@ -11,9 +11,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
-import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,14 +37,14 @@ class UnitRuleItemTypeProviderBoTest {
 
     @Test
     void getRuleItemTypeId_should_work() {
-        assertThat(this.unitRuleItemTypeProviderBo.getRuleItemTypeId()).isEqualTo("UNIT");
+        assertThat(this.unitRuleItemTypeProviderBo.getRuleItemTypeId()).isEqualTo(UnitRuleItemTypeProviderBo.PROVIDER_ID);
     }
 
     @Test
     void findRuleItemTypeDescriptor_should_work() {
-        var item = givenUnit();
+        var item = givenUnit1();
         when(unitBo.findAll()).thenReturn(List.of(item));
-        var expectedResult = IdNameDto.builder().id(UNIT_ID).name(UNIT_NAME).build();
+        var expectedResult = IdNameDto.builder().id(UNIT_ID_1).name(UNIT_NAME).build();
 
         var result = unitRuleItemTypeProviderBo.findRuleItemTypeDescriptor();
 

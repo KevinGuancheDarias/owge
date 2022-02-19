@@ -10,12 +10,13 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class UnitRuleItemTypeProviderBo implements RuleItemTypeProvider {
+    public static final String PROVIDER_ID = "UNIT";
 
     private final UnitBo unitBo;
 
     @Override
     public String getRuleItemTypeId() {
-        return "UNIT";
+        return PROVIDER_ID;
     }
 
     @Override

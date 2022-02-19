@@ -2,6 +2,8 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Feature:__ [As an admin I want to allow to capture units by specifing the captures rules #402](https://github.com/KevinGuancheDarias/owge/issues/402)  
+* __Feature:__ [As a player I would like to have a chance to capture enemy units #6](https://github.com/KevinGuancheDarias/owge/issues/6)  
 * __Feature:__ [As a player I want my faction to spawn in certain locations #406](https://github.com/KevinGuancheDarias/owge/issues/406)  
 * [class=Admin] __Feature:__  [As an admin I want to define where certain factions can spawn their home planet #405](https://github.com/KevinGuancheDarias/owge/issues/405)  
 * __Feature:__ [As a player I want to be able to increase units speed #401](https://github.com/KevinGuancheDarias/owge/issues/401)  

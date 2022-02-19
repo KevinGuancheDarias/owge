@@ -3,12 +3,14 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -23,6 +25,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunni
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
+import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
@@ -35,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -43,9 +47,10 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class MissionBo extends AbstractMissionBo {
-
+    public static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
     private static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
 
+    @Serial
     private static final long serialVersionUID = 5505953709078785322L;
 
     private static final Logger LOG = Logger.getLogger(MissionBo.class);
@@ -56,7 +61,6 @@ public class MissionBo extends AbstractMissionBo {
     private static final int DAYS = 60;
 
     private final transient EntityManager entityManager;
-    private final transient SocketIoService socketIoService;
     private final transient ConfigurationBo configurationBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
@@ -97,11 +101,6 @@ public class MissionBo extends AbstractMissionBo {
     @Override
     public String getGroupName() {
         return JOB_GROUP_NAME;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return LOG;
     }
 
     /**
@@ -470,6 +469,25 @@ public class MissionBo extends AbstractMissionBo {
                 LOG.warn("Not a upgrade level mission nor unit build");
                 break;
         }
+    }
+
+    public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
+        List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
+        return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)
+                .stream().map(current -> {
+                    UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
+                    retVal.nullifyInvolvedUnitsPlanets();
+                    if (!planetBo.isExplored(user, current.getSourcePlanet())) {
+                        retVal.setSourcePlanet(null);
+                        retVal.setUser(null);
+                    }
+                    ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
+                    return retVal;
+                }).toList();
+    }
+
+    public void emitEnemyMissionsChange(UserStorage user) {
+        socketIoService.sendMessage(user, ENEMY_MISSION_CHANGE, () -> findEnemyRunningMissions(user));
     }
 
     private void emitUserAftercommit(Integer userId) {

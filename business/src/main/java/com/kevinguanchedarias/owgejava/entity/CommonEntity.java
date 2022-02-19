@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.ToString;
+
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,6 +22,7 @@ import java.io.Serializable;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @MappedSuperclass
+@ToString
 public abstract class CommonEntity<K extends Serializable> implements EntityWithId<K> {
     private static final long serialVersionUID = -5044252651188741213L;
 
