@@ -2,10 +2,10 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
-import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -77,9 +77,6 @@ public class UnitMissionBo extends AbstractMissionBo {
     private ConfigurationBo configurationBo;
 
     @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
     private ImageStoreBo imageStoreBo;
 
     @Autowired
@@ -109,14 +106,15 @@ public class UnitMissionBo extends AbstractMissionBo {
     @Autowired
     private AllianceBo allianceBo;
 
+    @Autowired
+    private transient TransactionUtilService transactionUtilService;
+
+    @Autowired
+    private SpeedImpactGroupBo speedImpactGroupBo;
+
     @Override
     public String getGroupName() {
         return JOB_GROUP_NAME;
-    }
-
-    @Override
-    public Logger getLogger() {
-        return LOG;
     }
 
     /**
@@ -655,12 +653,9 @@ public class UnitMissionBo extends AbstractMissionBo {
                 .map(userEntry -> userEntry.getValue().getUser())
                 .filter(user -> !mission.getUser().getId().equals(user.getId()))
                 .forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.ATTACK_INTERACTION, null, mission.getUser(), user.getId()));
-        if (attackInformation.isRemoved()) {
-            emitLocalMissionChangeAfterCommit(mission);
-        }
         var owner = targetPlanet.getOwner();
-        if (owner != null && !attackInformation.getUsersWithDeletedMissions().isEmpty()) {
-            missionBo.emitEnemyMissionsChange(owner);
+        if (attackInformation.isRemoved() || owner != null && !attackInformation.getUsersWithDeletedMissions().isEmpty()) {
+            emitLocalMissionChangeAfterCommit(mission);
         }
         attackInformation.getUnits().stream().distinct().forEach(this::triggerUnitRequirementChange);
         attackInformation.setReportBuilder(builder);
@@ -710,10 +705,10 @@ public class UnitMissionBo extends AbstractMissionBo {
         Set<ObtainedUnit> alreadyIntercepted = new HashSet<>();
         Map<Integer, InterceptedUnitsInformation> interceptedMap = new HashMap<>();
         List<ObtainedUnit> unitsWithInterception = obtainedUnitBo.findInvolvedInAttack(mission.getTargetPlanet())
-                .stream().filter(current -> !current.getUnit().getInterceptableSpeedGroups().isEmpty())
-                .collect(Collectors.toList());
+                .stream().filter(current -> !CollectionUtils.isEmpty(current.getUnit().getInterceptableSpeedGroups()))
+                .toList();
         unitsWithInterception.forEach(unitWithInterception -> involvedUnits.stream().filter(
-                        involved -> canIntercept(unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved))
+                        involved -> speedImpactGroupBo.canIntercept(unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUnit()))
                 .filter(involved -> !alreadyIntercepted.contains(involved) && isEnemy(unitWithInterception.getUser(), involved.getUser()))
                 .forEach(interceptedUnit -> {
                     UserStorage interceptorUser = unitWithInterception.getUser();
@@ -726,12 +721,6 @@ public class UnitMissionBo extends AbstractMissionBo {
                     alreadyIntercepted.add(interceptedUnit);
                 }));
         return new ArrayList<>(interceptedMap.values());
-    }
-
-    private boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, ObtainedUnit obtainedUnit) {
-        SpeedImpactGroup speedImpactGroup = obtainedUnit.getUnit().getSpeedImpactGroup();
-        return speedImpactGroup != null && interceptableSpeedGroups.stream().anyMatch(current -> current.getSpeedImpactGroup().getId()
-                .equals(obtainedUnit.getUnit().getSpeedImpactGroup().getId()));
     }
 
     /**
@@ -1089,7 +1078,7 @@ public class UnitMissionBo extends AbstractMissionBo {
      */
     private void emitLocalMissionChangeAfterCommit(Mission mission) {
         UserStorage user = mission.getUser();
-        TransactionUtil.doAfterCommit(() -> emitLocalMissionChange(mission, user));
+        transactionUtilService.doAfterCommit(() -> emitLocalMissionChange(mission, user));
     }
 
     private void emitLocalMissionChange(Mission mission, UserStorage user) {
@@ -1132,8 +1121,9 @@ public class UnitMissionBo extends AbstractMissionBo {
             requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
         }
 
-        TransactionUtil.doAfterCommit(() -> planetListBo.emitByChangedPlanet(targetPlanet));
+        transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(targetPlanet));
         planetBo.emitPlanetOwnedChange(owner);
+        missionBo.emitEnemyMissionsChange(owner);
         socketIoService.sendMessage(owner, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
                 () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(owner.getId())));
     }

@@ -182,4 +182,38 @@ class RuleBoTest {
                 .hasMessageStartingWith("No type");
         verify(ruleTypeProvider, never()).findRuleTypeDescriptor();
     }
+
+    @Test
+    void findExtraArg_should_work_when_arg_exists() {
+        var rule = givenRule();
+
+        var result = ruleBo.findExtraArg(rule, 1);
+
+        assertThat(result)
+                .isPresent()
+                .contains(SECOND_EXTRA_ARG);
+    }
+
+    @Test
+    void findExtraArg_should_return_empty_when_no_such_arg() {
+        var result = ruleBo.findExtraArg(givenRule(), 30);
+
+        assertThat(result).isNotPresent();
+    }
+
+    @Test
+    void findExtraArgs_should_work() {
+        assertThat(ruleBo.findExtraArgs(givenRule()))
+                .hasSize(2)
+                .containsAll(List.of(FIRST_EXTRA_ARG, SECOND_EXTRA_ARG));
+    }
+
+    @Test
+    void hasExtraArg_should_work() {
+        var rule = givenRule();
+
+        assertThat(ruleBo.hasExtraArg(rule, 0)).isTrue();
+        assertThat(ruleBo.hasExtraArg(rule, 1)).isTrue();
+        assertThat(ruleBo.hasExtraArg(rule, 2)).isFalse();
+    }
 }

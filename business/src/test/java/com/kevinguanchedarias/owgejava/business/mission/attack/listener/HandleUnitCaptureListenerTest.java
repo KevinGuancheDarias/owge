@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.attack.listener;
 
+import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
@@ -26,6 +27,8 @@ import java.util.Optional;
 
 import static com.kevinguanchedarias.owgejava.business.mission.attack.listener.HandleUnitCaptureListener.CAPTURE_UNIT_CONTEXT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackInformation;
+import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtainedUnit;
+import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
@@ -40,7 +43,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +75,7 @@ class HandleUnitCaptureListenerTest {
     private final RuleBo ruleBo;
     private final ObtainedUnitBo obtainedUnitBo;
     private final MissionFinderBo missionFinderBo;
+    private final MissionReportBo missionReportBo;
 
     @Autowired
     HandleUnitCaptureListenerTest(
@@ -76,13 +83,15 @@ class HandleUnitCaptureListenerTest {
             RuleRepository ruleRepository,
             RuleBo ruleBo,
             ObtainedUnitBo obtainedUnitBo,
-            MissionFinderBo missionFinderBo
+            MissionFinderBo missionFinderBo,
+            MissionReportBo missionReportBo
     ) {
         this.handleUnitCaptureListener = handleUnitCaptureListener;
         this.ruleRepository = ruleRepository;
         this.ruleBo = ruleBo;
         this.obtainedUnitBo = obtainedUnitBo;
         this.missionFinderBo = missionFinderBo;
+        this.missionReportBo = missionReportBo;
     }
 
     @Test
@@ -320,6 +329,33 @@ class HandleUnitCaptureListenerTest {
         assertThat(capturedUnit.getUser().getId()).isEqualTo(givenUser1().getId());
         assertThat(capturedUnit.getCount()).isBetween(1L, 4L);
         assertThat(capturedUnit.isFromCapture()).isTrue();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void onAttackEnd_should_work() {
+        try (var builderStaticMock = mockStatic(UnitMissionReportBuilder.class)) {
+            var informationSpy = spy(givenFullAttackInformation());
+            var builderMock = mock(UnitMissionReportBuilder.class);
+            var entry = UnitCaptureContext.builder()
+                    .captorUnit(givenAttackObtainedUnit())
+                    .victimUnit(givenAttackObtainedUnit(givenObtainedUnit2()))
+                    .capturedUnits(8L)
+                    .build();
+            var contextData = List.of(entry, entry);
+            builderStaticMock.when(() -> UnitMissionReportBuilder.create(any(), any(), any(), any())).thenReturn(builderMock);
+            when(informationSpy.getContextData(CAPTURE_UNIT_CONTEXT_NAME, UnitCaptureContext.class)).thenReturn(contextData);
+
+            handleUnitCaptureListener.onAttackEnd(informationSpy);
+
+            verify(informationSpy, times(1)).getContextData(CAPTURE_UNIT_CONTEXT_NAME, UnitCaptureContext.class);
+            ArgumentCaptor<List<UnitCaptureContext>> captor = ArgumentCaptor.forClass(List.class);
+            verify(builderMock, times(1)).withUnitCaptureInformation(captor.capture());
+            var sentToReport = captor.getValue();
+            assertThat(sentToReport).hasSize(2);
+            assertThat(sentToReport.get(0)).isEqualTo(entry);
+            verify(missionReportBo, times(1)).create(builderMock, false, givenUser1());
+        }
     }
 
     private void mockUnitVsUnit() {
