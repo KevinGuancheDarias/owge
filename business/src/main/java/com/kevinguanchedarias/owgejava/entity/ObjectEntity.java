@@ -1,13 +1,16 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.io.Serializable;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
-
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import java.io.Serial;
+import java.io.Serializable;
 
 /**
  * Due to entity name, in order to avoid confusions and having to manually put
@@ -16,74 +19,76 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
  * @author Kevin Guanche Darias
  */
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "objects")
 public class ObjectEntity implements Serializable {
-	private static final long serialVersionUID = 418080945672588722L;
+    @Serial
+    private static final long serialVersionUID = 418080945672588722L;
 
-	@Id
-	private String description;
+    @Id
+    private String description;
 
-	@Transient
-	private String code;
+    @Transient
+    private String code;
 
-	private String repository;
+    private String repository;
 
-	/**
-	 *
-	 * @deprecated To avoid confusions use {@link ObjectEntity#getCode()}
-	 * @return
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @return
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated To avoid confusions use {@link ObjectEntity#getCode()}
+     */
+    @Deprecated(since = "0.8.0")
+    public String getDescription() {
+        return description;
+    }
 
-	/**
-	 *
-	 * @deprecated To avoid confusions use {@link ObjectEntity#setCode(String)}
-	 * @param description
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Deprecated(since = "0.8.0")
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    /**
+     * @param description
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @deprecated To avoid confusions use {@link ObjectEntity#setCode(String)}
+     */
+    @Deprecated(since = "0.8.0")
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	/**
-	 * @todo In the future remove <i>description</i>, and set code as the id, and
-	 *       return it instead of returning <i>description</i>
-	 * @since 0.8.0
-	 * @return the code
-	 */
-	public String getCode() {
-		return description;
-	}
+    /**
+     * @return the code
+     * @todo In the future remove <i>description</i>, and set code as the id, and
+     * return it instead of returning <i>description</i>
+     * @since 0.8.0
+     */
+    public String getCode() {
+        return description;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param code the code to set
-	 */
-	public void setCode(String code) {
-		this.description = code;
-	}
+    /**
+     * @param code the code to set
+     * @since 0.8.0
+     */
+    public void setCode(String code) {
+        this.description = code;
+    }
 
-	public String getRepository() {
-		return repository;
-	}
+    public String getRepository() {
+        return repository;
+    }
 
-	public void setRepository(String entity) {
-		this.repository = entity;
-	}
+    public void setRepository(String entity) {
+        this.repository = entity;
+    }
 
-	/**
-	 * Finds the code as enum, (to avoid having to clone that too many times)
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ObjectEnum findCodeAsEnum() {
-		return ObjectEnum.valueOf(getCode());
-	}
+    /**
+     * Finds the code as enum, (to avoid having to clone that too many times)
+     *
+     * @return
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public ObjectEnum findCodeAsEnum() {
+        return ObjectEnum.valueOf(getCode());
+    }
 }

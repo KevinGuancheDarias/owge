@@ -1,6 +1,13 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,9 +19,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import java.io.Serial;
+import java.util.List;
 
 /**
  * This entity contains the id of the referenced table and the object type id
@@ -22,87 +28,30 @@ import org.hibernate.annotations.FetchMode;
  * @author Kevin Guanche Darias
  */
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "object_relations")
 public class ObjectRelation implements EntityWithId<Integer> {
-	private static final long serialVersionUID = -7972319667060686603L;
+    @Serial
+    private static final long serialVersionUID = -7972319667060686603L;
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Integer id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "object_description")
-	@Fetch(FetchMode.JOIN)
-	private ObjectEntity object;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "object_description")
+    @Fetch(FetchMode.JOIN)
+    private ObjectEntity object;
 
-	@Column(name = "reference_id")
-	private Integer referenceId;
+    @Column(name = "reference_id")
+    private Integer referenceId;
 
-	@OneToMany(mappedBy = "relation", fetch = FetchType.LAZY)
-	private List<RequirementInformation> requirements;
-
-	@Override
-	public Integer getId() {
-		return id;
-	}
-
-	@Override
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public ObjectEntity getObject() {
-		return object;
-	}
-
-	public void setObject(ObjectEntity object) {
-		this.object = object;
-	}
-
-	public Integer getReferenceId() {
-		return referenceId;
-	}
-
-	public void setReferenceId(Integer referenceId) {
-		this.referenceId = referenceId;
-	}
-
-	public List<RequirementInformation> getRequirements() {
-		return requirements;
-	}
-
-	public void setRequirements(List<RequirementInformation> requirements) {
-		this.requirements = requirements;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		ObjectRelation other = (ObjectRelation) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		return true;
-	}
-
+    @OneToMany(mappedBy = "relation", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<RequirementInformation> requirements;
 }

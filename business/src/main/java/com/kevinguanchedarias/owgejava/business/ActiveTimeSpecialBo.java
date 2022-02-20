@@ -24,7 +24,6 @@ import javax.annotation.PostConstruct;
 import java.io.Serial;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -61,11 +60,14 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Autowired
     private transient SocketIoService socketIoService;
 
+    @Autowired
+    private RequirementBo requirementBo;
+
     @PostConstruct
     public void init() {
         improvementBo.addImprovementSource(this);
         scheduledTasksManagerService.addHandler("TIME_SPECIAL_EFFECT_END", task -> {
-            Long id = ((Double) task.getContent()).longValue();
+            Long id = resolveTaskId(task);
             LOG.debug("Time special effect end" + id);
             ActiveTimeSpecial activeTimeSpecial = findById(id);
             if (activeTimeSpecial != null) {
@@ -77,6 +79,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 improvementBo.clearSourceCache(user, this);
                 task.setType("TIME_SPECIAL_IS_READY");
                 scheduledTasksManagerService.registerEvent(task, rechargeTime);
+                requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
                 emitTimeSpecialChange(user);
             } else {
                 LOG.debug(
@@ -84,7 +87,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             }
         });
         scheduledTasksManagerService.addHandler("TIME_SPECIAL_IS_READY", task -> {
-            Long id = ((Double) task.getContent()).longValue();
+            Long id = resolveTaskId(task);
             LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
             ActiveTimeSpecial forDelete = findById(id);
             if (forDelete != null) {
@@ -95,23 +98,8 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     }
 
     /**
-     * Find by user
-     *
-     * @param userId
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public List<ActiveTimeSpecial> findByUser(Integer userId) {
-        return repository.findByUserId(userId).stream().map(this::onFind).collect(Collectors.toList());
-    }
-
-    /**
      * Finds active specials with the given state
      *
-     * @param userId
-     * @param state
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -120,21 +108,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     }
 
     /**
-     * @param userId
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public List<ActiveTimeSpecialDto> findByUserAsDto(Integer userId) {
-        return dtoUtilService.convertEntireArray(ActiveTimeSpecialDto.class, findByUser(userId));
-    }
-
-    /**
      * Finds one active by its time special id and the target user, will be null, if
      * not active
      *
-     * @param timeSpecialId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -143,8 +119,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     }
 
     /**
-     * @param user
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.7
      */
@@ -160,7 +134,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      * <b>Has Propagation.MANDATORY as should not be run by controllers, this action
      * is reserved to another service
      *
-     * @param timeSpecial
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -172,8 +145,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     /**
      * Activates a TimeSpecial
      *
-     * @param timeSpecialId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -198,6 +169,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             improvementBo.clearSourceCache(user, this);
             ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
             scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
+            requirementBo.triggerTimeSpecialStateChange(user, timeSpecial);
             emitTimeSpecialChange(user);
             return newActive;
         } else {
@@ -246,8 +218,20 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
         return groupedImprovement;
     }
 
+    /**
+     * Please note, as we are outside of request, we can't get the user for obvious
+     * reasons <br>
+     * So we have to manually fill the activeTimeSpecialDto prop
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public void emitTimeSpecialChange(UserStorage user) {
+        socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
+    }
+
     private Date computeExpiringDate(Long time) {
-        Long difference = new Date().getTime() + time * 1000;
+        long difference = new Date().getTime() + time * 1000;
         return new Date(difference);
     }
 
@@ -261,16 +245,11 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
         }
     }
 
-    /**
-     * Please note, as we are outside of request, we can't get the user for obvious
-     * reasons <br>
-     * So we have to manually fill the activeTimeSpecialDto prop
-     *
-     * @param user
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public void emitTimeSpecialChange(UserStorage user) {
-        socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
+    private Long resolveTaskId(ScheduledTask task) {
+        if (task.getContent() instanceof Double doubleValue) {
+            return doubleValue.longValue();
+        } else {
+            return (Long) task.getContent();
+        }
     }
 }

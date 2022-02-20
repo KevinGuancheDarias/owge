@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
@@ -23,6 +24,7 @@ import java.io.Serial;
  */
 @Entity
 @Table(name = "requirements_information")
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,46 +49,4 @@ public class RequirementInformation implements EntityWithId<Integer> {
 
     @Column(name = "third_value")
     private Long thirdValue;
-
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public ObjectRelation getRelation() {
-        return relation;
-    }
-
-    public void setRelation(ObjectRelation relationId) {
-        relation = relationId;
-    }
-
-    public Requirement getRequirement() {
-        return requirement;
-    }
-
-    public void setRequirement(Requirement requirement) {
-        this.requirement = requirement;
-    }
-
-    public Long getSecondValue() {
-        return secondValue;
-    }
-
-    public void setSecondValue(Long secondValue) {
-        this.secondValue = secondValue;
-    }
-
-    public Long getThirdValue() {
-        return thirdValue;
-    }
-
-    public void setThirdValue(Long thirdValue) {
-        this.thirdValue = thirdValue;
-    }
 }

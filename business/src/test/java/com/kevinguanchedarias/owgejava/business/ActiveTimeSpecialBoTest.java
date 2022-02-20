@@ -1,0 +1,177 @@
+package com.kevinguanchedarias.owgejava.business;
+
+import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
+import com.kevinguanchedarias.owgejava.fake.NonPostConstructActiveTimeSpecialBo;
+import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeConsumerLambdaAnswer;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+
+import java.util.Optional;
+
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.ACTIVE_TIME_SPECIAL_RECHARGE_TIME;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.ACTIVE_TIME_SPECICAL_ID;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_DURATION;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenActiveTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(OutputCaptureExtension.class)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        classes = NonPostConstructActiveTimeSpecialBo.class
+)
+@MockBean({
+        ActiveTimeSpecialRepository.class,
+        TimeSpecialBo.class,
+        ObjectRelationBo.class,
+        UserStorageBo.class,
+        ImprovementBo.class,
+        ScheduledTasksManagerService.class,
+        DtoUtilService.class,
+        SocketIoService.class,
+        RequirementBo.class
+})
+class ActiveTimeSpecialBoTest {
+    private final NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo;
+    private final TimeSpecialBo timeSpecialBo;
+    private final ObjectRelationBo objectRelationBo;
+    private final UserStorageBo userStorageBo;
+    private final ImprovementBo improvementBo;
+    private final ScheduledTasksManagerService scheduledTasksManagerService;
+    private final RequirementBo requirementBo;
+    private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
+    private final SocketIoService socketIoService;
+
+    @Autowired
+    ActiveTimeSpecialBoTest(
+            NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo,
+            TimeSpecialBo timeSpecialBo,
+            ObjectRelationBo objectRelationBo,
+            UserStorageBo userStorageBo,
+            ImprovementBo improvementBo,
+            ScheduledTasksManagerService scheduledTasksManagerService,
+            RequirementBo requirementBo,
+            ActiveTimeSpecialRepository activeTimeSpecialRepository,
+            SocketIoService socketIoService
+    ) {
+        this.activeTimeSpecialBo = activeTimeSpecialBo;
+        this.timeSpecialBo = timeSpecialBo;
+        this.objectRelationBo = objectRelationBo;
+        this.userStorageBo = userStorageBo;
+        this.improvementBo = improvementBo;
+        this.scheduledTasksManagerService = scheduledTasksManagerService;
+        this.requirementBo = requirementBo;
+        this.activeTimeSpecialRepository = activeTimeSpecialRepository;
+        this.socketIoService = socketIoService;
+    }
+
+    @Test
+    void init_should_register_for_improvements_and_task_handlers() {
+
+        this.activeTimeSpecialBo.realInit();
+
+        verify(improvementBo, times(1)).addImprovementSource(activeTimeSpecialBo);
+        verify(scheduledTasksManagerService, times(1)).addHandler(eq("TIME_SPECIAL_EFFECT_END"), any());
+        verify(scheduledTasksManagerService, times(1)).addHandler(eq("TIME_SPECIAL_IS_READY"), any());
+    }
+
+    @Test
+    void time_special_effect_end_handler_should_put_time_special_in_recharge_state(CapturedOutput capturedOutput) {
+        var activeTimeSpecial = givenActiveTimeSpecial();
+        var user = givenUser1();
+        activeTimeSpecial.setUser(user);
+        var task = ScheduledTask.builder()
+                .type("some")
+                .content(ACTIVE_TIME_SPECICAL_ID)
+                .build();
+        var lambdaAnswer = new InvokeConsumerLambdaAnswer<ScheduledTask>(1);
+        doAnswer(lambdaAnswer)
+                .when(scheduledTasksManagerService).addHandler(eq("TIME_SPECIAL_EFFECT_END"), any());
+
+        given(activeTimeSpecialRepository.findById(ACTIVE_TIME_SPECICAL_ID))
+                .willReturn(Optional.of(activeTimeSpecial));
+        activeTimeSpecialBo.realInit();
+
+        verify(improvementBo, never()).clearSourceCache(any(), any());
+        lambdaAnswer.getPassedLambda().accept(task);
+        assertThat(capturedOutput.getOut()).contains("Time special effect end");
+        verify(activeTimeSpecialRepository, times(1)).findById(ACTIVE_TIME_SPECICAL_ID);
+        var captor = ArgumentCaptor.forClass(ActiveTimeSpecial.class);
+        verify(activeTimeSpecialRepository, times(1)).save(captor.capture());
+        var saved = captor.getValue();
+        assertThat(saved.getState()).isEqualTo(TimeSpecialStateEnum.RECHARGE);
+        assertThat(saved.getReadyDate()).isNotNull();
+        verify(improvementBo, times(1)).clearSourceCache(user, activeTimeSpecialBo);
+        var taskCaptor = ArgumentCaptor.forClass(ScheduledTask.class);
+        verify(scheduledTasksManagerService, times(1)).registerEvent(taskCaptor.capture(), eq(ACTIVE_TIME_SPECIAL_RECHARGE_TIME));
+        var registeredTask = taskCaptor.getValue();
+        assertThat(registeredTask.getType()).isEqualTo("TIME_SPECIAL_IS_READY");
+        assertThat(registeredTask.getContent()).isEqualTo(ACTIVE_TIME_SPECICAL_ID);
+        verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
+        verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
+    }
+
+    @Test
+    void activate_should_trigger_requirements() {
+        var user = givenUser1();
+        var timeSpecial = givenTimeSpecial();
+        var or = givenObjectRelation();
+        var activeTimeSpecialId = 19278123L;
+        given(timeSpecialBo.findByIdOrDie(TIME_SPECIAL_ID)).willReturn(timeSpecial);
+        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
+                .willReturn(or);
+        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userStorageBo.findLoggedInWithDetails()).willReturn(user);
+        given(activeTimeSpecialRepository.save(any())).willAnswer(invocationOnMock -> {
+            var newActivated = invocationOnMock.getArgument(0, ActiveTimeSpecial.class);
+            newActivated.setId(activeTimeSpecialId);
+            return newActivated;
+        });
+
+        var result = activeTimeSpecialBo.activate(TIME_SPECIAL_ID);
+
+        verify(timeSpecialBo, times(1)).findByIdOrDie(TIME_SPECIAL_ID);
+        verify(objectRelationBo, times(1)).findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
+        verify(userStorageBo, times(1)).findLoggedIn();
+        verify(objectRelationBo, times(1)).checkIsUnlocked(user, or);
+        verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);
+        verify(userStorageBo, times(1)).findLoggedInWithDetails();
+        var captor = ArgumentCaptor.forClass(ActiveTimeSpecial.class);
+        verify(activeTimeSpecialRepository, times(1)).save(captor.capture());
+        verify(improvementBo, times(1)).clearSourceCache(user, activeTimeSpecialBo);
+        var schedulerCaptor = ArgumentCaptor.forClass(ScheduledTask.class);
+        verify(scheduledTasksManagerService, times(1)).registerEvent(schedulerCaptor.capture(), eq(TIME_SPECIAL_DURATION));
+        verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
+        var savedActive = captor.getValue();
+        assertThat(savedActive).isSameAs(result);
+        assertThat(savedActive.getTimeSpecial()).isEqualTo(timeSpecial);
+        assertThat(savedActive.getState()).isEqualTo(TimeSpecialStateEnum.ACTIVE);
+        var scheduledTask = schedulerCaptor.getValue();
+        assertThat(scheduledTask.getType()).isEqualTo("TIME_SPECIAL_EFFECT_END");
+        assertThat(scheduledTask.getContent()).isEqualTo(activeTimeSpecialId);
+        verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, timeSpecial);
+    }
+
+}

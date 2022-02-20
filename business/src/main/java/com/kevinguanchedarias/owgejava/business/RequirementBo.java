@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Requirement;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -288,8 +289,6 @@ public class RequirementBo implements Serializable {
     }
 
     /**
-     * @param user
-     * @param specialLocation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -299,10 +298,17 @@ public class RequirementBo implements Serializable {
                 RequirementTypeEnum.HAVE_SPECIAL_LOCATION, specialLocation.getId().longValue()), user);
     }
 
+    @Transactional
+    public void triggerTimeSpecialStateChange(UserStorage user, TimeSpecial timeSpecial) {
+        processRelationList(
+                objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_SPECIAL_ENABLED, timeSpecial.getId().longValue()),
+                user
+        );
+    }
+
     /**
      * Checks if all users met the new requirements of the changed relation
      *
-     * @param relation
      * @author Kevin Guanche Darias
      */
     @Transactional
