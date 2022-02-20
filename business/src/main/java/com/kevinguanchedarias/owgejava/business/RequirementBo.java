@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
@@ -120,7 +121,10 @@ public class RequirementBo implements Serializable {
     private UnitRepository unitRepository;
 
     @Autowired
-    private List<RequirementSource> requirementSources;
+    private transient List<RequirementSource> requirementSources;
+
+    @Autowired
+    private TransactionUtilService transactionUtilService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -394,7 +398,7 @@ public class RequirementBo implements Serializable {
             if (slaves.stream().anyMatch(slave -> unlockedRelationBo.isUnlocked(user, slave))) {
                 registerObtainedRelation(master, user);
             } else {
-                unregisterLossedRelation(master, user);
+                unregisterLostRelation(master, user);
             }
         });
     }
@@ -409,7 +413,7 @@ public class RequirementBo implements Serializable {
         if (checkRequirementsAreMet(relation, user)) {
             registerObtainedRelation(relation, user);
         } else {
-            unregisterLossedRelation(relation, user);
+            unregisterLostRelation(relation, user);
         }
     }
 
@@ -515,7 +519,7 @@ public class RequirementBo implements Serializable {
      */
     private void registerObtainedRelation(ObjectRelation relation, UserStorage user) {
         Integer userId = user.getId();
-        if (findUnlockedObjectRelation(relation.getId(), userId) == null) {
+        if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relation.getId()) == null) {
             var unlockedRelation = new UnlockedRelation();
             unlockedRelation.setRelation(relation);
             unlockedRelation.setUser(user);
@@ -550,8 +554,8 @@ public class RequirementBo implements Serializable {
                 "speed_impact_group_unlocked_change", () -> speedImpactGroupBo.findCrossGalaxyUnlocked(user)));
     }
 
-    private void unregisterLossedRelation(ObjectRelation relation, UserStorage user) {
-        UnlockedRelation unlockedRelation = findUnlockedObjectRelation(relation.getId(), user.getId());
+    private void unregisterLostRelation(ObjectRelation relation, UserStorage user) {
+        UnlockedRelation unlockedRelation = unlockedRelationBo.findOneByUserIdAndRelationId(user.getId(), relation.getId());
         if (unlockedRelation != null) {
             unlockedRelationBo.delete(unlockedRelation.getId());
         }
@@ -567,15 +571,11 @@ public class RequirementBo implements Serializable {
         }
     }
 
-    private UnlockedRelation findUnlockedObjectRelation(Integer relationId, Integer userId) {
-        return unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId);
-    }
-
     private void registerObtainedUpgrade(UserStorage user, Integer upgradeId) {
         ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
         obtainedUpgrade.setLevel(0);
         obtainedUpgrade.setUpgrade(upgradeBo.findById(upgradeId));
-        obtainedUpgrade.setUserId(user);
+        obtainedUpgrade.setUser(user);
         obtainedUpgrade.setAvailable(true);
         obtainedUpgradeBo.save(obtainedUpgrade);
     }
@@ -603,10 +603,11 @@ public class RequirementBo implements Serializable {
         return retVal;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object, WithUnlockableBo bo) {
         Integer userId = unlockedRelation.getUser().getId();
         String eventPrefix = object.name().toLowerCase();
-        TransactionUtil.doAfterCommit(() -> {
+        transactionUtilService.doAfterCommit(() -> {
             if (entityManager.contains(unlockedRelation)) {
                 entityManager.refresh(unlockedRelation);
             }

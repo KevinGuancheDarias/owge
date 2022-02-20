@@ -91,7 +91,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
             ActiveTimeSpecial forDelete = findById(id);
             if (forDelete != null) {
-                delete(id);
+                delete(forDelete);
                 emitTimeSpecialChange(forDelete.getUser());
             }
         });

@@ -10,13 +10,13 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class InvokeSupplierLambdaAnswer<T> implements Answer<T> {
     private final int position;
-    
+
     @Getter
     private T result;
 
     @SuppressWarnings("unchecked")
     @Override
-    public T answer(InvocationOnMock invocationOnMock) throws Throwable {
+    public T answer(InvocationOnMock invocationOnMock) {
         result = (T) invocationOnMock.getArgument(position, Supplier.class).get();
         return result;
     }
