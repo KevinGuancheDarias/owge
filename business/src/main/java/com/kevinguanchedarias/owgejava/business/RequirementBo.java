@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
@@ -13,6 +15,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Requirement;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -116,6 +119,12 @@ public class RequirementBo implements Serializable {
 
     @Autowired
     private UnitRepository unitRepository;
+
+    @Autowired
+    private transient List<RequirementSource> requirementSources;
+
+    @Autowired
+    private TransactionUtilService transactionUtilService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -284,8 +293,6 @@ public class RequirementBo implements Serializable {
     }
 
     /**
-     * @param user
-     * @param specialLocation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -295,10 +302,17 @@ public class RequirementBo implements Serializable {
                 RequirementTypeEnum.HAVE_SPECIAL_LOCATION, specialLocation.getId().longValue()), user);
     }
 
+    @Transactional
+    public void triggerTimeSpecialStateChange(UserStorage user, TimeSpecial timeSpecial) {
+        processRelationList(
+                objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_SPECIAL_ENABLED, timeSpecial.getId().longValue()),
+                user
+        );
+    }
+
     /**
      * Checks if all users met the new requirements of the changed relation
      *
-     * @param relation
      * @author Kevin Guanche Darias
      */
     @Transactional
@@ -384,7 +398,7 @@ public class RequirementBo implements Serializable {
             if (slaves.stream().anyMatch(slave -> unlockedRelationBo.isUnlocked(user, slave))) {
                 registerObtainedRelation(master, user);
             } else {
-                unregisterLossedRelation(master, user);
+                unregisterLostRelation(master, user);
             }
         });
     }
@@ -399,7 +413,7 @@ public class RequirementBo implements Serializable {
         if (checkRequirementsAreMet(relation, user)) {
             registerObtainedRelation(relation, user);
         } else {
-            unregisterLossedRelation(relation, user);
+            unregisterLostRelation(relation, user);
         }
     }
 
@@ -412,7 +426,8 @@ public class RequirementBo implements Serializable {
     private boolean checkRequirementsAreMet(ObjectRelation objectRelation, UserStorage user) {
         for (RequirementInformation currentRequirement : objectRelation.getRequirements()) {
             boolean status;
-            switch (RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode())) {
+            var requirementType = RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode());
+            switch (requirementType) {
                 case UPGRADE_LEVEL:
                     status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
                     break;
@@ -432,14 +447,22 @@ public class RequirementBo implements Serializable {
                     status = checkSpecialLocationRequirement(currentRequirement, user);
                     break;
                 default:
-                    throw new SgtBackendNotImplementedException(
-                            "Not implemented requirement type: " + currentRequirement.getRequirement().getCode());
+                    status = runRequirementSources(requirementType, currentRequirement, user);
+                    break;
             }
             if (!status) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean runRequirementSources(RequirementTypeEnum requirementType, RequirementInformation requirementInformation, UserStorage user) {
+        return requirementSources.stream()
+                .filter(requirementSource -> requirementSource.supports(requirementType.name()))
+                .findFirst()
+                .map(requirementSource -> requirementSource.checkRequirementIsMet(requirementInformation, user))
+                .orElseThrow(() -> new SgtBackendNotImplementedException("Not implemented requirement type: " + requirementInformation.getRequirement().getCode()));
     }
 
     private boolean checkUpgradeLevelRequirement(RequirementInformation requirementInformation, Integer userId) {
@@ -496,7 +519,7 @@ public class RequirementBo implements Serializable {
      */
     private void registerObtainedRelation(ObjectRelation relation, UserStorage user) {
         Integer userId = user.getId();
-        if (findUnlockedObjectRelation(relation.getId(), userId) == null) {
+        if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relation.getId()) == null) {
             var unlockedRelation = new UnlockedRelation();
             unlockedRelation.setRelation(relation);
             unlockedRelation.setUser(user);
@@ -517,7 +540,6 @@ public class RequirementBo implements Serializable {
                 case TIME_SPECIAL:
                     emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
                     break;
-
                 case REQUIREMENT_GROUP:
                     break;
                 case SPEED_IMPACT_GROUP:
@@ -532,8 +554,8 @@ public class RequirementBo implements Serializable {
                 "speed_impact_group_unlocked_change", () -> speedImpactGroupBo.findCrossGalaxyUnlocked(user)));
     }
 
-    private void unregisterLossedRelation(ObjectRelation relation, UserStorage user) {
-        UnlockedRelation unlockedRelation = findUnlockedObjectRelation(relation.getId(), user.getId());
+    private void unregisterLostRelation(ObjectRelation relation, UserStorage user) {
+        UnlockedRelation unlockedRelation = unlockedRelationBo.findOneByUserIdAndRelationId(user.getId(), relation.getId());
         if (unlockedRelation != null) {
             unlockedRelationBo.delete(unlockedRelation.getId());
         }
@@ -549,15 +571,11 @@ public class RequirementBo implements Serializable {
         }
     }
 
-    private UnlockedRelation findUnlockedObjectRelation(Integer relationId, Integer userId) {
-        return unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId);
-    }
-
     private void registerObtainedUpgrade(UserStorage user, Integer upgradeId) {
         ObtainedUpgrade obtainedUpgrade = new ObtainedUpgrade();
         obtainedUpgrade.setLevel(0);
         obtainedUpgrade.setUpgrade(upgradeBo.findById(upgradeId));
-        obtainedUpgrade.setUserId(user);
+        obtainedUpgrade.setUser(user);
         obtainedUpgrade.setAvailable(true);
         obtainedUpgradeBo.save(obtainedUpgrade);
     }
@@ -585,10 +603,11 @@ public class RequirementBo implements Serializable {
         return retVal;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object, WithUnlockableBo bo) {
         Integer userId = unlockedRelation.getUser().getId();
         String eventPrefix = object.name().toLowerCase();
-        TransactionUtil.doAfterCommit(() -> {
+        transactionUtilService.doAfterCommit(() -> {
             if (entityManager.contains(unlockedRelation)) {
                 entityManager.refresh(unlockedRelation);
             }

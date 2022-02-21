@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Fix:__ [When creating an account, it fails, trying to check for HAVE_SPECIAL_ENABLED requirement #428](https://github.com/KevinGuancheDarias/owge/issues/428)  
 * [class=Admin] __Feature:__ [As an admin I want to allow to capture units by specifing the captures rules #402](https://github.com/KevinGuancheDarias/owge/issues/402)  
 * __Feature:__ [As a player I would like to have a chance to capture enemy units #6](https://github.com/KevinGuancheDarias/owge/issues/6)  
 * __Feature:__ [As a player I want my faction to spawn in certain locations #406](https://github.com/KevinGuancheDarias/owge/issues/406)  

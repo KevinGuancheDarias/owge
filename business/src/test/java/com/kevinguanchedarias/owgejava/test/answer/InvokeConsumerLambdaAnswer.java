@@ -5,19 +5,19 @@ import lombok.RequiredArgsConstructor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class InvokeSupplierLambdaAnswer<T> implements Answer<T> {
+public class InvokeConsumerLambdaAnswer<T> implements Answer<T> {
     private final int position;
 
     @Getter
-    private T result;
+    private Consumer<T> passedLambda;
 
     @SuppressWarnings("unchecked")
     @Override
     public T answer(InvocationOnMock invocationOnMock) {
-        result = (T) invocationOnMock.getArgument(position, Supplier.class).get();
-        return result;
+        passedLambda = invocationOnMock.getArgument(position, Consumer.class);
+        return null;
     }
 }

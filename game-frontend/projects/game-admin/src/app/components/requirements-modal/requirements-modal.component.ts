@@ -1,13 +1,14 @@
-import { Component, Input, EventEmitter, Output } from '@angular/core';
-import { AbstractModalContainerComponent, CommonEntity, ProgrammingError } from '@owge/core';
-import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { AdminFactionService } from '../../services/admin-faction.service';
-import { AdminUpgradeService } from '../../services/admin-upgrade.service';
-import { Observable } from 'rxjs';
-import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
+import { AbstractModalContainerComponent, CommonEntity, ProgrammingError } from '@owge/core';
 import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
+import { Observable } from 'rxjs';
+import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
+import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
 import { AdminUnitService } from '../../services/admin-unit.service';
+import { AdminUpgradeService } from '../../services/admin-upgrade.service';
+import { RequirementInformationWithTranslation } from '../../types/requirement-information-with-translation.type';
 
 /**
  *
@@ -31,14 +32,15 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   public secondValueFilters: WidgetFilter<any>[] = null;
   public secondValueListFiltered: CommonEntity<number[]>;
 
-  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT'];
+  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT', 'HAVE_SPECIAL_ENABLED'];
 
   public constructor(
     private _translateService: TranslateService,
     private _adminFactionService: AdminFactionService,
     private _adminUpgradeService: AdminUpgradeService,
     private _adminSpecialLocationService: AdminSpecialLocationService,
-    private _adminUnitService: AdminUnitService
+    private _adminUnitService: AdminUnitService,
+    private adminTimeSpecialService: AdminTimeSpecialService
   ) {
     super();
   }
@@ -68,6 +70,10 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
         case 'HAVE_UNIT':
           this._adminFactionService.buildFilter().then(result => this.secondValueFilters = [result, WidgetFilterUtil.buildByNameFilter()]);
           this._adminUnitService.findAll().subscribe(units => this.secondValueList = units);
+          break;
+        case 'HAVE_SPECIAL_ENABLED':
+          this._adminFactionService.buildFilter().then(result => this.secondValueFilters = [result, WidgetFilterUtil.buildByNameFilter()]);
+          this.adminTimeSpecialService.findAll().subscribe(timeSpecials => this.secondValueList = timeSpecials);
           break;
         default:
           throw new ProgrammingError(`The requirement with code ${this.newRequirement.requirement.code} is not supported`);

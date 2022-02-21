@@ -3,12 +3,12 @@
  */
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -17,49 +17,31 @@ import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
  */
 public interface ActiveTimeSpecialRepository extends JpaRepository<ActiveTimeSpecial, Long> {
 
-	/**
-	 *
-	 * @param userId
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ActiveTimeSpecial> findByUserId(Integer userId);
+    /**
+     *
+     * @since 0.8.0
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    List<ActiveTimeSpecial> findByUserId(Integer userId);
 
-	/**
-	 *
-	 * @param userId
-	 * @param state
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ActiveTimeSpecial> findByUserIdAndState(Integer userId, TimeSpecialStateEnum state);
+    /**
+     *
+     * @since 0.8.0
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    List<ActiveTimeSpecial> findByUserIdAndState(Integer userId, TimeSpecialStateEnum state);
 
-	/**
-	 *
-	 * @param timeSpecialId
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void deleteByTimeSpecialId(Integer timeSpecialId);
+    /**
+     *
+     * @since 0.8.0
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    void deleteByTimeSpecialId(Integer timeSpecialId);
 
-	/**
-	 *
-	 * @param timeSpecialId
-	 * @return
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ActiveTimeSpecial findOneByTimeSpecialId(Integer timeSpecialId);
-
-	/**
-	 *
-	 * @param timeSpecialId
-	 * @param userId
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ActiveTimeSpecial findOneByTimeSpecialIdAndUserId(Integer timeSpecialId, Integer userId);
+    /**
+     *
+     * @since 0.9.0
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    Optional<ActiveTimeSpecial> findOneByTimeSpecialIdAndUserId(Integer timeSpecialId, Integer userId);
 }
