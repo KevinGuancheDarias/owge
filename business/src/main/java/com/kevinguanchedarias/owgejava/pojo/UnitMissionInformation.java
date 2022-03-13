@@ -21,13 +21,7 @@ public class UnitMissionInformation {
     private Integer userId;
     private Long sourcePlanetId;
     private Long targetPlanetId;
-
-    /**
-     * @deprecated Because bar
-     */
-    @Deprecated(since = "foo")
     private MissionType missionType;
-    
     private Long wantedTime;
     private List<SelectedUnit> involvedUnits;
 }
