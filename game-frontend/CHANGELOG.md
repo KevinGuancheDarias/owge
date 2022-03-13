@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Fix:__ [When building or deleting the number of units goest to zero #434](https://github.com/KevinGuancheDarias/owge/issues/434)  
 * __Feature:__ [As a player I want to be able to choose unit mission time #426](https://github.com/KevinGuancheDarias/owge/issues/426)  
 * __Fix:__ [When creating an account, it fails, trying to check for HAVE_SPECIAL_ENABLED requirement #428](https://github.com/KevinGuancheDarias/owge/issues/428)  
 * [class=Admin] __Feature:__ [As an admin I want to allow to capture units by specifing the captures rules #402](https://github.com/KevinGuancheDarias/owge/issues/402)  

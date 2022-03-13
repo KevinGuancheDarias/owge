@@ -13,16 +13,18 @@ import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
+import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
+    @Serial
     private static final long serialVersionUID = 1064115662505668879L;
 
     private static final String UNIT_TYPE_CHANGE = "unit_type_change";
@@ -48,6 +50,10 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     @Autowired
     private transient FactionUnitTypeRepository factionUnitTypeRepository;
+
+    @Autowired
+    @Lazy
+    private ObtainedUnitBo obtainedUnitBo;
 
     @Override
     public JpaRepository<UnitType, Integer> getRepository() {
@@ -146,28 +152,19 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
         return unitTypeRepository.existsByUnitsTypeId(id);
     }
 
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<UnitTypeDto> findUnitTypesWithUserInfo(Integer userId) {
-        return findUnitTypesWithUserInfo(userStorageBo.findById(userId));
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<UnitTypeDto> findUnitTypesWithUserInfo(UserStorage user) {
+    public List<UnitTypeResponse> findUnitTypesWithUserInfo(Integer userId) {
         return findAll().stream().map(current -> {
-            var currentDto = new UnitTypeDto();
-            currentDto.dtoFromEntity(current);
-            currentDto.setComputedMaxCount(findUniTypeLimitByUser(user, current));
-            if (current.hasMaxCount()) {
-                currentDto.setUserBuilt(obtainedUnitRepository.countByUserAndUnitType(user, current));
+            var unitTypeResponse = new UnitTypeResponse();
+            current.getSpeedImpactGroup().setRequirementGroups(null);
+            unitTypeResponse.dtoFromEntity(current);
+            var user = userStorageBo.findById(userId);
+            unitTypeResponse.setComputedMaxCount(findUniTypeLimitByUser(user, current));
+            if (hasMaxCount(user.getFaction(), current)) {
+                unitTypeResponse.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current));
             }
-            return currentDto;
-        }).collect(Collectors.toList());
+            unitTypeResponse.setUsed(isUsed(current.getId()));
+            return unitTypeResponse;
+        }).toList();
     }
 
     public void emitUserChange(Integer userId) {

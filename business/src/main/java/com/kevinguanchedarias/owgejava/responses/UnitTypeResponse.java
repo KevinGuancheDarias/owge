@@ -1,7 +1,6 @@
-package com.kevinguanchedarias.owgejava.response;
+package com.kevinguanchedarias.owgejava.responses;
 
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
