@@ -66,11 +66,12 @@ import java.util.stream.Collectors;
 
 @Service
 public class UnitMissionBo extends AbstractMissionBo {
+    public static final String JOB_GROUP_NAME = "UnitMissions";
+
     @Serial
     private static final long serialVersionUID = 344402831344882216L;
 
     private static final Logger LOG = Logger.getLogger(UnitMissionBo.class);
-    private static final String JOB_GROUP_NAME = "UnitMissions";
     private static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
 
     @Autowired
@@ -784,7 +785,7 @@ public class UnitMissionBo extends AbstractMissionBo {
             obtainedUnits.add(currentObtainedUnit);
         });
         List<UnitType> involvedUnitTypes = obtainedUnits.stream().map(current -> current.getUnit().getType())
-                .collect(Collectors.toList());
+                .toList();
         if (!unitTypeBo.canDoMission(user, mission.getTargetPlanet(), involvedUnitTypes, missionType)) {
             throw new SgtBackendInvalidInputException(
                     "At least one unit type doesn't support the specified mission.... don't try it dear hacker, you can't defeat the system, but don't worry nobody can");
@@ -792,13 +793,21 @@ public class UnitMissionBo extends AbstractMissionBo {
         checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
         obtainedUnitBo.save(obtainedUnits);
         handleMissionTimeCalculation(obtainedUnits, mission, missionType);
+        handleCustomDuration(mission, missionInformation.getWantedTime());
         mission.setInvisible(
                 obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
         save(mission);
         scheduleMission(mission);
         emitLocalMissionChangeAfterCommit(mission);
-        TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+        transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
                 () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+    }
+
+    private void handleCustomDuration(Mission mission, Long customDuration) {
+        if (customDuration != null && customDuration > mission.getRequiredTime()) {
+            mission.setRequiredTime(customDuration.doubleValue());
+            mission.setTerminationDate(computeTerminationDate(mission.getRequiredTime()));
+        }
     }
 
     /**
@@ -934,9 +943,9 @@ public class UnitMissionBo extends AbstractMissionBo {
                     missionInformation.getUserId(), current.getId(), sourcePlanetId,
                     !planetBo.isOfUserProperty(userId, sourcePlanetId));
             checkUnitCanDeploy(currentObtainedUnit, missionInformation);
-            ObtainedUnit unitAfterSubstraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
+            ObtainedUnit unitAfterSubtraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
                     current.getCount(), false);
-            if (unitAfterSubstraction == null && currentObtainedUnit.getMission() != null
+            if (unitAfterSubtraction == null && currentObtainedUnit.getMission() != null
                     && currentObtainedUnit.getMission().getType().getCode().equals(MissionType.DEPLOYED.toString())) {
                 deletedMissions.add(currentObtainedUnit.getMission());
             }

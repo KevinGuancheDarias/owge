@@ -1,6 +1,6 @@
-import { Unit } from './unit.type';
-import { RunningMission } from './running-mission.type';
 import { Planet } from '../pojos/planet.pojo';
+import { RunningMission } from './running-mission.type';
+import { Unit } from './unit.type';
 
 /**
  * Represents an unit build running mission
@@ -12,5 +12,5 @@ import { Planet } from '../pojos/planet.pojo';
 export interface UnitBuildRunningMission extends RunningMission {
     unit: Unit;
     count: number;
-    sourcePlanet: Planet;
+    sourcePlanet?: Planet;
 }

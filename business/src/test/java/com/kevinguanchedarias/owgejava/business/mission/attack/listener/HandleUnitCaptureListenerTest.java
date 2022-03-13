@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.mock.AttackMock;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.mock.UnitMock;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.attack.listener.UnitCaptureContext;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
@@ -31,6 +32,7 @@ import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtaine
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
@@ -68,7 +70,7 @@ class HandleUnitCaptureListenerTest {
     private static final String RULE_DESTINATION_UNIT = "UNIT";
     private static final String RULE_DESTINATION_UNIT_TYPE = "UNIT_TYPE";
     private static final long UNIT_ID = UnitMock.UNIT_ID_1;
-    private static final long UNIT_TYPE_ID = UnitMock.UNIT_TYPE_ID;
+    private static final long UNIT_TYPE_ID = UnitTypeMock.UNIT_TYPE_ID;
 
     private final HandleUnitCaptureListener handleUnitCaptureListener;
     private final RuleRepository ruleRepository;
@@ -316,7 +318,7 @@ class HandleUnitCaptureListenerTest {
         verify(ruleBo, times(1)).hasExtraArg(captureRule, 0);
         verify(ruleBo, times(1)).hasExtraArg(captureRule, 1);
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
-        verify(obtainedUnitBo, times(1)).moveUnit(captor.capture(), eq(USER_ID_1), eq(TARGET_PLANET_ID));
+        verify(obtainedUnitBo, times(1)).moveUnit(captor.capture(), eq(USER_ID_1), eq(SOURCE_PLANET_ID));
         var capturedUnit = captor.getValue();
         assertThat(information.getContextData())
                 .containsKey(CAPTURE_UNIT_CONTEXT_NAME);

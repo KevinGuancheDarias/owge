@@ -1,0 +1,12 @@
+.owge-theme-clickable-item {
+        cursor: pointer;
+        &:hover {
+            text-shadow: 2px 2px 10px  black;
+        }
+    .owge-theme-clickable-item-alt {
+        cursor: pointer;
+        &:hover {
+            text-shadow: 2px 2px 10px black;
+        }
+    }
+}

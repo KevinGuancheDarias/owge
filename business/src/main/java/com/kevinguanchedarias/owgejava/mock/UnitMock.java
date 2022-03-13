@@ -9,7 +9,6 @@ public class UnitMock {
     public static final int UNIT_ID_2 = 122312;
     public static final int UNIT_BYPASS_SHIELDS_ID_3 = 122312;
 
-    public static final int UNIT_TYPE_ID = 139874;
     public static final String UNIT_NAME = "Paco";
     public static final int UNIT_POINTS_1 = 4;
     public static final int UNIT_POINTS_2 = 8;
@@ -22,7 +21,7 @@ public class UnitMock {
         var retVal = new Unit();
         retVal.setId(UNIT_ID_1);
         retVal.setName(UNIT_NAME);
-        retVal.setType(UnitTypeMock.givenEntity(UNIT_TYPE_ID));
+        retVal.setType(UnitTypeMock.givenEntity());
         retVal.setPoints(UNIT_POINTS_1);
         retVal.setAttack(UNIT_ATTACK);
         retVal.setShield(UNIT_SHIELD);
@@ -34,7 +33,7 @@ public class UnitMock {
         var retVal = new Unit();
         retVal.setId(UNIT_ID_2);
         retVal.setName(UNIT_NAME);
-        retVal.setType(UnitTypeMock.givenEntity(UNIT_TYPE_ID));
+        retVal.setType(UnitTypeMock.givenEntity());
         retVal.setPoints(UNIT_POINTS_2);
         return retVal;
     }

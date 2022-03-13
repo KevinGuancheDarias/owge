@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ImprovementMock {
+    public static final float GROUPED_IMPROVEMENT_MORE_MISSIONS = 3;
+
     public static Improvement givenEntity() {
         Improvement improvement = new Improvement();
         improvement.setId(1);
@@ -14,6 +16,8 @@ public class ImprovementMock {
     }
 
     public static GroupedImprovement givenUserImprovement() {
-        return new GroupedImprovement();
+        var instance = new GroupedImprovement();
+        instance.setMoreMisions(GROUPED_IMPROVEMENT_MORE_MISSIONS);
+        return instance;
     }
 }

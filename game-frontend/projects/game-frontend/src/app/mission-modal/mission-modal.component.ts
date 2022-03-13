@@ -1,17 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-
-import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AbstractModalContainerComponent, LoggerHelper, MissionType, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { MissionStore, Planet, ObtainedUnit, SpeedImpactGroupService } from '@owge/universe';
-
-import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { MissionType } from '@owge/core';
+import { MissionStore, ObtainedUnit, Planet, SpeedImpactGroupService } from '@owge/universe';
+import { Observable } from 'rxjs';
+import { ConfigurationService } from '../modules/configuration/services/configuration.service';
+import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
 import { MissionService } from '../services/mission.service';
 import { UnitTypeService } from '../services/unit-type.service';
+import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { MissionInformationStore } from '../store/mission-information.store';
-import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
-import { ConfigurationService } from '../modules/configuration/services/configuration.service';
-import { Observable } from 'rxjs';
+
+
 
 /**
  * Modal to send a mission to a planet
@@ -58,6 +57,7 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public canCrossGalaxy = true;
   public canDoMissionOutsideGalaxy = true;
   public clickSelectAllBinded: Function;
+  public customMissionTime: number;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
   private _subscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper;
@@ -95,11 +95,17 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
    * Sends a mission to the backend
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns {Promise<void>}
+   * @returns
    * @memberof MissionModalComponent
    */
   public async sendMission(): Promise<void> {
-    await this._missionService.sendMission(this.missionType, this.sourcePlanet, this.targetPlanet, this.selectedUnits);
+    await this._missionService.sendMission(
+      this.missionType,
+      this.sourcePlanet,
+      this.targetPlanet,
+      this.selectedUnits,
+      this.customMissionTime
+    );
     this._missioninformationStore.missionSent.next(undefined);
     this._childModal.hide();
   }
@@ -188,10 +194,10 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   /**
    *
    *
-   * @param {Planet} targetPlanet
+   * @param targetPlanet
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.4
-   * @returns {boolean}
+   * @returns
    * @memberof MissionModalComponent
    */
   public isDeploymentAllowed(targetPlanet: Planet): boolean {

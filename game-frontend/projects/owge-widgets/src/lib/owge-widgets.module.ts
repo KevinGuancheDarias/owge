@@ -27,6 +27,10 @@ import { WidgetIdNameDropdownComponent } from './components/widget-id-name-dropd
 import { WidgetSideBarComponent } from './components/widget-sidebar/widget-sidebar.component';
 import { WidgetSortListComponent } from './components/widget-sort-list/widget-sort-list.component';
 import { WidgetSpanWithPlaceholderComponent } from './components/widget-span-with-placeholder/widget-span-with-placeholder.component';
+import { WidgetTimeSelectionComponent } from './components/widget-time-selection/widget-time-selection.component';
+import {
+  WidgetTouchableNumberSelectorComponent
+} from './components/widget-touchable-number-selector/widget-touchable-number-selector.component';
 import { WidgetWarnMessageComponent } from './components/widget-warn-message/widget-warn-message.component';
 import { UiIconPipe } from './pipes/ui-icon.pipe';
 import { DisplayService } from './services/display.service';
@@ -70,6 +74,8 @@ import { DisplayService } from './services/display.service';
     WidgetDisplayUnitImprovementsComponent,
     WidgetSortListComponent,
     WidgetWarnMessageComponent,
+    WidgetTimeSelectionComponent,
+    WidgetTouchableNumberSelectorComponent,
   ],
   providers: [
     DisplayService
@@ -94,7 +100,9 @@ import { DisplayService } from './services/display.service';
     WidgetDisplayImprovementsComponent,
     WidgetDisplaySingleResourceComponent,
     WidgetSortListComponent,
-    WidgetWarnMessageComponent
+    WidgetWarnMessageComponent,
+    WidgetTimeSelectionComponent,
+    WidgetTouchableNumberSelectorComponent
   ]
 })
 export class OwgeWidgetsModule {

@@ -1,13 +1,6 @@
 import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  OnChanges,
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  OnDestroy
+  ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output
 } from '@angular/core';
 import { DateRepresentation, DateUtil } from '@owge/core';
 
@@ -27,10 +20,6 @@ import { DateRepresentation, DateUtil } from '@owge/core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
-
-  private intervalId: number;
-  private _isDestroyed = false;
-
   /**
    * If should auto start counting defaults to true
    */
@@ -38,13 +27,16 @@ export class WidgetCountdownComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() public targetDate: Date;
   @Input() public pendingMillis: number;
-  @Output() public timeOver: EventEmitter<{}> = new EventEmitter();
+  @Output() public timeOver: EventEmitter<any> = new EventEmitter();
 
   public get done(): boolean {
     return this._done;
   }
 
   public time: DateRepresentation;
+
+  private intervalId: number;
+  private _isDestroyed = false;
 
   private _done = false;
   private _targetDate: Date;
