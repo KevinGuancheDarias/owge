@@ -32,6 +32,7 @@ import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtaine
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
@@ -317,7 +318,7 @@ class HandleUnitCaptureListenerTest {
         verify(ruleBo, times(1)).hasExtraArg(captureRule, 0);
         verify(ruleBo, times(1)).hasExtraArg(captureRule, 1);
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
-        verify(obtainedUnitBo, times(1)).moveUnit(captor.capture(), eq(USER_ID_1), eq(TARGET_PLANET_ID));
+        verify(obtainedUnitBo, times(1)).moveUnit(captor.capture(), eq(USER_ID_1), eq(SOURCE_PLANET_ID));
         var capturedUnit = captor.getValue();
         assertThat(information.getContextData())
                 .containsKey(CAPTURE_UNIT_CONTEXT_NAME);
