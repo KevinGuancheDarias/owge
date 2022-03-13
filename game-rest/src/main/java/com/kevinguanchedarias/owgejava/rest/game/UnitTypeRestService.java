@@ -6,7 +6,7 @@ import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
-import com.kevinguanchedarias.owgejava.response.UnitTypeResponse;
+import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
