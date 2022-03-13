@@ -1,20 +1,19 @@
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { camelCase, upperFirst } from 'lodash-es';
-
-
 import {
-  ProgrammingError, LoadingService, User, DateUtil, ResourcesEnum, TypeWithMissionLimitation, MissionSupport,
-  MissionType, AbstractWebsocketApplicationHandler
+  AbstractWebsocketApplicationHandler, DateUtil, LoadingService, MissionSupport,
+  MissionType, ProgrammingError, ResourcesEnum, TypeWithMissionLimitation, User
 } from '@owge/core';
 import {
-  UniverseGameService, MissionStore, UnitRunningMission, RunningMission, UserStorage,
-  UniverseCacheManagerService, WsEventCacheService, Planet, ResourceManagerService
+  AnyRunningMission, MissionStore, Planet, ResourceManagerService, RunningMission,
+  UnitRunningMission, UniverseCacheManagerService, UniverseGameService, UserStorage, WsEventCacheService
 } from '@owge/universe';
-
+import { camelCase, upperFirst } from 'lodash-es';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { SelectedUnit } from '../shared/types/selected-unit.type';
-import { AnyRunningMission } from '../shared/types/any-running-mission.type';
+
+
+
 
 @Injectable()
 export class MissionService extends AbstractWebsocketApplicationHandler {
@@ -82,41 +81,48 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.7.0
-   * @param {MissionType} missionType
-   * @param {Planet} sourcePlanet
-   * @param {Planet} targetPlanet
-   * @param {SelectedUnit[]} selectedUnits
-   * @returns {Promise<void>}
+   * @param missionType
+   * @param sourcePlanet
+   * @param targetPlanet
+   * @param selectedUnits
+   * @returns
    * @memberof MissionService
    */
   public async sendMission(
     missionType: MissionType,
     sourcePlanet: Planet,
     targetPlanet: Planet,
-    selectedUnits: SelectedUnit[]
+    selectedUnits: SelectedUnit[],
+    wantedTime?: number
   ): Promise<void> {
     await this._loadingService.runWithLoading(async () => {
       switch (missionType) {
         case 'EXPLORE':
-          await this.sendExploreMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendExploreMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'GATHER':
-          await this.sendGatherMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendGatherMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'ESTABLISH_BASE':
-          await this.sendEstablishBaseMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendEstablishBaseMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'ATTACK':
-          await this.sendAttackMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendAttackMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'COUNTERATTACK':
-          await this.sendCounterattackMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendCounterattackMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'CONQUEST':
-          await this.sendConquestMission(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendConquestMission(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
+
         case 'DEPLOY':
-          await this.sendDeploy(sourcePlanet, targetPlanet, selectedUnits).toPromise();
+          await this.sendDeploy(sourcePlanet, targetPlanet, selectedUnits, wantedTime);
           break;
         default:
           throw new ProgrammingError(`Unexpected mission type ${missionType}`);
@@ -124,32 +130,62 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     });
   }
 
-  public sendExploreMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/explorePlanet', sourcePlanet, targetPlanet, involvedUnits);
+  public sendExploreMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/explorePlanet', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendGatherMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/gather', sourcePlanet, targetPlanet, involvedUnits);
+  public sendGatherMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/gather', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendEstablishBaseMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/establishBase', sourcePlanet, targetPlanet, involvedUnits);
+  public sendEstablishBaseMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/establishBase', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendAttackMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/attack', sourcePlanet, targetPlanet, involvedUnits);
+  public sendAttackMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/attack', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendCounterattackMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/counterattack', sourcePlanet, targetPlanet, involvedUnits);
+  public sendCounterattackMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/counterattack', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendConquestMission(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits);
+  public sendConquestMission(
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
+    return this._sendMission('mission/conquest', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
-  public sendDeploy(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
-    return this._sendMission('mission/deploy', sourcePlanet, targetPlanet, involvedUnits);
+  public sendDeploy(sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[], wantedTime?: number): Observable<void> {
+    return this._sendMission('mission/deploy', sourcePlanet, targetPlanet, involvedUnits, wantedTime);
   }
 
   public cancelMission(missionId: number): Observable<void> {
@@ -184,7 +220,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @since 0.9.0
    * @param content
    */
-  protected async _onMyUnitMissionsChange(content: { count: number, myUnitMissions: UnitRunningMission[] }): Promise<void> {
+  protected async _onMyUnitMissionsChange(content: { count: number; myUnitMissions: UnitRunningMission[] }): Promise<void> {
     this._onMissionsCountChange(content.count);
     const withBrowserDateContent: UnitRunningMission[] = content.myUnitMissions
       .map(mission => DateUtil.computeBrowserTerminationDate(mission));
@@ -213,7 +249,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    * @protected
    * @param content
    */
-  protected _onMissionGatherResult(content: { primaryResource: number, secondaryResource: number }): void {
+  protected _onMissionGatherResult(content: { primaryResource: number; secondaryResource: number }): void {
     this._resourceManagerService.addResources(ResourcesEnum.PRIMARY, content.primaryResource || 0);
     this._resourceManagerService.addResources(ResourcesEnum.SECONDARY, content.secondaryResource || 0);
   }
@@ -222,12 +258,19 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     this._missionStore.missionsCount.next(content);
   }
 
-  private _sendMission(url: string, sourcePlanet: Planet, targetPlanet: Planet, involvedUnits: SelectedUnit[]): Observable<void> {
+  private _sendMission(
+    url: string,
+    sourcePlanet: Planet,
+    targetPlanet: Planet,
+    involvedUnits: SelectedUnit[],
+    wantedTime?: number
+  ): Observable<void> {
     return this._universeGameService.postWithAuthorizationToUniverse<AnyRunningMission>(
       url, {
       sourcePlanetId: sourcePlanet.id,
       targetPlanetId: targetPlanet.id,
-      involvedUnits: involvedUnits.map(involvedUnit => ({ id: involvedUnit.unit.id, count: involvedUnit.count }))
+      involvedUnits: involvedUnits.map(involvedUnit => ({ id: involvedUnit.unit.id, count: involvedUnit.count })),
+      wantedTime
     }).pipe(map(result => {
       if (result) {
         this._missionStore.missionsCount.next(result.missionsCount);

@@ -1,7 +1,7 @@
-import { RunningMission } from './running-mission.type';
 import { User } from '@owge/core';
-import { ObtainedUnit } from './obtained-unit.type';
 import { Planet } from '../pojos/planet.pojo';
+import { ObtainedUnit } from './obtained-unit.type';
+import { RunningMission } from './running-mission.type';
 
 /**
  * Represents a running unit involved missions
@@ -14,4 +14,5 @@ export interface UnitRunningMission<U extends User = User> extends RunningMissio
     sourcePlanet?: Planet;
     targetPlanet?: Planet;
     user?: U;
+    wantedTime?: number;
 }

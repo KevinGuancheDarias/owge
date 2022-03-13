@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.mock.AttackMock;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.mock.UnitMock;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.attack.listener.UnitCaptureContext;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
@@ -68,7 +69,7 @@ class HandleUnitCaptureListenerTest {
     private static final String RULE_DESTINATION_UNIT = "UNIT";
     private static final String RULE_DESTINATION_UNIT_TYPE = "UNIT_TYPE";
     private static final long UNIT_ID = UnitMock.UNIT_ID_1;
-    private static final long UNIT_TYPE_ID = UnitMock.UNIT_TYPE_ID;
+    private static final long UNIT_TYPE_ID = UnitTypeMock.UNIT_TYPE_ID;
 
     private final HandleUnitCaptureListener handleUnitCaptureListener;
     private final RuleRepository ruleRepository;

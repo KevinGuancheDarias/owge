@@ -8,8 +8,8 @@ export * from './lib/components/widget-confirmation-dialog/widget-confirmation-d
 export * from './lib/components/widget-countdown/widget-countdown.component';
 export * from './lib/components/widget-display-dynamic-image/widget-display-image.component';
 export * from './lib/components/widget-display-improved-attribute/widget-display-improved-attribute.component';
-export * from './lib/components/widget-display-list-item/widget-display-list-item.component';
 export * from './lib/components/widget-display-improvements/widget-display-improvements.component';
+export * from './lib/components/widget-display-list-item/widget-display-list-item.component';
 export * from './lib/components/widget-display-simple-item/widget-display-simple-item.component';
 export * from './lib/components/widget-display-single-resource/widget-display-single-resource.component';
 export * from './lib/components/widget-display-unit-improvements/widget-display-unit-improvements.component';
@@ -18,8 +18,11 @@ export * from './lib/components/widget-id-name-dropdown/widget-id-name-dropdown.
 export * from './lib/components/widget-sidebar/widget-sidebar.component';
 export * from './lib/components/widget-sort-list/widget-sort-list.component';
 export * from './lib/components/widget-span-with-placeholder/widget-span-with-placeholder.component';
+export * from './lib/components/widget-time-selection/widget-time-selection.component';
+export * from './lib/components/widget-touchable-number-selector/widget-touchable-number-selector.component';
 export * from './lib/owge-widgets.module';
 export * from './lib/pipes/ui-icon.pipe';
 export * from './lib/services/display.service';
 export * from './lib/types/widget-filter.type';
 export * from './lib/utils/widget-filter.util';
+

@@ -1,0 +1,13 @@
+<div class="owge-theme-widget-touchable-number-selector owge-theme-border-01-small">
+    <h5 class="owge-theme-title">{{ title }}</h5>
+    <div class="owge-theme-clickable-item">
+        <span class="fa fa-plus owge-theme-clickable-item-alt" (click)="clickPlus()" (mousedown)="onMouseDown('PLUS')"
+            (mouseup)="onMouseUp()" (mouseleave)="onMouseUp()" (touchstart)="onMouseDown('PLUS')"
+            (touchend)="onMouseUp()" (touchcancel)="onMouseUp()" (contextmenu)="false"></span>
+        <span class="the-number">{{ currentValue }}</span>
+        <span class="fa fa-minus owge-theme-clickable-item-alt" (click)="clickMinus()"
+            (mousedown)="onMouseDown('MINUS')" (mouseup)="onMouseUp()" (mouseleave)="onMouseUp()"
+            (touchstart)="onMouseDown('MINUS')" (touchend)="onMouseUp()" (touchcancel)="onMouseUp()"
+            (contextmenu)="false"></span>
+    </div>
+</div>

@@ -124,7 +124,7 @@ public class RequirementBo implements Serializable {
     private transient List<RequirementSource> requirementSources;
 
     @Autowired
-    private TransactionUtilService transactionUtilService;
+    private transient TransactionUtilService transactionUtilService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values

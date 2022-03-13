@@ -1,0 +1,14 @@
+<div>
+    <owge-widgets-touchable-number-selector [title]="'days'" [maxValue]="100" [(currentValue)]="days"
+        (currentValueChange)="onValuesChanged()" (minValuePassed)="hours = 23"></owge-widgets-touchable-number-selector>
+    <owge-widgets-touchable-number-selector [title]="'hours'" [maxValue]="23" [(currentValue)]="hours"
+        (currentValueChange)="onValuesChanged()" (minValuePassed)="days = days - 1" (maxValuePassed)="days = days + 1">
+    </owge-widgets-touchable-number-selector>
+    <owge-widgets-touchable-number-selector [title]="'minutes'" [maxValue]="59" [(currentValue)]="minutes"
+        (currentValueChange)="onValuesChanged()" (minValuePassed)="hours = hours -1"
+        (maxValuePassed)="hours = hours + 1">
+    </owge-widgets-touchable-number-selector>
+    <owge-widgets-touchable-number-selector [title]="'seconds'" [maxValue]="59" [(currentValue)]="seconds"
+        (currentValueChange)="onValuesChanged()" (maxValuePassed)="minutes = minutes + 1">
+    </owge-widgets-touchable-number-selector>
+</div>

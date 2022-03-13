@@ -47,7 +47,7 @@ import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtaine
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnitWithBypassShields;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
-import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_TYPE_ID;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;

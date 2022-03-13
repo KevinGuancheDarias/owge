@@ -45,6 +45,9 @@
           [selectable]="true" (selection)="onUnitSelection($event)"
           (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>
       </div>
+      <div class="custom-time">
+        <owge-widgets-time-selection (timeChanged)="customMissionTime = $event"></owge-widgets-time-selection>
+      </div>
     </ng-container>
   </div>
   <div class="footer">

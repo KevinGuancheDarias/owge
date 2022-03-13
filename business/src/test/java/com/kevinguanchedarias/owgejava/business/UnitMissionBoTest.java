@@ -4,12 +4,18 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Configuration;
+import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
+import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
+import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
@@ -26,11 +32,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static com.kevinguanchedarias.owgejava.mock.AllianceMock.givenAlliance;
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtainedUnit;
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackUserInformation;
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
+import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenUserImprovement;
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.ATTACK_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.CONQUEST_MISSION_ID;
@@ -42,8 +50,16 @@ import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.givenReport;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
+import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.SELECTED_UNIT_COUNT;
+import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenUnitMissionInformation;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
@@ -114,6 +130,14 @@ class UnitMissionBoTest {
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final AllianceBo allianceBo;
     private final ConfigurationBo configurationBo;
+    private final UserStorageBo userStorageBo;
+    private final MissionConfigurationBo missionConfigurationBo;
+    private final AuditBo auditBo;
+    private final UnitBo unitBo;
+    private final UnitTypeBo unitTypeBo;
+    private final MissionSchedulerService missionSchedulerService;
+    private final SocketIoService socketIoService;
+    private final ImprovementBo improvementBo;
 
     @Autowired
     public UnitMissionBoTest(
@@ -130,7 +154,15 @@ class UnitMissionBoTest {
             MissionBo missionBo,
             SpeedImpactGroupBo speedImpactGroupBo,
             AllianceBo allianceBo,
-            ConfigurationBo configurationBo
+            ConfigurationBo configurationBo,
+            UserStorageBo userStorageBo,
+            MissionConfigurationBo missionConfigurationBo,
+            AuditBo auditBo,
+            UnitBo unitBo,
+            UnitTypeBo unitTypeBo,
+            MissionSchedulerService missionSchedulerService,
+            SocketIoService socketIoService,
+            ImprovementBo improvementBo
     ) {
         // Notice: Test in this class are not full covering the methods, as they are only testing changed lines
         this.unitMissionBo = unitMissionBo;
@@ -147,6 +179,213 @@ class UnitMissionBoTest {
         this.speedImpactGroupBo = speedImpactGroupBo;
         this.allianceBo = allianceBo;
         this.configurationBo = configurationBo;
+        this.userStorageBo = userStorageBo;
+        this.missionConfigurationBo = missionConfigurationBo;
+        this.auditBo = auditBo;
+        this.unitBo = unitBo;
+        this.unitTypeBo = unitTypeBo;
+        this.missionSchedulerService = missionSchedulerService;
+        this.socketIoService = socketIoService;
+        this.improvementBo = improvementBo;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void adminRegisterExploreMission_should_work() {
+        var user = givenUser1();
+        var unitMissionInformation = givenUnitMissionInformation(MissionType.EXPLORE);
+        var ou = givenObtainedUnit1();
+        double baseRequiredTime = 60;
+        var sourcePlanet = givenSourcePlanet();
+        var targetPlanet = givenTargetPlanet();
+        var unit = givenUnit1();
+        var unitType = givenEntity();
+        int missionCount = 2;
+        long runningMissionId = 7192;
+        var runningMission = givenConquestMission(sourcePlanet, targetPlanet);
+        runningMission.setUser(user);
+        runningMission.setId(runningMissionId);
+        var runningInvolved = givenObtainedUnit2();
+        var ouForSocket = givenObtainedUnit1();
+        var ouForSocketDto = new ObtainedUnitDto();
+        ouForSocketDto.setId(ouForSocket.getId());
+
+        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userStorageBo.exists(USER_ID_1)).willReturn(true);
+        given(planetBo.exists(SOURCE_PLANET_ID)).willReturn(true);
+        given(planetBo.exists(TARGET_PLANET_ID)).willReturn(true);
+        given(planetBo.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID))
+                .willReturn(ou);
+        given(configurationBo.findDeployMissionConfiguration()).willReturn(DeployMissionConfigurationEnum.FREEDOM);
+        doAnswer(returnsFirstArg()).when(obtainedUnitBo).saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false);
+        given(missionConfigurationBo.findMissionBaseTimeByType(MissionType.EXPLORE)).willReturn((long) baseRequiredTime);
+        given(missionTypeRepository.findOneByCode(MissionType.EXPLORE.name())).willReturn(Optional.of(givenMissionType(MissionType.EXPLORE)));
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(sourcePlanet);
+        given(planetBo.findById(TARGET_PLANET_ID)).willReturn(targetPlanet);
+        given(unitBo.findById(UNIT_ID_1)).willReturn(unit);
+        given(unitTypeBo.canDoMission(user, targetPlanet, List.of(unitType), MissionType.EXPLORE)).willReturn(true);
+        var runnableAnswer = new InvokeRunnableLambdaAnswer(0);
+        doAnswer(runnableAnswer).when(transactionUtilService).doAfterCommit(any());
+        given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(missionCount);
+        given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(runningMission));
+        given(obtainedUnitBo.findByMissionId(runningMissionId)).willReturn(List.of(runningInvolved));
+        given(obtainedUnitBo.findDeployedInUserOwnedPlanets(USER_ID_1)).willReturn(List.of(ouForSocket));
+        given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
+        given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
+        doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+
+        unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
+
+        verify(planetBo, never()).isExplored(USER_ID_1, TARGET_PLANET_ID);
+        verify(userStorageBo, times(1)).exists(USER_ID_1);
+        verify(planetBo, times(1)).exists(SOURCE_PLANET_ID);
+        verify(planetBo, times(1)).exists(TARGET_PLANET_ID);
+        verify(obtainedUnitBo, times(1)).findByMissionIn(List.of());
+        verify(missionTypeRepository, times(1)).findOneByCode(MissionType.EXPLORE.name());
+        verify(userStorageBo, times(1)).findById(USER_ID_1);
+        var captor = ArgumentCaptor.forClass(Mission.class);
+        verify(missionRepository, times(1)).saveAndFlush(captor.capture());
+        var savedMission = captor.getValue();
+        assertThat(savedMission.getStartingDate()).isNotNull();
+        assertThat(savedMission.getMissionInformation()).isNull();
+        assertThat(savedMission.getType()).isEqualTo(givenMissionType(MissionType.EXPLORE));
+        assertThat(savedMission.getUser()).isEqualTo(user);
+        assertThat(savedMission.getRequiredTime()).isEqualTo(baseRequiredTime);
+        assertThat(savedMission.getSourcePlanet()).isEqualTo(sourcePlanet);
+        assertThat(savedMission.getTargetPlanet()).isEqualTo(targetPlanet);
+        assertThat(savedMission.getTerminationDate()).isNotNull();
+        verify(auditBo, times(1)).doAudit(AuditActionEnum.REGISTER_MISSION, MissionType.EXPLORE.name(), null);
+        ArgumentCaptor<List<ObtainedUnit>> unitsCaptor = ArgumentCaptor.forClass(List.class);
+        verify(obtainedUnitBo, times(1)).save(unitsCaptor.capture());
+        verify(missionSchedulerService, times(1)).scheduleMission(UnitMissionBo.JOB_GROUP_NAME, savedMission);
+        ArgumentCaptor<Supplier<MissionWebsocketMessage>> supplierCaptor = ArgumentCaptor.forClass(Supplier.class);
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq("unit_mission_change"), supplierCaptor.capture());
+        var sentMissionChange = supplierCaptor.getValue().get();
+        assertThat(sentMissionChange.getCount()).isEqualTo(missionCount);
+        assertThat(sentMissionChange.getMyUnitMissions()).hasSize(1);
+        ArgumentCaptor<Supplier<List<ObtainedUnitDto>>> obtainedUnitChangeEventCaptor = ArgumentCaptor.forClass(Supplier.class);
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(AbstractMissionBo.UNIT_OBTAINED_CHANGE), obtainedUnitChangeEventCaptor.capture());
+        var sentUnits = obtainedUnitChangeEventCaptor.getValue().get();
+        assertThat(sentUnits)
+                .hasSize(1)
+                .contains(ouForSocketDto);
+
+    }
+
+    @Test
+    void adminRegisterExploreMission_should_work_and_use_custom_max_if_present_and_higher_than_computed_mission_time() {
+        var user = givenUser1();
+        long customDuration = Integer.MAX_VALUE - 500;
+        var unitMissionInformation = givenUnitMissionInformation(MissionType.EXPLORE);
+        unitMissionInformation.setWantedTime(customDuration);
+        var ou = givenObtainedUnit1();
+        double baseRequiredTime = 60;
+        var sourcePlanet = givenSourcePlanet();
+        var targetPlanet = givenTargetPlanet();
+        var unit = givenUnit1();
+        var unitType = givenEntity();
+        int missionCount = 2;
+        long runningMissionId = 7192;
+        var runningMission = givenConquestMission(sourcePlanet, targetPlanet);
+        runningMission.setUser(user);
+        runningMission.setId(runningMissionId);
+        var runningInvolved = givenObtainedUnit2();
+        var ouForSocket = givenObtainedUnit1();
+        var ouForSocketDto = new ObtainedUnitDto();
+        ouForSocketDto.setId(ouForSocket.getId());
+
+        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userStorageBo.exists(USER_ID_1)).willReturn(true);
+        given(planetBo.exists(SOURCE_PLANET_ID)).willReturn(true);
+        given(planetBo.exists(TARGET_PLANET_ID)).willReturn(true);
+        given(planetBo.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID))
+                .willReturn(ou);
+        given(configurationBo.findDeployMissionConfiguration()).willReturn(DeployMissionConfigurationEnum.FREEDOM);
+        doAnswer(returnsFirstArg()).when(obtainedUnitBo).saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false);
+        given(missionConfigurationBo.findMissionBaseTimeByType(MissionType.EXPLORE)).willReturn((long) baseRequiredTime);
+        given(missionTypeRepository.findOneByCode(MissionType.EXPLORE.name())).willReturn(Optional.of(givenMissionType(MissionType.EXPLORE)));
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(sourcePlanet);
+        given(planetBo.findById(TARGET_PLANET_ID)).willReturn(targetPlanet);
+        given(unitBo.findById(UNIT_ID_1)).willReturn(unit);
+        given(unitTypeBo.canDoMission(user, targetPlanet, List.of(unitType), MissionType.EXPLORE)).willReturn(true);
+        var runnableAnswer = new InvokeRunnableLambdaAnswer(0);
+        doAnswer(runnableAnswer).when(transactionUtilService).doAfterCommit(any());
+        given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(missionCount);
+        given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(runningMission));
+        given(obtainedUnitBo.findByMissionId(runningMissionId)).willReturn(List.of(runningInvolved));
+        given(obtainedUnitBo.findDeployedInUserOwnedPlanets(USER_ID_1)).willReturn(List.of(ouForSocket));
+        given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
+        given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
+        doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+
+        unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
+
+        var captor = ArgumentCaptor.forClass(Mission.class);
+        verify(missionRepository, times(1)).saveAndFlush(captor.capture());
+        var savedMission = captor.getValue();
+        assertThat(savedMission.getRequiredTime()).isEqualTo(customDuration);
+        assertThat(savedMission.getTerminationDate()).isNotNull();
+    }
+
+    @Test
+    void adminRegisterExploreMission_should_work_and_ignore_custom_time_if_present_but_lower_than_computed_mission_time() {
+        var user = givenUser1();
+        long customDuration = 2;
+        var unitMissionInformation = givenUnitMissionInformation(MissionType.EXPLORE);
+        unitMissionInformation.setWantedTime(customDuration);
+        var ou = givenObtainedUnit1();
+        double baseRequiredTime = 60;
+        var sourcePlanet = givenSourcePlanet();
+        var targetPlanet = givenTargetPlanet();
+        var unit = givenUnit1();
+        var unitType = givenEntity();
+        int missionCount = 2;
+        long runningMissionId = 7192;
+        var runningMission = givenConquestMission(sourcePlanet, targetPlanet);
+        runningMission.setUser(user);
+        runningMission.setId(runningMissionId);
+        var runningInvolved = givenObtainedUnit2();
+        var ouForSocket = givenObtainedUnit1();
+        var ouForSocketDto = new ObtainedUnitDto();
+        ouForSocketDto.setId(ouForSocket.getId());
+
+        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userStorageBo.exists(USER_ID_1)).willReturn(true);
+        given(planetBo.exists(SOURCE_PLANET_ID)).willReturn(true);
+        given(planetBo.exists(TARGET_PLANET_ID)).willReturn(true);
+        given(planetBo.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID))
+                .willReturn(ou);
+        given(configurationBo.findDeployMissionConfiguration()).willReturn(DeployMissionConfigurationEnum.FREEDOM);
+        doAnswer(returnsFirstArg()).when(obtainedUnitBo).saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false);
+        given(missionConfigurationBo.findMissionBaseTimeByType(MissionType.EXPLORE)).willReturn((long) baseRequiredTime);
+        given(missionTypeRepository.findOneByCode(MissionType.EXPLORE.name())).willReturn(Optional.of(givenMissionType(MissionType.EXPLORE)));
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(sourcePlanet);
+        given(planetBo.findById(TARGET_PLANET_ID)).willReturn(targetPlanet);
+        given(unitBo.findById(UNIT_ID_1)).willReturn(unit);
+        given(unitTypeBo.canDoMission(user, targetPlanet, List.of(unitType), MissionType.EXPLORE)).willReturn(true);
+        var runnableAnswer = new InvokeRunnableLambdaAnswer(0);
+        doAnswer(runnableAnswer).when(transactionUtilService).doAfterCommit(any());
+        given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(missionCount);
+        given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(runningMission));
+        given(obtainedUnitBo.findByMissionId(runningMissionId)).willReturn(List.of(runningInvolved));
+        given(obtainedUnitBo.findDeployedInUserOwnedPlanets(USER_ID_1)).willReturn(List.of(ouForSocket));
+        given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
+        given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
+        doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+
+        unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
+
+        var captor = ArgumentCaptor.forClass(Mission.class);
+        verify(missionRepository, times(1)).saveAndFlush(captor.capture());
+        var savedMission = captor.getValue();
+        assertThat(savedMission.getRequiredTime()).isEqualTo(baseRequiredTime);
+        assertThat(savedMission.getTerminationDate()).isNotNull();
     }
 
     @Test
