@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,8 @@ import java.util.Optional;
  */
 @Service
 public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> {
+    public static final String ATTACK_RULE_CACHE_TAG = "attack_rule";
+
     @Serial
     private static final long serialVersionUID = -6534004738356678530L;
 
@@ -37,6 +40,9 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
     @Autowired
     private DtoUtilService dtoUtilService;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     @Override
     public Class<AttackRuleDto> getDtoClass() {
         return AttackRuleDto.class;
@@ -45,6 +51,16 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
     @Override
     public JpaRepository<AttackRule, Integer> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return ATTACK_RULE_CACHE_TAG;
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,8 +32,12 @@ import java.util.List;
  */
 @Service
 public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource {
+    public static final String ACTIVE_TIME_SPECIAL_CACHE_TAG = "active_time_special";
+
     @Serial
     private static final long serialVersionUID = -3981337002238422272L;
+
+    public static final String ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER = ACTIVE_TIME_SPECIAL_CACHE_TAG + "::by_user";
 
     private static final Logger LOG = Logger.getLogger(ActiveTimeSpecialBo.class);
 
@@ -63,6 +68,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Autowired
     private RequirementBo requirementBo;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     @PostConstruct
     public void init() {
         improvementBo.addImprovementSource(this);
@@ -81,6 +89,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 scheduledTasksManagerService.registerEvent(task, rechargeTime);
                 requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
                 emitTimeSpecialChange(user);
+                taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, activeTimeSpecial.getUser().getId());
             } else {
                 LOG.debug(
                         "ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
@@ -170,6 +179,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
             scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
             requirementBo.triggerTimeSpecialStateChange(user, timeSpecial);
+            taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, user.getId());
             emitTimeSpecialChange(user);
             return newActive;
         } else {
@@ -186,6 +196,16 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Override
     public JpaRepository<ActiveTimeSpecial, Long> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return ACTIVE_TIME_SPECIAL_CACHE_TAG;
     }
 
     /*

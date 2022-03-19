@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, SpeedImpactGroupDto> {
+    public static final String SPEED_IMPACT_GROUP_CACHE_TAG = "speed_impact_group";
+
     @Serial
     private static final long serialVersionUID = 1367954885113224567L;
 
@@ -53,9 +56,22 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     @Autowired
     private DtoUtilService dtoUtilService;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {
         return speedImpactGroupRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return SPEED_IMPACT_GROUP_CACHE_TAG;
     }
 
     /*

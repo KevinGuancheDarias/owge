@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
@@ -112,6 +113,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Autowired
     private SpeedImpactGroupBo speedImpactGroupBo;
+
+    @Autowired
+    private transient HiddenUnitBo hiddenUnitBo;
 
     @Override
     public String getGroupName() {
@@ -795,7 +799,8 @@ public class UnitMissionBo extends AbstractMissionBo {
         handleMissionTimeCalculation(obtainedUnits, mission, missionType);
         handleCustomDuration(mission, missionInformation.getWantedTime());
         mission.setInvisible(
-                obtainedUnits.stream().allMatch(current -> Boolean.TRUE.equals(current.getUnit().getIsInvisible())));
+                obtainedUnits.stream().allMatch(hiddenUnitBo::isHiddenUnit)
+        );
         save(mission);
         scheduleMission(mission);
         emitLocalMissionChangeAfterCommit(mission);

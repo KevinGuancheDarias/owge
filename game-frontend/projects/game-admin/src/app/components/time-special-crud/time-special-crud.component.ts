@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
-
+import { Component, ViewChild } from '@angular/core';
 import { TimeSpecial } from '@owge/universe';
-import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
 import { Observable } from 'rxjs';
+import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
+import { RulesModalComponent } from '../rules-modal/rules-modal.component';
+
 
 /**
  *
@@ -17,6 +18,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./time-special-crud.component.less']
 })
 export class TimeSpecialCrudComponent {
+  @ViewChild(RulesModalComponent) public rulesModal: RulesModalComponent;
 
   public selectedEl: TimeSpecial;
   public elsObservable: Observable<TimeSpecial[]>;

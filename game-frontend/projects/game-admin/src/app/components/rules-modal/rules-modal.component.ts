@@ -36,7 +36,8 @@ export class RulesModalComponent extends AbstractModalContainerComponent impleme
   }
 
   ngOnInit(): void {
-    this.ruleTypesSubscription = this.adminRuleService.findAvailableTypes().subscribe(types => this.ruleTypes = types);
+    this.ruleTypesSubscription = this.adminRuleService.findAvailableTypes()
+      .subscribe(types => this.ruleTypes = types.filter(type => type.allowedOrigins.includes(this.originType)));
     this.destinationTypes = this.adminRuleService.findDestinationTypes();
   }
 

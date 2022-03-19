@@ -19,6 +19,7 @@ import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 public abstract class AbstractMissionBo implements BaseBo<Long, Mission, MissionDto> {
+    public static final String MISSION_CACHE_TAG = "mission";
     public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
 
     @Serial
@@ -78,7 +80,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
     @Autowired
     @Lazy
-    protected ObtainedUnitBo obtainedUnitBo;
+    protected transient ObtainedUnitBo obtainedUnitBo;
 
     @Autowired
     protected PlanetBo planetBo;
@@ -105,7 +107,20 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     @Autowired
     private transient MissionSchedulerService missionSchedulerService;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     public abstract String getGroupName();
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return MISSION_CACHE_TAG;
+    }
 
     @Override
     public JpaRepository<Mission, Long> getRepository() {

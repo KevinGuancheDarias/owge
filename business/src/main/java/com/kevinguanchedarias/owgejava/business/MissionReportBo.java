@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class MissionReportBo implements BaseBo<Long, MissionReport, MissionReportDto> {
+    public static final String MISSION_REPORT_CACHE_TAG = "mission_report";
+
     @Serial
     private static final long serialVersionUID = -3125120788150047385L;
 
@@ -43,14 +46,25 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     private static final int DAYS_TO_PRESERVE_MESSAGES = 15;
 
     private final MissionReportRepository missionReportRepository;
-    private final MissionBo missionBo;
+    private final transient MissionBo missionBo;
     private final transient SocketIoService socketIoService;
     private final transient TransactionUtilService transactionUtilService;
     private final ObjectMapper mapper;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<MissionReport, Long> getRepository() {
         return missionReportRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return MISSION_REPORT_CACHE_TAG;
     }
 
     /*

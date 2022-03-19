@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Configuration;
@@ -21,6 +22,7 @@ import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -111,7 +113,9 @@ import static org.mockito.Mockito.verify;
         ObtainedUnitRepository.class,
         AllianceBo.class,
         TransactionUtilService.class,
-        SpeedImpactGroupBo.class
+        SpeedImpactGroupBo.class,
+        TaggableCacheManager.class,
+        HiddenUnitBo.class
 })
 class UnitMissionBoTest {
     private static final int ALLY_ID = 19282;
@@ -138,6 +142,7 @@ class UnitMissionBoTest {
     private final MissionSchedulerService missionSchedulerService;
     private final SocketIoService socketIoService;
     private final ImprovementBo improvementBo;
+    private final HiddenUnitBo hiddenUnitBo;
 
     @Autowired
     public UnitMissionBoTest(
@@ -162,7 +167,8 @@ class UnitMissionBoTest {
             UnitTypeBo unitTypeBo,
             MissionSchedulerService missionSchedulerService,
             SocketIoService socketIoService,
-            ImprovementBo improvementBo
+            ImprovementBo improvementBo,
+            HiddenUnitBo hiddenUnitBo
     ) {
         // Notice: Test in this class are not full covering the methods, as they are only testing changed lines
         this.unitMissionBo = unitMissionBo;
@@ -187,6 +193,7 @@ class UnitMissionBoTest {
         this.missionSchedulerService = missionSchedulerService;
         this.socketIoService = socketIoService;
         this.improvementBo = improvementBo;
+        this.hiddenUnitBo = hiddenUnitBo;
     }
 
     @SuppressWarnings("unchecked")
@@ -267,6 +274,7 @@ class UnitMissionBoTest {
         assertThat(sentMissionChange.getMyUnitMissions()).hasSize(1);
         ArgumentCaptor<Supplier<List<ObtainedUnitDto>>> obtainedUnitChangeEventCaptor = ArgumentCaptor.forClass(Supplier.class);
         verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(AbstractMissionBo.UNIT_OBTAINED_CHANGE), obtainedUnitChangeEventCaptor.capture());
+        verify(hiddenUnitBo, times(1)).isHiddenUnit(any());
         var sentUnits = obtainedUnitChangeEventCaptor.getValue().get();
         assertThat(sentUnits)
                 .hasSize(1)

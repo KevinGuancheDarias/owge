@@ -7,6 +7,8 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,27 +22,34 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
+    public static final String FACTION_CACHE_TAG = "faction";
+
     @Serial
     private static final long serialVersionUID = -6735454832872729630L;
 
     private final FactionRepository repository;
     private final transient FactionUnitTypeRepository factionUnitTypeRepository;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Autowired
     @Lazy
     private UnitTypeBo unitTypeBo;
 
-    public FactionBo(FactionRepository repository,
-                     FactionUnitTypeRepository factionUnitTypeRepository
-    ) {
-        this.repository = repository;
-        this.factionUnitTypeRepository = factionUnitTypeRepository;
-    }
-
     @Override
     public JpaRepository<Faction, Integer> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return FACTION_CACHE_TAG;
     }
 
     /*

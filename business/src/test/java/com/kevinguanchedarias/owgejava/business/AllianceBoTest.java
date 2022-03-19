@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +26,17 @@ import static org.assertj.core.api.Assertions.assertThat;
         UserStorageBo.class,
         AllianceJoinRequestBo.class,
         ConfigurationBo.class,
-        AuditBo.class
+        AuditBo.class,
+        TaggableCacheManager.class
 })
-class AllianceBoTest {
+class AllianceBoTest extends AbstractBaseBoTest {
     private final AllianceBo allianceBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
-    AllianceBoTest(AllianceBo allianceBo) {
+    AllianceBoTest(AllianceBo allianceBo, TaggableCacheManager taggableCacheManager) {
         this.allianceBo = allianceBo;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -69,5 +75,14 @@ class AllianceBoTest {
         targetUser.setAlliance(givenAlliance());
 
         assertThat(allianceBo.areEnemies(sourceUser, targetUser)).isFalse();
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(AllianceBo.ALLIANCE_CACHE_TAG)
+                .taggableCacheManager(taggableCacheManager)
+                .targetBo(allianceBo)
+                .build();
     }
 }

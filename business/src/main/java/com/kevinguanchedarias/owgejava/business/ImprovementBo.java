@@ -12,6 +12,7 @@ import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -36,6 +38,9 @@ import java.util.function.BiConsumer;
  */
 @Service
 public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDto> {
+    public static final String IMPROVEMENT_CACHE_TAG = "improvement";
+
+    @Serial
     private static final long serialVersionUID = 174646136669035809L;
 
     private static final Logger LOG = Logger.getLogger(ImprovementBo.class);
@@ -60,9 +65,12 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     @Autowired
     private transient BeanFactory beanFactory;
 
-    private transient List<ImprovementSource> improvementSources = new ArrayList<>();
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
 
-    private transient Map<ImprovementChangeEnum, List<BiConsumer<Integer, Improvement>>> improvementChangeListeners = new EnumMap<>(
+    private final transient List<ImprovementSource> improvementSources = new ArrayList<>();
+
+    private final transient Map<ImprovementChangeEnum, List<BiConsumer<Integer, Improvement>>> improvementChangeListeners = new EnumMap<>(
             ImprovementChangeEnum.class);
 
     /*
@@ -73,6 +81,16 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     @Override
     public JpaRepository<Improvement, Integer> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return IMPROVEMENT_CACHE_TAG;
     }
 
     /*

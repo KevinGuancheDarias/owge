@@ -32,6 +32,7 @@ import { RequirementsFilterComponent } from './components/requirements-filter/re
 import { RequirementsModalComponent } from './components/requirements-modal/requirements-modal.component';
 import { RequirementsTableComponent } from './components/requirements-table/requirements-table.component';
 import { ResourceRequirementsCrudComponent } from './components/resource-requirements-crud/resource-requirements-crud.component';
+import { RulesModalComponent } from './components/rules-modal/rules-modal.component';
 import { SpecialLocationCrudComponent } from './components/special-location-crud/special-location-crud.component';
 import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
 import { TimeSpecialCrudComponent } from './components/time-special-crud/time-special-crud.component';
@@ -48,6 +49,7 @@ import { AdminFactionService } from './services/admin-faction.service';
 import { AdminGalaxyService } from './services/admin-galaxy.service';
 import { AdminLoginService } from './services/admin-login.service';
 import { AdminRequirementService } from './services/admin-requirement.service';
+import { AdminRuleService } from './services/admin-rule.service';
 import { AdminSpecialLocationService } from './services/admin-special-location.service';
 import { AdminSpeedImpactGroupService } from './services/admin-speed-impact-group.service';
 import { AdminSystemMessageService } from './services/admin-system-message.service';
@@ -60,12 +62,13 @@ import { AdminUnitService } from './services/admin-unit.service';
 import { AdminUpgradeTypeService } from './services/admin-upgrade-type.service';
 import { AdminUpgradeService } from './services/admin-upgrade.service';
 import { AdminUserService } from './services/admin-user.service';
-import { RulesModalComponent } from './components/rules-modal/rules-modal.component';
-import { AdminRuleService } from './services/admin-rule.service';
 import { ruleDestinationProviderServiceToken } from './services/rule-destination-provider/rule-destination-provider-service.interface';
 import { UnitRuleDestinationProviderService } from './services/rule-destination-provider/unit-rule-destination-provider.service';
 import { UnitTypeRuleDestinationProviderService } from './services/rule-destination-provider/unit-type-rule-destination-provider.service';
 import { ruleTypeDescriptorProviderToken } from './services/rule-type-descriptor-provider/rule-type-descriptor-provider-service.interface';
+import {
+  TimeSpecialIsEnabledRuleTypeDescriptorProviderService
+} from './services/rule-type-descriptor-provider/time-special-is-enabled-rule-type-descriptor-provider.service';
 import {
   UnitCaptureRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/unit-capture-rule-type-descriptor-provider.service';
@@ -153,10 +156,11 @@ import {
     AdminSystemMessageService,
     AdminRuleService,
     LoadingService,
-    { provide: 'APPLICATION_CONTEXT',useValue: 'admin'},
+    { provide: 'APPLICATION_CONTEXT', useValue: 'admin' },
     { provide: ruleDestinationProviderServiceToken, useClass: UnitRuleDestinationProviderService, multi: true },
     { provide: ruleDestinationProviderServiceToken, useClass: UnitTypeRuleDestinationProviderService, multi: true },
-    { provide: ruleTypeDescriptorProviderToken, useClass: UnitCaptureRuleTypeDescriptorProviderService, multi: true}
+    { provide: ruleTypeDescriptorProviderToken, useClass: UnitCaptureRuleTypeDescriptorProviderService, multi: true },
+    { provide: ruleTypeDescriptorProviderToken, useClass: TimeSpecialIsEnabledRuleTypeDescriptorProviderService, multi: true },
   ],
   bootstrap: [AppComponent]
 })

@@ -218,7 +218,8 @@
                 },
                 "FORM_INPUT": {
                     "TYPES": {
-                        "UNIT_CAPTURE": "Captura de unidad"
+                        "UNIT_CAPTURE": "Captura de unidad",
+                        "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo, activado, camuflar unidades"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unidad",

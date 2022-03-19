@@ -8,6 +8,8 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,7 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.Serial;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
@@ -32,7 +35,11 @@ import java.util.Optional;
 
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
+    public static final String AUDIT_CACHE_TAG = "audit";
+
+    @Serial
     private static final long serialVersionUID = -890947636309038855L;
 
     private static final String CONTROL_COOKIE_NAME = "OWGE_TMAS";
@@ -44,6 +51,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     private final transient TorClientBo torClientBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient SocketIoService socketIoService;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Value("${OWGE_PROXY_TRUSTED_NETWORKS:PRIVATE}")
     private String proxyTrustedNetworks;
@@ -51,18 +59,19 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     @Value("${OWGE_PROXY_TRUSTED_HEADER:X-OWGE-RMT-IP}")
     private String proxyTrustedHeader;
 
-    public AuditBo(AuditRepository repository, UserStorageBo userStorageBo, TorClientBo torClientBo, AsyncRunnerBo asyncRunnerBo, SocketIoService socketIoService) {
-        this.repository = repository;
-        this.userStorageBo = userStorageBo;
-        this.torClientBo = torClientBo;
-        this.asyncRunnerBo = asyncRunnerBo;
-        this.socketIoService = socketIoService;
-    }
-
-
     @Override
     public JpaRepository<Audit, Long> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return AUDIT_CACHE_TAG;
     }
 
     @Override
@@ -107,7 +116,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         String ip = null;
         String ua = null;
         String cookie = null;
-        if(nearest.isPresent()) {
+        if (nearest.isPresent()) {
             var nearestAudit = nearest.get();
             ip = nearestAudit.getIp();
             ua = nearestAudit.getUserAgent();
@@ -137,7 +146,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     @Transactional(propagation = Propagation.MANDATORY)
     public void doAudit(AuditActionEnum action, String actionDetails, Integer relatedUserId) {
         var requestAttributes = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes());
-        if(requestAttributes == null) {
+        if (requestAttributes == null) {
             throw new ProgrammingException("Using doAudit outside of request thread");
         } else {
             var request = requestAttributes.getRequest();
@@ -146,17 +155,17 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                 throw new SgtBackendInvalidInputException("No dear hacker, you will never be able to defeat the strong security of this open security-by-obscurity");
             }
             detectTorBrowser(
-                repository.save(Audit.builder()
-                        .action(action)
-                        .actionDetail(actionDetails)
-                        .user(userStorageBo.getOne(userStorageBo.findLoggedIn().getId()))
-                        .relatedUser(userStorageBo.getOne(relatedUserId))
-                        .ip(resolveIp(request))
-                        .userAgent(request.getHeader("User-Agent"))
-                        .cookie(cookie.getValue())
-                        .creationDate(LocalDateTime.now())
-                        .build()
-                )
+                    repository.save(Audit.builder()
+                            .action(action)
+                            .actionDetail(actionDetails)
+                            .user(userStorageBo.getOne(userStorageBo.findLoggedIn().getId()))
+                            .relatedUser(userStorageBo.getOne(relatedUserId))
+                            .ip(resolveIp(request))
+                            .userAgent(request.getHeader("User-Agent"))
+                            .cookie(cookie.getValue())
+                            .creationDate(LocalDateTime.now())
+                            .build()
+                    )
             );
         }
     }

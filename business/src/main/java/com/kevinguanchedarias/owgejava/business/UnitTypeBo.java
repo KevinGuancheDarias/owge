@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,8 @@ import java.util.List;
 
 @Component
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
+    public static final String UNIT_TYPE_CACHE_TAG = "unit_type";
+
     @Serial
     private static final long serialVersionUID = 1064115662505668879L;
 
@@ -55,9 +58,22 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
     @Lazy
     private ObtainedUnitBo obtainedUnitBo;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     @Override
     public JpaRepository<UnitType, Integer> getRepository() {
         return unitTypeRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return UNIT_TYPE_CACHE_TAG;
     }
 
     /*

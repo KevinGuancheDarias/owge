@@ -12,26 +12,27 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.InterceptableSpeedGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockableBo<Integer, Unit, UnitDto> {
+    public static final String UNIT_CACHE_TAG = "unit";
+
+    @Serial
     private static final long serialVersionUID = 8956360591688432113L;
 
     private final UnitRepository unitRepository;
 
     private final UnlockedRelationBo unlockedRelationBo;
-
-    private final ObjectRelationBo objectRelationBo;
-
-    private final ImprovementBo improvementBo;
 
     private final transient InterceptableSpeedGroupRepository interceptableSpeedGroupRepository;
 
@@ -41,9 +42,21 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 
     private final ObtainedUnitRepository obtainedUnitRepository;
 
+    private final transient TaggableCacheManager taggableCacheManager;
+
     @Override
     public JpaRepository<Unit, Integer> getRepository() {
         return unitRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return UNIT_CACHE_TAG;
     }
 
     /*

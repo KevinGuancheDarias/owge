@@ -4,6 +4,9 @@ import com.kevinguanchedarias.owgejava.mock.FactionMock;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,14 +38,16 @@ import static org.mockito.Mockito.verify;
         ObtainedUnitRepository.class,
         SocketIoService.class,
         FactionUnitTypeRepository.class,
-        ObtainedUnitBo.class
+        ObtainedUnitBo.class,
+        TaggableCacheManager.class
 })
-class UnitTypeBoTest {
+class UnitTypeBoTest extends AbstractBaseBoTest {
     private final UnitTypeBo unitTypeBo;
     private final UnitTypeRepository repository;
     private final UserStorageBo userStorageBo;
     private final ObtainedUnitBo obtainedUnitBo;
     private final ImprovementBo improvementBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     UnitTypeBoTest(
@@ -50,13 +55,15 @@ class UnitTypeBoTest {
             UnitTypeRepository repository,
             UserStorageBo userStorageBo,
             ObtainedUnitBo obtainedUnitBo,
-            ImprovementBo improvementBo
+            ImprovementBo improvementBo,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.unitTypeBo = unitTypeBo;
         this.repository = repository;
         this.userStorageBo = userStorageBo;
         this.obtainedUnitBo = obtainedUnitBo;
         this.improvementBo = improvementBo;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -93,5 +100,14 @@ class UnitTypeBoTest {
         assertThat(resultEntry.getComputedMaxCount()).isEqualTo(Double.valueOf(Math.floor(maxAfterImprovement)).longValue());
         assertThat(resultEntry.getName()).isEqualTo(typeName);
 
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(UnitTypeBo.UNIT_TYPE_CACHE_TAG)
+                .targetBo(unitTypeBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
     }
 }

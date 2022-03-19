@@ -8,7 +8,10 @@ import com.kevinguanchedarias.owgejava.fake.FakeMissionBo;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,14 +67,16 @@ import static org.mockito.Mockito.when;
         SocketIoService.class,
         MissionReportBo.class,
         MissionSchedulerService.class,
+        TaggableCacheManager.class
 })
-class AbstractMissionBoTest {
+class AbstractMissionBoTest extends AbstractBaseBoTest {
     private final FakeMissionBo fakeMissionBo;
     private final SocketIoService socketIoService;
     private final MissionRepository missionRepository;
     private final ObtainedUnitBo obtainedUnitBo;
     private final PlanetBo planetBo;
     private final MissionTypeRepository missionTypeRepository;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     AbstractMissionBoTest(
@@ -80,7 +85,8 @@ class AbstractMissionBoTest {
             MissionRepository missionRepository,
             ObtainedUnitBo obtainedUnitBo,
             PlanetBo planetBo,
-            MissionTypeRepository missionTypeRepository
+            MissionTypeRepository missionTypeRepository,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.fakeMissionBo = fakeMissionBo;
         this.socketIoService = socketIoService;
@@ -88,6 +94,7 @@ class AbstractMissionBoTest {
         this.obtainedUnitBo = obtainedUnitBo;
         this.planetBo = planetBo;
         this.missionTypeRepository = missionTypeRepository;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -132,5 +139,14 @@ class AbstractMissionBoTest {
                 .isInstanceOf(SgtBackendInvalidInputException.class)
                 .hasMessageContaining("No MissionType")
                 .hasMessageEndingWith("was found in the database");
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(AbstractMissionBo.MISSION_CACHE_TAG)
+                .targetBo(fakeMissionBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
     }
 }

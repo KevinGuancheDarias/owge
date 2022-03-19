@@ -8,7 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 import java.util.List;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @Jacksonized
 public class RuleDto {
     int id;

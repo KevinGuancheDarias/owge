@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeConsumerLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,7 +57,8 @@ import static org.mockito.Mockito.verify;
         ScheduledTasksManagerService.class,
         DtoUtilService.class,
         SocketIoService.class,
-        RequirementBo.class
+        RequirementBo.class,
+        TaggableCacheManager.class
 })
 class ActiveTimeSpecialBoTest {
     private final NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo;
@@ -68,6 +70,7 @@ class ActiveTimeSpecialBoTest {
     private final RequirementBo requirementBo;
     private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
     private final SocketIoService socketIoService;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     ActiveTimeSpecialBoTest(
@@ -79,7 +82,8 @@ class ActiveTimeSpecialBoTest {
             ScheduledTasksManagerService scheduledTasksManagerService,
             RequirementBo requirementBo,
             ActiveTimeSpecialRepository activeTimeSpecialRepository,
-            SocketIoService socketIoService
+            SocketIoService socketIoService,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.activeTimeSpecialBo = activeTimeSpecialBo;
         this.timeSpecialBo = timeSpecialBo;
@@ -90,6 +94,7 @@ class ActiveTimeSpecialBoTest {
         this.requirementBo = requirementBo;
         this.activeTimeSpecialRepository = activeTimeSpecialRepository;
         this.socketIoService = socketIoService;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -156,6 +161,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(registeredTask.getContent()).isEqualTo(ACTIVE_TIME_SPECICAL_ID);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
+        verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
     }
 
     @Test
@@ -254,6 +260,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(scheduledTask.getType()).isEqualTo("TIME_SPECIAL_EFFECT_END");
         assertThat(scheduledTask.getContent()).isEqualTo(activeTimeSpecialId);
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, timeSpecial);
+        verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
     }
 
     @Test
@@ -283,6 +290,7 @@ class ActiveTimeSpecialBoTest {
         verify(socketIoService, never()).sendMessage(any(UserStorage.class), any(), any());
         assertThat(capturedOutput.getOut()).contains("The specified time special, is already active, doing nothing");
         assertThat(result).isSameAs(activeTimeSpecial);
+        verify(taggableCacheManager, never()).evictByCacheTag(any(), any());
     }
 
 }
