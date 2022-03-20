@@ -114,7 +114,7 @@ public class AttackMissionManagerBo {
                     && !currentUnit.getInitialCount().equals(currentUnit.getFinalCount())).forEach(currentUnit -> {
                 long killed = currentUnit.getInitialCount() - currentUnit.getFinalCount();
                 try {
-                    obtainedUnitBo.trySave(currentUnit.getObtainedUnit(), -killed);
+                    obtainedUnitBo.saveWithChange(currentUnit.getObtainedUnit(), -killed);
                     alteredUsers.add(attackUserInformation.getUser().getId());
                 } catch (OwgeElementSideDeletedException e) {
                     log.warn("Element side deleted", e);

@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
@@ -18,6 +19,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.MissionNotFoundException;
@@ -40,24 +42,24 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @AllArgsConstructor
 public class MissionBo extends AbstractMissionBo {
     public static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
-    private static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
+    public static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
+    public static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
+    public static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
 
     @Serial
     private static final long serialVersionUID = 5505953709078785322L;
 
     private static final Logger LOG = Logger.getLogger(MissionBo.class);
     private static final String JOB_GROUP_NAME = "Missions";
-    private static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
-    private static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
+
     private static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
     private static final int DAYS = 60;
 
@@ -66,6 +68,7 @@ public class MissionBo extends AbstractMissionBo {
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
     private final transient HiddenUnitBo hiddenUnitBo;
+    private final transient PlanetLockUtilService planetLockUtilService;
 
     @PostConstruct
     public void init() {
@@ -207,7 +210,7 @@ public class MissionBo extends AbstractMissionBo {
     public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
         planetBo.myCheckIsOfUserProperty(planetId);
         checkUnitBuildMissionDoesNotExists(userId, planetId);
-        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UNIT,
+        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT,
                 unitId);
         checkUnlockedUnit(userId, relation);
         var user = userStorageBo.findById(userId);
@@ -253,7 +256,7 @@ public class MissionBo extends AbstractMissionBo {
 
         scheduleMission(mission);
 
-        TransactionUtil.doAfterCommit(() -> {
+        transactionUtilService.doAfterCommit(() -> {
             entityManager.refresh(obtainedUnit);
             entityManager.refresh(mission);
             emitMissionCountChange(userId);
@@ -321,25 +324,16 @@ public class MissionBo extends AbstractMissionBo {
                     List<ObtainedUnit> findByMissionId = obtainedUnitBo.findByMissionId(mission.getId());
                     return new RunningUnitBuildDto(unit, mission, planet,
                             findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
-                }).collect(Collectors.toList());
+                }).toList();
     }
 
     public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId) {
         return missionRepository.findOneByReportId(reportId);
     }
 
-    public boolean existsByTargetPlanet(Long planetId) {
-        return missionRepository.countByTargetPlanetIdAndResolvedFalse(planetId) > 0;
-    }
-
-    public boolean existsByTargetPlanetAndType(Long planetId, MissionType type) {
-        return missionRepository.countByTargetPlanetIdAndTypeCodeAndResolvedFalse(planetId, type.name()) > 0;
-    }
-
     /**
      * Should be invoked from the context
      *
-     * @param missionId
      * @author Kevin Guanche Darias
      */
     @Transactional
@@ -411,36 +405,37 @@ public class MissionBo extends AbstractMissionBo {
 
     @Transactional
     public void processBuildUnit(Long missionId) {
-        var mission = findById(missionId);
-        if (mission != null) {
-            Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
-            var sourcePlanet = planetBo.findById(sourcePlanetId);
-            waitForMissionAffectingPlanet(sourcePlanet);
-            final List<Boolean> shouldClearImprovementsCache = new ArrayList<>(1);
-            shouldClearImprovementsCache.add(false);
-            UserStorage user = mission.getUser();
-            Integer userId = user.getId();
-            obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
-                if (current.getUnit().getImprovement() != null) {
-                    shouldClearImprovementsCache.remove(0);
-                    shouldClearImprovementsCache.add(true);
-                }
-                current.setSourcePlanet(sourcePlanet);
-                obtainedUnitBo.moveUnit(current, userId, sourcePlanetId);
-                requirementBo.triggerUnitBuildCompletedOrKilled(user, current.getUnit());
-            });
-            delete(mission);
-            TransactionUtil.doAfterCommit(() -> {
-                if (Boolean.TRUE.equals(shouldClearImprovementsCache.get(0))) {
-                    improvementBo.clearSourceCache(user, obtainedUnitBo);
-                }
-                emitUnitBuildChange(userId);
-                emitMissionCountChange(userId);
-            });
-            asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
-                socketIoService.sendMessage(user.getId(), UNIT_OBTAINED_CHANGE,
-                        () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-            }, 500);
+        var missionBeforeLock = findById(missionId);
+        if (missionBeforeLock != null) {
+            planetLockUtilService.doInsideLockById(
+                    List.of(missionBeforeLock.getMissionInformation().getValue().longValue()),
+                    () -> {
+                        var mission = findById(missionId);
+                        Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
+                        var sourcePlanet = planetBo.findById(sourcePlanetId);
+                        final AtomicReference<Boolean> shouldClearImprovementsCache = new AtomicReference<>(false);
+                        UserStorage user = mission.getUser();
+                        Integer userId = user.getId();
+                        obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
+                            if (current.getUnit().getImprovement() != null) {
+                                shouldClearImprovementsCache.set(true);
+                            }
+                            current.setSourcePlanet(sourcePlanet);
+                            obtainedUnitBo.moveUnit(current, userId, sourcePlanetId);
+                            requirementBo.triggerUnitBuildCompletedOrKilled(user, current.getUnit());
+                        });
+                        delete(mission);
+                        transactionUtilService.doAfterCommit(() -> {
+                            if (Boolean.TRUE.equals(shouldClearImprovementsCache.get())) {
+                                improvementBo.clearSourceCache(user, obtainedUnitBo);
+                            }
+                            emitUnitBuildChange(userId);
+                            emitMissionCountChange(userId);
+                        });
+                        asyncRunnerBo.runAssyncWithoutContextDelayed(() -> socketIoService.sendMessage(user.getId(), UNIT_OBTAINED_CHANGE,
+                                () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))), 500);
+                    }
+            );
         } else {
             LOG.debug(MISSION_NOT_FOUND);
         }
@@ -542,7 +537,7 @@ public class MissionBo extends AbstractMissionBo {
      */
     private void checkUnitBuildMissionDoesNotExists(Integer userId, Long planetId) {
         if (findRunningUnitBuild(userId, (double) planetId) != null) {
-            throw new SgtBackendUnitBuildAlreadyRunningException("Ya hay una unidad reclutándose en este planeta");
+            throw new SgtBackendUnitBuildAlreadyRunningException("I18N_ERR_BUILD_MISSION_ALREADY_PRESENT");
         }
     }
 
@@ -564,8 +559,6 @@ public class MissionBo extends AbstractMissionBo {
     /**
      * Checks if relation is unlocked
      *
-     * @param userId
-     * @param relation
      * @author Kevin Guanche Darias
      */
     private void checkUnlockedUnit(Integer userId, ObjectRelation relation) {

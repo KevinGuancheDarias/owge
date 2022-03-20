@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.io.Serializable;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long>, Serializable {
     List<ObtainedUnit> findByMissionId(Long missionId);
-    
+
     /**
      * Finds all user units that are not of a specified mission type
      *
@@ -124,4 +125,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
             "FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type " +
             "WHERE ou.user = ?1 AND ou.unit = ?2 AND (ou.mission IS NULL OR ou.mission.type.code != 'BUILD_UNIT') ")
     boolean isBuiltUnit(UserStorage user, Unit unit);
+
+    @Query("UPDATE ObtainedUnit ou SET ou.count = ou.count + ?2 WHERE ou = ?1")
+    @Modifying
+    void updateCount(ObtainedUnit obtainedUnit, long sumValue);
 }

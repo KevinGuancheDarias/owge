@@ -6,47 +6,48 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 
 public class RunningUnitBuildDto extends AbstractRunningMissionDto {
 
-	private UnitDto unit;
-	private Long count;
-	private PlanetDto sourcePlanet;
+    private final Long count;
 
-	public RunningUnitBuildDto(Unit unit, Mission mission, Planet planet, Long count) {
-		super(mission);
-		this.unit = new UnitDto();
-		this.unit.dtoFromEntity(unit);
-		this.count = count;
-		sourcePlanet = new PlanetDto();
-		sourcePlanet.dtoFromEntity(planet);
-	}
+    private UnitDto unit;
+    private PlanetDto sourcePlanet;
 
-	public UnitDto getUnit() {
-		return unit;
-	}
+    public RunningUnitBuildDto(Unit unit, Mission mission, Planet planet, Long count) {
+        super(mission);
+        this.unit = new UnitDto();
+        this.unit.dtoFromEntity(unit);
+        this.count = count;
+        sourcePlanet = new PlanetDto();
+        sourcePlanet.dtoFromEntity(planet);
+    }
 
-	public void setUnit(UnitDto unit) {
-		this.unit = unit;
-	}
+    public UnitDto getUnit() {
+        return unit;
+    }
 
-	public Long getCount() {
-		return count;
-	}
+    public void setUnit(UnitDto unit) {
+        this.unit = unit;
+    }
 
-	/**
-	 * @return the sourcePlanet
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public PlanetDto getSourcePlanet() {
-		return sourcePlanet;
-	}
+    public Long getCount() {
+        return count;
+    }
 
-	/**
-	 * @param sourcePlanet the sourcePlanet to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setSourcePlanet(PlanetDto sourcePlanet) {
-		this.sourcePlanet = sourcePlanet;
-	}
+    /**
+     * @return the sourcePlanet
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public PlanetDto getSourcePlanet() {
+        return sourcePlanet;
+    }
+
+    /**
+     * @param sourcePlanet the sourcePlanet to set
+     * @author Kevin Guanche Darias
+     * @since 0.9.0
+     */
+    public void setSourcePlanet(PlanetDto sourcePlanet) {
+        this.sourcePlanet = sourcePlanet;
+    }
 
 }

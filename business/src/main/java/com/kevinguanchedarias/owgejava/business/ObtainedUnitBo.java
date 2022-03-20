@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -10,7 +9,6 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
@@ -22,7 +20,6 @@ import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -30,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Date;
@@ -190,7 +186,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         if (existingOne == null) {
             retVal = save(obtainedUnit);
         } else {
-            retVal = trySave(existingOne, obtainedUnit.getCount());
+            retVal = saveWithChange(existingOne, obtainedUnit.getCount());
             if (obtainedUnit.getId() != null) {
                 delete(obtainedUnit);
             }
@@ -269,7 +265,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
                     "Can't not subtract because, obtainedUnit count is less than the amount to subtract");
         } else if (obtainedUnit.getCount() > substractionCount) {
             requirementBo.triggerUnitBuildCompletedOrKilled(obtainedUnit.getUser(), obtainedUnit.getUnit());
-            return trySave(obtainedUnit, -substractionCount);
+            return saveWithChange(obtainedUnit, -substractionCount);
         } else if (obtainedUnit.getCount().equals(substractionCount)) {
             delete(obtainedUnit);
             requirementBo.triggerUnitBuildCompletedOrKilled(obtainedUnit.getUser(), obtainedUnit.getUnit());
@@ -279,38 +275,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         }
     }
 
-    /**
-     * Tries to save the new sumValue, if fails, will try till it success <br>
-     * This strategy can be used to avoid to lock table rows
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.19
-     */
-    public ObtainedUnit trySave(ObtainedUnit obtainedUnit, long sumValue) {
-        long expectedSum = obtainedUnit.getCount() + sumValue;
-        obtainedUnit.setCount(expectedSum);
-        ObtainedUnit savedValue = saveAndFlush(obtainedUnit);
-        try {
-            if (entityManager.contains(obtainedUnit)) {
-                entityManager.refresh(obtainedUnit);
-            } else {
-                log.error("OMG THE PROGRAMMER IS GOING CRAZY passed = {}, saved = {}", obtainedUnit, savedValue);
-            }
-            if (!savedValue.getCount().equals(expectedSum)) {
-                try {
-                    Thread.sleep(RandomUtils.nextLong(0, 300));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new CommonException("trySave failed for surprising reasons", e);
-                }
-                return trySave(savedValue, sumValue);
-            } else {
-                return savedValue;
-            }
-        } catch (EntityNotFoundException e) {
-            throw new OwgeElementSideDeletedException("Element " + obtainedUnit.getClass().getName() + " with id "
-                    + obtainedUnit.getId() + " has been side-deleted");
-        }
+    public ObtainedUnit saveWithChange(ObtainedUnit obtainedUnit, long sumValue) {
+        repository.updateCount(obtainedUnit, sumValue);
+        entityManager.refresh(obtainedUnit);
+        return obtainedUnit;
     }
 
     /**

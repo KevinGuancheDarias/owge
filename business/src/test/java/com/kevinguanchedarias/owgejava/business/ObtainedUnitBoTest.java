@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import javax.persistence.EntityManager;
@@ -84,30 +83,14 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
     }
 
     @Test
-    void trySave_should_work_and_refresh_entity_if_missing_from_orm(CapturedOutput capturedOutput) {
+    void saveWithChange_should_work() {
         var ou = givenObtainedUnit1();
-        long sumValue = 19;
-        given(entityManager.contains(ou)).willReturn(true);
-        given(obtainedUnitRepository.saveAndFlush(ou)).willAnswer(returnsFirstArg());
+        var sumValue = 14L;
 
-        var saved = obtainedUnitBo.trySave(ou, sumValue);
+        assertThat(obtainedUnitBo.saveWithChange(ou, sumValue)).isEqualTo(ou);
 
-        verify(obtainedUnitRepository, times(1)).saveAndFlush(ou);
-        assertThat(saved).isSameAs(ou);
-        assertThat(capturedOutput.getOut()).doesNotContain("OMG THE PROGRAMMER IS GOING CRAZY");
-    }
-
-    @Test
-    void trySave_should_work_but_cry_because_not_able_to_refresh_entity(CapturedOutput capturedOutput) {
-        var ou = givenObtainedUnit1();
-        long sumValue = 19;
-        given(obtainedUnitRepository.saveAndFlush(ou)).willAnswer(returnsFirstArg());
-
-        var saved = obtainedUnitBo.trySave(ou, sumValue);
-
-        verify(obtainedUnitRepository, times(1)).saveAndFlush(ou);
-        assertThat(saved).isSameAs(ou);
-        assertThat(capturedOutput.getOut()).contains("OMG THE PROGRAMMER IS GOING CRAZY");
+        verify(obtainedUnitRepository, times(1)).updateCount(ou, sumValue);
+        verify(entityManager, times(1)).refresh(ou);
     }
 
     @Test

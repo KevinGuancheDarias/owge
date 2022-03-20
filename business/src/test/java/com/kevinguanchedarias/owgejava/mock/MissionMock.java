@@ -1,21 +1,42 @@
 package com.kevinguanchedarias.owgejava.mock;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.MissionType;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import lombok.experimental.UtilityClass;
 
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 
 @UtilityClass
 public class MissionMock {
+    public static final long BUILD_MISSION_ID = 82;
+    public static final double BUILD_MISSION_VALUE = SOURCE_PLANET_ID;
     public static final long DEPLOYED_MISSION_ID = 14;
     public static final long ATTACK_MISSION_ID = 144;
     public static final long CONQUEST_MISSION_ID = 2490;
     public static final long GATHER_MISSION_ID = 49281;
     public static final long EXPLORE_MISSION_ID = 1428;
+
+    public static Mission givenBuildMission() {
+        var mission = new Mission();
+        mission.setId(BUILD_MISSION_ID);
+        mission.setSourcePlanet(givenSourcePlanet());
+        mission.setTargetPlanet(givenTargetPlanet());
+        mission.setUser(givenUser1());
+        mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.BUILD_UNIT));
+        mission.setMissionInformation(
+                MissionInformation.builder()
+                        .mission(mission)
+                        .value(BUILD_MISSION_VALUE)
+                        .relation(ObjectRelationMock.givenObjectRelation())
+                        .build()
+        );
+        return mission;
+    }
 
     public static Mission givenDeployedMission() {
         var mission = new Mission();
@@ -44,6 +65,7 @@ public class MissionMock {
 
     public static Mission givenGatherMission() {
         var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
+        mission.setId(GATHER_MISSION_ID);
         mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.GATHER));
         return mission;
     }

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -21,6 +22,7 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
@@ -51,6 +53,7 @@ import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenGatherMissio
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.givenReport;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_2_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
@@ -70,6 +73,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
@@ -115,7 +120,8 @@ import static org.mockito.Mockito.verify;
         TransactionUtilService.class,
         SpeedImpactGroupBo.class,
         TaggableCacheManager.class,
-        HiddenUnitBo.class
+        HiddenUnitBo.class,
+        PlanetLockUtilService.class
 })
 class UnitMissionBoTest {
     private static final int ALLY_ID = 19282;
@@ -143,6 +149,9 @@ class UnitMissionBoTest {
     private final SocketIoService socketIoService;
     private final ImprovementBo improvementBo;
     private final HiddenUnitBo hiddenUnitBo;
+    private final PlanetLockUtilService planetLockUtilService;
+    private final AsyncRunnerBo asyncRunnerBo;
+    private final EntityManager entityManager;
 
     @Autowired
     public UnitMissionBoTest(
@@ -168,7 +177,10 @@ class UnitMissionBoTest {
             MissionSchedulerService missionSchedulerService,
             SocketIoService socketIoService,
             ImprovementBo improvementBo,
-            HiddenUnitBo hiddenUnitBo
+            HiddenUnitBo hiddenUnitBo,
+            PlanetLockUtilService planetLockUtilService,
+            AsyncRunnerBo asyncRunnerBo,
+            EntityManager entityManager
     ) {
         // Notice: Test in this class are not full covering the methods, as they are only testing changed lines
         this.unitMissionBo = unitMissionBo;
@@ -194,6 +206,9 @@ class UnitMissionBoTest {
         this.socketIoService = socketIoService;
         this.improvementBo = improvementBo;
         this.hiddenUnitBo = hiddenUnitBo;
+        this.planetLockUtilService = planetLockUtilService;
+        this.asyncRunnerBo = asyncRunnerBo;
+        this.entityManager = entityManager;
     }
 
     @SuppressWarnings("unchecked")
@@ -242,6 +257,8 @@ class UnitMissionBoTest {
         given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
         given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
         doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
+                .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
 
         unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
 
@@ -329,6 +346,8 @@ class UnitMissionBoTest {
         given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
         given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
         doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
+                .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
 
         unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
 
@@ -386,6 +405,8 @@ class UnitMissionBoTest {
         given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
         given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
         doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
+                .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
 
         unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
 
@@ -424,10 +445,11 @@ class UnitMissionBoTest {
         given(missionReportBo.create(any(), anyBoolean(), any())).willReturn(missionReport);
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(1)).findInvolvedInAttack(targetPlanet);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
@@ -443,6 +465,39 @@ class UnitMissionBoTest {
         verify(allianceBo, times(1)).areEnemies(oldPlanetOwner, conquerorUser);
         var savedReport = missionReportCaptor.getValue();
         assertThat(savedReport.getJsonBody()).contains("I18N_OWNER_NOT_DEFEATED");
+    }
+
+    @Test
+    void processReturnMission_should_work() {
+        var missionId = 190L;
+        var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
+        mission.setId(missionId);
+        mission.setUser(givenUser1());
+        var ou = givenObtainedUnit1();
+        var deployedOu = givenObtainedUnit2();
+        var ouDto = new ObtainedUnitDto();
+        ouDto.setId(OBTAINED_UNIT_2_ID);
+        ou.setMission(mission);
+        mission.setInvolvedUnits(List.of(ou));
+        given(obtainedUnitBo.findByMissionId(missionId)).willReturn(List.of(ou));
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any(), anyLong());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(anyList(), any());
+        var unitObtainedChangeAnswer = new InvokeSupplierLambdaAnswer<List<ObtainedUnitDto>>(2);
+        doAnswer(unitObtainedChangeAnswer).when(socketIoService).sendMessage(eq(USER_ID_1), eq(AbstractMissionBo.UNIT_OBTAINED_CHANGE), any());
+        given(obtainedUnitBo.findDeployedInUserOwnedPlanets(USER_ID_1)).willReturn(List.of(deployedOu));
+        given(obtainedUnitBo.toDto(List.of(deployedOu))).willReturn(List.of(ouDto));
+
+        unitMissionBo.processReturnMission(mission);
+
+        verify(planetLockUtilService, times(1)).doInsideLock(eq(List.of(givenSourcePlanet(), givenTargetPlanet())), any());
+        verify(obtainedUnitBo, times(1)).moveUnit(ou, USER_ID_1, SOURCE_PLANET_ID);
+        assertThat(mission.getResolved()).isTrue();
+        verify(entityManager, times(1)).refresh(mission);
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(AbstractMissionBo.UNIT_OBTAINED_CHANGE), any());
+        var emittedValue = unitObtainedChangeAnswer.getResult();
+        assertThat(emittedValue).isEqualTo(List.of(ouDto));
+
     }
 
     @Test
@@ -465,10 +520,11 @@ class UnitMissionBoTest {
         given(missionReportBo.create(any(), anyBoolean(), any())).willReturn(missionReport);
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
@@ -514,10 +570,11 @@ class UnitMissionBoTest {
         given(missionReportBo.create(any(), anyBoolean(), any())).willReturn(missionReport);
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
@@ -558,10 +615,11 @@ class UnitMissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
         given(planetBo.hasMaxPlanets(conquerorUser)).willReturn(true);
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
@@ -602,10 +660,11 @@ class UnitMissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
         given(planetBo.isHomePlanet(targetPlanet)).willReturn(true);
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
@@ -647,10 +706,11 @@ class UnitMissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
-        verify(missionRepository, times(1)).findById(CONQUEST_MISSION_ID);
+        verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(1)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
@@ -698,10 +758,11 @@ class UnitMissionBoTest {
         given(configurationBo.findOrSetDefault(any(), any())).willReturn(Configuration.builder().value("TRUE").build());
         given(obtainedUnitBo.areUnitsInvolved(conquerorUser, targetPlanet)).willReturn(true);
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(GATHER_MISSION_ID, MissionType.GATHER);
 
-        verify(missionRepository, times(1)).findById(GATHER_MISSION_ID);
+        verify(missionRepository, times(2)).findById(GATHER_MISSION_ID);
         verify(obtainedUnitBo, times(1)).findByMissionId(GATHER_MISSION_ID);
         verify(configurationBo, times(1)).findOrSetDefault("MISSION_GATHER_TRIGGER_ATTACK", "FALSE");
         verify(obtainedUnitBo, times(1)).areUnitsInvolved(conquerorUser, targetPlanet);
@@ -714,6 +775,7 @@ class UnitMissionBoTest {
     @Test
     void runUnitMission_attack_should_work_not_returning_as_mission_is_removed_and_emit_removed_missions_for_planet_owner() {
         var targetPlanet = givenTargetPlanet();
+        var sourcePlanet = givenSourcePlanet();
         var oldPlanetOwner = givenUser2();
         var oldPlanetOwnerAlliance = givenAlliance();
         oldPlanetOwner.setAlliance(oldPlanetOwnerAlliance);
@@ -738,10 +800,11 @@ class UnitMissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(sourcePlanet, targetPlanet)), any());
 
         unitMissionBo.runUnitMission(ATTACK_MISSION_ID, MissionType.ATTACK);
 
-        verify(missionRepository, times(1)).findById(ATTACK_MISSION_ID);
+        verify(missionRepository, times(2)).findById(ATTACK_MISSION_ID);
         verify(obtainedUnitBo, times(1)).findByMissionId(ATTACK_MISSION_ID);
         verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
