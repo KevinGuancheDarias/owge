@@ -7,15 +7,21 @@ import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
+
 @Component
 @Transactional
 public class RequirementInformationBo implements BaseBo<Integer, RequirementInformation, RequirementInformationDto> {
+    public static final String REQUIREMENT_INFORMATION_CACHE_TAG = "requirement_information";
+
+    @Serial
     private static final long serialVersionUID = 4755638529538733332L;
 
     @Autowired
@@ -28,6 +34,9 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     @Autowired
     private RequirementInformationRepository repository;
 
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
     /*
      * (non-Javadoc)
      *
@@ -36,6 +45,16 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     @Override
     public JpaRepository<RequirementInformation, Integer> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return REQUIREMENT_INFORMATION_CACHE_TAG;
     }
 
     /*

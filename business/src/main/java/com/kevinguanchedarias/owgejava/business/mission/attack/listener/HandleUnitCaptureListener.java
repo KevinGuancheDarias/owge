@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.business.mission.attack.listener;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterAttackEndListener;
 import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterUnitKilledCalculationListener;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
@@ -15,7 +14,6 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.listener.UnitCaptureContext;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,9 +33,7 @@ public class HandleUnitCaptureListener
     private final RuleRepository ruleRepository;
     private final RuleBo ruleBo;
     private final ObtainedUnitBo obtainedUnitBo;
-    private final MissionFinderBo missionFinderBo;
     private final MissionReportBo missionReportBo;
-    private final ObtainedUnitRepository obtainedUnitRepository;
 
     @Override
     public void onAfterUnitKilledCalculation(AttackInformation information, AttackObtainedUnit attacker, AttackObtainedUnit victim, long killed) {

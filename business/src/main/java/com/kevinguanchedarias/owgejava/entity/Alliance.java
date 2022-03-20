@@ -3,13 +3,13 @@ package com.kevinguanchedarias.owgejava.entity;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -21,6 +21,7 @@ import java.util.List;
 @Entity
 @Table(name = "alliances")
 public class Alliance extends CommonEntityWithImage<Integer> {
+    @Serial
     private static final long serialVersionUID = -3191006475065220996L;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -30,9 +31,6 @@ public class Alliance extends CommonEntityWithImage<Integer> {
 
     @OneToMany(mappedBy = "alliance")
     private List<UserStorage> users;
-
-    @OneToMany(mappedBy = "alliance", cascade = CascadeType.REMOVE)
-    private List<AllianceJoinRequest> requests;
 
     /**
      * @return the owner

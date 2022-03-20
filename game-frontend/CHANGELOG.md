@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I would like to be able to use time specials that hides all my units #436](https://github.com/KevinGuancheDarias/owge/issues/436)  
 * __Fix:__ [When building or deleting the number of units goest to zero #434](https://github.com/KevinGuancheDarias/owge/issues/434)  
 * __Feature:__ [As a player I want to be able to choose unit mission time #426](https://github.com/KevinGuancheDarias/owge/issues/426)  
 * __Fix:__ [When creating an account, it fails, trying to check for HAVE_SPECIAL_ENABLED requirement #428](https://github.com/KevinGuancheDarias/owge/issues/428)  

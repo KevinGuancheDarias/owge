@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
@@ -64,6 +65,7 @@ public class MissionBo extends AbstractMissionBo {
     private final transient ConfigurationBo configurationBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
+    private final transient HiddenUnitBo hiddenUnitBo;
 
     @PostConstruct
     public void init() {
@@ -481,6 +483,7 @@ public class MissionBo extends AbstractMissionBo {
                         retVal.setSourcePlanet(null);
                         retVal.setUser(null);
                     }
+                    hiddenUnitBo.defineHidden(current.getInvolvedUnits(), retVal.getInvolvedUnits());
                     ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
                     return retVal;
                 }).toList();

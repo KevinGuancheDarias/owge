@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import java.util.List;
 @AllArgsConstructor
 @Service
 public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
+    public static final String ALLIANCE_CACHE_TAG = "alliance";
+
     @Serial
     private static final long serialVersionUID = 2632768998010477053L;
 
@@ -31,6 +34,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     private final AllianceJoinRequestBo allianceJoinRequestBo;
     private final ConfigurationBo configurationBo;
     private final AuditBo auditBo;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -39,6 +43,16 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     @Override
     public JpaRepository<Alliance, Integer> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return ALLIANCE_CACHE_TAG;
     }
 
     /*

@@ -9,6 +9,7 @@ export class UnitCaptureRuleTypeDescriptorProviderService implements RuleTypeDes
     findRuleTypeDescriptor(): Observable<RuleTypeDescriptor> {
         return of({
             name: 'UNIT_CAPTURE',
+            allowedOrigins: ['UNIT'],
             extraArgs: [
                 {
                     name: 'PROBABILITY_PERCENTAGE',

@@ -9,6 +9,9 @@ import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,14 +52,16 @@ import static org.mockito.Mockito.verify;
         FactionUnitTypeRepository.class,
         UnitTypeBo.class,
         GalaxyBo.class,
-        FactionSpawnLocationRepository.class
+        FactionSpawnLocationRepository.class,
+        TaggableCacheManager.class
 })
-class FactionBoTest {
+class FactionBoTest extends AbstractBaseBoTest {
 
     private final FactionBo factionBo;
     private final FactionRepository factionRepository;
     private final UnitTypeBo unitTypeBo;
     private final FactionUnitTypeRepository factionUnitTypeRepository;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     public FactionBoTest(
@@ -67,12 +72,14 @@ class FactionBoTest {
             GalaxyBo galaxyBo,
             FactionSpawnLocationRepository factionSpawnLocationRepository,
             DefaultConversionService conversionService,
+            TaggableCacheManager taggableCacheManager,
             Collection<Converter<?, ?>> converters
     ) {
         this.factionBo = factionBo;
         this.factionRepository = factionRepository;
         this.unitTypeBo = unitTypeBo;
         this.factionUnitTypeRepository = factionUnitTypeRepository;
+        this.taggableCacheManager = taggableCacheManager;
         converters.forEach(conversionService::addConverter);
     }
 
@@ -166,5 +173,14 @@ class FactionBoTest {
         assertEquals(givenFaction, result.getFaction());
         assertNull(result.getId());
         assertEquals(OVERRIDE_MAX_COUNT, result.getMaxCount());
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(FactionBo.FACTION_CACHE_TAG)
+                .targetBo(factionBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
     }
 }

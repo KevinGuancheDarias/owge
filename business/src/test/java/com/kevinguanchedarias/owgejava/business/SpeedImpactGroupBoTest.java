@@ -2,7 +2,10 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +32,17 @@ import static org.assertj.core.api.Assertions.assertThat;
         RequirementBo.class,
         ObjectRelationBo.class,
         UnlockedRelationBo.class,
-        DtoUtilService.class
+        DtoUtilService.class,
+        TaggableCacheManager.class
 })
-class SpeedImpactGroupBoTest {
+class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
     private final SpeedImpactGroupBo speedImpactGroupBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
-    public SpeedImpactGroupBoTest(SpeedImpactGroupBo speedImpactGroupBo) {
+    public SpeedImpactGroupBoTest(SpeedImpactGroupBo speedImpactGroupBo, TaggableCacheManager taggableCacheManager) {
         this.speedImpactGroupBo = speedImpactGroupBo;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -63,5 +69,14 @@ class SpeedImpactGroupBoTest {
         var unit = givenUnit1();
 
         assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isFalse();
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(SpeedImpactGroupBo.SPEED_IMPACT_GROUP_CACHE_TAG)
+                .targetBo(speedImpactGroupBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
     }
 }

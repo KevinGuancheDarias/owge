@@ -3,25 +3,43 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.dto.SponsorDto;
 import com.kevinguanchedarias.owgejava.entity.Sponsor;
 import com.kevinguanchedarias.owgejava.repository.SponsorRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.Serial;
+
 /**
  * The type Sponsor bo.
  *
- * @since 0.9.21
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.9.21
  */
 @Service
 @AllArgsConstructor
-public class SponsorBo implements  WithNameBo<Integer, Sponsor, SponsorDto> {
+public class SponsorBo implements WithNameBo<Integer, Sponsor, SponsorDto> {
+    public static final String SPONSOR_CACHE_TAG = "sponsor";
+
+    @Serial
+    private static final long serialVersionUID = 8446895252128116076L;
 
     private final transient SponsorRepository sponsorRepository;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<Sponsor, Integer> getRepository() {
         return sponsorRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return SPONSOR_CACHE_TAG;
     }
 
     @Override

@@ -1,7 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +15,17 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.EXPLORE_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenDeployedMission;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_COUNT;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -40,14 +50,18 @@ import static org.mockito.Mockito.verify;
         AsyncRunnerBo.class,
         EntityManager.class,
         RequirementBo.class,
-        MissionFinderBo.class
+        MissionFinderBo.class,
+        TaggableCacheManager.class,
+        HiddenUnitBo.class
 })
-class ObtainedUnitBoTest {
+class ObtainedUnitBoTest extends AbstractBaseBoTest {
     private final ObtainedUnitBo obtainedUnitBo;
     private final EntityManager entityManager;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final PlanetBo planetBo;
     private final MissionFinderBo missionFinderBo;
+    private final TaggableCacheManager taggableCacheManager;
+    private final HiddenUnitBo hiddenUnitBo;
 
     @Autowired
     ObtainedUnitBoTest(
@@ -55,7 +69,9 @@ class ObtainedUnitBoTest {
             EntityManager entityManager,
             ObtainedUnitRepository obtainedUnitRepository,
             PlanetBo planetBo,
-            MissionFinderBo missionFinderBo
+            MissionFinderBo missionFinderBo,
+            TaggableCacheManager taggableCacheManager,
+            HiddenUnitBo hiddenUnitBo
     ) {
         // Some methods has not all branches covered, only touched lines
         this.obtainedUnitBo = obtainedUnitBo;
@@ -63,6 +79,8 @@ class ObtainedUnitBoTest {
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.planetBo = planetBo;
         this.missionFinderBo = missionFinderBo;
+        this.taggableCacheManager = taggableCacheManager;
+        this.hiddenUnitBo = hiddenUnitBo;
     }
 
     @Test
@@ -125,5 +143,37 @@ class ObtainedUnitBoTest {
         assertThat(ou.getTargetPlanet()).isEqualTo(givenTargetPlanet());
         assertThat(result.getMission()).isEqualTo(deployedMission);
         assertThat(result).isSameAs(ou);
+    }
+
+    @Test
+    void explorePlanetUnits_should_work() {
+        var ou = givenObtainedUnit1();
+        var invisibleOu = givenObtainedUnit2();
+        invisibleOu.setUser(ou.getUser());
+        invisibleOu.getUnit().setIsInvisible(true);
+        var mission = givenExploreMission();
+        var planet = mission.getTargetPlanet();
+        given(obtainedUnitRepository.findByExplorePlanet(EXPLORE_MISSION_ID, TARGET_PLANET_ID)).willReturn(List.of(ou, invisibleOu));
+
+        var result = obtainedUnitBo.explorePlanetUnits(mission, planet);
+        verify(hiddenUnitBo, times(1)).defineHidden(List.of(ou, invisibleOu), result);
+        assertThat(result).hasSize(2);
+        var visibleResult = result.get(0);
+        var invisibleResult = result.get(1);
+        assertThat(visibleResult.getUnit().getName()).isEqualTo(UNIT_NAME);
+        assertThat(visibleResult.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
+        assertThat(invisibleResult).isNotNull();
+        assertThat(invisibleResult.getCount()).isNull();
+        assertThat(invisibleResult.getUnit()).isNull();
+
+    }
+
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(ObtainedUnitBo.OBTAINED_UNIT_CACHE_TAG)
+                .targetBo(obtainedUnitBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
     }
 }

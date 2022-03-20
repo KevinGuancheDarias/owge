@@ -10,8 +10,11 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -55,16 +58,17 @@ import static org.mockito.Mockito.verify;
         MissionBo.class,
         SocketIoService.class,
         ObjectMapper.class,
-        TransactionUtilService.class
+        TransactionUtilService.class,
+        TaggableCacheManager.class
 })
-class MissionReportBoTest {
+class MissionReportBoTest extends AbstractBaseBoTest {
     private final MissionReportBo missionReportBo;
     private final MissionReportRepository missionReportRepository;
     private final MissionBo missionBo;
     private final TransactionUtilService transactionUtilService;
     private final SocketIoService socketIoService;
     private final ObjectMapper mapper;
-
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     public MissionReportBoTest(
@@ -73,7 +77,8 @@ class MissionReportBoTest {
             MissionBo missionBo,
             TransactionUtilService transactionUtilService,
             SocketIoService socketIoService,
-            ObjectMapper mapper
+            ObjectMapper mapper,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.missionReportBo = missionReportBo;
         this.missionReportRepository = missionReportRepository;
@@ -81,6 +86,7 @@ class MissionReportBoTest {
         this.transactionUtilService = transactionUtilService;
         this.socketIoService = socketIoService;
         this.mapper = mapper;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -156,4 +162,12 @@ class MissionReportBoTest {
         assertThat(emittedCounts.getUserUnread()).isEqualTo(userUnread);
     }
 
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(MissionReportBo.MISSION_REPORT_CACHE_TAG)
+                .targetBo(missionReportBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
+    }
 }

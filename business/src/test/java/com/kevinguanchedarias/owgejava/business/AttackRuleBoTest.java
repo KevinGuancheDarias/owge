@@ -5,7 +5,10 @@ import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
+import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
+import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -37,27 +40,31 @@ import static org.mockito.Mockito.verify;
 @MockBean({
         AttackRuleRepository.class,
         AttackRuleEntryRepository.class,
-        DtoUtilService.class
+        DtoUtilService.class,
+        TaggableCacheManager.class
 })
-class AttackRuleBoTest {
+class AttackRuleBoTest extends AbstractBaseBoTest {
     private static final int ATTACK_RULE_ID = 18;
 
     private final AttackRuleBo attackRuleBo;
     private final AttackRuleRepository attackRuleRepository;
     private final AttackRuleEntryRepository attackRuleEntryRepository;
     private final DtoUtilService dtoUtilService;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     AttackRuleBoTest(
             AttackRuleBo attackRuleBo,
             AttackRuleRepository attackRuleRepository,
             AttackRuleEntryRepository attackRuleEntryRepository,
-            DtoUtilService dtoUtilService
+            DtoUtilService dtoUtilService,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.attackRuleBo = attackRuleBo;
         this.attackRuleRepository = attackRuleRepository;
         this.attackRuleEntryRepository = attackRuleEntryRepository;
         this.dtoUtilService = dtoUtilService;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -223,4 +230,12 @@ class AttackRuleBoTest {
         assertThat(attackRuleBo.canAttack(attackRule, ou)).isFalse();
     }
 
+    @Override
+    public CacheTagTestModel findCacheTagInfo() {
+        return CacheTagTestModel.builder()
+                .tag(AttackRuleBo.ATTACK_RULE_CACHE_TAG)
+                .targetBo(attackRuleBo)
+                .taggableCacheManager(taggableCacheManager)
+                .build();
+    }
 }

@@ -1,4 +1,9 @@
-<app-common-crud-with-image [_crudService]="adminTimeSpecialService" (elementSelected)="selectedEl = $event" [customElementsSource]="elsObservable">
+<app-rules-modal *ngIf="selectedEl?.id" originType="TIME_SPECIAL" [originId]="selectedEl.id"
+    [displayName]="selectedEl?.name">
+
+</app-rules-modal>
+<app-common-crud-with-image [_crudService]="adminTimeSpecialService" (elementSelected)="selectedEl = $event"
+    [customElementsSource]="elsObservable">
     <ng-template #beforeList>
         <app-requirements-filter [service]="adminTimeSpecialService" (filteredSource)="elsObservable = $event">
 
@@ -8,18 +13,23 @@
         <ng-container *ngIf="selectedEl">
             <div class="form-group col-md-6">
                 <label for="duration">{{ 'CRUD.TIME_SPECIAL.DURATION' | translate }} </label>
-                <input type="number" [(ngModel)]="selectedEl.duration" id="duration" class="form-control"/>
+                <input type="number" [(ngModel)]="selectedEl.duration" id="duration" class="form-control" />
             </div>
 
             <div class="form-group col-md-6">
                 <label for="rechargeTime">{{ 'CRUD.TIME_SPECIAL.RECHARGE_TIME' | translate }} </label>
-                <input type="number" [(ngModel)]="selectedEl.rechargeTime" id="rechargeTime" class="form-control"/>
+                <input type="number" [(ngModel)]="selectedEl.rechargeTime" id="rechargeTime" class="form-control" />
             </div>
             <div class="col-md-12 owge-form-header">{{ 'CRUD.IMPROVEMENTS' | translate }}</div>
-            <app-object-improvements-crud [service]="adminTimeSpecialService" [entityId]="selectedEl.id"></app-object-improvements-crud>
+            <app-object-improvements-crud [service]="adminTimeSpecialService" [entityId]="selectedEl.id">
+            </app-object-improvements-crud>
             <div class="col-md-12 owge-form-header">{{ 'CRUD.REQUIREMENTS' | translate }}</div>
             <div class="form-group col-md-12">
-                <app-object-requirements-crud [service]="adminTimeSpecialService" [entityId]="selectedEl.id" ></app-object-requirements-crud>
+                <app-object-requirements-crud [service]="adminTimeSpecialService" [entityId]="selectedEl.id">
+                </app-object-requirements-crud>
+            </div>
+            <div class="form-group col-md-12">
+                <button (click)="rulesModal.show()" class="btn">{{ 'CRUD.RULES.BTN_RULES' | translate }}</button>
             </div>
         </ng-container>
     </ng-template>

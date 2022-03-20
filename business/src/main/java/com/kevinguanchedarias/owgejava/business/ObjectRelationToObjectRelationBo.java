@@ -1,87 +1,99 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.List;
-
+import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
+import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
-import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
+import java.io.Serial;
+import java.util.List;
 
 /**
- *
- * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.0
  */
 @Service
 public class ObjectRelationToObjectRelationBo
-		implements BaseBo<Integer, ObjectRelationToObjectRelation, DtoFromEntity<ObjectRelationToObjectRelation>> {
-	private static final long serialVersionUID = 9174432635190297289L;
+        implements BaseBo<Integer, ObjectRelationToObjectRelation, DtoFromEntity<ObjectRelationToObjectRelation>> {
+    public static final String OBJECT_RELATION_TO_OBJECT_RELATION_CACHE_TAG = "obj_rel_2_obj_rel";
 
-	@Autowired
-	@Lazy
-	private ObjectRelationToObjectRelationRepository repository;
+    @Serial
+    private static final long serialVersionUID = 9174432635190297289L;
 
-	@Override
-	public Class<DtoFromEntity<ObjectRelationToObjectRelation>> getDtoClass() {
-		throw new SgtBackendNotImplementedException("No DTO for now");
-	}
+    @Autowired
+    @Lazy
+    private transient ObjectRelationToObjectRelationRepository repository;
 
-	@Override
-	public JpaRepository<ObjectRelationToObjectRelation, Integer> getRepository() {
-		return repository;
-	}
+    @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
 
-	/**
-	 *
-	 * @param relationId
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ObjectRelationToObjectRelation> findByMasterId(Integer relationId) {
-		return repository.findByMasterId(relationId);
-	}
+    @Override
+    public Class<DtoFromEntity<ObjectRelationToObjectRelation>> getDtoClass() {
+        throw new SgtBackendNotImplementedException("No DTO for now");
+    }
 
-	/**
-	 *
-	 * @param relationId
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Transactional
-	public void deleteBySlaveId(Integer relationId) {
-		repository.deleteBySlaveId(relationId);
-	}
+    @Override
+    public JpaRepository<ObjectRelationToObjectRelation, Integer> getRepository() {
+        return repository;
+    }
 
-	/**
-	 *
-	 * @param currentRelation
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ObjectRelationToObjectRelation findBySlave(ObjectRelation currentRelation) {
-		return repository.findBySlaveId(currentRelation.getId());
-	}
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
 
-	/**
-	 * If the input relation is master (known because it's not a requirement group,
-	 * and has requirement groups
-	 * 
-	 * @param relation
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public boolean isMaster(ObjectRelation relation) {
-		return repository.existsByMaster(relation);
-	}
+    @Override
+    public String getCacheTag() {
+        return OBJECT_RELATION_TO_OBJECT_RELATION_CACHE_TAG;
+    }
+
+    /**
+     * @param relationId
+     * @return
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public List<ObjectRelationToObjectRelation> findByMasterId(Integer relationId) {
+        return repository.findByMasterId(relationId);
+    }
+
+    /**
+     * @param relationId
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    @Transactional
+    public void deleteBySlaveId(Integer relationId) {
+        repository.deleteBySlaveId(relationId);
+    }
+
+    /**
+     * @param currentRelation
+     * @return
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public ObjectRelationToObjectRelation findBySlave(ObjectRelation currentRelation) {
+        return repository.findBySlaveId(currentRelation.getId());
+    }
+
+    /**
+     * If the input relation is master (known because it's not a requirement group,
+     * and has requirement groups
+     *
+     * @param relation
+     * @return
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public boolean isMaster(ObjectRelation relation) {
+        return repository.existsByMaster(relation);
+    }
 }

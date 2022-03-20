@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -17,6 +18,7 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,6 +40,8 @@ import java.util.List;
 @AllArgsConstructor
 @Slf4j
 public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, ImprovementSource {
+    public static final String OBTAINED_UNIT_CACHE_TAG = "obtained_unit";
+
     @Serial
     private static final long serialVersionUID = -2056602917496640872L;
 
@@ -51,10 +55,22 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient EntityManager entityManager;
     private final RequirementBo requirementBo;
     private final transient MissionFinderBo missionFinderBo;
+    private final transient TaggableCacheManager taggableCacheManager;
+    private final transient HiddenUnitBo hiddenUnitBo;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
         return repository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return OBTAINED_UNIT_CACHE_TAG;
     }
 
     /*
@@ -146,7 +162,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public List<ObtainedUnitDto> explorePlanetUnits(Mission exploreMission, Planet targetPlanet) {
-        List<ObtainedUnitDto> retVal = toDto(repository.findByExplorePlanet(exploreMission.getId(), targetPlanet.getId()));
+        List<ObtainedUnit> entities = repository.findByExplorePlanet(exploreMission.getId(), targetPlanet.getId());
+        List<ObtainedUnitDto> retVal = toDto(entities);
+
+        hiddenUnitBo.defineHidden(entities, retVal);
         ObtainedUnitUtil.handleInvisible(retVal);
         return retVal;
     }

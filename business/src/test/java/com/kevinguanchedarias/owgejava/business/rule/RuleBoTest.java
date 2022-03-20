@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.converter.rule.RuleEntityToDtoConverter;
 import com.kevinguanchedarias.owgejava.entity.Rule;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -51,7 +52,8 @@ import static org.mockito.Mockito.when;
 @MockBean({
         RuleRepository.class,
         RuleItemTypeProvider.class,
-        RuleTypeProvider.class
+        RuleTypeProvider.class,
+        TaggableCacheManager.class
 
 })
 class RuleBoTest {
@@ -59,6 +61,7 @@ class RuleBoTest {
     private final RuleBo ruleBo;
     private final RuleItemTypeProvider ruleItemTypeProvider;
     private final RuleTypeProvider ruleTypeProvider;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     public RuleBoTest(
@@ -67,12 +70,14 @@ class RuleBoTest {
             DefaultConversionService conversionService,
             Collection<Converter<?, ?>> converters,
             RuleItemTypeProvider ruleItemTypeProvider,
-            RuleTypeProvider ruleTypeProvider
+            RuleTypeProvider ruleTypeProvider,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.ruleRepository = ruleRepository;
         this.ruleBo = ruleBo;
         this.ruleItemTypeProvider = ruleItemTypeProvider;
         this.ruleTypeProvider = ruleTypeProvider;
+        this.taggableCacheManager = taggableCacheManager;
         converters.forEach(conversionService::addConverter);
     }
 
@@ -133,6 +138,17 @@ class RuleBoTest {
         assertEquals(dto.getDestinationType(), entityToBeSaved.getDestinationType());
         assertEquals(dto.getDestinationId(), entityToBeSaved.getDestinationId());
         assertEquals(FIRST_EXTRA_ARG + "#" + SECOND_EXTRA_ARG, entityToBeSaved.getExtraArgs());
+        verify(taggableCacheManager, times(1)).evictByCacheTag(RuleBo.RULE_CACHE_TAG, dto.getId());
+    }
+
+    @Test
+    void save_should_not_clear_id_cache_if_entity_is_new() {
+        var dto = givenRuleDto().toBuilder().id(0).build();
+        when(ruleRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ruleBo.save(dto);
+
+        verify(taggableCacheManager, never()).evictByCacheTag(any(), any());
     }
 
     @Test

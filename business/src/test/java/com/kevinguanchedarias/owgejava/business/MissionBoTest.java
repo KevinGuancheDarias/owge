@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -11,6 +12,7 @@ import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
@@ -65,25 +68,30 @@ import static org.mockito.Mockito.verify;
         EntityManager.class,
         ConfigurationBo.class,
         AsyncRunnerBo.class,
-        TransactionUtilService.class
+        TransactionUtilService.class,
+        TaggableCacheManager.class,
+        HiddenUnitBo.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
     private final PlanetBo planetBo;
     private final MissionRepository missionRepository;
     private final SocketIoService socketIoService;
+    private final HiddenUnitBo hiddenUnitBo;
 
     @Autowired
     public MissionBoTest(
             MissionBo missionBo,
             PlanetBo planetBo,
             MissionRepository missionRepository,
-            SocketIoService socketIoService
+            SocketIoService socketIoService,
+            HiddenUnitBo hiddenUnitBo
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
         this.missionRepository = missionRepository;
         this.socketIoService = socketIoService;
+        this.hiddenUnitBo = hiddenUnitBo;
     }
 
     @Test
@@ -144,6 +152,7 @@ class MissionBoTest {
         assertThat(visibleUnitResult.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
         assertThat(invisibleUnitResult.getUnit()).isNull();
         assertThat(invisibleUnitResult.getCount()).isNull();
+        verify(hiddenUnitBo, times(2)).defineHidden(eq(involvedUnits), anyList());
     }
 
     @SuppressWarnings("unchecked")

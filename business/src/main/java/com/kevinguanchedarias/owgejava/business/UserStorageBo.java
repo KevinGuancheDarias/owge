@@ -18,6 +18,7 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +40,8 @@ import java.util.List;
  */
 @Service
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
+    public static final String USER_CACHE_TAG = "user";
+
     @Serial
     private static final long serialVersionUID = 2837362546838035726L;
 
@@ -81,12 +84,25 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     private transient FactionSpawnLocationBo factionSpawnLocationBo;
 
     @Autowired
+    private transient TaggableCacheManager taggableCacheManager;
+
+    @Autowired
     @Lazy
     private AuditBo auditBo;
 
     @Override
     public JpaRepository<UserStorage, Integer> getRepository() {
         return userStorageRepository;
+    }
+
+    @Override
+    public TaggableCacheManager getTaggableCacheManager() {
+        return taggableCacheManager;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return USER_CACHE_TAG;
     }
 
     /*
