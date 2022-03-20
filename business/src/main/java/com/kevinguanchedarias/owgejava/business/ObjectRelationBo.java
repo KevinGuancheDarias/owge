@@ -10,11 +10,9 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
-import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
-import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +76,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param type
-     * @param referenceId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @deprecated Use {@link ObjectEnum} instead as first parameter
      */
@@ -90,9 +85,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param type
-     * @param referenceId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -101,29 +93,8 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * Finds one or throws {@link NotFoundException}
-     *
-     * @param type
-     * @param referenceId
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public ObjectRelation findOneByObjectTypeAndReferenceIdOrDie(ObjectEnum type, Integer referenceId) {
-        ObjectRelation objectRelation = findOneByObjectTypeAndReferenceId(type, referenceId);
-        if (objectRelation == null) {
-            NotFoundException notFoundException = NotFoundException
-                    .fromAffected(SpringRepositoryUtil.findEntityClass(getRepository()), referenceId);
-            throw notFoundException.addExtraDeveloperHint("Remember that the check is a pair between type ("
-                    + type.name() + ") and referenceId (" + referenceId + ")");
-        }
-        return objectRelation;
-    }
-
-    /**
      * Extracts the object target object entity from the relation
      *
-     * @param relation
      * @return An instance of: Upgrade.class , Unit.class depending on to what
      * connection is doing the relation
      * @author Kevin Guanche Darias
@@ -151,9 +122,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     /**
      * Finds by type and ref id
      *
-     * @param objectEnum
-     * @param referenceId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -162,9 +130,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param target
-     * @param referenceId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -189,8 +154,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param type
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -199,9 +162,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param type
-     * @param requirementType
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -212,9 +172,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     /**
-     * @param type
-     * @param secondValue
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -228,10 +185,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * Example resultant SQL: WHERE type = '$type' AND secondValue = '$secondValue'
      * AND thirdValue >= '$thidValue'
      *
-     * @param type
-     * @param secondValue
-     * @param thirdValue
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -262,8 +215,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     /**
      * Checks if the relation is unlocked
      *
-     * @param user
-     * @param relation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -274,8 +225,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     /**
      * Checks if the relation is unlocked
      *
-     * @param userId
-     * @param relationId
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */

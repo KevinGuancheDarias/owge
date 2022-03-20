@@ -47,7 +47,7 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     private transient TutorialSectionAvailableHtmlSymbolRepository htmlSymbolRepository;
 
     @Autowired
-    private VisitedTutorialSectionEntryRepository visitedTutorialSectionEntryRepository;
+    private transient VisitedTutorialSectionEntryRepository visitedTutorialSectionEntryRepository;
 
     @Autowired
     private UserStorageBo userStorageBo;

@@ -34,7 +34,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
     private ImprovementBo improvementBo;
 
     @Autowired
-    private SocketIoService socketIoService;
+    private transient SocketIoService socketIoService;
 
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;

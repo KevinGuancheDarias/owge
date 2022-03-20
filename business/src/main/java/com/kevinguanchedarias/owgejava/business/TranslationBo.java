@@ -62,8 +62,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     }
 
     /**
-     * @param translatableId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */

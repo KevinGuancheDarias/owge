@@ -1,6 +1,3 @@
-/**
- *
- */
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenConfigLoader;
@@ -24,9 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 @Service
 public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
@@ -105,8 +101,8 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
      * <b>NOTICE: </b> If username or email is different will update it
      *
      * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public TokenPojo login() {
         TokenUser tokenUser = authenticationBo.findTokenUser();
@@ -129,8 +125,8 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
      * @param accountUserId
      * @param username
      * @return
-     * @since 0.9.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
      */
     public AdminUser addAdmin(Integer accountUserId, String username) {
         AdminUser existing = findById(accountUserId);
@@ -149,7 +145,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
     /**
      * Will generate the token
      *
-     * @param userId
      * @return
      * @author Kevin Guanche Darias
      */

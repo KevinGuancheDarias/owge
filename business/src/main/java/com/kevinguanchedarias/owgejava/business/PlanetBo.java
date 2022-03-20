@@ -56,7 +56,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     private RequirementBo requirementBo;
 
     @Autowired
-    private PlanetListBo planetListBo;
+    private transient PlanetListBo planetListBo;
 
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;
@@ -71,7 +71,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
     @Override
     public TaggableCacheManager getTaggableCacheManager() {
-        return null;
+        return taggableCacheManager;
     }
 
     @Override
