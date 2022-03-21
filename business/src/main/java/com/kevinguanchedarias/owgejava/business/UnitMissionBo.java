@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -116,6 +117,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Autowired
     private transient HiddenUnitBo hiddenUnitBo;
+
+    @Autowired
+    private transient PlanetLockUtilService planetLockUtilService;
 
     @Override
     public String getGroupName() {
@@ -257,45 +261,43 @@ public class UnitMissionBo extends AbstractMissionBo {
      */
     @Transactional
     public void adminRegisterReturnMission(Mission mission, Double customRequiredTime) {
-        Mission returnMission = new Mission();
-        returnMission.setStartingDate(new Date());
-        returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
-        returnMission.setRequiredTime(mission.getRequiredTime());
-        Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
-        returnMission.setTerminationDate(computeTerminationDate(requiredTime));
-        returnMission.setSourcePlanet(mission.getSourcePlanet());
-        returnMission.setTargetPlanet(mission.getTargetPlanet());
-        returnMission.setUser(mission.getUser());
-        returnMission.setRelatedMission(mission);
-        returnMission.setInvisible(Boolean.TRUE.equals(mission.getInvisible()));
-        List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
-        missionRepository.saveAndFlush(returnMission);
-        obtainedUnits.forEach(current -> current.setMission(returnMission));
-        obtainedUnitBo.save(obtainedUnits);
-        scheduleMission(returnMission);
-        emitLocalMissionChangeAfterCommit(returnMission);
+        planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
+                () -> {
+                    Mission returnMission = new Mission();
+                    returnMission.setStartingDate(new Date());
+                    returnMission.setType(findMissionType(MissionType.RETURN_MISSION));
+                    returnMission.setRequiredTime(mission.getRequiredTime());
+                    Double requiredTime = customRequiredTime == null ? mission.getRequiredTime() : customRequiredTime;
+                    returnMission.setTerminationDate(computeTerminationDate(requiredTime));
+                    returnMission.setSourcePlanet(mission.getSourcePlanet());
+                    returnMission.setTargetPlanet(mission.getTargetPlanet());
+                    returnMission.setUser(mission.getUser());
+                    returnMission.setRelatedMission(mission);
+                    returnMission.setInvisible(Boolean.TRUE.equals(mission.getInvisible()));
+                    List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+                    missionRepository.saveAndFlush(returnMission);
+                    obtainedUnits.forEach(current -> current.setMission(returnMission));
+                    obtainedUnitBo.save(obtainedUnits);
+                    scheduleMission(returnMission);
+                    emitLocalMissionChangeAfterCommit(returnMission);
+                }
+        );
     }
 
     @Transactional
-    public void proccessReturnMission(Mission mission) {
-        Integer userId = mission.getUser().getId();
-        List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
-        obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
-        resolveMission(mission);
-        emitLocalMissionChangeAfterCommit(mission);
-        TransactionUtil.doAfterCommit(() -> {
-            if (obtainedUnits.get(0).getMission() != null
-                    && obtainedUnits.get(0).getMission().getInvolvedUnits() == null) {
-                entityManager.refresh(obtainedUnits.get(0).getMission());
-            }
-            emitLocalMissionChange(mission, userId);
+    public void processReturnMission(Mission mission) {
+        planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
+            Integer userId = mission.getUser().getId();
+            List<ObtainedUnit> obtainedUnits = obtainedUnitBo.findByMissionId(mission.getId());
+            obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
+            resolveMission(mission);
+            emitLocalMissionChangeAfterCommit(mission);
+            asyncRunnerBo
+                    .runAssyncWithoutContextDelayed(
+                            () -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+                                    () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))),
+                            500);
         });
-        asyncRunnerBo
-                .runAssyncWithoutContextDelayed(
-                        () -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-                                () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))),
-                        500);
-
     }
 
     @Transactional
@@ -482,6 +484,14 @@ public class UnitMissionBo extends AbstractMissionBo {
     @Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
     public void runUnitMission(Long missionId, MissionType missionType) {
         Mission mission = findById(missionId);
+        planetLockUtilService.doInsideLock(
+                List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
+                () -> doRunUnitMission(findById(missionId), missionType)
+        );
+    }
+
+    private void doRunUnitMission(Mission mission, MissionType missionType) {
+        var missionId = mission.getId();
         List<ObtainedUnit> involvedUnits = findUnitsInvolved(missionId);
         List<ObtainedUnit> originallyInvolved = involvedUnits;
         boolean isMissionIntercepted = false;
@@ -508,7 +518,7 @@ public class UnitMissionBo extends AbstractMissionBo {
                     reportBuilder = processExplore(mission, involvedUnits);
                     break;
                 case RETURN_MISSION:
-                    proccessReturnMission(mission);
+                    processReturnMission(mission);
                     break;
                 case GATHER:
                     reportBuilder = processGather(mission, involvedUnits);
@@ -757,7 +767,6 @@ public class UnitMissionBo extends AbstractMissionBo {
     }
 
     private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
-        List<ObtainedUnit> obtainedUnits = new ArrayList<>();
         missionInformation.setMissionType(missionType);
         var user = userStorageBo.findLoggedIn();
         var isDeployMission = missionType.equals(MissionType.DEPLOY);
@@ -772,6 +781,21 @@ public class UnitMissionBo extends AbstractMissionBo {
             throw new SgtBackendInvalidInputException(
                     "Can't send this mission, because target planet is not explored ");
         }
+        planetLockUtilService.doInsideLockById(
+                List.of(missionInformation.getSourcePlanetId(), missionInformation.getTargetPlanetId()),
+                () -> doCommonMissionRegister(missionInformation, targetMissionInformation, missionType, user, isDeployMission)
+        );
+    }
+
+    private void doCommonMissionRegister(
+            UnitMissionInformation missionInformation,
+            UnitMissionInformation targetMissionInformation,
+            MissionType missionType,
+            UserStorage user,
+            boolean isDeployMission
+    ) {
+        List<ObtainedUnit> obtainedUnits = new ArrayList<>();
+        Integer userId = user.getId();
         Map<Integer, ObtainedUnit> dbUnits = checkAndLoadObtainedUnits(missionInformation);
         var mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
         auditMissionRegistration(mission, isDeployMission);

@@ -258,7 +258,7 @@ class AttackMissionManagerBoTest {
         when(criticalAttackBo.findUsedCriticalAttack(unitType)).thenReturn(givenCriticalAttack());
         when(criticalAttackBo.findApplicableCriticalEntry(eq(givenCriticalAttack()), any(Unit.class)))
                 .thenReturn(givenCriticalAttackEntry(criticalMultiplier));
-        when(obtainedUnitBo.trySave(eq(survivorUnit.getObtainedUnit()), anyLong())).thenThrow(new OwgeElementSideDeletedException("foo"));
+        when(obtainedUnitBo.saveWithChange(eq(survivorUnit.getObtainedUnit()), anyLong())).thenThrow(new OwgeElementSideDeletedException("foo"));
         doAnswer(answer -> {
             answer.getArgument(2, Supplier.class).get();
             return null;

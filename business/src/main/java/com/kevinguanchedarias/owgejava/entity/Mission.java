@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -100,6 +101,7 @@ public class Mission implements EntityWithId<Long> {
     private MissionReport report;
 
     @OneToMany(mappedBy = "mission")
+    @ToString.Exclude
     private List<ObtainedUnit> involvedUnits;
 
     @Column(nullable = false)

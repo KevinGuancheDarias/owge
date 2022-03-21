@@ -6,7 +6,6 @@ import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
-import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -20,8 +19,6 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
@@ -32,7 +29,6 @@ import java.io.Serial;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Contains methods and properties shared between all MissionBo types
@@ -209,7 +205,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
                 planetBo.cleanUpUnexplored(userId, current.getTargetPlanet());
             }
             return current;
-        }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).collect(Collectors.toList());
+        }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).toList();
     }
 
     /**
@@ -346,23 +342,6 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         missionSchedulerService.abortMissionJob(getGroupName(), mission);
     }
 
-    /**
-     * Wait for mission affecting planet.
-     *
-     * @param planet the planet
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.20
-     */
-    @SneakyThrows(InterruptedException.class)
-    protected void waitForMissionAffectingPlanet(Planet planet) {
-        Date offsetStart = new Date(new Date().getTime() - 2000);
-        Date offset = new Date(offsetStart.getTime() + 2000);
-        if (missionRepository.existsByTerminationDateBetweenAndTargetPlanetAndResolvedFalse(offsetStart, offset,
-                planet)) {
-            Thread.sleep(100 * RandomUtils.nextLong(10, 15));
-            waitForMissionAffectingPlanet(planet);
-        }
-    }
 
     private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {
         UnitMissionReportBuilder reportBuilder = UnitMissionReportBuilder.create().withSenderUser(mission.getUser())
