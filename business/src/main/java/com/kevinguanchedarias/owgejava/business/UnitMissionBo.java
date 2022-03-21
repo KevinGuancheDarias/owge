@@ -119,7 +119,7 @@ public class UnitMissionBo extends AbstractMissionBo {
     private transient HiddenUnitBo hiddenUnitBo;
 
     @Autowired
-    private PlanetLockUtilService planetLockUtilService;
+    private transient PlanetLockUtilService planetLockUtilService;
 
     @Override
     public String getGroupName() {
@@ -484,9 +484,10 @@ public class UnitMissionBo extends AbstractMissionBo {
     @Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
     public void runUnitMission(Long missionId, MissionType missionType) {
         Mission mission = findById(missionId);
-        planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
-            doRunUnitMission(findById(missionId), missionType);
-        });
+        planetLockUtilService.doInsideLock(
+                List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
+                () -> doRunUnitMission(findById(missionId), missionType)
+        );
     }
 
     private void doRunUnitMission(Mission mission, MissionType missionType) {
