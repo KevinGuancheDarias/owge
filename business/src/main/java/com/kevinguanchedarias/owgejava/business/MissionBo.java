@@ -28,6 +28,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunni
 import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
@@ -69,6 +70,7 @@ public class MissionBo extends AbstractMissionBo {
     private final transient TransactionUtilService transactionUtilService;
     private final transient HiddenUnitBo hiddenUnitBo;
     private final transient PlanetLockUtilService planetLockUtilService;
+    private final ObtainedUnitRepository obtainedUnitRepository;
 
     @PostConstruct
     public void init() {
@@ -472,6 +474,7 @@ public class MissionBo extends AbstractMissionBo {
         List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
         return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)
                 .stream().map(current -> {
+                    current.setInvolvedUnits(obtainedUnitRepository.findByMissionId(current.getId()));
                     UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
                     retVal.nullifyInvolvedUnitsPlanets();
                     if (!planetBo.isExplored(user, current.getSourcePlanet())) {

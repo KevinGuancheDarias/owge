@@ -2,13 +2,18 @@ package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
+
+    @EqualsAndHashCode.Include
     private Long id;
+
     private UnitDto unit;
     private Long count;
     private PlanetDto sourcePlanet;

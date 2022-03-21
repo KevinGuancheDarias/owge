@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -17,22 +18,23 @@ public class MysqlLockUtilService {
     public static final int TIMEOUT_SECONDS = 10;
     private final JdbcTemplate jdbcTemplate;
 
-    public void doInsideLock(List<String> keys, Runnable runnable) {
+    public void doInsideLock(Set<String> keys, Runnable runnable) {
+        var keysAsList = keys.stream().toList();
         var commandLambda = (PreparedStatementCallback<Object>) ps -> {
-            generateBindParams(keys, ps);
+            generateBindParams(keysAsList, ps);
             return null;
         };
         var releaseLockLambda = (PreparedStatementCallback<Object>) ps -> {
-            generateBindParamsWithoutTimeout(keys, ps);
+            generateBindParamsWithoutTimeout(keysAsList, ps);
             return null;
         };
 
         try {
-            jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keys), commandLambda);
+            jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), commandLambda);
             runnable.run();
         } finally {
             jdbcTemplate.execute(
-                    generateSql("RELEASE_LOCK(?)", keys),
+                    generateSql("RELEASE_LOCK(?)", keysAsList),
                     releaseLockLambda
             );
         }

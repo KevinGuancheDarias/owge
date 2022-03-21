@@ -357,7 +357,8 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
             unit = saveWithAdding(userId, unit, planetId);
             savedUnit = unit;
             if (unit.getMission() == null || MissionType.valueOf(unit.getMission().getType().getCode()) != MissionType.DEPLOYED) {
-                unit.setMission(missionFinderBo.findDeployedMissionOrCreate(unit));
+                var deployedMission = missionFinderBo.findDeployedMissionOrCreate(unit);
+                unit.setMission(deployedMission);
                 savedUnit = save(unit);
             }
         }

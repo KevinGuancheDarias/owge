@@ -23,6 +23,7 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -68,6 +69,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
@@ -108,7 +110,8 @@ import static org.mockito.Mockito.verify;
         TransactionUtilService.class,
         TaggableCacheManager.class,
         HiddenUnitBo.class,
-        PlanetLockUtilService.class
+        PlanetLockUtilService.class,
+        ObtainedUnitRepository.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -130,6 +133,7 @@ class MissionBoTest {
     private final MissionSchedulerService missionSchedulerService;
     private final EntityManager entityManager;
     private final UnitTypeBo unitTypeBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
 
     @Autowired
     public MissionBoTest(
@@ -151,7 +155,8 @@ class MissionBoTest {
             MissionTypeRepository missionTypeRepository,
             MissionSchedulerService missionSchedulerService,
             EntityManager entityManager,
-            UnitTypeBo unitTypeBo
+            UnitTypeBo unitTypeBo,
+            ObtainedUnitRepository obtainedUnitRepository
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -172,6 +177,7 @@ class MissionBoTest {
         this.missionSchedulerService = missionSchedulerService;
         this.entityManager = entityManager;
         this.unitTypeBo = unitTypeBo;
+        this.obtainedUnitRepository = obtainedUnitRepository;
     }
 
     @Test
@@ -207,6 +213,7 @@ class MissionBoTest {
                 .willReturn(List.of(missionWithExploredPlanet, missionWithoutExploredPlanet));
         given(planetBo.findPlanetsByUser(user)).willReturn(List.of(userPlanet1, userPlanet2));
         given(planetBo.isExplored(user, exploredPlanet)).willReturn(true);
+        given(obtainedUnitRepository.findByMissionId(anyLong())).willReturn(involvedUnits);
 
         var result = missionBo.findEnemyRunningMissions(user);
 
@@ -274,6 +281,7 @@ class MissionBoTest {
             messageResultContainer.add((List<UnitRunningMissionDto>) answer.getArgument(2, Supplier.class).get());
             return null;
         }).when(socketIoService).sendMessage(any(UserStorage.class), any(), any());
+        given(obtainedUnitRepository.findByMissionId(anyLong())).willReturn(involvedUnits);
 
         missionBo.emitEnemyMissionsChange(user);
 

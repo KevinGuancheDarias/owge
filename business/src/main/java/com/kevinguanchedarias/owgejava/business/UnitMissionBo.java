@@ -6,7 +6,6 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
@@ -36,7 +35,6 @@ import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
-import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.ObjectUtils;
@@ -370,37 +368,30 @@ public class UnitMissionBo extends AbstractMissionBo {
     }
 
     @Transactional
-    public void proccessDeploy(Long missionId) {
-        Mission mission = findById(missionId);
-        if (mission != null) {
-            UserStorage user = mission.getUser();
-            Integer userId = user.getId();
-            List<ObtainedUnit> alteredUnits = new ArrayList<>();
-            findUnitsInvolved(missionId).forEach(current ->
-                    alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()))
-            );
-            resolveMission(mission);
-            TransactionUtil.doAfterCommit(() -> {
-                alteredUnits.forEach(unit -> {
-                    entityManager.refresh(unit);
-                    if (unit.getMission() != null && unit.getMission().getId() > missionId) {
-                        entityManager.refresh(unit.getMission());
-                    }
-                });
+    public void processDeploy(Mission mission) {
+        long missionId = mission.getId();
+        UserStorage user = mission.getUser();
+        Integer userId = user.getId();
+        List<ObtainedUnit> alteredUnits = new ArrayList<>();
+        findUnitsInvolved(missionId).forEach(current ->
+                alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()))
+        );
+
+        var deployedMission = alteredUnits.get(0).getMission();
+        if (deployedMission != null) {
+            deployedMission.setInvisible(deployedMission.getInvolvedUnits().stream().allMatch(hiddenUnitBo::isHiddenUnit));
+        }
+
+        resolveMission(mission);
+        transactionUtilService.doAfterCommit(() -> {
+            alteredUnits.forEach(entityManager::refresh);
+            if (user.equals(mission.getTargetPlanet().getOwner())) {
                 socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
                         () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId)));
-                emitEnemyMissionsChange(mission);
-                socketIoService.sendMessage(user, "unit_mission_change", () -> {
-                    List<UnitRunningMissionDto> missionsWorkarounds = findUserRunningMissions(user.getId());
-                    Optional<UnitRunningMissionDto> launchedMission = missionsWorkarounds.stream()
-                            .filter(current -> current.getMissionId().equals(missionId)).findFirst();
-                    launchedMission.ifPresent(unitRunningMissionDto -> unitRunningMissionDto
-                            .setInvolvedUnits(obtainedUnitBo.toDto(alteredUnits)));
-                    return new MissionWebsocketMessage(countUserMissions(user.getId()), missionsWorkarounds);
-                });
+            }
+            emitLocalMissionChange(mission, user);
+        });
 
-            });
-        }
     }
 
     @Transactional
@@ -536,7 +527,7 @@ public class UnitMissionBo extends AbstractMissionBo {
                     reportBuilder = processConquest(mission, involvedUnits);
                     break;
                 case DEPLOY:
-                    proccessDeploy(missionId);
+                    processDeploy(mission);
                     break;
                 default:
                     LOG.warn("Not an unit mission");
@@ -798,11 +789,17 @@ public class UnitMissionBo extends AbstractMissionBo {
         Integer userId = user.getId();
         Map<Integer, ObtainedUnit> dbUnits = checkAndLoadObtainedUnits(missionInformation);
         var mission = missionRepository.saveAndFlush((prepareMission(targetMissionInformation, missionType)));
+        boolean isEnemyPlanet = mission.getSourcePlanet().getOwner() != null && !user.equals(mission.getSourcePlanet().getOwner());
         auditMissionRegistration(mission, isDeployMission);
+        List<Mission> alteredVisibilityMissions = new ArrayList<>();
         targetMissionInformation.getInvolvedUnits().forEach(current -> {
             var currentObtainedUnit = new ObtainedUnit();
+            var dbUnit = dbUnits.get(current.getId());
+            if (isEnemyPlanet) {
+                alteredVisibilityMissions.add(dbUnit.getMission());
+            }
             currentObtainedUnit.setMission(mission);
-            var firstDeploymentMission = dbUnits.get(current.getId()).getFirstDeploymentMission();
+            var firstDeploymentMission = dbUnit.getFirstDeploymentMission();
             currentObtainedUnit.setFirstDeploymentMission(firstDeploymentMission);
             currentObtainedUnit.setCount(current.getCount());
             currentObtainedUnit.setUser(user);
@@ -828,8 +825,21 @@ public class UnitMissionBo extends AbstractMissionBo {
         save(mission);
         scheduleMission(mission);
         emitLocalMissionChangeAfterCommit(mission);
-        transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-                () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+        if (user.equals(mission.getSourcePlanet().getOwner())) {
+            transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
+                    () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+        }
+        if (isEnemyPlanet) {
+            alteredVisibilityMissions.stream()
+                    .filter(current -> {
+                        var oldValue = Boolean.TRUE.equals(current.getInvisible());
+                        var newValue = obtainedUnitRepository.findByMissionId(current.getId()).stream().allMatch(hiddenUnitBo::isHiddenUnit);
+                        current.setInvisible(newValue);
+                        return oldValue != newValue;
+                    })
+                    .forEach(missionRepository::save);
+            missionBo.emitEnemyMissionsChange(mission.getSourcePlanet().getOwner());
+        }
     }
 
     private void handleCustomDuration(Mission mission, Long customDuration) {
@@ -986,6 +996,7 @@ public class UnitMissionBo extends AbstractMissionBo {
                 .noneMatch(unit -> mission.getId().equals(unit.getMission() != null ? unit.getMission().getId() : null))
 
         ).forEach(this::resolveMission);
+
         return retVal;
     }
 

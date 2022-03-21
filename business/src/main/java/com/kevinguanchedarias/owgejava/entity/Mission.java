@@ -94,6 +94,7 @@ public class Mission implements EntityWithId<Long> {
     @OneToMany(mappedBy = "relatedMission")
     @Getter
     @Setter
+    @ToString.Exclude
     private List<Mission> linkedRelated;
 
     @OneToOne(fetch = FetchType.LAZY)
