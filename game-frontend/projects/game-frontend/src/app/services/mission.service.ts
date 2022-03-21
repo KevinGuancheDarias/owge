@@ -122,7 +122,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
           break;
 
         case 'DEPLOY':
-          await this.sendDeploy(sourcePlanet, targetPlanet, selectedUnits, wantedTime);
+          await this.sendDeploy(sourcePlanet, targetPlanet, selectedUnits, wantedTime).toPromise();
           break;
         default:
           throw new ProgrammingError(`Unexpected mission type ${missionType}`);
