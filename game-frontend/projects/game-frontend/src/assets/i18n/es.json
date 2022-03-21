@@ -197,7 +197,8 @@
                 "ESTABLISH_BASE_ERROR": "Error al establecer base, quizá posees el máximo de planetas",
                 "ESTABLISH_BASE_SUCCESS": "Éxito, ahora el planeta es de tu propiedad",
                 "CONQUEST": "Conquista",
-                "INTERCEPTED": "Interceptada"
+                "INTERCEPTED": "Interceptada",
+                "CAPTURED_UNITS": "Unidades capturadas"
             },
             "BODY": {
                 "USERNAME": "Jugador: {{username}}",
