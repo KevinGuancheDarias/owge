@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class PlanetLockUtilService {
 
     public void doInsideLockById(List<Long> planetIds, Runnable runnable) {
         mysqlLockUtilService.doInsideLock(
-                planetIds.stream().map(this::mapPlanetToLockKey).toList(),
+                planetIds.stream().map(this::mapPlanetToLockKey).collect(Collectors.toUnmodifiableSet()),
                 runnable
         );
     }

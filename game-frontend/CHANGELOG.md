@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Fix:__ [Enemy mission list doesn't update, and hidden deployed missions are displayed #442](https://github.com/KevinGuancheDarias/owge/issues/442)  
 * [class=Advanced] __Improvement:__ [Resolve random bug by allowing only one thread to modify planet information #438](https://github.com/KevinGuancheDarias/owge/issues/438)  
 * __Feature:__ [As a player I would like to be able to use time specials that hides all my units #436](https://github.com/KevinGuancheDarias/owge/issues/436)  
 * __Fix:__ [When building or deleting the number of units goest to zero #434](https://github.com/KevinGuancheDarias/owge/issues/434)  

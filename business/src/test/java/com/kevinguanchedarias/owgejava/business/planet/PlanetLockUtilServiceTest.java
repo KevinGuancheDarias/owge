@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
@@ -46,7 +47,7 @@ class PlanetLockUtilServiceTest {
         planetLockUtilService.doInsideLock(planets, runnableMock);
 
         verify(mysqlLockUtilService, times(1)).doInsideLock(
-                List.of(expectedLockKey(SOURCE_PLANET_ID), expectedLockKey(TARGET_PLANET_ID)),
+                Set.of(expectedLockKey(SOURCE_PLANET_ID), expectedLockKey(TARGET_PLANET_ID)),
                 runnableMock
         );
     }
@@ -56,7 +57,7 @@ class PlanetLockUtilServiceTest {
         planetLockUtilService.doInsideLockById(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID), runnableMock);
 
         verify(mysqlLockUtilService, times(1)).doInsideLock(
-                List.of(expectedLockKey(SOURCE_PLANET_ID), expectedLockKey(TARGET_PLANET_ID)),
+                Set.of(expectedLockKey(SOURCE_PLANET_ID), expectedLockKey(TARGET_PLANET_ID)),
                 runnableMock
         );
     }

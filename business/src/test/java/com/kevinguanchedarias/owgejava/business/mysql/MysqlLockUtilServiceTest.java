@@ -11,7 +11,8 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static com.kevinguanchedarias.owgejava.business.mysql.MysqlLockUtilService.TIMEOUT_SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,7 +35,13 @@ import static org.mockito.Mockito.verify;
 class MysqlLockUtilServiceTest {
     private static final String KEY_1 = "foo_key";
     private static final String KEY_2 = "bar_key";
-    private static final List<String> KEY_LIST = List.of(KEY_1, KEY_2);
+    private static final Set<String> KEY_LIST = new LinkedHashSet<>();
+
+    static {
+        KEY_LIST.add(KEY_1);
+        KEY_LIST.add(KEY_2);
+    }
+
     private static final String EXPECTED_SQL_FOR_LOCK = "SELECT GET_LOCK(?,?) UNION SELECT GET_LOCK(?,?);";
     private static final String EXPECTED_SQL_FOR_RELEASE_LOCK = "SELECT RELEASE_LOCK(?) UNION SELECT RELEASE_LOCK(?);";
 
@@ -59,7 +66,7 @@ class MysqlLockUtilServiceTest {
         var preparedStatementMockForLock = handlePreparedStatementForLock();
         var preparedStatementMockForReleaseLock = handlePreparedStatementForReleaseLock();
 
-        mysqlLockUtilService.doInsideLock(List.of(KEY_1, KEY_2), runnableMock);
+        mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
 
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_RELEASE_LOCK), any(PreparedStatementCallback.class));
@@ -76,7 +83,7 @@ class MysqlLockUtilServiceTest {
         var exception = new RuntimeException("foo");
         doThrow(exception).when(runnableMock).run();
 
-        assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(List.of(KEY_1), runnableMock))
+        assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(Set.of(KEY_1), runnableMock))
                 .isEqualTo(exception);
 
         verify(jdbcTemplate, times(1))

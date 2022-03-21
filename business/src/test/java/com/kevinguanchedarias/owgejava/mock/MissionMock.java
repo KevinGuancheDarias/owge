@@ -20,6 +20,7 @@ public class MissionMock {
     public static final long CONQUEST_MISSION_ID = 2490;
     public static final long GATHER_MISSION_ID = 49281;
     public static final long EXPLORE_MISSION_ID = 1428;
+    public static final long DEPLOY_MISSION_ID = 1899;
 
     public static Mission givenBuildMission() {
         var mission = new Mission();
@@ -88,6 +89,13 @@ public class MissionMock {
         var mission = givenRawMission(sourcePlanet, targetPlanet);
         mission.setId(CONQUEST_MISSION_ID);
         mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.CONQUEST));
+        return mission;
+    }
+
+    public static Mission givenDeployMission() {
+        var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
+        mission.setId(DEPLOY_MISSION_ID);
+        mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.DEPLOY));
         return mission;
     }
 }

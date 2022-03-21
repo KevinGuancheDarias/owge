@@ -13,6 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class UserStorage implements EntityWithId<Integer> {
+    @Serial
     private static final long serialVersionUID = 3718075595543259580L;
 
     @Id

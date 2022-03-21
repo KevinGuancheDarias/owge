@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+
 @Service
 @AllArgsConstructor
 public class MissionFinderBo {
@@ -38,6 +40,7 @@ public class MissionFinderBo {
         ).stream().findFirst();
         if (existingMissionOpt.isPresent()) {
             var existingMission = existingMissionOpt.get();
+            existingMission.getInvolvedUnits().add(unit);
             unit.setFirstDeploymentMission(null);
             unit.setMission(existingMission);
             obtainedUnitRepository.save(unit);
@@ -46,6 +49,8 @@ public class MissionFinderBo {
             final Mission deployedMission = new Mission();
             deployedMission.setType(missionBo.findMissionType(MissionType.DEPLOYED));
             deployedMission.setUser(user);
+            deployedMission.setInvolvedUnits(new ArrayList<>());
+            deployedMission.getInvolvedUnits().add(unit);
             if (unit.getFirstDeploymentMission() == null) {
                 deployedMission.setSourcePlanet(origin);
                 deployedMission.setTargetPlanet(target);

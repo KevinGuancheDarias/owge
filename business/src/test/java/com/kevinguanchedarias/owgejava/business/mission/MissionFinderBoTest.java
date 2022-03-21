@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +68,7 @@ class MissionFinderBoTest {
         var ou = givenObtainedUnit1();
         ou.setFirstDeploymentMission(new Mission());
         var existingMission = MissionMock.givenDeployedMission();
+        existingMission.setInvolvedUnits(new ArrayList<>());
         when(missionRepository.findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(
                 USER_ID_1, MissionType.DEPLOYED.name(), ou.getTargetPlanet().getId()
         )).thenReturn(List.of(existingMission));
@@ -86,6 +88,9 @@ class MissionFinderBoTest {
         verify(missionRepository, never()).save(any());
         verify(missionRepository, never()).findById(any());
         assertThat(result).isEqualTo(existingMission);
+        assertThat(existingMission.getInvolvedUnits())
+                .hasSize(1)
+                .contains(ou);
     }
 
     @Test
