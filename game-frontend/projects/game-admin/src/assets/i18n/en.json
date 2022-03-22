@@ -38,6 +38,7 @@
         "BTN_DELETE": "Delete",
         "SELECT": "Please select...",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
+        "INHERITED": "Inherited",
         "TIME_SPECIAL": {
             "DURATION": "Duration",
             "RECHARGE_TIME": "Recharge time"

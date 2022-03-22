@@ -104,7 +104,7 @@ class HiddenUnitBoTest {
 
         verify(activeTimeSpecialRepository, times(1)).findByUserIdAndState(USER_ID_1, TimeSpecialStateEnum.ACTIVE);
         verify(ruleBo, times(1)).findByOriginTypeAndOriginId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID);
-        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(), any());
+        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(UnitType.class), any());
         assertThat(ouDto.getUnit().getIsInvisible()).isEqualTo(expectation);
     }
 
@@ -183,7 +183,7 @@ class HiddenUnitBoTest {
         assertThat(result).isEqualTo(expectation);
         verify(activeTimeSpecialRepository, times(1)).findByUserIdAndState(USER_ID_1, TimeSpecialStateEnum.ACTIVE);
         verify(ruleBo, times(1)).findByOriginTypeAndOriginId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID);
-        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(), any());
+        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(UnitType.class), any());
     }
 
     @Test

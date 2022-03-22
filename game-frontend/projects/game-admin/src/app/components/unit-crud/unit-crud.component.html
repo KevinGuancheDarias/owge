@@ -93,7 +93,7 @@
             <div class="form-group col-md-6">
                 <label>{{ 'CRUD.UNIT_TYPE.SPEED_IMPACT_GROUP' | translate }}</label>
                 <select class="form-control" [(ngModel)]="selectedEl.speedImpactGroup" [compareWith]="isSameObject">
-                    <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate}} </option>
+                    <option [ngValue]="undefined">{{ 'CRUD.INHERITED' | translate}} </option>
                     <option *ngFor="let speedImpactGroup of speedImpactGroups" [ngValue]="speedImpactGroup">{{
                         speedImpactGroup.name}}</option>
                 </select>

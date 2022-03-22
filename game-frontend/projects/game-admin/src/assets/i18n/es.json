@@ -28,6 +28,7 @@
         "BTN_EDIT": "Editar",
         "BTN_DELETE": "Borrar",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
+        "INHERITED": "Heredado",
         "TIME_SPECIAL": {
             "DURATION": "Duración",
             "RECHARGE_TIME": "Tiempo de recarga"

@@ -9,15 +9,10 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.PostLoad;
 import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
-import javax.persistence.PrePersist;
 import javax.persistence.PreRemove;
-import javax.persistence.PreUpdate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,37 +34,6 @@ public class UnitListener {
         this.obtainedUnitBo = obtainedUnitBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.objectRelationBo = objectRelationBo;
-    }
-
-    /**
-     * If the unit doesn't have a speedImpactGroup will use the unitType one
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @PostLoad
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void loadSpeedImpactImprovement(Unit unit) {
-        if (unit.getSpeedImpactGroup() == null) {
-            unit.setSpeedImpactGroup(unit.getType().getSpeedImpactGroup());
-        }
-    }
-
-    /**
-     * If the unit speedImpact group matches parent, will save as null
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @PreUpdate
-    @PrePersist
-    public void putNullIfMatchsUnitType(Unit unit) {
-        var unitSpeedImpactGroup = unit.getSpeedImpactGroup();
-        var unitType = unit.getType();
-        if (unitSpeedImpactGroup != null && unitType != null && unitType.getSpeedImpactGroup() != null
-                && unitType.getSpeedImpactGroup().getId().equals(unitSpeedImpactGroup.getId())) {
-            unit.setSpeedImpactGroup(null);
-        }
     }
 
     @PostUpdate
