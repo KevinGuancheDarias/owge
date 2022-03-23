@@ -70,6 +70,10 @@ import {
   TimeSpecialIsEnabledRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/time-special-is-enabled-rule-type-descriptor-provider.service';
 import {
+  TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService
+  // eslint-disable-next-line max-len
+} from './services/rule-type-descriptor-provider/time-special/time-special-is-active-custom-speed-impact-group-rule-type-descriptor-provider.service';
+import {
   UnitCaptureRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/unit-capture-rule-type-descriptor-provider.service';
 
@@ -161,6 +165,11 @@ import {
     { provide: ruleDestinationProviderServiceToken, useClass: UnitTypeRuleDestinationProviderService, multi: true },
     { provide: ruleTypeDescriptorProviderToken, useClass: UnitCaptureRuleTypeDescriptorProviderService, multi: true },
     { provide: ruleTypeDescriptorProviderToken, useClass: TimeSpecialIsEnabledRuleTypeDescriptorProviderService, multi: true },
+    {
+      provide: ruleTypeDescriptorProviderToken,
+      useClass: TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent]
 })

@@ -1,4 +1,4 @@
-package com.kevinguanchedarias.owgejava.business.rule.type;
+package com.kevinguanchedarias.owgejava.business.rule.type.timespecial;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

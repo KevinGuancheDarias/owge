@@ -1,12 +1,9 @@
 package com.kevinguanchedarias.owgejava.business.unit;
 
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
-import com.kevinguanchedarias.owgejava.business.rule.type.TimeSpecialIsActiveHideUnitsTypeProviderBo;
-import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
+import com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveHideUnitsTypeProviderBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
-import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
@@ -29,7 +26,6 @@ import static com.kevinguanchedarias.owgejava.business.rule.RuleBo.RULE_CACHE_TA
 public class HiddenUnitBo {
     private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
     private final RuleBo ruleBo;
-    private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
     private final TaggableCacheManager taggableCacheManager;
 
     public void defineHidden(List<ObtainedUnit> data, List<ObtainedUnitDto> dtoVersion) {
@@ -65,26 +61,10 @@ public class HiddenUnitBo {
                                     ObjectEnum.TIME_SPECIAL.name(), activeTimeSpecial.getTimeSpecial().getId().longValue()
                             ).stream()
                     )
-                    .filter(this::isHiddenRule)
-                    .anyMatch(ruleDto -> isWantedDestination(ruleDto, obtainedUnit.getUnit()));
+                    .filter(ruleDto -> ruleBo.isWantedType(ruleDto, TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID))
+                    .anyMatch(ruleDto -> ruleBo.isWantedUnitDestination(ruleDto, obtainedUnit.getUnit()));
         }
     }
 
-    private boolean isHiddenRule(RuleDto ruleDto) {
-        return ruleDto.getType().equals(TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID);
-    }
 
-    private boolean isWantedDestination(RuleDto ruleDto, Unit unit) {
-        if (ObjectEnum.UNIT.name().equals(ruleDto.getDestinationType())) {
-            return unit.getId().equals(ruleDto.getDestinationId().intValue());
-        } else if ("UNIT_TYPE".equals(ruleDto.getDestinationType())) {
-            return unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(
-                    unit.getType(),
-                    unitType -> unitType.getId().equals(ruleDto.getDestinationId().intValue())
-            ).isPresent();
-        } else {
-            log.debug("Unit {} is not wanted destination for rule {}", unit, ruleDto);
-            return false;
-        }
-    }
 }

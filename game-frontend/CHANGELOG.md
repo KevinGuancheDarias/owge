@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I want to have time specials that allows me to mark units as specified speed impact group #448](https://github.com/KevinGuancheDarias/owge/issues/448)  
 * __Fix:__ [Unit information modal doesn't display the attackable rules properly, should have colors #444](https://github.com/KevinGuancheDarias/owge/issues/444)  
 * __Fix:__ [Game is not using parent speed group impact when unit one custom one is not defined #446](https://github.com/KevinGuancheDarias/owge/issues/446)  
 * [class=Admin] __Fix:__ [Speed Impact Groups not displaying properly on admin panel #445](https://github.com/KevinGuancheDarias/owge/issues/445)  

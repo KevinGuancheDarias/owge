@@ -1,13 +1,19 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
+import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
 import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,6 +22,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import javax.persistence.EntityManager;
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.EXPLORE_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenDeployedMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
@@ -24,6 +31,7 @@ import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtaine
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
+import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +39,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -51,7 +60,9 @@ import static org.mockito.Mockito.verify;
         RequirementBo.class,
         MissionFinderBo.class,
         TaggableCacheManager.class,
-        HiddenUnitBo.class
+        HiddenUnitBo.class,
+        SpeedImpactGroupFinderBo.class,
+        UserStorageRepository.class
 })
 class ObtainedUnitBoTest extends AbstractBaseBoTest {
     private final ObtainedUnitBo obtainedUnitBo;
@@ -61,6 +72,7 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
     private final MissionFinderBo missionFinderBo;
     private final TaggableCacheManager taggableCacheManager;
     private final HiddenUnitBo hiddenUnitBo;
+    private final SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
 
     @Autowired
     ObtainedUnitBoTest(
@@ -70,7 +82,8 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
             PlanetBo planetBo,
             MissionFinderBo missionFinderBo,
             TaggableCacheManager taggableCacheManager,
-            HiddenUnitBo hiddenUnitBo
+            HiddenUnitBo hiddenUnitBo,
+            SpeedImpactGroupFinderBo speedImpactGroupFinderBo
     ) {
         // Some methods has not all branches covered, only touched lines
         this.obtainedUnitBo = obtainedUnitBo;
@@ -80,6 +93,7 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
         this.missionFinderBo = missionFinderBo;
         this.taggableCacheManager = taggableCacheManager;
         this.hiddenUnitBo = hiddenUnitBo;
+        this.speedImpactGroupFinderBo = speedImpactGroupFinderBo;
     }
 
     @Test
@@ -149,6 +163,45 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
         assertThat(invisibleResult.getCount()).isNull();
         assertThat(invisibleResult.getUnit()).isNull();
 
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void findCompletedAsDto_should_work(boolean hasSig) {
+        var ou = givenObtainedUnit1();
+        var user = ou.getUser();
+        var sig = givenSpeedImpactGroup();
+        var isgList = List.of(givenInterceptableSpeedGroup());
+
+        var requirementGroup = RequirementGroup.builder().build();
+        var unit = ou.getUnit();
+        if (hasSig) {
+            unit.setSpeedImpactGroup(sig);
+        }
+        sig.setRequirementGroups(List.of(requirementGroup));
+        unit.setInterceptableSpeedGroups(isgList);
+        given(hiddenUnitBo.isHiddenUnit(ou)).willReturn(true);
+        given(speedImpactGroupFinderBo.findApplicable(user, unit)).willReturn(sig);
+        given(obtainedUnitRepository.findBySourcePlanetNotNullAndMissionNullAndUserId(USER_ID_1))
+                .willReturn(List.of(ou));
+
+        try (var hibernateMock = mockStatic(Hibernate.class)) {
+            var result = obtainedUnitBo.findCompletedAsDto(user);
+
+            if (hasSig) {
+                hibernateMock.verify(() -> Hibernate.initialize(sig));
+            }
+            hibernateMock.verify(() -> Hibernate.initialize(isgList));
+            verify(entityManager, times(1)).detach(unit);
+            verify(hiddenUnitBo, times(1)).isHiddenUnit(ou);
+            verify(speedImpactGroupFinderBo, times(hasSig ? 0 : 1)).findApplicable(user, unit);
+            assertThat(result)
+                    .hasSize(1);
+            var unitDto = result.get(0).getUnit();
+            assertThat(unitDto.getIsInvisible()).isTrue();
+            assertThat(unitDto.getSpeedImpactGroup()).isNotNull();
+            assertThat(unitDto.getSpeedImpactGroup().getRequirementsGroups()).isNull();
+        }
     }
 
     @Override

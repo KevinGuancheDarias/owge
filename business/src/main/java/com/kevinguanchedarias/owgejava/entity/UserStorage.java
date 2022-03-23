@@ -42,6 +42,7 @@ public class UserStorage implements EntityWithId<Integer> {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "home_planet", nullable = false)
+    @ToString.Exclude
     private Planet homePlanet;
 
     @Column(name = "primary_resource")
@@ -68,9 +69,11 @@ public class UserStorage implements EntityWithId<Integer> {
     private Double points = 0D;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<UnlockedRelation> unlockedRelations;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<Mission> missions;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
