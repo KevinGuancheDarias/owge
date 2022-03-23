@@ -1,7 +1,10 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,6 +20,9 @@ import java.io.Serial;
 @Table(name = "obtained_units")
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ObtainedUnit implements EntityWithId<Long> {
     @Serial

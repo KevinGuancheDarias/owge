@@ -2,24 +2,37 @@ package com.kevinguanchedarias.owgejava.business.rule;
 
 import com.kevinguanchedarias.owgejava.business.rule.itemtype.RuleItemTypeProvider;
 import com.kevinguanchedarias.owgejava.business.rule.type.RuleTypeProvider;
+import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
 import com.kevinguanchedarias.owgejava.converter.rule.RuleDtoToEntityConverter;
 import com.kevinguanchedarias.owgejava.converter.rule.RuleEntityToDtoConverter;
+import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
 import com.kevinguanchedarias.owgejava.entity.Rule;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
+import com.kevinguanchedarias.owgejava.test.answer.InvokePredicateLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.FIRST_EXTRA_ARG;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.ORIGIN_ID;
@@ -30,16 +43,22 @@ import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRule;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleDto;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleItemTypeDescriptor;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleTypeDescriptorDto;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
         classes = {
@@ -53,8 +72,8 @@ import static org.mockito.Mockito.when;
         RuleRepository.class,
         RuleItemTypeProvider.class,
         RuleTypeProvider.class,
-        TaggableCacheManager.class
-
+        TaggableCacheManager.class,
+        UnitTypeInheritanceFinderService.class
 })
 class RuleBoTest {
     private final RuleRepository ruleRepository;
@@ -62,6 +81,7 @@ class RuleBoTest {
     private final RuleItemTypeProvider ruleItemTypeProvider;
     private final RuleTypeProvider ruleTypeProvider;
     private final TaggableCacheManager taggableCacheManager;
+    private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     @Autowired
     public RuleBoTest(
@@ -71,13 +91,15 @@ class RuleBoTest {
             Collection<Converter<?, ?>> converters,
             RuleItemTypeProvider ruleItemTypeProvider,
             RuleTypeProvider ruleTypeProvider,
-            TaggableCacheManager taggableCacheManager
+            TaggableCacheManager taggableCacheManager,
+            UnitTypeInheritanceFinderService unitTypeInheritanceFinderService
     ) {
         this.ruleRepository = ruleRepository;
         this.ruleBo = ruleBo;
         this.ruleItemTypeProvider = ruleItemTypeProvider;
         this.ruleTypeProvider = ruleTypeProvider;
         this.taggableCacheManager = taggableCacheManager;
+        this.unitTypeInheritanceFinderService = unitTypeInheritanceFinderService;
         converters.forEach(conversionService::addConverter);
     }
 
@@ -231,5 +253,79 @@ class RuleBoTest {
         assertThat(ruleBo.hasExtraArg(rule, 0)).isTrue();
         assertThat(ruleBo.hasExtraArg(rule, 1)).isTrue();
         assertThat(ruleBo.hasExtraArg(rule, 2)).isFalse();
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            UNIT_TYPE_ID + ",true",
+            "1726617,false"
+    })
+    void isWantedDestination_should_return_correct_when_it_is_by_target_unit_type(int ruleDestinationId, boolean expectation) {
+        var unitToCheck = givenUnit1();
+        var unitType = givenEntity();
+        var ruleDto = buildRuleDto("UNIT_TYPE", ruleDestinationId);
+        AtomicReference<Boolean> lambdaResult = new AtomicReference<>();
+
+        doAnswer(generateAnswer(
+                unitType,
+                () -> lambdaResult.get() ? Optional.of(unitType) : Optional.empty(),
+                lambdaResult::set
+        ))
+                .when(unitTypeInheritanceFinderService).findUnitTypeMatchingCondition(eq(unitToCheck.getType()), any());
+
+        var result = ruleBo.isWantedUnitDestination(ruleDto, unitToCheck);
+
+        assertThat(result).isEqualTo(expectation);
+        verify(unitTypeInheritanceFinderService, times(1)).findUnitTypeMatchingCondition(eq(unitType), any());
+        assertThat(lambdaResult.get()).isEqualTo(expectation);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            UNIT_ID_1 + ",true",
+            "1726617,false"
+    })
+    void isWantedUnitDestination_should_return_correct_when_it_is_by_target_unit(int ruleDestinationId, boolean expectation) {
+        var ruleDto = buildRuleDto(ObjectEnum.UNIT.name(), ruleDestinationId);
+        var unit = givenUnit1();
+
+        var result = ruleBo.isWantedUnitDestination(ruleDto, unit);
+
+        assertThat(result).isEqualTo(expectation);
+        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(UnitType.class), any());
+    }
+
+    @Test
+    void isWantedUnitDestination_should_return_false_when_destination_is_not_valid(CapturedOutput capturedOutput) {
+        var ruleDto = buildRuleDto("invalid", 12);
+
+        assertThat(ruleBo.isWantedUnitDestination(ruleDto, givenUnit1())).isFalse();
+
+        assertThat(capturedOutput.getOut())
+                .contains("is not wanted destination for rule");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "notWantedType,false",
+            TYPE + ",true"
+    })
+    void isWantedType(String type, boolean expectation) {
+        assertThat(ruleBo.isWantedType(givenRuleDto(), type)).isEqualTo(expectation);
+    }
+
+    private RuleDto buildRuleDto(String destinationType, long destinationId) {
+        return RuleDto.builder()
+                .destinationType(destinationType)
+                .destinationId(destinationId)
+                .build();
+    }
+
+    private Answer<Optional<UnitType>> generateAnswer(UnitType unitType, Supplier<Optional<UnitType>> result, Consumer<Boolean> lambdaResult) {
+        return invocationOnMock -> {
+            var unitTypeFinderPredicate = new InvokePredicateLambdaAnswer<>(1, unitType);
+            lambdaResult.accept(unitTypeFinderPredicate.answer(invocationOnMock));
+            return result.get();
+        };
     }
 }

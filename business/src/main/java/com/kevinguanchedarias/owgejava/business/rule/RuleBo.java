@@ -2,15 +2,19 @@ package com.kevinguanchedarias.owgejava.business.rule;
 
 import com.kevinguanchedarias.owgejava.business.rule.itemtype.RuleItemTypeProvider;
 import com.kevinguanchedarias.owgejava.business.rule.type.RuleTypeProvider;
+import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleItemTypeDescriptorDto;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleTypeDescriptorDto;
 import com.kevinguanchedarias.owgejava.entity.Rule;
+import com.kevinguanchedarias.owgejava.entity.Unit;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +25,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class RuleBo {
     public static final String ARGS_DELIMITER = "#";
     public static final String RULE_CACHE_TAG = "rules";
@@ -30,6 +35,7 @@ public class RuleBo {
     private final List<RuleItemTypeProvider> ruleItemTypeProviders;
     private final List<RuleTypeProvider> ruleTypeProviders;
     private final TaggableCacheManager taggableCacheManager;
+    private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     public List<RuleDto> findByOriginTypeAndOriginId(String originType, long id) {
         return ruleRepository.findByOriginTypeAndOriginId(originType, id).stream()
@@ -87,5 +93,23 @@ public class RuleBo {
 
     public boolean hasExtraArg(Rule rule, int position) {
         return findExtraArg(rule, position).isPresent();
+    }
+
+    public boolean isWantedType(RuleDto ruleDto, String type) {
+        return ruleDto.getType().equals(type);
+    }
+
+    public boolean isWantedUnitDestination(RuleDto ruleDto, Unit unit) {
+        if (ObjectEnum.UNIT.name().equals(ruleDto.getDestinationType())) {
+            return unit.getId().equals(ruleDto.getDestinationId().intValue());
+        } else if ("UNIT_TYPE".equals(ruleDto.getDestinationType())) {
+            return unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(
+                    unit.getType(),
+                    unitType -> unitType.getId().equals(ruleDto.getDestinationId().intValue())
+            ).isPresent();
+        } else {
+            log.debug("Unit {} is not wanted destination for rule {}", unit, ruleDto);
+            return false;
+        }
     }
 }

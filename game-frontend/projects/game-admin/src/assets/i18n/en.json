@@ -224,13 +224,17 @@
                         "UNIT_CAPTURE": {
                             "PROBABILITY_PERCENTAGE": "Capture probability (%)",
                             "CAPTURE_PERCENTAGE": "Percentage to capture"
+                        },
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": {
+                            "SPEED_IMPACT_GROUP": "Speed group"
                         }
                     }
                 },
                 "FORM_INPUT": {
                     "TYPES": {
                         "UNIT_CAPTURE": "Unit Capture",
-                        "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Time special is enabled, hide units"
+                        "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Time special is enabled, hide units",
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Time special is enabled, swap speed group"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unit",

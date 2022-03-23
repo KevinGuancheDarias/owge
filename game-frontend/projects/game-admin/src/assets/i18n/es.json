@@ -214,13 +214,17 @@
                         "UNIT_CAPTURE": {
                             "PROBABILITY_PERCENTAGE": "Probabilidad capturar (%)",
                             "CAPTURE_PERCENTAGE": "Porcentage a capturar"
+                        },
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": {
+                            "SPEED_IMPACT_GROUP": "Grupo de velocidad"
                         }
                     }
                 },
                 "FORM_INPUT": {
                     "TYPES": {
                         "UNIT_CAPTURE": "Captura de unidad",
-                        "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo, activado, camuflar unidades"
+                        "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo activado, camuflar unidades",
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Especial de tiempo activado, cambiar grupo de velocidad"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unidad",

@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.rule.itemtype.UnitRuleItemTypeProviderBo;
 import com.kevinguanchedarias.owgejava.business.rule.type.UnitCaptureRuleTypeProviderBo;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Rule;
 import com.kevinguanchedarias.owgejava.mock.AttackMock;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.mock.UnitMock;
@@ -150,7 +151,7 @@ class HandleUnitCaptureListenerTest {
         int captureAmountPercentage = 50;
         when(missionFinderBo.findDeployedMissionOrCreate(any()))
                 .thenReturn(deployedMission);
-        when(this.ruleBo.hasExtraArg(any(), anyInt())).thenReturn(true);
+        when(this.ruleBo.hasExtraArg(any(Rule.class), anyInt())).thenReturn(true);
         when(this.ruleBo.findExtraArgs(any())).thenReturn(List.of(Integer.toString(probability), Integer.toString(captureAmountPercentage)));
 
         handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
@@ -161,7 +162,7 @@ class HandleUnitCaptureListenerTest {
                 eq(USER_ID_1),
                 eq(TARGET_PLANET_ID)
         );
-        verify(ruleBo, times(2)).hasExtraArg(any(), anyInt());
+        verify(ruleBo, times(2)).hasExtraArg(any(Rule.class), anyInt());
         var capturedUnit = captor.getValue();
         assertThat(capturedUnit.getSourcePlanet()).isEqualTo(givenSourcePlanet());
         assertThat(capturedUnit.getTargetPlanet()).isEqualTo(givenTargetPlanet());
@@ -297,7 +298,7 @@ class HandleUnitCaptureListenerTest {
 
         handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
 
-        verify(ruleBo, never()).findExtraArg(any(), anyInt());
+        verify(ruleBo, never()).findExtraArg(any(Rule.class), anyInt());
     }
 
     @Test

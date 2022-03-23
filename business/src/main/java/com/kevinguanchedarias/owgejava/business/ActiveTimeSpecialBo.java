@@ -12,10 +12,12 @@ import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
+import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -71,6 +73,13 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;
 
+    @Autowired
+    private transient RuleRepository ruleRepository;
+
+    @Autowired
+    @Lazy
+    private ObtainedUnitBo obtainedUnitBo;
+
     @PostConstruct
     public void init() {
         improvementBo.addImprovementSource(this);
@@ -90,6 +99,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
                 emitTimeSpecialChange(user);
                 taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, activeTimeSpecial.getUser().getId());
+                emitIfActivationAffectingUnits(activeTimeSpecial);
             } else {
                 LOG.debug(
                         "ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
@@ -181,6 +191,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             requirementBo.triggerTimeSpecialStateChange(user, timeSpecial);
             taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, user.getId());
             emitTimeSpecialChange(user);
+            emitIfActivationAffectingUnits(newActive);
             return newActive;
         } else {
             LOG.warn("The specified time special, is already active, doing nothing");
@@ -248,6 +259,16 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      */
     public void emitTimeSpecialChange(UserStorage user) {
         socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
+    }
+
+    private void emitIfActivationAffectingUnits(ActiveTimeSpecial activeTimeSpecial) {
+        if (ruleRepository.existsByOriginTypeAndOriginIdAndDestinationTypeIn(
+                ObjectEnum.TIME_SPECIAL.name(),
+                activeTimeSpecial.getTimeSpecial().getId().longValue(),
+                List.of(ObjectEnum.UNIT.name(), "UNIT_TYPE")
+        )) {
+            obtainedUnitBo.emitObtainedUnitChange(activeTimeSpecial.getUser().getId());
+        }
     }
 
     private Date computeExpiringDate(Long time) {

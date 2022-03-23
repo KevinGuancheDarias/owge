@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -14,12 +15,14 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hibernate.Hibernate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -53,6 +56,8 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient MissionFinderBo missionFinderBo;
     private final transient TaggableCacheManager taggableCacheManager;
     private final transient HiddenUnitBo hiddenUnitBo;
+    private final transient SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
+    private final transient UserStorageRepository userStorageRepository;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -239,7 +244,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
      */
     public void emitObtainedUnitChange(Integer userId) {
         asyncRunnerBo.runAssyncWithoutContextDelayed(() -> socketIoService.sendMessage(userId,
-                AbstractMissionBo.UNIT_OBTAINED_CHANGE, () -> toDto(findDeployedInUserOwnedPlanets(userId))), 500);
+                AbstractMissionBo.UNIT_OBTAINED_CHANGE, () -> findCompletedAsDto(userStorageRepository.getById(userId))), 500);
     }
 
     /**
@@ -311,6 +316,36 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         return retVal;
     }
 
+    public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user) {
+        return findCompletedAsDto(user, findDeployedInUserOwnedPlanets(user.getId()));
+    }
+
+    public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user, List<ObtainedUnit> entities) {
+        entities.stream()
+                .filter(ou -> ou.getUnit().getSpeedImpactGroup() != null)
+                .map(ObtainedUnit::getUnit)
+                .forEach(unit -> {
+                    Hibernate.initialize(unit.getSpeedImpactGroup());
+                    unit.getSpeedImpactGroup().setRequirementGroups(null);
+                });
+        entities.forEach(current -> {
+            var unit = current.getUnit();
+            Hibernate.initialize(unit.getInterceptableSpeedGroups());
+            entityManager.detach(unit);
+            unit.setIsInvisible(hiddenUnitBo.isHiddenUnit(current));
+        });
+        entities
+                .stream()
+                .map(ObtainedUnit::getUnit)
+                .filter(unit -> unit.getSpeedImpactGroup() == null)
+                .forEach(
+                        unitWithNullSpeedImpact -> {
+                            unitWithNullSpeedImpact.setSpeedImpactGroup(speedImpactGroupFinderBo.findApplicable(user, unitWithNullSpeedImpact));
+                            unitWithNullSpeedImpact.getSpeedImpactGroup().setRequirementGroups(null);
+                        }
+                );
+        return toDto(entities);
+    }
 
     /**
      * Finds the involved units in an attack

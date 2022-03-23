@@ -77,8 +77,14 @@
                     *ngFor="let extraArg of editingRuleTypeDescriptor?.extraArgs; let i = index">
                     <label [for]="'extra-arg' + extraArg.name">{{ 'CRUD.RULES.CRUD_MODAL.FORM_LABEL.TYPES.' +
                         editingRuleTypeDescriptor.name + '.' + extraArg.name | translate }}</label>
-                    <input class="form-control" [type]="extraArg.formType" [(ngModel)]="editingRule.extraArgs[i]"
-                        [min]="extraArg.min || 0" />
+                    <input *ngIf="extraArg.formType !== 'select'" class="form-control" [type]="extraArg.formType"
+                        [(ngModel)]="editingRule.extraArgs[i]" [min]="extraArg.min || 0" />
+                    <select *ngIf="extraArg.formType === 'select'" class="form-control"
+                        [(ngModel)]="editingRule.extraArgs[i]" [compareWith]="extraArg.comparatorFn">
+                        <option *ngFor="let data of extraArg.data$ | async" [ngValue]="data.id">
+                            {{ data.name }}
+                        </option>
+                    </select>
                 </div>
             </ng-container>
         </div>

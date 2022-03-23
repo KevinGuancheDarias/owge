@@ -1,5 +1,6 @@
-package com.kevinguanchedarias.owgejava.business.rule.type;
+package com.kevinguanchedarias.owgejava.business.rule.type.timespecial;
 
+import com.kevinguanchedarias.owgejava.business.rule.type.RuleTypeProvider;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleTypeDescriptorDto;
 import org.springframework.stereotype.Service;
 
