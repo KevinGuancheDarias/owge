@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
@@ -8,17 +10,28 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -33,16 +46,23 @@ import static org.assertj.core.api.Assertions.assertThat;
         ObjectRelationBo.class,
         UnlockedRelationBo.class,
         DtoUtilService.class,
-        TaggableCacheManager.class
+        TaggableCacheManager.class,
+        UnitTypeInheritanceFinderService.class
 })
 class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final TaggableCacheManager taggableCacheManager;
+    private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     @Autowired
-    public SpeedImpactGroupBoTest(SpeedImpactGroupBo speedImpactGroupBo, TaggableCacheManager taggableCacheManager) {
+    public SpeedImpactGroupBoTest(
+            SpeedImpactGroupBo speedImpactGroupBo,
+            TaggableCacheManager taggableCacheManager,
+            UnitTypeInheritanceFinderService unitTypeInheritanceFinderService
+    ) {
         this.speedImpactGroupBo = speedImpactGroupBo;
         this.taggableCacheManager = taggableCacheManager;
+        this.unitTypeInheritanceFinderService = unitTypeInheritanceFinderService;
     }
 
     @Test
@@ -52,6 +72,26 @@ class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
         unit.setSpeedImpactGroup(givenSpeedImpactGroup());
 
         assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isTrue();
+        verify(unitTypeInheritanceFinderService, never()).findUnitTypeMatchingCondition(any(UnitType.class), any());
+    }
+
+    @SuppressWarnings("unchecked")
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void canIntercept_should_use_parent_when_unit_is_null_and_return_true(boolean defineUnitTypeSpeedImpactGroup) {
+        var interceptableSpeedGroups = List.of(givenInterceptableSpeedGroup());
+        var unit = givenUnit1();
+        var type = unit.getType();
+        if (defineUnitTypeSpeedImpactGroup) {
+            type.setSpeedImpactGroup(givenSpeedImpactGroup());
+        }
+        given(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(eq(type), any()))
+                .willReturn(Optional.of(type));
+
+        assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isEqualTo(defineUnitTypeSpeedImpactGroup);
+        var captor = ArgumentCaptor.forClass(Predicate.class);
+        verify(unitTypeInheritanceFinderService, times(1)).findUnitTypeMatchingCondition(eq(type), captor.capture());
+        assertThat(captor.getValue().test(type)).isEqualTo(defineUnitTypeSpeedImpactGroup);
     }
 
     @Test
@@ -69,7 +109,9 @@ class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
         var unit = givenUnit1();
 
         assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isFalse();
+        verify(unitTypeInheritanceFinderService, times(1)).findUnitTypeMatchingCondition(eq(unit.getType()), any());
     }
+
 
     @Override
     public CacheTagTestModel findCacheTagInfo() {

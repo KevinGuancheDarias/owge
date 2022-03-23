@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
 import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
@@ -8,12 +9,14 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
+import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -58,6 +61,9 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;
+
+    @Autowired
+    private transient UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {
@@ -144,8 +150,13 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     }
 
     public boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, Unit unit) {
-        SpeedImpactGroup speedImpactGroup = unit.getSpeedImpactGroup();
+        SpeedImpactGroup speedImpactGroup = ObjectUtils.getFirstNonNull(
+                unit::getSpeedImpactGroup,
+                () -> unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(
+                        unit.getType(), unitType -> unitType.getSpeedImpactGroup() != null
+                ).orElse(new UnitType()).getSpeedImpactGroup()
+        );
         return speedImpactGroup != null && interceptableSpeedGroups.stream().anyMatch(current -> current.getSpeedImpactGroup().getId()
-                .equals(unit.getSpeedImpactGroup().getId()));
+                .equals(speedImpactGroup.getId()));
     }
 }
