@@ -1,7 +1,7 @@
 .modal .attackable-card {
-    background-color: red;;
+    background-color: red !important;
     &.is-attackable {
-        background-color: green;;
+        background-color: green !important;
     }
 }
 

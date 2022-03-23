@@ -2,7 +2,8 @@
 
 v0.11.0 (latest)
 =================
-* [Game is not using parent speed group impact when unit one custom one is not defined #446](https://github.com/KevinGuancheDarias/owge/issues/446)  
+* __Fix:__ [Unit information modal doesn't display the attackable rules properly, should have colors #444](https://github.com/KevinGuancheDarias/owge/issues/444)  
+* __Fix:__ [Game is not using parent speed group impact when unit one custom one is not defined #446](https://github.com/KevinGuancheDarias/owge/issues/446)  
 * [class=Admin] __Fix:__ [Speed Impact Groups not displaying properly on admin panel #445](https://github.com/KevinGuancheDarias/owge/issues/445)  
 * __Fix:__ [Enemy mission list doesn't update, and hidden deployed missions are displayed #442](https://github.com/KevinGuancheDarias/owge/issues/442)  
 * [class=Advanced] __Improvement:__ [Resolve random bug by allowing only one thread to modify planet information #438](https://github.com/KevinGuancheDarias/owge/issues/438)  
