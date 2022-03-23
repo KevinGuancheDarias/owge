@@ -10,6 +10,8 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,19 +76,22 @@ class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
-    void canIntercept_should_use_parent_when_unit_is_null_and_return_true() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void canIntercept_should_use_parent_when_unit_is_null_and_return_true(boolean defineUnitTypeSpeedImpactGroup) {
         var interceptableSpeedGroups = List.of(givenInterceptableSpeedGroup());
         var unit = givenUnit1();
         var type = unit.getType();
-        type.setSpeedImpactGroup(givenSpeedImpactGroup());
+        if (defineUnitTypeSpeedImpactGroup) {
+            type.setSpeedImpactGroup(givenSpeedImpactGroup());
+        }
         given(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(eq(type), any()))
                 .willReturn(Optional.of(type));
 
-        assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isTrue();
+        assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, unit)).isEqualTo(defineUnitTypeSpeedImpactGroup);
         var captor = ArgumentCaptor.forClass(Predicate.class);
         verify(unitTypeInheritanceFinderService, times(1)).findUnitTypeMatchingCondition(eq(type), captor.capture());
-        assertThat(captor.getValue().test(type)).isTrue();
+        assertThat(captor.getValue().test(type)).isEqualTo(defineUnitTypeSpeedImpactGroup);
     }
 
     @Test
