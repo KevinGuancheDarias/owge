@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
@@ -25,5 +26,6 @@ public class Improvement extends ImprovementBase<Integer> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "improvementId")
     @Cascade({CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DELETE})
     @Fetch(FetchMode.JOIN)
+    @ToString.Exclude
     private List<ImprovementUnitType> unitTypesUpgrades;
 }
