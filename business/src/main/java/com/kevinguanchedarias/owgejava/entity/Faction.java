@@ -2,7 +2,10 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.util.List;
 
 /**
@@ -23,10 +27,13 @@ import java.util.List;
  */
 @Entity
 @Table(name = "factions")
+@Data
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Faction extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+    @Serial
     private static final long serialVersionUID = -8190094507195501651L;
 
     @Id
@@ -41,18 +48,18 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
     @Column(name = "secondary_resource_name")
     private String secondaryResourceName;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "primary_resource_image_id")
     private ImageStore primaryResourceImage;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "secondary_resource_image_id")
     private ImageStore secondaryResourceImage;
 
     @Column(name = "energy_name")
     private String energyName;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "energy_image_id")
     private ImageStore energyImage;
 
@@ -76,6 +83,7 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "improvement_id")
+    @ToString.Exclude
     private Improvement improvement;
 
     @Column(name = "cloned_improvements")
@@ -88,225 +96,10 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
     private Float customSecondaryGatherPercentage = 0F;
 
     @OneToMany(mappedBy = "faction", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<UserStorage> users;
 
     @OneToMany(mappedBy = "unitType", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<FactionUnitType> unitTypes;
-
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Boolean getHidden() {
-        return hidden;
-    }
-
-    public void setHidden(Boolean hidden) {
-        this.hidden = hidden;
-    }
-
-    public String getPrimaryResourceName() {
-        return primaryResourceName;
-    }
-
-    public void setPrimaryResourceName(String primaryResourceName) {
-        this.primaryResourceName = primaryResourceName;
-    }
-
-    public String getSecondaryResourceName() {
-        return secondaryResourceName;
-    }
-
-    public void setSecondaryResourceName(String secondaryResourceName) {
-        this.secondaryResourceName = secondaryResourceName;
-    }
-
-    public String getEnergyName() {
-        return energyName;
-    }
-
-    public void setEnergyName(String energyName) {
-        this.energyName = energyName;
-    }
-
-    /**
-     * @return the energyImage
-     * @since 0.9.0
-     */
-    public ImageStore getEnergyImage() {
-        return energyImage;
-    }
-
-    /**
-     * @param energyImage the energyImage to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setEnergyImage(ImageStore energyImage) {
-        this.energyImage = energyImage;
-    }
-
-    public Integer getInitialPrimaryResource() {
-        return initialPrimaryResource;
-    }
-
-    public void setInitialPrimaryResource(Integer initialPrimaryResource) {
-        this.initialPrimaryResource = initialPrimaryResource;
-    }
-
-    public Integer getInitialSecondaryResource() {
-        return initialSecondaryResource;
-    }
-
-    public void setInitialSecondaryResource(Integer initialSecondaryResource) {
-        this.initialSecondaryResource = initialSecondaryResource;
-    }
-
-    public Integer getInitialEnergy() {
-        return initialEnergy;
-    }
-
-    public void setInitialEnergy(Integer initialEnergy) {
-        this.initialEnergy = initialEnergy;
-    }
-
-    public Float getPrimaryResourceProduction() {
-        return primaryResourceProduction;
-    }
-
-    public void setPrimaryResourceProduction(Float primaryResourceProduction) {
-        this.primaryResourceProduction = primaryResourceProduction;
-    }
-
-    public Float getSecondaryResourceProduction() {
-        return secondaryResourceProduction;
-    }
-
-    public void setSecondaryResourceProduction(Float secondaryResourceProduction) {
-        this.secondaryResourceProduction = secondaryResourceProduction;
-    }
-
-    @Override
-    public Improvement getImprovement() {
-        return improvement;
-    }
-
-    @Override
-    public void setImprovement(Improvement improvement) {
-        this.improvement = improvement;
-    }
-
-    @Override
-    public Boolean getClonedImprovements() {
-        return clonedImprovements;
-    }
-
-    @Override
-    public void setClonedImprovements(Boolean clonedImprovements) {
-        this.clonedImprovements = clonedImprovements;
-    }
-
-    /**
-     * @return the primaryResourceImage
-     * @since 0.9.0
-     */
-    public ImageStore getPrimaryResourceImage() {
-        return primaryResourceImage;
-    }
-
-    /**
-     * @param primaryResourceImage the primaryResourceImage to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setPrimaryResourceImage(ImageStore primaryResourceImage) {
-        this.primaryResourceImage = primaryResourceImage;
-    }
-
-    /**
-     * @return the secondaryResourceImage
-     * @since 0.9.0
-     */
-    public ImageStore getSecondaryResourceImage() {
-        return secondaryResourceImage;
-    }
-
-    /**
-     * @param secondaryResourceImage the secondaryResourceImage to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSecondaryResourceImage(ImageStore secondaryResourceImage) {
-        this.secondaryResourceImage = secondaryResourceImage;
-    }
-
-    public Integer getMaxPlanets() {
-        return maxPlanets;
-    }
-
-    public void setMaxPlanets(Integer maxPlanets) {
-        this.maxPlanets = maxPlanets;
-    }
-
-    /**
-     * @return the customPrimaryGatherPercentage
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Float getCustomPrimaryGatherPercentage() {
-        return customPrimaryGatherPercentage;
-    }
-
-    /**
-     * @param customPrimaryGatherPercentage the customPrimaryGatherPercentage to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setCustomPrimaryGatherPercentage(Float customPrimaryGatherPercentage) {
-        this.customPrimaryGatherPercentage = customPrimaryGatherPercentage;
-    }
-
-    /**
-     * @return the customSecondaryGatherPercentage
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Float getCustomSecondaryGatherPercentage() {
-        return customSecondaryGatherPercentage;
-    }
-
-    /**
-     * @param customSecondaryGatherPercentage the customSecondaryGatherPercentage to
-     *                                        set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setCustomSecondaryGatherPercentage(Float customSecondaryGatherPercentage) {
-        this.customSecondaryGatherPercentage = customSecondaryGatherPercentage;
-    }
-
-    /**
-     * @return the unitTypes
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public List<FactionUnitType> getUnitTypes() {
-        return unitTypes;
-    }
-
-    /**
-     * @param unitTypes the unitTypes to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setUnitTypes(List<FactionUnitType> unitTypes) {
-        this.unitTypes = unitTypes;
-    }
-
 }

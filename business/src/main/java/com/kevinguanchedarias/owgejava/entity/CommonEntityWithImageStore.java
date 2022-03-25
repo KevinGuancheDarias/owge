@@ -6,6 +6,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -15,6 +16,7 @@ import java.io.Serializable;
 @MappedSuperclass
 @ToString(callSuper = true)
 public class CommonEntityWithImageStore<K extends Serializable> extends CommonEntity<K> {
+    @Serial
     private static final long serialVersionUID = -5307305337524410867L;
 
     @ManyToOne(fetch = FetchType.LAZY)

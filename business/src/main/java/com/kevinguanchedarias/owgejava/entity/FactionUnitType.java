@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -31,6 +32,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class FactionUnitType implements Serializable {
+    @Serial
     private static final long serialVersionUID = 3368581537329653944L;
 
     @Id
@@ -47,5 +49,4 @@ public class FactionUnitType implements Serializable {
 
     @Column(name = "max_count")
     private Long maxCount;
-
 }

@@ -1,6 +1,10 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.listener.ObjectRelationToObjectRelationListener;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -22,6 +26,10 @@ import java.io.Serial;
 @Table(name = "object_relation__object_relation")
 @Entity
 @EntityListeners(ObjectRelationToObjectRelationListener.class)
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ObjectRelationToObjectRelation implements EntityWithId<Integer> {
     @Serial
     private static final long serialVersionUID = -7645804574908275461L;
@@ -39,61 +47,5 @@ public class ObjectRelationToObjectRelation implements EntityWithId<Integer> {
     @JoinColumn(name = "slave_relation_id")
     @Fetch(FetchMode.JOIN)
     private ObjectRelation slave;
-
-    /**
-     * @return the id
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    @Override
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    /**
-     * @return the master
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public ObjectRelation getMaster() {
-        return master;
-    }
-
-    /**
-     * @param master the master to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setMaster(ObjectRelation master) {
-        this.master = master;
-    }
-
-    /**
-     * @return the slave
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public ObjectRelation getSlave() {
-        return slave;
-    }
-
-    /**
-     * @param slave the slave to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSlave(ObjectRelation slave) {
-        this.slave = slave;
-    }
 
 }

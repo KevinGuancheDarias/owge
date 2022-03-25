@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -24,6 +25,7 @@ import java.io.Serializable;
 @MappedSuperclass
 @ToString
 public abstract class CommonEntity<K extends Serializable> implements EntityWithId<K> {
+    @Serial
     private static final long serialVersionUID = -5044252651188741213L;
 
     @Id

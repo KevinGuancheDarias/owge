@@ -60,14 +60,4 @@ public class ObtainedUnit implements EntityWithId<Long> {
     private Mission firstDeploymentMission;
 
     private boolean isFromCapture = false;
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
-    }
 }

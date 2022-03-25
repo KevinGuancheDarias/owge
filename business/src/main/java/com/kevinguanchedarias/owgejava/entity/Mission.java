@@ -89,6 +89,7 @@ public class Mission implements EntityWithId<Long> {
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "related_mission")
+    @ToString.Exclude
     private Mission relatedMission;
 
     @OneToMany(mappedBy = "relatedMission")

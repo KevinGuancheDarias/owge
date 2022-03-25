@@ -1,63 +1,40 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.io.Serial;
+import java.util.List;
 
 /**
  * Represents a tutorial Section
  *
- * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.0
  */
 @Entity
 @Table(name = "tutorial_sections")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TutorialSection extends CommonEntity<Integer> {
-	private static final long serialVersionUID = -8797092312548538813L;
+    @Serial
+    private static final long serialVersionUID = -8797092312548538813L;
 
-	@Column(name = "frontend_router_path", length = 150)
-	private String frontendRouterPath;
+    @Column(name = "frontend_router_path", length = 150)
+    private String frontendRouterPath;
 
-	@OneToMany(mappedBy = "tutorialSection")
-	private transient List<TutorialSectionAvailableHtmlSymbol> availableHtmlSymbols;
-
-	/**
-	 * @return the frontendRouterPath
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public String getFrontendRouterPath() {
-		return frontendRouterPath;
-	}
-
-	/**
-	 * @param frontendRouterPath the frontendRouterPath to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setFrontendRouterPath(String frontendRouterPath) {
-		this.frontendRouterPath = frontendRouterPath;
-	}
-
-	/**
-	 * @return the availableHtmlSymbols
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<TutorialSectionAvailableHtmlSymbol> getAvailableHtmlSymbols() {
-		return availableHtmlSymbols;
-	}
-
-	/**
-	 * @param availableHtmlSymbols the availableHtmlSymbols to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setAvailableHtmlSymbols(List<TutorialSectionAvailableHtmlSymbol> availableHtmlSymbols) {
-		this.availableHtmlSymbols = availableHtmlSymbols;
-	}
+    @OneToMany(mappedBy = "tutorialSection")
+    @ToString.Exclude
+    private transient List<TutorialSectionAvailableHtmlSymbol> availableHtmlSymbols;
 }

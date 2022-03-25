@@ -8,7 +8,6 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
@@ -74,16 +73,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     public Class<ObjectRelationDto> getDtoClass() {
         return ObjectRelationDto.class;
     }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use {@link ObjectEnum} instead as first parameter
-     */
-    @Deprecated(since = "0.8.0")
-    public ObjectRelation findOneByObjectTypeAndReferenceId(RequirementTargetObject type, Integer referenceId) {
-        return findOneByObjectTypeAndReferenceId(ObjectEnum.valueOf(type.name()), referenceId);
-    }
-
+    
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0

@@ -17,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.io.Serializable;
 
 @Entity
@@ -27,6 +28,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CriticalAttackEntry implements Serializable {
+    @Serial
     private static final long serialVersionUID = -6479956929235556987L;
 
     @Id

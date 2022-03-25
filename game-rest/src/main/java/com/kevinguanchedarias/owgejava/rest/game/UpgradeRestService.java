@@ -9,8 +9,9 @@ import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
+import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,16 +25,13 @@ import java.util.function.Function;
 @RestController
 @RequestMapping("game/upgrade")
 @ApplicationScope
+@AllArgsConstructor
 public class UpgradeRestService implements SyncSource {
 
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private ObtainedUpgradeBo obtainedUpgradeBo;
-
-    @Autowired
-    private MissionBo missionBo;
+    private final UserStorageBo userStorageBo;
+    private final ObtainedUpgradeBo obtainedUpgradeBo;
+    private final MissionBo missionBo;
+    private final ObtainedUpgradeRepository obtainedUpgradeRepository;
 
     @GetMapping("registerLevelUp")
     public RunningUpgradeDto registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
@@ -57,7 +55,7 @@ public class UpgradeRestService implements SyncSource {
     }
 
     private List<ObtainedUpgradeDto> findObtained(UserStorage user) {
-        var obtainedUpgradeList = obtainedUpgradeBo.findByUser(user.getId());
+        var obtainedUpgradeList = obtainedUpgradeRepository.findByUserId(user.getId());
         obtainedUpgradeList.forEach(obtained -> initImprovement(obtained.getUpgrade()));
         return obtainedUpgradeBo.toDto(obtainedUpgradeList);
     }

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.mock;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.MissionType;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import lombok.experimental.UtilityClass;
 
@@ -21,6 +22,8 @@ public class MissionMock {
     public static final long GATHER_MISSION_ID = 49281;
     public static final long EXPLORE_MISSION_ID = 1428;
     public static final long DEPLOY_MISSION_ID = 1899;
+    public static final long UPGRADE_MISSION_ID = 11832;
+    public static final double UPGRADE_MISSION_LEVEL = 7;
 
     public static Mission givenBuildMission() {
         var mission = new Mission();
@@ -97,5 +100,16 @@ public class MissionMock {
         mission.setId(DEPLOY_MISSION_ID);
         mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.DEPLOY));
         return mission;
+    }
+
+    public static Mission givenUpgradeMission(ObjectRelation objectRelation) {
+        var missionInformation = MissionInformation.builder()
+                .id(UPGRADE_MISSION_ID)
+                .relation(objectRelation)
+                .value(UPGRADE_MISSION_LEVEL)
+                .build();
+        return Mission.builder()
+                .missionInformation(missionInformation)
+                .build();
     }
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -40,5 +41,6 @@ public class AttackRule implements EntityWithId<Integer> {
     private String name;
 
     @OneToMany(mappedBy = "attackRule")
+    @ToString.Exclude
     private transient List<AttackRuleEntry> attackRuleEntries;
 }

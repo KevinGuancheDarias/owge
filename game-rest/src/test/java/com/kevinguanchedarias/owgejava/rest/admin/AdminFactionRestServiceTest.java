@@ -6,7 +6,7 @@ import com.kevinguanchedarias.owgejava.business.FactionSpawnLocationBo;
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
 import com.kevinguanchedarias.owgejava.dto.FactionDto;
 import com.kevinguanchedarias.owgejava.dto.FactionSpawnLocationDto;
-import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
+import com.kevinguanchedarias.owgejava.dto.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;

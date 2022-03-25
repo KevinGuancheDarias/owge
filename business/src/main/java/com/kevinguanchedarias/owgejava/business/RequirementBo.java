@@ -21,7 +21,6 @@ import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.InvalidConfigurationException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
@@ -30,6 +29,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.pojo.UnitUpgradeRequirements;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -126,6 +126,9 @@ public class RequirementBo implements Serializable {
     @Autowired
     private transient TransactionUtilService transactionUtilService;
 
+    @Autowired
+    private ObtainedUpgradeRepository obtainedUpgradeRepository;
+
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
      *
@@ -158,24 +161,9 @@ public class RequirementBo implements Serializable {
     /**
      * Will return requirement for specified object type with the given referenceId
      *
-     * @param targetObject - Type of object
-     * @param referenceId  - Id on the target entity, for example id of an upgrade,
-     *                     or an unit
-     * @author Kevin Guanche Darias
-     * @deprecated Use {@link RequirementBo#findRequirements(ObjectEnum, Integer)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<RequirementInformation> getRequirements(RequirementTargetObject targetObject, Integer referenceId) {
-        return requirementDao.getRequirements(targetObject, referenceId);
-    }
-
-    /**
-     * Will return requirement for specified object type with the given referenceId
-     *
      * @param objectEnum  Type of object
      * @param referenceId Id on the target entity, for example id of an upgrade, or
      *                    an unit
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -325,25 +313,6 @@ public class RequirementBo implements Serializable {
     }
 
     /**
-     * Checks if the input user has reached the level of the upgrades, and fills the
-     * property <i>reached</i>, which is false by default
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public List<UnitWithRequirementInformation> computeReachedLevel(UserStorage user,
-                                                                    List<UnitWithRequirementInformation> listToFill) {
-        return listToFill.stream().map(currentUnit -> {
-            currentUnit.getRequirements().forEach(currentRequirement -> {
-                var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(user.getId(),
-                        currentRequirement.getUpgrade().getId());
-                currentRequirement.setReached(
-                        obtainedUpgrade != null && obtainedUpgrade.getLevel() >= currentRequirement.getLevel());
-            });
-            return currentUnit;
-        }).collect(Collectors.toList());
-    }
-
-    /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -468,7 +437,7 @@ public class RequirementBo implements Serializable {
     private boolean checkUpgradeLevelRequirement(RequirementInformation requirementInformation, Integer userId) {
         var upgrade = upgradeBo.findById(requirementInformation.getSecondValue().intValue());
         int level;
-        var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
+        var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgrade.getId());
         if (obtainedUpgrade == null) {
             level = 0;
         } else {
@@ -527,9 +496,9 @@ public class RequirementBo implements Serializable {
             var object = ObjectEnum.valueOf(relation.getObject().getCode());
             switch (object) {
                 case UPGRADE:
-                    if (obtainedUpgradeBo.userHasUpgrade(userId, relation.getReferenceId())) {
+                    if (obtainedUpgradeRepository.existsByUserIdAndUpgradeId(userId, relation.getReferenceId())) {
                         alterObtainedUpgradeAvailability(
-                                obtainedUpgradeBo.findUserObtainedUpgrade(userId, relation.getReferenceId()), true);
+                                obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, relation.getReferenceId()), true);
                     } else {
                         registerObtainedUpgrade(user, relation.getReferenceId());
                     }
@@ -561,9 +530,9 @@ public class RequirementBo implements Serializable {
         }
 
         ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
-        if (object == ObjectEnum.UPGRADE && obtainedUpgradeBo.userHasUpgrade(user.getId(), relation.getReferenceId())) {
+        if (object == ObjectEnum.UPGRADE && obtainedUpgradeRepository.existsByUserIdAndUpgradeId(user.getId(), relation.getReferenceId())) {
             alterObtainedUpgradeAvailability(
-                    obtainedUpgradeBo.findUserObtainedUpgrade(user.getId(), relation.getReferenceId()), false);
+                    obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(user.getId(), relation.getReferenceId()), false);
         } else if (object == ObjectEnum.SPEED_IMPACT_GROUP) {
             emitUnlockedSpeedImpactGroups(user);
         } else if (unlockedRelation != null) {

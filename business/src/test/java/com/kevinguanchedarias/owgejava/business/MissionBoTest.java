@@ -15,8 +15,10 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunningException;
+import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
@@ -24,6 +26,7 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -50,18 +53,26 @@ import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenEntity;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.BUILD_MISSION_ID;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_ID;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_LEVEL;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenBuildMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenUpgradeMission;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_COUNT;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.OBTAINED_UPGRADE_LEVEL;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
+import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
+import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
@@ -111,7 +122,9 @@ import static org.mockito.Mockito.verify;
         TaggableCacheManager.class,
         HiddenUnitBo.class,
         PlanetLockUtilService.class,
-        ObtainedUnitRepository.class
+        ObtainedUnitRepository.class,
+        ObtainedUpgradeRepository.class,
+        ObtainedUpgradeBo.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -134,6 +147,9 @@ class MissionBoTest {
     private final EntityManager entityManager;
     private final UnitTypeBo unitTypeBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final ObtainedUpgradeRepository obtainedUpgradeRepository;
+    private final UpgradeBo upgradeBo;
+    private final ObtainedUpgradeBo obtainedUpgradeBo;
 
     @Autowired
     public MissionBoTest(
@@ -156,7 +172,9 @@ class MissionBoTest {
             MissionSchedulerService missionSchedulerService,
             EntityManager entityManager,
             UnitTypeBo unitTypeBo,
-            ObtainedUnitRepository obtainedUnitRepository
+            ObtainedUnitRepository obtainedUnitRepository,
+            ObtainedUpgradeRepository obtainedUpgradeRepository,
+            UpgradeBo upgradeBo, ObtainedUpgradeBo obtainedUpgradeBo
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -178,6 +196,9 @@ class MissionBoTest {
         this.entityManager = entityManager;
         this.unitTypeBo = unitTypeBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
+        this.obtainedUpgradeRepository = obtainedUpgradeRepository;
+        this.upgradeBo = upgradeBo;
+        this.obtainedUpgradeBo = obtainedUpgradeBo;
     }
 
     @Test
@@ -311,6 +332,107 @@ class MissionBoTest {
     }
 
     @Test
+    void registerLevelUpAnUpgrade_should_check_if_upgrade_is_already_going() {
+        given(missionRepository.findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name()))
+                .willReturn(givenRawMission(null, null));
+
+        assertThatThrownBy(() -> missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID))
+                .isInstanceOf(SgtLevelUpMissionAlreadyRunningException.class);
+
+    }
+
+    @Test
+    void registerLevelUpAnUpgrade_should_check_if_upgrade_is_available() {
+        given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID))
+                .willReturn(givenObtainedUpgrade());
+        assertThatThrownBy(() -> missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID))
+                .isInstanceOf(SgtMissionRegistrationException.class)
+                .hasMessageContaining("when upgrade is not available");
+    }
+
+    @Test
+    void registerLevelUpAnUpgrade_should_throw_when_no_resources() {
+        var ou = givenObtainedUpgrade();
+        given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID)).willReturn(ou);
+        var user = ou.getUser();
+        ou.setAvailable(true);
+        var resourceRequirements = ResourceRequirementsPojo.builder().build();
+        var resourceRequirementsSpy = spy(resourceRequirements);
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        givenMaxMissionsCount(user);
+        given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
+        doReturn(false).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
+
+        assertThatThrownBy(() -> missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID))
+                .isInstanceOf(SgtMissionRegistrationException.class)
+                .hasMessageContaining("No enough resources");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "TRUE,3",
+            "FALSE,20"
+    })
+    void registerLevelUpAnUpgrade_should_work(String zeroTimeConfigValue, double expectedTime) {
+        var ou = givenObtainedUpgrade();
+        given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID)).willReturn(ou);
+        var user = ou.getUser();
+        ou.setAvailable(true);
+        var baseRequiredTime = 18D;
+        var primary = 30D;
+        var secondary = 40D;
+        var resourceRequirements = ResourceRequirementsPojo.builder()
+                .requiredPrimary(primary)
+                .requiredSecondary(secondary)
+                .requiredTime(baseRequiredTime)
+                .build();
+        user.setPrimaryResource(primary * 3);
+        user.setSecondaryResource(secondary * 3);
+        var resourceRequirementsSpy = spy(resourceRequirements);
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        var groupedImprovementMock = givenMaxMissionsCount(user);
+        given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
+        doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
+        given(configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE"))
+                .willReturn(new Configuration("FOO", zeroTimeConfigValue));
+        var moreUpgradeSpeed = 15F;
+        var afterImprovementsTime = 20D;
+        given(groupedImprovementMock.getMoreUpgradeResearchSpeed()).willReturn(moreUpgradeSpeed);
+        given(improvementBo.computeImprovementValue(baseRequiredTime, moreUpgradeSpeed, false))
+                .willReturn(afterImprovementsTime);
+        var or = givenObjectRelation();
+        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE, UPGRADE_ID))
+                .willReturn(or);
+        given(missionTypeRepository.findOneByCode(MissionType.LEVEL_UP.name()))
+                .willReturn(Optional.of(givenMissionType(MissionType.LEVEL_UP)));
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+
+
+        missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID);
+
+        var captor = ArgumentCaptor.forClass(Mission.class);
+        verify(missionRepository, times(1)).save(captor.capture());
+        var saved = captor.getValue();
+        var information = saved.getMissionInformation();
+        assertThat(information.getRelation()).isEqualTo(or);
+        assertThat(information.getValue()).isEqualTo(1D + OBTAINED_UPGRADE_LEVEL);
+        assertThat(saved.getStartingDate()).isNotNull();
+        assertThat(saved.getRequiredTime()).isEqualTo(expectedTime);
+        assertThat(saved.getPrimaryResource()).isEqualTo(primary);
+        assertThat(saved.getSecondaryResource()).isEqualTo(secondary);
+        assertThat(saved.getRequiredTime()).isEqualTo(expectedTime);
+        assertThat(saved.getTerminationDate()).isNotNull();
+        assertThat(user.getPrimaryResource()).isEqualTo(60D);
+        assertThat(user.getSecondaryResource()).isEqualTo(80D);
+        verify(userStorageBo, times(1)).save(user);
+        verify(missionRepository, times(1)).save(saved);
+        verify(missionSchedulerService, times(1)).scheduleMission(any(), eq(saved));
+        verify(entityManager, times(1)).refresh(saved);
+        verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), any());
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
+    }
+
+    @Test
     void registerBuildUnit_should_throw_if_mission_already_going() {
         var buildMission = givenBuildMission();
         given(missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue
@@ -329,17 +451,13 @@ class MissionBoTest {
     void registerBuildUnit_should_throw_if_mission_limit_reached() {
         var runningCount = 28;
         var groupedImprovementMock = mock(GroupedImprovement.class);
-        var exceptionBuilderMock = mock(ExceptionBuilder.class);
         var exception = new SgtBackendInvalidInputException("FOO");
         var relation = givenObjectRelation();
         given(userStorageBo.findById(USER_ID_1)).willReturn(givenUser1());
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         given(improvementBo.findUserImprovement(givenUser1())).willReturn(groupedImprovementMock);
         given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
-        given(exceptionUtilService.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED"))
-                .willReturn(exceptionBuilderMock);
-        given(exceptionBuilderMock.withDeveloperHintDoc(any(), any(), any())).willReturn(exceptionBuilderMock);
-        given(exceptionBuilderMock.build()).willReturn(exception);
+        givenExceptionUtilService(exception);
         given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
@@ -354,7 +472,6 @@ class MissionBoTest {
     })
     void registerBuildUnit_should_throw_if_no_resources(boolean isUnique, long targetCount) {
         var runningCount = 0;
-        var groupedImprovementMock = mock(GroupedImprovement.class);
         var relation = givenObjectRelation();
         var user = givenUser1();
         var unit = givenUnit1();
@@ -362,8 +479,8 @@ class MissionBoTest {
         var resourceRequirementsMock = mock(ResourceRequirementsPojo.class);
         given(userStorageBo.findById(USER_ID_1)).willReturn(user);
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
-        given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
+        givenMaxMissionsCount(user);
+
         given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
         given(unitBo.calculateRequirements(unit, targetCount)).willReturn(resourceRequirementsMock);
@@ -435,6 +552,47 @@ class MissionBoTest {
         verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
     }
 
+    @Test
+    void processLevelUpAnUpgrade_should_do_nothing_if_no_mission(CapturedOutput capturedOutput) {
+        missionBo.processLevelUpAnUpgrade(UPGRADE_MISSION_ID);
+
+        assertThat(capturedOutput.getOut()).contains(MissionBo.MISSION_NOT_FOUND);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void processLevelUpAnUpgrade_should_work() {
+        var or = givenObjectRelation();
+        var mission = givenUpgradeMission(or);
+        var user = givenUser1();
+        var improvement = givenEntity();
+        mission.setUser(user);
+        var upgrade = givenUpgrade();
+        upgrade.setImprovement(improvement);
+        var ou = givenObtainedUpgrade();
+        ou.setUpgrade(upgrade);
+        given(missionRepository.findById(UPGRADE_MISSION_ID)).willReturn(Optional.of(mission));
+        given(objectRelationBo.unboxObjectRelation(or)).willReturn(upgrade);
+        given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID)).willReturn(ou);
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+
+        missionBo.processLevelUpAnUpgrade(UPGRADE_MISSION_ID);
+
+        assertThat(ou.getLevel()).isEqualTo((int) UPGRADE_MISSION_LEVEL);
+        verify(obtainedUpgradeBo, times(1)).save(ou);
+        verify(requirementBo, times(1)).triggerLevelUpCompleted(user, UPGRADE_ID);
+        verify(improvementBo, times(1)).clearSourceCache(eq(user), any(ObtainedUpgradeBo.class));
+        verify(improvementBo, times(1)).triggerChange(USER_ID_1, improvement);
+        verify(missionRepository, times(1)).delete(mission);
+        verify(entityManager, times(1)).refresh(ou);
+        var captor = ArgumentCaptor.forClass(Supplier.class);
+        verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), captor.capture());
+        assertThat(captor.getValue().get()).isNull();
+        verify(obtainedUpgradeBo, times(1)).emitObtainedChange(USER_ID_1);
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
+
+    }
+
     @ParameterizedTest
     @MethodSource("processBuildUnit_parameters")
     void processBuildUnit_should_work(Improvement improvement, int expectClearImprovementCacheInvocations) {
@@ -501,6 +659,21 @@ class MissionBoTest {
         assertThat(runningUnitBuildDto.getMissionId()).isEqualTo(BUILD_MISSION_ID);
         assertThat(runningUnitBuildDto.getSourcePlanet().getId()).isEqualTo(SOURCE_PLANET_ID);
         assertThat(runningUnitBuildDto.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
+    }
+
+    private void givenExceptionUtilService(CommonException exception) {
+        var exceptionBuilderMock = mock(ExceptionBuilder.class);
+        given(exceptionUtilService.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED"))
+                .willReturn(exceptionBuilderMock);
+        given(exceptionBuilderMock.withDeveloperHintDoc(any(), any(), any())).willReturn(exceptionBuilderMock);
+        given(exceptionBuilderMock.build()).willReturn(exception);
+    }
+
+    private GroupedImprovement givenMaxMissionsCount(UserStorage user) {
+        var groupedImprovementMock = mock(GroupedImprovement.class);
+        given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
+        given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
+        return groupedImprovementMock;
     }
 
     private static Stream<Arguments> processBuildUnit_parameters() {

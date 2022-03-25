@@ -45,7 +45,7 @@ public class Planet implements EntityWithId<Long> {
     private Integer planetNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner", nullable = true)
+    @JoinColumn(name = "owner")
     private UserStorage owner;
 
     private Integer richness;
