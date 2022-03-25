@@ -20,7 +20,6 @@ import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.MissionNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
@@ -29,6 +28,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunning
 import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
@@ -54,6 +54,7 @@ public class MissionBo extends AbstractMissionBo {
     public static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
     public static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
     public static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
+    public static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
 
     @Serial
     private static final long serialVersionUID = 5505953709078785322L;
@@ -61,7 +62,6 @@ public class MissionBo extends AbstractMissionBo {
     private static final Logger LOG = Logger.getLogger(MissionBo.class);
     private static final String JOB_GROUP_NAME = "Missions";
 
-    private static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
     private static final int DAYS = 60;
 
     private final transient EntityManager entityManager;
@@ -71,6 +71,7 @@ public class MissionBo extends AbstractMissionBo {
     private final transient HiddenUnitBo hiddenUnitBo;
     private final transient PlanetLockUtilService planetLockUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final ObtainedUpgradeRepository obtainedUpgradeRepository;
 
     @PostConstruct
     public void init() {
@@ -120,7 +121,7 @@ public class MissionBo extends AbstractMissionBo {
     @Transactional
     public void registerLevelUpAnUpgrade(Integer userId, Integer upgradeId) {
         checkUpgradeMissionDoesNotExists(userId);
-        var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgradeId);
+        var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgradeId);
         checkUpgradeIsAvailable(obtainedUpgrade);
 
         var user = userStorageBo.findById(userId);
@@ -136,7 +137,7 @@ public class MissionBo extends AbstractMissionBo {
                     .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
                             improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
         }
-        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(RequirementTargetObject.UPGRADE,
+        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE,
                 obtainedUpgrade.getUpgrade().getId());
 
         var missionInformation = new MissionInformation();
@@ -156,7 +157,7 @@ public class MissionBo extends AbstractMissionBo {
         userStorageBo.save(user);
         missionRepository.save(mission);
         scheduleMission(mission);
-        TransactionUtil.doAfterCommit(() -> {
+        transactionUtilService.doAfterCommit(() -> {
             entityManager.refresh(mission);
             emitRunningUpgrade(user);
             emitMissionCountChange(userId);
@@ -185,14 +186,14 @@ public class MissionBo extends AbstractMissionBo {
             var upgrade = (Upgrade) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
             UserStorage user = mission.getUser();
             Integer userId = user.getId();
-            var obtainedUpgrade = obtainedUpgradeBo.findByUserAndUpgrade(userId, upgrade.getId());
+            var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgrade.getId());
             obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
             obtainedUpgradeBo.save(obtainedUpgrade);
             requirementBo.triggerLevelUpCompleted(user, upgrade.getId());
             improvementBo.clearSourceCache(user, obtainedUpgradeBo);
             improvementBo.triggerChange(userId, obtainedUpgrade.getUpgrade().getImprovement());
             delete(mission);
-            TransactionUtil.doAfterCommit(() -> {
+            transactionUtilService.doAfterCommit(() -> {
                 entityManager.refresh(obtainedUpgrade);
                 socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
                 obtainedUpgradeBo.emitObtainedChange(userId);
@@ -548,7 +549,6 @@ public class MissionBo extends AbstractMissionBo {
      * Checks that the selected obtained upgrade is available else, throws an
      * exception
      *
-     * @param obtainedUpgrade
      * @throws SgtMissionRegistrationException target upgrade is not available
      * @author Kevin Guanche Darias
      */

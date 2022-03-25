@@ -3,33 +3,25 @@ package com.kevinguanchedarias.owgejava.entity;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 
 /**
- *
- * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.0
  */
 public interface EntityWithRelation extends EntityWithId<Integer> {
-	/**
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ObjectEnum getObject();
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    ObjectEnum getObject();
 
-	/**
-	 *
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public ObjectRelation getRelation();
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    ObjectRelation getRelation();
 
-	/**
-	 *
-	 * @param relation
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setRelation(ObjectRelation relation);
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    void setRelation(ObjectRelation relation);
 }

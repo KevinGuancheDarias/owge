@@ -1,7 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Cascade;
@@ -17,13 +22,20 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.io.Serial;
 import java.util.List;
 
 @ToString(callSuper = true)
 @Entity
 @Table(name = "units")
 @EntityListeners(UnitListener.class)
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Unit extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+    @Serial
     private static final long serialVersionUID = -1923291486680931835L;
 
     @Column(name = "display_in_requirements")
@@ -97,264 +109,6 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
     private Boolean isInvisible = false;
 
     @OneToMany(mappedBy = "unit", fetch = FetchType.LAZY)
+    @ToString.Exclude
     private List<InterceptableSpeedGroup> interceptableSpeedGroups;
-
-    /**
-     * @return the hasToDisplayInRequirements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Boolean getHasToDisplayInRequirements() {
-        return hasToDisplayInRequirements;
-    }
-
-    /**
-     * @param hasToDisplayInRequirements the hasToDisplayInRequirements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setHasToDisplayInRequirements(Boolean hasToDisplayInRequirements) {
-        this.hasToDisplayInRequirements = hasToDisplayInRequirements;
-    }
-
-    public Integer getOrder() {
-        return order;
-    }
-
-    public void setOrder(Integer order) {
-        this.order = order;
-    }
-
-    public Integer getPoints() {
-        return points;
-    }
-
-    public void setPoints(Integer points) {
-        this.points = points;
-    }
-
-    public Integer getTime() {
-        return time;
-    }
-
-    public void setTime(Integer time) {
-        this.time = time;
-    }
-
-    public Integer getPrimaryResource() {
-        return primaryResource;
-    }
-
-    public void setPrimaryResource(Integer primaryResource) {
-        this.primaryResource = primaryResource;
-    }
-
-    public Integer getSecondaryResource() {
-        return secondaryResource;
-    }
-
-    public void setSecondaryResource(Integer secondaryResource) {
-        this.secondaryResource = secondaryResource;
-    }
-
-    public Integer getEnergy() {
-        return energy;
-    }
-
-    public void setEnergy(Integer energy) {
-        this.energy = energy;
-    }
-
-    public UnitType getType() {
-        return type;
-    }
-
-    public void setType(UnitType type) {
-        this.type = type;
-    }
-
-    public Integer getAttack() {
-        return attack;
-    }
-
-    public void setAttack(Integer attack) {
-        this.attack = attack;
-    }
-
-    public Integer getHealth() {
-        return health;
-    }
-
-    public void setHealth(Integer health) {
-        this.health = health;
-    }
-
-    public Integer getShield() {
-        return shield;
-    }
-
-    public void setShield(Integer shield) {
-        this.shield = shield;
-    }
-
-    public Integer getCharge() {
-        return charge;
-    }
-
-    public void setCharge(Integer charge) {
-        this.charge = charge;
-    }
-
-    public Boolean getIsUnique() {
-        return isUnique;
-    }
-
-    public void setIsUnique(Boolean isUnique) {
-        this.isUnique = isUnique;
-    }
-
-    /**
-     * @return the canFastExplore
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Boolean getCanFastExplore() {
-        return canFastExplore;
-    }
-
-    /**
-     * @param canFastExplore the canFastExplore to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setCanFastExplore(Boolean canFastExplore) {
-        this.canFastExplore = canFastExplore;
-    }
-
-    /**
-     * @return the speed
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Double getSpeed() {
-        return speed;
-    }
-
-    /**
-     * @param speed the speed to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSpeed(Double speed) {
-        this.speed = speed;
-    }
-
-    @Override
-    public Improvement getImprovement() {
-        return improvement;
-    }
-
-    @Override
-    public void setImprovement(Improvement improvement) {
-        this.improvement = improvement;
-    }
-
-    @Override
-    public Boolean getClonedImprovements() {
-        return clonedImprovements;
-    }
-
-    @Override
-    public void setClonedImprovements(Boolean clonedImprovements) {
-        this.clonedImprovements = clonedImprovements;
-    }
-
-    /**
-     * @return the speedImpactGroup
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public SpeedImpactGroup getSpeedImpactGroup() {
-        return speedImpactGroup;
-    }
-
-    /**
-     * @param speedImpactGroup the speedImpactGroup to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSpeedImpactGroup(SpeedImpactGroup speedImpactGroup) {
-        this.speedImpactGroup = speedImpactGroup;
-    }
-
-    /**
-     * @return the attackRule
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public AttackRule getAttackRule() {
-        return attackRule;
-    }
-
-    /**
-     * @param attackRule the attackRule to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setAttackRule(AttackRule attackRule) {
-        this.attackRule = attackRule;
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Boolean getBypassShield() {
-        return bypassShield;
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public void setBypassShield(Boolean bypassShield) {
-        this.bypassShield = bypassShield;
-    }
-
-    /**
-     * @return the isInvisible
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Boolean getIsInvisible() {
-        return isInvisible;
-    }
-
-    /**
-     * @param isInvisible the isInvisible to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setIsInvisible(Boolean isInvisible) {
-        this.isInvisible = isInvisible;
-    }
-
-    /**
-     * @return the interceptableSpeedGroups
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public List<InterceptableSpeedGroup> getInterceptableSpeedGroups() {
-        return interceptableSpeedGroups;
-    }
-
-    /**
-     * @param interceptableSpeedGroups the interceptableSpeedGroups to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setInterceptableSpeedGroups(List<InterceptableSpeedGroup> interceptableSpeedGroups) {
-        this.interceptableSpeedGroups = interceptableSpeedGroups;
-    }
-
 }

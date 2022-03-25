@@ -1,93 +1,53 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
+import java.io.Serial;
+import java.io.Serializable;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Represents the last send events for given user and type
  *
- * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.0
  */
 @Entity
 @Table(name = "websocket_events_information")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WebsocketEventsInformation implements Serializable {
-	private static final long serialVersionUID = 3216511685876136585L;
+    @Serial
+    private static final long serialVersionUID = 3216511685876136585L;
 
-	@EmbeddedId
-	private EventNameUserId eventNameUserId;
-	@Column(name = "last_sent", nullable = false)
-	private Instant lastSenT = dateWithoutMs();
+    @EmbeddedId
+    private EventNameUserId eventNameUserId;
 
-	/**
-	 *
-	 *
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public WebsocketEventsInformation() {
+    @Column(nullable = false)
+    private Instant lastSent = dateWithoutMs();
 
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public WebsocketEventsInformation(String eventName, Integer userId) {
+        eventNameUserId = new EventNameUserId();
+        eventNameUserId.setEventName(eventName);
+        eventNameUserId.setUserId(userId);
+    }
 
-	/**
-	 *
-	 * @param eventName
-	 * @param userId
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public WebsocketEventsInformation(String eventName, Integer userId) {
-		eventNameUserId = new EventNameUserId();
-		eventNameUserId.setEventName(eventName);
-		eventNameUserId.setUserId(userId);
-	}
-
-	/**
-	 * @return the eventNameUserId
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public EventNameUserId getEventNameUserId() {
-		return eventNameUserId;
-	}
-
-	/**
-	 * @param eventNameUserId the eventNameUserId to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setEventNameUserId(EventNameUserId eventNameUserId) {
-		this.eventNameUserId = eventNameUserId;
-	}
-
-	/**
-	 * @return the lastSenT
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Instant getLastSent() {
-		return lastSenT;
-	}
-
-	/**
-	 * @param lastSenT the lastSenT to set
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 */
-	public void setLastSent(Instant lastSenT) {
-		this.lastSenT = lastSenT;
-	}
-
-	private Instant dateWithoutMs() {
-		return Instant.now().truncatedTo(ChronoUnit.SECONDS);
-	}
+    private Instant dateWithoutMs() {
+        return Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    }
 }

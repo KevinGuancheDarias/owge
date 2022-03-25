@@ -1,5 +1,11 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -19,6 +25,11 @@ import java.util.List;
  * @since 0.7.0
  */
 @Entity
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "alliances")
 public class Alliance extends CommonEntityWithImage<Integer> {
     @Serial
@@ -27,41 +38,10 @@ public class Alliance extends CommonEntityWithImage<Integer> {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     @Fetch(FetchMode.JOIN)
+    @ToString.Exclude
     private UserStorage owner;
 
     @OneToMany(mappedBy = "alliance")
+    @ToString.Exclude
     private List<UserStorage> users;
-
-    /**
-     * @return the owner
-     * @since 0.7.0
-     */
-    public UserStorage getOwner() {
-        return owner;
-    }
-
-    /**
-     * @param owner the owner to set
-     * @since 0.7.0
-     */
-    public void setOwner(UserStorage owner) {
-        this.owner = owner;
-    }
-
-    /**
-     * @return the users
-     * @since 0.7.0
-     */
-    public List<UserStorage> getUsers() {
-        return users;
-    }
-
-    /**
-     * @param users the users to set
-     * @since 0.7.0
-     */
-    public void setUsers(List<UserStorage> users) {
-        this.users = users;
-    }
-
 }

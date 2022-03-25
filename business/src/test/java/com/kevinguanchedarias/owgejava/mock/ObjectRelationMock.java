@@ -22,7 +22,11 @@ public class ObjectRelationMock {
     }
 
     public static ObjectEntity givenObjectEntity() {
-        var code = ObjectEnum.UPGRADE.name();
+        return givenObjectEntity(ObjectEnum.UPGRADE);
+    }
+
+    public static ObjectEntity givenObjectEntity(ObjectEnum target) {
+        var code = target.name();
         return ObjectEntity.builder()
                 .code(code)
                 .description(code)

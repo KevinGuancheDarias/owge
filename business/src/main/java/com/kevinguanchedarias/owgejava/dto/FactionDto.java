@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
-import com.kevinguanchedarias.owgejava.entity.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 import lombok.AllArgsConstructor;

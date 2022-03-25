@@ -22,6 +22,12 @@ public class RequirementMock {
         return retVal;
     }
 
+    public static RequirementInformation givenRequirementInformation(long secondValue, long thirdValue, RequirementTypeEnum requirementTypeEnum) {
+        var retVal = givenRequirementInformation(secondValue, requirementTypeEnum);
+        retVal.setThirdValue(thirdValue);
+        return retVal;
+    }
+
     public static Requirement givenRequirement(RequirementTypeEnum requirementTypeEnum) {
         return Requirement.builder()
                 .id(requirementTypeEnum.getValue())

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -36,6 +37,7 @@ public class CriticalAttack implements EntityWithId<Integer> {
     private String name;
 
     @OneToMany(mappedBy = "criticalAttack")
+    @ToString.Exclude
     private List<CriticalAttackEntry> entries;
 
 }

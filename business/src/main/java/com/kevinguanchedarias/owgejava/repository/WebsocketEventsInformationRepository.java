@@ -27,6 +27,6 @@ public interface WebsocketEventsInformationRepository
     List<WebsocketEventsInformation> findByEventNameUserIdUserId(Integer userId);
 
     @Modifying
-    @Query("UPDATE WebsocketEventsInformation wei SET wei.lastSenT = ?2 WHERE wei.eventNameUserId.userId = ?1")
+    @Query("UPDATE WebsocketEventsInformation wei SET wei.lastSent = ?2 WHERE wei.eventNameUserId.userId = ?1")
     void updateLastSent(Integer userId, Instant lastSentDate);
 }

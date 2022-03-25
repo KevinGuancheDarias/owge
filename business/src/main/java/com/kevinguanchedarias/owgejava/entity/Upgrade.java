@@ -1,8 +1,11 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.listener.UpgradeListener;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.FetchType;
@@ -21,121 +24,43 @@ import java.util.List;
 @Entity
 @Table(name = "upgrades")
 @EntityListeners(UpgradeListener.class)
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Upgrade extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
     @Serial
     private static final long serialVersionUID = 905268542123876248L;
 
+    @Builder.Default
     private Integer points = 0;
+
+    @Builder.Default
     private Long time = 60L;
 
-    @Column(name = "primary_resource")
+    @Builder.Default
     private Integer primaryResource = 100;
 
-    @Column(name = "secondary_resource")
+    @Builder.Default
     private Integer secondaryResource = 100;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "type")
     private UpgradeType type;
 
-    @Column(name = "level_effect")
+    @Builder.Default
     private Float levelEffect = 20f;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "improvement_id")
     private Improvement improvement;
 
-    @Column(name = "cloned_improvements")
+    @Builder.Default
     private Boolean clonedImprovements = false;
 
     @Transient
     private List<RequirementInformation> requirements;
 
-    public Integer getPoints() {
-        return points;
-    }
-
-    public void setPoints(Integer points) {
-        this.points = points;
-    }
-
-    public Long getTime() {
-        return time;
-    }
-
-    public void setTime(Long time) {
-        this.time = time;
-    }
-
-    public Integer getPrimaryResource() {
-        return primaryResource;
-    }
-
-    public void setPrimaryResource(Integer primaryResource) {
-        this.primaryResource = primaryResource;
-    }
-
-    public Integer getSecondaryResource() {
-        return secondaryResource;
-    }
-
-    public void setSecondaryResource(Integer secondaryResource) {
-        this.secondaryResource = secondaryResource;
-    }
-
-    public UpgradeType getType() {
-        return type;
-    }
-
-    public void setType(UpgradeType type) {
-        this.type = type;
-    }
-
-    public Float getLevelEffect() {
-        return levelEffect;
-    }
-
-    public void setLevelEffect(Float levelEffect) {
-        this.levelEffect = levelEffect;
-    }
-
-    @Override
-    public Improvement getImprovement() {
-        return improvement;
-    }
-
-    @Override
-    public void setImprovement(Improvement improvement) {
-        this.improvement = improvement;
-    }
-
-    @Override
-    public Boolean getClonedImprovements() {
-        return clonedImprovements;
-    }
-
-    @Override
-    public void setClonedImprovements(Boolean clonedImprovements) {
-        this.clonedImprovements = clonedImprovements;
-    }
-
-    /**
-     * @return the requirements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<RequirementInformation> getRequirements() {
-        return requirements;
-    }
-
-    /**
-     * @param requirements the requirements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setRequirements(List<RequirementInformation> requirements) {
-        this.requirements = requirements;
-    }
 
     @Override
     public int hashCode() {
@@ -158,13 +83,7 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
         }
         Upgrade other = (Upgrade) obj;
         if (getId() == null) {
-            if (other.getId() != null) {
-                return false;
-            }
-        } else if (!getId().equals(other.getId())) {
-            return false;
-        }
-        return true;
+            return other.getId() == null;
+        } else return getId().equals(other.getId());
     }
-
 }

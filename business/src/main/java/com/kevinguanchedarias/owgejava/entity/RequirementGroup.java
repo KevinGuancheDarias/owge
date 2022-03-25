@@ -4,6 +4,8 @@ import com.kevinguanchedarias.owgejava.entity.listener.RequirementGroupListener;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
@@ -26,6 +28,8 @@ import java.util.List;
 @Entity
 @Table(name = "requirement_group")
 @EntityListeners(RequirementGroupListener.class)
+@Data
+@EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -47,64 +51,4 @@ public class RequirementGroup extends EntityWithRelationImp {
     public ObjectEnum getObject() {
         return ObjectEnum.REQUIREMENT_GROUP;
     }
-
-    /**
-     * @return the id
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @Override
-    public Integer getId() {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    @Override
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    /**
-     * @return the name
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param name the name to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * The requirements for the given requirement group, known and computed in a
-     * listener by using the relation property
-     *
-     * @return the requirements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<RequirementInformation> getRequirements() {
-        return requirements;
-    }
-
-    /**
-     * @param requirements the requirements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setRequirements(List<RequirementInformation> requirements) {
-        this.requirements = requirements;
-    }
-
 }
