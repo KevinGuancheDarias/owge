@@ -52,6 +52,7 @@ export * from './lib/types/mission-report-gather-json.type';
 export * from './lib/types/mission-report-json.type';
 export * from './lib/types/mission-report-reponse.type';
 export * from './lib/types/mission-report.type';
+export * from './lib/types/obtained-unit-temporal-information.type';
 export * from './lib/types/obtained-unit.type';
 export * from './lib/types/obtained-upgrade.type';
 export * from './lib/types/planet-units-representation.type';
@@ -73,4 +74,5 @@ export * from './lib/types/upgrade-running-mission.type';
 export * from './lib/types/upgrade-type.type';
 export * from './lib/types/upgrade.type';
 export * from './lib/utils/improvement.util';
+export * from './lib/utils/unit.util';
 

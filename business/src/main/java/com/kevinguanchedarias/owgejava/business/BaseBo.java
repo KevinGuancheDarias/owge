@@ -121,11 +121,11 @@ public interface BaseBo<K extends Serializable, E extends EntityWithId<K>, D ext
         return entity;
     }
 
-    private void clearCacheTagList() {
+    default void clearCacheTagList() {
         getTaggableCacheManager().evictByCacheTag(getCacheTag());
     }
 
-    private void doEvictEntryFromCache(K id) {
+    default void doEvictEntryFromCache(K id) {
         getTaggableCacheManager().evictByCacheTag(getCacheTag(), id);
     }
 }

@@ -27,6 +27,7 @@
         "BTN_CLOSE": "Cerrar",
         "BTN_EDIT": "Editar",
         "BTN_DELETE": "Borrar",
+        "SELECT": "Seleccionar...",
         "CONFIRM_CANCEL": "Are you sure you want to cancel?, there are unsaved changes, that will be lost",
         "INHERITED": "Heredado",
         "TIME_SPECIAL": {
@@ -217,6 +218,10 @@
                         },
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": {
                             "SPEED_IMPACT_GROUP": "Grupo de velocidad"
+                        },
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": {
+                            "DURATION_IN_SECONDS": "Duración (en segundos)",
+                            "UNIT_COUNT": "Cantidad, unidades"
                         }
                     }
                 },
@@ -224,7 +229,8 @@
                     "TYPES": {
                         "UNIT_CAPTURE": "Captura de unidad",
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo activado, camuflar unidades",
-                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Especial de tiempo activado, cambiar grupo de velocidad"
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Especial de tiempo activado, cambiar grupo de velocidad",
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Especial de tiempo activado, proporcionar unidad temporal"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unidad",

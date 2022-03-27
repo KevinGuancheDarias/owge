@@ -19,4 +19,6 @@ public interface RuleRepository extends JpaRepository<Rule, Integer> {
     Optional<Rule> findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
             String type, String originType, Long originId, String destinationType, Long destinationId
     );
+
+    List<Rule> findByOriginTypeAndOriginIdAndType(String originType, long id, String type);
 }

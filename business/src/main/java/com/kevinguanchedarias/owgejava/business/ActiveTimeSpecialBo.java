@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Autowired
     @Lazy
     private ObtainedUnitBo obtainedUnitBo;
+
+    @Autowired
+    private transient ApplicationEventPublisher applicationEventPublisher;
 
     @PostConstruct
     public void init() {
@@ -192,6 +196,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, user.getId());
             emitTimeSpecialChange(user);
             emitIfActivationAffectingUnits(newActive);
+            applicationEventPublisher.publishEvent(newActive);
             return newActive;
         } else {
             LOG.warn("The specified time special, is already active, doing nothing");

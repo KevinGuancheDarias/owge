@@ -115,6 +115,17 @@ class RuleBoTest {
     }
 
     @Test
+    void findByOriginTypeAndOriginIdAndType_should_work() {
+        var rule = givenRule();
+        when(ruleRepository.findByOriginTypeAndOriginIdAndType(ORIGIN_TYPE, ORIGIN_ID, TYPE)).thenReturn(List.of(rule));
+
+        var result = ruleBo.findByOriginTypeAndOriginIdAndType(ORIGIN_TYPE, ORIGIN_ID, TYPE);
+
+        verify(ruleRepository, times(1)).findByOriginTypeAndOriginIdAndType(ORIGIN_TYPE, ORIGIN_ID, TYPE);
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
     void findByType_should_return_types_by_id() {
         var rule = givenRule();
         when(ruleRepository.findByType(TYPE)).thenReturn(List.of(rule));

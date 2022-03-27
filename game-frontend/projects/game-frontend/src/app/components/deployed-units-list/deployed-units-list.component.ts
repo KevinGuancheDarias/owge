@@ -94,10 +94,11 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     this.areAllSelected = false;
     this.selection.emit(
       this.selectedCounts.map<SelectedUnit>((current, index) => ({
-          id: this.obtainedUnits[index].unit.id,
-          count: current,
-          unit: this.obtainedUnits[index].unit
-        })).filter(current => current.count)
+        id: this.obtainedUnits[index].unit.id,
+        count: current,
+        unit: this.obtainedUnits[index].unit,
+        expirationId: this.obtainedUnits[index]?.temporalInformation?.id
+      })).filter(current => current.count)
     );
     const ids: number[] = this.selectedCounts.map<number>(
       (current, index) => current ? this.obtainedUnits[index].unit.typeId : null

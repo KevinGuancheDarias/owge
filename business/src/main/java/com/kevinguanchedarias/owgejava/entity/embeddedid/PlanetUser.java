@@ -3,7 +3,9 @@ package com.kevinguanchedarias.owgejava.entity.embeddedid;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -16,7 +18,9 @@ import java.io.Serializable;
 
 @Embeddable
 @Data
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class PlanetUser implements Serializable {
     @Serial
     private static final long serialVersionUID = -6385505776318319556L;

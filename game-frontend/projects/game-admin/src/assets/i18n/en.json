@@ -227,6 +227,10 @@
                         },
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": {
                             "SPEED_IMPACT_GROUP": "Speed group"
+                        },
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": {
+                            "DURATION_IN_SECONDS": "Duration (in seconds)",
+                            "UNIT_COUNT": "Unit count"
                         }
                     }
                 },
@@ -234,7 +238,8 @@
                     "TYPES": {
                         "UNIT_CAPTURE": "Unit Capture",
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Time special is enabled, hide units",
-                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Time special is enabled, swap speed group"
+                        "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Time special is enabled, swap speed group",
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Time special is enabled, provide temporal unit"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unit",

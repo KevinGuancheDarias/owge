@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformation;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
     private MissionDto mission;
     private Integer userId;
     private String username;
+    private ObtainedUnitTemporalInformation temporalInformation;
 
     @Override
     public void dtoFromEntity(ObtainedUnit entity) {

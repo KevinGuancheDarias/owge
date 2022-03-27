@@ -2,7 +2,7 @@ import { ProgrammingError } from '../errors/programming.error';
 
 export class MissionUtil {
     public static computeProgressPercentage(
-        mission: { browserComputedTerminationDate?: Date, requiredMillis?: number, requiredTime?: number }
+        mission: { browserComputedTerminationDate?: Date; requiredMillis?: number; requiredTime?: number }
     ): number {
         if (!mission.browserComputedTerminationDate) {
             throw new ProgrammingError('Can NOT invoke this function without previously defining browserComputedTerminationDate');

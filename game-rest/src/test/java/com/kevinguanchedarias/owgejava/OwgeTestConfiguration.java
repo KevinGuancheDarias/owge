@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.GalaxyBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.entity.Configuration;
+import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.security.AdminTokenConfigLoader;
 import com.kevinguanchedarias.owgejava.util.GitUtilService;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,8 @@ import static org.mockito.Mockito.when;
         ConfigurationBo.class,
         AdminTokenConfigLoader.class,
         UserStorageBo.class,
-        GalaxyBo.class
+        GalaxyBo.class,
+        ObtainedUnitTemporalInformationRepository.class
 })
 @AllArgsConstructor
 public class OwgeTestConfiguration {

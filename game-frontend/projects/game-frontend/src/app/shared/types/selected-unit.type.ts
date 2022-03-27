@@ -14,7 +14,9 @@ export interface SelectedUnit {
      * @type {number}
      * @memberof SelectedUnit
      */
-    unit: Unit;
+    id?: number;
+
+    unit?: Unit;
 
     /**
      * Selected count
@@ -23,4 +25,6 @@ export interface SelectedUnit {
      * @memberof SelectedUnit
      */
     count: number;
+
+    expirationId: number;
 }

@@ -7,7 +7,7 @@ import {
   ObtainedUnit,
   ObtainedUpgrade, Planet, PlanetsUnitsRepresentation, ResourceManagerService, ResourceRequirements, Unit,
   UnitBuildRunningMission, UnitStore,
-  UnitUpgradeRequirements, UniverseGameService,
+  UnitUpgradeRequirements, UnitUtil, UniverseGameService,
 
   UserStorage, WsEventCacheService
 } from '@owge/universe';
@@ -179,9 +179,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
 
   public obtainedUnitToSelectedUnits(obtainedUnits: ObtainedUnit[]): SelectedUnit[] {
     return obtainedUnits.map(current => ({
-        unit: current.unit,
-        count: current.count
-      }));
+      unit: current.unit,
+      count: current.count,
+      expirationId: current.temporalInformation?.id
+    }));
   }
 
   /**
@@ -263,8 +264,10 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     units: ObtainedUnit[],
     keyGetter: (unit: ObtainedUnit) => any
   ): PlanetsUnitsRepresentation<ObtainedUnit[]> {
+
     const unitsMap: Map<string, ObtainedUnit[]> = new Map();
     units.sort((a, b) => a.unit.name.localeCompare(b.unit.name)).forEach(unit => {
+      UnitUtil.createTerminationDate(unit);
       const planetId: string = keyGetter(unit);
       const collection: ObtainedUnit[] = unitsMap.get(planetId);
       if (!collection) {

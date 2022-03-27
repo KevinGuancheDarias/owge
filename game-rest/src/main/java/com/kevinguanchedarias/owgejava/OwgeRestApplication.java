@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.jdbc.repository.config.EnableJdbcRepositories;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -23,6 +24,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableScheduling
 @EnableRetry
 @Import(TaggableCacheDefaultConfiguration.class)
+@EnableJdbcRepositories(basePackages = "com.kevinguanchedarias.owgejava.repository.jdbc")
 public class OwgeRestApplication {
 
     public static void main(String[] args) {

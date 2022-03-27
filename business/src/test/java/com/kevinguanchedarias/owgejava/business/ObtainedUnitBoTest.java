@@ -4,8 +4,10 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
+import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
 import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
@@ -13,7 +15,9 @@ import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,17 +25,22 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.EXPLORE_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenDeployedMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_COUNT;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitTemporalInformationMock.givenObtainedUnitTemporalInformation;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,7 +71,8 @@ import static org.mockito.Mockito.verify;
         TaggableCacheManager.class,
         HiddenUnitBo.class,
         SpeedImpactGroupFinderBo.class,
-        UserStorageRepository.class
+        UserStorageRepository.class,
+        ObtainedUnitTemporalInformationRepository.class
 })
 class ObtainedUnitBoTest extends AbstractBaseBoTest {
     private final ObtainedUnitBo obtainedUnitBo;
@@ -73,6 +83,7 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
     private final TaggableCacheManager taggableCacheManager;
     private final HiddenUnitBo hiddenUnitBo;
     private final SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
+    private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
 
     @Autowired
     ObtainedUnitBoTest(
@@ -83,7 +94,8 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
             MissionFinderBo missionFinderBo,
             TaggableCacheManager taggableCacheManager,
             HiddenUnitBo hiddenUnitBo,
-            SpeedImpactGroupFinderBo speedImpactGroupFinderBo
+            SpeedImpactGroupFinderBo speedImpactGroupFinderBo,
+            ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository
     ) {
         // Some methods has not all branches covered, only touched lines
         this.obtainedUnitBo = obtainedUnitBo;
@@ -94,6 +106,7 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
         this.taggableCacheManager = taggableCacheManager;
         this.hiddenUnitBo = hiddenUnitBo;
         this.speedImpactGroupFinderBo = speedImpactGroupFinderBo;
+        this.obtainedUnitTemporalInformationRepository = obtainedUnitTemporalInformationRepository;
     }
 
     @Test
@@ -166,9 +179,17 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
     }
 
     @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void findCompletedAsDto_should_work(boolean hasSig) {
+    @CsvSource({
+            "true,false",
+            "false,true"
+    })
+    void findCompletedAsDto_should_work(boolean hasSig, boolean hasExpirationId) {
         var ou = givenObtainedUnit1();
+        var expirationId = 19L;
+        var temporalInformation = givenObtainedUnitTemporalInformation();
+        if (hasExpirationId) {
+            ou.setExpirationId(expirationId);
+        }
         var user = ou.getUser();
         var sig = givenSpeedImpactGroup();
         var isgList = List.of(givenInterceptableSpeedGroup());
@@ -184,6 +205,7 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
         given(speedImpactGroupFinderBo.findApplicable(user, unit)).willReturn(sig);
         given(obtainedUnitRepository.findBySourcePlanetNotNullAndMissionNullAndUserId(USER_ID_1))
                 .willReturn(List.of(ou));
+        given(obtainedUnitTemporalInformationRepository.findById(expirationId)).willReturn(Optional.of(temporalInformation));
 
         try (var hibernateMock = mockStatic(Hibernate.class)) {
             var result = obtainedUnitBo.findCompletedAsDto(user);
@@ -197,11 +219,59 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
             verify(speedImpactGroupFinderBo, times(hasSig ? 0 : 1)).findApplicable(user, unit);
             assertThat(result)
                     .hasSize(1);
-            var unitDto = result.get(0).getUnit();
+            var ouDto = result.get(0);
+            var unitDto = ouDto.getUnit();
             assertThat(unitDto.getIsInvisible()).isTrue();
             assertThat(unitDto.getSpeedImpactGroup()).isNotNull();
             assertThat(unitDto.getSpeedImpactGroup().getRequirementsGroups()).isNull();
+            if (hasExpirationId) {
+                assertThat(ouDto.getTemporalInformation()).isEqualTo(temporalInformation);
+                assertThat(ouDto.getTemporalInformation().getPendingMillis()).isNotNull();
+            } else {
+                assertThat(ouDto.getTemporalInformation()).isNull();
+            }
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("saveWithAdding_should_work_parameters")
+    void saveWithAdding_should_work(boolean isOfUserProperty, boolean existingOne, Long expirationId, Long ouId) {
+        var ou = givenObtainedUnit1();
+        var hasExpirationId = expirationId != null;
+        ou.setId(ouId);
+        ou.setExpirationId(expirationId);
+        given(planetBo.isOfUserProperty(USER_ID_1, TARGET_PLANET_ID)).willReturn(isOfUserProperty);
+        if (existingOne) {
+            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID))
+                    .willReturn(ou);
+            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
+                    USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name())
+            ).willReturn(ou);
+            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(
+                    USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, expirationId)
+            ).willReturn(ou);
+            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCodeAndExpirationId(
+                    USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name(), expirationId)
+            ).willReturn(ou);
+        }
+
+        obtainedUnitBo.saveWithAdding(USER_ID_1, ou, TARGET_PLANET_ID);
+
+        verify(obtainedUnitRepository, times(isOfUserProperty && !hasExpirationId ? 1 : 0))
+                .findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID);
+
+        verify(obtainedUnitRepository, times(!isOfUserProperty && !hasExpirationId ? 1 : 0))
+                .findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name());
+        verify(obtainedUnitRepository, times(isOfUserProperty && hasExpirationId ? 1 : 0)).findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(
+                USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, expirationId
+        );
+        verify(obtainedUnitRepository, times(!isOfUserProperty && hasExpirationId ? 1 : 0)).findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCodeAndExpirationId(
+                USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name(), expirationId
+        );
+        verify(obtainedUnitRepository, times(!existingOne ? 1 : 0)).save(ou);
+        verify(obtainedUnitRepository, times(existingOne ? 1 : 0)).updateCount(ou, OBTAINED_UNIT_1_COUNT);
+        verify(entityManager, times(existingOne ? 1 : 0)).refresh(ou);
+        verify(obtainedUnitRepository, times(ouId != null ? 1 : 0)).delete(ou);
     }
 
     @Override
@@ -211,5 +281,16 @@ class ObtainedUnitBoTest extends AbstractBaseBoTest {
                 .targetBo(obtainedUnitBo)
                 .taggableCacheManager(taggableCacheManager)
                 .build();
+    }
+
+    private static Stream<Arguments> saveWithAdding_should_work_parameters() {
+        return Stream.of(
+                Arguments.of(true, true, null, null),
+                Arguments.of(true, true, null, OBTAINED_UNIT_1_ID),
+                Arguments.of(false, true, null, null),
+                Arguments.of(true, true, 2L, null),
+                Arguments.of(false, true, 2L, null),
+                Arguments.of(false, false, null, null)
+        );
     }
 }

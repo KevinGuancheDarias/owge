@@ -16,6 +16,7 @@ import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
+import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
@@ -31,9 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serial;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Service
 @AllArgsConstructor
@@ -58,6 +62,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient HiddenUnitBo hiddenUnitBo;
     private final transient SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
     private final transient UserStorageRepository userStorageRepository;
+    private final transient ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -131,7 +136,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
      */
     public ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(Integer userId, Integer unitId,
                                                                                 Long planetId) {
-        return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNull(userId, unitId, planetId);
+        return repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(userId, unitId, planetId);
     }
 
 
@@ -142,7 +147,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     @Transactional(propagation = Propagation.MANDATORY)
     public ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(Integer userId, Integer unitId,
                                                                                   Long planetId) {
-        return repository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(userId, unitId, planetId,
+        return repository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(userId, unitId, planetId,
                 MissionType.DEPLOYED.name());
     }
 
@@ -185,9 +190,18 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     public ObtainedUnit saveWithAdding(Integer userId, ObtainedUnit obtainedUnit, Long targetPlanet) {
         Integer unitId = obtainedUnit.getUnit().getId();
         ObtainedUnit retVal;
-        ObtainedUnit existingOne = planetBo.isOfUserProperty(userId, targetPlanet)
-                ? findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, targetPlanet)
-                : findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, targetPlanet);
+        ObtainedUnit existingOne;
+        var isOfUserProperty = planetBo.isOfUserProperty(userId, targetPlanet);
+        if (obtainedUnit.getExpirationId() == null) {
+            existingOne = isOfUserProperty
+                    ? findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, targetPlanet)
+                    : findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, targetPlanet);
+        } else {
+            var expirationId = obtainedUnit.getExpirationId();
+            existingOne = isOfUserProperty
+                    ? repository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(userId, unitId, targetPlanet, expirationId)
+                    : repository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCodeAndExpirationId(userId, unitId, targetPlanet, MissionType.DEPLOYED.name(), expirationId);
+        }
         if (existingOne == null) {
             retVal = save(obtainedUnit);
         } else {
@@ -344,7 +358,26 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
                             unitWithNullSpeedImpact.getSpeedImpactGroup().setRequirementGroups(null);
                         }
                 );
-        return toDto(entities);
+        var dtoList = toDto(entities);
+        loadNonJpaData(entities, dtoList);
+        return dtoList;
+    }
+
+    private void loadNonJpaData(List<ObtainedUnit> entities, List<ObtainedUnitDto> dtoList) {
+        IntStream.range(0, dtoList.size()).forEach(i -> {
+            var entity = entities.get(i);
+            var dto = dtoList.get(i);
+            var expirationId = entity.getExpirationId();
+            if (expirationId != null) {
+                var temporalInformationOpt = obtainedUnitTemporalInformationRepository.findById(expirationId);
+                temporalInformationOpt.ifPresent(temporalInformation -> {
+                    temporalInformation.setPendingMillis(
+                            ChronoUnit.MILLIS.between(Instant.now(), temporalInformation.getExpiration())
+                    );
+                    dto.setTemporalInformation(temporalInformation);
+                });
+            }
+        });
     }
 
     /**

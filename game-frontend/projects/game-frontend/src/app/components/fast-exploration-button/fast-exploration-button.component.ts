@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MissionUtil, ToastrService } from '@owge/core';
-import { MissionStore, ObtainedUnit, Planet, Unit, UnitRunningMission } from '@owge/universe';
+import { MissionStore, ObtainedUnit, Planet, UnitRunningMission } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
 import { MissionService } from '../../services/mission.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
@@ -66,15 +66,16 @@ export class FastExplorationButtonComponent extends BaseComponent implements OnI
   public clickFastExplore(targetPlanet: Planet): void {
     if (this.hasFastExplorerUnits) {
       this._loadingService.runWithLoading(async () => {
-        const unit: Unit = this.availableFastExploreUnits[0].unit;
+        const ou: ObtainedUnit = this.availableFastExploreUnits[0];
         await this._missionService.sendExploreMission(this._currentSourcePlanet, targetPlanet, [
           {
             count: 1,
-            unit
+            unit: ou.unit,
+            expirationId: ou?.temporalInformation?.id
           }
         ]).toPromise();
         this._toastrService.info('APP.DISPLAY_QUADRANT.FAST_EXPLORE_SENT', '', {
-          unitName: unit.name
+          unitName: ou.unit.name
         });
       });
     } else {

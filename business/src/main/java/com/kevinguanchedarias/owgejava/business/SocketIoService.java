@@ -62,7 +62,7 @@ public class SocketIoService {
 
 
     private SocketIOServer server;
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     public SocketIoService(ObjectMapper springMapper) {
         mapper = springMapper.copy();

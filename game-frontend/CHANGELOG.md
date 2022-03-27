@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I would like to have faction specials that can give me temporary units #10](https://github.com/KevinGuancheDarias/owge/issues/10)  
 * __Feature:__ [As a player I want to have time specials that allows me to mark units as specified speed impact group #448](https://github.com/KevinGuancheDarias/owge/issues/448)  
 * __Fix:__ [Unit information modal doesn't display the attackable rules properly, should have colors #444](https://github.com/KevinGuancheDarias/owge/issues/444)  
 * __Fix:__ [Game is not using parent speed group impact when unit one custom one is not defined #446](https://github.com/KevinGuancheDarias/owge/issues/446)  

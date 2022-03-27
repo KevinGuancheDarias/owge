@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.function.Consumer;
-
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+
+import java.util.function.Consumer;
 
 /**
  * A manager for scheduled task
@@ -12,37 +12,29 @@ import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
  */
 public interface ScheduledTasksManagerService {
 
-	/**
-	 * Adds a new handler that runs when a task is ready
-	 *
-	 * @param <T>      Type of the consumer (deduced by JVM)
-	 * @param event    The identifier of the task to listen to
-	 * @param consumer
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @since 0.8.1
-	 */
-	public void addHandler(String event, Consumer<ScheduledTask> consumer);
+    /**
+     * Adds a new handler that runs when a task is ready
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     */
+    void addHandler(String event, Consumer<ScheduledTask> consumer);
 
-	/**
-	 * Registers an event that will run after certain time
-	 *
-	 * @param <T>
-	 * @param task
-	 * @param deliverAfterSeconds
-	 * @return The id that represents the job
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @since 0.8.1
-	 */
-	public String registerEvent(ScheduledTask task, long deliverAfterSeconds);
+    /**
+     * Registers an event that will run after certain time
+     *
+     * @return The id that represents the job
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     */
+    String registerEvent(ScheduledTask task, long deliverAfterSeconds);
 
-	/**
-	 * Cancels an event before it even fires
-	 *
-	 * @param id
-	 * @param event
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @since 0.8.1
-	 */
-	public void cancelEvent(String id, String event);
+    /**
+     * Cancels an event before it even fires
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     */
+    void cancelEvent(String id, String event);
 
 }

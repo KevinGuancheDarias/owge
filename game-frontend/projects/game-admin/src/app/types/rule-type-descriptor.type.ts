@@ -12,4 +12,5 @@ export interface RuleTypeDescriptor {
             comparatorFn?: (a: IdName | number, b: IdName, number) => boolean;
         }>;
     allowedOrigins: string[];
+    allowedDestinations?: string[];
 }

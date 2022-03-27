@@ -13,3 +13,11 @@ CREATE TABLE `rules` (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 ALTER TABLE `obtained_units` ADD `is_from_capture` TINYINT NOT NULL AFTER `first_deployment_mission`;
+
+CREATE TABLE `obtained_unit_temporal_information` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , 
+    `duration` INT UNSIGNED NOT NULL ,
+    `expiration` TIMESTAMP NOT NULL , PRIMARY KEY (`id`)
+) ENGINE = InnoDB;
+
+ALTER TABLE `obtained_units` CHANGE `expiration` `expiration_id` INT UNSIGNED NULL DEFAULT NULL;
