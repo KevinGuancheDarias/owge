@@ -17,4 +17,5 @@ import lombok.extern.jackson.Jacksonized;
 public class SelectedUnit {
     Integer id;
     Long count;
+    Long expirationId;
 }

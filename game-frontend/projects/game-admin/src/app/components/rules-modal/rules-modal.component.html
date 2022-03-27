@@ -59,9 +59,16 @@
                 <select class="form-control" id="destination-type" [(ngModel)]="editingRule.destinationType"
                     (ngModelChange)="onDestinationTypeChange()">
                     <option [ngValue]="null">{{ 'CRUD.SELECT' | translate }}</option>
-                    <option *ngFor="let type of destinationTypes" [ngValue]="type">
-                        {{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.DESTINATION_TYPES.' + type | translate }}
-                    </option>
+                    <ng-container *ngIf="editingRuleTypeDescriptor?.allowedDestinations">
+                        <option *ngFor="let type of editingRuleTypeDescriptor.allowedDestinations" [ngValue]="type">
+                            {{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.DESTINATION_TYPES.' + type | translate }}
+                        </option>
+                    </ng-container>
+                    <ng-container *ngIf="!editingRuleTypeDescriptor?.allowedDestinations">
+                        <option *ngFor="let type of destinationTypes" [ngValue]="type">
+                            {{ 'CRUD.RULES.CRUD_MODAL.FORM_INPUT.DESTINATION_TYPES.' + type | translate }}
+                        </option>
+                    </ng-container>
                 </select>
             </div>
             <div class="form-group col-md-6">

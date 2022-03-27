@@ -14,9 +14,12 @@ import org.springframework.data.jpa.repository.Query;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long>, Serializable {
     List<ObtainedUnit> findByMissionId(Long missionId);
+
+    boolean existsByMission(Mission mission);
 
     /**
      * Finds all user units that are not of a specified mission type
@@ -59,15 +62,15 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
      */
-    ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNull(Integer userId, Integer unitId,
-                                                                           Long planetId);
+    ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(Integer userId, Integer unitId,
+                                                                                                Long planetId);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
      */
-    ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCode(Integer userId, Integer unitId,
-                                                                             Long planetId, String missionCode);
+    ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(Integer userId, Integer unitId,
+                                                                                                  Long planetId, String missionCode);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -129,4 +132,22 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     @Query("UPDATE ObtainedUnit ou SET ou.count = ou.count + ?2 WHERE ou = ?1")
     @Modifying
     void updateCount(ObtainedUnit obtainedUnit, long sumValue);
+
+    ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(Integer userId, Integer unitId, Long targetPlanet, Long expirationId);
+
+    ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndMissionTypeCodeAndExpirationId(
+            Integer userId, Integer unitId, Long targetPlanet, String name, Long expirationId
+    );
+
+    @Query(nativeQuery = true, value = "SELECT DISTINCT * FROM (SELECT p.id FROM obtained_units ou " +
+            "INNER JOIN planets p ON p.id = ou.source_planet WHERE ou.expiration_id = ?1 AND ou.source_planet IS NOT NULL " +
+            "UNION SELECT p.id FROM obtained_units ou " +
+            "INNER JOIN planets p ON p.id = ou.target_planet WHERE ou.expiration_id = ?1 AND ou.target_planet IS NOT NULL) AS foo")
+    Set<Long> findPlanetIdsByExpirationId(long expirationId);
+
+    List<ObtainedUnit> findByExpirationId(long expirationId);
+
+    ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(Integer userId, Integer unitId, Long planetId, Long expirationId, String name);
+
+    ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(Integer userId, Integer unitId, Long planetId, Long expirationId);
 }

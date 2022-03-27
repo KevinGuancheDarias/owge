@@ -60,4 +60,6 @@ public class ObtainedUnit implements EntityWithId<Long> {
     private Mission firstDeploymentMission;
 
     private boolean isFromCapture = false;
+
+    private Long expirationId;
 }

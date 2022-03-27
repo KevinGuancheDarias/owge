@@ -43,6 +43,12 @@ public class RuleBo {
                 .toList();
     }
 
+    public List<RuleDto> findByOriginTypeAndOriginIdAndType(String originType, long id, String type) {
+        return ruleRepository.findByOriginTypeAndOriginIdAndType(originType, id, type).stream()
+                .map(entity -> conversionService.convert(entity, RuleDto.class))
+                .toList();
+    }
+
     public List<RuleDto> findByType(String type) {
         return ruleRepository.findByType(type)
                 .stream()

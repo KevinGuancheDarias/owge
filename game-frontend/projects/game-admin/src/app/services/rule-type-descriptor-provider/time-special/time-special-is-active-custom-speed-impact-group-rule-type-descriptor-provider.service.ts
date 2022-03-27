@@ -23,7 +23,6 @@ export class TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProvider
                 data$: this.adminSpeedImpactGroupService.findAll(),
                 comparatorFn: (a, b) => {
                     const retVal = $this.toId(a) === $this.toId(b);
-                    console.log('Would return ', a, b, retVal);
                     return retVal;
                 }
             }]

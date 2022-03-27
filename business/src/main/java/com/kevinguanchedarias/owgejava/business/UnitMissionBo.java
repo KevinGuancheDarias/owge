@@ -804,6 +804,7 @@ public class UnitMissionBo extends AbstractMissionBo {
             currentObtainedUnit.setCount(current.getCount());
             currentObtainedUnit.setUser(user);
             currentObtainedUnit.setUnit(unitBo.findById(current.getId()));
+            currentObtainedUnit.setExpirationId(dbUnit.getExpirationId());
             currentObtainedUnit.setSourcePlanet(firstDeploymentMission == null ? mission.getSourcePlanet()
                     : firstDeploymentMission.getSourcePlanet());
             currentObtainedUnit.setTargetPlanet(mission.getTargetPlanet());
@@ -827,7 +828,7 @@ public class UnitMissionBo extends AbstractMissionBo {
         emitLocalMissionChangeAfterCommit(mission);
         if (user.equals(mission.getSourcePlanet().getOwner())) {
             transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(userId, UNIT_OBTAINED_CHANGE,
-                    () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))));
+                    () -> obtainedUnitBo.findCompletedAsDto(user)));
         }
         if (isEnemyPlanet) {
             alteredVisibilityMissions.stream()
@@ -979,7 +980,7 @@ public class UnitMissionBo extends AbstractMissionBo {
                 throw new SgtBackendInvalidInputException("No count was specified for unit " + current.getId());
             }
             ObtainedUnit currentObtainedUnit = findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(
-                    missionInformation.getUserId(), current.getId(), sourcePlanetId,
+                    missionInformation.getUserId(), current.getId(), sourcePlanetId, current.getExpirationId(),
                     !planetBo.isOfUserProperty(userId, sourcePlanetId));
             checkUnitCanDeploy(currentObtainedUnit, missionInformation);
             ObtainedUnit unitAfterSubtraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
@@ -1061,10 +1062,20 @@ public class UnitMissionBo extends AbstractMissionBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private ObtainedUnit findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(Integer userId, Integer unitId,
-                                                                                Long planetId, boolean isDeployedMission) {
-        ObtainedUnit retVal = isDeployedMission
-                ? obtainedUnitBo.findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, planetId)
-                : obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, planetId);
+                                                                                Long planetId, Long expirationId, boolean isDeployedMission) {
+
+        ObtainedUnit retVal;
+        if (expirationId == null) {
+            retVal = isDeployedMission
+                    ? obtainedUnitBo.findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(userId, unitId, planetId)
+                    : obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(userId, unitId, planetId);
+        } else {
+            retVal = isDeployedMission
+                    ? obtainedUnitRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(
+                    userId, unitId, planetId, expirationId, MissionType.DEPLOYED.name())
+                    : obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(userId, unitId, planetId, expirationId);
+        }
+
 
         if (retVal == null) {
             throw new NotFoundException("No obtainedUnit for unit with id " + unitId + " was found in planet "

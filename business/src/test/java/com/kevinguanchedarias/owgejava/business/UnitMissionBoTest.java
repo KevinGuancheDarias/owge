@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +70,7 @@ import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.SELECTED_UNIT_COUNT;
+import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenSelectedUnit;
 import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenUnitMissionInformation;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
@@ -133,6 +135,7 @@ import static org.mockito.Mockito.verify;
 })
 class UnitMissionBoTest {
     private static final int ALLY_ID = 19282;
+    private static final long EXPIRATION_ID = 8;
 
     private final UnitMissionBo unitMissionBo;
     private final PlanetBo planetBo;
@@ -283,16 +286,27 @@ class UnitMissionBoTest {
         }
     }
 
-    @Test
-    void adminRegisterExploreMission_should_work_and_use_custom_max_if_present_and_higher_than_computed_mission_time() {
+    @ParameterizedTest
+    @CsvSource({
+            "true,true",
+            "false,false",
+            "true,false",
+            "false,true"
+    })
+    void adminRegisterExploreMission_should_work_and_use_custom_max_if_present_and_higher_than_computed_mission_time(boolean shouldSearchDeployed, boolean hasExpirationId) {
         long customDuration = Integer.MAX_VALUE - 500;
         var unitMissionInformation = givenUnitMissionInformation(MissionType.EXPLORE);
         unitMissionInformation.setWantedTime(customDuration);
 
+        var ou = givenObtainedUnit1();
         var ouForSocket = givenObtainedUnit1();
         var ouForSocketDto = new ObtainedUnitDto();
         ouForSocketDto.setId(ouForSocket.getId());
-        doCommonMissionRegisterMockConfig(givenObtainedUnit1(), givenSourcePlanet(), 10);
+        doCommonMissionRegisterMockConfig(ou, givenSourcePlanet(), 10);
+        given(planetBo.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(!shouldSearchDeployed);
+        if (hasExpirationId) {
+            unitMissionInformation.setInvolvedUnits(List.of(givenSelectedUnit(EXPIRATION_ID)));
+        }
 
         unitMissionBo.adminRegisterExploreMission(unitMissionInformation);
 
@@ -301,6 +315,15 @@ class UnitMissionBoTest {
         var savedMission = captor.getValue();
         assertThat(savedMission.getRequiredTime()).isEqualTo(customDuration);
         assertThat(savedMission.getTerminationDate()).isNotNull();
+        verify(obtainedUnitBo, times(!hasExpirationId && shouldSearchDeployed ? 1 : 0)).
+                findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID);
+        verify(obtainedUnitBo, times(!hasExpirationId && !shouldSearchDeployed ? 1 : 0)).
+                findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID);
+        verify(obtainedUnitRepository, times(hasExpirationId && shouldSearchDeployed ? 1 : 0)).
+                findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID, MissionType.DEPLOYED.name());
+        verify(obtainedUnitRepository, times(hasExpirationId && !shouldSearchDeployed ? 1 : 0)).
+                findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID);
+
     }
 
     @Test
@@ -874,6 +897,14 @@ class UnitMissionBoTest {
         given(planetBo.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
         given(obtainedUnitBo.findOneByUserIdAndUnitIdAndSourcePlanetAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID))
                 .willReturn(ou);
+        given(obtainedUnitBo.findOneByUserIdAndUnitIdAndTargetPlanetAndMissionDeployed(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID))
+                .willReturn(ou);
+        given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(
+                USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID, MissionType.DEPLOYED.name()
+        )).willReturn(ou);
+        given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(
+                USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID
+        )).willReturn(ou);
         given(configurationBo.findDeployMissionConfiguration()).willReturn(DeployMissionConfigurationEnum.FREEDOM);
         doAnswer(returnsFirstArg()).when(obtainedUnitBo).saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false);
         given(missionConfigurationBo.findMissionBaseTimeByType(MissionType.EXPLORE)).willReturn((long) baseRequiredTime);
@@ -889,7 +920,7 @@ class UnitMissionBoTest {
         given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(runningMission));
         given(obtainedUnitBo.findByMissionId(runningMissionId)).willReturn(List.of(runningInvolved));
         given(obtainedUnitBo.findDeployedInUserOwnedPlanets(USER_ID_1)).willReturn(List.of(ouForSocket));
-        given(obtainedUnitBo.toDto(List.of(ouForSocket))).willReturn(List.of(ouForSocketDto));
+        given(obtainedUnitBo.findCompletedAsDto(user)).willReturn(List.of(ouForSocketDto));
         given(improvementBo.findUserImprovement(user)).willReturn(givenUserImprovement());
         doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)

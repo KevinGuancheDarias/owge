@@ -81,7 +81,8 @@
         <owge-widgets-display-improved-attribute *ngIf="unit.charge" [name]="'Charge'" [value]="unit.charge"
           [assetsImage]="true" [image]="'carry.png'" [improvementPercentage]="moreCharge">
         </owge-widgets-display-improved-attribute>
-        <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed" [improvementPercentage]="moreSpeed">
+        <owge-widgets-display-improved-attribute [icon]="'fa fa-tachometer-alt'" [name]="'Speed'" [value]="unit.speed"
+          [improvementPercentage]="moreSpeed">
         </owge-widgets-display-improved-attribute>
         <div class="extra-attributes">
           <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" [image]="'bypass-shield.png'"
@@ -135,6 +136,10 @@
           <div class="in-planet-count">
             <h5>{{ 'APP.UNITS.DISPLAY_SINGLE.NUMBER' | translate }}:</h5>
             <h5> {{ inPlanetCount }}</h5>
+            <h5 *ngIf="obtainedUnit.temporalInformation">
+              <owge-widgets-countdown [targetDate]="obtainedUnit.temporalInformation.expirationDate">
+              </owge-widgets-countdown>
+            </h5>
           </div>
         </ng-template>
         <input class="number-to-delete" type="number" [(ngModel)]="numberToDelete"

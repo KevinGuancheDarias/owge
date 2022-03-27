@@ -73,11 +73,11 @@ import {
   TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService
   // eslint-disable-next-line max-len
 } from './services/rule-type-descriptor-provider/time-special/time-special-is-active-custom-speed-impact-group-rule-type-descriptor-provider.service';
+// eslint-disable-next-line max-len
+import { TimespecialIsActiveTemporalUnitsTypeDescriptorProviderService } from './services/rule-type-descriptor-provider/time-special/time-special-is-active-temporal-units-rule-type-descriptor-provider.service';
 import {
   UnitCaptureRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/unit-capture-rule-type-descriptor-provider.service';
-
-
 
 @NgModule({
   declarations: [
@@ -169,7 +169,8 @@ import {
       provide: ruleTypeDescriptorProviderToken,
       useClass: TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService,
       multi: true
-    }
+    },
+    { provide: ruleTypeDescriptorProviderToken, useClass: TimespecialIsActiveTemporalUnitsTypeDescriptorProviderService, multi: true }
   ],
   bootstrap: [AppComponent]
 })

@@ -5,7 +5,7 @@ import {
 } from '@owge/core';
 import {
   AnyRunningMission, MissionStore, Planet, ResourceManagerService, RunningMission,
-  UnitRunningMission, UniverseCacheManagerService, UniverseGameService, UserStorage, WsEventCacheService
+  UnitRunningMission, UnitUtil, UniverseCacheManagerService, UniverseGameService, UserStorage, WsEventCacheService
 } from '@owge/universe';
 import { camelCase, upperFirst } from 'lodash-es';
 import { Observable } from 'rxjs';
@@ -222,6 +222,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
    */
   protected async _onMyUnitMissionsChange(content: { count: number; myUnitMissions: UnitRunningMission[] }): Promise<void> {
     this._onMissionsCountChange(content.count);
+    content.myUnitMissions.forEach(missions => missions.involvedUnits.forEach(ou => UnitUtil.createTerminationDate(ou)));
     const withBrowserDateContent: UnitRunningMission[] = content.myUnitMissions
       .map(mission => DateUtil.computeBrowserTerminationDate(mission));
     this._missionStore.myUnitMissions.next(withBrowserDateContent);
@@ -269,12 +270,20 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
       url, {
       sourcePlanetId: sourcePlanet.id,
       targetPlanetId: targetPlanet.id,
-      involvedUnits: involvedUnits.map(involvedUnit => ({ id: involvedUnit.unit.id, count: involvedUnit.count })),
+      involvedUnits: involvedUnits.map(unit => this.mapSelectedUnitToBackendExpected(unit)),
       wantedTime
     }).pipe(map(result => {
       if (result) {
         this._missionStore.missionsCount.next(result.missionsCount);
       }
     }));
+  }
+
+  private mapSelectedUnitToBackendExpected(unit: SelectedUnit): SelectedUnit {
+    return {
+      id: unit.unit.id,
+      count: unit.count,
+      expirationId: unit.expirationId
+    };
   }
 }

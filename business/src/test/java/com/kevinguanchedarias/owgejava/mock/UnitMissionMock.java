@@ -22,14 +22,15 @@ public class UnitMissionMock {
                 .sourcePlanetId(SOURCE_PLANET_ID)
                 .targetPlanetId(TARGET_PLANET_ID)
                 .missionType(missionType)
-                .involvedUnits(List.of(givenSelectedUnit()))
+                .involvedUnits(List.of(givenSelectedUnit(null)))
                 .build();
     }
 
-    public static SelectedUnit givenSelectedUnit() {
+    public static SelectedUnit givenSelectedUnit(Long expirationId) {
         return SelectedUnit.builder()
                 .id(UNIT_ID_1)
                 .count(SELECTED_UNIT_COUNT)
+                .expirationId(expirationId)
                 .build();
     }
 }

@@ -50,4 +50,25 @@
     div.username {
         width: 100%;
     }
+
+    owge-widgets-countdown {
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        min-width: 100px;
+        .kgd-countdown {
+            text-align: left;
+            box-shadow: none;
+            padding: 0px;
+        }
+        span {
+            font-size: 8pt;
+        }
+    }
+
+    .owge-card-list:not(.tiny-imgs) {
+        owge-widgets-countdown {
+            position: static;
+        }
+    }
 }

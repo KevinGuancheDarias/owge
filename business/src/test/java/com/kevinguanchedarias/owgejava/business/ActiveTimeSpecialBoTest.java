@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeConsumerLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
+import com.kevinguanchedarias.owgejava.test.configuration.SpyEventPublisherConfiguration;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +45,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,8 +67,9 @@ import static org.mockito.Mockito.verify;
         RequirementBo.class,
         TaggableCacheManager.class,
         ObtainedUnitBo.class,
-        RuleRepository.class
+        RuleRepository.class,
 })
+@Import(SpyEventPublisherConfiguration.class)
 class ActiveTimeSpecialBoTest {
     private final NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo;
     private final TimeSpecialBo timeSpecialBo;
@@ -78,6 +83,7 @@ class ActiveTimeSpecialBoTest {
     private final TaggableCacheManager taggableCacheManager;
     private final ObtainedUnitBo obtainedUnitBo;
     private final RuleRepository ruleRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     ActiveTimeSpecialBoTest(
@@ -92,7 +98,8 @@ class ActiveTimeSpecialBoTest {
             SocketIoService socketIoService,
             TaggableCacheManager taggableCacheManager,
             ObtainedUnitBo obtainedUnitBo,
-            RuleRepository ruleRepository
+            RuleRepository ruleRepository,
+            ApplicationEventPublisher applicationEventPublisher
     ) {
         this.activeTimeSpecialBo = activeTimeSpecialBo;
         this.timeSpecialBo = timeSpecialBo;
@@ -106,6 +113,7 @@ class ActiveTimeSpecialBoTest {
         this.taggableCacheManager = taggableCacheManager;
         this.obtainedUnitBo = obtainedUnitBo;
         this.ruleRepository = ruleRepository;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Test
@@ -264,6 +272,7 @@ class ActiveTimeSpecialBoTest {
         given(ruleRepository.existsByOriginTypeAndOriginIdAndDestinationTypeIn(
                 ObjectEnum.TIME_SPECIAL.name(), (long) TIME_SPECIAL_ID, List.of(ObjectEnum.UNIT.name(), "UNIT_TYPE"))
         ).willReturn(isAffectingUnits);
+        doNothing().when(applicationEventPublisher).publishEvent(any(ActiveTimeSpecial.class));
 
         var result = activeTimeSpecialBo.activate(TIME_SPECIAL_ID);
 
@@ -289,6 +298,7 @@ class ActiveTimeSpecialBoTest {
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, timeSpecial);
         verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
         verify(obtainedUnitBo, times(emitUnitsTimes)).emitObtainedUnitChange(USER_ID_1);
+        verify(applicationEventPublisher, times(1)).publishEvent(savedActive);
     }
 
     @Test
