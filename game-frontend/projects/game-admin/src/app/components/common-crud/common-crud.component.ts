@@ -1,12 +1,11 @@
-import { Component, OnInit, Input, ContentChild, TemplateRef, ViewChild, Output, EventEmitter, OnChanges, OnDestroy } from '@angular/core';
-
-import { CommonEntity, LoadingService } from '@owge/core';
-import { AbstractCrudService } from '@owge/universe';
-import { ModalComponent } from '@owge/core';
-import { DisplayService } from '@owge/widgets';
+import { Component, ContentChild, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { CommonEntity, LoadingService, ModalComponent } from '@owge/core';
+import { AbstractCrudService } from '@owge/universe';
+import { DisplayService } from '@owge/widgets';
 import { isEqual } from 'lodash-es';
 import { Observable, Subscription } from 'rxjs';
+
 
 /**
  * Used to handle the default Crud <br>
@@ -33,13 +32,13 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   @ContentChild('middleOfCard', { static: true }) public middleOfCard: TemplateRef<any>;
   @Input() public hasDescription = true;
   @Input() public idField: keyof T = 'id';
-  @Input() public hideSections: { id?: boolean, name?: boolean, description?: boolean };
+  @Input() public hideSections: { id?: boolean; name?: boolean; description?: boolean };
   @Input() public customElementsSource: Observable<T[]>;
   @Input() public customNewFiller: (el: T) => Promise<T>;
   @Input() public customSaveAction: (el: T) => Promise<T>;
   @Input() public allowSelection = false;
   @Input() public disableName = false;
-  @Output() public elementsLoaded: EventEmitter<void> = new EventEmitter;
+  @Output() public elementsLoaded: EventEmitter<T[]> = new EventEmitter;
   @Output() public elementSelected: EventEmitter<T> = new EventEmitter;
   @Output() public saveResult: EventEmitter<T> = new EventEmitter;
 
@@ -49,7 +48,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
    * <b>NOTICE:</b> don't confuse with elementSelected which is used to control the creation/edition modal
    *
    * @since 0.9.0
-  */
+   */
   @Output() public choosen: EventEmitter<T> = new EventEmitter;
   public elements: T[];
   public newElement: T;
@@ -75,7 +74,7 @@ export class CommonCrudComponent<K, T extends CommonEntity<K>> implements OnInit
   public ngOnChanges(): void {
     const onSubscribeAction = elements => {
       this.elements = elements;
-      this.elementsLoaded.emit();
+      this.elementsLoaded.emit(this.elements);
     };
     if (this.customElementsSource) {
       if (this._customSubscription) {

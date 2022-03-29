@@ -352,6 +352,10 @@
         }
     },
     "FILTER": {
-        "BY_FACTION": "Facción"
+        "BY_FACTION": "Facción",
+        "BY_SPECIAL_LOCATION": "Ubicación especial",
+        "BY_TIME_SPECIAL_AVAILABLE": "Especial de tiempo disponible",
+        "BY_TIME_SPECIAL_ENABLED": "Especial de tiempo activo",
+        "BY_NAME": "Nombre"
     }
 }

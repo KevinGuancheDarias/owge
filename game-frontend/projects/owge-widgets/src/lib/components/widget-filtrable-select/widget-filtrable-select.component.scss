@@ -11,3 +11,12 @@ a.btn {
 label {
     margin-left: 5px;
 }
+.tiny-filter {
+    width: auto !important;
+    margin-top: 0px !important;
+    padding: 0px 4px;
+}
+
+a.disabled-btn {
+    pointer-events: none;
+}

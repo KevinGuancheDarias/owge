@@ -1,16 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ModalComponent, SpeedImpactGroup, UnitType } from '@owge/core';
 import { InterceptableSpeedGroup, Unit } from '@owge/universe';
-import { Observable } from 'rxjs';
+import { WidgetFilter, WidgetFilterUtil } from '@owge/widgets';
+import { Observable, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
+import { AdminFactionService } from '../../services/admin-faction.service';
+import { AdminSpecialLocationService } from '../../services/admin-special-location.service';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
+import { AdminTimeSpecialService } from '../../services/admin-time-special.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 import { AdminUnitService } from '../../services/admin-unit.service';
 import { CommonCrudWithImageComponent } from '../common-crud-with-image/common-crud-with-image.component';
 import { CommonCrudComponent } from '../common-crud/common-crud.component';
 import { RulesModalComponent } from '../rules-modal/rules-modal.component';
-
-
 
 
 interface InterceptedSpeedImpactGroup extends SpeedImpactGroup {
@@ -35,22 +37,37 @@ export class UnitCrudComponent implements OnInit {
   @ViewChild(CommonCrudWithImageComponent) public commonCrudComponent: CommonCrudComponent<number, Unit>;
   @ViewChild(RulesModalComponent) public rulesModal: RulesModalComponent;
 
-  public selectedEl: Unit;
+  public units: Unit[];
   public elsObservable: Observable<Unit[]>;
+  public selectedEl: Unit;
   public unitTypes: UnitType[];
   public speedImpactGroups: InterceptedSpeedImpactGroup[] = [];
   public beforeCriticalAttackDeleteBinded: () => Promise<void>;
+  public secondValueFilters: WidgetFilter<any>[] = [WidgetFilterUtil.buildByNameFilter()];
+
+  private subject: Subject<Unit[]> = new Subject;
 
   public constructor(
     public adminUnitService: AdminUnitService,
     private _adminUnitTypeservice: AdminUnitTypeService,
-    private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService
+    private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService,
+    private adminFactionService: AdminFactionService,
+    private adminSpecialLocationService: AdminSpecialLocationService,
+    private adminTimeSpecialService: AdminTimeSpecialService
   ) { }
 
   public ngOnInit() {
     this.beforeCriticalAttackDeleteBinded = this.beforeCriticalAttackDelete.bind(this);
     this._adminUnitTypeservice.findAll().subscribe(val => this.unitTypes = val);
     this._adminSpeedImpactGroupService.findAll().subscribe(result => this.speedImpactGroups = result);
+    this.adminFactionService.buildFilter().then(result => this.secondValueFilters.push(result));
+    this.adminSpecialLocationService.buildFilter().then(result => this.secondValueFilters.push(result));
+    this.adminTimeSpecialService.buildFilter().then(filters => filters.forEach(filter => this.secondValueFilters.push(filter)));
+    this.elsObservable = this.subject.asObservable();
+    this.adminUnitService.findAll().subscribe(unitsResult => {
+      this.subject.next(unitsResult);
+      this.units = unitsResult;
+    });
   }
 
   public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
@@ -74,6 +91,10 @@ export class UnitCrudComponent implements OnInit {
         speedGroup.isIntercepted = interceptedGroups.some(intercepted => intercepted.speedImpactGroup.id === speedGroup.id)
       );
     }
+  }
+
+  public onFilter(filtered: Unit[]) {
+    this.subject.next(filtered);
   }
 
   /**

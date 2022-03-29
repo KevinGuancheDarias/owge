@@ -26,9 +26,10 @@
 <app-common-crud-with-image [_crudService]="adminUnitService" (elementSelected)="onSelected($event)"
     [customElementsSource]="elsObservable">
     <ng-template #beforeList>
-        <app-requirements-filter [service]="adminUnitService" (filteredSource)="elsObservable = $event">
+        <owge-widgets-filtrable-select *ngIf="units" [collection]="units" [filters]="secondValueFilters"
+            (filteredcollection)="onFilter($event)">
 
-        </app-requirements-filter>
+        </owge-widgets-filtrable-select>
     </ng-template>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">

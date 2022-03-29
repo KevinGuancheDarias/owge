@@ -362,6 +362,10 @@
         }
     },
     "FILTER": {
-        "BY_FACTION": "Faction"
+        "BY_FACTION": "Faction",
+        "BY_SPECIAL_LOCATION": "Special Location",
+        "BY_TIME_SPECIAL_AVAILABLE": "Available Time Special",
+        "BY_TIME_SPECIAL_ENABLED": "Enabled Time Special",
+        "BY_NAME": "Name"
     }
 }
