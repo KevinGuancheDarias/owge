@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Fix:__ [Admin panel filter units by faction doesn't work in the main units screen #453](https://github.com/KevinGuancheDarias/owge/issues/453)  
 * __Feature:__ [As a player I would like to have faction specials that can give me temporary units #10](https://github.com/KevinGuancheDarias/owge/issues/10)  
 * __Feature:__ [As a player I want to have time specials that allows me to mark units as specified speed impact group #448](https://github.com/KevinGuancheDarias/owge/issues/448)  
 * __Fix:__ [Unit information modal doesn't display the attackable rules properly, should have colors #444](https://github.com/KevinGuancheDarias/owge/issues/444)  

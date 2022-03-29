@@ -3,26 +3,36 @@
         <div class="header">{{ 'WIDGETS.FILTRABLE_SELECT.MODAL.TITLE' | translate }}</div>
         <div class="body">
             <div class="form-row">
-                <div class="form-group col-md-6" *ngFor="let filter of filters" >
+                <div class="form-group col-md-6" *ngFor="let filter of filters">
                     <input [(ngModel)]="filter.isEnabled" type="checkbox" (ngModelChange)="triggerFilter()" />
-                    <label>{{ filter.name | translate }}</label>
+                    <label>{{ filter.name | translate }} </label>
                     <ng-container *ngIf="!filter.inputType">
-                        <select [disabled]="!filter.isEnabled" *ngIf="filter.compareAction" [compareWith]="filter.compareAction" class="form-control"[(ngModel)]="filter.selected" (ngModelChange)="triggerFilter()" >
+                        <owge-widgets-filtrable-select [filters]="filter.dataSelectionFilter" [collection]="filter.data"
+                            [btnCssClass]="'tiny-filter'" (filteredcollection)="filter.filteredSelection = $event"
+                            [disabled]="!filter.isEnabled">
+
+                        </owge-widgets-filtrable-select>
+                        <select [disabled]="!filter.isEnabled" *ngIf="filter.compareAction"
+                            [compareWith]="filter.compareAction" class="form-control" [(ngModel)]="filter.selected"
+                            (ngModelChange)="triggerFilter()">
                             <option [ngValue]="undefined">{{ 'CRUD.SELECT' | translate }}</option>
-                            <option *ngFor="let entry of filter.data" [ngValue]="entry">
+                            <option *ngFor="let entry of filter.filteredSelection" [ngValue]="entry">
                                 {{ entry.name }}
                             </option>
-                        </select> 
+                        </select>
                     </ng-container>
                     <ng-container *ngIf="filter.inputType">
-                        <input [disabled]="!filter.isEnabled" class="form-control" [type]="filter.inputType" [(ngModel)]="filter.selected"  (ngModelChange)="triggerFilter()"/>
+                        <input [disabled]="!filter.isEnabled" class="form-control" [type]="filter.inputType"
+                            [(ngModel)]="filter.selected" (ngModelChange)="triggerFilter()" />
                     </ng-container>
                 </div>
             </div>
         </div>
         <div class="footer">
-            <button class="btn btn-primary btn-block" (click)="modal.hide()"> {{ 'WIDGETS.FILTRABLE_SELECT.MODAL.BTN_OK' | translate }}</button>
+            <button class="btn btn-primary btn-block" (click)="modal.hide()"> {{ 'WIDGETS.FILTRABLE_SELECT.MODAL.BTN_OK'
+                | translate }}</button>
         </div>
     </owge-core-modal>
-    <a (click)="modal.show()" class="btn btn-primary" [style.color]="isFiltered ? 'green' : 'red'"><i class="fa fa-filter"></i></a>
+    <a (click)="modal.show()" class="btn btn-primary {{btnCssClass}}" [class.disabled-btn]="disabled"
+        [style.color]="isFiltered ? 'green' : 'red'"><i class="fa fa-filter"></i></a>
 </ng-container>

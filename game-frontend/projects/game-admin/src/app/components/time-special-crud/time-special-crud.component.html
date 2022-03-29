@@ -5,9 +5,9 @@
 <app-common-crud-with-image [_crudService]="adminTimeSpecialService" (elementSelected)="selectedEl = $event"
     [customElementsSource]="elsObservable">
     <ng-template #beforeList>
-        <app-requirements-filter [service]="adminTimeSpecialService" (filteredSource)="elsObservable = $event">
-
-        </app-requirements-filter>
+        <owge-widgets-filtrable-select *ngIf="timeSpecial" [collection]="timeSpecial" [filters]="secondValueFilters"
+            (filteredcollection)="onFilter($event)">
+        </owge-widgets-filtrable-select>
     </ng-template>
     <ng-template #modalBody let-newElement>
         <ng-container *ngIf="selectedEl">

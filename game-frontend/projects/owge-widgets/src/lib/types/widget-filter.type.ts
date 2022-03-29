@@ -65,4 +65,8 @@ export interface WidgetFilter<T> {
      * @since 0.9.0
      */
     compareAction?: (a: T, b: T) => boolean;
+
+    dataSelectionFilter?: WidgetFilter<any>[];
+
+    filteredSelection?: any[];
 }

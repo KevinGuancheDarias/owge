@@ -93,7 +93,7 @@
         flex-wrap: wrap;
     }
 
-    .disabled-for-offline {
+    .disabled-for-offline, a.disabled-btn {
         background-color: lighten($color: $bgColorAlpha, $amount: 100);
         background-image: none;
         cursor: not-allowed;

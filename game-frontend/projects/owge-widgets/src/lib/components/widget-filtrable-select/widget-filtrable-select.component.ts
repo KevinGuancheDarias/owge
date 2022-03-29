@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges, Output, EventEmitter, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
+import { AsyncCollectionUtil, ModalComponent, ProgrammingError } from '@owge/core';
 import { WidgetFilter } from '../../types/widget-filter.type';
-import { ProgrammingError, AsyncCollectionUtil, ModalComponent } from '@owge/core';
 
 /**
  * Applies a filter to a collection and displays a select <br>
@@ -19,6 +19,10 @@ export class WidgetFiltrableSelectComponent implements OnChanges {
   @Input() public collection: any[];
 
   @Input() public filters: WidgetFilter<any>[] = [];
+
+  @Input() public btnCssClass = '';
+
+  @Input() public disabled = false;
 
   @Output() public filteredcollection: EventEmitter<any[]> = new EventEmitter;
 
