@@ -288,8 +288,9 @@
         "ONLY_ON_SAVED": "Sólo puedes modificar requisitos en un elemento guardado",
         "DESCRIPTIONS": {
             "BEEN_RACE": "Pertenecer a facción",
-            "UPGRADE_LEVEL": "Tener mejora a nivel {{thirdValue}}",
-            "HAVE_UNIT": "Tener unidad construida"
+            "UPGRADE_LEVEL": "Tener mejora a nivel igual o superior a {{thirdValue}}",
+            "HAVE_UNIT": "Tener unidad construida",
+            "UPGRADE_LEVEL_LOWER_THAN": "Tener mejora a nivel inferior a {{thirdValue}}"
         },
         "TARGETS": {
             "BEEN_RACE": "Facción necesaria",

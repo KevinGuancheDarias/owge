@@ -22,6 +22,7 @@ INSERT INTO requirements (id,code, description) VALUES (6, 'UNIT_AMOUNT', 'Canti
 INSERT INTO requirements (id,code, description) VALUES (7, 'HOME_GALAXY', 'Galaxia original');
 INSERT INTO requirements (id,code, description) VALUES (8, 'HAVE_SPECIAL_AVAILABLE', 'Tener especial disponible');
 INSERT INTO requirements (id,code, description) VALUES (9, 'HAVE_SPECIAL_ENABLED', 'Tener especial habilitado');
+INSERT INTO requirements (id,code, description) VALUES (10, 'UPGRADE_LEVEL_LOWER_THAN', 'Have upgrade lower than');
 -- END Prepare requirements
 
 -- START Prepare mission types

@@ -21,3 +21,5 @@ CREATE TABLE `obtained_unit_temporal_information` (
 ) ENGINE = InnoDB;
 
 ALTER TABLE `obtained_units` CHANGE `expiration` `expiration_id` INT UNSIGNED NULL DEFAULT NULL;
+ALTER TABLE `requirements` CHANGE `code` `code` VARCHAR(24) NOT NULL;
+INSERT INTO requirements (code, description)VALUES('UPGRADE_LEVEL_LOWER_THAN', 'Have upgrade lower than')

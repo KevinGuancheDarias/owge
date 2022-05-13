@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.0
+-- version 5.1.1
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : host.docker.internal
--- Généré le : sam. 08 mai 2021 à 11:44
--- Version du serveur :  8.0.23
--- Version de PHP : 7.4.16
+-- Généré le : ven. 13 mai 2022 à 16:56
+-- Version du serveur : 8.0.26
+-- Version de PHP : 7.4.20
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `u9_snapshot`
+-- Base de données : `nightly_snapshot`
 --
 
 -- --------------------------------------------------------
@@ -35,7 +35,7 @@ CREATE TABLE `active_time_specials` (
   `activation_date` datetime NOT NULL,
   `expiring_date` datetime NOT NULL,
   `ready_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -48,7 +48,7 @@ CREATE TABLE `admin_users` (
   `username` varchar(20) NOT NULL,
   `enabled` tinyint(1) NOT NULL,
   `can_add_admins` tinyint UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -62,7 +62,7 @@ CREATE TABLE `alliances` (
   `description` text,
   `image` char(36) DEFAULT NULL,
   `owner_id` int UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -75,7 +75,7 @@ CREATE TABLE `alliance_join_request` (
   `alliance_id` smallint UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `request_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -86,7 +86,7 @@ CREATE TABLE `alliance_join_request` (
 CREATE TABLE `attack_rules` (
   `id` smallint UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -100,7 +100,7 @@ CREATE TABLE `attack_rule_entries` (
   `target` enum('UNIT','UNIT_TYPE') NOT NULL,
   `reference_id` smallint UNSIGNED NOT NULL,
   `can_attack` tinyint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -110,31 +110,16 @@ CREATE TABLE `attack_rule_entries` (
 
 CREATE TABLE `audit` (
   `id` bigint UNSIGNED NOT NULL,
-  `action` enum('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES','USER_INTERACTION','JOIN_ALLIANCE','ATTACK_INTERACTION','ACCEPT_JOIN_ALLIANCE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `action_detail` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `action` enum('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES','USER_INTERACTION','JOIN_ALLIANCE','ACCEPT_JOIN_ALLIANCE','ATTACK_INTERACTION') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `action_detail` varchar(100) DEFAULT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `related_user_id` int UNSIGNED DEFAULT NULL,
-  `ip` char(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `user_agent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `cookie` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `ip` char(15) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `cookie` varchar(50) DEFAULT NULL,
   `is_tor` tinyint(1) NOT NULL,
   `creation_date` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `carpetas`
---
-
-CREATE TABLE `carpetas` (
-  `cd` int NOT NULL,
-  `Nombre` char(15) CHARACTER SET latin1 COLLATE latin1_spanish_ci NOT NULL,
-  `usercd` int NOT NULL,
-  `Borrable` tinyint(1) NOT NULL,
-  `Movible` tinyint(1) NOT NULL,
-  `Mensajes` int NOT NULL COMMENT 'Número de mensajes que contiene'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_spanish_ci;
 
 -- --------------------------------------------------------
 
@@ -147,7 +132,7 @@ CREATE TABLE `configuration` (
   `display_name` varchar(400) DEFAULT NULL,
   `value` varchar(200) NOT NULL,
   `privileged` tinyint NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -184,7 +169,7 @@ CREATE TABLE `explored_planets` (
   `id` bigint NOT NULL,
   `user` int UNSIGNED NOT NULL,
   `planet` bigint UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -217,7 +202,7 @@ CREATE TABLE `factions` (
   `cloned_improvements` tinyint NOT NULL,
   `custom_primary_gather_percentage` float UNSIGNED DEFAULT NULL,
   `custom_secondary_gather_percentage` float UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -230,7 +215,23 @@ CREATE TABLE `factions_unit_types` (
   `faction_id` smallint UNSIGNED NOT NULL,
   `unit_type_id` smallint UNSIGNED NOT NULL,
   `max_count` int UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `faction_spawn_location`
+--
+
+CREATE TABLE `faction_spawn_location` (
+  `id` smallint UNSIGNED NOT NULL,
+  `faction_id` smallint UNSIGNED NOT NULL,
+  `galaxy_id` smallint UNSIGNED NOT NULL,
+  `sector_range_start` int UNSIGNED DEFAULT NULL,
+  `sector_range_end` int UNSIGNED DEFAULT NULL,
+  `quadrant_range_start` int UNSIGNED DEFAULT NULL,
+  `quadrant_range_end` int UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -259,7 +260,7 @@ CREATE TABLE `images_store` (
   `filename` varchar(500) NOT NULL,
   `display_name` varchar(50) DEFAULT NULL,
   `description` varchar(200) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -277,7 +278,7 @@ CREATE TABLE `improvements` (
   `more_missions_value` tinyint DEFAULT NULL,
   `more_upgrade_research_speed` float DEFAULT NULL,
   `more_unit_build_speed` float DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -288,10 +289,10 @@ CREATE TABLE `improvements` (
 CREATE TABLE `improvements_unit_types` (
   `id` smallint UNSIGNED NOT NULL,
   `improvement_id` smallint UNSIGNED NOT NULL,
-  `type` enum('ATTACK','DEFENSE','SHIELD','AMOUNT') NOT NULL,
+  `type` enum('ATTACK','DEFENSE','SHIELD','AMOUNT','SPEED') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `unit_type_id` smallint UNSIGNED NOT NULL,
   `value` int NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='upgrades_unit_types';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='upgrades_unit_types';
 
 -- --------------------------------------------------------
 
@@ -328,7 +329,7 @@ CREATE TABLE `missions` (
   `attemps` tinyint UNSIGNED NOT NULL DEFAULT '1',
   `resolved` tinyint NOT NULL,
   `invisible` tinyint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -341,7 +342,7 @@ CREATE TABLE `mission_information` (
   `mission_id` bigint UNSIGNED NOT NULL,
   `relation_id` smallint UNSIGNED DEFAULT NULL COMMENT 'Represents the relation id if applicable',
   `value` double DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Some missions may require having some information about the mission itself.  for example the level up upgrade mission needs the relation id';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Some missions may require having some information about the mission itself.  for example the level up upgrade mission needs the relation id';
 
 -- --------------------------------------------------------
 
@@ -356,7 +357,7 @@ CREATE TABLE `mission_reports` (
   `report_date` datetime DEFAULT NULL,
   `is_enemy` tinyint(1) DEFAULT '0',
   `user_read_date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -369,7 +370,7 @@ CREATE TABLE `mission_types` (
   `code` varchar(50) NOT NULL,
   `description` varchar(200) DEFAULT NULL,
   `is_shared` tinyint NOT NULL COMMENT 'If true will use the shared handling thread, instead of a dedicated one'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -380,7 +381,7 @@ CREATE TABLE `mission_types` (
 CREATE TABLE `objects` (
   `description` varchar(18) NOT NULL,
   `repository` varchar(100) NOT NULL COMMENT 'Spring Data Repository related to this object'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Used to match objects with requirements';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Used to match objects with requirements';
 
 -- --------------------------------------------------------
 
@@ -392,7 +393,7 @@ CREATE TABLE `object_relations` (
   `id` smallint UNSIGNED NOT NULL,
   `object_description` varchar(18) NOT NULL,
   `reference_id` smallint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the mapping between objects table and the referenced tb';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Has the mapping between objects table and the referenced tb';
 
 -- --------------------------------------------------------
 
@@ -404,7 +405,7 @@ CREATE TABLE `object_relation__object_relation` (
   `id` int UNSIGNED NOT NULL,
   `master_relation_id` smallint UNSIGNED NOT NULL,
   `slave_relation_id` smallint UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -421,8 +422,21 @@ CREATE TABLE `obtained_units` (
   `target_planet` bigint UNSIGNED DEFAULT NULL,
   `mission_id` bigint UNSIGNED DEFAULT NULL,
   `first_deployment_mission` bigint UNSIGNED DEFAULT NULL COMMENT 'Has the id of the first deployment executed mission',
-  `expiration` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `is_from_capture` tinyint NOT NULL,
+  `expiration_id` int UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `obtained_unit_temporal_information`
+--
+
+CREATE TABLE `obtained_unit_temporal_information` (
+  `id` int UNSIGNED NOT NULL,
+  `duration` int UNSIGNED NOT NULL,
+  `expiration` timestamp NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -436,7 +450,7 @@ CREATE TABLE `obtained_upgrades` (
   `upgrade_id` smallint UNSIGNED NOT NULL,
   `level` smallint NOT NULL,
   `available` tinyint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -455,7 +469,7 @@ CREATE TABLE `planets` (
   `richness` smallint UNSIGNED NOT NULL,
   `home` tinyint DEFAULT '0',
   `special_location_id` smallint UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -467,7 +481,7 @@ CREATE TABLE `planet_list` (
   `user_id` int UNSIGNED NOT NULL,
   `planet_id` bigint UNSIGNED NOT NULL,
   `name` varchar(150) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -480,7 +494,7 @@ CREATE TABLE `QRTZ_BLOB_TRIGGERS` (
   `TRIGGER_NAME` varchar(200) NOT NULL,
   `TRIGGER_GROUP` varchar(200) NOT NULL,
   `BLOB_DATA` blob
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -492,7 +506,7 @@ CREATE TABLE `QRTZ_CALENDARS` (
   `SCHED_NAME` varchar(120) NOT NULL,
   `CALENDAR_NAME` varchar(200) NOT NULL,
   `CALENDAR` blob NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -506,7 +520,7 @@ CREATE TABLE `QRTZ_CRON_TRIGGERS` (
   `TRIGGER_GROUP` varchar(200) NOT NULL,
   `CRON_EXPRESSION` varchar(120) NOT NULL,
   `TIME_ZONE_ID` varchar(80) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -528,7 +542,7 @@ CREATE TABLE `QRTZ_FIRED_TRIGGERS` (
   `JOB_GROUP` varchar(200) DEFAULT NULL,
   `IS_NONCONCURRENT` varchar(1) DEFAULT NULL,
   `REQUESTS_RECOVERY` varchar(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -547,7 +561,7 @@ CREATE TABLE `QRTZ_JOB_DETAILS` (
   `IS_UPDATE_DATA` varchar(1) NOT NULL,
   `REQUESTS_RECOVERY` varchar(1) NOT NULL,
   `JOB_DATA` blob
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -558,7 +572,7 @@ CREATE TABLE `QRTZ_JOB_DETAILS` (
 CREATE TABLE `QRTZ_LOCKS` (
   `SCHED_NAME` varchar(120) NOT NULL,
   `LOCK_NAME` varchar(40) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -569,7 +583,7 @@ CREATE TABLE `QRTZ_LOCKS` (
 CREATE TABLE `QRTZ_PAUSED_TRIGGER_GRPS` (
   `SCHED_NAME` varchar(120) NOT NULL,
   `TRIGGER_GROUP` varchar(200) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -582,7 +596,7 @@ CREATE TABLE `QRTZ_SCHEDULER_STATE` (
   `INSTANCE_NAME` varchar(200) NOT NULL,
   `LAST_CHECKIN_TIME` bigint NOT NULL,
   `CHECKIN_INTERVAL` bigint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -597,7 +611,7 @@ CREATE TABLE `QRTZ_SIMPLE_TRIGGERS` (
   `REPEAT_COUNT` bigint NOT NULL,
   `REPEAT_INTERVAL` bigint NOT NULL,
   `TIMES_TRIGGERED` bigint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -620,7 +634,7 @@ CREATE TABLE `QRTZ_SIMPROP_TRIGGERS` (
   `DEC_PROP_2` decimal(13,4) DEFAULT NULL,
   `BOOL_PROP_1` varchar(1) DEFAULT NULL,
   `BOOL_PROP_2` varchar(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -645,7 +659,29 @@ CREATE TABLE `QRTZ_TRIGGERS` (
   `CALENDAR_NAME` varchar(200) DEFAULT NULL,
   `MISFIRE_INSTR` smallint DEFAULT NULL,
   `JOB_DATA` blob
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `ranking`
+--
+
+CREATE TABLE `ranking` (
+  `PosicionTotal` int NOT NULL,
+  `PosicionMejoras` int NOT NULL,
+  `PosicionTropas` int NOT NULL,
+  `PosicionNaves` int NOT NULL,
+  `PosicionDefensas` int NOT NULL,
+  `usercd` int NOT NULL,
+  `PuntosTotales` int NOT NULL,
+  `PuntosMejoras` int NOT NULL,
+  `PuntosTropas` int NOT NULL,
+  `PuntosNaves` int NOT NULL,
+  `PuntosDefensas` int NOT NULL,
+  `Imagen320x240` char(255) NOT NULL,
+  `Imagen640x240` char(255) NOT NULL
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -655,9 +691,9 @@ CREATE TABLE `QRTZ_TRIGGERS` (
 
 CREATE TABLE `requirements` (
   `id` smallint NOT NULL,
-  `code` varchar(22) NOT NULL,
+  `code` varchar(24) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `description` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -671,7 +707,7 @@ CREATE TABLE `requirements_information` (
   `requirement_id` smallint NOT NULL,
   `second_value` int DEFAULT NULL,
   `third_value` int DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores which object has which requirement';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Stores which object has which requirement';
 
 -- --------------------------------------------------------
 
@@ -682,7 +718,7 @@ CREATE TABLE `requirements_information` (
 CREATE TABLE `requirement_group` (
   `id` int UNSIGNED NOT NULL,
   `name` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -699,6 +735,22 @@ CREATE TABLE `requisitosespecialesderaza` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `rules`
+--
+
+CREATE TABLE `rules` (
+  `id` smallint UNSIGNED NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `origin_type` varchar(50) NOT NULL,
+  `origin_id` smallint NOT NULL,
+  `destination_type` varchar(50) NOT NULL,
+  `destination_id` smallint NOT NULL,
+  `extra_args` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `special_locations`
 --
 
@@ -710,7 +762,7 @@ CREATE TABLE `special_locations` (
   `galaxy_id` smallint UNSIGNED DEFAULT NULL,
   `improvement_id` smallint UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -736,7 +788,7 @@ CREATE TABLE `speed_impact_groups` (
   `can_conquest` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
   `can_deploy` enum('NONE','OWNED_ONLY','ANY') DEFAULT 'ANY',
   `image_id` bigint UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -764,7 +816,7 @@ CREATE TABLE `system_messages` (
   `id` smallint UNSIGNED NOT NULL,
   `content` text NOT NULL,
   `creation_date` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -781,7 +833,7 @@ CREATE TABLE `time_specials` (
   `recharge_time` bigint UNSIGNED NOT NULL COMMENT 'Time to wait <b>in seconds</b> to be able to use the time special again',
   `improvement_id` smallint UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -805,7 +857,7 @@ CREATE TABLE `translatables` (
   `id` int UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `default_lang_code` char(2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -818,7 +870,7 @@ CREATE TABLE `translatables_translations` (
   `translatable_id` int UNSIGNED NOT NULL,
   `lang_code` char(2) NOT NULL,
   `value` longtext NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -831,7 +883,7 @@ CREATE TABLE `tutorial_sections` (
   `name` varchar(100) NOT NULL,
   `description` mediumtext,
   `frontend_router_path` varchar(150) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -844,7 +896,7 @@ CREATE TABLE `tutorial_sections_available_html_symbols` (
   `name` varchar(50) NOT NULL,
   `identifier` varchar(150) NOT NULL COMMENT 'The identifier to use in the Frontend ngDirective',
   `tutorial_section_id` smallint UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -858,7 +910,7 @@ CREATE TABLE `tutorial_sections_entries` (
   `section_available_html_symbol_id` int UNSIGNED NOT NULL,
   `event` enum('CLICK','ANY_KEY_OR_CLICK') NOT NULL,
   `text_id` int UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -893,7 +945,7 @@ CREATE TABLE `units` (
   `critical_attack_id` smallint UNSIGNED DEFAULT NULL,
   `bypass_shield` tinyint NOT NULL,
   `is_invisible` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -919,7 +971,7 @@ CREATE TABLE `unit_types` (
   `speed_impact_group_id` smallint UNSIGNED DEFAULT NULL,
   `critical_attack_id` smallint UNSIGNED DEFAULT NULL,
   `has_to_inherit_improvements` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'If true applied benefits to parent unit type will also apply to this'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -931,7 +983,7 @@ CREATE TABLE `unlocked_relation` (
   `id` bigint NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `relation_id` smallint UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Any row here, means the user can use such thing';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Any row here, means the user can use such thing';
 
 -- --------------------------------------------------------
 
@@ -952,7 +1004,7 @@ CREATE TABLE `upgrades` (
   `level_effect` float NOT NULL DEFAULT '20',
   `improvement_id` smallint UNSIGNED DEFAULT NULL,
   `cloned_improvements` tinyint(1) NOT NULL COMMENT 'If improvements are cloned from other upgrade'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -963,7 +1015,7 @@ CREATE TABLE `upgrades` (
 CREATE TABLE `upgrade_types` (
   `id` smallint UNSIGNED NOT NULL,
   `name` varchar(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -982,7 +1034,7 @@ CREATE TABLE `user_improvements` (
   `more_missions_value` tinyint DEFAULT NULL,
   `more_upgrade_research_speed` float UNSIGNED DEFAULT NULL,
   `more_unit_build_speed` float UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -994,7 +1046,7 @@ CREATE TABLE `user_read_system_messages` (
   `id` int UNSIGNED NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `message_id` smallint UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1021,7 +1073,7 @@ CREATE TABLE `user_storage` (
   `last_multi_account_check` datetime DEFAULT NULL,
   `multi_account_score` float DEFAULT NULL,
   `banned` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Has the users that has inscribed in this database';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT='Has the users that has inscribed in this database';
 
 -- --------------------------------------------------------
 
@@ -1033,7 +1085,7 @@ CREATE TABLE `visited_tutorial_entries` (
   `id` bigint NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `entry_id` int UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1045,7 +1097,7 @@ CREATE TABLE `websocket_events_information` (
   `event_name` varchar(100) NOT NULL,
   `user_id` int UNSIGNED NOT NULL,
   `last_sent` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
@@ -1116,14 +1168,7 @@ ALTER TABLE `attack_rule_entries`
 --
 ALTER TABLE `audit`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_audit_user` (`user_id`),
-  ADD KEY `fk_audit_related_user` (`related_user_id`);
-
---
--- Index pour la table `carpetas`
---
-ALTER TABLE `carpetas`
-  ADD PRIMARY KEY (`cd`);
+  ADD KEY `fk_audit_related_user` (`user_id`);
 
 --
 -- Index pour la table `configuration`
@@ -1170,6 +1215,12 @@ ALTER TABLE `factions_unit_types`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_fut_faction_id` (`faction_id`),
   ADD KEY `fk_fut_unit_type_id` (`unit_type_id`);
+
+--
+-- Index pour la table `faction_spawn_location`
+--
+ALTER TABLE `faction_spawn_location`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Index pour la table `galaxies`
@@ -1265,6 +1316,12 @@ ALTER TABLE `obtained_units`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `first_deployment_mission` (`first_deployment_mission`);
+
+--
+-- Index pour la table `obtained_unit_temporal_information`
+--
+ALTER TABLE `obtained_unit_temporal_information`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Index pour la table `obtained_upgrades`
@@ -1402,6 +1459,12 @@ ALTER TABLE `requirement_group`
 --
 ALTER TABLE `requisitosespecialesderaza`
   ADD KEY `NoPrimaria` (`cdEspecial`);
+
+--
+-- Index pour la table `rules`
+--
+ALTER TABLE `rules`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Index pour la table `special_locations`
@@ -1615,12 +1678,6 @@ ALTER TABLE `audit`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT pour la table `carpetas`
---
-ALTER TABLE `carpetas`
-  MODIFY `cd` int NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT pour la table `critical_attack`
 --
 ALTER TABLE `critical_attack`
@@ -1649,6 +1706,12 @@ ALTER TABLE `factions`
 --
 ALTER TABLE `factions_unit_types`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `faction_spawn_location`
+--
+ALTER TABLE `faction_spawn_location`
+  MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `galaxies`
@@ -1723,6 +1786,12 @@ ALTER TABLE `obtained_units`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `obtained_unit_temporal_information`
+--
+ALTER TABLE `obtained_unit_temporal_information`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `obtained_upgrades`
 --
 ALTER TABLE `obtained_upgrades`
@@ -1751,6 +1820,12 @@ ALTER TABLE `requirements_information`
 --
 ALTER TABLE `requirement_group`
   MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT pour la table `rules`
+--
+ALTER TABLE `rules`
+  MODIFY `id` smallint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `special_locations`
@@ -1900,7 +1975,7 @@ ALTER TABLE `attack_rule_entries`
 -- Contraintes pour la table `audit`
 --
 ALTER TABLE `audit`
-  ADD CONSTRAINT `fk_audit_related_user` FOREIGN KEY (`related_user_id`) REFERENCES `user_storage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  ADD CONSTRAINT `fk_audit_related_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   ADD CONSTRAINT `fk_audit_user` FOREIGN KEY (`user_id`) REFERENCES `user_storage` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT;
 
 --
