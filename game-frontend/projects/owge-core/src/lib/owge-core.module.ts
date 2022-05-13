@@ -12,6 +12,7 @@ import { OwgeCoreIfThemeDirective } from './directives/if-theme.directive';
 import { OwgeContentDirective } from './directives/owge-content.directive';
 import { LanguageHttpInterceptor } from './http-interceptors/language.http-interceptor';
 import { DynamicImagePipe } from './pipes/dynamic-image.pipe';
+import { FormatDateRepresentation } from './pipes/format-date-representation';
 import { FormatNumberPipe } from './pipes/format-number.pipe';
 import { HideDuplicatedNamePipe } from './pipes/hide-duplicated-name.pipe';
 import { Config } from './pojos/config.pojo';
@@ -46,6 +47,7 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     OwgeCoreIfDesktopDirective,
     DynamicImagePipe,
     FormatNumberPipe,
+    FormatDateRepresentation,
     OwgeCoreIfThemeDirective
   ],
   providers: [
@@ -62,6 +64,7 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     OwgeCoreIfDesktopDirective,
     DynamicImagePipe,
     FormatNumberPipe,
+    FormatDateRepresentation,
     OwgeCoreIfThemeDirective
   ],
 })
@@ -73,7 +76,7 @@ export class CoreModule {
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @param accountConfig
    */
-   public constructor(accountConfig: OwgeCoreConfig) {
+  public constructor(accountConfig: OwgeCoreConfig) {
     Config.accountServerUrl = accountConfig.url;
     Config.accountLoginendpoint = accountConfig.loginEndpoint;
   }

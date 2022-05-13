@@ -9,7 +9,7 @@ import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular
 @Component({
   selector: 'owge-widgets-display-single-resource',
   templateUrl: './widget-display-single-resource.component.html',
-  styleUrls: [ './widget-display-single-resource.component.scss']
+  styleUrls: ['./widget-display-single-resource.component.scss']
 })
 export class WidgetDisplaySingleResourceComponent implements AfterViewInit {
 
@@ -40,6 +40,8 @@ export class WidgetDisplaySingleResourceComponent implements AfterViewInit {
    * @since 0.9.17
    */
   @Input() public customImageClass = 'resourceImage';
+
+  @Input() public textColor;
 
   @Input()
   public staticImage = false;

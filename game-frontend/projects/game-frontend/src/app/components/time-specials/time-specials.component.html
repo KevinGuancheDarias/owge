@@ -23,6 +23,16 @@
                 [prImage]="userData.faction.primaryResourceImageUrl"
                 [srImage]="userData.faction.secondaryResourceImageUrl" [energyImage]="userData.faction.energyImageUrl">
             </owge-widgets-display-improvements>
+
+            <owge-widgets-display-single-resource *ngIf="element.duration" resourceImage="ui_icons/time.png"
+                [staticImage]="true" [doFormat]="false" textColor="green"
+                [resourceValue]="parsedRequiredTime(element.duration) | formatDateRepresentation">
+            </owge-widgets-display-single-resource>
+
+            <owge-widgets-display-single-resource *ngIf="element.rechargeTime" resourceImage="ui_icons/time.png"
+                [staticImage]="true" [doFormat]="false" textColor="blue"
+                [resourceValue]="parsedRequiredTime(element.rechargeTime) | formatDateRepresentation">
+            </owge-widgets-display-single-resource>
         </ng-template>
     </owge-widgets-display-list-item>
     <h5 *ngIf="elements && !elements.length" class="owge-theme-title">{{ 'TIME_SPECIAL.NONE_UNLOCKED' | translate }}

@@ -2,7 +2,7 @@
   <owge-widgets-display-image [image]="resourceImage" [title]="resourceName" [customClass]="customImageClass"
     [staticImage]="staticImage" [assetsImage]="assetsImage"></owge-widgets-display-image>
   <ng-content></ng-content>
-  <p #textElement [class.limited-max]="limitedMax" class="owge-theme-text-shadow">
+  <p #textElement [class.limited-max]="limitedMax" class="owge-theme-text-shadow" [style.color]="textColor">
     <ng-container *ngIf="doFormat; else noDoFormat">
       {{ resourceValue | formatNumber | async }}
     </ng-container>
