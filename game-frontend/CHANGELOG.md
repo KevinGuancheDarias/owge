@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Improvement:__ [Display duration and recharge time of the time special #452](https://github.com/KevinGuancheDarias/owge/issues/452)  
 * [class=Admin] __Feature:__ [As an admin I want to have a requirement that triggers when a time special is available (even if not active) #459](https://github.com/KevinGuancheDarias/owge/issues/459)  
 * [class=Admin] __Feature:__ [As a admin I want to have a requirement, which is upgrade level is lower than X, as a player I want it to work!](https://github.com/KevinGuancheDarias/owge/issues/456)  
 * [class=Admin] __Fix:__ [Admin panel filter units by faction doesn't work in the main units screen #453](https://github.com/KevinGuancheDarias/owge/issues/453)  

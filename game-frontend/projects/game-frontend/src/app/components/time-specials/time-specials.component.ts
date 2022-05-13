@@ -1,11 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-
-import { TimeSpecial } from '@owge/universe';
-import { LoggerHelper } from '@owge/core';
-
-import { TimeSpecialService } from '../../services/time-specials.service';
-import { BaseComponent } from '../../base/base.component';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { DateRepresentation, DateUtil, LoggerHelper } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
+import { TimeSpecial } from '@owge/universe';
+import { BaseComponent } from '../../base/base.component';
+import { TimeSpecialService } from '../../services/time-specials.service';
+
+
 
 /**
  * Component to display and handle the time specials
@@ -21,8 +21,9 @@ import { UserWithFaction } from '@owge/faction';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implements OnInit {
-  private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
   public elements: TimeSpecial[];
+
+  private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
 
   constructor(
     private _timeSpecialService: TimeSpecialService,
@@ -48,6 +49,10 @@ export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implem
    */
   public clickActivate(timeSpecialId: number): void {
     this._doWithLoading(this._timeSpecialService.activate(timeSpecialId).toPromise());
+  }
+
+  public parsedRequiredTime(timeInSeconds: number): DateRepresentation {
+    return DateUtil.milisToDaysHoursMinutesSeconds(timeInSeconds * 1000);
   }
 
   private _findById(id: number): TimeSpecial {

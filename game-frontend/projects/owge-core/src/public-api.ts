@@ -20,6 +20,7 @@ export * from './lib/interfaces/abstract-websocket-application-handler';
 export * from './lib/owge-core.module';
 export * from './lib/owge-user.module';
 export * from './lib/pipes/dynamic-image.pipe';
+export * from './lib/pipes/format-date-representation';
 export * from './lib/pipes/format-number.pipe';
 export * from './lib/pipes/hide-duplicated-name.pipe';
 export * from './lib/pojos/calculated-fields-wrapper.pojo';
