@@ -30,7 +30,8 @@
             **/com/kevinguanchedarias/owgejava/entity/**/*,
             **/com/kevinguanchedarias/owgejava/pojo/**/*,
             **/com/kevinguanchedarias/owgejava/security/**/*,
-            **/com/kevinguanchedarias/owgejava/mock/**/*
+            **/com/kevinguanchedarias/owgejava/mock/**/*,
+            **/com/kevinguanchedarias/owgejava/exception/**/*
         </sonar.exclusions>
         <sonar.report>target/site/jacoco/jacoco.xml</sonar.report>
     </properties>
@@ -202,6 +203,7 @@
                         <exclude>**/com/kevinguanchedarias/owgejava/entity/**/*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/pojo/**/*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/security/**/*</exclude>
+                        <exclude>**/com/kevinguanchedarias/owgejava/exception/**/*</exclude>
                     </excludes>
                 </configuration>
             </plugin>
