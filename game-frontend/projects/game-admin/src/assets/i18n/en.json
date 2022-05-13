@@ -300,12 +300,18 @@
             "BEEN_RACE": "Is of faction",
             "UPGRADE_LEVEL": "Have upgrade to level equal or greater than {{thirdValue}}",
             "HAVE_UNIT": "Have unit built",
-            "UPGRADE_LEVEL_LOWER_THAN": "Have upgrade to level lower than {{thirdValue}}"
+            "UPGRADE_LEVEL_LOWER_THAN": "Have upgrade to level lower than {{thirdValue}}",
+            "HAVE_SPECIAL_AVAILABLE": "Have a time special available",
+            "HAVE_SPECIAL_ENABLED": "Have a time special in active state",
+            "HAVE_SPECIAL_LOCATION": "Have special location in your control"
         },
         "TARGETS": {
             "BEEN_RACE": "Required faction",
             "UPGRADE_LEVEL": "Required upgrade",
-            "HAVE_UNIT": "Required unit"
+            "HAVE_UNIT": "Required unit",
+            "HAVE_SPECIAL_AVAILABLE": "Required available time special",
+            "HAVE_SPECIAL_ENABLED": "Required ACTIVATED time special",
+            "HAVE_SPECIAL_LOCATION": "Required special location"
         },
         "THIRD_VALUES": {
             "UPGRADE_LEVEL": "Upgrade level"

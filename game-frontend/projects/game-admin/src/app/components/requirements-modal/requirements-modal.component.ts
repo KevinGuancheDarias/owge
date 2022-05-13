@@ -33,7 +33,8 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   public secondValueListFiltered: CommonEntity<number[]>;
 
   public allowedRequirements = [
-    'BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT', 'HAVE_SPECIAL_ENABLED', 'UPGRADE_LEVEL_LOWER_THAN'
+    'BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT',
+    'HAVE_SPECIAL_ENABLED', 'HAVE_SPECIAL_AVAILABLE', 'UPGRADE_LEVEL_LOWER_THAN'
   ];
 
   public constructor(
@@ -75,6 +76,7 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
           this._adminUnitService.findAll().subscribe(units => this.secondValueList = units);
           break;
         case 'HAVE_SPECIAL_ENABLED':
+        case 'HAVE_SPECIAL_AVAILABLE':
           this._adminFactionService.buildFilter().then(result => this.secondValueFilters = [result, WidgetFilterUtil.buildByNameFilter()]);
           this.adminTimeSpecialService.findAll().subscribe(timeSpecials => this.secondValueList = timeSpecials);
           break;

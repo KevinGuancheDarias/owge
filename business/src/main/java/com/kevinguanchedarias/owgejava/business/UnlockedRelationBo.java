@@ -5,7 +5,6 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -44,22 +43,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     }
 
     /**
-     * @param userId
-     * @param type
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use the same method but with {@link ObjectEnum} instead of
-     * {@link RequirementTargetObject}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<UnlockedRelation> findByUserIdAndObjectType(Integer userId, RequirementTargetObject type) {
-        return repository.findByUserIdAndRelationObjectDescription(userId, type.name());
-    }
-
-    /**
-     * @param userId
-     * @param type
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -83,7 +66,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     /**
      * Unbox to target entity, for example will return a list of Units
      *
-     * @param unlockedRelations
      * @return List of Object Entities
      * @author Kevin Guanche Darias
      */
@@ -92,23 +74,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     }
 
     /**
-     * Unbox to target dto
-     *
-     * @param <E>               Entity class
-     * @param <D>               Dto class
-     * @param dtoClass          Dto class
-     * @param unlockedRelations
-     * @return List of object entities converted to DTO
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public <E, D extends DtoFromEntity<E>> List<D> unboxToTargetDto(Class<D> dtoClass,
-                                                                    List<UnlockedRelation> unlockedRelations) {
-        return dtoUtilService.convertEntireArray(dtoClass, unboxToTargetEntity(unlockedRelations));
-    }
-
-    /**
-     * @param objectRelation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
