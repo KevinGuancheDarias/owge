@@ -298,8 +298,9 @@
         "ONLY_ON_SAVED": "You can only modify requirements on a saved item",
         "DESCRIPTIONS": {
             "BEEN_RACE": "Is of faction",
-            "UPGRADE_LEVEL": "Have upgrade to level {{thirdValue}}",
-            "HAVE_UNIT": "Have unit built"
+            "UPGRADE_LEVEL": "Have upgrade to level equal or greater than {{thirdValue}}",
+            "HAVE_UNIT": "Have unit built",
+            "UPGRADE_LEVEL_LOWER_THAN": "Have upgrade to level lower than {{thirdValue}}"
         },
         "TARGETS": {
             "BEEN_RACE": "Required faction",

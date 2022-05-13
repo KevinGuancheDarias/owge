@@ -32,7 +32,9 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
   public secondValueFilters: WidgetFilter<any>[] = null;
   public secondValueListFiltered: CommonEntity<number[]>;
 
-  public allowedRequirements = ['BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT', 'HAVE_SPECIAL_ENABLED'];
+  public allowedRequirements = [
+    'BEEN_RACE', 'UPGRADE_LEVEL', 'HAVE_SPECIAL_LOCATION', 'HAVE_UNIT', 'HAVE_SPECIAL_ENABLED', 'UPGRADE_LEVEL_LOWER_THAN'
+  ];
 
   public constructor(
     private _translateService: TranslateService,
@@ -59,6 +61,7 @@ export class RequirementsModalComponent extends AbstractModalContainerComponent 
           this._adminFactionService.findAll().subscribe(factions => this.secondValueList = factions);
           break;
         case 'UPGRADE_LEVEL':
+        case 'UPGRADE_LEVEL_LOWER_THAN':
           this._adminFactionService.buildFilter().then(result => this.secondValueFilters = [result]);
           this._adminUpgradeService.findAll().subscribe(upgrades => this.secondValueList = upgrades);
           this._translateService.get('REQUIREMENTS.THIRD_VALUES.UPGRADE_LEVEL')
