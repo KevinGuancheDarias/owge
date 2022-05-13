@@ -1,34 +1,28 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.io.Serializable;
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelation, Long>, Serializable {
-	public UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId);
 
-	public List<UnlockedRelation> findByUserIdAndRelationObjectDescription(Integer userId, String objectType);
+    UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId);
 
-	/**
-	 *
-	 * @param objectRelation
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void deleteByRelation(ObjectRelation objectRelation);
+    List<UnlockedRelation> findByUserIdAndRelationObjectDescription(Integer userId, String objectType);
 
-	/**
-	 *
-	 * @param user
-	 * @param relation
-	 * @return
-	 * @since 0.9.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public boolean existsByUserAndRelation(UserStorage user, ObjectRelation relation);
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    void deleteByRelation(ObjectRelation objectRelation);
+
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    boolean existsByUserAndRelation(UserStorage user, ObjectRelation relation);
 }

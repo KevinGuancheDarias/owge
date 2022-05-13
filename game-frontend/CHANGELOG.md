@@ -2,6 +2,8 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Feature:__ [As an admin I want to have a requirement that triggers when a time special is available (even if not active) #459](https://github.com/KevinGuancheDarias/owge/issues/459)  
+* [class=Admin] __Feature:__ [As a admin I want to have a requirement, which is upgrade level is lower than X, as a player I want it to work!](https://github.com/KevinGuancheDarias/owge/issues/456)  
 * [class=Admin] __Fix:__ [Admin panel filter units by faction doesn't work in the main units screen #453](https://github.com/KevinGuancheDarias/owge/issues/453)  
 * __Feature:__ [As a player I would like to have faction specials that can give me temporary units #10](https://github.com/KevinGuancheDarias/owge/issues/10)  
 * __Feature:__ [As a player I want to have time specials that allows me to mark units as specified speed impact group #448](https://github.com/KevinGuancheDarias/owge/issues/448)  
