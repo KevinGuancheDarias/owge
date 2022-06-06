@@ -301,7 +301,8 @@
             "HAVE_UNIT": "Unidad necesaria",
             "HAVE_SPECIAL_AVAILABLE": "Especial de tiempo DISPONIBLE necesario",
             "HAVE_SPECIAL_ENABLED": "Especial de tiempo ACTIVADO necesario",
-            "HAVE_SPECIAL_LOCATION": "Ubicación especial necesaria"
+            "HAVE_SPECIAL_LOCATION": "Ubicación especial necesaria",
+            "UPGRADE_LEVEL_LOWER_THAN": "Mejora"
         },
         "THIRD_VALUES": {
             "UPGRADE_LEVEL": "Nivel de la mejora"

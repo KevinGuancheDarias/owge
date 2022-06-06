@@ -10,7 +10,9 @@ import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
+import com.kevinguanchedarias.owgejava.exception.InvalidConfigurationException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
+import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructRequirementBo;
 import com.kevinguanchedarias.owgejava.mock.ObjectRelationMock;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
@@ -20,16 +22,30 @@ import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.stream.Stream;
 
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.BEEN_RACE;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_AVAILABLE;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_ENABLED;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_LOCATION;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_UNIT;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HOME_GALAXY;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UNIT_AMOUNT;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL_LOWER_THAN;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.WORST_PLAYER;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.REFERENCE_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.UNLOCKED_RELATION_ID;
@@ -37,6 +53,7 @@ import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjec
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenUnlockedRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirement;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformation;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.SECOND_VALUE;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
@@ -46,6 +63,7 @@ import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -54,7 +72,6 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
         classes = NonPostConstructRequirementBo.class
-
 )
 @MockBean({
         RequirementRepository.class,
@@ -77,26 +94,33 @@ import static org.mockito.Mockito.verify;
         UnitRepository.class,
         RequirementSource.class,
         TransactionUtilService.class,
-        ObtainedUpgradeRepository.class
+        ObtainedUpgradeRepository.class,
+        FactionBo.class,
+        SpecialLocationBo.class,
+        GalaxyBo.class
 })
 class RequirementBoTest {
-    private final RequirementBo requirementBo;
+    private final NonPostConstructRequirementBo requirementBo;
     private final RequirementSource requirementSource;
     private final ObjectRelationBo objectRelationBo;
     private final UnlockedRelationBo unlockedRelationBo;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
+    private final RequirementRepository requirementRepository;
+    private final BeanFactory beanFactory;
 
     @Autowired
     RequirementBoTest(
-            RequirementBo requirementBo,
+            NonPostConstructRequirementBo requirementBo,
             RequirementSource requirementSource,
             ObjectRelationBo objectRelationBo,
             UnlockedRelationBo unlockedRelationBo,
             ObtainedUpgradeBo obtainedUpgradeBo,
             UpgradeBo upgradeBo,
-            ObtainedUpgradeRepository obtainedUpgradeRepository
+            ObtainedUpgradeRepository obtainedUpgradeRepository,
+            RequirementRepository requirementRepository,
+            DefaultListableBeanFactory beanFactory
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
@@ -105,6 +129,47 @@ class RequirementBoTest {
         this.obtainedUpgradeBo = obtainedUpgradeBo;
         this.upgradeBo = upgradeBo;
         this.obtainedUpgradeRepository = obtainedUpgradeRepository;
+        this.requirementRepository = requirementRepository;
+        this.beanFactory = beanFactory;
+    }
+
+    @Test
+    void init_should_work() {
+        given(requirementRepository.findAll()).willReturn(List.of(
+                givenRequirement(HAVE_SPECIAL_LOCATION),
+                givenRequirement(HAVE_UNIT),
+                givenRequirement(BEEN_RACE),
+                givenRequirement(UPGRADE_LEVEL),
+                givenRequirement(WORST_PLAYER),
+                givenRequirement(UNIT_AMOUNT),
+                givenRequirement(HOME_GALAXY),
+                givenRequirement(HAVE_SPECIAL_AVAILABLE),
+                givenRequirement(HAVE_SPECIAL_ENABLED),
+                givenRequirement(UPGRADE_LEVEL_LOWER_THAN)
+        ));
+
+        assertThatNoException().isThrownBy(requirementBo::realInit);
+    }
+
+    @Test
+    void init_should_fail() {
+        given(requirementRepository.findAll()).willReturn(List.of(
+                givenRequirement(HAVE_SPECIAL_LOCATION),
+                givenRequirement(HAVE_UNIT),
+                givenRequirement(BEEN_RACE)
+        ));
+
+        assertThatThrownBy(requirementBo::realInit)
+                .isInstanceOf(InvalidConfigurationException.class)
+                .hasCauseExactlyInstanceOf(SgtCorruptDatabaseException.class);
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @ParameterizedTest
+    @MethodSource("findBoByRequirement_arguments")
+    void findBoByRequirement_should_work(RequirementTypeEnum enumValue, Class<BaseBo> expectedBo) {
+        var result = requirementBo.findBoByRequirement(enumValue);
+        assertThat(result).isInstanceOf(expectedBo);
     }
 
     @Test
@@ -266,5 +331,19 @@ class RequirementBoTest {
         assertThat(savedObtainedUpgrade.getUpgrade()).isEqualTo(upgrade);
         assertThat(savedObtainedUpgrade.getUser()).isEqualTo(user);
         assertThat(savedObtainedUpgrade.isAvailable()).isTrue();
+    }
+
+    private static Stream<Arguments> findBoByRequirement_arguments() {
+        return Stream.of(
+                Arguments.of(UPGRADE_LEVEL, UpgradeBo.class),
+                Arguments.of(UPGRADE_LEVEL_LOWER_THAN, UpgradeBo.class),
+                Arguments.of(HAVE_UNIT, UnitBo.class),
+                Arguments.of(UNIT_AMOUNT, UnitBo.class),
+                Arguments.of(BEEN_RACE, FactionBo.class),
+                Arguments.of(HAVE_SPECIAL_LOCATION, SpecialLocationBo.class),
+                Arguments.of(HAVE_SPECIAL_ENABLED, TimeSpecialBo.class),
+                Arguments.of(HAVE_SPECIAL_AVAILABLE, TimeSpecialBo.class),
+                Arguments.of(HOME_GALAXY, GalaxyBo.class)
+        );
     }
 }

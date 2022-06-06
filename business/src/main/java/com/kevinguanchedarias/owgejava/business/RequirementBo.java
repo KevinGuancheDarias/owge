@@ -23,7 +23,6 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.InvalidConfigurationException;
-import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.pojo.UnitUpgradeRequirements;
@@ -47,13 +46,13 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Component
 @Transactional
@@ -138,13 +137,14 @@ public class RequirementBo implements Serializable {
     @PostConstruct
     public void init() {
         Map<String, Requirement> requirementsMap = new HashMap<>();
-        RequirementTypeEnum[] validValues = RequirementTypeEnum.values();
+        var validValues = Arrays.stream(RequirementTypeEnum.values()).filter(
+                enumEntry -> enumEntry.getValue() > 0
+        ).toList();
         try {
             findAll().forEach(current -> requirementsMap.put(current.getCode(), current));
-            if (requirementsMap.size() != validValues.length) {
+            if (requirementsMap.size() != validValues.size()) {
                 throw new SgtCorruptDatabaseException("Database Stored values don't match  enum values");
             }
-            Stream.of(validValues).forEachOrdered(current -> requirementsMap.get(current.name()));
         } catch (Exception e) {
             throw new InvalidConfigurationException(e);
         }
@@ -190,35 +190,16 @@ public class RequirementBo implements Serializable {
      */
     public <K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>> BaseBo<K, E, D> findBoByRequirement(
             RequirementTypeEnum requirementType) {
-        Class<?> clazz;
-        switch (requirementType) {
-            case UPGRADE_LEVEL:
-                clazz = UpgradeBo.class;
-                break;
-            case HAVE_UNIT:
-            case UNIT_AMOUNT:
-                clazz = UnitBo.class;
-                break;
-            case BEEN_RACE:
-                clazz = FactionBo.class;
-                break;
-            case HAVE_SPECIAL_LOCATION:
-                clazz = SpecialLocationBo.class;
-                break;
-            case HAVE_SPECIAL_ENABLED:
-            case HAVE_SPECIAL_AVAILABLE:
-                clazz = TimeSpecialBo.class;
-                break;
-            case HOME_GALAXY:
-                clazz = GalaxyBo.class;
-                break;
-            case WORST_PLAYER:
-                throw new ProgrammingException("Requirement " + requirementType.name()
-                        + "doesn't have a BO, you should check for it, prior to invoking this method");
-            default:
-                throw new SgtBackendNotImplementedException(
-                        "Support for " + requirementType.name() + " has not been added yet");
-        }
+        Class<?> clazz = switch (requirementType) {
+            case UPGRADE_LEVEL, UPGRADE_LEVEL_LOWER_THAN -> UpgradeBo.class;
+            case HAVE_UNIT, UNIT_AMOUNT -> UnitBo.class;
+            case BEEN_RACE -> FactionBo.class;
+            case HAVE_SPECIAL_LOCATION -> SpecialLocationBo.class;
+            case HAVE_SPECIAL_ENABLED, HAVE_SPECIAL_AVAILABLE -> TimeSpecialBo.class;
+            case HOME_GALAXY -> GalaxyBo.class;
+            default -> throw new SgtBackendNotImplementedException(
+                    "Support for " + requirementType.name() + " has not been added yet");
+        };
         return (BaseBo<K, E, D>) beanFactory.getBean(clazz);
     }
 

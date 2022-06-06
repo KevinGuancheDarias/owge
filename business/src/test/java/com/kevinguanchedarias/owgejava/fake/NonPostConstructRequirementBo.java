@@ -19,4 +19,8 @@ public class NonPostConstructRequirementBo extends RequirementBo {
     public void init() {
         // Do nothing
     }
+
+    public void realInit() {
+        super.init();
+    }
 }
