@@ -26,9 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -42,6 +40,7 @@ import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.H
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_LOCATION;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_UNIT;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HOME_GALAXY;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UNIMPLEMENTED_PLACEHOLDER;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UNIT_AMOUNT;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL_LOWER_THAN;
@@ -108,7 +107,6 @@ class RequirementBoTest {
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final RequirementRepository requirementRepository;
-    private final BeanFactory beanFactory;
 
     @Autowired
     RequirementBoTest(
@@ -119,8 +117,7 @@ class RequirementBoTest {
             ObtainedUpgradeBo obtainedUpgradeBo,
             UpgradeBo upgradeBo,
             ObtainedUpgradeRepository obtainedUpgradeRepository,
-            RequirementRepository requirementRepository,
-            DefaultListableBeanFactory beanFactory
+            RequirementRepository requirementRepository
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
@@ -130,7 +127,6 @@ class RequirementBoTest {
         this.upgradeBo = upgradeBo;
         this.obtainedUpgradeRepository = obtainedUpgradeRepository;
         this.requirementRepository = requirementRepository;
-        this.beanFactory = beanFactory;
     }
 
     @Test
@@ -170,6 +166,12 @@ class RequirementBoTest {
     void findBoByRequirement_should_work(RequirementTypeEnum enumValue, Class<BaseBo> expectedBo) {
         var result = requirementBo.findBoByRequirement(enumValue);
         assertThat(result).isInstanceOf(expectedBo);
+    }
+
+    @Test
+    void findBoByRequirement_should_throw_when_unsupported() {
+        assertThatThrownBy(() -> requirementBo.findBoByRequirement(UNIMPLEMENTED_PLACEHOLDER))
+                .isInstanceOf(SgtBackendNotImplementedException.class);
     }
 
     @Test
