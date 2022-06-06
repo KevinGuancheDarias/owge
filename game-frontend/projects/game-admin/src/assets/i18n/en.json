@@ -311,7 +311,8 @@
             "HAVE_UNIT": "Required unit",
             "HAVE_SPECIAL_AVAILABLE": "Required available time special",
             "HAVE_SPECIAL_ENABLED": "Required ACTIVATED time special",
-            "HAVE_SPECIAL_LOCATION": "Required special location"
+            "HAVE_SPECIAL_LOCATION": "Required special location",
+            "UPGRADE_LEVEL_LOWER_THAN": "Required upgrade"
         },
         "THIRD_VALUES": {
             "UPGRADE_LEVEL": "Upgrade level"

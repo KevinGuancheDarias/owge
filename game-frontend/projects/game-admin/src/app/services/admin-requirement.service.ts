@@ -72,6 +72,7 @@ export class AdminRequirementService {
             case 'BEEN_RACE':
                 return (await this._adminFactionService.findOneById(requirementInformation.secondValue).pipe(take(1)).toPromise()).name;
             case 'UPGRADE_LEVEL':
+            case 'UPGRADE_LEVEL_LOWER_THAN':
                 return (await this._adminUpgradeService.findOneById(requirementInformation.secondValue).pipe(take(1)).toPromise()).name;
             case 'HAVE_SPECIAL_LOCATION':
                 return (await this._adminSpecialLocationService.findOneById(requirementInformation.secondValue)
