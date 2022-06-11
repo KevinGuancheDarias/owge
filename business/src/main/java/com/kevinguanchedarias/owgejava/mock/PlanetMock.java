@@ -11,14 +11,14 @@ public class PlanetMock {
     public static Planet givenSourcePlanet() {
         var planet = new Planet();
         planet.setId(SOURCE_PLANET_ID);
-        planet.setGalaxy(GalaxyMock.givenEntity());
+        planet.setGalaxy(GalaxyMock.givenGalaxy());
         return planet;
     }
 
     public static Planet givenTargetPlanet() {
         var planet = new Planet();
         planet.setId(TARGET_PLANET_ID);
-        planet.setGalaxy(GalaxyMock.givenEntity());
+        planet.setGalaxy(GalaxyMock.givenGalaxy());
         return planet;
     }
 }

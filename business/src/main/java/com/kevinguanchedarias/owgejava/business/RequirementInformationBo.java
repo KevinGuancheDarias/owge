@@ -4,7 +4,6 @@ import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
@@ -97,18 +96,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
 
     public String getSecondValueDescription(RequirementInformation requirementInformation) {
         return requirementInformationDao.getSecondValueDescription(requirementInformation);
-    }
-
-    /**
-     * @param targetObject
-     * @param referenceId
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use {@link ObjectRelationBo} instead
-     */
-    @Deprecated(since = "0.8.0")
-    public ObjectRelation findObjectRelation(RequirementTargetObject targetObject, Integer referenceId) {
-        return requirementInformationDao.getObjectRelation(targetObject, referenceId);
     }
 
     /**

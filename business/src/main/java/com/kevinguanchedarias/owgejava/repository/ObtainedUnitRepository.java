@@ -30,7 +30,7 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     @Query("SELECT ou FROM ObtainedUnit ou LEFT JOIN ou.mission LEFT JOIN ou.mission.type WHERE ou.user.id = ?1 AND (ou.mission.type.code IS NULL OR ou.mission.type.code <> 'BUILD_UNIT')")
     List<ObtainedUnit> findByUserAndNotBuilding(Integer userId);
 
-    Long countByUserAndUnit(UserStorage user, Unit unit);
+    long countByUserAndUnit(UserStorage user, Unit unit);
 
     void deleteByMissionId(Long missionId);
 

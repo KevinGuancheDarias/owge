@@ -45,6 +45,10 @@ import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.U
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL_LOWER_THAN;
 import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.WORST_PLAYER;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.FACTION_ID;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
+import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
+import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.givenGalaxy;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.REFERENCE_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.UNLOCKED_RELATION_ID;
@@ -52,18 +56,23 @@ import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjec
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenUnlockedRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirement;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformation;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.SECOND_VALUE;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
+import static com.kevinguanchedarias.owgejava.mock.UpgradeTypeMock.givenUpgradeType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -107,6 +116,9 @@ class RequirementBoTest {
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final RequirementRepository requirementRepository;
+    private final UnitRepository unitRepository;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final UserStorageBo userStorageBo;
 
     @Autowired
     RequirementBoTest(
@@ -117,7 +129,10 @@ class RequirementBoTest {
             ObtainedUpgradeBo obtainedUpgradeBo,
             UpgradeBo upgradeBo,
             ObtainedUpgradeRepository obtainedUpgradeRepository,
-            RequirementRepository requirementRepository
+            RequirementRepository requirementRepository,
+            UnitRepository unitRepository,
+            ObtainedUnitRepository obtainedUnitRepository,
+            UserStorageBo userStorageBo
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
@@ -127,6 +142,9 @@ class RequirementBoTest {
         this.upgradeBo = upgradeBo;
         this.obtainedUpgradeRepository = obtainedUpgradeRepository;
         this.requirementRepository = requirementRepository;
+        this.unitRepository = unitRepository;
+        this.obtainedUnitRepository = obtainedUnitRepository;
+        this.userStorageBo = userStorageBo;
     }
 
     @Test
@@ -278,7 +296,7 @@ class RequirementBoTest {
         or.setReferenceId(UPGRADE_ID);
         or.setRequirements(List.of(givenRequirementInformation(UPGRADE_ID, 0, UPGRADE_LEVEL)));
         var obtainedUpgrade = givenObtainedUpgrade();
-        given(objectRelationBo.findByRequirementTypeAndSecondValue(UPGRADE_LEVEL, (long) UPGRADE_ID))
+        given(objectRelationBo.findByRequirementTypeAndSecondValue(UPGRADE_LEVEL, UPGRADE_ID))
                 .willReturn(List.of(or));
         var upgrade = obtainedUpgrade.getUpgrade();
         var user = obtainedUpgrade.getUser();
@@ -316,6 +334,104 @@ class RequirementBoTest {
             assertThat(obtainedUpgrade.isAvailable()).isTrue();
         }
 
+
+    }
+
+    @Test
+    void findFactionUnitLevelRequirements_should_work() {
+        var faction = givenFaction();
+        var orUnmatched = givenObjectRelation();
+        var orMatched = givenObjectRelation();
+        var level = 9;
+        orMatched.setRequirements(List.of(
+                givenRequirementInformation(UPGRADE_ID, level, UPGRADE_LEVEL),
+                givenRequirementInformation(9, HAVE_SPECIAL_ENABLED)
+        ));
+        orMatched.setObject(givenObjectEntity(ObjectEnum.UNIT));
+
+        var unit = givenUnit1();
+        var upgrade = givenUpgrade();
+        upgrade.setType(givenUpgradeType());
+
+        given(objectRelationBo.findByRequirementTypeAndSecondValue(BEEN_RACE, FACTION_ID))
+                .willReturn(List.of(orUnmatched, orMatched));
+        given(objectRelationBo.unboxObjectRelation(orMatched)).willReturn(unit);
+        given(upgradeBo.findById(UPGRADE_ID)).willReturn(upgrade);
+
+        var result = requirementBo.findFactionUnitLevelRequirements(faction);
+
+        assertThat(result).hasSize(1);
+        var entry = result.get(0);
+        assertThat(entry.getRequirements()).hasSize(1);
+        assertThat(entry.getUnit().getId()).isEqualTo(UNIT_ID_1);
+        var resultRequirements = entry.getRequirements().get(0);
+        assertThat(resultRequirements.getUpgrade().getId()).isEqualTo(UPGRADE_ID);
+        assertThat(resultRequirements.getLevel()).isEqualTo(level);
+    }
+
+    @Test
+    void triggerFactionSelection_should_work() {
+        var user = givenUser1();
+        var or = givenObjectRelation();
+        or.setReferenceId(FACTION_ID);
+        or.setRequirements(List.of(givenRequirementInformation(FACTION_ID, BEEN_RACE)));
+        given(objectRelationBo.findObjectRelationsHavingRequirementType(BEEN_RACE))
+                .willReturn(List.of(or));
+
+        requirementBo.triggerFactionSelection(user);
+
+        verify(userStorageBo, times(1)).isOfFaction(FACTION_ID, USER_ID_1);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            GALAXY_ID + ",1",
+            "999,0"
+    })
+    void triggerHomeGalaxySelection_should_work(int userGalaxyId, int expectedUnlockedSaveCalls) {
+        var user = givenUser1();
+        user.setHomePlanet(givenSourcePlanet());
+        user.getHomePlanet().setGalaxy(givenGalaxy());
+        user.getHomePlanet().getGalaxy().setId(userGalaxyId);
+        var or = givenObjectRelation();
+        or.setReferenceId(UPGRADE_ID);
+        or.setRequirements(List.of(givenRequirementInformation(GALAXY_ID, HOME_GALAXY)));
+        given(objectRelationBo.findObjectRelationsHavingRequirementType(HOME_GALAXY))
+                .willReturn(List.of(or));
+
+        requirementBo.triggerHomeGalaxySelection(user);
+
+        verify(unlockedRelationBo, times(expectedUnlockedSaveCalls)).save(any(UnlockedRelation.class));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "false,40,0",
+            "true,40,1",
+            "true,20,2"
+    })
+    void triggerUnitBuildCompletedOrKilled_should_work(boolean isUnitBuilt, long requiredAmount, int unlockedTimes) {
+        var user = givenUser1();
+        var unit = givenUnit1();
+        var orHaveUnit = givenObjectRelation();
+        var unitCount = 29L;
+        orHaveUnit.setReferenceId(UPGRADE_ID);
+        orHaveUnit.setRequirements(List.of(givenRequirementInformation(UNIT_ID_1, HAVE_UNIT)));
+        var orHaveAmount = givenObjectRelation();
+        orHaveAmount.setReferenceId(UPGRADE_ID + 2);
+        orHaveAmount.setRequirements(List.of(givenRequirementInformation(UNIT_ID_1, requiredAmount, UNIT_AMOUNT)));
+        given(objectRelationBo.findByRequirementTypeAndSecondValue(HAVE_UNIT, UNIT_ID_1))
+                .willReturn(List.of(orHaveUnit));
+        given(obtainedUnitRepository.countByUserAndUnit(user, unit)).willReturn(unitCount);
+        given(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(UNIT_AMOUNT, UNIT_ID_1, unitCount))
+                .willReturn(List.of(orHaveAmount));
+        given(unitRepository.getById(UNIT_ID_1)).willReturn(unit);
+        given(obtainedUnitRepository.isBuiltUnit(user, unit)).willReturn(isUnitBuilt);
+        requirementBo.triggerUnitBuildCompletedOrKilled(user, unit);
+
+        verify(obtainedUnitRepository, times(1)).isBuiltUnit(user, unit);
+        verify(obtainedUnitRepository, times(2)).countByUserAndUnit(user, unit);
+        verify(unlockedRelationBo, times(unlockedTimes)).save(any(UnlockedRelation.class));
 
     }
 

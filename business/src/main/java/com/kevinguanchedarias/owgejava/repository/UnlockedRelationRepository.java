@@ -12,7 +12,7 @@ public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelati
 
     UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId);
 
-    List<UnlockedRelation> findByUserIdAndRelationObjectDescription(Integer userId, String objectType);
+    List<UnlockedRelation> findByUserIdAndRelationObjectCode(Integer userId, String objectType);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

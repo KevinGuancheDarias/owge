@@ -75,7 +75,7 @@ class UnitTypeBoTest extends AbstractBaseBoTest {
         var maxCount = 19L;
         type.setMaxCount(maxCount);
         var user = givenUser1();
-        user.setFaction(FactionMock.givenEntity());
+        user.setFaction(FactionMock.givenFaction());
         var userImprovement = givenUserImprovement();
         var maxAfterImprovement = 25D;
         var built = 27L;

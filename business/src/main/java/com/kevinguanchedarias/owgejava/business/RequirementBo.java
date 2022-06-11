@@ -173,10 +173,10 @@ public class RequirementBo implements Serializable {
 
     @Cacheable(cacheNames = "requirements_by_faction", key = "#faction.id")
     public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
-        return requirementDao
+        return objectRelationBo
                 .findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue())
-                .stream().filter(current -> current.getObject().getDescription().equals(ObjectType.UNIT.name()))
-                .map(current -> createUnitUpgradeRequiements(objectRelationBo.unboxObjectRelation(current),
+                .stream().filter(current -> current.getObject().getCode().equals(ObjectType.UNIT.name()))
+                .map(current -> createUnitUpgradeRequirements(objectRelationBo.unboxObjectRelation(current),
                         current.getRequirements()))
                 .collect(Collectors.toList());
     }
@@ -210,7 +210,7 @@ public class RequirementBo implements Serializable {
      */
     @Transactional
     public void triggerFactionSelection(UserStorage user) {
-        processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE),
+        processRelationList(objectRelationBo.findObjectRelationsHavingRequirementType(RequirementTypeEnum.BEEN_RACE),
                 user);
     }
 
@@ -221,7 +221,7 @@ public class RequirementBo implements Serializable {
      */
     @Transactional
     public void triggerHomeGalaxySelection(UserStorage user) {
-        processRelationList(requirementDao.findObjectRelationsHavingRequirementType(RequirementTypeEnum.HOME_GALAXY),
+        processRelationList(objectRelationBo.findObjectRelationsHavingRequirementType(RequirementTypeEnum.HOME_GALAXY),
                 user);
     }
 
@@ -249,7 +249,7 @@ public class RequirementBo implements Serializable {
      */
     @Transactional
     public void triggerUnitBuildCompletedOrKilled(UserStorage user, Unit unit) {
-        processRelationList(requirementDao.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT,
+        processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT,
                 unit.getId().longValue()), user);
         triggerUnitAmountChanged(user, unit);
     }
@@ -257,7 +257,7 @@ public class RequirementBo implements Serializable {
     @Transactional
     public void triggerUnitAmountChanged(UserStorage user, Unit unit) {
         long count = obtainedUnitRepository.countByUserAndUnit(user, unit);
-        processRelationList(requirementDao.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
+        processRelationList(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
                 RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), count), user);
     }
 
@@ -430,13 +430,13 @@ public class RequirementBo implements Serializable {
     private boolean checkHaveUnitRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.isBuiltUnit(
                 user,
-                unitRepository.getOne(requirementInformation.getSecondValue().intValue())
+                unitRepository.getById(requirementInformation.getSecondValue().intValue())
         );
     }
 
     private boolean checkUnitAmountRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.countByUserAndUnit(user,
-                unitRepository.getOne(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
+                unitRepository.getById(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
     }
 
     private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {
@@ -535,8 +535,8 @@ public class RequirementBo implements Serializable {
         obtainedUpgradeBo.save(obtainedUpgrade);
     }
 
-    private UnitWithRequirementInformation createUnitUpgradeRequiements(Unit unit,
-                                                                        List<RequirementInformation> requirementInformations) {
+    private UnitWithRequirementInformation createUnitUpgradeRequirements(Unit unit,
+                                                                         List<RequirementInformation> requirementInformations) {
         UnitWithRequirementInformation retVal = new UnitWithRequirementInformation();
         retVal.setUnit(new UnitDto());
         retVal.getUnit().dtoFromEntity(unit);

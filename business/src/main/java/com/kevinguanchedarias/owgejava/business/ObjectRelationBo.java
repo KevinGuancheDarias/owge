@@ -73,7 +73,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     public Class<ObjectRelationDto> getDtoClass() {
         return ObjectRelationDto.class;
     }
-    
+
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
@@ -165,7 +165,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
-    public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementTypeEnum type, Long secondValue) {
+    public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementTypeEnum type, long secondValue) {
         return objectRelationsRepository.findByRequirementsRequirementCodeAndRequirementsSecondValue(type.name(),
                 secondValue);
     }
@@ -179,7 +179,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * @since 0.8.0
      */
     public List<ObjectRelation> findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-            RequirementTypeEnum type, Long secondValue, Long thirdValue) {
+            RequirementTypeEnum type, long secondValue, long thirdValue) {
         return objectRelationsRepository
                 .findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
                         type.name(), secondValue, thirdValue);

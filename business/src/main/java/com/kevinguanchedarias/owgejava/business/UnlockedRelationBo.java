@@ -47,7 +47,7 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
      * @since 0.8.0
      */
     public List<UnlockedRelation> findByUserIdAndObjectType(Integer userId, ObjectEnum type) {
-        return repository.findByUserIdAndRelationObjectDescription(userId, type.name());
+        return repository.findByUserIdAndRelationObjectCode(userId, type.name());
     }
 
     /**

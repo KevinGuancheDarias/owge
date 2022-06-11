@@ -27,7 +27,7 @@ import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.OVERRIDE_MAX_COUNT;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenOverride;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -95,8 +95,8 @@ class FactionBoTest extends AbstractBaseBoTest {
 
     @Test
     void findVisible_should_not_lazy_load_faction_improvements() {
-        var expected = givenEntity();
-        given(factionRepository.findByHiddenFalse()).willReturn(List.of(givenEntity()));
+        var expected = givenFaction();
+        given(factionRepository.findByHiddenFalse()).willReturn(List.of(givenFaction()));
 
         var result = factionBo.findVisible(false);
 
@@ -108,9 +108,9 @@ class FactionBoTest extends AbstractBaseBoTest {
 
     @Test
     void findVisible_should_lazy_load_faction_improvements() {
-        var expected = givenEntity();
+        var expected = givenFaction();
         expected.setImprovement(new ImprovementHibernateProxy());
-        given(factionRepository.findByHiddenFalse()).willReturn(List.of(givenEntity()));
+        given(factionRepository.findByHiddenFalse()).willReturn(List.of(givenFaction()));
 
         var result = factionBo.findVisible(true);
 
@@ -122,7 +122,7 @@ class FactionBoTest extends AbstractBaseBoTest {
 
     @Test
     void save_should_throw_when_custom_resource_gather_percentages_are_greather_than_100() {
-        var expected = givenEntity();
+        var expected = givenFaction();
         expected.setCustomPrimaryGatherPercentage(90F);
         expected.setCustomSecondaryGatherPercentage(11F);
         assertThatThrownBy(() -> factionBo.save(expected))
@@ -132,7 +132,7 @@ class FactionBoTest extends AbstractBaseBoTest {
 
     @Test
     void save_should_work() {
-        var givenEntity = givenEntity();
+        var givenEntity = givenFaction();
         given(factionRepository.save(givenEntity)).willReturn(givenEntity);
 
         var result = factionBo.save(givenEntity);
@@ -144,7 +144,7 @@ class FactionBoTest extends AbstractBaseBoTest {
     @Test
     void findByUser_should_work() {
         var userId = 1;
-        var givenEntity = givenEntity();
+        var givenEntity = givenFaction();
         given(factionRepository.findOneByUsersId(userId)).willReturn(givenEntity);
 
         var result = factionBo.findByUser(userId);
@@ -156,7 +156,7 @@ class FactionBoTest extends AbstractBaseBoTest {
     @Test
     void saveOverrides_should_delete_old_overrides_and_save_new_ones() {
         var factionId = 1;
-        var givenFaction = givenEntity();
+        var givenFaction = givenFaction();
         var unitType = UnitTypeMock.givenEntity(UNIT_TYPE_ID);
         given(unitTypeBo.getOne(UNIT_TYPE_ID)).willReturn(unitType);
         given(factionRepository.getById(factionId)).willReturn(givenFaction);

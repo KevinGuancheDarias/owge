@@ -15,7 +15,7 @@ public interface ObjectRelationsRepository extends JpaRepository<ObjectRelation,
                                                                                      Long secondValue);
 
     List<ObjectRelation> findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
-            String code, Long secondValue, Long thirdValue);
+            String code, long secondValue, long thirdValue);
 
     List<ObjectRelation> findByObjectDescriptionAndRequirementsRequirementCode(String name, String name2);
 }

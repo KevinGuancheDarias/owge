@@ -29,7 +29,6 @@ public class ObjectRelationMock {
         var code = target.name();
         return ObjectEntity.builder()
                 .code(code)
-                .description(code)
                 .build();
     }
 
