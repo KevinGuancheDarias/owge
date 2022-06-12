@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
@@ -73,14 +72,6 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     public Class<ObjectRelationDto> getDtoClass() {
         return ObjectRelationDto.class;
     }
-    
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public ObjectRelation findOneByObjectTypeAndReferenceId(ObjectEnum type, Integer referenceId) {
-        return objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(type.name(), referenceId);
-    }
 
     /**
      * Extracts the object target object entity from the relation
@@ -116,7 +107,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * @since 0.8.0
      */
     public ObjectRelation findOne(ObjectEnum objectEnum, Integer referenceId) {
-        return objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(objectEnum.name(), referenceId);
+        return objectRelationsRepository.findOneByObjectCodeAndReferenceId(objectEnum.name(), referenceId);
     }
 
     /**
@@ -150,22 +141,12 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     public List<ObjectRelation> findObjectRelationsHavingRequirementType(RequirementTypeEnum type) {
         return objectRelationsRepository.findByRequirementsRequirementCode(type.name());
     }
-
+    
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
-    public List<ObjectRelation> findObjectRelationsOfTypeHavingRequirementType(ObjectType type,
-                                                                               RequirementTypeEnum requirementType) {
-        return objectRelationsRepository.findByObjectDescriptionAndRequirementsRequirementCode(type.name(),
-                requirementType.name());
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementTypeEnum type, Long secondValue) {
+    public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementTypeEnum type, long secondValue) {
         return objectRelationsRepository.findByRequirementsRequirementCodeAndRequirementsSecondValue(type.name(),
                 secondValue);
     }
@@ -179,7 +160,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * @since 0.8.0
      */
     public List<ObjectRelation> findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-            RequirementTypeEnum type, Long secondValue, Long thirdValue) {
+            RequirementTypeEnum type, long secondValue, long thirdValue) {
         return objectRelationsRepository
                 .findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
                         type.name(), secondValue, thirdValue);

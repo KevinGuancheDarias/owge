@@ -10,6 +10,7 @@ import com.kevinguanchedarias.owgejava.entity.Rule;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokePredicateLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
@@ -46,7 +47,7 @@ import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleTypeDescrip
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -273,7 +274,7 @@ class RuleBoTest {
     })
     void isWantedDestination_should_return_correct_when_it_is_by_target_unit_type(int ruleDestinationId, boolean expectation) {
         var unitToCheck = givenUnit1();
-        var unitType = givenEntity();
+        var unitType = UnitTypeMock.givenUnitType();
         var ruleDto = buildRuleDto("UNIT_TYPE", ruleDestinationId);
         AtomicReference<Boolean> lambdaResult = new AtomicReference<>();
 

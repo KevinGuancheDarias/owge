@@ -14,7 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.OBTAINED_UPGRADE_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.OBTAINED_UPGRADE_LEVEL;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
@@ -72,7 +72,7 @@ class ObtainedUpgradeBoTest extends AbstractBaseBoTest {
     @Test
     void calculateImprovements_should_work() {
         var ou = givenObtainedUpgrade();
-        var improvement = givenEntity();
+        var improvement = givenImprovement();
         ou.getUpgrade().setImprovement(improvement);
         var multipliedResult = new ImprovementDto();
         multipliedResult.setId(2);

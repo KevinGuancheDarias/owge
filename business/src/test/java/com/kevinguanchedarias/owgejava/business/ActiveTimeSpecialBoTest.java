@@ -260,7 +260,7 @@ class ActiveTimeSpecialBoTest {
         var or = givenObjectRelation();
         var activeTimeSpecialId = 19278123L;
         given(timeSpecialBo.findByIdOrDie(TIME_SPECIAL_ID)).willReturn(timeSpecial);
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
+        given(objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
                 .willReturn(or);
         given(userStorageBo.findLoggedIn()).willReturn(user);
         given(userStorageBo.findLoggedInWithDetails()).willReturn(user);
@@ -277,7 +277,7 @@ class ActiveTimeSpecialBoTest {
         var result = activeTimeSpecialBo.activate(TIME_SPECIAL_ID);
 
         verify(timeSpecialBo, times(1)).findByIdOrDie(TIME_SPECIAL_ID);
-        verify(objectRelationBo, times(1)).findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
+        verify(objectRelationBo, times(1)).findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
         verify(userStorageBo, times(1)).findLoggedIn();
         verify(objectRelationBo, times(1)).checkIsUnlocked(user, or);
         verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);
@@ -308,7 +308,7 @@ class ActiveTimeSpecialBoTest {
         var or = givenObjectRelation();
         var activeTimeSpecial = givenActiveTimeSpecial();
         given(timeSpecialBo.findByIdOrDie(TIME_SPECIAL_ID)).willReturn(timeSpecial);
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
+        given(objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
                 .willReturn(or);
         given(userStorageBo.findLoggedIn()).willReturn(user);
         given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1))
@@ -317,7 +317,7 @@ class ActiveTimeSpecialBoTest {
         var result = activeTimeSpecialBo.activate(TIME_SPECIAL_ID);
 
         verify(timeSpecialBo, times(1)).findByIdOrDie(TIME_SPECIAL_ID);
-        verify(objectRelationBo, times(1)).findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
+        verify(objectRelationBo, times(1)).findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
         verify(userStorageBo, times(1)).findLoggedIn();
         verify(objectRelationBo, times(1)).checkIsUnlocked(user, or);
         verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);

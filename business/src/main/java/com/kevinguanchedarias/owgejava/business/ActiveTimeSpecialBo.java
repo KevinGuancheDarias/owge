@@ -48,6 +48,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     private transient ActiveTimeSpecialRepository repository;
 
     @Autowired
+    @Lazy
     private TimeSpecialBo timeSpecialBo;
 
     @Autowired
@@ -174,7 +175,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Transactional
     public ActiveTimeSpecial activate(Integer timeSpecialId) {
         TimeSpecial timeSpecial = timeSpecialBo.findByIdOrDie(timeSpecialId);
-        ObjectRelation relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.TIME_SPECIAL,
+        ObjectRelation relation = objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL,
                 timeSpecial.getId());
         UserStorage loggedUser = userStorageBo.findLoggedIn();
         objectRelationBo.checkIsUnlocked(loggedUser, relation);

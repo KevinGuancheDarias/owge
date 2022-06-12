@@ -4,7 +4,6 @@ import com.kevinguanchedarias.owgejava.dto.ImprovementUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
@@ -206,25 +205,6 @@ public class ImprovementUnitTypeBo implements Serializable {
             pendingPercentage -= step;
         }
         return retVal;
-    }
-
-    /**
-     * Returns the total sum of the value for the specified improvement type for the
-     * given user
-     *
-     * @param user
-     * @param type The expected type
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated No need to use this, GroupedImprovement from
-     * {@link ImprovementBo#findUserImprovement(UserStorage)} already
-     * has a method, as you can see in the current body of this
-     * function, And in case of use, may be <b>potentially bugged</b>,
-     * as doesn't take into account the unit type id
-     */
-    @Deprecated(since = "0.8.0")
-    public Long sumUnitTypeImprovementByUserAndImprovementType(UserStorage user, ImprovementTypeEnum type) {
-        return improvementBo.findUserImprovement(user).findUnitTypeImprovement(type);
     }
 
     /**

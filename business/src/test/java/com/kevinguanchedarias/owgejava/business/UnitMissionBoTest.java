@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
@@ -16,6 +17,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -74,7 +76,6 @@ import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenSelected
 import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenUnitMissionInformation;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
@@ -131,7 +132,8 @@ import static org.mockito.Mockito.verify;
         SpeedImpactGroupBo.class,
         TaggableCacheManager.class,
         HiddenUnitBo.class,
-        PlanetLockUtilService.class
+        PlanetLockUtilService.class,
+        CrossGalaxyMissionChecker.class
 })
 class UnitMissionBoTest {
     private static final int ALLY_ID = 19282;
@@ -164,6 +166,7 @@ class UnitMissionBoTest {
     private final AsyncRunnerBo asyncRunnerBo;
     private final EntityManager entityManager;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final CrossGalaxyMissionChecker crossGalaxyMissionChecker;
 
     @Autowired
     public UnitMissionBoTest(
@@ -193,7 +196,8 @@ class UnitMissionBoTest {
             PlanetLockUtilService planetLockUtilService,
             AsyncRunnerBo asyncRunnerBo,
             EntityManager entityManager,
-            ObtainedUnitRepository obtainedUnitRepository
+            ObtainedUnitRepository obtainedUnitRepository,
+            CrossGalaxyMissionChecker crossGalaxyMissionChecker
     ) {
         // Notice: Test in this class are not full covering the methods, as they are only testing changed lines
         this.unitMissionBo = unitMissionBo;
@@ -223,6 +227,7 @@ class UnitMissionBoTest {
         this.asyncRunnerBo = asyncRunnerBo;
         this.entityManager = entityManager;
         this.obtainedUnitRepository = obtainedUnitRepository;
+        this.crossGalaxyMissionChecker = crossGalaxyMissionChecker;
     }
 
     @SuppressWarnings("unchecked")
@@ -323,7 +328,7 @@ class UnitMissionBoTest {
                 findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID, MissionType.DEPLOYED.name());
         verify(obtainedUnitRepository, times(hasExpirationId && !shouldSearchDeployed ? 1 : 0)).
                 findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, EXPIRATION_ID);
-
+        verify(crossGalaxyMissionChecker, times(1)).checkCrossGalaxy(eq(MissionType.EXPLORE), any(), eq(givenSourcePlanet()), eq(givenTargetPlanet()));
     }
 
     @Test
@@ -337,7 +342,7 @@ class UnitMissionBoTest {
         var sourcePlanet = givenSourcePlanet();
         var targetPlanet = givenTargetPlanet();
         var unit = givenUnit1();
-        var unitType = givenEntity();
+        var unitType = UnitTypeMock.givenUnitType();
         int missionCount = 2;
         long runningMissionId = 7192;
         var runningMission = givenConquestMission(sourcePlanet, targetPlanet);

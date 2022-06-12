@@ -3,7 +3,7 @@ package com.kevinguanchedarias.owgejava.mock;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import lombok.experimental.UtilityClass;
 
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 
 @UtilityClass
 public class UnitMock {
@@ -23,7 +23,7 @@ public class UnitMock {
         var retVal = new Unit();
         retVal.setId(UNIT_ID_1);
         retVal.setName(UNIT_NAME);
-        retVal.setType(givenEntity());
+        retVal.setType(UnitTypeMock.givenUnitType());
         retVal.setPoints(UNIT_POINTS_1);
         retVal.setAttack(UNIT_ATTACK);
         retVal.setShield(UNIT_SHIELD);
@@ -35,7 +35,7 @@ public class UnitMock {
         var retVal = new Unit();
         retVal.setId(UNIT_ID_2);
         retVal.setName(UNIT_NAME);
-        retVal.setType(givenEntity());
+        retVal.setType(UnitTypeMock.givenUnitType());
         retVal.setPoints(UNIT_POINTS_2);
         return retVal;
     }

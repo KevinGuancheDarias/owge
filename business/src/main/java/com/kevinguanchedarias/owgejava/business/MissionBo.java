@@ -137,7 +137,7 @@ public class MissionBo extends AbstractMissionBo {
                     .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
                             improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
         }
-        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE,
+        var relation = objectRelationBo.findOne(ObjectEnum.UPGRADE,
                 obtainedUpgrade.getUpgrade().getId());
 
         var missionInformation = new MissionInformation();
@@ -213,7 +213,7 @@ public class MissionBo extends AbstractMissionBo {
     public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
         planetBo.myCheckIsOfUserProperty(planetId);
         checkUnitBuildMissionDoesNotExists(userId, planetId);
-        var relation = objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT,
+        var relation = objectRelationBo.findOne(ObjectEnum.UNIT,
                 unitId);
         checkUnlockedUnit(userId, relation);
         var user = userStorageBo.findById(userId);

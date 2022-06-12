@@ -26,7 +26,7 @@ public class TimeSpecialAvailableRequirementSourceBo implements RequirementSourc
     @Override
     public boolean checkRequirementIsMet(RequirementInformation currentRequirement, UserStorage user) {
         var timeSpecialId = currentRequirement.getSecondValue();
-        var relation = objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), timeSpecialId.intValue());
+        var relation = objectRelationsRepository.findOneByObjectCodeAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), timeSpecialId.intValue());
         if (relation == null) {
             log.warn("Missing object relation for time special with id {}", timeSpecialId);
             return false;

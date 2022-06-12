@@ -2,16 +2,14 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
-import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -21,14 +19,11 @@ import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEn
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
-import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.exception.UserNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
@@ -39,7 +34,6 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.text.WordUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +46,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.persistence.EntityManager;
 import java.io.Serial;
-import java.lang.reflect.InvocationTargetException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -118,6 +111,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Autowired
     private transient PlanetLockUtilService planetLockUtilService;
+
+    @Autowired
+    private transient CrossGalaxyMissionChecker crossGalaxyMissionChecker;
 
     @Override
     public String getGroupName() {
@@ -418,36 +414,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
         return obtainedUnitBo.findByMissionId(mission.getId());
-    }
-
-    /**
-     * Test if the given entity with mission limitations can do the mission
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public boolean canDoMission(UserStorage user, Planet targetPlanet,
-                                EntityWithMissionLimitation<Integer> entityWithMissionLimitation, MissionType missionType) {
-        String targetMethod = "getCan" + WordUtils.capitalizeFully(missionType.name(), '_').replaceAll("_", "");
-        try {
-            MissionSupportEnum missionSupport = ((MissionSupportEnum) entityWithMissionLimitation.getClass()
-                    .getMethod(targetMethod).invoke(entityWithMissionLimitation));
-            switch (missionSupport) {
-                case ANY:
-                    return true;
-                case OWNED_ONLY:
-                    return planetBo.isOfUserProperty(user, targetPlanet);
-                case NONE:
-                    return false;
-                default:
-                    throw new SgtCorruptDatabaseException(
-                            "unsupported mission support was specified: " + missionSupport.name());
-            }
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
-                | SecurityException e) {
-            throw new SgtBackendInvalidInputException(
-                    "Could not invoke method " + targetMethod + " maybe it is not supported mission", e);
-        }
     }
 
     /**
@@ -816,7 +782,7 @@ public class UnitMissionBo extends AbstractMissionBo {
             throw new SgtBackendInvalidInputException(
                     "At least one unit type doesn't support the specified mission.... don't try it dear hacker, you can't defeat the system, but don't worry nobody can");
         }
-        checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
+        crossGalaxyMissionChecker.checkCrossGalaxy(missionType, obtainedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
         obtainedUnitBo.save(obtainedUnits);
         handleMissionTimeCalculation(obtainedUnits, mission, missionType);
         handleCustomDuration(mission, missionInformation.getWantedTime());
@@ -1204,31 +1170,6 @@ public class UnitMissionBo extends AbstractMissionBo {
                 configurationBo.findOrSetDefault(prefix + missionTypeName + "_G_MOVE_COST", "0.15").getValue(), 0.15f);
         return (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
                 + (!targetPlanet.getGalaxy().getId().equals(sourcePlanet.getGalaxy().getId()) ? galaxyDiff : 0);
-    }
-
-    private void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
-                                  Planet targetPlanet) {
-        UserStorage user = units.get(0).getUser();
-        if (!sourcePlanet.getGalaxy().getId().equals(targetPlanet.getGalaxy().getId())) {
-            units.forEach(unit -> {
-                SpeedImpactGroup speedGroup = unit.getUnit().getSpeedImpactGroup();
-                speedGroup = speedGroup == null ? unit.getUnit().getType().getSpeedImpactGroup() : speedGroup;
-                if (speedGroup != null) {
-                    if (!canDoMission(user, targetPlanet, speedGroup, missionType)) {
-                        throw new SgtBackendInvalidInputException(
-                                "This speed group doesn't support this mission outside of the galaxy");
-                    }
-                    ObjectRelation relation = objectRelationBo
-                            .findOneByObjectTypeAndReferenceId(ObjectEnum.SPEED_IMPACT_GROUP, speedGroup.getId());
-                    if (relation == null) {
-                        LOG.warn("Unexpected null objectRelation for SPEED_IMPACT_GROUP with id " + speedGroup.getId());
-                    } else if (!unlockedRelationBo.isUnlocked(user, relation)) {
-                        throw new SgtBackendInvalidInputException(
-                                "Don't try it.... you can't do cross galaxy missions, and you know it");
-                    }
-                }
-            });
-        }
     }
 
     private int findMissionTypeDivisor(MissionType missionType) {

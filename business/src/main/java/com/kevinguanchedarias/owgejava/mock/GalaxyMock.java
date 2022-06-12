@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 public class GalaxyMock {
     public static final int GALAXY_ID = 18;
 
-    public static Galaxy givenEntity() {
+    public static Galaxy givenGalaxy() {
         return Galaxy.builder()
                 .id(GALAXY_ID)
                 .build();

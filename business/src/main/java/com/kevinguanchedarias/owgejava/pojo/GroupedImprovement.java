@@ -70,9 +70,7 @@ public class GroupedImprovement extends AbstractImprovementDto {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
-     * @deprecated This method is not used, may never ever be helpful
      */
-    @Deprecated(since = "0.9.0")
     public Long findUnitTypeImprovement(ImprovementTypeEnum improvementTypeEnum) {
         return getUnitTypesUpgrades().stream().filter(current -> improvementTypeEnum.name().equals(current.getType()))
                 .map(ImprovementUnitTypeDto::getValue).reduce(0L, Long::sum);

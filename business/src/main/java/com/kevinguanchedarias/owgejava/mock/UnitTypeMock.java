@@ -9,11 +9,11 @@ public class UnitTypeMock {
     public static final int UNIT_TYPE_ID = 91;
 
 
-    public static UnitType givenEntity() {
-        return givenEntity(UNIT_TYPE_ID);
+    public static UnitType givenUnitType() {
+        return givenUnitType(UNIT_TYPE_ID);
     }
 
-    public static UnitType givenEntity(int id) {
+    public static UnitType givenUnitType(int id) {
         UnitType unitType = new UnitType();
         unitType.setId(id);
         return unitType;

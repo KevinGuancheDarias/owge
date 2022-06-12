@@ -23,7 +23,7 @@ import static com.kevinguanchedarias.owgejava.mock.FactionMock.QUADRANT_RANGE_EN
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.QUADRANT_RANGE_START;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.SECTOR_RANGE_END;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.SECTOR_RANGE_START;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenSpawnLocation;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenSpawnLocationDto;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
@@ -93,8 +93,8 @@ class FactionSpawnLocationBoTest {
     @Test
     void saveSpawnLocations_should_delete_old_and_save_new() {
         var factionId = 1;
-        var faction = givenEntity();
-        var galaxy = GalaxyMock.givenEntity();
+        var faction = givenFaction();
+        var galaxy = GalaxyMock.givenGalaxy();
         var spawnLocation = givenSpawnLocationDto();
         given(galaxyBo.getOne(GALAXY_ID)).willReturn(galaxy);
         given(factionRepository.getById(factionId)).willReturn(faction);
@@ -115,12 +115,12 @@ class FactionSpawnLocationBoTest {
 
     @Test
     void determineSpawnGalaxy_should_return_null_when_faction_has_not_defined_custom_spawns() {
-        assertNull(factionSpawnLocationBo.determineSpawnGalaxy(givenEntity()));
+        assertNull(factionSpawnLocationBo.determineSpawnGalaxy(givenFaction()));
     }
 
     @Test
     void determineSpawnGalaxy_should_return_random_custom_galaxy() {
-        var faction = givenEntity();
+        var faction = givenFaction();
         var ids = List.of(1, 2, 3);
         when(factionSpawnLocationRepository.findSpawnGalaxiesByFaction(faction)).thenReturn(ids);
 

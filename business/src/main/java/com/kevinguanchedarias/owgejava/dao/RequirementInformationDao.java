@@ -10,8 +10,6 @@ import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTargetObject;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
@@ -24,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
@@ -73,82 +70,6 @@ public class RequirementInformationDao implements Serializable {
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use {@link ObjectRelationBo#findAll()}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<ObjectRelation> findAllObjectRelations() {
-        return objectRelationsRepository.findAll();
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use
-     * {@link ObjectRelationBo#findObjectRelationsHavingRequirementType(RequirementTypeEnum)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<ObjectRelation> findObjectRelationsHavingRequirementType(RequirementTypeEnum type) {
-        return objectRelationsRepository.findByRequirementsRequirementCode(type.name());
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use
-     * {@link ObjectRelationBo#findObjectRelationsOfTypeHavingRequirementType(ObjectType, RequirementTypeEnum)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<ObjectRelation> findObjectRelationsOfTypeHavingRequirementType(ObjectType type,
-                                                                               RequirementTypeEnum requirementType) {
-        return objectRelationsRepository.findByObjectDescriptionAndRequirementsRequirementCode(type.name(),
-                requirementType.name());
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     * @deprecated Use
-     * {@link ObjectRelationBo#findByRequirementTypeAndSecondValue(RequirementTypeEnum, Long)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<ObjectRelation> findByRequirementTypeAndSecondValue(RequirementTypeEnum type, Long secondValue) {
-        return objectRelationsRepository.findByRequirementsRequirementCodeAndRequirementsSecondValue(type.name(),
-                secondValue);
-    }
-
-    /**
-     * Finds by type, secondValue, and where thirdValue is greater or equal to x<br>
-     * Example resultant SQL: WHERE type = '$type' AND secondValue = '$secondValue'
-     * AND thirdValue >= '$thidValue'
-     *
-     * @author Kevin Guanche Darias
-     * @deprecated Use
-     * {@link ObjectRelationBo#findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(RequirementTypeEnum, Long, Long)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<ObjectRelation> findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-            RequirementTypeEnum type, Long secondValue, Long thirdValue) {
-        return objectRelationsRepository
-                .findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
-                        type.name(), secondValue, thirdValue);
-    }
-
-    /**
-     * Will return requirement for specified object type
-     *
-     * @param targetObject - Type of object
-     * @param referenceId  - Id on the target entity, for example id of an upgrade,
-     *                     or an unit
-     * @author Kevin Guanche Darias
-     * @deprecated Use
-     * {@link RequirementInformationDao#findRequirements(ObjectEnum, Integer)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<RequirementInformation> getRequirements(RequirementTargetObject targetObject, Integer referenceId) {
-        ObjectRelation objectRelation = getObjectRelation(targetObject, referenceId);
-        return returnRequirementOrEmptyList(objectRelation);
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
     @Cacheable(cacheNames = CACHE_KEY, key = "{ #objectEnum, #referenceId }")
@@ -156,30 +77,6 @@ public class RequirementInformationDao implements Serializable {
         ObjectRelation objectRelation = objectRelationsBo.findOne(objectEnum, referenceId);
         return objectRelation != null ? requirementInformationRepository.findByRelationId(objectRelation.getId())
                 : new ArrayList<>();
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use
-     * {@link RequirementInformationDao#findRequirementsByType(ObjectEnum, Integer, RequirementTypeEnum)}
-     */
-    @Deprecated(since = "0.8.0")
-    public List<RequirementInformation> findRequirementsByType(RequirementTargetObject targetObject,
-                                                               Integer referenceId, RequirementTypeEnum type) {
-        ObjectRelation objectRelation = getObjectRelation(targetObject, referenceId);
-        return findRequirementsByType(objectRelation, type);
-    }
-
-    /**
-     * Find all the requirements of the same type that a reference has
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public List<RequirementInformation> findRequirementsByType(ObjectEnum target, Integer referenceId,
-                                                               RequirementTypeEnum type) {
-        ObjectRelation objectRelation = objectRelationsBo.findOne(target, referenceId);
-        return findRequirementsByType(objectRelation, type);
     }
 
     public List<RequirementInformation> findRequirementsByType(ObjectRelation objectRelation,
@@ -190,15 +87,6 @@ public class RequirementInformationDao implements Serializable {
             return requirementInformationRepository.findByRelationIdAndRequirementId(objectRelation.getId(),
                     type.getValue());
         }
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Use {@link ObjectRelationBo#findOne(ObjectEnum, Integer)}
-     */
-    @Deprecated(since = "0.8.0")
-    public ObjectRelation getObjectRelation(RequirementTargetObject targetObject, Integer referenceId) {
-        return objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(targetObject.name(), referenceId);
     }
 
     /**
@@ -231,43 +119,6 @@ public class RequirementInformationDao implements Serializable {
         requirementInformation.getRelation().setRequirements(storedRequirementsInformation);
         requirementInformation.setRelation(objectRelationsBo.save(requirementInformation.getRelation()));
         return requirementInformation;
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     * @deprecated Use
-     * {@link RequirementInformationDao#deleteRequirementInformationByObjectRelation(ObjectEnum, Integer)}
-     * which <b>doesn't delete the ObjectRelation by itself
-     */
-    @Transactional
-    @Deprecated(since = "0.8.0")
-    public void deleteAllObjectRelations(RequirementTargetObject target, Integer referenceId) {
-        var objectRelation = getObjectRelation(target, referenceId);
-        objectRelationsRepository.deleteById(objectRelation.getId());
-        if (target == RequirementTargetObject.UPGRADE) {
-            Integer upgradeLevelRequirementId = requirementRepository
-                    .findOneByCode(RequirementTypeEnum.UPGRADE_LEVEL.name()).getId();
-            requirementInformationRepository.deleteByRequirementIdAndSecondValue(upgradeLevelRequirementId,
-                    referenceId.longValue());
-        }
-    }
-
-    /**
-     * Deletes all requirement information for given ObjectRelation (if exists)
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteRequirementInformationByObjectRelation(ObjectEnum target, Integer referenceId) {
-        var objectRelation = objectRelationsBo.findOne(target, referenceId);
-        if (objectRelation != null && target.equals(ObjectEnum.UPGRADE)) {
-            Integer upgradeLevelRequirementId = requirementRepository
-                    .findOneByCode(RequirementTypeEnum.UPGRADE_LEVEL.name()).getId();
-            requirementInformationRepository.deleteByRequirementIdAndSecondValue(upgradeLevelRequirementId,
-                    referenceId.longValue());
-        }
     }
 
     @Transactional(readOnly = false)
@@ -308,47 +159,12 @@ public class RequirementInformationDao implements Serializable {
         return retVal;
     }
 
-    /**
-     * Will find all requirement information for given object type and requirement
-     * id
-     *
-     * @author Kevin Guanche Darias
-     */
-    @Deprecated(since = "0.8.0")
-    public List<RequirementInformation> findByObjectTypeAndRequirementId(RequirementTargetObject objectType,
-                                                                         RequirementTypeEnum requirement) {
-        return requirementInformationRepository.findByRelationObjectDescriptionAndRequirementId(objectType.name(),
-                requirement.getValue());
-    }
-
     public void clearCache() {
         var cache = this.cacheManager.getCache(CACHE_KEY);
         if (cache != null) {
             cache.clear();
         } else {
             LOG.warn("Cache object is null, da' fuck??");
-        }
-    }
-
-    /**
-     * Checks if the object relation reference_id exists
-     *
-     * @param relation {@link ObjectRelation}
-     *
-     * @author Kevin Guanche Darias
-     */
-
-    /**
-     * Returns the requirement by object relation, but if null, returns empty list
-     *
-     * @author Kevin Guanche Darias
-     */
-    private List<RequirementInformation> returnRequirementOrEmptyList(ObjectRelation objectRelation) {
-        if (objectRelation == null) {
-            return new ArrayList<>();
-        } else {
-
-            return objectRelation.getRequirements();
         }
     }
 }

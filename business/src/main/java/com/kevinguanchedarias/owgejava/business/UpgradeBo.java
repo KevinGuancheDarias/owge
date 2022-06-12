@@ -68,9 +68,8 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
     @Transactional
     @Override
     public void delete(Upgrade upgrade) {
-        improvementBo.clearCacheEntriesIfRequired(upgrade, obtainedUpgradeBo);
         objectRelationBo
-                .delete(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE, upgrade.getId()));
+                .delete(objectRelationBo.findOne(ObjectEnum.UPGRADE, upgrade.getId()));
         Set<UserStorage> affectedUsers = new HashSet<>();
         obtainedUpgradeBo.findByUpgrade(upgrade)
                 .forEach(obtainedUpgrade -> affectedUsers.add(obtainedUpgrade.getUser()));

@@ -27,7 +27,7 @@ import static com.kevinguanchedarias.owgejava.mock.FactionMock.FACTION_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.FACTION_UNIT_TYPE_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.UNIT_TYPE_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.UNIT_TYPE_MAX_COUNT;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenOverride;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenSpawnLocationDto;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenUnitType;
@@ -78,7 +78,7 @@ class AdminFactionRestServiceTest {
 
     @Test
     void findUnitTypesOverrides_should_work() {
-        var faction = givenEntity();
+        var faction = givenFaction();
         faction.setUnitTypes(List.of(givenUnitType()));
         given(factionBo.findByIdOrDie(FACTION_ID)).willReturn(faction);
 
@@ -190,7 +190,7 @@ class AdminFactionRestServiceTest {
                 .energyImage(energyImage)
                 .build();
         factionDto.setImage(image);
-        var entity = givenEntity();
+        var entity = givenFaction();
         when(imageStoreBo.findByIdOrDie(image)).thenReturn(imageObject);
         when(imageStoreBo.findByIdOrDie(prImage)).thenReturn(prImageObject);
         when(imageStoreBo.findByIdOrDie(srImage)).thenReturn(srImageObject);

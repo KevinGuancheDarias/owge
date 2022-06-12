@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Fix:__ [Admin panel not deleting the unlocked relation when a time special is deleted, causing user accounts with the said time special unlocked to crash #463](https://github.com/KevinGuancheDarias/owge/issues/463)  
 * __Improvement:__ [Display duration and recharge time of the time special #452](https://github.com/KevinGuancheDarias/owge/issues/452)  
 * [class=Admin] __Feature:__ [As an admin I want to have a requirement that triggers when a time special is available (even if not active) #459](https://github.com/KevinGuancheDarias/owge/issues/459)  
 * [class=Admin] __Feature:__ [As a admin I want to have a requirement, which is upgrade level is lower than X, as a player I want it to work!](https://github.com/KevinGuancheDarias/owge/issues/456)  
