@@ -25,7 +25,7 @@ public class FactionMock {
     public static Faction givenFaction() {
         return Faction.builder()
                 .id(FACTION_ID)
-                .improvement(ImprovementMock.givenEntity())
+                .improvement(ImprovementMock.givenImprovement())
                 .build();
     }
 
@@ -40,7 +40,7 @@ public class FactionMock {
         return FactionUnitType.builder()
                 .id(FACTION_UNIT_TYPE_ID)
                 .faction(givenFaction())
-                .unitType(UnitTypeMock.givenEntity(UNIT_TYPE_ID))
+                .unitType(UnitTypeMock.givenUnitType(UNIT_TYPE_ID))
                 .maxCount(UNIT_TYPE_MAX_COUNT)
                 .build();
     }

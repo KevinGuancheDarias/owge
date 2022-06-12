@@ -4,10 +4,13 @@ import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
+import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository;
+import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,7 @@ import java.util.List;
  * @since 0.8.0
  */
 @Service
+@AllArgsConstructor
 public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto>,
         WithUnlockableBo<Integer, TimeSpecial, TimeSpecialDto> {
     public static final String TIME_SPECIAL_CACHE_TAG = "time_special";
@@ -27,23 +31,15 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     @Serial
     private static final long serialVersionUID = -2736277577264790898L;
 
-    @Autowired
-    private ImprovementBo improvementBo;
-
-    @Autowired
-    private ActiveTimeSpecialBo activeTimeSpecialBo;
-
-    @Autowired
-    private UnlockedRelationBo unlockedRelationBo;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private transient TimeSpecialRepository repository;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
+    private final ImprovementBo improvementBo;
+    private final ActiveTimeSpecialBo activeTimeSpecialBo;
+    private final UnlockedRelationBo unlockedRelationBo;
+    private final UserStorageBo userStorageBo;
+    private final transient TimeSpecialRepository repository;
+    private final transient TaggableCacheManager taggableCacheManager;
+    private final ObjectRelationsRepository objectRelationsRepository;
+    private final UnlockedRelationRepository unlockedRelationRepository;
+    private final RequirementInformationRepository requirementInformationRepository;
 
     /*
      * (non-Javadoc)
@@ -122,6 +118,10 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     @Transactional
     public void delete(TimeSpecial entity) {
         activeTimeSpecialBo.deleteByTimeSpecial(entity);
+        var or = objectRelationsRepository.findOneByObjectCodeAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), entity.getId());
+        unlockedRelationRepository.deleteByRelation(or);
+        requirementInformationRepository.deleteByRelation(or);
+        objectRelationsRepository.delete(or);
         WithNameBo.super.delete(entity);
     }
 

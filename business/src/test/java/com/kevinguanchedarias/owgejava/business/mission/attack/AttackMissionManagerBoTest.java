@@ -48,7 +48,7 @@ import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtaine
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnitWithBypassShields;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
@@ -246,7 +246,7 @@ class AttackMissionManagerBoTest {
         var ou2 = information.getUnits().get(1);
         ou2.setUser(user2);
         var attackRule = givenAttackRule();
-        var unitType = givenEntity(UNIT_TYPE_ID);
+        var unitType = givenUnitType(UNIT_TYPE_ID);
         var criticalMultiplier = 18;
         var fakedToDtoOfindDeployedInUserOwnedPlanets = new ObtainedUnitDto();
         var fakedFindDeployedInUserOwnedPlanets = new ObtainedUnit();

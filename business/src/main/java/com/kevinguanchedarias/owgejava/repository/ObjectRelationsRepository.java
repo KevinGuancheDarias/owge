@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public interface ObjectRelationsRepository extends JpaRepository<ObjectRelation, Integer>, Serializable {
-    ObjectRelation findOneByObjectDescriptionAndReferenceId(String objectEntityCode, Integer refId);
+    ObjectRelation findOneByObjectCodeAndReferenceId(String objectEntityCode, Integer refId);
 
     List<ObjectRelation> findByRequirementsRequirementCode(String code);
 
@@ -17,5 +17,5 @@ public interface ObjectRelationsRepository extends JpaRepository<ObjectRelation,
     List<ObjectRelation> findByRequirementsRequirementCodeAndRequirementsSecondValueAndRequirementsThirdValueGreaterThanEqual(
             String code, long secondValue, long thirdValue);
 
-    List<ObjectRelation> findByObjectDescriptionAndRequirementsRequirementCode(String name, String name2);
+    List<ObjectRelation> findByObjectCodeAndRequirementsRequirementCode(String name, String name2);
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 public class ImprovementMock {
     public static final float GROUPED_IMPROVEMENT_MORE_MISSIONS = 3;
 
-    public static Improvement givenEntity() {
+    public static Improvement givenImprovement() {
         Improvement improvement = new Improvement();
         improvement.setId(1);
         return improvement;

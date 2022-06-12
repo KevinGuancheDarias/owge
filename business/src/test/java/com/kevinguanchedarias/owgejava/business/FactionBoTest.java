@@ -157,7 +157,7 @@ class FactionBoTest extends AbstractBaseBoTest {
     void saveOverrides_should_delete_old_overrides_and_save_new_ones() {
         var factionId = 1;
         var givenFaction = givenFaction();
-        var unitType = UnitTypeMock.givenEntity(UNIT_TYPE_ID);
+        var unitType = UnitTypeMock.givenUnitType(UNIT_TYPE_ID);
         given(unitTypeBo.getOne(UNIT_TYPE_ID)).willReturn(unitType);
         given(factionRepository.getById(factionId)).willReturn(givenFaction);
 

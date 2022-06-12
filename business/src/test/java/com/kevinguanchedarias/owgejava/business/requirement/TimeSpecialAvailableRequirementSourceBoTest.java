@@ -58,7 +58,7 @@ class TimeSpecialAvailableRequirementSourceBoTest {
         var user = givenUser1();
         var relation = givenObjectRelation();
         var requirementInformation = givenRequirementInformation(TIME_SPECIAL_ID);
-        given(objectRelationsRepository.findOneByObjectDescriptionAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID))
+        given(objectRelationsRepository.findOneByObjectCodeAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID))
                 .willReturn(relation);
         given(unlockedRelationRepository.existsByUserAndRelation(user, relation)).willReturn(isUnlockedRelation);
 

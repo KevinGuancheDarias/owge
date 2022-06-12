@@ -51,7 +51,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.BUILD_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_LEVEL;
@@ -401,7 +401,7 @@ class MissionBoTest {
         given(improvementBo.computeImprovementValue(baseRequiredTime, moreUpgradeSpeed, false))
                 .willReturn(afterImprovementsTime);
         var or = givenObjectRelation();
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UPGRADE, UPGRADE_ID))
+        given(objectRelationBo.findOne(ObjectEnum.UPGRADE, UPGRADE_ID))
                 .willReturn(or);
         given(missionTypeRepository.findOneByCode(MissionType.LEVEL_UP.name()))
                 .willReturn(Optional.of(givenMissionType(MissionType.LEVEL_UP)));
@@ -458,7 +458,7 @@ class MissionBoTest {
         given(improvementBo.findUserImprovement(givenUser1())).willReturn(groupedImprovementMock);
         given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
         givenExceptionUtilService(exception);
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
+        given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
                 .isEqualTo(exception);
@@ -481,7 +481,7 @@ class MissionBoTest {
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         givenMaxMissionsCount(user);
 
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
+        given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
         given(unitBo.calculateRequirements(unit, targetCount)).willReturn(resourceRequirementsMock);
 
@@ -519,7 +519,7 @@ class MissionBoTest {
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
         given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
-        given(objectRelationBo.findOneByObjectTypeAndReferenceId(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
+        given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
         given(unitBo.calculateRequirements(any(), any())).willReturn(resourceRequirementsSpy);
         doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
@@ -565,7 +565,7 @@ class MissionBoTest {
         var or = givenObjectRelation();
         var mission = givenUpgradeMission(or);
         var user = givenUser1();
-        var improvement = givenEntity();
+        var improvement = givenImprovement();
         mission.setUser(user);
         var upgrade = givenUpgrade();
         upgrade.setImprovement(improvement);
@@ -679,7 +679,7 @@ class MissionBoTest {
     private static Stream<Arguments> processBuildUnit_parameters() {
         return Stream.of(
                 Arguments.of(null, 0),
-                Arguments.of(givenEntity(), 1)
+                Arguments.of(givenImprovement(), 1)
         );
     }
 }

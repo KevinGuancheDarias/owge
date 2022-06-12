@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mission.checker.EntityCanDoMissionChecker;
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
@@ -8,8 +9,6 @@ import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
@@ -60,6 +59,9 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;
+
+    @Autowired
+    private transient EntityCanDoMissionChecker entityCanDoMissionChecker;
 
     @Override
     public JpaRepository<UnitType, Integer> getRepository() {
@@ -131,29 +133,8 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
                 || type.hasMaxCount();
     }
 
-    /**
-     * Test if the specified unit type can run the specified mission
-     *
-     * @param user         user that is going to run the mission (used to test
-     *                     planet ownership... if required)
-     * @param targetPlanet Target mission planet (used to test planet ownership...
-     *                     if required)
-     * @param unitType     Unit type to test
-     * @param type         Mission to execute
-     * @throws SgtCorruptDatabaseException     Value in unit types database table is
-     *                                         not an accepted value
-     * @throws SgtBackendInvalidInputException Mission is not supported
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @deprecated Please Use
-     * {@link UnitMissionBo#canDoMission(UserStorage, Planet, com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation, MissionType)}
-     */
-    @Deprecated(since = "0.9.0")
-    public boolean canDoMission(UserStorage user, Planet targetPlanet, UnitType unitType, MissionType type) {
-        return unitMissionBo.canDoMission(user, targetPlanet, unitType, type);
-    }
-
     public boolean canDoMission(UserStorage user, Planet targetPlanet, List<UnitType> unitTypes, MissionType type) {
-        return unitTypes.stream().allMatch(current -> canDoMission(user, targetPlanet, current, type));
+        return unitTypes.stream().allMatch(current -> entityCanDoMissionChecker.canDoMission(user, targetPlanet, current, type));
     }
 
     /**

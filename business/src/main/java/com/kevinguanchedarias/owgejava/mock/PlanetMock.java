@@ -3,6 +3,8 @@ package com.kevinguanchedarias.owgejava.mock;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import lombok.experimental.UtilityClass;
 
+import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.givenGalaxy;
+
 @UtilityClass
 public class PlanetMock {
     public static final long SOURCE_PLANET_ID = 111;
@@ -11,14 +13,14 @@ public class PlanetMock {
     public static Planet givenSourcePlanet() {
         var planet = new Planet();
         planet.setId(SOURCE_PLANET_ID);
-        planet.setGalaxy(GalaxyMock.givenGalaxy());
+        planet.setGalaxy(givenGalaxy());
         return planet;
     }
 
     public static Planet givenTargetPlanet() {
         var planet = new Planet();
         planet.setId(TARGET_PLANET_ID);
-        planet.setGalaxy(GalaxyMock.givenGalaxy());
+        planet.setGalaxy(givenGalaxy());
         return planet;
     }
 }

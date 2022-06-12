@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business.unit.util;
 
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.Optional;
 
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -37,7 +38,7 @@ class UnitTypeInheritanceFinderServiceTest {
 
     @Test
     void findUnitTypeMatchingCondition_should_work_when_argument_matched() {
-        var unitType = givenEntity();
+        var unitType = UnitTypeMock.givenUnitType();
 
         assertThat(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(unitType, test -> test == unitType))
                 .contains(unitType);
@@ -45,8 +46,8 @@ class UnitTypeInheritanceFinderServiceTest {
 
     @Test
     void findUnitTypeMatchingCondition_should_work_when_matching_the_parent() {
-        var unitType = givenEntity();
-        var parent = givenEntity(18);
+        var unitType = UnitTypeMock.givenUnitType();
+        var parent = givenUnitType(18);
         unitType.setParent(parent);
 
         assertThat(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(unitType, test -> test == parent))
@@ -55,8 +56,8 @@ class UnitTypeInheritanceFinderServiceTest {
 
     @Test
     void findUnitTypeMatchingCondition_should_return_empty_when_no_match() {
-        var unitType = givenEntity();
-        var parent = givenEntity(18);
+        var unitType = UnitTypeMock.givenUnitType();
+        var parent = givenUnitType(18);
         unitType.setParent(parent);
 
         assertThat(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(unitType, test -> false))
@@ -65,7 +66,7 @@ class UnitTypeInheritanceFinderServiceTest {
 
     @Test
     void findUnitTypeMatchingCondition_should_work_when_passing_id() {
-        var unitType = givenEntity();
+        var unitType = UnitTypeMock.givenUnitType();
         given(unitTypeRepository.findById(UNIT_TYPE_ID)).willReturn(Optional.of(unitType));
 
         assertThat(unitTypeInheritanceFinderService.findUnitTypeMatchingCondition(UNIT_TYPE_ID, test -> test == unitType))

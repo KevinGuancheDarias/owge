@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.AttackRuleEntry;
 import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
+import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
 import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
@@ -24,7 +25,7 @@ import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRul
 import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRuleDto;
 import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRuleEntry;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenEntity;
+import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -115,7 +116,7 @@ class AttackRuleBoTest extends AbstractBaseBoTest {
 
     @Test
     void findAttackRule_should_type_rule_if_not_null() {
-        var type = givenEntity();
+        var type = UnitTypeMock.givenUnitType();
         var attackRule = givenAttackRule(9);
         type.setAttackRule(attackRule);
 
@@ -124,8 +125,8 @@ class AttackRuleBoTest extends AbstractBaseBoTest {
 
     @Test
     void findAttackRule_should_find_parent_attack_rule_if_own_is_null() {
-        var type = givenEntity();
-        var parentType = givenEntity(1921);
+        var type = UnitTypeMock.givenUnitType();
+        var parentType = givenUnitType(1921);
         var attackRule = givenAttackRule(9);
         type.setParent(parentType);
         parentType.setAttackRule(attackRule);
@@ -135,8 +136,8 @@ class AttackRuleBoTest extends AbstractBaseBoTest {
 
     @Test
     void findAttackRule_should_return_null_if_root_parent_is_null_and_direct_parent_has_no_rule() {
-        var type = givenEntity();
-        var parentType = givenEntity(1921);
+        var type = UnitTypeMock.givenUnitType();
+        var parentType = givenUnitType(1921);
         type.setParent(parentType);
 
         assertThat(attackRuleBo.findAttackRule(type)).isNull();
@@ -225,7 +226,7 @@ class AttackRuleBoTest extends AbstractBaseBoTest {
                 .build();
         attackRule.setAttackRuleEntries(List.of(matchingEntry));
         var ou = givenObtainedUnit1();
-        ou.getUnit().getType().setParent(givenEntity(ATTACK_RULE_TARGET_REF_ID));
+        ou.getUnit().getType().setParent(givenUnitType(ATTACK_RULE_TARGET_REF_ID));
 
         assertThat(attackRuleBo.canAttack(attackRule, ou)).isFalse();
     }
