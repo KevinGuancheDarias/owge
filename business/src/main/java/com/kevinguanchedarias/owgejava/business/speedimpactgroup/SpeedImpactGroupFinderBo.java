@@ -47,13 +47,16 @@ public class SpeedImpactGroupFinderBo {
         }
     }
 
-    @TaggableCacheable(tags = {
-            UNIT_CACHE_TAG + ":#unit.id",
-            UNIT_TYPE_CACHE_TAG,
-            ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER + ":#user.id",
-            RULE_CACHE_TAG,
-            SPEED_IMPACT_GROUP_CACHE_TAG
-    })
+    @TaggableCacheable(
+            tags = {
+                    UNIT_CACHE_TAG + ":#unit.id",
+                    UNIT_TYPE_CACHE_TAG,
+                    ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER + ":#user.id",
+                    RULE_CACHE_TAG,
+                    SPEED_IMPACT_GROUP_CACHE_TAG
+            },
+            keySuffix = "#user.id_#unit.id"
+    )
     public SpeedImpactGroup findApplicable(UserStorage user, Unit unit) {
         return activeTimeSpecialRepository.findByUserIdAndState(user.getId(), TimeSpecialStateEnum.ACTIVE).stream()
                 .flatMap(activeTimeSpecial ->

@@ -134,7 +134,7 @@
         <dependency>
             <groupId>com.github.KevinGuancheDarias</groupId>
             <artifactId>taggable-cache</artifactId>
-            <version>v0.1.3</version>
+            <version>v0.1.4</version>
         </dependency>
 
         <dependency>

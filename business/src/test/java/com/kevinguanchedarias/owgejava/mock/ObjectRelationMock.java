@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.mock;
 
+import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
@@ -12,11 +13,21 @@ public class ObjectRelationMock {
     public static final int OBJECT_RELATION_ID = 41823;
     public static final int REFERENCE_ID = 1918;
     public static final long UNLOCKED_RELATION_ID = 2938;
+    public static final ObjectEnum DTO_OBJECT_CODE = ObjectEnum.UPGRADE;
+    public static final String DTO_OBJECT_CODE_NAME = DTO_OBJECT_CODE.name();
 
     public static ObjectRelation givenObjectRelation() {
         return ObjectRelation.builder()
                 .id(OBJECT_RELATION_ID)
                 .object(givenObjectEntity())
+                .referenceId(REFERENCE_ID)
+                .build();
+    }
+
+    public static ObjectRelationDto givenObjectRelationDto() {
+        return ObjectRelationDto.builder()
+                .id(OBJECT_RELATION_ID)
+                .objectCode(DTO_OBJECT_CODE_NAME)
                 .referenceId(REFERENCE_ID)
                 .build();
     }

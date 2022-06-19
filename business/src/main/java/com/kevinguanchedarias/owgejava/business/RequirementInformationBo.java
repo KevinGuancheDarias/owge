@@ -36,11 +36,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     @Autowired
     private transient TaggableCacheManager taggableCacheManager;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.kevinguanchedarias.owgejava.business.BaseBo#getRepository()
-     */
     @Override
     public JpaRepository<RequirementInformation, Integer> getRepository() {
         return repository;
@@ -67,25 +62,10 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     }
 
     /**
-     * Deletes a requirement information from database<br />
-     * <b>NOTICE: Triggers a unlocked relations update</b>
-     *
-     * @param requirementInformation
-     * @author Kevin Guanche Darias
-     */
-    @Transactional
-    public void deleteRequirementInformation(RequirementInformation requirementInformation) {
-        ObjectRelation affectedRelation = requirementInformation.getRelation();
-        requirementInformationDao.deleteRequirementInformation(requirementInformation);
-        requirementBo.triggerRelationChanged(affectedRelation);
-    }
-
-    /**
      * Deletes all requirement informations <br>
      * <b>IMPORTANT:</b> Doesn't trigger relation changed, as we are probably going
      * to delete the relation
      *
-     * @param relation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -94,14 +74,9 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
         repository.deleteByRelation(relation);
     }
 
-    public String getSecondValueDescription(RequirementInformation requirementInformation) {
-        return requirementInformationDao.getSecondValueDescription(requirementInformation);
-    }
-
     /**
      * Saves to database and <b>triggers relation changed!</b>
      *
-     * @param requirementInformation
      * @author Kevin Guanche Darias
      */
     @Override
@@ -117,7 +92,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     /**
      * Checks if the specified second value id exists
      *
-     * @param requirementInformation
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -130,11 +104,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
         }
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.lang.Number)
-     */
     @Transactional
     @Override
     public void delete(Integer id) {
