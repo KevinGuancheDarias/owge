@@ -3,8 +3,9 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,27 +23,20 @@ import java.util.function.Function;
  * @since 0.9.6
  */
 @Service
+@RequiredArgsConstructor
 @Lazy
 public class WebsocketSyncService {
     private static final Logger LOG = Logger.getLogger(WebsocketSyncService.class);
 
-    @Autowired(required = false)
-    private List<SyncSource> syncSources;
-
-    @Autowired
-    private AsyncRunnerBo asyncRunnerBo;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private WebsocketEventsInformationBo websocketEventsInformationBo;
+    private final List<SyncSource> syncSources;
+    private final UserStorageBo userStorageBo;
+    private final WebsocketEventsInformationBo websocketEventsInformationBo;
 
     private final Map<String, Function<UserStorage, Object>> handlers = new HashMap<>();
 
     @PostConstruct
     public void init() {
-        if (syncSources != null) {
+        if (!CollectionUtils.isEmpty(syncSources)) {
             syncSources.forEach(source -> source.findSyncHandlers().forEach((handler, lambda) -> {
                 if (handlers.containsKey(handler)) {
                     throw new ProgrammingException("There is already a handler for " + handler);
