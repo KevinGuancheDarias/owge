@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Fix:__ [Initial troops that are set in the admin panel are not saved correctly. #465](https://github.com/KevinGuancheDarias/owge/issues/465)  
 * [class=Admin] __Fix:__ [Admin panel not deleting the unlocked relation when a time special is deleted, causing user accounts with the said time special unlocked to crash #463](https://github.com/KevinGuancheDarias/owge/issues/463)  
 * __Improvement:__ [Display duration and recharge time of the time special #452](https://github.com/KevinGuancheDarias/owge/issues/452)  
 * [class=Admin] __Feature:__ [As an admin I want to have a requirement that triggers when a time special is available (even if not active) #459](https://github.com/KevinGuancheDarias/owge/issues/459)  

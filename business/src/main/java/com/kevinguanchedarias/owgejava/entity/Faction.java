@@ -99,7 +99,7 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
     @ToString.Exclude
     private List<UserStorage> users;
 
-    @OneToMany(mappedBy = "unitType", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "faction", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<FactionUnitType> unitTypes;
 }

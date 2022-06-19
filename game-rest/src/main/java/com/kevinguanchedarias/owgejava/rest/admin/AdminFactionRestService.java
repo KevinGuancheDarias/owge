@@ -24,7 +24,6 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -55,7 +54,7 @@ public class AdminFactionRestService
             dto.dtoFromEntity(current);
             dto.setFactionId(null);
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @GetMapping("{factionId}/spawn-locations")
