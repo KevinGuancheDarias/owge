@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.rest.admin;
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ public class AdminCacheRestService {
     private final ImprovementBo improvementBo;
     private final SocketIoService socketIoService;
     private final RequirementInformationDao requirementInformationDao;
+    private final TaggableCacheManager taggableCacheManager;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -34,5 +36,6 @@ public class AdminCacheRestService {
         requirementInformationDao.clearCache();
         improvementBo.getImprovementSources().forEach(improvementBo::clearCacheEntries);
         socketIoService.clearCache();
+        taggableCacheManager.clear();
     }
 }

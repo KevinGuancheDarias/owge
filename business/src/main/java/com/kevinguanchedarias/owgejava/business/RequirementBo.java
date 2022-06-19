@@ -34,10 +34,11 @@ import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.kevinguanchedarias.owgejava.business.FactionBo.FACTION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
 
 @Component
 @Transactional
@@ -171,7 +175,10 @@ public class RequirementBo implements Serializable {
         return requirementDao.findRequirements(objectEnum, referenceId);
     }
 
-    @Cacheable(cacheNames = "requirements_by_faction", key = "#faction.id")
+    @TaggableCacheable(tags = {
+            FACTION_CACHE_TAG + ":#faction.id",
+            REQUIREMENT_INFORMATION_CACHE_TAG
+    })
     public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
         return objectRelationBo
                 .findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue())
@@ -298,9 +305,11 @@ public class RequirementBo implements Serializable {
      * @since 0.8.0
      */
     @Transactional
+    @TaggableCacheEvictByTag(tags = REQUIREMENT_INFORMATION_CACHE_TAG)
     public RequirementInformationDto addRequirementFromDto(RequirementInformationDto input) {
         ValidationUtil.getInstance().requireNotNull(input.getRequirement(), "requirement")
-                .requireNull(input.getId(), "requirement.id").requireNotNull(input.getRelation(), "relation")
+                .requireNull(input.getId(), "requirement.id").
+                requireNotNull(input.getRelation(), "relation")
                 .requireValidEnumValue(input.getRelation().getObjectCode(), ObjectEnum.class, "relation.objectCode")
                 .requirePositiveNumber(input.getRelation().getReferenceId(), "relation.referenceId")
                 .requireValidEnumValue(input.getRequirement().getCode(), RequirementTypeEnum.class, "requirement.code")

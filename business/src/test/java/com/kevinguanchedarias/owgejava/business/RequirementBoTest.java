@@ -3,8 +3,10 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
+import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
+import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -19,7 +21,9 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
+import com.kevinguanchedarias.owgejava.test.util.ValidationUtilTestHelper;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -49,6 +53,7 @@ import static com.kevinguanchedarias.owgejava.mock.FactionMock.FACTION_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.givenGalaxy;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.DTO_OBJECT_CODE;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.REFERENCE_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.UNLOCKED_RELATION_ID;
@@ -57,8 +62,12 @@ import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjec
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenUnlockedRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_CODE;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_INFORMATION_SECOND_VALUE;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_INFORMATION_THIRD_VALUE;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirement;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformation;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformationDto;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.SECOND_VALUE;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
@@ -72,8 +81,11 @@ import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -119,6 +131,8 @@ class RequirementBoTest {
     private final UnitRepository unitRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final UserStorageBo userStorageBo;
+    private final DtoUtilService dtoUtilService;
+    private final RequirementInformationBo requirementInformationBo;
 
     @Autowired
     RequirementBoTest(
@@ -132,7 +146,9 @@ class RequirementBoTest {
             RequirementRepository requirementRepository,
             UnitRepository unitRepository,
             ObtainedUnitRepository obtainedUnitRepository,
-            UserStorageBo userStorageBo
+            UserStorageBo userStorageBo,
+            DtoUtilService dtoUtilService,
+            RequirementInformationBo requirementInformationBo
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
@@ -145,6 +161,8 @@ class RequirementBoTest {
         this.unitRepository = unitRepository;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.userStorageBo = userStorageBo;
+        this.dtoUtilService = dtoUtilService;
+        this.requirementInformationBo = requirementInformationBo;
     }
 
     @Test
@@ -432,6 +450,43 @@ class RequirementBoTest {
         verify(obtainedUnitRepository, times(1)).isBuiltUnit(user, unit);
         verify(obtainedUnitRepository, times(2)).countByUserAndUnit(user, unit);
         verify(unlockedRelationBo, times(unlockedTimes)).save(any(UnlockedRelation.class));
+
+    }
+
+    @Test
+    void addRequirementFromDto_should_work() {
+        var input = givenRequirementInformationDto(null);
+        var output = givenRequirementInformationDto(1234);
+        var or = givenObjectRelation();
+        var requirementEntity = givenRequirement(UPGRADE_LEVEL);
+        given(objectRelationBo.findObjectRelationOrCreate(DTO_OBJECT_CODE, REFERENCE_ID)).willReturn(or);
+        given(requirementInformationBo.save(any(RequirementInformation.class))).willAnswer(returnsFirstArg());
+        given(dtoUtilService.dtoFromEntity(eq(RequirementInformationDto.class), any(RequirementInformation.class))).willReturn(output);
+        given(requirementRepository.findOneByCode(REQUIREMENT_CODE)).willReturn(requirementEntity);
+
+        try (var validationUtilMockedStatic = mockStatic(ValidationUtil.class)) {
+            var validationUtilTestHelper = ValidationUtilTestHelper.getInstance(validationUtilMockedStatic);
+            var result = requirementBo.addRequirementFromDto(input);
+
+            validationUtilTestHelper
+                    .assertRequireNotNull(input.getRequirement(), "requirement")
+                    .assertRequireNull("requirement.id")
+                    .assertRequireNotNull(input.getRelation(), "relation")
+                    .assertRequireValidEnumValue(input.getRelation().getObjectCode(), ObjectEnum.class, "relation.objectCode")
+                    .assertRequirePositiveNumber(input.getRelation().getReferenceId(), "relation.referenceId")
+                    .assertRequireValidEnumValue(input.getRequirement().getCode(), RequirementTypeEnum.class, "requirement.code")
+                    .assertRequireNotNull(input.getSecondValue(), "secondValue");
+            var savedCaptor = ArgumentCaptor.forClass(RequirementInformation.class);
+            verify(requirementInformationBo, times(1)).save(savedCaptor.capture());
+            var saved = savedCaptor.getValue();
+            assertThat(saved.getSecondValue()).isEqualTo(REQUIREMENT_INFORMATION_SECOND_VALUE);
+            assertThat(saved.getThirdValue()).isEqualTo(REQUIREMENT_INFORMATION_THIRD_VALUE);
+            assertThat(saved.getRelation()).isEqualTo(or);
+            assertThat(saved.getRequirement()).isEqualTo(requirementEntity);
+            assertThat(result).isEqualTo(output);
+
+        }
+
 
     }
 

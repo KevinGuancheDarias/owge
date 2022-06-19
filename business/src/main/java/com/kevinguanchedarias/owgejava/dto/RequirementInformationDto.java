@@ -1,116 +1,117 @@
-/**
- * 
- */
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RequirementInformationDto implements WithDtoFromEntityTrait<RequirementInformation> {
-	private Integer id;
-	private ObjectRelationDto relation;
-	private RequirementDto requirement;
-	private Long secondValue;
-	private Long thirdValue;
+    private Integer id;
+    private ObjectRelationDto relation;
+    private RequirementDto requirement;
+    private Long secondValue;
+    private Long thirdValue;
 
-	/**
-	 * 
-	 * @since 0.8.0
-	 * @param entity Source entity
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@Override
-	public void dtoFromEntity(RequirementInformation entity) {
-		WithDtoFromEntityTrait.super.dtoFromEntity(entity);
-		requirement = new RequirementDto();
-		requirement.dtoFromEntity(entity.getRequirement());
-		relation = new ObjectRelationDto();
-		relation.dtoFromEntity(entity.getRelation());
-	}
+    /**
+     * @param entity Source entity
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     */
+    @Override
+    public void dtoFromEntity(RequirementInformation entity) {
+        WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+        requirement = new RequirementDto();
+        requirement.dtoFromEntity(entity.getRequirement());
+        relation = new ObjectRelationDto();
+        relation.dtoFromEntity(entity.getRelation());
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @return the id
-	 */
-	public Integer getId() {
-		return id;
-	}
+    /**
+     * @return the id
+     * @since 0.8.0
+     */
+    public Integer getId() {
+        return id;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param id the id to set
-	 */
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    /**
+     * @param id the id to set
+     * @since 0.8.0
+     */
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @return the relation
-	 */
-	public ObjectRelationDto getRelation() {
-		return relation;
-	}
+    /**
+     * @return the relation
+     * @since 0.8.0
+     */
+    public ObjectRelationDto getRelation() {
+        return relation;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param relation the relation to set
-	 */
-	public void setRelation(ObjectRelationDto relation) {
-		this.relation = relation;
-	}
+    /**
+     * @param relation the relation to set
+     * @since 0.8.0
+     */
+    public void setRelation(ObjectRelationDto relation) {
+        this.relation = relation;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @return the requirement
-	 */
-	public RequirementDto getRequirement() {
-		return requirement;
-	}
+    /**
+     * @return the requirement
+     * @since 0.8.0
+     */
+    public RequirementDto getRequirement() {
+        return requirement;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param requirement the requirement to set
-	 */
-	public void setRequirement(RequirementDto requirement) {
-		this.requirement = requirement;
-	}
+    /**
+     * @param requirement the requirement to set
+     * @since 0.8.0
+     */
+    public void setRequirement(RequirementDto requirement) {
+        this.requirement = requirement;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @return the secondValue
-	 */
-	public Long getSecondValue() {
-		return secondValue;
-	}
+    /**
+     * @return the secondValue
+     * @since 0.8.0
+     */
+    public Long getSecondValue() {
+        return secondValue;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param secondValue the secondValue to set
-	 */
-	public void setSecondValue(Long secondValue) {
-		this.secondValue = secondValue;
-	}
+    /**
+     * @param secondValue the secondValue to set
+     * @since 0.8.0
+     */
+    public void setSecondValue(Long secondValue) {
+        this.secondValue = secondValue;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @return the thirdValue
-	 */
-	public Long getThirdValue() {
-		return thirdValue;
-	}
+    /**
+     * @return the thirdValue
+     * @since 0.8.0
+     */
+    public Long getThirdValue() {
+        return thirdValue;
+    }
 
-	/**
-	 * @since 0.8.0
-	 * @param thirdValue the thirdValue to set
-	 */
-	public void setThirdValue(Long thirdValue) {
-		this.thirdValue = thirdValue;
-	}
+    /**
+     * @param thirdValue the thirdValue to set
+     * @since 0.8.0
+     */
+    public void setThirdValue(Long thirdValue) {
+        this.thirdValue = thirdValue;
+    }
 
 }
