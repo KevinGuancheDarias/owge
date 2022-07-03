@@ -412,7 +412,7 @@ class UnitMissionBoTest {
         given(obtainedUnitBo.findInvolvedInAttack(any())).willReturn(
                 attackInformation.getUnits().stream().map(AttackObtainedUnit::getObtainedUnit).toList()
         );
-        given(speedImpactGroupBo.canIntercept(any(), any())).willReturn(true);
+        given(speedImpactGroupBo.canIntercept(any(), any(), any())).willReturn(true);
         given(attackMissionManagerBo.buildAttackInformation(targetPlanet, mission))
                 .willReturn(attackInformation);
         given(missionReportBo.create(any(), anyBoolean(), any())).willReturn(missionReport);

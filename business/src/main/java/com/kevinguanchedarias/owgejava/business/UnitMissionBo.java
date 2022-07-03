@@ -680,8 +680,10 @@ public class UnitMissionBo extends AbstractMissionBo {
                 .stream().filter(current -> !CollectionUtils.isEmpty(current.getUnit().getInterceptableSpeedGroups()))
                 .toList();
         unitsWithInterception.forEach(unitWithInterception -> involvedUnits.stream().filter(
-                        involved -> speedImpactGroupBo.canIntercept(unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUnit()))
-                .filter(involved -> !alreadyIntercepted.contains(involved) && isEnemy(unitWithInterception.getUser(), involved.getUser()))
+                        involved -> speedImpactGroupBo.canIntercept(
+                                unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUser(), involved.getUnit()
+                        )
+                ).filter(involved -> !alreadyIntercepted.contains(involved) && isEnemy(unitWithInterception.getUser(), involved.getUser()))
                 .forEach(interceptedUnit -> {
                     UserStorage interceptorUser = unitWithInterception.getUser();
                     Integer interceptorUserId = interceptorUser.getId();
