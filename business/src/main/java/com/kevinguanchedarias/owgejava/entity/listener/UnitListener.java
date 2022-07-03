@@ -44,7 +44,7 @@ public class UnitListener {
 
     @PreRemove
     public void onDeleteClearCacheIfRequired(Unit unit) {
-        objectRelationBo.delete(objectRelationBo.findOne(ObjectEnum.UNIT, unit.getId()));
+        objectRelationBo.findOneOpt(ObjectEnum.UNIT, unit.getId()).ifPresent(objectRelationBo::delete);
         Set<UserStorage> affectedUsers = new HashSet<>();
         obtainedUnitRepository.findByUnit(unit).forEach(obtainedUnit -> affectedUsers.add(obtainedUnit.getUser()));
         obtainedUnitRepository.deleteByUnit(unit);

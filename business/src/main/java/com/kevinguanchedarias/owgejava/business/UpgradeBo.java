@@ -68,8 +68,7 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
     @Transactional
     @Override
     public void delete(Upgrade upgrade) {
-        objectRelationBo
-                .delete(objectRelationBo.findOne(ObjectEnum.UPGRADE, upgrade.getId()));
+        objectRelationBo.findOneOpt(ObjectEnum.UPGRADE, upgrade.getId()).ifPresent(objectRelationBo::delete);
         Set<UserStorage> affectedUsers = new HashSet<>();
         obtainedUpgradeBo.findByUpgrade(upgrade)
                 .forEach(obtainedUpgrade -> affectedUsers.add(obtainedUpgrade.getUser()));
@@ -117,8 +116,6 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
     /**
      * Returns the resource requirements required to level up
      *
-     * @param obtainedUpgrade
-     * @return
      * @author Kevin Guanche Darias
      */
     public ResourceRequirementsPojo calculateRequirementsAreMet(ObtainedUpgrade obtainedUpgrade) {

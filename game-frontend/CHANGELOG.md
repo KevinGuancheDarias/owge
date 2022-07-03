@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Fix:__ [Creating upgrades in the admin panel stopped working (this bug in the admin panel does not let you create "upgrades"). #473](https://github.com/KevinGuancheDarias/owge/issues/473)  
 * [class=Admin] __Fix:__ [In order for the changes in the "unit requirements to be visible in the web game" to be applied, a restart of the backend is required. #476](https://github.com/KevinGuancheDarias/owge/issues/476)  
 * [class=Admin] __Fix:__ [Initial troops that are set in the admin panel are not saved correctly. #465](https://github.com/KevinGuancheDarias/owge/issues/465)  
 * [class=Admin] __Fix:__ [Admin panel not deleting the unlocked relation when a time special is deleted, causing user accounts with the said time special unlocked to crash #463](https://github.com/KevinGuancheDarias/owge/issues/463)  

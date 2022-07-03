@@ -20,6 +20,7 @@ import javax.persistence.PostPersist;
 import javax.persistence.PostUpdate;
 import javax.persistence.PreRemove;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
@@ -89,7 +90,7 @@ class UnitListenerTest {
         var unit = ou.getUnit();
         unit.setImprovement(unitImprovement);
         var user = ou.getUser();
-        given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(or);
+        given(objectRelationBo.findOneOpt(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(Optional.of(or));
         given(obtainedUnitRepository.findByUnit(unit)).willReturn(List.of(ou));
 
         unitListener.onDeleteClearCacheIfRequired(unit);

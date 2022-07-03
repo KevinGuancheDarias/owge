@@ -83,7 +83,7 @@ class UpgradeBoTest extends AbstractBaseBoTest {
         var user = ou.getUser();
         var or = givenObjectRelation();
         given(upgradeRepository.findById(UPGRADE_ID)).willReturn(Optional.of(upgrade));
-        given(objectRelationBo.findOne(ObjectEnum.UPGRADE, UPGRADE_ID)).willReturn(or);
+        given(objectRelationBo.findOneOpt(ObjectEnum.UPGRADE, UPGRADE_ID)).willReturn(Optional.of(or));
         given(obtainedUpgradeBo.findByUpgrade(upgrade)).willReturn(List.of(ou));
 
         upgradeBo.delete(UPGRADE_ID);

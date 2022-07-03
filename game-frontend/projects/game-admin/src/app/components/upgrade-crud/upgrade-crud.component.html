@@ -13,7 +13,7 @@
 
             <div class="form-group col-md-6">
                 <label for="upgrade-type">{{ 'CRUD.UPGRADE.TYPE' | translate }}</label>
-                <owge-widgets-id-name-dropdown class="form-control" [inputId]="'upgrade-type'"
+                <owge-widgets-id-name-dropdown class="form-control" [useIdAsValue]="true" [inputId]="'upgrade-type'"
                     [elementsList]="upgradeTypes" [(model)]="selectedEl.typeId"></owge-widgets-id-name-dropdown>
             </div>
             <div class="form-group col-md-6">
