@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
 import java.util.List;
@@ -55,8 +54,6 @@ public class ObjectRelationToObjectRelationBo
     }
 
     /**
-     * @param relationId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -65,18 +62,6 @@ public class ObjectRelationToObjectRelationBo
     }
 
     /**
-     * @param relationId
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @Transactional
-    public void deleteBySlaveId(Integer relationId) {
-        repository.deleteBySlaveId(relationId);
-    }
-
-    /**
-     * @param currentRelation
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -88,8 +73,6 @@ public class ObjectRelationToObjectRelationBo
      * If the input relation is master (known because it's not a requirement group,
      * and has requirement groups
      *
-     * @param relation
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */

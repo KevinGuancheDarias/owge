@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import lombok.experimental.UtilityClass;
 
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelationDto;
 
 @UtilityClass
@@ -20,6 +21,7 @@ public class RequirementMock {
     public static RequirementInformation givenRequirementInformation(long secondValue) {
         return RequirementInformation.builder()
                 .secondValue(secondValue)
+                .relation(givenObjectRelation())
                 .build();
     }
 

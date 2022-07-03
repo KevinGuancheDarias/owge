@@ -10,29 +10,33 @@ import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
+
 @Repository
 public class RequirementInformationDao implements Serializable {
+    @Serial
     private static final long serialVersionUID = -4922698439719271164L;
+
     private static final Logger LOG = Logger.getLogger(RequirementInformationDao.class);
-    private static final String CACHE_KEY = "requirements";
 
     @Autowired
     private RequirementInformationRepository requirementInformationRepository;
@@ -62,7 +66,7 @@ public class RequirementInformationDao implements Serializable {
     private transient ExceptionUtilService exceptionUtilService;
 
     @Autowired
-    private transient CacheManager cacheManager;
+    private transient TaggableCacheManager taggableCacheManager;
 
     public List<RequirementInformation> findAll() {
         return requirementInformationRepository.findAll();
@@ -72,21 +76,14 @@ public class RequirementInformationDao implements Serializable {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
-    @Cacheable(cacheNames = CACHE_KEY, key = "{ #objectEnum, #referenceId }")
+    @TaggableCacheable(tags = {
+            REQUIREMENT_GROUP_CACHE_TAG,
+            REQUIREMENT_INFORMATION_CACHE_TAG + ":#objectEnum_#referenceId"
+    })
     public List<RequirementInformation> findRequirements(ObjectEnum objectEnum, Integer referenceId) {
         ObjectRelation objectRelation = objectRelationsBo.findOne(objectEnum, referenceId);
         return objectRelation != null ? requirementInformationRepository.findByRelationId(objectRelation.getId())
                 : new ArrayList<>();
-    }
-
-    public List<RequirementInformation> findRequirementsByType(ObjectRelation objectRelation,
-                                                               RequirementTypeEnum type) {
-        if (objectRelation == null) {
-            return new ArrayList<>();
-        } else {
-            return requirementInformationRepository.findByRelationIdAndRequirementId(objectRelation.getId(),
-                    type.getValue());
-        }
     }
 
     /**
@@ -95,6 +92,10 @@ public class RequirementInformationDao implements Serializable {
      * @author Kevin Guanche Darias
      */
     @Transactional
+    @TaggableCacheEvictByTag(tags = {
+            REQUIREMENT_GROUP_CACHE_TAG,
+            REQUIREMENT_INFORMATION_CACHE_TAG + ":#requirementInformation.relation.object.code_#requirementInformation.relation.referenceId"
+    })
     public RequirementInformation save(RequirementInformation requirementInformation) {
         objectRelationsBo.checkValid(requirementInformation.getRelation());
         try {
@@ -121,50 +122,7 @@ public class RequirementInformationDao implements Serializable {
         return requirementInformation;
     }
 
-    @Transactional(readOnly = false)
-    public void deleteRequirementInformation(RequirementInformation requirementInformation) {
-        requirementInformationRepository.deleteById(requirementInformation.getId());
-        requirementInformationRepository.flush();
-        objectRelationsRepository.flush();
-    }
-
-    /**
-     * Gets the human friendly second value description<br />
-     * For example: "{upgrade_name} level some"
-     *
-     * @author Kevin Guanche Darias
-     */
-    public String getSecondValueDescription(RequirementInformation requirementInformation) {
-        String retVal;
-        switch (requirementInformation.getRequirement().getCode()) {
-            case "HAVE_SPECIAL_LOCATION":
-                retVal = specialLocationBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-                break;
-            case "BEEN_RACE":
-                retVal = factionBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-                break;
-            case "UPGRADE_LEVEL":
-                retVal = upgradeBo.findById(requirementInformation.getSecondValue().intValue()).getName() + " nivel "
-                        + requirementInformation.getThirdValue();
-                break;
-            case "WORST_PLAYER":
-                retVal = "El tío más noob!";
-                break;
-            case "HOME_GALAXY":
-                retVal = galaxyBo.findById(requirementInformation.getSecondValue().intValue()).getName();
-                break;
-            default:
-                throw new SgtBackendRequirementException("No existe este tipo de requisito");
-        }
-        return retVal;
-    }
-
     public void clearCache() {
-        var cache = this.cacheManager.getCache(CACHE_KEY);
-        if (cache != null) {
-            cache.clear();
-        } else {
-            LOG.warn("Cache object is null, da' fuck??");
-        }
+        taggableCacheManager.evictByCacheTag(REQUIREMENT_INFORMATION_CACHE_TAG);
     }
 }

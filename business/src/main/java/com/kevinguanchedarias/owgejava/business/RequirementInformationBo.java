@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
 
+import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
+
 @Component
 @Transactional
 public class RequirementInformationBo implements BaseBo<Integer, RequirementInformation, RequirementInformationDto> {
@@ -122,7 +124,12 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     public void delete(RequirementInformation entity) {
         entity.getRelation().getRequirements().removeIf(current -> current.getId().equals(entity.getId()));
         BaseBo.super.delete(entity);
-        requirementBo.triggerRelationChanged(entity.getRelation());
-
+        var relation = entity.getRelation();
+        requirementBo.triggerRelationChanged(relation);
+        taggableCacheManager.evictByCacheTag(
+                REQUIREMENT_INFORMATION_CACHE_TAG,
+                ":#" + relation.getObject().getCode() + "_" + relation.getReferenceId()
+        );
+        taggableCacheManager.evictByCacheTag(REQUIREMENT_GROUP_CACHE_TAG);
     }
 }
