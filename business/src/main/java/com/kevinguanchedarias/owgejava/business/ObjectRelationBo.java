@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectRelationDto> {
@@ -110,6 +111,10 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
         return objectRelationsRepository.findOneByObjectCodeAndReferenceId(objectEnum.name(), referenceId);
     }
 
+    public Optional<ObjectRelation> findOneOpt(ObjectEnum objectEnum, Integer referenceId) {
+        return Optional.ofNullable(findOne(objectEnum, referenceId));
+    }
+
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
@@ -141,7 +146,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     public List<ObjectRelation> findObjectRelationsHavingRequirementType(RequirementTypeEnum type) {
         return objectRelationsRepository.findByRequirementsRequirementCode(type.name());
     }
-    
+
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0

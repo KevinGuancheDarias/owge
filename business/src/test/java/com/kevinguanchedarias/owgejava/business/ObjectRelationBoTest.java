@@ -62,4 +62,15 @@ class ObjectRelationBoTest extends AbstractBaseBoTest {
 
         assertThat(result).isSameAs(or);
     }
+
+    @Test
+    void findOneOpt_should_work() {
+        var or = givenObjectRelation();
+        given(objectRelationsRepository.findOneByObjectCodeAndReferenceId(ObjectEnum.UPGRADE.name(), UPGRADE_ID))
+                .willReturn(or);
+
+        var result = objectRelationBo.findOneOpt(ObjectEnum.UPGRADE, UPGRADE_ID);
+
+        assertThat(result).contains(or);
+    }
 }
