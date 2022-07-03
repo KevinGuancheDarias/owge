@@ -305,7 +305,10 @@ public class RequirementBo implements Serializable {
      * @since 0.8.0
      */
     @Transactional
-    @TaggableCacheEvictByTag(tags = REQUIREMENT_INFORMATION_CACHE_TAG)
+    @TaggableCacheEvictByTag(tags = {
+            REQUIREMENT_INFORMATION_CACHE_TAG,
+            REQUIREMENT_INFORMATION_CACHE_TAG + "#input.relation.objectCode_#input.relation.referenceId"
+    })
     public RequirementInformationDto addRequirementFromDto(RequirementInformationDto input) {
         ValidationUtil.getInstance().requireNotNull(input.getRequirement(), "requirement")
                 .requireNull(input.getId(), "requirement.id").

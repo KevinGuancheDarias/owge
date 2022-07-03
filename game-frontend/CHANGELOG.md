@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* [class=Admin] __Fix:__ [For the changes to the "speed groups" to take effect, a restart of the backend is required. #475](https://github.com/KevinGuancheDarias/owge/issues/475)  
 * [class=Admin] __Fix:__ [Creating upgrades in the admin panel stopped working (this bug in the admin panel does not let you create "upgrades"). #473](https://github.com/KevinGuancheDarias/owge/issues/473)  
 * [class=Admin] __Fix:__ [In order for the changes in the "unit requirements to be visible in the web game" to be applied, a restart of the backend is required. #476](https://github.com/KevinGuancheDarias/owge/issues/476)  
 * [class=Admin] __Fix:__ [Initial troops that are set in the admin panel are not saved correctly. #465](https://github.com/KevinGuancheDarias/owge/issues/465)  

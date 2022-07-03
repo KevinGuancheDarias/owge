@@ -2,11 +2,14 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.dto.RequirementGroupDto;
+import com.kevinguanchedarias.owgejava.entity.EntityWithRequirementGroups;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
+import java.util.List;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -66,6 +70,7 @@ public class RequirementGroupBo implements BaseBo<Integer, RequirementGroup, Req
      * @since 0.9.0
      */
     @Transactional
+    @TaggableCacheEvictByTag(tags = REQUIREMENT_GROUP_CACHE_TAG)
     public RequirementGroup addRequirementGroup(ObjectEnum targetObject, Integer referenceId,
                                                 RequirementGroupDto requirementGroupDto) {
         ObjectRelationToObjectRelation currentGroup = new ObjectRelationToObjectRelation();
@@ -87,4 +92,15 @@ public class RequirementGroupBo implements BaseBo<Integer, RequirementGroup, Req
         return requirementGroup;
     }
 
+    @TaggableCacheable(tags = REQUIREMENT_GROUP_CACHE_TAG, keySuffix = "#entityWithGroupRequirements.id")
+    public List<RequirementGroup> findRequirements(EntityWithRequirementGroups entityWithGroupRequirements) {
+        return doFindRequirements(entityWithGroupRequirements.getRelation().getId());
+    }
+
+    private List<RequirementGroup> doFindRequirements(Integer key) {
+        return objectRelationRequirementGroupRepository.findByMasterId(key).stream()
+                .map(relationToRelation -> (RequirementGroup) objectRelationBo
+                        .unboxObjectRelation(relationToRelation.getSlave()))
+                .toList();
+    }
 }

@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.mock;
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -48,6 +49,12 @@ public class ObjectRelationMock {
                 .id(UNLOCKED_RELATION_ID)
                 .relation(givenObjectRelation())
                 .user(user)
+                .build();
+    }
+
+    public static ObjectRelationToObjectRelation givenObjectRelationToObjectRelation() {
+        return ObjectRelationToObjectRelation.builder()
+                .slave(givenObjectRelation())
                 .build();
     }
 }
