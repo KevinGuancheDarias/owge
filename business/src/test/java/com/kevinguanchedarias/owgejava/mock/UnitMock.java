@@ -3,7 +3,9 @@ package com.kevinguanchedarias.owgejava.mock;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import lombok.experimental.UtilityClass;
 
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
+import java.util.List;
+
+import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 
 @UtilityClass
 public class UnitMock {
@@ -29,6 +31,12 @@ public class UnitMock {
         retVal.setShield(UNIT_SHIELD);
         retVal.setHealth(UNIT_HEALTH);
         return retVal;
+    }
+
+    public static Unit givenUnitWithInterception1() {
+        var unit = givenUnit1();
+        unit.setInterceptableSpeedGroups(List.of(givenInterceptableSpeedGroup()));
+        return unit;
     }
 
     public static Unit givenUnit2() {

@@ -1,17 +1,18 @@
 package com.kevinguanchedarias.owgejava.pojo;
 
-import java.util.Set;
-
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
+
+import java.util.Set;
 
 @Value
 @AllArgsConstructor
+@Builder
 public class InterceptedUnitsInformation {
-	UserStorage interceptorUser;
-	ObtainedUnit interceptorUnit;
-	Set<ObtainedUnit> interceptedUnits;
+    UserStorage interceptorUser;
+    ObtainedUnit interceptorUnit;
+    Set<ObtainedUnit> interceptedUnits;
 }

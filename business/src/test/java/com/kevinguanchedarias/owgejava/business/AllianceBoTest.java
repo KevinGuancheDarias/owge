@@ -77,6 +77,14 @@ class AllianceBoTest extends AbstractBaseBoTest {
         assertThat(allianceBo.areEnemies(sourceUser, targetUser)).isFalse();
     }
 
+    @Test
+    void areEnemies_should_handle_userIds() {
+        var sourceUser = givenUser1();
+        var targetUser = givenUser1();
+
+        assertThat(allianceBo.areEnemies(sourceUser, targetUser)).isFalse();
+    }
+
     @Override
     public CacheTagTestModel findCacheTagInfo() {
         return CacheTagTestModel.builder()

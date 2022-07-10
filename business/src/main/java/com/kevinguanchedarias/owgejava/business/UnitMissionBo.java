@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnitInterceptionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -98,13 +99,7 @@ public class UnitMissionBo extends AbstractMissionBo {
     private ObtainedUnitRepository obtainedUnitRepository;
 
     @Autowired
-    private AllianceBo allianceBo;
-
-    @Autowired
     private transient TransactionUtilService transactionUtilService;
-
-    @Autowired
-    private SpeedImpactGroupBo speedImpactGroupBo;
 
     @Autowired
     private transient HiddenUnitBo hiddenUnitBo;
@@ -114,6 +109,9 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Autowired
     private transient CrossGalaxyMissionChecker crossGalaxyMissionChecker;
+
+    @Autowired
+    private transient UnitInterceptionFinderBo unitInterceptionFinderBo;
 
     @Override
     public String getGroupName() {
@@ -455,7 +453,7 @@ public class UnitMissionBo extends AbstractMissionBo {
         int totalInterceptedUnits;
         List<InterceptedUnitsInformation> interceptedUnits;
         if (!missionType.equals(MissionType.RETURN_MISSION)) {
-            interceptedUnits = checkInterceptsSpeedImpactGroup(mission, involvedUnits);
+            interceptedUnits = unitInterceptionFinderBo.checkInterceptsSpeedImpactGroup(mission, involvedUnits);
             totalInterceptedUnits = interceptedUnits.stream().map(current -> current.getInterceptedUnits().size())
                     .reduce(Integer::sum).orElse(0);
             isMissionIntercepted = totalInterceptedUnits == involvedUnits.size();
@@ -529,11 +527,6 @@ public class UnitMissionBo extends AbstractMissionBo {
                 .withExploredInformation(unitsInPlanet);
         resolveMission(mission);
         return builder;
-    }
-
-    private boolean isEnemy(UserStorage asker, UserStorage target) {
-        return !asker.getId().equals(target.getId())
-                && allianceBo.areEnemies(asker, target);
     }
 
     private UnitMissionReportBuilder processGather(Mission mission, List<ObtainedUnit> involvedUnits) {
@@ -670,29 +663,6 @@ public class UnitMissionBo extends AbstractMissionBo {
         UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(mission.getUser(), mission.getSourcePlanet(),
                 mission.getTargetPlanet(), involved).withInterceptionInformation(interceptedUnits);
         handleMissionReportSave(mission, builder);
-    }
-
-    private List<InterceptedUnitsInformation> checkInterceptsSpeedImpactGroup(Mission mission,
-                                                                              List<ObtainedUnit> involvedUnits) {
-        Set<ObtainedUnit> alreadyIntercepted = new HashSet<>();
-        Map<Integer, InterceptedUnitsInformation> interceptedMap = new HashMap<>();
-        List<ObtainedUnit> unitsWithInterception = obtainedUnitBo.findInvolvedInAttack(mission.getTargetPlanet())
-                .stream().filter(current -> !CollectionUtils.isEmpty(current.getUnit().getInterceptableSpeedGroups()))
-                .toList();
-        unitsWithInterception.forEach(unitWithInterception -> involvedUnits.stream().filter(
-                        involved -> speedImpactGroupBo.canIntercept(unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUnit()))
-                .filter(involved -> !alreadyIntercepted.contains(involved) && isEnemy(unitWithInterception.getUser(), involved.getUser()))
-                .forEach(interceptedUnit -> {
-                    UserStorage interceptorUser = unitWithInterception.getUser();
-                    Integer interceptorUserId = interceptorUser.getId();
-                    if (!interceptedMap.containsKey(interceptorUserId)) {
-                        interceptedMap.put(interceptorUserId, new InterceptedUnitsInformation(
-                                unitWithInterception.getUser(), unitWithInterception, new HashSet<>()));
-                    }
-                    interceptedMap.get(interceptorUserId).getInterceptedUnits().add(interceptedUnit);
-                    alreadyIntercepted.add(interceptedUnit);
-                }));
-        return new ArrayList<>(interceptedMap.values());
     }
 
     /**
