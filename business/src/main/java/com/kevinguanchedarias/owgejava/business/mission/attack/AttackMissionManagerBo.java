@@ -79,8 +79,7 @@ public class AttackMissionManagerBo {
         var users = attackInformation.getUsers();
         attackObtainedUnitBo.shuffleUnits(units);
         users.forEach((userId, user) -> user.setAttackableUnits(units.stream().filter(
-                unit -> !unit.getUser().getUser().getId().equals(user.getUser().getId())
-                        && allianceBo.areEnemies(user.getUser(), unit.getUser().getUser())
+                unit -> allianceBo.areEnemies(user.getUser(), unit.getUser().getUser())
         ).toList()));
         doAttack(attackInformation);
         updatePoints(attackInformation);

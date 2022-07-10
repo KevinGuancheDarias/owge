@@ -131,15 +131,13 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public boolean areEnemies(UserStorage source, UserStorage target) {
-        return source.getAlliance() == null || target.getAlliance() == null
-                || !source.getAlliance().getId().equals(target.getAlliance().getId());
+        return !source.getId().equals(target.getId()) && (source.getAlliance() == null || target.getAlliance() == null
+                || !source.getAlliance().getId().equals(target.getAlliance().getId()));
     }
 
     /**
      * Request the entrance in an alliance
      *
-     * @param allianceId
-     * @param ownerId
      * @return Persisted user
      * @throws SgtBackendInvalidInputException When you already belong to an
      *                                         alliance
@@ -191,7 +189,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     /**
      * Leaves an alliance
      *
-     * @param userId
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
@@ -200,8 +197,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     }
 
     /**
-     * @param allianceId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
@@ -215,7 +210,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     /**
      * Deletes the alliance associated with the user
      *
-     * @param transientUser
      * @throws SgtBackendInvalidInputException When user is not the owner of the
      *                                         alliance
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -235,8 +229,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     /**
      * Checks if the user is the owner of the request
      *
-     * @param storedAlliance
-     * @param user
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
@@ -247,8 +239,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     /**
      * Checks if the alliance is of user property
      *
-     * @param storedAlliance
-     * @param userId
      * @throws SgtBackendInvalidInputException When user is not the owner of the
      *                                         alliance
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

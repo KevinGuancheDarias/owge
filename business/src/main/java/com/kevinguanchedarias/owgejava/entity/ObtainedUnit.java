@@ -20,7 +20,7 @@ import java.io.Serial;
 @Table(name = "obtained_units")
 @Entity
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)

@@ -250,7 +250,8 @@ class AttackMissionManagerBoTest {
         var criticalMultiplier = 18;
         var fakedToDtoOfindDeployedInUserOwnedPlanets = new ObtainedUnitDto();
         var fakedFindDeployedInUserOwnedPlanets = new ObtainedUnit();
-        when(allianceBo.areEnemies(any(), any())).thenReturn(true);
+        when(allianceBo.areEnemies(user1.getUser(), user2.getUser())).thenReturn(true);
+        when(allianceBo.areEnemies(user2.getUser(), user1.getUser())).thenReturn(true);
         when(attackRuleBo.findAttackRule(unitType)).thenReturn(attackRule);
         when(attackRuleBo.canAttack(attackRule, ou1.getObtainedUnit())).thenReturn(true);
         when(attackRuleBo.canAttack(any(), eq(withBypassShields.getObtainedUnit()))).thenReturn(true);

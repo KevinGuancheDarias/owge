@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnitInterceptionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -18,6 +19,7 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
+import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -51,6 +53,7 @@ import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackUserInf
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenUserImprovement;
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
+import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.givenInterceptedUnitsInformation;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.ATTACK_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.CONQUEST_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.DEPLOYED_MISSION_ID;
@@ -127,13 +130,12 @@ import static org.mockito.Mockito.verify;
         CriticalAttackBo.class,
         AttackMissionManagerBo.class,
         ObtainedUnitRepository.class,
-        AllianceBo.class,
         TransactionUtilService.class,
-        SpeedImpactGroupBo.class,
         TaggableCacheManager.class,
         HiddenUnitBo.class,
         PlanetLockUtilService.class,
-        CrossGalaxyMissionChecker.class
+        CrossGalaxyMissionChecker.class,
+        UnitInterceptionFinderBo.class
 })
 class UnitMissionBoTest {
     private static final int ALLY_ID = 19282;
@@ -150,8 +152,6 @@ class UnitMissionBoTest {
     private final PlanetListBo planetListBo;
     private final TransactionUtilService transactionUtilService;
     private final MissionBo missionBo;
-    private final SpeedImpactGroupBo speedImpactGroupBo;
-    private final AllianceBo allianceBo;
     private final ConfigurationBo configurationBo;
     private final UserStorageBo userStorageBo;
     private final MissionConfigurationBo missionConfigurationBo;
@@ -167,6 +167,7 @@ class UnitMissionBoTest {
     private final EntityManager entityManager;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final CrossGalaxyMissionChecker crossGalaxyMissionChecker;
+    private final UnitInterceptionFinderBo unitInterceptionFinderBo;
 
     @Autowired
     public UnitMissionBoTest(
@@ -181,8 +182,6 @@ class UnitMissionBoTest {
             PlanetListBo planetListBo,
             TransactionUtilService transactionUtilService,
             MissionBo missionBo,
-            SpeedImpactGroupBo speedImpactGroupBo,
-            AllianceBo allianceBo,
             ConfigurationBo configurationBo,
             UserStorageBo userStorageBo,
             MissionConfigurationBo missionConfigurationBo,
@@ -197,7 +196,8 @@ class UnitMissionBoTest {
             AsyncRunnerBo asyncRunnerBo,
             EntityManager entityManager,
             ObtainedUnitRepository obtainedUnitRepository,
-            CrossGalaxyMissionChecker crossGalaxyMissionChecker
+            CrossGalaxyMissionChecker crossGalaxyMissionChecker,
+            UnitInterceptionFinderBo unitInterceptionFinderBo
     ) {
         // Notice: Test in this class are not full covering the methods, as they are only testing changed lines
         this.unitMissionBo = unitMissionBo;
@@ -211,8 +211,6 @@ class UnitMissionBoTest {
         this.planetListBo = planetListBo;
         this.transactionUtilService = transactionUtilService;
         this.missionBo = missionBo;
-        this.speedImpactGroupBo = speedImpactGroupBo;
-        this.allianceBo = allianceBo;
         this.configurationBo = configurationBo;
         this.userStorageBo = userStorageBo;
         this.missionConfigurationBo = missionConfigurationBo;
@@ -228,6 +226,7 @@ class UnitMissionBoTest {
         this.entityManager = entityManager;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.crossGalaxyMissionChecker = crossGalaxyMissionChecker;
+        this.unitInterceptionFinderBo = unitInterceptionFinderBo;
     }
 
     @SuppressWarnings("unchecked")
@@ -390,8 +389,13 @@ class UnitMissionBoTest {
         assertThat(savedMission.getTerminationDate()).isNotNull();
     }
 
-    @Test
-    void runUnitMission_check_speed_impact_interception_works() {
+    @ParameterizedTest
+    @MethodSource("runUnitMission_check_speed_impact_interception_works_arguments")
+    void runUnitMission_check_speed_impact_interception_works(
+            List<InterceptedUnitsInformation> interceptedUnitsInformationList,
+            int times,
+            String expectedReportContent
+    ) {
         var targetPlanet = givenTargetPlanet();
         var oldPlanetOwner = givenUser2();
         oldPlanetOwner.setAlliance(givenAlliance());
@@ -412,22 +416,21 @@ class UnitMissionBoTest {
         given(obtainedUnitBo.findInvolvedInAttack(any())).willReturn(
                 attackInformation.getUnits().stream().map(AttackObtainedUnit::getObtainedUnit).toList()
         );
-        given(speedImpactGroupBo.canIntercept(any(), any(), any())).willReturn(true);
         given(attackMissionManagerBo.buildAttackInformation(targetPlanet, mission))
                 .willReturn(attackInformation);
         given(missionReportBo.create(any(), anyBoolean(), any())).willReturn(missionReport);
         given(missionTypeRepository.findOneByCode(MissionType.RETURN_MISSION.name())).willReturn(Optional.of(givenMissionType(MissionType.RETURN_MISSION)));
         given(missionReportBo.save(any(MissionReport.class))).willAnswer(returnsFirstArg());
+        given(unitInterceptionFinderBo.checkInterceptsSpeedImpactGroup(mission, involvedInMission)).willReturn(interceptedUnitsInformationList);
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(givenSourcePlanet(), targetPlanet)), any());
 
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
         verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
         verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
-        verify(obtainedUnitBo, times(1)).findInvolvedInAttack(targetPlanet);
-        verify(attackMissionManagerBo, times(1)).buildAttackInformation(targetPlanet, mission);
-        verify(attackMissionManagerBo, times(1)).startAttack(attackInformation);
-        verify(missionReportBo, times(1)).create(any(), eq(true), eq(oldPlanetOwner));
+        verify(attackMissionManagerBo, times(times)).buildAttackInformation(targetPlanet, mission);
+        verify(attackMissionManagerBo, times(times)).startAttack(attackInformation);
+        verify(missionReportBo, times(times)).create(any(), eq(true), eq(oldPlanetOwner));
         var missionReportCaptor = ArgumentCaptor.forClass(MissionReport.class);
         verify(missionReportBo, times(1)).save(missionReportCaptor.capture());
         verify(planetBo, never()).save(any(Planet.class));
@@ -435,9 +438,8 @@ class UnitMissionBoTest {
         verify(requirementBo, never()).triggerSpecialLocation(any(), any());
         verify(planetBo, never()).emitPlanetOwnedChange(any(UserStorage.class));
         verify(planetListBo, never()).emitByChangedPlanet(any());
-        verify(allianceBo, times(1)).areEnemies(oldPlanetOwner, conquerorUser);
         var savedReport = missionReportCaptor.getValue();
-        assertThat(savedReport.getJsonBody()).contains("I18N_OWNER_NOT_DEFEATED");
+        assertThat(savedReport.getJsonBody()).contains(expectedReportContent);
     }
 
     @Test
@@ -930,5 +932,13 @@ class UnitMissionBoTest {
         doAnswer(returnsFirstArg()).when(missionRepository).saveAndFlush(any());
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
+    }
+
+    private static Stream<Arguments> runUnitMission_check_speed_impact_interception_works_arguments() {
+        var withInterception = givenInterceptedUnitsInformation();
+        return Stream.of(
+                Arguments.of(List.of(withInterception), 0, "interceptionInfo"),
+                Arguments.of(List.of(), 1, "I18N_OWNER_NOT_DEFEATED")
+        );
     }
 }
