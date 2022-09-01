@@ -49,4 +49,7 @@ export interface Unit {
      * @since 0.10.0
      */
     interceptableSpeedGroups: Partial<InterceptableSpeedGroup>[];
+
+    storedWeight: number;
+    storageCapacity: number;
 }

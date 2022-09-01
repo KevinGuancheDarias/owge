@@ -111,4 +111,9 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
     @OneToMany(mappedBy = "unit", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<InterceptableSpeedGroup> interceptableSpeedGroups;
+
+    @Column(nullable = false)
+    private Integer storedWeight = 1;
+
+    private Long storageCapacity;
 }

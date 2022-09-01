@@ -23,3 +23,6 @@ CREATE TABLE `obtained_unit_temporal_information` (
 ALTER TABLE `obtained_units` CHANGE `expiration` `expiration_id` INT UNSIGNED NULL DEFAULT NULL;
 ALTER TABLE `requirements` CHANGE `code` `code` VARCHAR(24) NOT NULL;
 INSERT INTO requirements (code, description)VALUES('UPGRADE_LEVEL_LOWER_THAN', 'Have upgrade lower than')
+
+ALTER TABLE `units` ADD `stored_weight` INT UNSIGNED NOT NULL DEFAULT '1' AFTER `is_invisible`, ADD `storage_capacity` INT UNSIGNED NULL AFTER `stored_weight`;
+

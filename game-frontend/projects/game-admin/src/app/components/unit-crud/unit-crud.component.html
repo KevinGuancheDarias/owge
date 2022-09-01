@@ -100,6 +100,18 @@
                 </select>
             </div>
 
+            <div class="form-group col-md-6">
+                <label for="unit-stored-weight">{{ 'CRUD.UNIT.STORED_WEIGHT' | translate }}</label>
+                <input class="form-control" type="number" id="unit-stored-weight" [(ngModel)]="selectedEl.storedWeight">
+            </div>
+
+            <div class="form-group col-md-6">
+                <label for="unit-storage-capacity">{{ 'CRUD.UNIT.STORAGE_CAPACITY' | translate }}</label>
+                <input class="form-control" type="number" id="unit-storage-capacity"
+                    [(ngModel)]="selectedEl.storageCapacity">
+            </div>
+
+
             <div class="form-group">
                 <label>{{ 'CRUD.CRITICAL_ATTACK.LABEL' | translate }}</label>
                 <app-critical-attack-crud [beforeDelete]="beforeCriticalAttackDeleteBinded"

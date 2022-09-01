@@ -78,6 +78,9 @@ import { TimespecialIsActiveTemporalUnitsTypeDescriptorProviderService } from '.
 import {
   UnitCaptureRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/unit-capture-rule-type-descriptor-provider.service';
+import {
+  UnitStoresUnitRuleTypeDescriptorProviderService
+} from './services/rule-type-descriptor-provider/unit/unit-stores-unit-rule-type-descriptor-provider.service';
 
 @NgModule({
   declarations: [
@@ -170,7 +173,8 @@ import {
       useClass: TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService,
       multi: true
     },
-    { provide: ruleTypeDescriptorProviderToken, useClass: TimespecialIsActiveTemporalUnitsTypeDescriptorProviderService, multi: true }
+    { provide: ruleTypeDescriptorProviderToken, useClass: TimespecialIsActiveTemporalUnitsTypeDescriptorProviderService, multi: true },
+    { provide: ruleTypeDescriptorProviderToken, useClass: UnitStoresUnitRuleTypeDescriptorProviderService, multi: true }
   ],
   bootstrap: [AppComponent]
 })
