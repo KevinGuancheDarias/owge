@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
-import * as io from 'socket.io-client';
 import { ToastrService } from 'ngx-toastr';
+import * as io from 'socket.io-client';
 
-import { Observable, Subject, ReplaySubject, BehaviorSubject } from 'rxjs';
-import { WsEventCacheService } from './ws-event-cache.service';
 import {
-  LoggerHelper, AbstractWebsocketApplicationHandler, ProgrammingError, SessionStore,
-  SessionService, LoadingService, StorageOfflineHelper, AsyncCollectionUtil
+  AbstractWebsocketApplicationHandler, AsyncCollectionUtil, LoadingService, LoggerHelper,
+  ProgrammingError, SessionService, SessionStore, StorageOfflineHelper
 } from '@owge/core';
-import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
+import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { WsEventCacheService } from './ws-event-cache.service';
 
 @Injectable()
 export class WebsocketService {
@@ -232,7 +232,6 @@ export class WebsocketService {
       this._log.debug('An event from backend server received', message);
       if (message && message.status && message.eventName) {
         const eventName = message.eventName;
-        console.log('Information valor', message);
         const handlers: AbstractWebsocketApplicationHandler[] = this._getValidHandlers(eventName);
         if (handlers.length) {
           handlers.forEach(async handler => {

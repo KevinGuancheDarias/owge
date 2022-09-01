@@ -207,6 +207,10 @@
                 },
                 "ATTACK": {
                     "EARNED_POINTS": "Puntos ganados"
+                },
+                "INTERCEPTION": {
+                    "INTERCEPTOR_USER": "Usuario interceptor: {{username}}",
+                    "INTERCEPTOR_UNIT": "Unidad interceptora: {{name}}"
                 }
             },
             "SHOW_OLDER": "Mostrar anteriores"

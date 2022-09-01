@@ -207,6 +207,10 @@
                 },
                 "ATTACK": {
                     "EARNED_POINTS": "Earned points"
+                },
+                "INTERCEPTION": {
+                    "INTERCEPTOR_USER": "Interceptor user: {{username}}",
+                    "INTERCEPTOR_UNIT": "Interceptor unit: {{name}}"
                 }
             },
             "SHOW_OLDER": "Show older"

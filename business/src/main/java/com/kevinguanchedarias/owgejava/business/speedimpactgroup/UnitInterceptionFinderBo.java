@@ -1,10 +1,13 @@
 package com.kevinguanchedarias.owgejava.business.speedimpactgroup;
 
+import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.AllianceBo;
+import com.kevinguanchedarias.owgejava.business.MissionReportBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import lombok.AllArgsConstructor;
@@ -24,6 +27,7 @@ public class UnitInterceptionFinderBo {
     private final ObtainedUnitBo obtainedUnitBo;
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final AllianceBo allianceBo;
+    private final MissionReportBo missionReportBo;
 
 
     public List<InterceptedUnitsInformation> checkInterceptsSpeedImpactGroup(Mission mission,
@@ -49,5 +53,20 @@ public class UnitInterceptionFinderBo {
                     alreadyIntercepted.add(interceptedUnit);
                 }));
         return new ArrayList<>(interceptedMap.values());
+    }
+
+    public void sendReportToInterceptorUsers(List<InterceptedUnitsInformation> interceptedUnitsInformationList, Planet sourcePlanet, Planet targetPlanet) {
+        interceptedUnitsInformationList.forEach(info -> this.doSendReportToInterceptorUser(info, sourcePlanet, targetPlanet));
+    }
+
+    private void doSendReportToInterceptorUser(InterceptedUnitsInformation interceptedUnitsInformation, Planet sourcePlanet, Planet targetPlanet) {
+        UnitMissionReportBuilder unitMissionReportBuilder = UnitMissionReportBuilder.create(
+                interceptedUnitsInformation.getInterceptorUser(),
+                sourcePlanet,
+                targetPlanet,
+                List.of(interceptedUnitsInformation.getInterceptorUnit())
+        );
+        unitMissionReportBuilder.withInterceptionInformation(List.of(interceptedUnitsInformation));
+        missionReportBo.create(unitMissionReportBuilder, true, interceptedUnitsInformation.getInterceptorUser());
     }
 }

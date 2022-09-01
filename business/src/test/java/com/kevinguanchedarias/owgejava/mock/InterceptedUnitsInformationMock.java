@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.mock;
 
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.pojo.InterceptedUnitsInformation;
 import lombok.experimental.UtilityClass;
 
@@ -10,13 +12,19 @@ import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtaine
 
 @UtilityClass
 public class InterceptedUnitsInformationMock {
+    public static final ObtainedUnit INTERCEPTED_UNIT = givenObtainedUnit1();
+    public static final ObtainedUnit INTERCEPTOR_UNIT = givenObtainedUnit2();
+    public static final UserStorage INTERCEPTOR_USER = INTERCEPTOR_UNIT.getUser();
+
     public static InterceptedUnitsInformation givenInterceptedUnitsInformation() {
-        var unit1 = givenObtainedUnit1();
-        var unit2 = givenObtainedUnit2();
+        return givenInterceptedUnitsInformation(Set.of(INTERCEPTED_UNIT));
+    }
+
+    public static InterceptedUnitsInformation givenInterceptedUnitsInformation(Set<ObtainedUnit> interceptedUnits) {
         return InterceptedUnitsInformation.builder()
-                .interceptedUnits(Set.of(unit1))
-                .interceptorUser(unit2.getUser())
-                .interceptorUnit(unit2)
+                .interceptedUnits(interceptedUnits)
+                .interceptorUser(INTERCEPTOR_USER)
+                .interceptorUnit(INTERCEPTOR_UNIT)
                 .build();
     }
 }

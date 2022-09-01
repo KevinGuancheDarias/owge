@@ -499,12 +499,14 @@ public class UnitMissionBo extends AbstractMissionBo {
             if (totalInterceptedUnits != 0 && reportBuilder != null) {
                 reportBuilder.withInvolvedUnits(originallyInvolved);
                 reportBuilder.withInterceptionInformation(interceptedUnits);
+                unitInterceptionFinderBo.sendReportToInterceptorUsers(interceptedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
             }
             if (reportBuilder != null) {
                 handleMissionReportSave(mission, reportBuilder);
             }
         } else {
             handleMissionInterception(mission, originallyInvolved, interceptedUnits);
+            unitInterceptionFinderBo.sendReportToInterceptorUsers(interceptedUnits, mission.getSourcePlanet(), mission.getTargetPlanet());
             emitLocalMissionChangeAfterCommit(mission);
         }
     }

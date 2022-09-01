@@ -58,6 +58,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
   public isDesktop: boolean;
+  extraTitleTemplate: TemplateRef<any>;
   public extraSectionTemplate: TemplateRef<any>;
   public extraHeaderTemplate: TemplateRef<any>;
   public actionButtonsTemplate: TemplateRef<any>;
@@ -89,6 +90,7 @@ export class WidgetDisplayListItemComponent implements OnInit, OnDestroy, AfterC
   }
 
   public ngAfterContentInit() {
+    this.extraTitleTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-title');
     this.extraSectionTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-section');
     this.extraHeaderTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-header');
     this.extraDescriptionTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'extra-description');

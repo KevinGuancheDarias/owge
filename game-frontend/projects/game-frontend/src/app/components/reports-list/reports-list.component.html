@@ -89,10 +89,16 @@
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.RESULTS.INTERCEPTED' | translate"
               *ngIf="report.parsedJson.interceptionInfo">
               <owge-widgets-display-list-item *ngFor="let interceptionInfo of report.parsedJson.interceptionInfo"
-                [itemName]="'Interceptor: ' + interceptionInfo.interceptorUnit.unit.name"
                 [image]="interceptionInfo.interceptorUnit.unit.imageUrl">
+                <ng-template owgeCoreContent select="extra-title">
+                  {{ 'APP.REPORTS.BODY.INTERCEPTION.INTERCEPTOR_USER' | translate: {username:
+                  interceptionInfo.interceptorUser } }} <br>
+                  {{ 'APP.REPORTS.BODY.INTERCEPTION.INTERCEPTOR_UNIT' | translate: {name:
+                  interceptionInfo.interceptorUnit.unit.name } }}
+                </ng-template>
                 <ng-template owgeCoreContent [select]="'extra-description'">
-                  <app-deployed-units-list [obtainedUnits]="interceptionInfo.units"></app-deployed-units-list>
+                  <app-deployed-units-list [showUsername]="true" [obtainedUnits]="interceptionInfo.units">
+                  </app-deployed-units-list>
                 </ng-template>
               </owge-widgets-display-list-item>
             </owge-widgets-collapsable-item>
