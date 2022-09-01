@@ -30,6 +30,7 @@
   <div class="desktop-view-header owge-theme-base-colors" *ngIf="!hideDesktopSections[0]">
     <h5>
       {{ itemName | hideDuplicatedName }}
+      <ng-container *ngTemplateOutlet="extraTitleTemplate"></ng-container>
     </h5>
   </div>
   <div class="d-flex desktop-view owge-theme-base-colors" [ngClass]="classes">

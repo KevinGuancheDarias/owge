@@ -39,7 +39,11 @@ import java.util.Optional;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
-public interface CrudWithImprovementsRestServiceTrait<N extends Number, E extends EntityWithImprovements<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
+public interface CrudWithImprovementsRestServiceTrait
+        <
+                N extends Number, E extends EntityWithImprovements<N>,
+                S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>
+                >
         extends CrudRestServiceTrait<N, E, S, D> {
 
     /**

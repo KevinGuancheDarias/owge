@@ -44,6 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -53,6 +54,7 @@ import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackUserInf
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenUserImprovement;
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
+import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.INTERCEPTED_UNIT;
 import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.givenInterceptedUnitsInformation;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.ATTACK_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.CONQUEST_MISSION_ID;
@@ -91,6 +93,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -394,8 +397,10 @@ class UnitMissionBoTest {
     void runUnitMission_check_speed_impact_interception_works(
             List<InterceptedUnitsInformation> interceptedUnitsInformationList,
             int times,
+            int interceptionReportTimes,
             String expectedReportContent
     ) {
+        var sourcePlanet = givenSourcePlanet();
         var targetPlanet = givenTargetPlanet();
         var oldPlanetOwner = givenUser2();
         oldPlanetOwner.setAlliance(givenAlliance());
@@ -404,7 +409,7 @@ class UnitMissionBoTest {
         var mission = givenConquestMission(givenSourcePlanet(), targetPlanet);
         mission.setUser(conquerorUser);
         mission.setRequiredTime(108D);
-        var involvedInMission = List.of(givenObtainedUnit1());
+        var involvedInMission = List.of(givenObtainedUnit1(), givenObtainedUnit1());
         var attackInformation = givenFullAttackInformation();
         attackInformation.getUsers().get(USER_ID_2).getUnits().get(0).getObtainedUnit().getUnit()
                 .setInterceptableSpeedGroups(List.of(givenInterceptableSpeedGroup()));
@@ -427,12 +432,13 @@ class UnitMissionBoTest {
         unitMissionBo.runUnitMission(CONQUEST_MISSION_ID, MissionType.CONQUEST);
 
         verify(missionRepository, times(2)).findById(CONQUEST_MISSION_ID);
-        verify(obtainedUnitBo, times(2)).findByMissionId(CONQUEST_MISSION_ID);
+        verify(obtainedUnitBo, atLeast(2)).findByMissionId(CONQUEST_MISSION_ID);
         verify(attackMissionManagerBo, times(times)).buildAttackInformation(targetPlanet, mission);
         verify(attackMissionManagerBo, times(times)).startAttack(attackInformation);
         verify(missionReportBo, times(times)).create(any(), eq(true), eq(oldPlanetOwner));
         var missionReportCaptor = ArgumentCaptor.forClass(MissionReport.class);
         verify(missionReportBo, times(1)).save(missionReportCaptor.capture());
+        verify(unitInterceptionFinderBo, times(interceptionReportTimes)).sendReportToInterceptorUsers(interceptedUnitsInformationList, sourcePlanet, targetPlanet);
         verify(planetBo, never()).save(any(Planet.class));
         verify(obtainedUnitBo, never()).findByUserIdAndTargetPlanetAndMissionTypeCode(any(), any(), eq(MissionType.DEPLOYED));
         verify(requirementBo, never()).triggerSpecialLocation(any(), any());
@@ -935,10 +941,13 @@ class UnitMissionBoTest {
     }
 
     private static Stream<Arguments> runUnitMission_check_speed_impact_interception_works_arguments() {
-        var withInterception = givenInterceptedUnitsInformation();
+        var withPartialInterception = givenInterceptedUnitsInformation();
+        var interceptedUnit2 = INTERCEPTED_UNIT.toBuilder().id(9999L).build();
+        var withFullInterception = givenInterceptedUnitsInformation(Set.of(INTERCEPTED_UNIT, interceptedUnit2));
         return Stream.of(
-                Arguments.of(List.of(withInterception), 0, "interceptionInfo"),
-                Arguments.of(List.of(), 1, "I18N_OWNER_NOT_DEFEATED")
+                Arguments.of(List.of(withFullInterception), 0, 1, "interceptionInfo"),
+                Arguments.of(List.of(withPartialInterception), 1, 1, "interceptionInfo"),
+                Arguments.of(List.of(), 1, 0, "I18N_OWNER_NOT_DEFEATED")
         );
     }
 }

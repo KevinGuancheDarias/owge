@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @DependsOn("bootJacksonConfigurationService")
+@Slf4j
 public class SocketIoService {
 
     private static final String EVENT_WARN_MESSAGE = "warn_message";
@@ -119,8 +121,8 @@ public class SocketIoService {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
                     LOCAL_LOGGER.warn("Should never happend, if everything is nice!!!");
                 }
-                LOCAL_LOGGER.trace("Sending message to socket");
                 TokenUser user = client.get(USER_TOKEN_KEY);
+                log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
                 client.sendEvent("deliver_message",
                         new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
             }));
