@@ -137,6 +137,8 @@
             "SPEED": "Speed",
             "BYPASS_SHIELDS": "Bypass shields",
             "IS_INVISIBLE": "Is invisible",
+            "STORED_WEIGHT": "Stored weigt",
+            "STORAGE_CAPACITY": "Storage capacity",
             "BTN_OPEN_INTERCEPTABLES_MODAL": "Manage interceptables",
             "INTERCEPTABLE_GROUPS": {
                 "MODAL": {
@@ -239,7 +241,8 @@
                         "UNIT_CAPTURE": "Unit Capture",
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Time special is enabled, hide units",
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Time special is enabled, swap speed group",
-                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Time special is enabled, provide temporal unit"
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Time special is enabled, provide temporal unit",
+                        "UNIT_STORES_UNIT": "Unit that stores units"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unit",

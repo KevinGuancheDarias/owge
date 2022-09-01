@@ -6,7 +6,7 @@ import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.rule.itemtype.UnitRuleItemTypeProviderBo;
-import com.kevinguanchedarias.owgejava.business.rule.type.UnitCaptureRuleTypeProviderBo;
+import com.kevinguanchedarias.owgejava.business.rule.type.unit.UnitCaptureRuleTypeProviderBo;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Rule;
 import com.kevinguanchedarias.owgejava.mock.AttackMock;

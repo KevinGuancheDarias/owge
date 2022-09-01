@@ -128,6 +128,8 @@
             "SPEED": "Velocidad",
             "BYPASS_SHIELDS": "Atraviesa escudos",
             "IS_INVISIBLE": "Es invisible",
+            "STORED_WEIGHT": "Peso almacenado",
+            "STORAGE_CAPACITY": "Capacidad de almacenamiento",
             "BTN_OPEN_INTERCEPTABLES_MODAL": "Gestionar interceptables",
             "INTERCEPTABLE_GROUPS": {
                 "MODAL": {
@@ -230,7 +232,8 @@
                         "UNIT_CAPTURE": "Captura de unidad",
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo activado, camuflar unidades",
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Especial de tiempo activado, cambiar grupo de velocidad",
-                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Especial de tiempo activado, proporcionar unidad temporal"
+                        "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Especial de tiempo activado, proporcionar unidad temporal",
+                        "UNIT_STORES_UNIT": "Unidad que almacena unidades"
                     },
                     "DESTINATION_TYPES": {
                         "UNIT": "Unidad",
