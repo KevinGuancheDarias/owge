@@ -3,9 +3,6 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.UpgradeRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -37,12 +34,10 @@ import static org.mockito.Mockito.verify;
         UpgradeRepository.class,
         ObjectRelationBo.class,
         ObtainedUpgradeBo.class,
-        ImprovementBo.class,
-        TaggableCacheManager.class
+        ImprovementBo.class
 })
-class UpgradeBoTest extends AbstractBaseBoTest {
+class UpgradeBoTest {
     private final UpgradeBo upgradeBo;
-    private final TaggableCacheManager taggableCacheManager;
     private final ImprovementBo improvementBo;
     private final ObjectRelationBo objectRelationBo;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
@@ -51,27 +46,16 @@ class UpgradeBoTest extends AbstractBaseBoTest {
     @Autowired
     public UpgradeBoTest(
             UpgradeBo upgradeBo,
-            TaggableCacheManager taggableCacheManager,
             ImprovementBo improvementBo,
             ObjectRelationBo objectRelationBo,
             ObtainedUpgradeBo obtainedUpgradeBo,
             UpgradeRepository upgradeRepository
     ) {
         this.upgradeBo = upgradeBo;
-        this.taggableCacheManager = taggableCacheManager;
         this.improvementBo = improvementBo;
         this.objectRelationBo = objectRelationBo;
         this.obtainedUpgradeBo = obtainedUpgradeBo;
         this.upgradeRepository = upgradeRepository;
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(UpgradeBo.UPGRADE_CACHE_TAG)
-                .targetBo(upgradeBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 
     @ParameterizedTest

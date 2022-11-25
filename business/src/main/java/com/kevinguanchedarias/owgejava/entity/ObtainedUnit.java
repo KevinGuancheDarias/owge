@@ -1,20 +1,8 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 
 @Table(name = "obtained_units")
@@ -24,7 +12,9 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ObtainedUnit implements EntityWithId<Long> {
+public class ObtainedUnit implements EntityWithCache<Long> {
+    public static final String OBTAINED_UNIT_CACHE_TAG = "obtained_unit";
+
     @Serial
     private static final long serialVersionUID = -373057104230776167L;
 
@@ -62,4 +52,9 @@ public class ObtainedUnit implements EntityWithId<Long> {
     private boolean isFromCapture = false;
 
     private Long expirationId;
+
+    @Override
+    public String getCacheTag() {
+        return OBTAINED_UNIT_CACHE_TAG;
+    }
 }

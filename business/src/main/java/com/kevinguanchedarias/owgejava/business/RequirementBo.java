@@ -7,18 +7,7 @@ import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.dto.UpgradeDto;
-import com.kevinguanchedarias.owgejava.entity.EntityWithId;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
-import com.kevinguanchedarias.owgejava.entity.Requirement;
-import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
-import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
-import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectType;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
@@ -27,12 +16,8 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedExcepti
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.pojo.UnitUpgradeRequirements;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
-import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
-import com.kevinguanchedarias.owgejava.repository.UnitRepository;
+import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
@@ -47,12 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.kevinguanchedarias.owgejava.business.FactionBo.FACTION_CACHE_TAG;
@@ -77,9 +57,6 @@ public class RequirementBo implements Serializable {
 
     @Autowired
     private UnlockedRelationBo unlockedRelationBo;
-
-    @Autowired
-    private ObtainedUpgradeBo obtainedUpgradeBo;
 
     @Autowired
     private UpgradeBo upgradeBo;
@@ -131,6 +108,9 @@ public class RequirementBo implements Serializable {
 
     @Autowired
     private ObtainedUpgradeRepository obtainedUpgradeRepository;
+
+    @Autowired
+    private UnlockedRelationRepository unlockedRelationRepository;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -235,7 +215,6 @@ public class RequirementBo implements Serializable {
     /**
      * Checks requirements when level up mission has been completed!
      *
-     * @param user
      * @author Kevin Guanche Darias
      */
     @Transactional
@@ -356,7 +335,7 @@ public class RequirementBo implements Serializable {
         });
         affectedMasters.forEach(master -> {
             List<ObjectRelation> slaves = objectRelationToObjectRelationBo.findByMasterId(master.getId()).stream()
-                    .map(ObjectRelationToObjectRelation::getSlave).collect(Collectors.toList());
+                    .map(ObjectRelationToObjectRelation::getSlave).toList();
             if (slaves.stream().anyMatch(slave -> unlockedRelationBo.isUnlocked(user, slave))) {
                 registerObtainedRelation(master, user);
             } else {
@@ -389,29 +368,15 @@ public class RequirementBo implements Serializable {
         for (RequirementInformation currentRequirement : objectRelation.getRequirements()) {
             boolean status;
             var requirementType = RequirementTypeEnum.valueOf(currentRequirement.getRequirement().getCode());
-            switch (requirementType) {
-                case UPGRADE_LEVEL:
-                    status = checkUpgradeLevelRequirement(currentRequirement, user.getId());
-                    break;
-                case HAVE_UNIT:
-                    status = checkHaveUnitRequirement(currentRequirement, user);
-                    break;
-                case UNIT_AMOUNT:
-                    status = checkUnitAmountRequirement(currentRequirement, user);
-                    break;
-                case BEEN_RACE:
-                    status = checkBeenFactionRequirement(currentRequirement, user.getId());
-                    break;
-                case HOME_GALAXY:
-                    status = checkBeenGalaxyRequirement(currentRequirement, user);
-                    break;
-                case HAVE_SPECIAL_LOCATION:
-                    status = checkSpecialLocationRequirement(currentRequirement, user);
-                    break;
-                default:
-                    status = runRequirementSources(requirementType, currentRequirement, user);
-                    break;
-            }
+            status = switch (requirementType) {
+                case UPGRADE_LEVEL -> checkUpgradeLevelRequirement(currentRequirement, user.getId());
+                case HAVE_UNIT -> checkHaveUnitRequirement(currentRequirement, user);
+                case UNIT_AMOUNT -> checkUnitAmountRequirement(currentRequirement, user);
+                case BEEN_RACE -> checkBeenFactionRequirement(currentRequirement, user.getId());
+                case HOME_GALAXY -> checkBeenGalaxyRequirement(currentRequirement, user);
+                case HAVE_SPECIAL_LOCATION -> checkSpecialLocationRequirement(currentRequirement, user);
+                default -> runRequirementSources(requirementType, currentRequirement, user);
+            };
             if (!status) {
                 return false;
             }
@@ -485,7 +450,7 @@ public class RequirementBo implements Serializable {
             var unlockedRelation = new UnlockedRelation();
             unlockedRelation.setRelation(relation);
             unlockedRelation.setUser(user);
-            unlockedRelationBo.save(unlockedRelation);
+            unlockedRelationRepository.save(unlockedRelation);
             var object = ObjectEnum.valueOf(relation.getObject().getCode());
             switch (object) {
                 case UPGRADE:
@@ -512,14 +477,14 @@ public class RequirementBo implements Serializable {
     }
 
     private void emitUnlockedSpeedImpactGroups(UserStorage user) {
-        TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(user.getId(),
+        transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(user.getId(),
                 "speed_impact_group_unlocked_change", () -> speedImpactGroupBo.findCrossGalaxyUnlocked(user)));
     }
 
     private void unregisterLostRelation(ObjectRelation relation, UserStorage user) {
         UnlockedRelation unlockedRelation = unlockedRelationBo.findOneByUserIdAndRelationId(user.getId(), relation.getId());
         if (unlockedRelation != null) {
-            unlockedRelationBo.delete(unlockedRelation.getId());
+            unlockedRelationRepository.delete(unlockedRelation);
         }
 
         ObjectEnum object = ObjectEnum.valueOf(relation.getObject().getCode());
@@ -539,12 +504,12 @@ public class RequirementBo implements Serializable {
         obtainedUpgrade.setUpgrade(upgradeBo.findById(upgradeId));
         obtainedUpgrade.setUser(user);
         obtainedUpgrade.setAvailable(true);
-        obtainedUpgradeBo.save(obtainedUpgrade);
+        obtainedUpgradeRepository.save(obtainedUpgrade);
     }
 
     private void alterObtainedUpgradeAvailability(ObtainedUpgrade obtainedUpgrade, Boolean available) {
         obtainedUpgrade.setAvailable(available);
-        obtainedUpgradeBo.save(obtainedUpgrade);
+        obtainedUpgradeRepository.save(obtainedUpgrade);
     }
 
     private UnitWithRequirementInformation createUnitUpgradeRequirements(Unit unit,

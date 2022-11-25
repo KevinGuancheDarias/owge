@@ -8,7 +8,6 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     private static final long serialVersionUID = 4755638529538733332L;
 
     @Autowired
-    @Lazy
     private RequirementInformationDao requirementInformationDao;
 
     @Autowired
@@ -36,21 +34,11 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     private RequirementInformationRepository repository;
 
     @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
+    private TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<RequirementInformation, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return REQUIREMENT_INFORMATION_CACHE_TAG;
     }
 
     /*
@@ -81,7 +69,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
      *
      * @author Kevin Guanche Darias
      */
-    @Override
     @Transactional
     public RequirementInformation save(RequirementInformation requirementInformation) {
         checkSecondValue(requirementInformation);
@@ -107,7 +94,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     }
 
     @Transactional
-    @Override
     public void delete(Integer id) {
         delete(findByIdOrDie(id));
     }
@@ -120,10 +106,9 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
      * .kevinsuite.commons.entity.EntityWithId)
      */
     @Transactional
-    @Override
     public void delete(RequirementInformation entity) {
         entity.getRelation().getRequirements().removeIf(current -> current.getId().equals(entity.getId()));
-        BaseBo.super.delete(entity);
+        repository.delete(entity);
         var relation = entity.getRelation();
         requirementBo.triggerRelationChanged(relation);
         taggableCacheManager.evictByCacheTag(

@@ -9,7 +9,6 @@ import com.kevinguanchedarias.owgejava.repository.RequirementInformationReposito
 import com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,6 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     private final UnlockedRelationBo unlockedRelationBo;
     private final UserStorageBo userStorageBo;
     private final transient TimeSpecialRepository repository;
-    private final transient TaggableCacheManager taggableCacheManager;
     private final ObjectRelationsRepository objectRelationsRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final RequirementInformationRepository requirementInformationRepository;
@@ -49,16 +47,6 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     @Override
     public JpaRepository<TimeSpecial, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return TIME_SPECIAL_CACHE_TAG;
     }
 
     /*
@@ -87,13 +75,12 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
      * @see com.kevinguanchedarias.owgejava.business.AbstractWithImageBo#save(com.
      * kevinguanchedarias.owgejava.entity.CommonEntityWithImageStore)
      */
-    @Override
     public TimeSpecial save(TimeSpecial entity) {
         ValidationUtil.getInstance().requireNonEmptyString(entity.getName(), "name")
                 .requirePositiveNumber(entity.getDuration(), "duration")
                 .requirePositiveNumber(entity.getRechargeTime(), "rechargeTime");
         improvementBo.clearCacheEntriesIfRequired(entity, activeTimeSpecialBo);
-        return WithNameBo.super.save(entity);
+        return repository.save(entity);
     }
 
     /*
@@ -101,10 +88,9 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
      *
      * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
      */
-    @Override
     public void save(List<TimeSpecial> entities) {
         improvementBo.clearCacheEntries(activeTimeSpecialBo);
-        WithNameBo.super.save(entities);
+        repository.saveAll(entities);
     }
 
     /*
@@ -114,7 +100,6 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
      * com.kevinguanchedarias.owgejava.business.BaseBo#delete(com.kevinguanchedarias
      * .owgejava.entity.EntityWithId)
      */
-    @Override
     @Transactional
     public void delete(TimeSpecial entity) {
         activeTimeSpecialBo.deleteByTimeSpecial(entity);
@@ -122,19 +107,7 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
         unlockedRelationRepository.deleteByRelation(or);
         requirementInformationRepository.deleteByRelation(or);
         objectRelationsRepository.delete(or);
-        WithNameBo.super.delete(entity);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.kevinguanchedarias.owgejava.business.BaseBo#delete(java.io.Serializable)
-     */
-    @Override
-    @Transactional
-    public void delete(Integer id) {
-        WithNameBo.super.delete(id);
+        repository.delete(entity);
     }
 
     @Override

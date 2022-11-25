@@ -1,35 +1,27 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
-import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
-import com.kevinguanchedarias.owgejava.entity.MissionInformation;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.Upgrade;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.exception.CommonException;
-import com.kevinguanchedarias.owgejava.exception.MissionNotFoundException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunningException;
-import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
-import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
+import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
-import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
@@ -43,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import java.io.Serial;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -68,10 +62,17 @@ public class MissionBo extends AbstractMissionBo {
     private final transient ConfigurationBo configurationBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
-    private final transient HiddenUnitBo hiddenUnitBo;
     private final transient PlanetLockUtilService planetLockUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
+    private final transient UserEventEmitterBo userEventEmitterBo;
+    private final transient UserEnergyServiceBo userEnergyServiceBo;
+    private final transient MissionTypeBo missionTypeBo;
+    private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final transient MissionTimeManagerBo missionTimeManagerBo;
+    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
+    private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
 
     @PostConstruct
     public void init() {
@@ -82,9 +83,8 @@ public class MissionBo extends AbstractMissionBo {
             }
         });
         improvementBo.addChangeListener(ImprovementChangeEnum.MORE_ENERGY, (userId, improvement) ->
-                TransactionUtil.doAfterCommit(() ->
-                        socketIoService.sendMessage(userId, "user_max_energy_change",
-                                () -> userStorageBo.findMaxEnergy(userId))
+                transactionUtilService.doAfterCommit(() ->
+                        userEventEmitterBo.emitMaxEnergyChange(userId)
                 )
         );
     }
@@ -101,7 +101,7 @@ public class MissionBo extends AbstractMissionBo {
                 missionRepository.findByResolvedTrueAndTerminationDateLessThan(limitDate)
                         .forEach(mission -> {
                             mission.getLinkedRelated().forEach(linked -> linked.setRelatedMission(null));
-                            delete(mission);
+                            missionRepository.delete(mission);
                         })
         );
     }
@@ -127,7 +127,7 @@ public class MissionBo extends AbstractMissionBo {
         var user = userStorageBo.findById(userId);
         checkMissionLimitNotReached(user);
         ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
-        if (!resourceRequirements.canRun(user, userStorageBo)) {
+        if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
             throw new SgtMissionRegistrationException("No enough resources!");
         }
         if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
@@ -145,10 +145,10 @@ public class MissionBo extends AbstractMissionBo {
         missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
 
         var mission = new Mission();
-        mission.setStartingDate(new Date());
+        mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
         mission.setMissionInformation(missionInformation);
-        attachRequirementstoMission(mission, resourceRequirements);
-        mission.setType(findMissionType(MissionType.LEVEL_UP));
+        attachRequirementsToMission(mission, resourceRequirements);
+        mission.setType(missionTypeBo.find(MissionType.LEVEL_UP));
         mission.setUser(user);
         missionInformation.setMission(mission);
 
@@ -188,11 +188,11 @@ public class MissionBo extends AbstractMissionBo {
             Integer userId = user.getId();
             var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgrade.getId());
             obtainedUpgrade.setLevel(missionInformation.getValue().intValue());
-            obtainedUpgradeBo.save(obtainedUpgrade);
+            obtainedUpgradeRepository.save(obtainedUpgrade);
             requirementBo.triggerLevelUpCompleted(user, upgrade.getId());
             improvementBo.clearSourceCache(user, obtainedUpgradeBo);
             improvementBo.triggerChange(userId, obtainedUpgrade.getUpgrade().getImprovement());
-            delete(mission);
+            missionRepository.delete(mission);
             transactionUtilService.doAfterCommit(() -> {
                 entityManager.refresh(obtainedUpgrade);
                 socketIoService.sendMessage(user, RUNNING_UPGRADE_CHANGE, () -> null);
@@ -222,26 +222,26 @@ public class MissionBo extends AbstractMissionBo {
         Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
         unitBo.checkIsUniqueBuilt(user, unit);
         ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
-        if (!resourceRequirements.canRun(user, userStorageBo)) {
+        if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
             throw new SgtMissionRegistrationException("No enough resources!");
         }
         resourceRequirements
                 .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
                         improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
-        obtainedUnitBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
+        unitTypeBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
         var missionInformation = new MissionInformation();
         missionInformation.setRelation(relation);
         missionInformation.setValue(planetId.doubleValue());
 
         var mission = new Mission();
-        mission.setStartingDate(new Date());
+        mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
         mission.setMissionInformation(missionInformation);
         if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
             resourceRequirements.setRequiredTime(3D);
         }
-        attachRequirementstoMission(mission, resourceRequirements);
+        attachRequirementsToMission(mission, resourceRequirements);
 
-        mission.setType(findMissionType(MissionType.BUILD_UNIT));
+        mission.setType(missionTypeBo.find(MissionType.BUILD_UNIT));
         mission.setUser(user);
         missionInformation.setMission(mission);
 
@@ -255,7 +255,7 @@ public class MissionBo extends AbstractMissionBo {
         obtainedUnit.setCount(finalCount);
         obtainedUnit.setUnit(unit);
         obtainedUnit.setUser(user);
-        obtainedUnitBo.save(obtainedUnit);
+        obtainedUnitRepository.save(obtainedUnit);
 
         scheduleMission(mission);
 
@@ -306,7 +306,7 @@ public class MissionBo extends AbstractMissionBo {
             var missionInformation = mission.getMissionInformation();
             var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
             return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId.longValue()),
-                    obtainedUnitBo.findByMissionId(mission.getId()).get(0).getCount());
+                    obtainedUnitRepository.findByMissionId(mission.getId()).get(0).getCount());
         } else {
             return null;
         }
@@ -324,7 +324,7 @@ public class MissionBo extends AbstractMissionBo {
                     var missionInformation = mission.getMissionInformation();
                     var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
                     var planet = planetBo.findById(missionInformation.getValue().longValue());
-                    List<ObtainedUnit> findByMissionId = obtainedUnitBo.findByMissionId(mission.getId());
+                    List<ObtainedUnit> findByMissionId = obtainedUnitRepository.findByMissionId(mission.getId());
                     return new RunningUnitBuildDto(unit, mission, planet,
                             findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
                 }).toList();
@@ -381,18 +381,18 @@ public class MissionBo extends AbstractMissionBo {
             throw new CommonException(
                     "unexpected executed condition!, maybe some dirty Kenpachi tried to cancel mission of other player!");
         }
-        delete(mission);
+        missionRepository.delete(mission);
         abortMissionJob(mission);
     }
 
     @Transactional
     public void adminCancelBuildMission(Mission mission) {
         UserStorage missionUser = mission.getUser();
-        obtainedUnitBo.deleteByMissionId(mission.getId());
+        obtainedUnitModificationBo.deleteByMissionId(mission.getId());
         missionUser.addtoPrimary(mission.getPrimaryResource());
         missionUser.addToSecondary(mission.getSecondaryResource());
         userStorageBo.save(missionUser);
-        TransactionUtil.doAfterCommit(() -> {
+        transactionUtilService.doAfterCommit(() -> {
             socketIoService.sendMessage(missionUser, UNIT_BUILD_MISSION_CHANGE,
                     () -> findBuildMissions(missionUser.getId()));
             emitUser(missionUser.getId());
@@ -416,10 +416,10 @@ public class MissionBo extends AbstractMissionBo {
                         var mission = findById(missionId);
                         Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
                         var sourcePlanet = planetBo.findById(sourcePlanetId);
-                        final AtomicReference<Boolean> shouldClearImprovementsCache = new AtomicReference<>(false);
+                        AtomicReference<Boolean> shouldClearImprovementsCache = new AtomicReference<>(false);
                         UserStorage user = mission.getUser();
                         Integer userId = user.getId();
-                        obtainedUnitBo.findByMissionId(missionId).forEach(current -> {
+                        obtainedUnitRepository.findByMissionId(missionId).forEach(current -> {
                             if (current.getUnit().getImprovement() != null) {
                                 shouldClearImprovementsCache.set(true);
                             }
@@ -427,16 +427,18 @@ public class MissionBo extends AbstractMissionBo {
                             obtainedUnitBo.moveUnit(current, userId, sourcePlanetId);
                             requirementBo.triggerUnitBuildCompletedOrKilled(user, current.getUnit());
                         });
-                        delete(mission);
+                        missionRepository.delete(mission);
                         transactionUtilService.doAfterCommit(() -> {
                             if (Boolean.TRUE.equals(shouldClearImprovementsCache.get())) {
-                                improvementBo.clearSourceCache(user, obtainedUnitBo);
+                                improvementBo.clearSourceCache(user, obtainedUnitImprovementCalculationService);
                             }
                             emitUnitBuildChange(userId);
                             emitMissionCountChange(userId);
                         });
-                        asyncRunnerBo.runAssyncWithoutContextDelayed(() -> socketIoService.sendMessage(user.getId(), UNIT_OBTAINED_CHANGE,
-                                () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(userId))), 500);
+                        asyncRunnerBo.runAssyncWithoutContextDelayed(
+                                () -> obtainedUnitEventEmitter.emitObtainedUnits(user)
+                                , 500
+                        );
                     }
             );
         } else {
@@ -446,56 +448,24 @@ public class MissionBo extends AbstractMissionBo {
 
     @Transactional
     public void cancelBuildUnit(Long missionId) {
-        UserStorage user = findById(missionId).getUser();
         cancelMission(missionId);
     }
 
     /**
-     * @param missionId
-     * @param missionType
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
     @Transactional
     public void runMission(Long missionId, MissionType missionType) {
         switch (missionType) {
-            case BUILD_UNIT:
-                processBuildUnit(missionId);
-                break;
-            case LEVEL_UP:
-                processLevelUpAnUpgrade(missionId);
-                break;
-            default:
-                LOG.warn("Not a upgrade level mission nor unit build");
-                break;
+            case BUILD_UNIT -> processBuildUnit(missionId);
+            case LEVEL_UP -> processLevelUpAnUpgrade(missionId);
+            default -> LOG.warn("Not a upgrade level mission nor unit build");
         }
     }
 
-    public List<UnitRunningMissionDto> findEnemyRunningMissions(UserStorage user) {
-        List<Planet> myPlanets = planetBo.findPlanetsByUser(user);
-        return missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(myPlanets, user)
-                .stream().map(current -> {
-                    current.setInvolvedUnits(obtainedUnitRepository.findByMissionId(current.getId()));
-                    UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
-                    retVal.nullifyInvolvedUnitsPlanets();
-                    if (!planetBo.isExplored(user, current.getSourcePlanet())) {
-                        retVal.setSourcePlanet(null);
-                        retVal.setUser(null);
-                    }
-                    hiddenUnitBo.defineHidden(current.getInvolvedUnits(), retVal.getInvolvedUnits());
-                    ObtainedUnitUtil.handleInvisible(retVal.getInvolvedUnits());
-                    return retVal;
-                }).toList();
-    }
-
-    public void emitEnemyMissionsChange(UserStorage user) {
-        socketIoService.sendMessage(user, ENEMY_MISSION_CHANGE, () -> findEnemyRunningMissions(user));
-    }
-
     private void emitUserAftercommit(Integer userId) {
-        TransactionUtil.doAfterCommit(() -> {
-            emitUser(userId);
-        });
+        TransactionUtil.doAfterCommit(() -> emitUser(userId));
     }
 
     private void emitUser(Integer userId) {
@@ -506,10 +476,6 @@ public class MissionBo extends AbstractMissionBo {
     /**
      * Finds a mission by user id, mission type, and value inside MissionInformation
      *
-     * @param userId
-     * @param type
-     * @param value
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private Mission findByUserIdAndTypeCodeAndMissionInformationValue(Integer userId, MissionType type, Double value) {
@@ -520,8 +486,6 @@ public class MissionBo extends AbstractMissionBo {
      * Checks that there is not another upgrade mission running, if it's doing, will
      * throw an exception
      *
-     * @param userId
-     * @throws SgtLevelUpMissionAlreadyRunningException
      * @author Kevin Guanche Darias
      */
     private void checkUpgradeMissionDoesNotExists(Integer userId) {
@@ -534,9 +498,6 @@ public class MissionBo extends AbstractMissionBo {
      * Checks that there is not another unit recluit mission running in <b>target
      * planet</b>
      *
-     * @param userId
-     * @param planetId
-     * @throws SgtBackendUnitBuildAlreadyRunningException
      * @author Kevin Guanche Darias
      */
     private void checkUnitBuildMissionDoesNotExists(Integer userId, Long planetId) {
@@ -571,22 +532,18 @@ public class MissionBo extends AbstractMissionBo {
     /**
      * Copies resource requirements object to mission and fills the ime and date
      *
-     * @param mission
-     * @param requirements
      * @author Kevin Guanche Darias
      */
-    private void attachRequirementstoMission(Mission mission, ResourceRequirementsPojo requirements) {
+    private void attachRequirementsToMission(Mission mission, ResourceRequirementsPojo requirements) {
         mission.setPrimaryResource(requirements.getRequiredPrimary());
         mission.setSecondaryResource(requirements.getRequiredSecondary());
         mission.setRequiredTime(requirements.getRequiredTime());
-        mission.setTerminationDate(computeTerminationDate(requirements.getRequiredTime()));
+        mission.setTerminationDate(missionTimeManagerBo.computeTerminationDate(requirements.getRequiredTime()));
     }
 
     /**
      * Substracts the resources of the mission to the logged in user
      *
-     * @param user
-     * @param mission
      * @author Kevin Guanche Darias
      */
     private void substractResources(UserStorage user, Mission mission) {

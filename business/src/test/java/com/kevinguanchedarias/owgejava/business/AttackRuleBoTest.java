@@ -6,10 +6,7 @@ import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
 import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,18 +17,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.ATTACK_RULE_TARGET_REF_ID;
-import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRule;
-import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRuleDto;
-import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.givenAttackRuleEntry;
+import static com.kevinguanchedarias.owgejava.mock.AttackRuleMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -42,30 +34,26 @@ import static org.mockito.Mockito.verify;
         AttackRuleRepository.class,
         AttackRuleEntryRepository.class,
         DtoUtilService.class,
-        TaggableCacheManager.class
 })
-class AttackRuleBoTest extends AbstractBaseBoTest {
+class AttackRuleBoTest {
     private static final int ATTACK_RULE_ID = 18;
 
     private final AttackRuleBo attackRuleBo;
     private final AttackRuleRepository attackRuleRepository;
     private final AttackRuleEntryRepository attackRuleEntryRepository;
     private final DtoUtilService dtoUtilService;
-    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     AttackRuleBoTest(
             AttackRuleBo attackRuleBo,
             AttackRuleRepository attackRuleRepository,
             AttackRuleEntryRepository attackRuleEntryRepository,
-            DtoUtilService dtoUtilService,
-            TaggableCacheManager taggableCacheManager
+            DtoUtilService dtoUtilService
     ) {
         this.attackRuleBo = attackRuleBo;
         this.attackRuleRepository = attackRuleRepository;
         this.attackRuleEntryRepository = attackRuleEntryRepository;
         this.dtoUtilService = dtoUtilService;
-        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -229,14 +217,5 @@ class AttackRuleBoTest extends AbstractBaseBoTest {
         ou.getUnit().getType().setParent(givenUnitType(ATTACK_RULE_TARGET_REF_ID));
 
         assertThat(attackRuleBo.canAttack(attackRule, ou)).isFalse();
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(AttackRuleBo.ATTACK_RULE_CACHE_TAG)
-                .targetBo(attackRuleBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 }

@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNoGalaxiesFound;
 import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -36,22 +35,9 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
     @Autowired
     private PlanetBo planetBo;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
     @Override
     public JpaRepository<Galaxy, Integer> getRepository() {
         return galaxyRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return GALAXY_CACHE_TAG;
     }
 
     @Override
@@ -59,7 +45,6 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
         return GalaxyDto.class;
     }
 
-    @Override
     @Transactional
     public Galaxy save(Galaxy galaxy) {
         canSave(galaxy);
@@ -122,7 +107,7 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
      * @since 0.9.0
      */
     public boolean hasPlayers(Integer id) {
-        return !planetBo.findByGalaxyIdAndOwnerNotNull(id).isEmpty();
+        return !planetRepository.findByGalaxyIdAndOwnerNotNull(id).isEmpty();
     }
 
     private void checkInput(Galaxy galaxy) {
@@ -140,7 +125,6 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
      * Will check if the selected galaxy is empty Considered empty when there are
      * not players in it
      *
-     * @param galaxy
      * @author Kevin Guanche Darias
      */
     private void checkUnused(Galaxy galaxy) {
@@ -152,17 +136,12 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
     /**
      * Will append a transient planet instance to the galaxy
      *
-     * @param richnessPosibilities
-     * @param galaxy
-     * @param sector
-     * @param quadrant
-     * @param planetNumber
      * @author Kevin Guanche Darias
      */
     private void preparePlanet(Integer[] richnessPosibilities, Galaxy galaxy, int sector, int quadrant,
                                int planetNumber) {
         Planet planet = new Planet();
-        planet.setName(galaxy.getName().substring(0, 1) + "S" + sector + "C" + quadrant + "N" + planetNumber);
+        planet.setName(galaxy.getName().charAt(0) + "S" + sector + "C" + quadrant + "N" + planetNumber);
         planet.setRichness(richnessPosibilities[RandomUtils.nextInt(0, richnessPosibilities.length)]);
         planet.setGalaxy(galaxy);
         planet.setSector((long) sector);
@@ -180,7 +159,6 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
      * Prepares the galaxy for saving, so if galaxy has never been persisted will
      * insert ALL its planets WARNING: HEAVY INTENSE OPERATION!
      *
-     * @param galaxy
      * @author Kevin Guanche Darias
      */
     private void prepareGalaxy(Galaxy galaxy) {
@@ -200,8 +178,6 @@ public class GalaxyBo implements WithNameBo<Integer, Galaxy, GalaxyDto> {
 
     /**
      * Will generate the richness possibilities
-     *
-     * @return
      */
     private Integer[] generateRichnessPosibilities() {
         return new Integer[]{10, 20, 30, 40, 50, 60, 70, 80, 90, 100};

@@ -7,15 +7,15 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
-import java.util.List;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -31,10 +31,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
 
     private final AllianceRepository repository;
     private final UserStorageBo userStorageBo;
-    private final AllianceJoinRequestBo allianceJoinRequestBo;
     private final ConfigurationBo configurationBo;
     private final AuditBo auditBo;
-    private final transient TaggableCacheManager taggableCacheManager;
+    private final AllianceJoinRequestRepository allianceJoinRequestRepository;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -43,16 +42,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     @Override
     public JpaRepository<Alliance, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return ALLIANCE_CACHE_TAG;
     }
 
     /*
@@ -72,16 +61,10 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
-    @Override
     @Transactional
     public void delete(Alliance alliance) {
         userStorageBo.defineAllianceByAllianceId(alliance.getId(), null);
-        WithNameBo.super.delete(alliance);
-    }
-
-    @Override
-    public Alliance save(Alliance alliance) {
-        throw new ProgrammingException("Invoker user is always required to save an alliance");
+        repository.delete(alliance);
     }
 
     /**
@@ -107,7 +90,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
                 throw new SgtBackendInvalidInputException("You already have an alliance, leave it first");
             }
             alliance.setOwner(creator);
-            retVal = WithNameBo.super.save(alliance);
+            retVal = repository.save(alliance);
             retVal.getOwner().setAlliance(retVal);
             auditBo.doAudit(AuditActionEnum.JOIN_ALLIANCE);
             userStorageBo.save(retVal.getOwner());
@@ -116,7 +99,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
             checkInvokerIsOwner(storedAlliance, invokerId);
             storedAlliance.setName(alliance.getName());
             storedAlliance.setDescription(alliance.getDescription());
-            retVal = WithNameBo.super.save(storedAlliance);
+            retVal = repository.save(storedAlliance);
         }
         return retVal;
     }
@@ -153,12 +136,12 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
         var retVal = new AllianceJoinRequest();
         retVal.setAlliance(alliance);
         retVal.setUser(user);
-        return allianceJoinRequestBo.save(retVal);
+        return allianceJoinRequestRepository.save(retVal);
     }
 
     @Transactional
     public void acceptJoin(Integer joinRequestId, Number invoker) {
-        var request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
+        var request = SpringRepositoryUtil.findByIdOrDie(allianceJoinRequestRepository, joinRequestId);
         checkInvokerIsOwner(request.getAlliance(), invoker);
         checkIsLimitReached(request);
         if (request.getUser().getAlliance() == null) {
@@ -168,9 +151,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
                     .forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.USER_INTERACTION, "JOIN_ALLIANCE", request.getUser(), user.getId()));
             auditBo.doAudit(AuditActionEnum.ACCEPT_JOIN_ALLIANCE, null, request.getUser().getId());
             userStorageBo.save(request.getUser());
-            allianceJoinRequestBo.deleteByUser(request.getUser().getId());
+            allianceJoinRequestRepository.deleteByUser(request.getUser());
         } else {
-            allianceJoinRequestBo.delete(request);
+            allianceJoinRequestRepository.delete(request);
         }
     }
 
@@ -181,9 +164,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @since 0.7.0
      */
     public void rejectJoin(Integer joinRequestId, Number invoker) {
-        var request = allianceJoinRequestBo.findByIdOrDie(joinRequestId);
+        var request = SpringRepositoryUtil.findByIdOrDie(allianceJoinRequestRepository, joinRequestId);
         checkInvokerIsOwner(request.getAlliance(), invoker);
-        allianceJoinRequestBo.delete(request);
+        allianceJoinRequestRepository.delete(request);
     }
 
     /**
@@ -194,17 +177,6 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      */
     public void leave(Integer userId) {
         userStorageBo.leave(userId);
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.0
-     */
-    @Transactional
-    public List<UserStorage> findMembers(Integer allianceId) {
-        Alliance alliance = findByIdOrDie(allianceId);
-        alliance.getUsers().size();
-        return alliance.getUsers();
     }
 
     /**

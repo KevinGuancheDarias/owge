@@ -9,7 +9,6 @@ import com.kevinguanchedarias.owgejava.enumerations.AttackableTargetEnum;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import com.kevinguanchedarias.owgejava.repository.AttackRuleRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -40,9 +39,6 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
     @Autowired
     private DtoUtilService dtoUtilService;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
     @Override
     public Class<AttackRuleDto> getDtoClass() {
         return AttackRuleDto.class;
@@ -54,23 +50,13 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
     }
 
     @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return ATTACK_RULE_CACHE_TAG;
-    }
-
-    @Override
     @Transactional
     public AttackRule save(AttackRuleDto dto) {
         var attackRule = dtoUtilService.entityFromDto(AttackRule.class, dto);
         if (attackRule.getId() != null) {
             attackRuleEntryRepository.deleteByAttackRuleId(attackRule.getId());
         }
-        AttackRule saved = save(attackRule);
+        AttackRule saved = repository.save(attackRule);
         List<AttackRuleEntry> entries = new ArrayList<>();
         attackRule.setAttackRuleEntries(entries);
         dto.getEntries().forEach(current -> {
@@ -82,16 +68,14 @@ public class AttackRuleBo implements BaseBo<Integer, AttackRule, AttackRuleDto> 
     }
 
     @Transactional
-    @Override
     public void delete(Integer attackRuleId) {
         delete(findByIdOrDie(attackRuleId));
     }
 
     @Transactional
-    @Override
     public void delete(AttackRule attackRule) {
         attackRuleEntryRepository.deleteAll(attackRule.getAttackRuleEntries());
-        BaseBo.super.delete(attackRule);
+        repository.delete(attackRule);
     }
 
     /**

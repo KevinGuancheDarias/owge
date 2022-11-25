@@ -2,10 +2,13 @@ package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformation;
+import com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +26,7 @@ public class ObtainedUnitDto implements DtoFromEntity<ObtainedUnit> {
     private Integer userId;
     private String username;
     private ObtainedUnitTemporalInformation temporalInformation;
+    private List<ObtainedUnitBasicInfoProjection> storedUnits;
 
     @Override
     public void dtoFromEntity(ObtainedUnit entity) {

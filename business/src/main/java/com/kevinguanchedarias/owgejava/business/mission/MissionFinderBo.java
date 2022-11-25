@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -18,8 +17,8 @@ import java.util.ArrayList;
 @AllArgsConstructor
 public class MissionFinderBo {
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final MissionTypeBo missionTypeBo;
 
     /**
      * finds user <b>not resolved</b> deployed mission, if none exists creates one
@@ -47,7 +46,7 @@ public class MissionFinderBo {
             return existingMission;
         } else {
             final Mission deployedMission = new Mission();
-            deployedMission.setType(missionBo.findMissionType(MissionType.DEPLOYED));
+            deployedMission.setType(missionTypeBo.find(MissionType.DEPLOYED));
             deployedMission.setUser(user);
             deployedMission.setInvolvedUnits(new ArrayList<>());
             deployedMission.getInvolvedUnits().add(unit);

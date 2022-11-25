@@ -9,10 +9,8 @@ import com.kevinguanchedarias.owgejava.pojo.SystemMessageUser;
 import com.kevinguanchedarias.owgejava.repository.SystemMessageRepository;
 import com.kevinguanchedarias.owgejava.repository.UserReadSystemMessageRepository;
 import com.kevinguanchedarias.owgejava.util.EntityUtil;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,29 +28,18 @@ import java.util.stream.Collectors;
  * @since 0.9.16
  */
 @Service
+@AllArgsConstructor
 public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMessageDto> {
     public static final String SYSTEM_MESSAGE_CACHE_TAG = "system_message";
 
     @Serial
     private static final long serialVersionUID = 2748430747376904932L;
 
-    @Autowired
-    private transient SystemMessageRepository repository;
-
-    @Autowired
-    private transient TransactionUtilService transactionUtilService;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private transient UserReadSystemMessageRepository userReadRepository;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
+    private final transient SystemMessageRepository repository;
+    private final transient TransactionUtilService transactionUtilService;
+    private final transient SocketIoService socketIoService;
+    private final UserStorageBo userStorageBo;
+    private final transient UserReadSystemMessageRepository userReadRepository;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -64,7 +51,7 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
             List<SystemMessage> forDeleteMessages = repository
                     .findByCreationDateLessThan(new Date(new Date().getTime() - (86400 * 1000 * 7)));
             if (!forDeleteMessages.isEmpty()) {
-                forDeleteMessages.forEach(this::delete);
+                repository.deleteAll(forDeleteMessages);
             }
         });
     }
@@ -80,14 +67,12 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
         SystemMessage systemMessage = new SystemMessage();
         BeanUtils.copyProperties(systemMessageDto, systemMessage);
         EntityUtil.requireNullId(systemMessage);
-        systemMessage = save(systemMessage);
-        TransactionUtil.doAfterCommit(this::emitChange);
+        systemMessage = repository.save(systemMessage);
+        transactionUtilService.doAfterCommit(this::emitChange);
         return systemMessage;
     }
 
     /**
-     * @param userId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.16
      */
@@ -100,9 +85,6 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
      * Translates the specified system message to one object with the isRead
      * property defined
      *
-     * @param message
-     * @param userId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.16
      */
@@ -123,7 +105,7 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
             userRead.setUser(user);
             userReadRepository.save(userRead);
         });
-        TransactionUtil.doAfterCommit(() -> emitChangeToUser(user.getId()));
+        transactionUtilService.doAfterCommit(() -> emitChangeToUser(user.getId()));
     }
 
     @Override
@@ -134,16 +116,6 @@ public class SystemMessageBo implements BaseBo<Integer, SystemMessage, SystemMes
     @Override
     public JpaRepository<SystemMessage, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return SYSTEM_MESSAGE_CACHE_TAG;
     }
 
     private void emitChange() {

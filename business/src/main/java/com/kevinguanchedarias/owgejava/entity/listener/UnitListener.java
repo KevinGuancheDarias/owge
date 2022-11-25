@@ -2,7 +2,8 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -24,22 +25,30 @@ import java.util.Set;
 public class UnitListener {
 
     private final ImprovementBo improvementBo;
-    private final ObtainedUnitBo obtainedUnitBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObjectRelationBo objectRelationBo;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
 
     @Lazy
-    public UnitListener(ImprovementBo improvementBo, ObtainedUnitBo obtainedUnitBo, ObtainedUnitRepository obtainedUnitRepository, ObjectRelationBo objectRelationBo) {
+    public UnitListener(
+            ImprovementBo improvementBo,
+            ObtainedUnitRepository obtainedUnitRepository,
+            ObjectRelationBo objectRelationBo,
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
+            ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService
+    ) {
         this.improvementBo = improvementBo;
-        this.obtainedUnitBo = obtainedUnitBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.objectRelationBo = objectRelationBo;
+        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
+        this.obtainedUnitImprovementCalculationService = obtainedUnitImprovementCalculationService;
     }
 
     @PostUpdate
     @PostPersist
     public void onSaveClearCacheIfRequired(Unit unit) {
-        improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitBo);
+        improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitImprovementCalculationService);
     }
 
     @PreRemove
@@ -48,9 +57,9 @@ public class UnitListener {
         Set<UserStorage> affectedUsers = new HashSet<>();
         obtainedUnitRepository.findByUnit(unit).forEach(obtainedUnit -> affectedUsers.add(obtainedUnit.getUser()));
         obtainedUnitRepository.deleteByUnit(unit);
-        improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitBo);
+        improvementBo.clearCacheEntriesIfRequired(unit, obtainedUnitImprovementCalculationService);
         affectedUsers.forEach(user -> {
-            obtainedUnitBo.emitObtainedUnitChange(user.getId());
+            obtainedUnitEventEmitter.emitObtainedUnits(user);
             if (unit.getImprovement() != null) {
                 improvementBo.emitUserImprovement(user);
             }

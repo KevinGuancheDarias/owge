@@ -18,3 +18,10 @@ spring:
     allow-bean-definition-overriding: true
   cache:
     type: simple
+
+logging:
+  level:
+    com:
+      kevinguanchedarias: DEBUG
+    org:
+      springframework: WARN

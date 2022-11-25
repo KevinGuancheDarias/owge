@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -20,17 +19,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
-import static com.kevinguanchedarias.owgejava.mock.MissionTypeMock.givenMissionTypeDeployed;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -39,27 +35,27 @@ import static org.mockito.Mockito.when;
 )
 @MockBean({
         MissionRepository.class,
-        MissionBo.class,
-        ObtainedUnitRepository.class
+        ObtainedUnitRepository.class,
+        MissionTypeBo.class
 })
 class MissionFinderBoTest {
 
     private final MissionFinderBo missionFinderBo;
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final MissionTypeBo missionTypeBo;
 
 
     @Autowired
     MissionFinderBoTest(
             MissionFinderBo missionFinderBo,
             MissionRepository missionRepository,
-            MissionBo missionBo,
+            MissionTypeBo missionTypeBo,
             ObtainedUnitRepository obtainedUnitRepository
     ) {
         this.missionFinderBo = missionFinderBo;
         this.missionRepository = missionRepository;
-        this.missionBo = missionBo;
+        this.missionTypeBo = missionTypeBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
     }
 
@@ -84,7 +80,7 @@ class MissionFinderBoTest {
         assertThat(saved).isEqualTo(ou);
         assertThat(saved.getFirstDeploymentMission()).isNull();
         assertThat(saved.getMission()).isEqualTo(existingMission);
-        verify(missionBo, never()).findMissionType(any());
+        verify(missionTypeBo, never()).find(any());
         verify(missionRepository, never()).save(any());
         verify(missionRepository, never()).findById(any());
         assertThat(result).isEqualTo(existingMission);
@@ -96,7 +92,8 @@ class MissionFinderBoTest {
     @Test
     void findDeployedMissionOrCreate_should_create_new_mission_when_not_exists_nor_has_first_deployment() {
         var ou = givenObtainedUnit1();
-        when(missionBo.findMissionType(MissionType.DEPLOYED)).thenReturn(givenMissionTypeDeployed());
+        var missionType = givenMissionType(MissionType.DEPLOYED);
+        when(missionTypeBo.find(MissionType.DEPLOYED)).thenReturn(missionType);
         when(missionRepository.save(any())).thenAnswer(returnsFirstArg());
         when(obtainedUnitRepository.save(any())).thenAnswer(returnsFirstArg());
 
@@ -105,7 +102,7 @@ class MissionFinderBoTest {
         var captor = ArgumentCaptor.forClass(Mission.class);
         verify(missionRepository, times(1)).save(captor.capture());
         var savedMission = captor.getValue();
-        assertThat(savedMission.getType()).isEqualTo(givenMissionTypeDeployed());
+        assertThat(savedMission.getType()).isEqualTo(missionType);
         assertThat(savedMission.getUser()).isEqualTo(ou.getUser());
         assertThat(savedMission.getSourcePlanet()).isEqualTo(ou.getSourcePlanet());
         assertThat(savedMission.getTargetPlanet()).isEqualTo(ou.getTargetPlanet());
@@ -122,9 +119,10 @@ class MissionFinderBoTest {
         var firstDeploymentSourcePlanet = new Planet();
         var firstDeploymentTargetPlanet = new Planet();
         var firstDeploymentMission = givenRawMission(firstDeploymentSourcePlanet, firstDeploymentTargetPlanet);
+        var missionType = givenMissionType(MissionType.DEPLOYED);
         ou.setFirstDeploymentMission(firstDeploymentMission);
 
-        when(missionBo.findMissionType(MissionType.DEPLOYED)).thenReturn(givenMissionTypeDeployed());
+        when(missionTypeBo.find(MissionType.DEPLOYED)).thenReturn(missionType);
         when(missionRepository.save(any())).thenAnswer(returnsFirstArg());
         when(obtainedUnitRepository.save(any())).thenAnswer(returnsFirstArg());
         when(missionRepository.findById(any())).thenReturn(Optional.of(firstDeploymentMission));
@@ -134,7 +132,7 @@ class MissionFinderBoTest {
         var captor = ArgumentCaptor.forClass(Mission.class);
         verify(missionRepository, times(1)).save(captor.capture());
         var savedMission = captor.getValue();
-        assertThat(savedMission.getType()).isEqualTo(givenMissionTypeDeployed());
+        assertThat(savedMission.getType()).isEqualTo(missionType);
         assertThat(savedMission.getUser()).isEqualTo(ou.getUser());
         assertThat(savedMission.getSourcePlanet()).isEqualTo(firstDeploymentSourcePlanet);
         assertThat(savedMission.getTargetPlanet()).isEqualTo(firstDeploymentTargetPlanet);

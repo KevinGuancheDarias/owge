@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.UpgradeRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -36,23 +35,10 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
 
     @Autowired
     private ImprovementBo improvementBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    
     @Override
     public JpaRepository<Upgrade, Integer> getRepository() {
         return upgradeRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return UPGRADE_CACHE_TAG;
     }
 
     /*
@@ -66,7 +52,6 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
     }
 
     @Transactional
-    @Override
     public void delete(Upgrade upgrade) {
         objectRelationBo.findOneOpt(ObjectEnum.UPGRADE, upgrade.getId()).ifPresent(objectRelationBo::delete);
         Set<UserStorage> affectedUsers = new HashSet<>();
@@ -80,11 +65,10 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
                 improvementBo.emitUserImprovement(user);
             }
         });
-        WithNameBo.super.delete(upgrade);
+        upgradeRepository.delete(upgrade);
     }
 
     @Transactional
-    @Override
     public void delete(Integer id) {
         delete(findByIdOrDie(id));
     }
@@ -96,10 +80,9 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
      * com.kevinguanchedarias.owgejava.business.BaseBo#save(com.kevinguanchedarias.
      * owgejava.entity.EntityWithId)
      */
-    @Override
     public Upgrade save(Upgrade entity) {
         improvementBo.clearCacheEntriesIfRequired(entity, obtainedUpgradeBo);
-        return WithNameBo.super.save(entity);
+        return upgradeRepository.save(entity);
     }
 
     /*
@@ -107,10 +90,9 @@ public class UpgradeBo implements WithNameBo<Integer, Upgrade, UpgradeDto> {
      *
      * @see com.kevinguanchedarias.owgejava.business.BaseBo#save(java.util.List)
      */
-    @Override
     public void save(List<Upgrade> entities) {
         improvementBo.clearCacheEntries(obtainedUpgradeBo);
-        WithNameBo.super.save(entities);
+        upgradeRepository.saveAll(entities);
     }
 
     /**

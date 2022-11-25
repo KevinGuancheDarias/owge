@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.dto.SponsorDto;
 import com.kevinguanchedarias.owgejava.entity.Sponsor;
 import com.kevinguanchedarias.owgejava.repository.SponsorRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -25,21 +24,10 @@ public class SponsorBo implements WithNameBo<Integer, Sponsor, SponsorDto> {
     private static final long serialVersionUID = 8446895252128116076L;
 
     private final transient SponsorRepository sponsorRepository;
-    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<Sponsor, Integer> getRepository() {
         return sponsorRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return SPONSOR_CACHE_TAG;
     }
 
     @Override

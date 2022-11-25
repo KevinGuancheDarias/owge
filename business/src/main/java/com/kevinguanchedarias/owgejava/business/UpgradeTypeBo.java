@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.dto.UpgradeTypeDto;
 import com.kevinguanchedarias.owgejava.entity.UpgradeType;
 import com.kevinguanchedarias.owgejava.repository.UpgradeTypeRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -18,22 +17,12 @@ public class UpgradeTypeBo implements WithNameBo<Integer, UpgradeType, UpgradeTy
     private static final long serialVersionUID = 84836919835815466L;
 
     private final UpgradeTypeRepository upgradeTypeRepository;
-    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<UpgradeType, Integer> getRepository() {
         return upgradeTypeRepository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return UPGRADE_TYPE_CACHE_TAG;
-    }
 
     /*
      * (non-Javadoc)

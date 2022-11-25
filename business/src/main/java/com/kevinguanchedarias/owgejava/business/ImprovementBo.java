@@ -12,7 +12,7 @@ import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import lombok.Getter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 @Service
 public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDto> {
@@ -65,9 +64,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     @Autowired
     private transient BeanFactory beanFactory;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    @Getter
     private final transient List<ImprovementSource> improvementSources = new ArrayList<>();
 
     private final transient Map<ImprovementChangeEnum, List<BiConsumer<Integer, Improvement>>> improvementChangeListeners = new EnumMap<>(
@@ -81,16 +78,6 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     @Override
     public JpaRepository<Improvement, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return IMPROVEMENT_CACHE_TAG;
     }
 
     /*
@@ -107,9 +94,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Adds the specified improvement source which are used to calculate the user
      * improvements
      *
-     * @param improvementSource
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public void addImprovementSource(ImprovementSource improvementSource) {
         improvementSources.add(improvementSource);
@@ -118,10 +104,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Adds a change listener
      *
-     * @param change
-     * @param listener
-     * @since 0.9.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
      */
     public void addChangeListener(ImprovementChangeEnum change, BiConsumer<Integer, Improvement> listener) {
         if (improvementChangeListeners.get(change) == null) {
@@ -138,10 +122,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * <b>NOTICE:</b> If sources are not caching, operation may be very very VERY
      * LOT GOD SAKE expensive
      *
-     * @param user
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     @Cacheable(cacheNames = CACHE_KEY, key = "#user.id")
     public GroupedImprovement findUserImprovement(UserStorage user) {
@@ -156,10 +138,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Clears the cache
      *
-     * @param user
-     * @param source
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     @CacheEvict(cacheNames = CACHE_KEY, key = "#user.id")
     public void clearSourceCache(UserStorage user, ImprovementSource source) {
@@ -178,9 +158,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Emits the current user improvements
      *
-     * @param user
-     * @since 0.9.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
      */
     public void emitUserImprovement(UserStorage user) {
         socketIoService.sendMessage(user, "user_improvements_change",
@@ -190,9 +169,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Triggers a change detection
      *
-     * @param improvement
-     * @since 0.9.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
      */
     public void triggerChange(Integer userId, Improvement improvement) {
         if (improvement.getMorePrimaryResourceProduction() > 0.0000F) {
@@ -224,8 +202,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Clears all the cache entries for a given source
      *
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public void clearCacheEntries(ImprovementSource source) {
         var cache = cacheManager.getCache(CACHE_KEY);
@@ -260,17 +238,14 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
         if (originalId != null) {
             withNewProperties.setId(originalId);
         }
-        return save(withNewProperties);
+        return repository.save(withNewProperties);
     }
 
     /**
      * Multiplies the value of the improvement for the specified number
      *
-     * @param current
-     * @param count
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public ImprovementDto multiplyValues(Improvement current, Integer count) {
         ImprovementDto improvementDto = new ImprovementDto();
@@ -281,11 +256,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     /**
      * Multiplies the value of the improvement for the specified number
      *
-     * @param improvementDto
-     * @param count
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public ImprovementDto multiplyValues(ImprovementDto improvementDto, Integer count) {
         improvementDto.setMoreChargeCapacity(improvementDto.getMoreChargeCapacity() * count);
@@ -304,11 +276,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Clears the cache for an entire source, only if the given entity has
      * improvements defined
      *
-     * @param <K>
-     * @param entityWithImprovements
-     * @param improvementSource
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public <K> void clearCacheEntriesIfRequired(EntityWithImprovements<K> entityWithImprovements,
                                                 ImprovementSource improvementSource) {
@@ -321,11 +290,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Utility method to find a base value plus a percentage <br>
      * If base is 4, and percentage is 25 , will do 4 + 4*0.25
      *
-     * @param base
      * @param percentage If null will just return base
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public double computePlusPercertage(Long base, Long percentage) {
         return computePlusPercertage((float) base, (float) percentage);
@@ -335,11 +302,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Utility method to find a base value plus a percentage <br>
      * If base is 4, and percentage is 25 , will do 4 + 4*0.25
      *
-     * @param base
      * @param percentage If null will just return base
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public double computePlusPercertage(Float base, Float percentage) {
         if (percentage == null) {
@@ -354,9 +319,6 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Calculates by using a STEP, this is intended to imitate the behavior of SGT
      * classic level upload
      *
-     * @param base
-     * @param inputPercentage
-     * @return
      * @author Kevin Guanche Darias
      * @since 0.8.1
      */
@@ -365,13 +327,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     }
 
     /**
-     *
-     * @param base
-     * @param inputPercentage
-     * @param sum             If true sums, else sustracts
-     * @return
-     * @since 0.9.13
+     * @param sum If true sums, else sustracts
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.13
      */
     public Double computeImprovementValue(double base, double inputPercentage, boolean sum) {
         double retVal = base;
@@ -397,10 +355,8 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Finds the percentage value as a rational number, for example 80% wuld be
      * returned as 0.8
      *
-     * @param inputPercentage
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public double findAsRational(Double inputPercentage) {
         return inputPercentage / 100;
@@ -410,23 +366,11 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      * Finds the percentage value as a rational number, for example 80% wuld be
      * returned as 0.8
      *
-     * @param inputPercentage
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public float findAsRational(Float inputPercentage) {
         return (float) findAsRational((double) inputPercentage);
-    }
-
-    /**
-     *
-     * @return
-     * @since 0.9.0
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public List<ImprovementSource> getImprovementSources() {
-        return improvementSources;
     }
 
     private GroupedImprovement findFromCacheOrBo(UserStorage user, ImprovementSource improvementSource) {

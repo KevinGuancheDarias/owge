@@ -5,9 +5,9 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MissionTypeMock {
-    public static MissionType givenMissionTypeDeployed() {
+    public static MissionType givenMissinType(com.kevinguanchedarias.owgejava.enumerations.MissionType type) {
         return MissionType.builder()
-                .code(com.kevinguanchedarias.owgejava.enumerations.MissionType.DEPLOYED.name())
+                .code(type.name())
                 .build();
     }
 }

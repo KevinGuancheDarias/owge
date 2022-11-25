@@ -2,7 +2,8 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -28,7 +29,6 @@ import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjec
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,30 +42,30 @@ import static org.mockito.Mockito.verify;
 )
 @MockBean({
         ImprovementBo.class,
-        ObtainedUnitBo.class,
         ObtainedUnitRepository.class,
-        ObjectRelationBo.class
+        ObjectRelationBo.class,
+        ObtainedUnitEventEmitter.class
 })
 class UnitListenerTest {
     private final UnitListener unitListener;
     private final ImprovementBo improvementBo;
-    private final ObtainedUnitBo obtainedUnitBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObjectRelationBo objectRelationBo;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
     @Autowired
     public UnitListenerTest(
             UnitListener unitListener,
             ImprovementBo improvementBo,
-            ObtainedUnitBo obtainedUnitBo,
             ObtainedUnitRepository obtainedUnitRepository,
-            ObjectRelationBo objectRelationBo
+            ObjectRelationBo objectRelationBo,
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter
     ) {
         this.unitListener = unitListener;
         this.improvementBo = improvementBo;
-        this.obtainedUnitBo = obtainedUnitBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.objectRelationBo = objectRelationBo;
+        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
     }
 
     @SneakyThrows
@@ -76,7 +76,7 @@ class UnitListenerTest {
 
         unitListener.onSaveClearCacheIfRequired(unit);
 
-        verify(improvementBo, times(1)).clearCacheEntriesIfRequired(eq(unit), any(ObtainedUnitBo.class));
+        verify(improvementBo, times(1)).clearCacheEntriesIfRequired(eq(unit), any(ObtainedUnitImprovementCalculationService.class));
         assertThat(method.getAnnotation(PostUpdate.class)).isNotNull();
         assertThat(method.getAnnotation(PostPersist.class)).isNotNull();
     }
@@ -97,8 +97,8 @@ class UnitListenerTest {
 
         verify(objectRelationBo, times(1)).delete(or);
         verify(obtainedUnitRepository, times(1)).deleteByUnit(unit);
-        verify(improvementBo, times(1)).clearCacheEntriesIfRequired(eq(unit), any(ObtainedUnitBo.class));
-        verify(obtainedUnitBo, times(1)).emitObtainedUnitChange(USER_ID_1);
+        verify(improvementBo, times(1)).clearCacheEntriesIfRequired(eq(unit), any(ObtainedUnitImprovementCalculationService.class));
+        verify(obtainedUnitEventEmitter, times(1)).emitObtainedUnits(user);
         verify(improvementBo, times(expectedCalls)).emitUserImprovement(user);
         assertThat(UnitListener.class.getMethod("onDeleteClearCacheIfRequired", Unit.class).getAnnotation(PreRemove.class)).isNotNull();
     }

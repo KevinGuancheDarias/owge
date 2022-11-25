@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -9,7 +11,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -58,25 +59,15 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     @Autowired
     private transient PlanetListBo planetListBo;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
     @PersistenceContext
     private transient EntityManager entityManager;
+
+    @Autowired
+    private transient TransactionUtilService transactionUtilService;
 
     @Override
     public JpaRepository<Planet, Long> getRepository() {
         return planetRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return PLANET_CACHE_TAG;
     }
 
     /*
@@ -97,11 +88,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     /**
      * @param galaxyId if null will be a random galaxy
      * @return Random planet fom galaxy id
-     * @throws SgtBackendUniverseIsFull
+     * @throws SgtBackendUniverseIsFull When universe is full
      * @author Kevin Guanche Darias
      */
     public Planet findRandomPlanet(Integer galaxyId) {
-        Integer targetGalaxy = galaxyId;
 
         int count = galaxyId != null
                 ? (int) (planetRepository.countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(galaxyId))
@@ -114,32 +104,11 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         int planetLocation = RandomUtils.nextInt(0, count);
 
         List<Planet> selectedPlanetsRange = galaxyId != null
-                ? planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(targetGalaxy,
+                ? planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(galaxyId,
                 PageRequest.of(planetLocation, 1))
                 : planetRepository.findOneByOwnerIsNullAndSpecialLocationIsNull(PageRequest.of(planetLocation, 1));
 
         return selectedPlanetsRange.get(0);
-    }
-
-    /**
-     * @param user the owner of the planets
-     * @return
-     * @author Kevin Guanche Darias
-     */
-    public List<Planet> findPlanetsByUser(UserStorage user) {
-        return planetRepository.findByOwnerId(user.getId());
-    }
-
-    /**
-     * Finds all the planets that has owner in the specified galaxy id
-     *
-     * @param galaxyId
-     * @return
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId) {
-        return planetRepository.findByGalaxyIdAndOwnerNotNull(galaxyId);
     }
 
     public List<Planet> findByGalaxyAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant) {
@@ -147,8 +116,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param specialLocationId
-     * @return
      * @author Kevin Guanche Darias
      * @since 0.9.0
      */
@@ -156,16 +123,20 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         return planetRepository.findOneBySpecialLocationId(specialLocationId);
     }
 
+    /**
+     * It's better to use directly the repository
+     */
+    @Deprecated(since = "0.11.0")
     public boolean isOfUserProperty(UserStorage expectedOwner, Planet planet) {
         return isOfUserProperty(expectedOwner.getId(), planet.getId());
     }
 
+    /**
+     * @deprecated It's better to use directly the repository
+     */
+    @Deprecated(since = "0.11.0")
     public boolean isOfUserProperty(Integer expectedOwnerId, Long planetId) {
         return planetRepository.findOneByIdAndOwnerId(planetId, expectedOwnerId) != null;
-    }
-
-    public boolean myIsOfUserProperty(Planet planet) {
-        return myIsExplored(planet.getId());
     }
 
     public boolean isHomePlanet(Planet planet) {
@@ -224,7 +195,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     /**
      * Checks if the user, has already the max planets he/she can have
      *
-     * @param user
      * @return True, if the user has already the max planets he/she can have
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
@@ -247,7 +217,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         Planet planet = findById(planetId);
         UserStorage user = planet.getOwner();
         planet.setOwner(null);
-        save(planet);
+        planetRepository.save(planet);
         if (planet.getSpecialLocation() != null) {
             requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
         }
@@ -257,16 +227,14 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
     /**
      * Emits the owned planet for the given target user
-     *
-     * @param user
      */
     public void emitPlanetOwnedChange(UserStorage user) {
         emitPlanetOwnedChange(user.getId());
     }
 
     public void emitPlanetOwnedChange(Integer userId) {
-        TransactionUtil.doAfterCommit(() -> socketIoService.sendMessage(userId, PLANET_OWNED_CHANGE,
-                () -> toDto(findPlanetsByUser(userStorageBo.findById(userId)))));
+        transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(userId, PLANET_OWNED_CHANGE,
+                () -> toDto(planetRepository.findByOwnerId(userId))));
     }
 
     public boolean canLeavePlanet(UserStorage invoker, Planet planet) {
@@ -280,8 +248,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param planets
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      * @deprecated Due to Hibernate transactional auto save, can't modify the entity
@@ -292,9 +258,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param userId
-     * @param planets
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      * @deprecated Due to Hibernate transactional auto save, can't modify the entity
@@ -308,8 +271,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param userId
-     * @param planet
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      * @deprecated Due to Hibernate transactional auto save, can't modify the entity
@@ -326,8 +287,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param userId
-     * @param planetDto
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.13
      */
@@ -343,7 +302,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
-     * @param galaxyId
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.14
      */

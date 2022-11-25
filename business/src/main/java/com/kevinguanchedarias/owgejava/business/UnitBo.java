@@ -12,7 +12,6 @@ import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.InterceptableSpeedGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,21 +41,9 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
 
     private final ObtainedUnitRepository obtainedUnitRepository;
 
-    private final transient TaggableCacheManager taggableCacheManager;
-
     @Override
     public JpaRepository<Unit, Integer> getRepository() {
         return unitRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return UNIT_CACHE_TAG;
     }
 
     /*
@@ -80,9 +67,8 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
     }
 
     @Transactional
-    @Override
     public void delete(Integer id) {
-        delete(findByIdOrDie(id));
+        unitRepository.deleteById(id);
     }
 
     /**

@@ -2,25 +2,23 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.ExceptionBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
+import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
-import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
-import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
-import com.kevinguanchedarias.owgejava.entity.Configuration;
-import com.kevinguanchedarias.owgejava.entity.Improvement;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.exception.CommonException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendUnitBuildAlreadyRunningException;
-import com.kevinguanchedarias.owgejava.exception.SgtLevelUpMissionAlreadyRunningException;
-import com.kevinguanchedarias.owgejava.exception.SgtMissionRegistrationException;
-import com.kevinguanchedarias.owgejava.mock.MissionMock;
+import com.kevinguanchedarias.owgejava.exception.*;
+import com.kevinguanchedarias.owgejava.mock.MissionTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -45,51 +43,35 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.BUILD_MISSION_ID;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_ID;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.UPGRADE_MISSION_LEVEL;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenBuildMission;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenUpgradeMission;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_COUNT;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.OBTAINED_UPGRADE_LEVEL;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -120,18 +102,24 @@ import static org.mockito.Mockito.verify;
         AsyncRunnerBo.class,
         TransactionUtilService.class,
         TaggableCacheManager.class,
-        HiddenUnitBo.class,
         PlanetLockUtilService.class,
         ObtainedUnitRepository.class,
         ObtainedUpgradeRepository.class,
-        ObtainedUpgradeBo.class
+        ObtainedUpgradeBo.class,
+        UserEventEmitterBo.class,
+        UserEnergyServiceBo.class,
+        MissionTypeBo.class,
+        ObtainedUnitEventEmitter.class,
+        MissionTimeManagerBo.class,
+        ObtainedUnitModificationBo.class,
+        ObtainedUnitImprovementCalculationService.class,
+        MissionReportManagerBo.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
     private final PlanetBo planetBo;
     private final MissionRepository missionRepository;
     private final SocketIoService socketIoService;
-    private final HiddenUnitBo hiddenUnitBo;
     private final ObtainedUnitBo obtainedUnitBo;
     private final PlanetLockUtilService planetLockUtilService;
     private final TransactionUtilService transactionUtilService;
@@ -151,13 +139,15 @@ class MissionBoTest {
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
 
+    private final MissionTimeManagerBo missionTimeManagerBo;
+    private final MissionTypeBo missionTypeBo;
+
     @Autowired
     public MissionBoTest(
             MissionBo missionBo,
             PlanetBo planetBo,
             MissionRepository missionRepository,
             SocketIoService socketIoService,
-            HiddenUnitBo hiddenUnitBo,
             ObtainedUnitBo obtainedUnitBo,
             PlanetLockUtilService planetLockUtilService,
             TransactionUtilService transactionUtilService,
@@ -174,13 +164,14 @@ class MissionBoTest {
             UnitTypeBo unitTypeBo,
             ObtainedUnitRepository obtainedUnitRepository,
             ObtainedUpgradeRepository obtainedUpgradeRepository,
-            UpgradeBo upgradeBo, ObtainedUpgradeBo obtainedUpgradeBo
+            UpgradeBo upgradeBo, ObtainedUpgradeBo obtainedUpgradeBo,
+            MissionTimeManagerBo missionTimeManagerBo,
+            MissionTypeBo missionTypeBo
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
         this.missionRepository = missionRepository;
         this.socketIoService = socketIoService;
-        this.hiddenUnitBo = hiddenUnitBo;
         this.obtainedUnitBo = obtainedUnitBo;
         this.planetLockUtilService = planetLockUtilService;
         this.transactionUtilService = transactionUtilService;
@@ -199,136 +190,8 @@ class MissionBoTest {
         this.obtainedUpgradeRepository = obtainedUpgradeRepository;
         this.upgradeBo = upgradeBo;
         this.obtainedUpgradeBo = obtainedUpgradeBo;
-    }
-
-    @Test
-    void findEnemyRunningMissions_should_work() {
-        var mission1Id = 192091L;
-        var mission2Id = 29892L;
-        var userPlanet1 = Planet.builder().id(14L).build();
-        var userPlanet2 = Planet.builder().id(19L).build();
-        var user = givenUser1();
-        var user2 = givenUser2();
-        var exploredPlanet = Planet.builder().id(190L).build();
-        var involvedUnit = givenObtainedUnit1();
-        var invisibleInvolvedUnit = givenObtainedUnit2();
-        invisibleInvolvedUnit.getUnit().setIsInvisible(true);
-        var involvedUnits = List.of(involvedUnit, invisibleInvolvedUnit);
-        var missionWithExploredPlanet = Mission.builder()
-                .id(mission1Id)
-                .sourcePlanet(exploredPlanet)
-                .targetPlanet(givenTargetPlanet())
-                .user(user2)
-                .involvedUnits(involvedUnits)
-                .type(MissionMock.givenMissionType(MissionType.EXPLORE))
-                .build();
-        var missionWithoutExploredPlanet = Mission.builder()
-                .id(mission2Id)
-                .sourcePlanet(Planet.builder().id(40L).build())
-                .targetPlanet(givenTargetPlanet())
-                .user(user2)
-                .involvedUnits(involvedUnits)
-                .type(MissionMock.givenMissionType(MissionType.EXPLORE))
-                .build();
-        given(missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(any(), any()))
-                .willReturn(List.of(missionWithExploredPlanet, missionWithoutExploredPlanet));
-        given(planetBo.findPlanetsByUser(user)).willReturn(List.of(userPlanet1, userPlanet2));
-        given(planetBo.isExplored(user, exploredPlanet)).willReturn(true);
-        given(obtainedUnitRepository.findByMissionId(anyLong())).willReturn(involvedUnits);
-
-        var result = missionBo.findEnemyRunningMissions(user);
-
-        verify(planetBo, times(1)).findPlanetsByUser(user);
-        verify(missionRepository, times(1))
-                .findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List.of(userPlanet1, userPlanet2), user);
-        verify(planetBo, times(2)).isExplored(eq(user), any());
-        assertThat(result).hasSize(2);
-        var missionResult1 = result.get(0);
-        var missionResult2 = result.get(1);
-        assertThat(missionResult1.getSourcePlanet()).isNotNull();
-        assertThat(missionResult1.getUser()).isNotNull();
-        assertThat(missionResult2.getSourcePlanet()).isNull();
-        assertThat(missionResult2.getUser()).isNull();
-        Stream.concat(missionResult1.getInvolvedUnits().stream(), missionResult2.getInvolvedUnits().stream()).forEach(involved -> {
-            assertThat(involved.getSourcePlanet()).isNull();
-            assertThat(involved.getTargetPlanet()).isNull();
-        });
-        var units = missionResult1.getInvolvedUnits();
-        var visibleUnitResult = units.get(0);
-        var invisibleUnitResult = units.get(1);
-        assertThat(visibleUnitResult.getUnit()).isNotNull();
-        assertThat(visibleUnitResult.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
-        assertThat(invisibleUnitResult.getUnit()).isNull();
-        assertThat(invisibleUnitResult.getCount()).isNull();
-        verify(hiddenUnitBo, times(2)).defineHidden(eq(involvedUnits), anyList());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void emitEnemyMissionsChange_should_work() {
-        var mission1Id = 192091L;
-        var mission2Id = 29892L;
-        var userPlanet1 = Planet.builder().id(14L).build();
-        var userPlanet2 = Planet.builder().id(19L).build();
-        var user = givenUser1();
-        var user2 = givenUser2();
-        var exploredPlanet = Planet.builder().id(190L).build();
-        var involvedUnit = givenObtainedUnit1();
-        var invisibleInvolvedUnit = givenObtainedUnit2();
-        invisibleInvolvedUnit.getUnit().setIsInvisible(true);
-        var involvedUnits = List.of(involvedUnit, invisibleInvolvedUnit);
-        var missionWithExploredPlanet = Mission.builder()
-                .id(mission1Id)
-                .sourcePlanet(exploredPlanet)
-                .targetPlanet(givenTargetPlanet())
-                .user(user2)
-                .involvedUnits(involvedUnits)
-                .type(MissionMock.givenMissionType(MissionType.EXPLORE))
-                .build();
-        var missionWithoutExploredPlanet = Mission.builder()
-                .id(mission2Id)
-                .sourcePlanet(Planet.builder().id(40L).build())
-                .targetPlanet(givenTargetPlanet())
-                .user(user2)
-                .involvedUnits(involvedUnits)
-                .type(MissionMock.givenMissionType(MissionType.EXPLORE))
-                .build();
-        given(missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(any(), any()))
-                .willReturn(List.of(missionWithExploredPlanet, missionWithoutExploredPlanet));
-        given(planetBo.findPlanetsByUser(user)).willReturn(List.of(userPlanet1, userPlanet2));
-        given(planetBo.isExplored(user, exploredPlanet)).willReturn(true);
-        List<List<UnitRunningMissionDto>> messageResultContainer = new ArrayList<>();
-        doAnswer(answer -> {
-            messageResultContainer.add((List<UnitRunningMissionDto>) answer.getArgument(2, Supplier.class).get());
-            return null;
-        }).when(socketIoService).sendMessage(any(UserStorage.class), any(), any());
-        given(obtainedUnitRepository.findByMissionId(anyLong())).willReturn(involvedUnits);
-
-        missionBo.emitEnemyMissionsChange(user);
-
-        var result = messageResultContainer.get(0);
-        verify(planetBo, times(1)).findPlanetsByUser(user);
-        verify(missionRepository, times(1))
-                .findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List.of(userPlanet1, userPlanet2), user);
-        verify(planetBo, times(2)).isExplored(eq(user), any());
-        assertThat(result).hasSize(2);
-        var missionResult1 = result.get(0);
-        var missionResult2 = result.get(1);
-        assertThat(missionResult1.getSourcePlanet()).isNotNull();
-        assertThat(missionResult1.getUser()).isNotNull();
-        assertThat(missionResult2.getSourcePlanet()).isNull();
-        assertThat(missionResult2.getUser()).isNull();
-        Stream.concat(missionResult1.getInvolvedUnits().stream(), missionResult2.getInvolvedUnits().stream()).forEach(involved -> {
-            assertThat(involved.getSourcePlanet()).isNull();
-            assertThat(involved.getTargetPlanet()).isNull();
-        });
-        var units = missionResult1.getInvolvedUnits();
-        var visibleUnitResult = units.get(0);
-        var invisibleUnitResult = units.get(1);
-        assertThat(visibleUnitResult.getUnit()).isNotNull();
-        assertThat(visibleUnitResult.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
-        assertThat(invisibleUnitResult.getUnit()).isNull();
-        assertThat(invisibleUnitResult.getCount()).isNull();
+        this.missionTimeManagerBo = missionTimeManagerBo;
+        this.missionTypeBo = missionTypeBo;
     }
 
     @Test
@@ -361,7 +224,7 @@ class MissionBoTest {
         given(userStorageBo.findById(USER_ID_1)).willReturn(user);
         givenMaxMissionsCount(user);
         given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
-        doReturn(false).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
+        doReturn(false).when(resourceRequirementsSpy).canRun(eq(user), any(UserEnergyServiceBo.class));
 
         assertThatThrownBy(() -> missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID))
                 .isInstanceOf(SgtMissionRegistrationException.class)
@@ -392,7 +255,7 @@ class MissionBoTest {
         given(userStorageBo.findById(USER_ID_1)).willReturn(user);
         var groupedImprovementMock = givenMaxMissionsCount(user);
         given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
-        doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
+        doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserEnergyServiceBo.class));
         given(configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE"))
                 .willReturn(new Configuration("FOO", zeroTimeConfigValue));
         var moreUpgradeSpeed = 15F;
@@ -406,7 +269,8 @@ class MissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.LEVEL_UP.name()))
                 .willReturn(Optional.of(givenMissionType(MissionType.LEVEL_UP)));
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
-
+        var terminationDate = LocalDateTime.now().plusSeconds(10);
+        given(missionTimeManagerBo.computeTerminationDate(or(eq(3.0D), eq(afterImprovementsTime)))).willReturn(terminationDate);
 
         missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID);
 
@@ -421,7 +285,7 @@ class MissionBoTest {
         assertThat(saved.getPrimaryResource()).isEqualTo(primary);
         assertThat(saved.getSecondaryResource()).isEqualTo(secondary);
         assertThat(saved.getRequiredTime()).isEqualTo(expectedTime);
-        assertThat(saved.getTerminationDate()).isNotNull();
+        assertThat(saved.getTerminationDate()).isEqualTo(terminationDate);
         assertThat(user.getPrimaryResource()).isEqualTo(60D);
         assertThat(user.getSecondaryResource()).isEqualTo(80D);
         verify(userStorageBo, times(1)).save(user);
@@ -438,7 +302,7 @@ class MissionBoTest {
         given(missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue
                 (USER_ID_1, MissionType.BUILD_UNIT.name(), (double) SOURCE_PLANET_ID)
         ).willReturn(buildMission);
-        given(obtainedUnitBo.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(givenObtainedUnit1()));
+        given(obtainedUnitRepository.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(givenObtainedUnit1()));
         given(objectRelationBo.unboxObjectRelation(buildMission.getMissionInformation().getRelation()))
                 .willReturn(givenUnit1());
         given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(givenSourcePlanet());
@@ -489,7 +353,7 @@ class MissionBoTest {
                 .isInstanceOf(SgtMissionRegistrationException.class);
         verify(objectRelationBo, times(1)).checkIsUnlocked(USER_ID_1, OBJECT_RELATION_ID);
         verify(unitBo, times(1)).checkIsUniqueBuilt(user, unit);
-        verify(resourceRequirementsMock, times(1)).canRun(eq(user), any(UserStorageBo.class));
+        verify(resourceRequirementsMock, times(1)).canRun(eq(user), any(UserEnergyServiceBo.class));
         verify(planetBo, times(1)).myCheckIsOfUserProperty(SOURCE_PLANET_ID);
     }
 
@@ -522,7 +386,7 @@ class MissionBoTest {
         given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
         given(unitBo.calculateRequirements(any(), any())).willReturn(resourceRequirementsSpy);
-        doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserStorageBo.class));
+        doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserEnergyServiceBo.class));
         given(groupedImprovementMock.getMoreUnitBuildSpeed()).willReturn(moreUnitBuildSpeed);
         given(improvementBo.computeImprovementValue(baseRequiredTime, moreUnitBuildSpeed, false))
                 .willReturn(afterImprovementsTime);
@@ -532,6 +396,7 @@ class MissionBoTest {
                 .willReturn(Optional.of(missionType));
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
         given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(givenSourcePlanet());
+        given(missionTypeBo.find(MissionType.BUILD_UNIT)).willReturn(MissionTypeMock.givenMissinType(MissionType.BUILD_UNIT));
 
         var result = missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT);
 
@@ -542,7 +407,7 @@ class MissionBoTest {
         verify(userStorageBo, times(1)).save(user);
         verify(missionRepository, times(1)).save(any());
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
-        verify(obtainedUnitBo, times(1)).save(captor.capture());
+        verify(obtainedUnitRepository, times(1)).save(captor.capture());
         var savedOu = captor.getValue();
         verify(missionSchedulerService, times(1)).scheduleMission(eq(missionBo.getGroupName()), any());
         verify(entityManager, times(1)).refresh(savedOu);
@@ -579,7 +444,7 @@ class MissionBoTest {
         missionBo.processLevelUpAnUpgrade(UPGRADE_MISSION_ID);
 
         assertThat(ou.getLevel()).isEqualTo((int) UPGRADE_MISSION_LEVEL);
-        verify(obtainedUpgradeBo, times(1)).save(ou);
+        verify(obtainedUpgradeRepository, times(1)).save(ou);
         verify(requirementBo, times(1)).triggerLevelUpCompleted(user, UPGRADE_ID);
         verify(improvementBo, times(1)).clearSourceCache(eq(user), any(ObtainedUpgradeBo.class));
         verify(improvementBo, times(1)).triggerChange(USER_ID_1, improvement);
@@ -604,7 +469,7 @@ class MissionBoTest {
         ou.getUnit().setImprovement(improvement);
         given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(buildMission));
         given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(sourcePlanet);
-        given(obtainedUnitBo.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(ou));
+        given(obtainedUnitRepository.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(ou));
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID)), any());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
@@ -623,12 +488,14 @@ class MissionBoTest {
 
         verify(missionRepository, times(2)).findById(BUILD_MISSION_ID);
         verify(planetBo, times(2)).findById(SOURCE_PLANET_ID);
-        verify(obtainedUnitBo, times(2)).findByMissionId(BUILD_MISSION_ID);
+        verify(obtainedUnitRepository, times(2)).findByMissionId(BUILD_MISSION_ID);
         assertThat(ou.getSourcePlanet()).isEqualTo(sourcePlanet);
         verify(obtainedUnitBo, times(1)).moveUnit(ou, USER_ID_1, SOURCE_PLANET_ID);
         verify(requirementBo, times(1)).triggerUnitBuildCompletedOrKilled(ou.getUser(), ou.getUnit());
         verify(missionRepository, times(1)).delete(buildMission);
-        verify(improvementBo, times(expectClearImprovementCacheInvocations)).clearSourceCache(eq(ou.getUser()), any(ObtainedUnitBo.class));
+        verify(improvementBo, times(expectClearImprovementCacheInvocations)).clearSourceCache(
+                eq(ou.getUser()), any(ObtainedUnitImprovementCalculationService.class)
+        );
         verifyFindBuildMissions(missionChange);
         assertThat(missionCountChange).isEqualTo(runningMissionsCount);
     }

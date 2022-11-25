@@ -11,7 +11,6 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -45,21 +44,12 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
     @Autowired
     private RequirementInformationBo requirementInformationBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    
     @Override
     public JpaRepository<ObjectRelation, Integer> getRepository() {
         return objectRelationsRepository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
     public String getCacheTag() {
         return OBJECT_RELATION_CACHE_TAG;
     }
@@ -123,7 +113,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
         ObjectRelation objectRelation = new ObjectRelation();
         objectRelation.setObject(objectEntityBo.findByDescription(target));
         objectRelation.setReferenceId(referenceId);
-        return save(objectRelation);
+        return objectRelationsRepository.save(objectRelation);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -211,15 +201,13 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
     }
 
     @Transactional
-    @Override
     public void delete(ObjectRelation objectRelation) {
         requirementInformationBo.deleteByRelation(objectRelation);
         unlockedRelationBo.deleteByRelation(objectRelation);
-        BaseBo.super.delete(objectRelation);
+        objectRelationsRepository.delete(objectRelation);
     }
 
     @Transactional
-    @Override
     public void delete(Integer id) {
         delete(findById(id));
     }

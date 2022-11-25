@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
@@ -31,7 +30,6 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
 
     private final FactionRepository repository;
     private final transient FactionUnitTypeRepository factionUnitTypeRepository;
-    private final transient TaggableCacheManager taggableCacheManager;
 
     @Autowired
     @Lazy
@@ -40,16 +38,6 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
     @Override
     public JpaRepository<Faction, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return FACTION_CACHE_TAG;
     }
 
     /*
@@ -74,7 +62,6 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
         return retVal;
     }
 
-    @Override
     public Faction save(Faction faction) {
         var customPrimaryGatherPercentage = faction.getCustomPrimaryGatherPercentage();
         var customSecondaryGatherPercentage = faction.getCustomSecondaryGatherPercentage();
@@ -86,7 +73,7 @@ public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
                     "No, dear hacker, custom primary percentage plus secondary CAN'T be higher than 100");
 
         }
-        return BaseBo.super.save(faction);
+        return repository.save(faction);
     }
 
     /**

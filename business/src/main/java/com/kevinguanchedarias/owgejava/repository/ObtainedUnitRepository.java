@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,6 +21,9 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     List<ObtainedUnit> findByMissionId(Long missionId);
 
     boolean existsByMission(Mission mission);
+
+    @Query("SELECT new com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection(ou.id, ou.count, ou.unit.name, ou.unit.image) FROM ObtainedUnit ou WHERE ou.id = ?1")
+    ObtainedUnitBasicInfoProjection findBaseInfo(Long id);
 
     /**
      * Finds all user units that are not of a specified mission type
@@ -75,8 +79,16 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
+     * @deprecated use {@link #findDeployedInUserOwnedPlanets(Integer)} instead
      */
+    @Deprecated(since = "0.11.0")
     List<ObtainedUnit> findBySourcePlanetNotNullAndMissionNullAndUserId(Integer userId);
+
+    @Query("SELECT ou FROM ObtainedUnit ou " +
+            "WHERE ou.sourcePlanet IS NOT NULL " +
+            "AND ou.mission IS NULL " +
+            "AND ou.user.id = ?1")
+    List<ObtainedUnit> findDeployedInUserOwnedPlanets(Integer userId);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

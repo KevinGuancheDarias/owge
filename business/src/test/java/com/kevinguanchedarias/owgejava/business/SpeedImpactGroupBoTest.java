@@ -2,11 +2,9 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
+import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,26 +29,22 @@ import static org.mockito.BDDMockito.given;
 @MockBean({
         SpeedImpactGroupRepository.class,
         ObjectRelationToObjectRelationRepository.class,
-        RequirementGroupBo.class,
         RequirementBo.class,
         ObjectRelationBo.class,
         UnlockedRelationBo.class,
         DtoUtilService.class,
-        TaggableCacheManager.class,
-        SpeedImpactGroupFinderBo.class
+        SpeedImpactGroupFinderBo.class,
+        RequirementGroupRepository.class
 })
-class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
+class SpeedImpactGroupBoTest {
     private final SpeedImpactGroupBo speedImpactGroupBo;
-    private final TaggableCacheManager taggableCacheManager;
     private final SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
 
     @Autowired
     public SpeedImpactGroupBoTest(
             SpeedImpactGroupBo speedImpactGroupBo,
-            TaggableCacheManager taggableCacheManager,
             SpeedImpactGroupFinderBo speedImpactGroupFinderBo) {
         this.speedImpactGroupBo = speedImpactGroupBo;
-        this.taggableCacheManager = taggableCacheManager;
         this.speedImpactGroupFinderBo = speedImpactGroupFinderBo;
     }
 
@@ -80,15 +74,5 @@ class SpeedImpactGroupBoTest extends AbstractBaseBoTest {
         var unit = givenUnit1();
 
         assertThat(speedImpactGroupBo.canIntercept(interceptableSpeedGroups, givenUser1(), unit)).isFalse();
-    }
-
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(SpeedImpactGroupBo.SPEED_IMPACT_GROUP_CACHE_TAG)
-                .targetBo(speedImpactGroupBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 }

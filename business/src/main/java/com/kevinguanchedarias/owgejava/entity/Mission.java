@@ -1,29 +1,13 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +18,9 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Mission implements EntityWithId<Long> {
+public class Mission implements EntityWithCache<Long> {
+    public static final String MISSION_CACHE_TAG = "mission";
+
     @Serial
     private static final long serialVersionUID = -5258361356566850987L;
 
@@ -58,10 +44,10 @@ public class Mission implements EntityWithId<Long> {
     private MissionType type;
 
     @Column(name = "starting_date")
-    private Date startingDate = new Date();
+    private LocalDateTime startingDate = LocalDateTime.now(ZoneOffset.UTC);
 
     @Column(name = "termination_date")
-    private Date terminationDate;
+    private LocalDateTime terminationDate;
 
     @Column(name = "required_time")
     private Double requiredTime;
@@ -113,4 +99,9 @@ public class Mission implements EntityWithId<Long> {
 
     @Column(nullable = false)
     private Boolean invisible = false;
+
+    @Override
+    public String getCacheTag() {
+        return MISSION_CACHE_TAG;
+    }
 }

@@ -14,7 +14,6 @@ import com.kevinguanchedarias.owgejava.trait.WithDisabledSave;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
@@ -42,9 +41,8 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 @Service
 public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, WithDisabledSave<ImageStore> {
@@ -73,10 +71,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 
     @Autowired
     private transient ExceptionUtilService exceptionUtilService;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    
     /*
      * (non-Javadoc)
      *
@@ -85,16 +80,6 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
     @Override
     public JpaRepository<ImageStore, Long> getRepository() {
         return imageStoreRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return IMAGE_STORE_CACHE_TAG;
     }
 
     /*
@@ -176,11 +161,8 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
     }
 
     /**
-     *
-     * @param checksum
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public ImageStore findOneByChecksum(String checksum) {
         return computeImageUrl(this.imageStoreRepository.findOneByChecksum(checksum));
@@ -189,11 +171,8 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
     /**
      * Saves a new image to the directory and to the database
      *
-     * @param base64
-     * @param displayName
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     @Transactional
     public ImageStoreDto save(String base64, String displayName) {
@@ -214,7 +193,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
             imageStore.setFilename(fileName);
             imageStore.setChecksum(checksum);
             ImageStore storedImageStore = findOneByChecksum(checksum);
-            storedImageStore = storedImageStore != null ? storedImageStore : BaseBo.super.save(imageStore);
+            storedImageStore = storedImageStore != null ? storedImageStore : imageStoreRepository.save(imageStore);
             storedImageStore = computeImageUrl(storedImageStore);
             return dtoUtilService.dtoFromEntity(ImageStoreDto.class, storedImageStore);
         } catch (Exception e) {
@@ -227,10 +206,8 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
     /**
      * Updates the modifiable information of a image
      *
-     * @param imageStoreDto
-     * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public ImageStoreDto update(ImageStoreDto imageStoreDto) {
         ValidationUtil.getInstance().requireNotNull(imageStoreDto.getId(), "id")
@@ -239,18 +216,18 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
         ImageStore entity = findByIdOrDie(imageStoreDto.getId());
         entity.setDisplayName(imageStoreDto.getDisplayName());
         entity.setDescription(imageStoreDto.getDescription());
-        return dtoUtilService.dtoFromEntity(ImageStoreDto.class, BaseBo.super.save(entity));
+        return dtoUtilService.dtoFromEntity(ImageStoreDto.class, imageStoreRepository.save(entity));
     }
 
     /**
      * Adds the url to the image store entity from the filename
      *
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public ImageStore computeImageUrl(ImageStore imageStore) {
         if (imageStore != null) {
-            String schemeAndHost = StringUtils.isEmpty(imageHost) ? "" : imageHost;
+            String schemeAndHost = StringUtils.hasLength(imageHost) ? "" : imageHost;
             imageStore.setUrl(schemeAndHost + "/" + dynamicUrl + "/" + imageStore.getFilename());
         }
         return imageStore;
@@ -276,7 +253,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
         }
     }
 
-    private String saveToDisk(byte[] binaryData, String fileName) {
+    private void saveToDisk(byte[] binaryData, String fileName) {
         Path fileAbsolutePath = new File(directoryPath, fileName).toPath();
         if (!Files.exists(fileAbsolutePath, LinkOption.values())) {
             try (FileOutputStream stream = new FileOutputStream(fileAbsolutePath.toString())) {
@@ -286,7 +263,6 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
                 throw new CommonException("File save failed", e);
             }
         }
-        return fileAbsolutePath.toString();
     }
 
     private void unlinkFile(String fileName) {

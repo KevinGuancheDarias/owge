@@ -2,27 +2,24 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.checker.EntityCanDoMissionChecker;
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
 import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.Serial;
 import java.util.List;
 
-@Component
+@Service
+@AllArgsConstructor
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
     public static final String UNIT_TYPE_CACHE_TAG = "unit_type";
 
@@ -31,52 +28,19 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     private static final String UNIT_TYPE_CHANGE = "unit_type_change";
 
-    @Autowired
-    private UnitTypeRepository unitTypeRepository;
-
-    @Autowired
-    private ImprovementBo improvementBo;
-
-    @Autowired
-    @Lazy
-    private UnitMissionBo unitMissionBo;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private ObtainedUnitRepository obtainedUnitRepository;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private transient FactionUnitTypeRepository factionUnitTypeRepository;
-
-    @Autowired
-    @Lazy
-    private ObtainedUnitBo obtainedUnitBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
-    @Autowired
-    private transient EntityCanDoMissionChecker entityCanDoMissionChecker;
+    private final UnitTypeRepository unitTypeRepository;
+    private final ImprovementBo improvementBo;
+    private final UserStorageBo userStorageBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final transient SocketIoService socketIoService;
+    private final transient FactionUnitTypeRepository factionUnitTypeRepository;
+    private final transient EntityCanDoMissionChecker entityCanDoMissionChecker;
 
     @Override
     public JpaRepository<UnitType, Integer> getRepository() {
         return unitTypeRepository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return UNIT_TYPE_CACHE_TAG;
-    }
 
     /*
      * (non-Javadoc)
@@ -157,7 +121,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
             var user = userStorageBo.findById(userId);
             unitTypeResponse.setComputedMaxCount(findUniTypeLimitByUser(user, current));
             if (hasMaxCount(user.getFaction(), current)) {
-                unitTypeResponse.setUserBuilt(obtainedUnitBo.countByUserAndUnitType(user, current));
+                unitTypeResponse.setUserBuilt(obtainedUnitRepository.countByUserAndUnitType(user, current));
             }
             unitTypeResponse.setUsed(isUsed(current.getId()));
             return unitTypeResponse;
@@ -166,5 +130,40 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     public void emitUserChange(Integer userId) {
         socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> findUnitTypesWithUserInfo(userId));
+    }
+
+    /**
+     * Checks if the specified count would be over the expected count
+     *
+     * @throws SgtBackendInvalidInputException When reached
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void checkWouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
+        if (wouldReachUnitTypeLimit(user, typeId, count)) {
+            throw new SgtBackendInvalidInputException(
+                    "Nice try to buy over your possibilities!!!, try outside of Spain!");
+        }
+    }
+
+    private boolean wouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
+        var faction = user.getFaction();
+        var type = findById(typeId);
+        var targetToCountTo = findMaxShareCountRoot(type);
+        var userCount = ObjectUtils.firstNonNull(countUnitsByUserAndUnitType(user, targetToCountTo), 0L) + count;
+        return hasMaxCount(faction, targetToCountTo)
+                && userCount > findUniTypeLimitByUser(user, targetToCountTo.getId());
+    }
+
+    private UnitType findMaxShareCountRoot(UnitType type) {
+        return type.getShareMaxCount() == null ? type : findMaxShareCountRoot(type.getShareMaxCount());
+    }
+
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     */
+    private long countUnitsByUserAndUnitType(UserStorage user, UnitType type) {
+        return ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndUnitType(user, type), 0L)
+                + ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndSharedCountUnitType(user, type), 0L);
     }
 }

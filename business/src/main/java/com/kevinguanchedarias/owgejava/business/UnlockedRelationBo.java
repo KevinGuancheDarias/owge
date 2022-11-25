@@ -7,15 +7,12 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,12 +29,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     @Autowired
     private ObjectRelationBo objectRelationBo;
 
-    @Autowired
-    private DtoUtilService dtoUtilService;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
     public UnlockedRelation findOneByUserIdAndRelationId(Integer userId, Integer relationId) {
         return repository.findOneByUserIdAndRelationId(userId, relationId);
     }
@@ -48,19 +39,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
      */
     public List<UnlockedRelation> findByUserIdAndObjectType(Integer userId, ObjectEnum type) {
         return repository.findByUserIdAndRelationObjectCode(userId, type.name());
-    }
-
-    /**
-     * Converts a list of unlocked relations into a list of relations
-     *
-     * @param unlockedRelations list of unlocked relations
-     * @return list of relations
-     * @author Kevin Guanche Darias
-     */
-    public List<ObjectRelation> unboxUnlockedRelationList(List<UnlockedRelation> unlockedRelations) {
-        List<ObjectRelation> relations = new ArrayList<>();
-        unlockedRelations.stream().forEach(unlockedRelation -> relations.add(unlockedRelation.getRelation()));
-        return relations;
     }
 
     /**
@@ -94,16 +72,6 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
         return repository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return UNLOCKED_RELATION_CACHE_TAG;
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -112,6 +80,17 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     @Override
     public Class<DtoFromEntity<UnlockedRelation>> getDtoClass() {
         throw new SgtBackendNotImplementedException("UnlockedRelation doesn't have a dto ... for now =/");
+    }
+
+    /**
+     * Converts a list of unlocked relations into a list of relations
+     *
+     * @param unlockedRelations list of unlocked relations
+     * @return list of relations
+     * @author Kevin Guanche Darias
+     */
+    private List<ObjectRelation> unboxUnlockedRelationList(List<UnlockedRelation> unlockedRelations) {
+        return unlockedRelations.stream().map(UnlockedRelation::getRelation).toList();
     }
 
 }

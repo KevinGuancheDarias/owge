@@ -1,10 +1,6 @@
 package com.kevinguanchedarias.owgejava.dao;
 
-import com.kevinguanchedarias.owgejava.business.FactionBo;
-import com.kevinguanchedarias.owgejava.business.GalaxyBo;
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
-import com.kevinguanchedarias.owgejava.business.SpecialLocationBo;
-import com.kevinguanchedarias.owgejava.business.UpgradeBo;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
@@ -13,7 +9,6 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
-import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
@@ -40,22 +35,7 @@ public class RequirementInformationDao implements Serializable {
 
     @Autowired
     private RequirementInformationRepository requirementInformationRepository;
-
-    @Autowired
-    private SpecialLocationBo specialLocationBo;
-
-    @Autowired
-    private FactionBo factionBo;
-
-    @Autowired
-    private UpgradeBo upgradeBo;
-
-    @Autowired
-    private GalaxyBo galaxyBo;
-
-    @Autowired
-    private RequirementRepository requirementRepository;
-
+    
     @Autowired
     private ObjectRelationBo objectRelationsBo;
 
@@ -118,7 +98,7 @@ public class RequirementInformationDao implements Serializable {
         }
         storedRequirementsInformation.add(requirementInformation);
         requirementInformation.getRelation().setRequirements(storedRequirementsInformation);
-        requirementInformation.setRelation(objectRelationsBo.save(requirementInformation.getRelation()));
+        requirementInformation.setRelation(objectRelationsRepository.save(requirementInformation.getRelation()));
         return requirementInformation;
     }
 

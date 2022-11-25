@@ -2,10 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,32 +23,19 @@ import static org.mockito.BDDMockito.given;
 @MockBean({
         UnlockedRelationRepository.class,
         ObjectRelationBo.class,
-        DtoUtilService.class,
-        TaggableCacheManager.class
+        DtoUtilService.class
 })
-class UnlockedRelationBoTest extends AbstractBaseBoTest {
+class UnlockedRelationBoTest {
     private final UnlockedRelationBo unlockedRelationBo;
-    private final TaggableCacheManager taggableCacheManager;
     private final UnlockedRelationRepository unlockedRelationRepository;
 
     @Autowired
     UnlockedRelationBoTest(
             UnlockedRelationBo unlockedRelationBo,
-            TaggableCacheManager taggableCacheManager,
             UnlockedRelationRepository unlockedRelationRepository
     ) {
         this.unlockedRelationBo = unlockedRelationBo;
-        this.taggableCacheManager = taggableCacheManager;
         this.unlockedRelationRepository = unlockedRelationRepository;
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(UnlockedRelationBo.UNLOCKED_RELATION_CACHE_TAG)
-                .targetBo(unlockedRelationBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 
     @Test

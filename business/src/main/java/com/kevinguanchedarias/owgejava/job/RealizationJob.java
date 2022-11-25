@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.job;
 
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -23,6 +24,7 @@ public class RealizationJob extends QuartzJobBean {
     private MissionBo missionBo;
     private UnitMissionBo unitMissionBo;
     private MysqlInformationRepository mysqlInformationRepository;
+    private MissionEventEmitterBo missionEventEmitterBo;
 
     public Long getMissionId() {
         return missionId;
@@ -60,8 +62,8 @@ public class RealizationJob extends QuartzJobBean {
                 missionBo.retryMissionIfPossible(missionId, missionType);
                 UserStorage user = mission.getUser();
                 if (missionType.isUnitMission()) {
-                    unitMissionBo.emitUnitMissions(user.getId());
-                    unitMissionBo.emitEnemyMissionsChange(mission);
+                    missionEventEmitterBo.emitUnitMissions(user.getId());
+                    missionEventEmitterBo.emitEnemyMissionsChange(mission);
                 } else if (missionType == MissionType.LEVEL_UP) {
                     missionBo.emitRunningUpgrade(user);
                 } else if (missionType == MissionType.BUILD_UNIT) {
@@ -88,6 +90,7 @@ public class RealizationJob extends QuartzJobBean {
             missionBo = applicationContext.getBean(MissionBo.class);
             unitMissionBo = applicationContext.getBean(UnitMissionBo.class);
             mysqlInformationRepository = applicationContext.getBean(MysqlInformationRepository.class);
+            missionEventEmitterBo = applicationContext.getBean(MissionEventEmitterBo.class);
         } catch (SchedulerException e) {
             LOG.error("Unexpected exception", e);
             throw new CommonException("Could not get application context inside job parser", e);

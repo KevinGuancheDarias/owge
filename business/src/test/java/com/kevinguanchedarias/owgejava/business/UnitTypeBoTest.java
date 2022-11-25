@@ -6,9 +6,6 @@ import com.kevinguanchedarias.owgejava.mock.FactionMock;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,9 +27,7 @@ import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -46,19 +41,17 @@ import static org.mockito.Mockito.verify;
         ObtainedUnitRepository.class,
         SocketIoService.class,
         FactionUnitTypeRepository.class,
-        ObtainedUnitBo.class,
-        TaggableCacheManager.class,
-        EntityCanDoMissionChecker.class
+        EntityCanDoMissionChecker.class,
+        ObtainedUnitRepository.class
 })
-class UnitTypeBoTest extends AbstractBaseBoTest {
+class UnitTypeBoTest {
     private static final int SECOND_UNIT_TYPE_ID = 11811;
 
     private final UnitTypeBo unitTypeBo;
     private final UnitTypeRepository repository;
     private final UserStorageBo userStorageBo;
-    private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
     private final ImprovementBo improvementBo;
-    private final TaggableCacheManager taggableCacheManager;
     private final EntityCanDoMissionChecker entityCanDoMissionChecker;
 
     @Autowired
@@ -66,17 +59,15 @@ class UnitTypeBoTest extends AbstractBaseBoTest {
             UnitTypeBo unitTypeBo,
             UnitTypeRepository repository,
             UserStorageBo userStorageBo,
-            ObtainedUnitBo obtainedUnitBo,
+            ObtainedUnitRepository obtainedUnitRepository,
             ImprovementBo improvementBo,
-            TaggableCacheManager taggableCacheManager,
             EntityCanDoMissionChecker entityCanDoMissionChecker
     ) {
         this.unitTypeBo = unitTypeBo;
         this.repository = repository;
         this.userStorageBo = userStorageBo;
-        this.obtainedUnitBo = obtainedUnitBo;
+        this.obtainedUnitRepository = obtainedUnitRepository;
         this.improvementBo = improvementBo;
-        this.taggableCacheManager = taggableCacheManager;
         this.entityCanDoMissionChecker = entityCanDoMissionChecker;
     }
 
@@ -98,7 +89,7 @@ class UnitTypeBoTest extends AbstractBaseBoTest {
         given(userStorageBo.findById(USER_ID_1)).willReturn(user);
         given(improvementBo.findUserImprovement(user)).willReturn(userImprovement);
         given(improvementBo.computeImprovementValue(anyDouble(), anyDouble())).willReturn(maxAfterImprovement);
-        given(obtainedUnitBo.countByUserAndUnitType(user, type)).willReturn(built);
+        given(obtainedUnitRepository.countByUserAndUnitType(user, type)).willReturn(built);
         given(repository.existsByUnitsTypeId(UNIT_TYPE_ID)).willReturn(isUsed);
 
         var result = unitTypeBo.findUnitTypesWithUserInfo(USER_ID_1);
@@ -106,7 +97,6 @@ class UnitTypeBoTest extends AbstractBaseBoTest {
         verify(userStorageBo, times(1)).findById(USER_ID_1);
         verify(improvementBo, times(1)).findUserImprovement(user);
         verify(improvementBo, times(1)).computeImprovementValue(anyDouble(), anyDouble());
-        verify(obtainedUnitBo, times(1)).countByUserAndUnitType(user, type);
         assertThat(result).hasSize(1);
         var resultEntry = result.get(0);
         assertThat(resultEntry.isUsed()).isTrue();
@@ -135,14 +125,5 @@ class UnitTypeBoTest extends AbstractBaseBoTest {
 
         assertThat(unitTypeBo.canDoMission(user, targetPlanet, List.of(firstUnitType, secondUnitType), missionType)).isEqualTo(expected);
         verify(entityCanDoMissionChecker, atLeastOnce()).canDoMission(eq(user), eq(targetPlanet), or(eq(firstUnitType), eq(secondUnitType)), eq(missionType));
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(UnitTypeBo.UNIT_TYPE_CACHE_TAG)
-                .targetBo(unitTypeBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 }
