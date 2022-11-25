@@ -89,7 +89,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     protected transient SocketIoService socketIoService;
 
     @Autowired
-    protected MissionReportManagerBo missionReportManagerBo;
+    protected transient MissionReportManagerBo missionReportManagerBo;
 
     @Autowired
     private transient ApplicationContext applicationContext;

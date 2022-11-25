@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
 
-import com.kevinguanchedarias.owgejava.business.cache.CacheableEntityCrudBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
@@ -56,7 +55,6 @@ import javax.persistence.EntityManager;
         MissionReportBo.class,
         MissionSchedulerService.class,
         ConfigurationBo.class,
-        ImageStoreBo.class,
         PlanetListBo.class,
         AsyncRunnerBo.class,
         EntityManager.class,
@@ -69,13 +67,11 @@ import javax.persistence.EntityManager;
         HiddenUnitBo.class,
         PlanetLockUtilService.class,
         CrossGalaxyMissionChecker.class,
-        UnitInterceptionFinderBo.class,
         PlanetRepository.class,
         MissionEventEmitterBo.class,
         ObtainedUnitFinderBo.class,
         MissionTimeManagerBo.class,
         ObtainedUnitModificationBo.class,
-        CacheableEntityCrudBo.class,
         MissionBo.class,
         UnitMissionRegistrationBo.class,
         ObtainedUnitEventEmitter.class,

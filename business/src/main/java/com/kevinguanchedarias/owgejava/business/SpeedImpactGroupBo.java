@@ -54,7 +54,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     private transient SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
 
     @Autowired
-    private RequirementGroupRepository requirementGroupRepository;
+    private transient RequirementGroupRepository requirementGroupRepository;
 
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {

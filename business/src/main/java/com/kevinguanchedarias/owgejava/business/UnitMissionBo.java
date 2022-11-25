@@ -8,7 +8,6 @@ import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionMana
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.UnitMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
-import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnitInterceptionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
@@ -30,7 +29,6 @@ import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.ObjectUtils;
@@ -64,9 +62,6 @@ public class UnitMissionBo extends AbstractMissionBo {
     private ConfigurationBo configurationBo;
 
     @Autowired
-    private ImageStoreBo imageStoreBo;
-
-    @Autowired
     private transient PlanetListBo planetListBo;
 
     @Autowired
@@ -85,9 +80,6 @@ public class UnitMissionBo extends AbstractMissionBo {
     private transient AttackMissionManagerBo attackMissionManagerBo;
 
     @Autowired
-    private ObtainedUnitRepository obtainedUnitRepository;
-
-    @Autowired
     private transient TransactionUtilService transactionUtilService;
 
     @Autowired
@@ -95,9 +87,6 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Autowired
     private transient PlanetLockUtilService planetLockUtilService;
-
-    @Autowired
-    private transient UnitInterceptionFinderBo unitInterceptionFinderBo;
 
     @Autowired
     private transient UnitMissionRegistrationBo unitMissionRegistrationBo;
@@ -112,16 +101,16 @@ public class UnitMissionBo extends AbstractMissionBo {
     private PlanetRepository planetRepository;
 
     @Autowired
-    private MissionEventEmitterBo missionEventEmitterBo;
+    private transient MissionEventEmitterBo missionEventEmitterBo;
 
     @Autowired
     private ObtainedUnitBo obtainedUnitBo;
 
     @Autowired
-    private MissionUnitsFinderBo missionUnitsFinderBo;
+    private transient MissionUnitsFinderBo missionUnitsFinderBo;
 
     @Autowired
-    private MissionInterceptionManagerBo missionInterceptionManagerBo;
+    private transient MissionInterceptionManagerBo missionInterceptionManagerBo;
 
     @Override
     public String getGroupName() {

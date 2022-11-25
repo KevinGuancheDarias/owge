@@ -52,9 +52,9 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient HiddenUnitBo hiddenUnitBo;
     private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final PlanetRepository planetRepository;
-    private final TransactionUtilService transactionUtilService;
-    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
-    private final UserEventEmitterBo userEventEmitterBo;
+    private final transient TransactionUtilService transactionUtilService;
+    private final transient ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+    private final transient UserEventEmitterBo userEventEmitterBo;
     private final UnitTypeBo unitTypeBo;
     private final UserStorageRepository userStorageRepository;
 

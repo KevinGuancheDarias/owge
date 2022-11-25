@@ -20,9 +20,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -44,7 +42,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @AllArgsConstructor
 public class MissionBo extends AbstractMissionBo {
-    public static final String ENEMY_MISSION_CHANGE = "enemy_mission_change";
     public static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
     public static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
     public static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
@@ -63,16 +60,15 @@ public class MissionBo extends AbstractMissionBo {
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient TransactionUtilService transactionUtilService;
     private final transient PlanetLockUtilService planetLockUtilService;
-    private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final transient UserEventEmitterBo userEventEmitterBo;
     private final transient UserEnergyServiceBo userEnergyServiceBo;
     private final transient MissionTypeBo missionTypeBo;
     private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final transient MissionTimeManagerBo missionTimeManagerBo;
-    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
+    private final transient ObtainedUnitModificationBo obtainedUnitModificationBo;
     private final ObtainedUnitBo obtainedUnitBo;
-    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+    private final transient ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
 
     @PostConstruct
     public void init() {
@@ -365,17 +361,14 @@ public class MissionBo extends AbstractMissionBo {
             }
         } else if (missionUser.getId().equals(loggedInUser.getId())) {
             switch (type) {
-                case BUILD_UNIT:
-                    adminCancelBuildMission(mission);
-                    break;
-                case LEVEL_UP:
+                case BUILD_UNIT -> adminCancelBuildMission(mission);
+                case LEVEL_UP -> {
                     missionUser.addtoPrimary(mission.getPrimaryResource());
                     missionUser.addToSecondary(mission.getSecondaryResource());
                     userStorageBo.save(missionUser);
-                    emitUserAftercommit(missionUser.getId());
-                    break;
-                default:
-                    throw new CommonException("No such mission type " + mission.getType().getCode());
+                    emitUserAfterCommit(missionUser.getId());
+                }
+                default -> throw new CommonException("No such mission type " + mission.getType().getCode());
             }
         } else {
             throw new CommonException(
@@ -464,8 +457,8 @@ public class MissionBo extends AbstractMissionBo {
         }
     }
 
-    private void emitUserAftercommit(Integer userId) {
-        TransactionUtil.doAfterCommit(() -> emitUser(userId));
+    private void emitUserAfterCommit(Integer userId) {
+        transactionUtilService.doAfterCommit(() -> emitUser(userId));
     }
 
     private void emitUser(Integer userId) {

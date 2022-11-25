@@ -10,13 +10,12 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,7 @@ import javax.persistence.PersistenceContext;
 import java.io.Serial;
 import java.util.List;
 
-@Component
+@Service
 public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     public static final String PLANET_CACHE_TAG = "planet";
 
@@ -123,22 +122,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         return planetRepository.findOneBySpecialLocationId(specialLocationId);
     }
 
-    /**
-     * It's better to use directly the repository
-     */
-    @Deprecated(since = "0.11.0")
-    public boolean isOfUserProperty(UserStorage expectedOwner, Planet planet) {
-        return isOfUserProperty(expectedOwner.getId(), planet.getId());
-    }
-
-    /**
-     * @deprecated It's better to use directly the repository
-     */
-    @Deprecated(since = "0.11.0")
-    public boolean isOfUserProperty(Integer expectedOwnerId, Long planetId) {
-        return planetRepository.findOneByIdAndOwnerId(planetId, expectedOwnerId) != null;
-    }
-
     public boolean isHomePlanet(Planet planet) {
         checkPersisted(planet);
         return planet.getHome() != null && planet.getHome();
@@ -149,11 +132,11 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     public boolean myIsOfUserProperty(Long planetId) {
-        return isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
+        return planetRepository.isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
     }
 
     public void checkIsOfUserProperty(UserStorage user, Long planetId) {
-        if (!isOfUserProperty(user.getId(), planetId)) {
+        if (!planetRepository.isOfUserProperty(user.getId(), planetId)) {
             throw new SgtBackendInvalidInputException(
                     "Specified planet with id " + planetId + " does NOT belong to the user");
         }
@@ -168,7 +151,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     public boolean isExplored(Integer userId, Long planetId) {
-        return isOfUserProperty(userId, planetId)
+        return planetRepository.isOfUserProperty(userId, planetId)
                 || exploredPlanetRepository.findOneByUserIdAndPlanetId(userId, planetId) != null;
     }
 
@@ -188,10 +171,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         socketIoService.sendMessage(user, "planet_explored_event", () -> toDto(findById(targetPlanet.getId())));
     }
 
-    public void myDefineAsExplored(Planet targetPlanet) {
-        defineAsExplored(userStorageBo.findLoggedIn(), targetPlanet);
-    }
-
     /**
      * Checks if the user, has already the max planets he/she can have
      *
@@ -203,10 +182,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         int factionMax = user.getFaction().getMaxPlanets();
         int userPlanets = planetRepository.countByOwnerId(user.getId());
         return userPlanets >= factionMax;
-    }
-
-    public boolean hasMaxPlanets(Integer userId) {
-        return hasMaxPlanets(userStorageBo.findById(userId));
     }
 
     @Transactional
@@ -221,7 +196,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         if (planet.getSpecialLocation() != null) {
             requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
         }
-        TransactionUtil.doAfterCommit(() -> planetListBo.emitByChangedPlanet(planet));
+        transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(planet));
         emitPlanetOwnedChange(invokerId);
     }
 
@@ -242,7 +217,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     public boolean canLeavePlanet(Integer invokerId, Long planetId) {
-        return !isHomePlanet(planetId) && isOfUserProperty(invokerId, planetId)
+        return !isHomePlanet(planetId) && planetRepository.isOfUserProperty(invokerId, planetId)
                 && !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
                 && missionBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
     }

@@ -22,33 +22,33 @@ import org.springframework.web.context.annotation.ApplicationScope;
 @ApplicationScope
 public class GalaxyRestService {
 
-	@Autowired
-	private GalaxyBo galaxyBo;
+    @Autowired
+    private GalaxyBo galaxyBo;
 
-	@Autowired
-	private PlanetBo planetBo;
+    @Autowired
+    private PlanetBo planetBo;
 
-	@Autowired
-	private DtoUtilService dtoUtilService;
+    @Autowired
+    private DtoUtilService dtoUtilService;
 
-	@Autowired
-	private AuditBo auditBo;
+    @Autowired
+    private AuditBo auditBo;
 
-	@Autowired
-	private UserStorageBo userStorageBo;
+    @Autowired
+    private UserStorageBo userStorageBo;
 
-	@GetMapping("navigate")
-	@Transactional
-	public NavigationPojo navigate(@RequestParam("galaxyId") Integer galaxyId, @RequestParam("sector") Long sector,
-								   @RequestParam("quadrant") Long quadrant) {
-		final var retVal = new NavigationPojo();
-		auditBo.doAudit(AuditActionEnum.BROWSE_COORDINATES, galaxyBo.coordinatesToString(galaxyId, sector, quadrant), null);
-		retVal.setGalaxies(dtoUtilService.convertEntireArray(GalaxyDto.class, galaxyBo.findAll()));
-		final var planets = dtoUtilService.convertEntireArray(PlanetDto.class,
-				planetBo.findByGalaxyAndSectorAndQuadrant(galaxyId, sector, quadrant));
-		final var userId = userStorageBo.findLoggedIn().getId();
-		planets.forEach(planet -> planetBo.cleanUpUnexplored(userId, planet));
-		retVal.setPlanets(planets);
-		return retVal;
-	}
+    @GetMapping("navigate")
+    @Transactional
+    public NavigationPojo navigate(@RequestParam("galaxyId") Integer galaxyId, @RequestParam("sector") Long sector,
+                                   @RequestParam("quadrant") Long quadrant) {
+        var retVal = new NavigationPojo();
+        auditBo.doAudit(AuditActionEnum.BROWSE_COORDINATES, galaxyBo.coordinatesToString(galaxyId, sector, quadrant), null);
+        retVal.setGalaxies(dtoUtilService.convertEntireArray(GalaxyDto.class, galaxyBo.findAll()));
+        var planets = dtoUtilService.convertEntireArray(PlanetDto.class,
+                planetBo.findByGalaxyAndSectorAndQuadrant(galaxyId, sector, quadrant));
+        var userId = userStorageBo.findLoggedIn().getId();
+        planets.forEach(planet -> planetBo.cleanUpUnexplored(userId, planet));
+        retVal.setPlanets(planets);
+        return retVal;
+    }
 }

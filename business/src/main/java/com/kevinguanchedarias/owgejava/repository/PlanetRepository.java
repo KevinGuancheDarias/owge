@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.repository;
 
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,6 +25,9 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
     @Query("SELECT p.id FROM Planet p WHERE p.id = ?2 AND p.owner.id = ?1 ")
     boolean isOfUserProperty(Integer ownerId, Long planetId);
+
+    @Query("SELECT p.id FROM Planet p WHERE p = ?2 AND p.owner = ?1 ")
+    boolean isOfUserProperty(UserStorage user, Planet planet);
 
     List<Planet> findByOwnerId(Integer ownerId);
 

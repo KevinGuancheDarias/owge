@@ -34,7 +34,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     private RequirementInformationRepository repository;
 
     @Autowired
-    private TaggableCacheManager taggableCacheManager;
+    private transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<RequirementInformation, Integer> getRepository() {
