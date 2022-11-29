@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
@@ -53,9 +52,6 @@ public class RequirementBo implements Serializable {
     private RequirementRepository requirementRepository;
 
     @Autowired
-    private RequirementInformationDao requirementDao;
-
-    @Autowired
     private UnlockedRelationBo unlockedRelationBo;
 
     @Autowired
@@ -89,7 +85,7 @@ public class RequirementBo implements Serializable {
     private SpeedImpactGroupBo speedImpactGroupBo;
 
     @Autowired
-    private PlanetBo planetBo;
+    private PlanetRepository planetRepository;
 
     @Autowired
     private transient EntityManager entityManager;
@@ -140,19 +136,6 @@ public class RequirementBo implements Serializable {
 
     public Requirement findOneByCode(RequirementTypeEnum code) {
         return requirementRepository.findOneByCode(code.name());
-    }
-
-    /**
-     * Will return requirement for specified object type with the given referenceId
-     *
-     * @param objectEnum  Type of object
-     * @param referenceId Id on the target entity, for example id of an upgrade, or
-     *                    an unit
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public List<RequirementInformation> findRequirements(ObjectEnum objectEnum, Integer referenceId) {
-        return requirementDao.findRequirements(objectEnum, referenceId);
     }
 
     @TaggableCacheable(tags = {
@@ -417,7 +400,7 @@ public class RequirementBo implements Serializable {
     }
 
     private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {
-        var planet = planetBo.findOneBySpecialLocationId(currentRequirement.getSecondValue().intValue());
+        var planet = planetRepository.findOneBySpecialLocationId(currentRequirement.getSecondValue().intValue());
         if (planet == null) {
             LOG.warn("Special location " + currentRequirement.getSecondValue() + " is not assigned to any planet");
             return false;

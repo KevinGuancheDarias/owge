@@ -2,9 +2,12 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.ExceptionBuilder;
 import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetCheckerService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
@@ -21,10 +24,7 @@ import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.mock.MissionTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
-import com.kevinguanchedarias.owgejava.repository.MissionRepository;
-import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
+import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -113,7 +113,11 @@ import static org.mockito.Mockito.*;
         MissionTimeManagerBo.class,
         ObtainedUnitModificationBo.class,
         ObtainedUnitImprovementCalculationService.class,
-        MissionReportManagerBo.class
+        MissionReportManagerBo.class,
+        PlanetCheckerService.class,
+        MissionFinderBo.class,
+        ReturnMissionRegistrationBo.class,
+        UserStorageRepository.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -138,9 +142,11 @@ class MissionBoTest {
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
-
     private final MissionTimeManagerBo missionTimeManagerBo;
     private final MissionTypeBo missionTypeBo;
+    private final PlanetCheckerService planetCheckerService;
+    private final MissionFinderBo missionFinderBo;
+    private final UserStorageRepository userStorageRepository;
 
     @Autowired
     public MissionBoTest(
@@ -166,7 +172,10 @@ class MissionBoTest {
             ObtainedUpgradeRepository obtainedUpgradeRepository,
             UpgradeBo upgradeBo, ObtainedUpgradeBo obtainedUpgradeBo,
             MissionTimeManagerBo missionTimeManagerBo,
-            MissionTypeBo missionTypeBo
+            MissionTypeBo missionTypeBo,
+            PlanetCheckerService planetCheckerService,
+            MissionFinderBo missionFinderBo,
+            UserStorageRepository userStorageRepository
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -192,6 +201,9 @@ class MissionBoTest {
         this.obtainedUpgradeBo = obtainedUpgradeBo;
         this.missionTimeManagerBo = missionTimeManagerBo;
         this.missionTypeBo = missionTypeBo;
+        this.planetCheckerService = planetCheckerService;
+        this.missionFinderBo = missionFinderBo;
+        this.userStorageRepository = userStorageRepository;
     }
 
     @Test
@@ -298,17 +310,13 @@ class MissionBoTest {
 
     @Test
     void registerBuildUnit_should_throw_if_mission_already_going() {
-        var buildMission = givenBuildMission();
-        given(missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue
-                (USER_ID_1, MissionType.BUILD_UNIT.name(), (double) SOURCE_PLANET_ID)
-        ).willReturn(buildMission);
-        given(obtainedUnitRepository.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(givenObtainedUnit1()));
-        given(objectRelationBo.unboxObjectRelation(buildMission.getMissionInformation().getRelation()))
-                .willReturn(givenUnit1());
-        given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(givenSourcePlanet());
+        var mission = givenBuildMission();
+        given(missionFinderBo.findRunningUnitBuild(USER_ID_1, (double) SOURCE_PLANET_ID))
+                .willReturn(mock(RunningUnitBuildDto.class));
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
                 .isInstanceOf(SgtBackendUnitBuildAlreadyRunningException.class);
+        verify(planetCheckerService, times(1)).myCheckIsOfUserProperty(SOURCE_PLANET_ID);
     }
 
     @Test
@@ -317,7 +325,7 @@ class MissionBoTest {
         var groupedImprovementMock = mock(GroupedImprovement.class);
         var exception = new SgtBackendInvalidInputException("FOO");
         var relation = givenObjectRelation();
-        given(userStorageBo.findById(USER_ID_1)).willReturn(givenUser1());
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(givenUser1()));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         given(improvementBo.findUserImprovement(givenUser1())).willReturn(groupedImprovementMock);
         given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
@@ -341,7 +349,7 @@ class MissionBoTest {
         var unit = givenUnit1();
         unit.setIsUnique(isUnique);
         var resourceRequirementsMock = mock(ResourceRequirementsPojo.class);
-        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         givenMaxMissionsCount(user);
 
@@ -354,7 +362,7 @@ class MissionBoTest {
         verify(objectRelationBo, times(1)).checkIsUnlocked(USER_ID_1, OBJECT_RELATION_ID);
         verify(unitBo, times(1)).checkIsUniqueBuilt(user, unit);
         verify(resourceRequirementsMock, times(1)).canRun(eq(user), any(UserEnergyServiceBo.class));
-        verify(planetBo, times(1)).myCheckIsOfUserProperty(SOURCE_PLANET_ID);
+        verify(planetCheckerService, times(1)).myCheckIsOfUserProperty(SOURCE_PLANET_ID);
     }
 
     @ParameterizedTest
@@ -379,7 +387,7 @@ class MissionBoTest {
         var moreUnitBuildSpeed = 10F;
         var afterImprovementsTime = 20D;
         var missionType = givenMissionType(MissionType.BUILD_UNIT);
-        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
         given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
@@ -404,7 +412,7 @@ class MissionBoTest {
         assertThat(result.getRequiredPrimary()).isEqualTo(resourceRequirements.getRequiredPrimary());
         assertThat(result.getRequiredSecondary()).isEqualTo(resourceRequirements.getRequiredSecondary());
         assertThat(result.getType()).isEqualTo(MissionType.BUILD_UNIT);
-        verify(userStorageBo, times(1)).save(user);
+        verify(userStorageRepository, times(1)).save(user);
         verify(missionRepository, times(1)).save(any());
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
         verify(obtainedUnitRepository, times(1)).save(captor.capture());

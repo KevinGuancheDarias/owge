@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
+import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,8 +44,8 @@ import static org.mockito.Mockito.verify;
         FactionRepository.class,
         FactionUnitTypeRepository.class,
         UnitTypeBo.class,
-        GalaxyBo.class,
-        FactionSpawnLocationRepository.class
+        FactionSpawnLocationRepository.class,
+        GalaxyRepository.class
 })
 class FactionBoTest {
 

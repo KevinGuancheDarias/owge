@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -28,6 +29,15 @@ public class ReturnMissionRegistrationBo {
     private final MissionSchedulerService missionSchedulerService;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final PlanetLockUtilService planetLockUtilService;
+
+    @Transactional
+    public void registerReturnMission(Mission mission, Double customRequiredTime) {
+        planetLockUtilService.doInsideLock(
+                List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
+                () -> doRegisterReturnMission(mission, customRequiredTime)
+        );
+    }
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void doRegisterReturnMission(Mission originMission, Double customRequiredTime) {

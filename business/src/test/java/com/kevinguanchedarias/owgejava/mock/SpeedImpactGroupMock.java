@@ -10,10 +10,18 @@ public class SpeedImpactGroupMock {
     public static SpeedImpactGroup givenSpeedImpactGroup(int id) {
         return SpeedImpactGroup.builder()
                 .id(id)
+                .isFixed(false)
                 .build();
     }
 
     public static SpeedImpactGroup givenSpeedImpactGroup() {
         return givenSpeedImpactGroup(SPEED_IMPACT_GROUP_ID);
+    }
+
+    public static SpeedImpactGroup givenSpeedImpactGroupWithFixed() {
+        return SpeedImpactGroup.builder()
+                .id(SPEED_IMPACT_GROUP_ID)
+                .isFixed(true)
+                .build();
     }
 }

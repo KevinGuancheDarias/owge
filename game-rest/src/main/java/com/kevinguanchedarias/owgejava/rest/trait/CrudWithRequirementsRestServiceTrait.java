@@ -84,7 +84,7 @@ public interface CrudWithRequirementsRestServiceTrait<
     default List<RequirementInformationDto> findRequirements(@PathVariable N id) {
         SpringRepositoryUtil.existsOrDie(getRepository(), id);
         List<RequirementInformationDto> requirements = getBeanFactory().getBean(DtoUtilService.class)
-                .convertEntireArray(RequirementInformationDto.class, getBeanFactory().getBean(RequirementBo.class)
+                .convertEntireArray(RequirementInformationDto.class, getBeanFactory().getBean(RequirementInformationBo.class)
                         .findRequirements(getObject(), Integer.valueOf(id.toString())));
         requirements.forEach(current -> current.setRelation(null));
         return requirements;

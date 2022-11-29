@@ -37,7 +37,7 @@ public class AdminGalaxiesRestService implements CrudRestServiceTrait<Integer, G
 
     @GetMapping("/{id}/has-players")
     public boolean hasPlayers(@PathVariable Integer id) {
-        return galaxyRepository.hasPlayers(id, PageRequest.of(0, 1)).isPresent();
+        return !galaxyRepository.hasPlayers(id, PageRequest.of(0, 1)).isEmpty();
     }
 
 }

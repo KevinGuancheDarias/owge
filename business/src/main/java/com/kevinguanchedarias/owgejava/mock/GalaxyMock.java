@@ -9,8 +9,12 @@ public class GalaxyMock {
     public static final int GALAXY_ID = 18;
 
     public static Galaxy givenGalaxy() {
+        return givenGalaxy(GALAXY_ID);
+    }
+
+    public static Galaxy givenGalaxy(int id) {
         return Galaxy.builder()
-                .id(GALAXY_ID)
+                .id(id)
                 .build();
     }
 }

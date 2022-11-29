@@ -155,6 +155,10 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
         }
     }
 
+    public UserStorage findLoggedInWithReference() {
+        return userStorageRepository.getById(findLoggedIn().getId());
+    }
+
     public UserStorage findOneByMission(Mission mission) {
         return userStorageRepository.findOneByMissions(mission);
     }

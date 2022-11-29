@@ -20,6 +20,7 @@ public class UnitMock {
     public static final int UNIT_ATTACK = 18;
     public static final int UNIT_SHIELD = 28;
     public static final int UNIT_HEALTH = 38;
+    public static final double UNIT_SPEED = 49;
 
     public static Unit givenUnit1() {
         var retVal = new Unit();
@@ -30,6 +31,7 @@ public class UnitMock {
         retVal.setAttack(UNIT_ATTACK);
         retVal.setShield(UNIT_SHIELD);
         retVal.setHealth(UNIT_HEALTH);
+        retVal.setSpeed(UNIT_SPEED);
         return retVal;
     }
 

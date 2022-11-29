@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
-import com.kevinguanchedarias.owgejava.business.PlanetBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
@@ -24,7 +25,8 @@ public class RunningMissionFinderBo {
     private final PlanetRepository planetRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final HiddenUnitBo hiddenUnitBo;
-    private final PlanetBo planetBo;
+    private final PlanetExplorationService planetExplorationService;
+    private final PlanetCleanerService planetCleanerService;
     private final UserStorageRepository userStorageRepository;
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
 
@@ -35,7 +37,7 @@ public class RunningMissionFinderBo {
                     current.setInvolvedUnits(obtainedUnitRepository.findByMissionId(current.getId()));
                     UnitRunningMissionDto retVal = new UnitRunningMissionDto(current);
                     retVal.nullifyInvolvedUnitsPlanets();
-                    if (!planetBo.isExplored(user, current.getSourcePlanet())) {
+                    if (!planetExplorationService.isExplored(user, current.getSourcePlanet())) {
                         retVal.setSourcePlanet(null);
                         retVal.setUser(null);
                     }
@@ -63,7 +65,7 @@ public class RunningMissionFinderBo {
                             obtainedUnitRepository.findByMissionId(current.getMissionId())
                     ));
                     if (current.getType() == MissionType.EXPLORE) {
-                        planetBo.cleanUpUnexplored(userId, current.getTargetPlanet());
+                        planetCleanerService.cleanUpUnexplored(userId, current.getTargetPlanet());
                     }
                     return current;
                 }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).toList();

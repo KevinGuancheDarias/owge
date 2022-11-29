@@ -1,9 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
+import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.dto.MissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -14,17 +14,15 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
-import com.kevinguanchedarias.owgejava.repository.MissionTypeRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -41,52 +39,15 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
     @Autowired
     protected MissionRepository missionRepository;
 
-    @Autowired
-    protected ObtainedUpgradeBo obtainedUpgradeBo;
-
-    @Autowired
-    protected ObjectRelationBo objectRelationBo;
-
-    @Autowired
-    protected UpgradeBo upgradeBo;
 
     @Autowired
     protected UserStorageBo userStorageBo;
 
     @Autowired
-    protected MissionTypeRepository missionTypeRepository;
-
-    @Autowired
     protected ImprovementBo improvementBo;
 
     @Autowired
-    protected RequirementBo requirementBo;
-
-    @Autowired
-    protected UnlockedRelationBo unlockedRelationBo;
-
-    @Autowired
-    protected UnitBo unitBo;
-
-    @Autowired
-    @Lazy
-    protected transient ObtainedUnitRepository obtainedUnitRepository;
-
-    @Autowired
-    protected PlanetBo planetBo;
-
-    @Autowired
     protected transient ExceptionUtilService exceptionUtilService;
-
-    @Autowired
-    @Lazy
-    protected UnitTypeBo unitTypeBo;
-
-    @Autowired
-    protected transient MissionConfigurationBo missionConfigurationBo;
-
-    @Autowired
-    protected transient SocketIoService socketIoService;
 
     @Autowired
     protected transient MissionReportManagerBo missionReportManagerBo;
@@ -102,6 +63,9 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
 
     @Autowired
     private transient ObtainedUnitModificationBo obtainedUnitModificationBo;
+
+    @Autowired
+    private transient ReturnMissionRegistrationBo returnMissionRegistrationBo;
 
     public abstract String getGroupName();
 
@@ -130,7 +94,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
         if (mission.getAttemps() >= MAX_ATTEMPS) {
             if (missionType.isUnitMission() && missionType != MissionType.RETURN_MISSION
                     && missionType != MissionType.BUILD_UNIT) {
-                findUnitMissionBoInstance().adminRegisterReturnMission(mission);
+                returnMissionRegistrationBo.registerReturnMission(mission, null);
                 resolveMission(mission);
             } else if (missionType == MissionType.BUILD_UNIT) {
                 obtainedUnitModificationBo.deleteByMissionId(mission.getId());
@@ -176,7 +140,7 @@ public abstract class AbstractMissionBo implements BaseBo<Long, Mission, Mission
      * @since 0.9.9
      */
     public List<Mission> findHangMissions() {
-        return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(new Date());
+        return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     /**

@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -61,7 +60,6 @@ import static org.mockito.Mockito.*;
 @MockBean({
         RequirementRepository.class,
         UserStorageBo.class,
-        RequirementInformationDao.class,
         UnlockedRelationBo.class,
         UpgradeBo.class,
         ObjectRelationBo.class,
@@ -83,6 +81,7 @@ import static org.mockito.Mockito.*;
         SpecialLocationBo.class,
         GalaxyBo.class,
         UnlockedRelationRepository.class,
+        PlanetRepository.class
 })
 class RequirementBoTest {
     private final NonPostConstructRequirementBo requirementBo;

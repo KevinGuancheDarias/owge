@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business.mission.attack;
 import com.kevinguanchedarias.owgejava.business.*;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
@@ -11,6 +12,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
@@ -49,12 +51,13 @@ public class AttackMissionManagerBo {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
-
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+    private final ConfigurationBo configurationBo;
 
     public AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
         AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
-        obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
+        obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
             if (!attackMission.equals(unit.getMission())) {
                 addUnit(retVal, unit);
             }
@@ -62,6 +65,12 @@ public class AttackMissionManagerBo {
         obtainedUnitRepository.findByMissionId(attackMission.getId()).forEach(unit -> addUnit(retVal, unit));
         return retVal;
     }
+
+    public boolean isAttackTriggerEnabledForMission(MissionType missionType) {
+        return Boolean.parseBoolean(configurationBo
+                .findOrSetDefault("MISSION_" + missionType.name() + "_TRIGGER_ATTACK", "FALSE").getValue());
+    }
+    
 
     public void addUnit(AttackInformation attackInformation, ObtainedUnit unitEntity) {
         UserStorage userEntity = unitEntity.getUser();
@@ -220,7 +229,7 @@ public class AttackMissionManagerBo {
      */
     private void deleteMissionIfRequired(AttackInformation attackInformation, ObtainedUnit obtainedUnit) {
         var mission = obtainedUnit.getMission();
-        if (mission != null && !obtainedUnitBo.existsByMission(mission)) {
+        if (mission != null && !obtainedUnitRepository.existsByMission(mission)) {
             if (attackInformation.getAttackMission().getId().equals(mission.getId())) {
                 attackInformation.setRemoved(true);
             } else {

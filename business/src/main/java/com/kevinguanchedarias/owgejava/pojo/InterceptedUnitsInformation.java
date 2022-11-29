@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Value
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class InterceptedUnitsInformation {
     UserStorage interceptorUser;
     ObtainedUnit interceptorUnit;

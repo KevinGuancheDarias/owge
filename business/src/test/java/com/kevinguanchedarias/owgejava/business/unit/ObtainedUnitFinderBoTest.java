@@ -4,8 +4,10 @@ package com.kevinguanchedarias.owgejava.business.unit;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.loader.UnitDataLoader;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import org.hibernate.Hibernate;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,9 @@ import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,5 +104,38 @@ class ObtainedUnitFinderBoTest {
             assertThat(unitDto.getSpeedImpactGroup()).isNotNull();
             assertThat(unitDto.getSpeedImpactGroup().getRequirementsGroups()).isNull();
         }
+    }
+
+    @Test
+    void findInPlanetOrInMissionToPlanet_should_work() {
+        var ou1 = givenObtainedUnit1();
+        var ou2 = givenObtainedUnit2();
+        var planet = givenTargetPlanet();
+        given(obtainedUnitRepository.findBySourcePlanetIdAndMissionIsNull(TARGET_PLANET_ID)).willReturn(List.of(ou1));
+        given(obtainedUnitRepository.findByTargetPlanetIdAndMissionTypeCode(TARGET_PLANET_ID, MissionType.DEPLOYED.name()))
+                .willReturn(List.of(ou2));
+
+        assertThat(obtainedUnitFinderBo.findInPlanetOrInMissionToPlanet(planet))
+                .contains(ou1)
+                .contains(ou2)
+                .hasSize(2);
+
+    }
+
+    @Test
+    void findInvolvedInAttack_should_work() {
+        var ou1 = givenObtainedUnit1();
+        var ou2 = givenObtainedUnit2();
+        var planet = givenTargetPlanet();
+        var allowedMissions = List.of(MissionType.CONQUEST.name());
+        given(obtainedUnitRepository.findBySourcePlanetIdAndMissionIsNull(TARGET_PLANET_ID)).willReturn(List.of(ou1));
+        given(obtainedUnitRepository.findByTargetPlanetIdWhereReferencePercentageTimePassed(
+                eq(TARGET_PLANET_ID), eq(0.1d), eq(allowedMissions), any())).willReturn(List.of(ou2));
+
+        assertThat(obtainedUnitFinderBo.findInvolvedInAttack(planet))
+                .contains(ou1)
+                .contains(ou2)
+                .hasSize(2);
+
     }
 }

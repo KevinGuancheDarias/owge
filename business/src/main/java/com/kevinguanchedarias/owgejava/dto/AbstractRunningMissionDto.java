@@ -21,7 +21,7 @@ public abstract class AbstractRunningMissionDto {
     private MissionType type;
     private Integer missionsCount;
 
-    public AbstractRunningMissionDto() {
+    protected AbstractRunningMissionDto() {
         throw new UnsupportedOperationException("Can't create a RunningMissionDto from an empty constructor");
     }
 

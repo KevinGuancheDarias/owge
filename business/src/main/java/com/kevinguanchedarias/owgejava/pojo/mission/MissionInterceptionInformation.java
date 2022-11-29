@@ -8,7 +8,7 @@ import lombok.Value;
 import java.util.List;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 public class MissionInterceptionInformation {
     boolean isMissionIntercepted;
     int totalInterceptedUnits;

@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serial;
+import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
 
@@ -116,5 +118,18 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
                 ":#" + relation.getObject().getCode() + "_" + relation.getReferenceId()
         );
         taggableCacheManager.evictByCacheTag(REQUIREMENT_GROUP_CACHE_TAG);
+    }
+
+    /**
+     * Will return requirement for specified object type with the given referenceId
+     *
+     * @param objectEnum  Type of object
+     * @param referenceId Id on the target entity, for example id of an upgrade, or
+     *                    an unit
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     */
+    public List<RequirementInformation> findRequirements(ObjectEnum objectEnum, Integer referenceId) {
+        return requirementInformationDao.findRequirements(objectEnum, referenceId);
     }
 }

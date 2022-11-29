@@ -3,8 +3,8 @@ package com.kevinguanchedarias.owgejava.business.speedimpactgroup;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.AllianceBo;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
-import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -14,17 +14,12 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class UnitInterceptionFinderBo {
-    private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final AllianceBo allianceBo;
     private final MissionReportBo missionReportBo;
@@ -34,7 +29,7 @@ public class UnitInterceptionFinderBo {
                                                                              List<ObtainedUnit> involvedUnits) {
         Set<ObtainedUnit> alreadyIntercepted = new HashSet<>();
         Map<Integer, InterceptedUnitsInformation> interceptedMap = new HashMap<>();
-        List<ObtainedUnit> unitsWithInterception = obtainedUnitBo.findInvolvedInAttack(mission.getTargetPlanet())
+        List<ObtainedUnit> unitsWithInterception = obtainedUnitFinderBo.findInvolvedInAttack(mission.getTargetPlanet())
                 .stream().filter(current -> !CollectionUtils.isEmpty(current.getUnit().getInterceptableSpeedGroups()))
                 .toList();
         unitsWithInterception.forEach(unitWithInterception -> involvedUnits.stream().filter(

@@ -1,7 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
+import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
@@ -34,7 +34,7 @@ public class AdminTimeSpecialRestService
     private final TimeSpecialRepository timeSpecialRepository;
     private final AutowireCapableBeanFactory beanFactory;
     private final DtoUtilService dtoUtilService;
-    private final RequirementBo requirementBo;
+    private final RequirementInformationBo requirementInformationBo;
 
     /*
      * (non-Javadoc)
@@ -71,7 +71,7 @@ public class AdminTimeSpecialRestService
     @Override
     public Optional<TimeSpecialDto> beforeRequestEnd(TimeSpecialDto dto, TimeSpecial savedEntity) {
         dto.setRequirements(dtoUtilService.convertEntireArray(RequirementInformationDto.class,
-                requirementBo.findRequirements(getObject(), dto.getId())));
+                requirementInformationBo.findRequirements(getObject(), dto.getId())));
         return CrudWithFullRestService.super.beforeRequestEnd(dto, savedEntity);
     }
 

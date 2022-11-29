@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
+import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -7,6 +8,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,7 +38,9 @@ import static org.mockito.Mockito.*;
 @MockBean({
         MissionRepository.class,
         ObtainedUnitRepository.class,
-        MissionTypeBo.class
+        MissionTypeBo.class,
+        PlanetRepository.class,
+        ObjectRelationBo.class
 })
 class MissionFinderBoTest {
 

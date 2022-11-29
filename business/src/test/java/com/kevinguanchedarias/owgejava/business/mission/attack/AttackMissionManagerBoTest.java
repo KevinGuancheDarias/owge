@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business.mission.attack;
 import com.kevinguanchedarias.owgejava.business.*;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
@@ -70,7 +71,9 @@ import static org.mockito.Mockito.*;
         UserStorageRepository.class,
         ObtainedUnitEventEmitter.class,
         TransactionUtilService.class,
-        ObtainedUnitImprovementCalculationService.class
+        ObtainedUnitImprovementCalculationService.class,
+        ObtainedUnitFinderBo.class,
+        ConfigurationBo.class
 })
 class AttackMissionManagerBoTest {
     private final AttackMissionManagerBo attackMissionManagerBo;
@@ -83,6 +86,7 @@ class AttackMissionManagerBoTest {
     private final AllianceBo allianceBo;
     private final AttackEventEmitter attackEventEmitter;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
 
     @Autowired
     public AttackMissionManagerBoTest(
@@ -95,7 +99,8 @@ class AttackMissionManagerBoTest {
             SocketIoService socketIoService,
             AllianceBo allianceBo,
             AttackEventEmitter attackEventEmitter,
-            ObtainedUnitRepository obtainedUnitRepository
+            ObtainedUnitRepository obtainedUnitRepository,
+            ObtainedUnitFinderBo obtainedUnitFinderBo
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
         this.obtainedUnitBo = obtainedUnitBo;
@@ -108,13 +113,14 @@ class AttackMissionManagerBoTest {
 
         this.attackEventEmitter = attackEventEmitter;
         this.obtainedUnitRepository = obtainedUnitRepository;
+        this.obtainedUnitFinderBo = obtainedUnitFinderBo;
     }
 
     @Test
     void buildAttackInformation_should_work() {
         var attackMission = givenAttackMission();
         var targetPlanet = givenTargetPlanet();
-        when(obtainedUnitBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(givenObtainedUnit1()));
+        when(obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(givenObtainedUnit1()));
         when(obtainedUnitRepository.findByMissionId(ATTACK_MISSION_ID)).thenReturn(List.of(givenObtainedUnit2()));
         when(improvementBo.findUserImprovement(givenUser1())).thenReturn(givenUserImprovement());
         when(improvementBo.findUserImprovement(givenUser2())).thenReturn(givenUserImprovement());
@@ -125,7 +131,7 @@ class AttackMissionManagerBoTest {
 
         var information = attackMissionManagerBo.buildAttackInformation(targetPlanet, attackMission);
 
-        verify(obtainedUnitBo, times(1)).findInvolvedInAttack(targetPlanet);
+        verify(obtainedUnitFinderBo, times(1)).findInvolvedInAttack(targetPlanet);
         verify(obtainedUnitRepository, times(1)).findByMissionId(ATTACK_MISSION_ID);
         var attackUserInformation1 = ArgumentCaptor.forClass(AttackUserInformation.class);
         var attackUserInformation2 = ArgumentCaptor.forClass(AttackUserInformation.class);

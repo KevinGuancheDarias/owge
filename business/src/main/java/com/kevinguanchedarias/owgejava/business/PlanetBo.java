@@ -1,18 +1,23 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
-import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
+import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
-import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RandomUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -20,49 +25,30 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.io.Serial;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
-    public static final String PLANET_CACHE_TAG = "planet";
-
     private static final String PLANET_OWNED_CHANGE = "planet_owned_change";
 
     @Serial
     private static final long serialVersionUID = 3000986169771610777L;
 
-    @Autowired
-    private PlanetRepository planetRepository;
-
-    @Autowired
-    private ExploredPlanetRepository exploredPlanetRepository;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private ObtainedUnitBo obtainedUnitBo;
-
-    @Autowired
-    private MissionBo missionBo;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    @Lazy
-    private RequirementBo requirementBo;
-
-    @Autowired
-    private transient PlanetListBo planetListBo;
-
-    @PersistenceContext
-    private transient EntityManager entityManager;
-
-    @Autowired
-    private transient TransactionUtilService transactionUtilService;
+    private final PlanetRepository planetRepository;
+    private final UserStorageBo userStorageBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final transient SocketIoService socketIoService;
+    private final RequirementBo requirementBo;
+    private final transient PlanetListBo planetListBo;
+    private final transient EntityManager entityManager;
+    private final transient TransactionUtilService transactionUtilService;
+    private final ObtainedUnitBo obtainedUnitBo;
+    private final MissionRepository missionRepository;
+    private final transient MissionEventEmitterBo missionEventEmitterBo;
+    private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final transient MissionFinderBo missionFinderBo;
 
     @Override
     public JpaRepository<Planet, Long> getRepository() {
@@ -114,14 +100,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         return planetRepository.findByGalaxyIdAndSectorAndQuadrant(galaxy, sector, quadrant);
     }
 
-    /**
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public Planet findOneBySpecialLocationId(Integer specialLocationId) {
-        return planetRepository.findOneBySpecialLocationId(specialLocationId);
-    }
-
     public boolean isHomePlanet(Planet planet) {
         checkPersisted(planet);
         return planet.getHome() != null && planet.getHome();
@@ -133,42 +111,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
     public boolean myIsOfUserProperty(Long planetId) {
         return planetRepository.isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
-    }
-
-    public void checkIsOfUserProperty(UserStorage user, Long planetId) {
-        if (!planetRepository.isOfUserProperty(user.getId(), planetId)) {
-            throw new SgtBackendInvalidInputException(
-                    "Specified planet with id " + planetId + " does NOT belong to the user");
-        }
-    }
-
-    public void myCheckIsOfUserProperty(Long planetId) {
-        checkIsOfUserProperty(userStorageBo.findLoggedIn(), planetId);
-    }
-
-    public boolean isExplored(UserStorage user, Planet planet) {
-        return isExplored(user.getId(), planet.getId());
-    }
-
-    public boolean isExplored(Integer userId, Long planetId) {
-        return planetRepository.isOfUserProperty(userId, planetId)
-                || exploredPlanetRepository.findOneByUserIdAndPlanetId(userId, planetId) != null;
-    }
-
-    public boolean myIsExplored(Planet planet) {
-        return myIsExplored(planet.getId());
-    }
-
-    public boolean myIsExplored(Long planetId) {
-        return isExplored(userStorageBo.findLoggedIn().getId(), planetId);
-    }
-
-    public void defineAsExplored(UserStorage user, Planet targetPlanet) {
-        ExploredPlanet exploredPlanet = new ExploredPlanet();
-        exploredPlanet.setUser(user);
-        exploredPlanet.setPlanet(targetPlanet);
-        exploredPlanetRepository.save(exploredPlanet);
-        socketIoService.sendMessage(user, "planet_explored_event", () -> toDto(findById(targetPlanet.getId())));
     }
 
     /**
@@ -212,68 +154,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
                 () -> toDto(planetRepository.findByOwnerId(userId))));
     }
 
-    public boolean canLeavePlanet(UserStorage invoker, Planet planet) {
-        return canLeavePlanet(invoker.getId(), planet.getId());
-    }
-
     public boolean canLeavePlanet(Integer invokerId, Long planetId) {
         return !isHomePlanet(planetId) && planetRepository.isOfUserProperty(invokerId, planetId)
-                && !obtainedUnitBo.hasUnitsInPlanet(invokerId, planetId)
-                && missionBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @deprecated Due to Hibernate transactional auto save, can't modify the entity
-     */
-    @Deprecated(since = "0.9.12")
-    public List<Planet> myCleanUpUnexplored(List<Planet> planets) {
-        return cleanUpUnexplored(userStorageBo.findLoggedIn().getId(), planets);
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @deprecated Due to Hibernate transactional auto save, can't modify the entity
-     */
-    @Deprecated(since = "0.9.13")
-    public List<Planet> cleanUpUnexplored(Integer userId, List<Planet> planets) {
-        planets.forEach(current -> {
-            cleanUpUnexplored(userId, current);
-        });
-        return planets;
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.9
-     * @deprecated Due to Hibernate transactional auto save, can't modify the entity
-     */
-    @Deprecated(since = "0.9.13")
-    public void cleanUpUnexplored(Integer userId, Planet planet) {
-        if (!isExplored(userId, planet.getId())) {
-            planet.setName(null);
-            planet.setRichness(null);
-            planet.setHome(null);
-            planet.setOwner(null);
-            planet.setSpecialLocation(null);
-        }
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.13
-     */
-    public void cleanUpUnexplored(Integer userId, PlanetDto planetDto) {
-        if (!isExplored(userId, planetDto.getId())) {
-            planetDto.setName(null);
-            planetDto.setRichness(null);
-            planetDto.setHome(null);
-            planetDto.setOwnerId(null);
-            planetDto.setOwnerName(null);
-            planetDto.setSpecialLocation(null);
-        }
+                && !obtainedUnitRepository.hasUnitsInPlanet(invokerId, planetId)
+                && missionFinderBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
     }
 
     /**
@@ -283,5 +167,39 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     @Transactional(propagation = Propagation.MANDATORY)
     public void deleteByGalaxy(Integer galaxyId) {
         planetRepository.deleteByGalaxyId(galaxyId);
+    }
+
+    /**
+     * Defines the new owner for the targetPlanet
+     *
+     * @param owner         The new owner
+     * @param involvedUnits The units used by the owner to conquest the planet
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public void definePlanetAsOwnedBy(UserStorage owner, List<ObtainedUnit> involvedUnits, Planet targetPlanet) {
+        targetPlanet.setOwner(owner);
+        involvedUnits.forEach(current -> {
+            current.setSourcePlanet(targetPlanet);
+            current.setTargetPlanet(null);
+            current.setMission(null);
+        });
+        planetRepository.save(targetPlanet);
+        obtainedUnitRepository.findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED.name())
+                .forEach(units -> {
+                    Mission mission = units.getMission();
+                    obtainedUnitBo.moveUnit(units, owner.getId(), targetPlanet.getId());
+                    if (mission != null) {
+                        missionRepository.delete(mission);
+                    }
+
+                });
+        if (targetPlanet.getSpecialLocation() != null) {
+            requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
+        }
+
+        transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(targetPlanet));
+        emitPlanetOwnedChange(owner);
+        missionEventEmitterBo.emitEnemyMissionsChange(owner);
+        obtainedUnitEventEmitter.emitObtainedUnits(owner);
     }
 }

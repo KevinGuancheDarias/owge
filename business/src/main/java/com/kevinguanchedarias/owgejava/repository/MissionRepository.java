@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +56,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
-    List<Mission> findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(Date date);
+    List<Mission> findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(LocalDateTime date);
 
     /**
      * Delete by resolved true and termination date less than.
@@ -65,7 +65,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.20
      */
-    List<Mission> findByResolvedTrueAndTerminationDateLessThan(Date limitDate);
+    List<Mission> findByResolvedTrueAndTerminationDateLessThan(LocalDateTime limitDate);
 
     List<Mission> findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
 

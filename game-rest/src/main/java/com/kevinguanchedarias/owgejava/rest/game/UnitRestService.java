@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.*;
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
@@ -30,13 +31,10 @@ import java.util.function.Function;
 public class UnitRestService implements SyncSource {
 
     private final UserStorageBo userStorageBo;
-
     private final UnlockedRelationBo unlockedRelationBo;
-
     private final MissionBo missionBo;
-
+    private final MissionFinderBo missionFinderBo;
     private final ObtainedUnitBo obtainedUnitBo;
-
     private final RequirementBo requirementBo;
     private final FactionBo factionBo;
     private final UnitBo unitBo;
@@ -50,7 +48,7 @@ public class UnitRestService implements SyncSource {
     @Deprecated(since = "0.9.0")
     @GetMapping("findRunning")
     public Object findRunning(@RequestParam("planetId") Double planetId) {
-        RunningUnitBuildDto retVal = missionBo.findRunningUnitBuild(findLoggedInUser().getId(), planetId);
+        RunningUnitBuildDto retVal = missionFinderBo.findRunningUnitBuild(findLoggedInUser().getId(), planetId);
         if (retVal == null) {
             return "";
         }

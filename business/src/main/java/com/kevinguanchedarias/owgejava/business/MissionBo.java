@@ -1,7 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetCheckerService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
@@ -13,14 +15,16 @@ import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.*;
-import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
@@ -35,7 +39,6 @@ import javax.persistence.EntityManager;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -69,6 +72,18 @@ public class MissionBo extends AbstractMissionBo {
     private final transient ObtainedUnitModificationBo obtainedUnitModificationBo;
     private final ObtainedUnitBo obtainedUnitBo;
     private final transient ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+    private final UnitTypeBo unitTypeBo;
+    private final transient SocketIoService socketIoService;
+    private final ObjectRelationBo objectRelationBo;
+    private final RequirementBo requirementBo;
+    private final ObtainedUpgradeBo obtainedUpgradeBo;
+    private final PlanetBo planetBo;
+    private final UpgradeBo upgradeBo;
+    private final UnitBo unitBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final transient PlanetCheckerService planetCheckerService;
+    private final transient MissionFinderBo missionFinderBo;
+    private final UserStorageRepository userStorageRepository;
 
     @PostConstruct
     public void init() {
@@ -92,7 +107,7 @@ public class MissionBo extends AbstractMissionBo {
 
     @Scheduled(cron = "0 0 2 * * *")
     public void deleteOldMissions() {
-        var limitDate = new Date(new Date().getTime() - (86400000L * DAYS));
+        var limitDate = LocalDateTime.now(ZoneOffset.UTC).minusDays(DAYS);
         transactionUtilService.runWithRequired(() ->
                 missionRepository.findByResolvedTrueAndTerminationDateLessThan(limitDate)
                         .forEach(mission -> {
@@ -207,12 +222,12 @@ public class MissionBo extends AbstractMissionBo {
      */
     @Transactional
     public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
-        planetBo.myCheckIsOfUserProperty(planetId);
+        planetCheckerService.myCheckIsOfUserProperty(planetId);
         checkUnitBuildMissionDoesNotExists(userId, planetId);
         var relation = objectRelationBo.findOne(ObjectEnum.UNIT,
                 unitId);
         checkUnlockedUnit(userId, relation);
-        var user = userStorageBo.findById(userId);
+        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
         checkMissionLimitNotReached(user);
         var unit = unitBo.findByIdOrDie(unitId);
         Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
@@ -243,7 +258,7 @@ public class MissionBo extends AbstractMissionBo {
 
         substractResources(user, mission);
 
-        userStorageBo.save(user);
+        userStorageRepository.save(user);
         missionRepository.save(mission);
 
         var obtainedUnit = new ObtainedUnit();
@@ -296,18 +311,6 @@ public class MissionBo extends AbstractMissionBo {
         }
     }
 
-    public RunningUnitBuildDto findRunningUnitBuild(Integer userId, Double planetId) {
-        var mission = findByUserIdAndTypeCodeAndMissionInformationValue(userId, MissionType.BUILD_UNIT, planetId);
-        if (mission != null) {
-            var missionInformation = mission.getMissionInformation();
-            var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
-            return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId.longValue()),
-                    obtainedUnitRepository.findByMissionId(mission.getId()).get(0).getCount());
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Finds all build missions for given user
      *
@@ -326,9 +329,6 @@ public class MissionBo extends AbstractMissionBo {
                 }).toList();
     }
 
-    public MissionIdAndTerminationDateProjection findOneByReportId(Long reportId) {
-        return missionRepository.findOneByReportId(reportId);
-    }
 
     /**
      * Should be invoked from the context
@@ -466,14 +466,6 @@ public class MissionBo extends AbstractMissionBo {
         emitMissionCountChange(userId);
     }
 
-    /**
-     * Finds a mission by user id, mission type, and value inside MissionInformation
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    private Mission findByUserIdAndTypeCodeAndMissionInformationValue(Integer userId, MissionType type, Double value) {
-        return missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue(userId, type.name(), value);
-    }
 
     /**
      * Checks that there is not another upgrade mission running, if it's doing, will
@@ -494,7 +486,7 @@ public class MissionBo extends AbstractMissionBo {
      * @author Kevin Guanche Darias
      */
     private void checkUnitBuildMissionDoesNotExists(Integer userId, Long planetId) {
-        if (findRunningUnitBuild(userId, (double) planetId) != null) {
+        if (missionFinderBo.findRunningUnitBuild(userId, (double) planetId) != null) {
             throw new SgtBackendUnitBuildAlreadyRunningException("I18N_ERR_BUILD_MISSION_ALREADY_PRESENT");
         }
     }

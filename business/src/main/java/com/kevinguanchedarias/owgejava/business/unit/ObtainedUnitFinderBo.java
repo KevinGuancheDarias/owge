@@ -5,13 +5,17 @@ import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGrou
 import com.kevinguanchedarias.owgejava.business.unit.loader.UnitDataLoader;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -28,7 +32,7 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
     public Class<ObtainedUnitDto> getDtoClass() {
         return ObtainedUnitDto.class;
     }
-    
+
     public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user) {
         return findCompletedAsDto(user, obtainedUnitRepository.findDeployedInUserOwnedPlanets(user.getId()));
     }
@@ -60,6 +64,29 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
         var dtoList = toDto(entities);
         loadNonJpaData(entities, dtoList);
         return dtoList;
+    }
+
+    public List<ObtainedUnit> findInPlanetOrInMissionToPlanet(Planet planet) {
+        List<ObtainedUnit> retVal = new ArrayList<>();
+        retVal.addAll(obtainedUnitRepository.findBySourcePlanetIdAndMissionIsNull(planet.getId()));
+        retVal.addAll(obtainedUnitRepository.findByTargetPlanetIdAndMissionTypeCode(planet.getId(),
+                MissionType.DEPLOYED.toString()));
+        return retVal;
+    }
+
+    /**
+     * Finds the involved units in an attack
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    public List<ObtainedUnit> findInvolvedInAttack(Planet attackedPlanet) {
+        List<ObtainedUnit> retVal = new ArrayList<>();
+        List<String> allowedMissions = new ArrayList<>();
+        allowedMissions.add(MissionType.CONQUEST.name());
+        retVal.addAll(findInPlanetOrInMissionToPlanet(attackedPlanet));
+        retVal.addAll(obtainedUnitRepository.findByTargetPlanetIdWhereReferencePercentageTimePassed(attackedPlanet.getId(), 0.1d,
+                allowedMissions, new Date()));
+        return retVal;
     }
 
     private void loadNonJpaData(List<ObtainedUnit> entities, List<ObtainedUnitDto> dtoList) {

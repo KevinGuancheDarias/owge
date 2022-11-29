@@ -21,7 +21,6 @@ import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Kevin Guanche Darias
@@ -41,7 +40,7 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
     private final ExceptionUtilService exceptionUtilService;
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final DtoUtilService dtoUtilService;
-    private final RequirementBo requirementBo;
+    private final RequirementInformationBo requirementInformationBo;
     private final CriticalAttackBo criticalAttackBo;
 
     /*
@@ -61,7 +60,7 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
     @Override
     public Optional<UnitDto> beforeRequestEnd(UnitDto dto, Unit savedEntity) {
         dto.setRequirements(dtoUtilService.convertEntireArray(RequirementInformationDto.class,
-                requirementBo.findRequirements(getObject(), dto.getId())));
+                requirementInformationBo.findRequirements(getObject(), dto.getId())));
         return CrudWithFullRestService.super.beforeRequestEnd(dto, savedEntity);
     }
 
@@ -95,7 +94,7 @@ public class AdminUnitRestService implements CrudWithFullRestService<Integer, Un
             var dto = new InterceptableSpeedGroupDto();
             dto.dtoFromEntity(current);
             return dto;
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     /**

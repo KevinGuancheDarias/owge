@@ -6,6 +6,7 @@ import com.kevinguanchedarias.owgejava.entity.FactionSpawnLocation;
 import com.kevinguanchedarias.owgejava.mock.GalaxyMock;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
+import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,21 +20,13 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Collection;
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.QUADRANT_RANGE_END;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.QUADRANT_RANGE_START;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.SECTOR_RANGE_END;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.SECTOR_RANGE_START;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenSpawnLocation;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenSpawnLocationDto;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -47,29 +40,29 @@ import static org.mockito.Mockito.when;
 )
 @MockBean({
         FactionSpawnLocationRepository.class,
-        GalaxyBo.class,
-        FactionRepository.class
+        FactionRepository.class,
+        GalaxyRepository.class,
 })
 class FactionSpawnLocationBoTest {
 
     private final FactionSpawnLocationRepository factionSpawnLocationRepository;
     private final FactionSpawnLocationBo factionSpawnLocationBo;
     private final FactionRepository factionRepository;
-    private final GalaxyBo galaxyBo;
+    private final GalaxyRepository galaxyRepository;
 
     @Autowired
     FactionSpawnLocationBoTest(
             FactionSpawnLocationRepository factionSpawnLocationRepository,
             FactionSpawnLocationBo factionSpawnLocationBo,
             FactionRepository factionRepository,
-            GalaxyBo galaxyBo,
             DefaultConversionService conversionService,
-            Collection<Converter<?, ?>> converters
+            Collection<Converter<?, ?>> converters,
+            GalaxyRepository galaxyRepository
     ) {
         this.factionSpawnLocationRepository = factionSpawnLocationRepository;
         this.factionSpawnLocationBo = factionSpawnLocationBo;
         this.factionRepository = factionRepository;
-        this.galaxyBo = galaxyBo;
+        this.galaxyRepository = galaxyRepository;
         converters.forEach(conversionService::addConverter);
     }
 
@@ -96,12 +89,12 @@ class FactionSpawnLocationBoTest {
         var faction = givenFaction();
         var galaxy = GalaxyMock.givenGalaxy();
         var spawnLocation = givenSpawnLocationDto();
-        given(galaxyBo.getOne(GALAXY_ID)).willReturn(galaxy);
+        given(galaxyRepository.getById(GALAXY_ID)).willReturn(galaxy);
         given(factionRepository.getById(factionId)).willReturn(faction);
 
         factionSpawnLocationBo.saveSpawnLocations(factionId, List.of(spawnLocation));
 
-        verify(galaxyBo, times(1)).getOne(GALAXY_ID);
+        verify(galaxyRepository, times(1)).getById(GALAXY_ID);
         var captor = ArgumentCaptor.forClass(FactionSpawnLocation.class);
         verify(factionSpawnLocationRepository, times(1)).save(captor.capture());
         var saved = captor.getValue();

@@ -34,29 +34,28 @@ public class MissionTimeManagerBo {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    public Double calculateRequiredTime(MissionType type) {
-        return (double) missionConfigurationBo.findMissionBaseTimeByType(type);
+    public double calculateRequiredTime(MissionType type) {
+        return missionConfigurationBo.findMissionBaseTimeByType(type);
     }
 
     /**
      * Alters the mission and adds the required time and the termination date
      */
     public void handleMissionTimeCalculation(List<ObtainedUnit> obtainedUnits, Mission mission, MissionType missionType) {
-        if (!obtainedUnits.stream().allMatch(obtainedUnit -> obtainedUnit.getUnit().getSpeedImpactGroup() != null
-                && obtainedUnit.getUnit().getSpeedImpactGroup().getIsFixed())) {
+        if (!allUnitsHaveFixedSpeedImpactGroup(obtainedUnits)) {
             var user = mission.getUser();
             Optional<Double> lowestSpeedOptional = obtainedUnits.stream().map(ObtainedUnit::getUnit)
                     .filter(unit -> unit.getSpeed() != null && unit.getSpeed() > 0.000D
-                            && (unit.getSpeedImpactGroup() == null || !unit.getSpeedImpactGroup().getIsFixed()))
+                            && (unit.getSpeedImpactGroup() == null || !Boolean.TRUE.equals(unit.getSpeedImpactGroup().getIsFixed())))
                     .map(Unit::getSpeed).reduce((a, b) -> a > b ? b : a);
             if (lowestSpeedOptional.isPresent()) {
                 double lowestSpeed = lowestSpeedOptional.get();
                 var unitType = obtainedUnits.stream()
                         .map(ObtainedUnit::getUnit)
-                        .filter(unit -> lowestSpeed == unit.getSpeed())
+                        .filter(unit -> unit.getSpeed() != null && lowestSpeed == unit.getSpeed())
                         .map(Unit::getType)
                         .findFirst()
-                        .orElseThrow(() -> new ProgrammingException("Should never ever happend, you know"));
+                        .orElseThrow(() -> new ProgrammingException("Should never ever happened, you know"));
                 var improvement = improvementBo.findUserImprovement(user);
                 var speedWithImprovement = lowestSpeed + (lowestSpeed * improvementBo.findAsRational(
                         (double) improvement.findUnitTypeImprovement(ImprovementTypeEnum.SPEED, unitType)));
@@ -140,5 +139,11 @@ public class MissionTimeManagerBo {
                 configurationBo.findOrSetDefault(prefix + missionTypeName + "_G_MOVE_COST", "0.15").getValue(), 0.15f);
         return (positionInQuadrant * planetDiff) + (quadrants * quadrantDiff) + (sectors * sectorDiff)
                 + (!targetPlanet.getGalaxy().getId().equals(sourcePlanet.getGalaxy().getId()) ? galaxyDiff : 0);
+    }
+
+    private boolean allUnitsHaveFixedSpeedImpactGroup(List<ObtainedUnit> obtainedUnits) {
+        return obtainedUnits.stream()
+                .map(ou -> ou.getUnit().getSpeedImpactGroup())
+                .allMatch(speedImpactGroup -> speedImpactGroup != null && Boolean.TRUE.equals(speedImpactGroup.getIsFixed()));
     }
 }

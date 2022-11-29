@@ -1,7 +1,8 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
 
-import com.kevinguanchedarias.owgejava.business.PlanetBo;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -38,14 +39,15 @@ import static org.mockito.Mockito.verify;
         PlanetRepository.class,
         ObtainedUnitRepository.class,
         HiddenUnitBo.class,
-        PlanetBo.class,
+        PlanetExplorationService.class,
         UserStorageRepository.class,
-        ObtainedUnitFinderBo.class
+        ObtainedUnitFinderBo.class,
+        PlanetCleanerService.class
 })
 class RunningMissionFinderBoTest {
     private final RunningMissionFinderBo runningMissionFinderBo;
     private final MissionRepository missionRepository;
-    private final PlanetBo planetBo;
+    private final PlanetExplorationService planetExplorationService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final HiddenUnitBo hiddenUnitBo;
     private final PlanetRepository planetRepository;
@@ -54,14 +56,13 @@ class RunningMissionFinderBoTest {
     public RunningMissionFinderBoTest(
             RunningMissionFinderBo runningMissionFinderBo,
             MissionRepository missionRepository,
-            PlanetBo planetBo,
-            ObtainedUnitRepository obtainedUnitRepository,
+            PlanetExplorationService planetExplorationService, ObtainedUnitRepository obtainedUnitRepository,
             HiddenUnitBo hiddenUnitBo,
             PlanetRepository planetRepository
     ) {
         this.runningMissionFinderBo = runningMissionFinderBo;
         this.missionRepository = missionRepository;
-        this.planetBo = planetBo;
+        this.planetExplorationService = planetExplorationService;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.hiddenUnitBo = hiddenUnitBo;
         this.planetRepository = planetRepository;
@@ -99,14 +100,14 @@ class RunningMissionFinderBoTest {
         given(missionRepository.findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(any(), any()))
                 .willReturn(List.of(missionWithExploredPlanet, missionWithoutExploredPlanet));
         given(planetRepository.findByOwnerId(USER_ID_1)).willReturn(List.of(userPlanet1, userPlanet2));
-        given(planetBo.isExplored(user, exploredPlanet)).willReturn(true);
+        given(planetExplorationService.isExplored(user, exploredPlanet)).willReturn(true);
         given(obtainedUnitRepository.findByMissionId(anyLong())).willReturn(involvedUnits);
 
         var result = runningMissionFinderBo.findEnemyRunningMissions(user);
 
         verify(missionRepository, times(1))
                 .findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List.of(userPlanet1, userPlanet2), user);
-        verify(planetBo, times(2)).isExplored(eq(user), any());
+        verify(planetExplorationService, times(2)).isExplored(eq(user), any());
         assertThat(result).hasSize(2);
         var missionResult1 = result.get(0);
         var missionResult2 = result.get(1);

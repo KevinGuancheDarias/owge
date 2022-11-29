@@ -36,6 +36,9 @@ public class SpringRepositoryUtil {
                 LOG.warn("Unable to resolve the proxy target", e);
                 return null;
             }
+        } else if (repository.getClass().getName().contains("$MockitoMock")) {
+            LOG.debug("Inside mockito");
+            return null;
         } else {
             throw new ProgrammingException(
                     "You MUST pass a repository proxy instance, " + COMMON_MISSING_AUTOWIRED_STRING);
