@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprov
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
+import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
@@ -249,12 +250,13 @@ class ObtainedUnitBoTest {
         assertThat(result).isSameAs(ou);
     }
 
-    @Test
-    void moveUnit_should_assign_a_target_planet() {
+    @ParameterizedTest
+    @MethodSource("moveUnit_should_assign_a_target_planet_arguments")
+    void moveUnit_should_assign_a_target_planet(Mission originalUnitMission) {
         var ou = givenObtainedUnit1();
         var deployedMission = givenDeployedMission();
         ou.setTargetPlanet(null);
-        ou.setMission(null);
+        ou.setMission(originalUnitMission);
         given(obtainedUnitRepository.save(ou)).willAnswer(returnsFirstArg());
         given(planetRepository.findById(TARGET_PLANET_ID)).willReturn(Optional.of(givenTargetPlanet()));
         given(missionFinderBo.findDeployedMissionOrCreate(ou)).willReturn(deployedMission);
@@ -388,6 +390,13 @@ class ObtainedUnitBoTest {
                 Arguments.of(true, true, 2L, null),
                 Arguments.of(false, true, 2L, null),
                 Arguments.of(false, false, null, null)
+        );
+    }
+
+    private static Stream<Arguments> moveUnit_should_assign_a_target_planet_arguments() {
+        return Stream.of(
+                Arguments.of((Object) null),
+                Arguments.of(givenExploreMission())
         );
     }
 }

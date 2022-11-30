@@ -1,12 +1,9 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -24,12 +21,14 @@ import java.io.Serializable;
  */
 @MappedSuperclass
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class CommonEntity<K extends Serializable> implements EntityWithId<K> {
     @Serial
     private static final long serialVersionUID = -5044252651188741213L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private K id;
 
     @Column(name = "name", nullable = false, length = 100)

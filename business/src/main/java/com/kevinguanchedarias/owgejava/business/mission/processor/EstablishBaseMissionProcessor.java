@@ -6,8 +6,6 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,10 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.GlobalConstants.MAX_PLANETS_MESSAGE;
+
 @Service
 @AllArgsConstructor
 public class EstablishBaseMissionProcessor implements MissionProcessor {
-    public static final String MAX_PLANETS_MESSAGE = "I18N_MAX_PLANETS_EXCEEDED";
 
     private final AttackMissionProcessor attackMissionProcessor;
     private final ReturnMissionRegistrationBo returnMissionRegistrationBo;
@@ -34,12 +33,12 @@ public class EstablishBaseMissionProcessor implements MissionProcessor {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
-        UserStorage user = mission.getUser();
-        Planet targetPlanet = mission.getTargetPlanet();
+        var user = mission.getUser();
+        var targetPlanet = mission.getTargetPlanet();
         if (attackMissionProcessor.triggerAttackIfRequired(mission, user, targetPlanet)) {
-            UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+            var builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
                     targetPlanet, involvedUnits);
-            UserStorage planetOwner = targetPlanet.getOwner();
+            var planetOwner = targetPlanet.getOwner();
             boolean hasMaxPlanets = planetBo.hasMaxPlanets(user);
             if (planetOwner != null || hasMaxPlanets) {
                 returnMissionRegistrationBo.registerReturnMission(mission, null);

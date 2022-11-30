@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -72,19 +70,19 @@ public class AttackMissionProcessor implements MissionProcessor {
         }
         mission.setResolved(true);
         UnitMissionReportBuilder builder = UnitMissionReportBuilder
-                .create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, new ArrayList<>())
+                .create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, List.of())
                 .withAttackInformation(attackInformation);
         UserStorage invoker = mission.getUser();
         missionReportManagerBo.handleMissionReportSave(mission, builder, true,
                 attackInformation.getUsers().values().stream().map(AttackUserInformation::getUser)
-                        .filter(user -> !user.getId().equals(invoker.getId())).collect(Collectors.toList()));
-        attackInformation.getUsers().entrySet().stream()
-                .map(userEntry -> userEntry.getValue().getUser())
+                        .filter(user -> !user.getId().equals(invoker.getId())).toList());
+        attackInformation.getUsers().values().stream()
+                .map(AttackUserInformation::getUser)
                 .filter(user -> !mission.getUser().getId().equals(user.getId()))
                 .forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.ATTACK_INTERACTION, null, mission.getUser(), user.getId()));
         var owner = targetPlanet.getOwner();
-        if (attackInformation.isRemoved() || owner != null && !attackInformation.getUsersWithDeletedMissions().isEmpty()) {
-            missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
+        if (attackInformation.isRemoved() || (owner != null && !attackInformation.getUsersWithDeletedMissions().isEmpty())) {
+            missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission); // Maybe useless?, should test
         }
         attackInformation.getUnits().stream().distinct().forEach(this::triggerUnitRequirementChange);
         attackInformation.setReportBuilder(builder);

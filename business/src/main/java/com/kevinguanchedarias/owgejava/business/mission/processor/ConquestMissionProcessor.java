@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import static com.kevinguanchedarias.owgejava.GlobalConstants.MAX_PLANETS_MESSAGE;
+
 @Service
 @AllArgsConstructor
 public class ConquestMissionProcessor implements MissionProcessor {
@@ -42,14 +44,14 @@ public class ConquestMissionProcessor implements MissionProcessor {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
-        UserStorage user = mission.getUser();
-        Planet targetPlanet = mission.getTargetPlanet();
-        UnitMissionReportBuilder builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
+        var user = mission.getUser();
+        var targetPlanet = mission.getTargetPlanet();
+        var builder = UnitMissionReportBuilder.create(user, mission.getSourcePlanet(),
                 targetPlanet, involvedUnits);
         boolean maxPlanets = planetBo.hasMaxPlanets(user);
         boolean areUnitsHavingToReturn = false;
-        AttackInformation attackInformation = attackMissionProcessor.processAttack(mission, false);
-        UserStorage oldOwner = targetPlanet.getOwner();
+        var attackInformation = attackMissionProcessor.processAttack(mission, false);
+        var oldOwner = targetPlanet.getOwner();
         boolean isOldOwnerDefeated;
         boolean isAllianceDefeated;
         if (oldOwner == null) {
@@ -113,7 +115,7 @@ public class ConquestMissionProcessor implements MissionProcessor {
             UnitMissionReportBuilder builder, boolean maxPlanets, boolean isOldOwnerDefeated, boolean isAllianceDefeated
     ) {
         if (maxPlanets) {
-            builder.withConquestInformation(false, "FOO");
+            builder.withConquestInformation(false, MAX_PLANETS_MESSAGE);
         } else if (!isOldOwnerDefeated) {
             builder.withConquestInformation(false, "I18N_OWNER_NOT_DEFEATED");
         } else if (!isAllianceDefeated) {

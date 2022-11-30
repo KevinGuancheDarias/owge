@@ -150,10 +150,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         } else if (subtractionCount > obtainedUnit.getCount()) {
             throw new SgtBackendInvalidInputException(
                     "Can't not subtract because, obtainedUnit count is less than the amount to subtract");
-        } else if (obtainedUnit.getCount() > subtractionCount) {
+        } else if (subtractionCount < obtainedUnit.getCount()) {
             requirementBo.triggerUnitBuildCompletedOrKilled(obtainedUnit.getUser(), obtainedUnit.getUnit());
             return saveWithChange(obtainedUnit, -subtractionCount);
-        } else if (obtainedUnit.getCount().equals(subtractionCount)) {
+        } else {
             repository.delete(obtainedUnit);
             requirementBo.triggerUnitBuildCompletedOrKilled(obtainedUnit.getUser(), obtainedUnit.getUnit());
         }

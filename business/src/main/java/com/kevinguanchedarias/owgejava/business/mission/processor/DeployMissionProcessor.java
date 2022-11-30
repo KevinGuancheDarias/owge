@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -42,10 +41,9 @@ public class DeployMissionProcessor implements MissionProcessor {
         long missionId = mission.getId();
         UserStorage user = mission.getUser();
         Integer userId = user.getId();
-        List<ObtainedUnit> alteredUnits = new ArrayList<>();
-        missionUnitsFinderBo.findUnitsInvolved(missionId).forEach(current ->
-                alteredUnits.add(obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()))
-        );
+        var alteredUnits = missionUnitsFinderBo.findUnitsInvolved(missionId).stream()
+                .map(current -> obtainedUnitBo.moveUnit(current, userId, mission.getTargetPlanet().getId()))
+                .toList();
 
         var deployedMission = alteredUnits.get(0).getMission();
         if (deployedMission != null) {

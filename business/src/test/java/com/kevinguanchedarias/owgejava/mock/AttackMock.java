@@ -1,10 +1,6 @@
 package com.kevinguanchedarias.owgejava.mock;
 
-import com.kevinguanchedarias.owgejava.entity.AttackRule;
-import com.kevinguanchedarias.owgejava.entity.CriticalAttack;
-import com.kevinguanchedarias.owgejava.entity.CriticalAttackEntry;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
@@ -13,16 +9,14 @@ import org.apache.commons.lang3.RandomUtils;
 
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.mock.AllianceMock.givenAlliance;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenUserImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenDeployedMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 
 @UtilityClass
 public class AttackMock {
@@ -35,6 +29,8 @@ public class AttackMock {
     public static final double AVAILABLE_SHIELD = 10112;
     public static final long INITIAL_COUNT = 4;
     public static final long FINAL_COUNT = 4;
+    public static final int ALLY_USER_ID = 619;
+    public static final int USER_WITH_OTHER_ALLIANCE = 99928;
 
     public static AttackObtainedUnit givenAttackObtainedUnit(ObtainedUnit obtainedUnit) {
         return AttackObtainedUnit.builder()
@@ -80,6 +76,29 @@ public class AttackMock {
         information.getUnits().addAll(List.of(ou1, ou2));
         information.getUsers().put(USER_ID_1, givenAttackUserInformation(givenUser1(), ou1));
         information.getUsers().put(USER_ID_2, givenAttackUserInformation(givenUser2(), ou2));
+        return information;
+    }
+
+    public static AttackInformation givenFullAttackInformationWithAlly() {
+        AttackInformation information = givenAttackInformation();
+        var ou1 = givenAttackObtainedUnit();
+        ou1.getObtainedUnit().setMission(givenAttackMission());
+        var alliance = givenAlliance();
+        var userWithAlliance = givenUser2().toBuilder().alliance(alliance).build();
+        var theAlly = givenUser(ALLY_USER_ID).toBuilder().alliance(alliance).build();
+        var userWithOtherAlliance = givenUser(USER_WITH_OTHER_ALLIANCE);
+        var ou2 = givenAttackObtainedUnit(givenObtainedUnit2());
+        ou2.setFinalCount(0L);
+        ou2.getObtainedUnit().setMission(givenDeployedMission());
+        var ou3 = givenAttackObtainedUnit(givenObtainedUnit2());
+        ou3.getObtainedUnit().setMission(givenDeployedMission());
+        var ou4 = givenAttackObtainedUnit();
+        ou4.getObtainedUnit().setMission(givenDeployedMission());
+        information.getUnits().addAll(List.of(ou1, ou2, ou3));
+        information.getUsers().put(USER_ID_1, givenAttackUserInformation(givenUser1(), ou1));
+        information.getUsers().put(USER_ID_2, givenAttackUserInformation(userWithAlliance, ou2));
+        information.getUsers().put(ALLY_USER_ID, givenAttackUserInformation(theAlly, ou3));
+        information.getUsers().put(USER_WITH_OTHER_ALLIANCE, givenAttackUserInformation(userWithOtherAlliance, ou4));
         return information;
     }
 

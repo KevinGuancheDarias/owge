@@ -8,15 +8,17 @@ public class UserMock {
     public static final int USER_ID_1 = 122;
     public static final int USER_ID_2 = 118273;
 
-    public static UserStorage givenUser1() {
+    public static UserStorage givenUser(int id) {
         var user = new UserStorage();
-        user.setId(USER_ID_1);
+        user.setId(id);
         return user;
     }
 
+    public static UserStorage givenUser1() {
+        return givenUser(USER_ID_1);
+    }
+
     public static UserStorage givenUser2() {
-        var user = new UserStorage();
-        user.setId(USER_ID_2);
-        return user;
+        return givenUser(USER_ID_2);
     }
 }

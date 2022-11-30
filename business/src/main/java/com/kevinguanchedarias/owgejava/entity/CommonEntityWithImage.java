@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.EqualsAndHashCode;
+
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
@@ -13,9 +15,11 @@ import javax.persistence.MappedSuperclass;
  */
 @Deprecated(since = "0.8.0")
 @MappedSuperclass
+@EqualsAndHashCode(callSuper = true)
 public class CommonEntityWithImage<K extends Number> extends CommonEntity<K> {
     private static final long serialVersionUID = -3650030382618207233L;
 
+    @EqualsAndHashCode.Exclude
     private String image;
 
     @Column(name = "image")

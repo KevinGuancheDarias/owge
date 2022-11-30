@@ -36,8 +36,8 @@ public class ReturnMissionProcessor implements MissionProcessor {
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
         planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
-            Integer userId = mission.getUser().getId();
-            List<ObtainedUnit> obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
+            var userId = mission.getUser().getId();
+            var obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
             obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
             mission.setResolved(true);
             missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);

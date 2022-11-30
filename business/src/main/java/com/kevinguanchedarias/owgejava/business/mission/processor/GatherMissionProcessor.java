@@ -5,9 +5,9 @@ import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.dto.mission.GatherMissionResultDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -15,9 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -36,13 +34,13 @@ public class GatherMissionProcessor implements MissionProcessor {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
-        UserStorage user = mission.getUser();
+        var user = mission.getUser();
         var faction = user.getFaction();
         var targetPlanet = mission.getTargetPlanet();
         boolean continueMission = attackMissionProcessor.triggerAttackIfRequired(mission, user, targetPlanet);
         if (continueMission) {
             returnMissionRegistrationBo.registerReturnMission(mission, null);
-            Long gathered = involvedUnits.stream()
+            long gathered = involvedUnits.stream()
                     .map(current -> ObjectUtils.firstNonNull(current.getUnit().getCharge(), 0) * current.getCount())
                     .reduce(0L, Long::sum);
             double withPlanetRichness = gathered * targetPlanet.findRationalRichness();
@@ -65,12 +63,9 @@ public class GatherMissionProcessor implements MissionProcessor {
             UnitMissionReportBuilder builder = UnitMissionReportBuilder
                     .create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)
                     .withGatherInformation(primaryResource, secondaryResource);
-            transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result", () -> {
-                Map<String, Double> content = new HashMap<>();
-                content.put("primaryResource", primaryResource);
-                content.put("secondaryResource", secondaryResource);
-                return content;
-            }));
+            transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(user, "mission_gather_result",
+                    () -> GatherMissionResultDto.builder().primaryResource(primaryResource).secondaryResource(secondaryResource).build()
+            ));
             mission.setResolved(true);
             return builder;
         } else {
