@@ -1,10 +1,10 @@
 package com.kevinguanchedarias.owgejava.business.mission.processor;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.mission.cancel.MissionCancelBuildService;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -33,7 +33,7 @@ public class ConquestMissionProcessor implements MissionProcessor {
     private final RequirementBo requirementBo;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MissionReportManagerBo missionReportManagerBo;
-    private final MissionBo missionBo;
+    private final MissionCancelBuildService missionCancelBuildService;
     private final MissionRepository missionRepository;
 
     @Override
@@ -76,7 +76,7 @@ public class ConquestMissionProcessor implements MissionProcessor {
             }
             if (oldOwner != null) {
                 planetBo.emitPlanetOwnedChange(oldOwner);
-                findUnitBuildMission(targetPlanet).ifPresent(missionBo::adminCancelBuildMission);
+                findUnitBuildMission(targetPlanet).ifPresent(missionCancelBuildService::cancel);
                 missionEventEmitterBo.emitEnemyMissionsChange(oldOwner);
                 UnitMissionReportBuilder enemyReportBuilder = UnitMissionReportBuilder
                         .create(user, mission.getSourcePlanet(), targetPlanet, involvedUnits)

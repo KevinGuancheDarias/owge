@@ -13,7 +13,7 @@ import java.util.List;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Value
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @Jacksonized
 public class SelectedUnit {

@@ -6,7 +6,6 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
-import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -16,12 +15,12 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -31,7 +30,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
-    private static final String PLANET_OWNED_CHANGE = "planet_owned_change";
+    public static final String PLANET_OWNED_CHANGE = "planet_owned_change";
 
     @Serial
     private static final long serialVersionUID = 3000986169771610777L;
@@ -49,6 +48,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     private final transient MissionEventEmitterBo missionEventEmitterBo;
     private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final transient MissionFinderBo missionFinderBo;
+    private final DtoUtilService dtoUtilService;
 
     @Override
     public JpaRepository<Planet, Long> getRepository() {
@@ -71,6 +71,8 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     /**
+     * <b>Notice:</b> Expensive method
+     *
      * @param galaxyId if null will be a random galaxy
      * @return Random planet fom galaxy id
      * @throws SgtBackendUniverseIsFull When universe is full
@@ -88,10 +90,10 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
 
         int planetLocation = RandomUtils.nextInt(0, count);
 
-        List<Planet> selectedPlanetsRange = galaxyId != null
-                ? planetRepository.findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(galaxyId,
+        var selectedPlanetsRange = galaxyId != null
+                ? planetRepository.findByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(galaxyId,
                 PageRequest.of(planetLocation, 1))
-                : planetRepository.findOneByOwnerIsNullAndSpecialLocationIsNull(PageRequest.of(planetLocation, 1));
+                : planetRepository.findByOwnerIsNullAndSpecialLocationIsNull(PageRequest.of(planetLocation, 1));
 
         return selectedPlanetsRange.get(0);
     }
@@ -131,13 +133,11 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         if (!canLeavePlanet(invokerId, planetId)) {
             throw new SgtBackendInvalidInputException("ERR_I18N_CAN_NOT_LEAVE_PLANET");
         }
-        Planet planet = findById(planetId);
-        UserStorage user = planet.getOwner();
+        var planet = findById(planetId);
+        var user = planet.getOwner();
         planet.setOwner(null);
         planetRepository.save(planet);
-        if (planet.getSpecialLocation() != null) {
-            requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
-        }
+        maybeTriggerSpecialLocation(planet, user);
         transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(planet));
         emitPlanetOwnedChange(invokerId);
     }
@@ -160,14 +160,6 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
                 && missionFinderBo.findRunningUnitBuild(invokerId, (double) planetId) == null;
     }
 
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.14
-     */
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void deleteByGalaxy(Integer galaxyId) {
-        planetRepository.deleteByGalaxyId(galaxyId);
-    }
 
     /**
      * Defines the new owner for the targetPlanet
@@ -185,21 +177,30 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         });
         planetRepository.save(targetPlanet);
         obtainedUnitRepository.findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED.name())
-                .forEach(units -> {
-                    Mission mission = units.getMission();
-                    obtainedUnitBo.moveUnit(units, owner.getId(), targetPlanet.getId());
+                .forEach(unit -> {
+                    var mission = unit.getMission();
+                    obtainedUnitBo.moveUnit(unit, owner.getId(), targetPlanet.getId());
                     if (mission != null) {
                         missionRepository.delete(mission);
                     }
 
                 });
-        if (targetPlanet.getSpecialLocation() != null) {
-            requirementBo.triggerSpecialLocation(owner, targetPlanet.getSpecialLocation());
-        }
+        maybeTriggerSpecialLocation(targetPlanet, owner);
 
         transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(targetPlanet));
         emitPlanetOwnedChange(owner);
         missionEventEmitterBo.emitEnemyMissionsChange(owner);
         obtainedUnitEventEmitter.emitObtainedUnits(owner);
+    }
+
+    @Override
+    public List<PlanetDto> toDto(List<Planet> entities) {
+        return dtoUtilService.convertEntireArray(getDtoClass(), entities);
+    }
+
+    private void maybeTriggerSpecialLocation(Planet planet, UserStorage user) {
+        if (planet.getSpecialLocation() != null) {
+            requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
+        }
     }
 }

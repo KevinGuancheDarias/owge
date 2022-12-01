@@ -15,6 +15,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.CriticalAttackInformationResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,7 @@ public class UnitRestService implements SyncSource {
     private final UnitBo unitBo;
     private final CriticalAttackBo criticalAttackBo;
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
+    private final MissionRepository missionRepository;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -64,7 +66,7 @@ public class UnitRestService implements SyncSource {
         if (retVal == null) {
             return "";
         }
-        retVal.setMissionsCount(missionBo.countUserMissions(userId));
+        retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
         return retVal;
     }
 
@@ -92,7 +94,7 @@ public class UnitRestService implements SyncSource {
     @Override
     public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
         return SyncHandlerBuilder.create().withHandler("unit_unlocked_change", this::findUnlocked)
-                .withHandler("unit_build_mission_change", user -> missionBo.findBuildMissions(user.getId()))
+                .withHandler("unit_build_mission_change", user -> missionFinderBo.findBuildMissions(user.getId()))
                 .withHandler("unit_obtained_change", this::findInMyPlanets)
                 .withHandler("unit_requirements_change", this::requirements).build();
     }

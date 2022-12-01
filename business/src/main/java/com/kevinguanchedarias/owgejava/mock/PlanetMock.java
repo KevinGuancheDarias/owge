@@ -20,6 +20,13 @@ public class PlanetMock {
         return planet;
     }
 
+    public static Planet givenPlanet(long id) {
+        var planet = new Planet();
+        planet.setId(id);
+        setCommon(planet);
+        return planet;
+    }
+
     public static Planet givenTargetPlanet() {
         var planet = new Planet();
         planet.setId(TARGET_PLANET_ID);

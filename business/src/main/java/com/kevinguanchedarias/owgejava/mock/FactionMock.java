@@ -36,7 +36,7 @@ public class FactionMock {
         return retVal;
     }
 
-    public static FactionUnitType givenUnitType() {
+    public static FactionUnitType givenFactionUnitType() {
         return FactionUnitType.builder()
                 .id(FACTION_UNIT_TYPE_ID)
                 .faction(givenFaction())

@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Data
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 public class UnitMissionInformation {
     private Integer userId;

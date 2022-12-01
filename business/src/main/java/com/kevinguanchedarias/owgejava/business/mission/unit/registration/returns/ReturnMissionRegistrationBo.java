@@ -44,8 +44,8 @@ public class ReturnMissionRegistrationBo {
         Mission returnMission = new Mission();
         returnMission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
         returnMission.setType(missionTypeBo.find(MissionType.RETURN_MISSION));
-        returnMission.setRequiredTime(originMission.getRequiredTime());
         Double requiredTime = customRequiredTime == null ? originMission.getRequiredTime() : customRequiredTime;
+        returnMission.setRequiredTime(requiredTime);
         returnMission.setTerminationDate(missionTimeManagerBo.computeTerminationDate(requiredTime));
         returnMission.setSourcePlanet(originMission.getSourcePlanet());
         returnMission.setTargetPlanet(originMission.getTargetPlanet());

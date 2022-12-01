@@ -1,66 +1,55 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kevinguanchedarias.owgejava.business.MissionBo;
+import com.kevinguanchedarias.owgejava.business.SocketIoService;
+import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
+import com.kevinguanchedarias.owgejava.business.mission.MissionBaseService;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
-
 /**
- * Has system wide actions
+ * Has system-wide actions
  *
- * @since 0.9.8
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.8
  */
 @RestController
 @RequestMapping("admin/system")
 @ApplicationScope
+@AllArgsConstructor
 public class AdminSystemRestService {
+    private final SocketIoService socketIoService;
+    private final MissionBo missionBo;
+    private final UnitMissionBo unitMissionBo;
+    private final MissionBaseService missionBaseService;
 
-	@Autowired
-	private SocketIoService socketIoService;
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.8
+     */
+    @PostMapping("notify-updated-version")
+    public void notifyUpdatedVersion() {
+        socketIoService.sendMessage(0, "frontend_version_change", () -> "check for changes!!!!");
+    }
 
-	@Autowired
-	private MissionBo missionBo;
-
-	@Autowired
-	private UnitMissionBo unitMissionBo;
-
-	/**
-	 *
-	 *
-	 * @since 0.9.8
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@PostMapping("notify-updated-version")
-	public void notifyUpdatedVersion() {
-		socketIoService.sendMessage(0, "frontend_version_change", () -> "check for changes!!!!");
-	}
-
-	/**
-	 *
-	 *
-	 * @since 0.9.9
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	@PostMapping("run-hang-missions")
-	public void runHangMissions() {
-		missionBo.findHangMissions().forEach(mission -> {
-			MissionType missionType = MissionType.valueOf(mission.getType().getCode());
-			switch (missionType) {
-			case LEVEL_UP:
-			case BUILD_UNIT:
-				missionBo.runMission(mission.getId(), missionType);
-				break;
-			default:
-				unitMissionBo.runUnitMission(mission.getId(), missionType);
-			}
-		});
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.9
+     */
+    @PostMapping("run-hang-missions")
+    public void runHangMissions() {
+        missionBaseService.findHangMissions().forEach(mission -> {
+            MissionType missionType = MissionType.valueOf(mission.getType().getCode());
+            var missionId = mission.getId();
+            if (missionType == MissionType.BUILD_UNIT || missionType == MissionType.LEVEL_UP) {
+                missionBo.runMission(missionId, missionType);
+            } else {
+                unitMissionBo.runUnitMission(missionId, missionType);
+            }
+        });
+    }
 }

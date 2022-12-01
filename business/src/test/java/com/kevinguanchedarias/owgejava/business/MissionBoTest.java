@@ -1,10 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.owgejava.builder.ExceptionBuilder;
-import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
+import com.kevinguanchedarias.owgejava.business.mission.*;
+import com.kevinguanchedarias.owgejava.business.mission.cancel.MissionCancelBuildService;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetCheckerService;
@@ -12,9 +9,7 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
-import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
-import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.entity.*;
@@ -26,8 +21,6 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
-import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
-import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +42,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static com.kevinguanchedarias.owgejava.business.MissionBo.JOB_GROUP_NAME;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
@@ -63,8 +57,7 @@ import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalMatchers.or;
@@ -91,7 +84,6 @@ import static org.mockito.Mockito.*;
         UnitBo.class,
         ObtainedUnitBo.class,
         PlanetBo.class,
-        ExceptionUtilService.class,
         UnitTypeBo.class,
         MissionConfigurationBo.class,
         SocketIoService.class,
@@ -106,18 +98,19 @@ import static org.mockito.Mockito.*;
         ObtainedUnitRepository.class,
         ObtainedUpgradeRepository.class,
         ObtainedUpgradeBo.class,
-        UserEventEmitterBo.class,
         UserEnergyServiceBo.class,
         MissionTypeBo.class,
         ObtainedUnitEventEmitter.class,
         MissionTimeManagerBo.class,
-        ObtainedUnitModificationBo.class,
         ObtainedUnitImprovementCalculationService.class,
         MissionReportManagerBo.class,
         PlanetCheckerService.class,
         MissionFinderBo.class,
         ReturnMissionRegistrationBo.class,
-        UserStorageRepository.class
+        UserStorageRepository.class,
+        MissionEventEmitterBo.class,
+        MissionCancelBuildService.class,
+        MissionBaseService.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -131,7 +124,6 @@ class MissionBoTest {
     private final ImprovementBo improvementBo;
     private final ObjectRelationBo objectRelationBo;
     private final UserStorageBo userStorageBo;
-    private final ExceptionUtilService exceptionUtilService;
     private final UnitBo unitBo;
     private final ConfigurationBo configurationBo;
     private final MissionTypeRepository missionTypeRepository;
@@ -147,6 +139,9 @@ class MissionBoTest {
     private final PlanetCheckerService planetCheckerService;
     private final MissionFinderBo missionFinderBo;
     private final UserStorageRepository userStorageRepository;
+    private final MissionEventEmitterBo missionEventEmitterBo;
+    private final MissionBaseService missionBaseService;
+    private final MissionCancelBuildService missionCancelBuildService;
 
     @Autowired
     public MissionBoTest(
@@ -161,7 +156,6 @@ class MissionBoTest {
             ImprovementBo improvementBo,
             ObjectRelationBo objectRelationBo,
             UserStorageBo userStorageBo,
-            ExceptionUtilService exceptionUtilService,
             UnitBo unitBo,
             ConfigurationBo configurationBo,
             MissionTypeRepository missionTypeRepository,
@@ -175,7 +169,10 @@ class MissionBoTest {
             MissionTypeBo missionTypeBo,
             PlanetCheckerService planetCheckerService,
             MissionFinderBo missionFinderBo,
-            UserStorageRepository userStorageRepository
+            UserStorageRepository userStorageRepository,
+            MissionEventEmitterBo missionEventEmitterBo,
+            MissionBaseService missionBaseService,
+            MissionCancelBuildService missionCancelBuildService
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -188,7 +185,7 @@ class MissionBoTest {
         this.improvementBo = improvementBo;
         this.objectRelationBo = objectRelationBo;
         this.userStorageBo = userStorageBo;
-        this.exceptionUtilService = exceptionUtilService;
+        this.missionBaseService = missionBaseService;
         this.unitBo = unitBo;
         this.configurationBo = configurationBo;
         this.missionTypeRepository = missionTypeRepository;
@@ -204,6 +201,23 @@ class MissionBoTest {
         this.planetCheckerService = planetCheckerService;
         this.missionFinderBo = missionFinderBo;
         this.userStorageRepository = userStorageRepository;
+        this.missionEventEmitterBo = missionEventEmitterBo;
+        this.missionCancelBuildService = missionCancelBuildService;
+    }
+
+    @Test
+    void deleteOldMissions_should_work() {
+        var mission = givenExploreMission();
+        var linkedMission = givenGatherMission();
+        linkedMission.setRelatedMission(givenReturnMission());
+        mission.setLinkedRelated(List.of(linkedMission));
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).runWithRequired(any());
+        given(missionRepository.findByResolvedTrueAndTerminationDateLessThan(isNotNull())).willReturn(List.of(mission));
+
+        missionBo.deleteOldMissions();
+
+        verify(missionRepository, times(1)).delete(mission);
+        assertThat(linkedMission.getRelatedMission()).isNull();
     }
 
     @Test
@@ -305,36 +319,17 @@ class MissionBoTest {
         verify(missionSchedulerService, times(1)).scheduleMission(any(), eq(saved));
         verify(entityManager, times(1)).refresh(saved);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), any());
-        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
+        verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
     }
 
     @Test
     void registerBuildUnit_should_throw_if_mission_already_going() {
-        var mission = givenBuildMission();
         given(missionFinderBo.findRunningUnitBuild(USER_ID_1, (double) SOURCE_PLANET_ID))
                 .willReturn(mock(RunningUnitBuildDto.class));
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
                 .isInstanceOf(SgtBackendUnitBuildAlreadyRunningException.class);
         verify(planetCheckerService, times(1)).myCheckIsOfUserProperty(SOURCE_PLANET_ID);
-    }
-
-    @Test
-    void registerBuildUnit_should_throw_if_mission_limit_reached() {
-        var runningCount = 28;
-        var groupedImprovementMock = mock(GroupedImprovement.class);
-        var exception = new SgtBackendInvalidInputException("FOO");
-        var relation = givenObjectRelation();
-        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(givenUser1()));
-        given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
-        given(improvementBo.findUserImprovement(givenUser1())).willReturn(groupedImprovementMock);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
-        givenExceptionUtilService(exception);
-        given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
-
-        assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
-                .isEqualTo(exception);
-        verify(objectRelationBo, times(1)).checkIsUnlocked(USER_ID_1, OBJECT_RELATION_ID);
     }
 
     @ParameterizedTest
@@ -408,6 +403,7 @@ class MissionBoTest {
 
         var result = missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT);
 
+        verify(missionBaseService, times(1)).checkMissionLimitNotReached(user);
         assertThat(result.getRequiredTime()).isEqualTo(expectedTime);
         assertThat(result.getRequiredPrimary()).isEqualTo(resourceRequirements.getRequiredPrimary());
         assertThat(result.getRequiredSecondary()).isEqualTo(resourceRequirements.getRequiredSecondary());
@@ -417,11 +413,11 @@ class MissionBoTest {
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
         verify(obtainedUnitRepository, times(1)).save(captor.capture());
         var savedOu = captor.getValue();
-        verify(missionSchedulerService, times(1)).scheduleMission(eq(missionBo.getGroupName()), any());
+        verify(missionSchedulerService, times(1)).scheduleMission(eq(JOB_GROUP_NAME), any());
         verify(entityManager, times(1)).refresh(savedOu);
         verify(entityManager, times(1)).refresh(any(Mission.class));
-        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
-        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.UNIT_BUILD_MISSION_CHANGE), any());
+        verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
+        verify(missionEventEmitterBo, times(1)).emitUnitBuildChange(USER_ID_1);
         verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
     }
 
@@ -462,7 +458,7 @@ class MissionBoTest {
         verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), captor.capture());
         assertThat(captor.getValue().get()).isNull();
         verify(obtainedUpgradeBo, times(1)).emitObtainedChange(USER_ID_1);
-        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
+        verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
 
     }
 
@@ -481,22 +477,13 @@ class MissionBoTest {
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID)), any());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
-        var supplierAnswerForBuildChange = new InvokeSupplierLambdaAnswer<List<RunningUnitBuildDto>>(2);
-        doAnswer(supplierAnswerForBuildChange).when(socketIoService)
-                .sendMessage(eq(USER_ID_1), eq(MissionBo.UNIT_BUILD_MISSION_CHANGE), any());
-        var supplierAnswerForMissionCountChange = new InvokeSupplierLambdaAnswer<Integer>(2);
-        doAnswer(supplierAnswerForMissionCountChange).when(socketIoService)
-                .sendMessage(eq(USER_ID_1), eq(MissionBo.MISSIONS_COUNT_CHANGE), any());
-        runFindBuildMissionsGiven();
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningMissionsCount);
 
         missionBo.processBuildUnit(BUILD_MISSION_ID);
-        var missionCountChange = supplierAnswerForMissionCountChange.getResult();
-        var missionChange = supplierAnswerForBuildChange.getResult();
 
         verify(missionRepository, times(2)).findById(BUILD_MISSION_ID);
-        verify(planetBo, times(2)).findById(SOURCE_PLANET_ID);
-        verify(obtainedUnitRepository, times(2)).findByMissionId(BUILD_MISSION_ID);
+        verify(planetBo, times(1)).findById(SOURCE_PLANET_ID);
+        verify(obtainedUnitRepository, times(1)).findByMissionId(BUILD_MISSION_ID);
         assertThat(ou.getSourcePlanet()).isEqualTo(sourcePlanet);
         verify(obtainedUnitBo, times(1)).moveUnit(ou, USER_ID_1, SOURCE_PLANET_ID);
         verify(requirementBo, times(1)).triggerUnitBuildCompletedOrKilled(ou.getUser(), ou.getUnit());
@@ -504,8 +491,8 @@ class MissionBoTest {
         verify(improvementBo, times(expectClearImprovementCacheInvocations)).clearSourceCache(
                 eq(ou.getUser()), any(ObtainedUnitImprovementCalculationService.class)
         );
-        verifyFindBuildMissions(missionChange);
-        assertThat(missionCountChange).isEqualTo(runningMissionsCount);
+        verify(missionEventEmitterBo, times(1)).emitUnitBuildChange(USER_ID_1);
+        verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
     }
 
     @Test
@@ -518,30 +505,46 @@ class MissionBoTest {
         assertThat(capturedOutput.getOut()).contains(MissionBo.MISSION_NOT_FOUND);
     }
 
-    private void runFindBuildMissionsGiven() {
-        given(missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(USER_ID_1, MissionType.BUILD_UNIT.name()))
-                .willReturn(List.of(givenBuildMission()));
-        given(objectRelationBo.unboxObjectRelation(givenObjectRelation())).willReturn(givenUnit1());
+    @Test
+    void cancelBuildUnit_should_throw_on_null_mission() {
+        assertThatThrownBy(() -> missionBo.cancelBuildUnit(BUILD_MISSION_ID))
+                .isInstanceOf(MissionNotFoundException.class);
+        verify(missionRepository, never()).delete(any());
+        verifyNoInteractions(missionSchedulerService);
+        verifyNoInteractions(missionCancelBuildService);
     }
 
-    private void verifyFindBuildMissions(List<RunningUnitBuildDto> result) {
-        assertThat(result).hasSize(1);
-        verifyFindBuildMissions(result.get(0));
+    @ParameterizedTest
+    @MethodSource("cancelBuildUnit_should_throw_on_trying_to_cancel_someone_else_mission_arguments")
+    void cancelBuildUnit_should_throw_on_trying_to_cancel_someone_else_mission(UserStorage missionUser) {
+        var loggedUser = givenUser1();
+        var mission = givenBuildMission();
+        mission.setUser(missionUser);
+        given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(mission));
+        given(userStorageRepository.findOneByMissions(mission)).willReturn(missionUser);
+        given(userStorageBo.findLoggedIn()).willReturn(loggedUser);
+
+        assertThatThrownBy(() -> missionBo.cancelBuildUnit(BUILD_MISSION_ID))
+                .isInstanceOf(CommonException.class)
+                .hasMessageContaining("maybe some dirty");
+        verify(missionRepository, never()).delete(any());
+        verifyNoInteractions(missionSchedulerService);
+        verifyNoInteractions(missionCancelBuildService);
     }
 
-    private void verifyFindBuildMissions(RunningUnitBuildDto runningUnitBuildDto) {
-        assertThat(runningUnitBuildDto.getUnit().getId()).isEqualTo(UNIT_ID_1);
-        assertThat(runningUnitBuildDto.getMissionId()).isEqualTo(BUILD_MISSION_ID);
-        assertThat(runningUnitBuildDto.getSourcePlanet().getId()).isEqualTo(SOURCE_PLANET_ID);
-        assertThat(runningUnitBuildDto.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
-    }
+    @Test
+    void cancelBuildUnit_should_work() {
+        var user = givenUser1();
+        var mission = givenBuildMission();
+        given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(mission));
+        given(userStorageRepository.findOneByMissions(mission)).willReturn(user);
+        given(userStorageBo.findLoggedIn()).willReturn(user);
 
-    private void givenExceptionUtilService(CommonException exception) {
-        var exceptionBuilderMock = mock(ExceptionBuilder.class);
-        given(exceptionUtilService.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED"))
-                .willReturn(exceptionBuilderMock);
-        given(exceptionBuilderMock.withDeveloperHintDoc(any(), any(), any())).willReturn(exceptionBuilderMock);
-        given(exceptionBuilderMock.build()).willReturn(exception);
+        missionBo.cancelBuildUnit(BUILD_MISSION_ID);
+
+        verify(missionCancelBuildService, times(1)).cancel(mission);
+        verify(missionRepository, times(1)).delete(mission);
+        verify(missionSchedulerService, times(1)).abortMissionJob(JOB_GROUP_NAME, mission);
     }
 
     private GroupedImprovement givenMaxMissionsCount(UserStorage user) {
@@ -555,6 +558,13 @@ class MissionBoTest {
         return Stream.of(
                 Arguments.of(null, 0),
                 Arguments.of(givenImprovement(), 1)
+        );
+    }
+
+    private static Stream<Arguments> cancelBuildUnit_should_throw_on_trying_to_cancel_someone_else_mission_arguments() {
+        return Stream.of(
+                Arguments.of(givenUser2()),
+                Arguments.of((Object) null)
         );
     }
 }

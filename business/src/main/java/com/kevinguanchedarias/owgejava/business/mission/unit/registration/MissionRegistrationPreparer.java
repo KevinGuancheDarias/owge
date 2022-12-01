@@ -22,15 +22,14 @@ public class MissionRegistrationPreparer {
     private final MissionTypeBo missionTypeBo;
 
     public Mission prepareMission(UnitMissionInformation missionInformation, MissionType type) {
-        Mission retVal = new Mission();
+        var retVal = new Mission();
         retVal.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
-        Double requiredTime = missionTimeManagerBo.calculateRequiredTime(type);
-        retVal.setMissionInformation(null);
+        double requiredTime = missionTimeManagerBo.calculateRequiredTime(type);
         retVal.setType(missionTypeBo.find(type));
         retVal.setUser(userStorageRepository.getById(missionInformation.getUserId()));
         retVal.setRequiredTime(requiredTime);
-        Long sourcePlanetId = missionInformation.getSourcePlanetId();
-        Long targetPlanetId = missionInformation.getTargetPlanetId();
+        var sourcePlanetId = missionInformation.getSourcePlanetId();
+        var targetPlanetId = missionInformation.getTargetPlanetId();
         if (sourcePlanetId != null) {
             retVal.setSourcePlanet(planetRepository.getById(sourcePlanetId));
         }

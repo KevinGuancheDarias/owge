@@ -1,10 +1,10 @@
 package com.kevinguanchedarias.owgejava.business.mission.processor;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.mission.cancel.MissionCancelBuildService;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.entity.*;
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.*;
         RequirementBo.class,
         MissionEventEmitterBo.class,
         MissionReportManagerBo.class,
-        MissionBo.class,
+        MissionCancelBuildService.class,
         MissionRepository.class
 })
 class ConquestMissionProcessorTest {
@@ -65,7 +65,7 @@ class ConquestMissionProcessorTest {
     private final RequirementBo requirementBo;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MissionReportManagerBo missionReportManagerBo;
-    private final MissionBo missionBo;
+    private final MissionCancelBuildService missionCancelBuildService;
     private final MissionRepository missionRepository;
 
     @Autowired
@@ -77,7 +77,7 @@ class ConquestMissionProcessorTest {
             RequirementBo requirementBo,
             MissionEventEmitterBo missionEventEmitterBo,
             MissionReportManagerBo missionReportManagerBo,
-            MissionBo missionBo,
+            MissionCancelBuildService missionCancelBuildService,
             MissionRepository missionRepository
     ) {
         this.conquestMissionProcessor = conquestMissionProcessor;
@@ -87,7 +87,7 @@ class ConquestMissionProcessorTest {
         this.requirementBo = requirementBo;
         this.missionEventEmitterBo = missionEventEmitterBo;
         this.missionReportManagerBo = missionReportManagerBo;
-        this.missionBo = missionBo;
+        this.missionCancelBuildService = missionCancelBuildService;
         this.missionRepository = missionRepository;
     }
 
@@ -188,7 +188,7 @@ class ConquestMissionProcessorTest {
 
             verify(planetBo, times(1)).definePlanetAsOwnedBy(ATTACKER_USER, involvedUnits, targetPlanet);
             verify(requirementBo, times(triggerRequirementsForOldOwner)).triggerSpecialLocation(PLANET_OWNER, specialLocation);
-            verify(missionBo, times(timesCancelBuildMission)).adminCancelBuildMission(runningBuildMission);
+            verify(missionCancelBuildService, times(timesCancelBuildMission)).cancel(runningBuildMission);
             verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(PLANET_OWNER);
             verify(reportForOwnerMock, times(1)).withConquestInformation(true, "I18N_YOUR_PLANET_WAS_CONQUISTED");
             verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportForOwnerMock, true, PLANET_OWNER);

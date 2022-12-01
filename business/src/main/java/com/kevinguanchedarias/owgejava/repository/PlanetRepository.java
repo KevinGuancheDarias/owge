@@ -17,9 +17,9 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
     long countByOwnerIsNullAndSpecialLocationIsNull();
 
-    List<Planet> findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId, Pageable pageable);
+    List<Planet> findByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId, Pageable pageable);
 
-    List<Planet> findOneByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
+    List<Planet> findByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
 
     Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
 

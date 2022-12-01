@@ -5,7 +5,6 @@ import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
-import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -34,8 +33,6 @@ import java.util.List;
  */
 @Service
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
-    public static final String USER_CACHE_TAG = "user";
-
     @Serial
     private static final long serialVersionUID = 2837362546838035726L;
 
@@ -157,10 +154,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
     public UserStorage findLoggedInWithReference() {
         return userStorageRepository.getById(findLoggedIn().getId());
-    }
-
-    public UserStorage findOneByMission(Mission mission) {
-        return userStorageRepository.findOneByMissions(mission);
     }
 
     /**

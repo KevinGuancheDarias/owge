@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business.schedule;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
@@ -34,7 +33,6 @@ public class TemporalUnitScheduleListener {
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
 
@@ -74,7 +72,7 @@ public class TemporalUnitScheduleListener {
             var affectedUsers = usersOwningPlanetsOfTargetMissions(user, missions);
             deleteNonUnitsLeftMissions(missions);
             missionEventEmitterBo.emitUnitMissions(user.getId());
-            missionBo.emitMissionCountChange(user.getId());
+            missionEventEmitterBo.emitMissionCountChange(user.getId());
             affectedUsers.forEach(missionEventEmitterBo::emitEnemyMissionsChange);
         }
     }

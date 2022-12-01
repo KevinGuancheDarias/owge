@@ -3,18 +3,23 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.mission.checker.EntityCanDoMissionChecker;
 import com.kevinguanchedarias.owgejava.dto.UnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.*;
+import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitTypeRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.Serial;
 import java.util.List;
 
@@ -22,19 +27,19 @@ import java.util.List;
 @AllArgsConstructor
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
     public static final String UNIT_TYPE_CACHE_TAG = "unit_type";
+    public static final String UNIT_TYPE_CHANGE = "unit_type_change";
 
     @Serial
     private static final long serialVersionUID = 1064115662505668879L;
 
-    private static final String UNIT_TYPE_CHANGE = "unit_type_change";
-
     private final UnitTypeRepository unitTypeRepository;
     private final ImprovementBo improvementBo;
-    private final UserStorageBo userStorageBo;
+    private final UserStorageRepository userStorageRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final transient SocketIoService socketIoService;
     private final transient FactionUnitTypeRepository factionUnitTypeRepository;
     private final transient EntityCanDoMissionChecker entityCanDoMissionChecker;
+    private final DtoUtilService dtoUtilService;
 
     @Override
     public JpaRepository<UnitType, Integer> getRepository() {
@@ -52,6 +57,16 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
         return UnitTypeDto.class;
     }
 
+    @PostConstruct
+    public void init() {
+        improvementBo.addChangeListener(ImprovementChangeEnum.UNIT_IMPROVEMENTS, (userId, improvement) -> {
+            if (improvement.getUnitTypesUpgrades().stream()
+                    .anyMatch(current -> ImprovementTypeEnum.AMOUNT.name().equals(current.getType()))) {
+                emitUserChange(userId);
+            }
+        });
+    }
+
     /**
      * Finds the max amount of a certain unit type the given user can have <br>
      * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
@@ -66,7 +81,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     /**
      * Finds the max amount of a certain unit type the given user can have <br>
-     * <b>NOTICE: It will proccess all the obtained upgrades and obtained units to
+     * <b>NOTICE: It will process all the obtained upgrades and obtained units to
      * find the improvement</b>
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -115,10 +130,9 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     public List<UnitTypeResponse> findUnitTypesWithUserInfo(Integer userId) {
         return findAll().stream().map(current -> {
-            var unitTypeResponse = new UnitTypeResponse();
             current.getSpeedImpactGroup().setRequirementGroups(null);
-            unitTypeResponse.dtoFromEntity(current);
-            var user = userStorageBo.findById(userId);
+            var unitTypeResponse = dtoUtilService.dtoFromEntity(UnitTypeResponse.class, current);
+            var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
             unitTypeResponse.setComputedMaxCount(findUniTypeLimitByUser(user, current));
             if (hasMaxCount(user.getFaction(), current)) {
                 unitTypeResponse.setUserBuilt(obtainedUnitRepository.countByUserAndUnitType(user, current));

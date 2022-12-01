@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
-import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.checker.MissionRegistrationCanDeployChecker;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.checker.MissionRegistrationPlanetExistsChecker;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -45,11 +45,11 @@ public class MissionRegistrationObtainedUnitLoader {
             if (current.getCount() == null) {
                 throw new SgtBackendInvalidInputException("No count was specified for unit " + current.getId());
             }
-            ObtainedUnit currentObtainedUnit = obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(
+            var currentObtainedUnit = obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(
                     missionInformation.getUserId(), current.getId(), sourcePlanetId, current.getExpirationId(),
                     !planetRepository.isOfUserProperty(userId, sourcePlanetId));
             missionRegistrationCanDeployChecker.checkUnitCanDeploy(currentObtainedUnit, missionInformation);
-            ObtainedUnit unitAfterSubtraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
+            var unitAfterSubtraction = obtainedUnitBo.saveWithSubtraction(currentObtainedUnit,
                     current.getCount(), false);
             if (unitAfterSubtraction == null && currentObtainedUnit.getMission() != null
                     && currentObtainedUnit.getMission().getType().getCode().equals(MissionType.DEPLOYED.toString())) {

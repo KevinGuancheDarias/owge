@@ -1,21 +1,24 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mission.MissionBaseService;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionInterceptionManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.processor.MissionProcessor;
+import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.UnitMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.*;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.CannotAcquireLockException;
@@ -25,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.io.Serial;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -35,29 +37,25 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class UnitMissionBo extends AbstractMissionBo {
+public class UnitMissionBo {
     public static final String JOB_GROUP_NAME = "UnitMissions";
 
-    @Serial
-    private static final long serialVersionUID = 344402831344882216L;
-
-    private final transient PlanetLockUtilService planetLockUtilService;
-    private final transient UnitMissionRegistrationBo unitMissionRegistrationBo;
-    private final transient ReturnMissionRegistrationBo returnMissionRegistrationBo;
+    private final PlanetLockUtilService planetLockUtilService;
+    private final UnitMissionRegistrationBo unitMissionRegistrationBo;
+    private final ReturnMissionRegistrationBo returnMissionRegistrationBo;
     private final PlanetRepository planetRepository;
-    private final transient MissionEventEmitterBo missionEventEmitterBo;
-    private final transient MissionInterceptionManagerBo missionInterceptionManagerBo;
-    private final transient List<MissionProcessor> missionProcessors;
+    private final MissionEventEmitterBo missionEventEmitterBo;
+    private final MissionInterceptionManagerBo missionInterceptionManagerBo;
+    private final List<MissionProcessor> missionProcessors;
     private final PlanetBo planetBo;
-    private final transient PlanetExplorationService planetExplorationService;
-    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final PlanetExplorationService planetExplorationService;
+    private final MissionRepository missionRepository;
+    private final UserStorageBo userStorageBo;
+    private final ExceptionUtilService exceptionUtilService;
+    private final MissionReportManagerBo missionReportManagerBo;
+    private final MissionBaseService missionBaseService;
 
-    protected transient Map<MissionType, MissionProcessor> missionProcessorMap;
-
-    @Override
-    public String getGroupName() {
-        return JOB_GROUP_NAME;
-    }
+    protected Map<MissionType, MissionProcessor> missionProcessorMap;
 
     @PostConstruct
     public void init() {
@@ -182,12 +180,12 @@ public class UnitMissionBo extends AbstractMissionBo {
 
     @Transactional
     public void myCancelMission(Long missionId) {
-        Mission mission = findById(missionId);
+        var mission = missionRepository.findById(missionId).orElse(null);
         if (mission == null) {
             throw new NotFoundException("No mission with id " + missionId + " was found");
         } else if (!mission.getUser().getId().equals(userStorageBo.findLoggedIn().getId())) {
             throw new SgtBackendInvalidInputException("You can't cancel other player missions");
-        } else if (isOfType(mission, MissionType.RETURN_MISSION)) {
+        } else if (missionBaseService.isOfType(mission, MissionType.RETURN_MISSION)) {
             throw new SgtBackendInvalidInputException("can't cancel return missions");
         } else {
             mission.setResolved(true);
@@ -202,10 +200,6 @@ public class UnitMissionBo extends AbstractMissionBo {
         }
     }
 
-    public List<ObtainedUnit> findInvolvedInMission(Mission mission) {
-        return obtainedUnitRepository.findByMissionId(mission.getId());
-    }
-
     /**
      * Runs the mission
      *
@@ -215,7 +209,7 @@ public class UnitMissionBo extends AbstractMissionBo {
     @Transactional
     @Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
     public void runUnitMission(Long missionId, MissionType missionType) {
-        var mission = findById(missionId);
+        var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         planetLockUtilService.doInsideLock(
                 List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
                 () -> doRunUnitMission(mission, missionType)
@@ -256,7 +250,7 @@ public class UnitMissionBo extends AbstractMissionBo {
         var user = userStorageBo.findLoggedIn();
         var isDeployMission = missionType.equals(MissionType.DEPLOY);
         if (!isDeployMission || !planetRepository.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
-            checkMissionLimitNotReached(user);
+            missionBaseService.checkMissionLimitNotReached(user);
         }
         UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
         Integer userId = user.getId();

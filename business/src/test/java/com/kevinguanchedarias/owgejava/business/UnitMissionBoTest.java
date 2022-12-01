@@ -2,10 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionInterceptionManagerBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
-import com.kevinguanchedarias.owgejava.business.mission.MissionUnitsFinderBo;
+import com.kevinguanchedarias.owgejava.business.mission.*;
 import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
 import com.kevinguanchedarias.owgejava.business.mission.processor.MissionProcessor;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;
@@ -22,7 +19,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructUnitMissionBo;
 import com.kevinguanchedarias.owgejava.mock.UnitMissionMock;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -85,8 +81,8 @@ import static org.mockito.Mockito.*;
         MissionInterceptionManagerBo.class,
         UnitInterceptionFinderBo.class,
         PlanetBo.class,
-        ObtainedUnitRepository.class,
-        PlanetExplorationService.class
+        PlanetExplorationService.class,
+        MissionBaseService.class
 })
 class UnitMissionBoTest {
     private final UnitMissionBo unitMissionBo;
@@ -96,6 +92,7 @@ class UnitMissionBoTest {
     private final MissionInterceptionManagerBo missionInterceptionManagerBo;
     private final MissionReportManagerBo missionReportManagerBo;
     private final MissionEventEmitterBo missionEventEmitterBo;
+    private final MissionBaseService missionBaseService;
     private MissionProcessor exploreMissionProcessor;
 
     @Autowired
@@ -106,7 +103,8 @@ class UnitMissionBoTest {
             PlanetLockUtilService planetLockUtilService,
             MissionInterceptionManagerBo missionInterceptionManagerBo,
             MissionReportManagerBo missionReportManagerBo,
-            MissionEventEmitterBo missionEventEmitterBo
+            MissionEventEmitterBo missionEventEmitterBo,
+            MissionBaseService missionBaseService
     ) {
         this.unitMissionBo = unitMissionBo;
         this.missionRepository = missionRepository;
@@ -115,6 +113,7 @@ class UnitMissionBoTest {
         this.missionInterceptionManagerBo = missionInterceptionManagerBo;
         this.missionReportManagerBo = missionReportManagerBo;
         this.missionEventEmitterBo = missionEventEmitterBo;
+        this.missionBaseService = missionBaseService;
     }
 
     @BeforeEach
@@ -134,9 +133,12 @@ class UnitMissionBoTest {
 
     @ParameterizedTest
     @MethodSource("myCancelMission_should_throw_arguments")
-    void myCancelMission_should_throw(Class<RuntimeException> exceptionClass, String message, Mission mission) {
+    void myCancelMission_should_throw(
+            boolean isReturnMission, Class<RuntimeException> exceptionClass, String message, Mission mission
+    ) {
         given(missionRepository.findById(EXPLORE_MISSION_ID)).willReturn(Optional.ofNullable(mission));
         given(userStorageBo.findLoggedIn()).willReturn(givenUser1());
+        given(missionBaseService.isOfType(mission, MissionType.RETURN_MISSION)).willReturn(isReturnMission);
 
         assertThatThrownBy(() -> unitMissionBo.myCancelMission(EXPLORE_MISSION_ID))
                 .isInstanceOf(exceptionClass)
@@ -178,9 +180,9 @@ class UnitMissionBoTest {
         returnMission.setType(givenMissinType(MissionType.RETURN_MISSION));
         returnMission.setUser(givenUser1());
         return Stream.of(
-                Arguments.of(NotFoundException.class, "No mission with id ", null),
-                Arguments.of(SgtBackendInvalidInputException.class, "other player missions", otherUserMission),
-                Arguments.of(SgtBackendInvalidInputException.class, "cancel return missions", returnMission)
+                Arguments.of(false, NotFoundException.class, "No mission with id ", null),
+                Arguments.of(false, SgtBackendInvalidInputException.class, "other player missions", otherUserMission),
+                Arguments.of(true, SgtBackendInvalidInputException.class, "cancel return missions", returnMission)
         );
     }
 

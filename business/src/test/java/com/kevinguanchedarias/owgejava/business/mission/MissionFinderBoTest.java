@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business.mission;
 
 import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -11,6 +12,9 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,14 +24,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenMissionType;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenRawMission;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.OBTAINED_UNIT_1_COUNT;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
@@ -43,24 +53,28 @@ import static org.mockito.Mockito.*;
         ObjectRelationBo.class
 })
 class MissionFinderBoTest {
-
     private final MissionFinderBo missionFinderBo;
     private final MissionRepository missionRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final MissionTypeBo missionTypeBo;
-
+    private final ObjectRelationBo objectRelationBo;
+    private final PlanetRepository planetRepository;
 
     @Autowired
     MissionFinderBoTest(
             MissionFinderBo missionFinderBo,
             MissionRepository missionRepository,
             MissionTypeBo missionTypeBo,
-            ObtainedUnitRepository obtainedUnitRepository
+            ObtainedUnitRepository obtainedUnitRepository,
+            ObjectRelationBo objectRelationBo,
+            PlanetRepository planetRepository
     ) {
         this.missionFinderBo = missionFinderBo;
         this.missionRepository = missionRepository;
         this.missionTypeBo = missionTypeBo;
         this.obtainedUnitRepository = obtainedUnitRepository;
+        this.objectRelationBo = objectRelationBo;
+        this.planetRepository = planetRepository;
     }
 
     @Test
@@ -142,7 +156,69 @@ class MissionFinderBoTest {
         assertThat(savedMission.getTargetPlanet()).isEqualTo(firstDeploymentTargetPlanet);
         verify(obtainedUnitRepository, never()).save(any());
         assertThat(result).isEqualTo(savedMission);
+    }
+
+    @Test
+    void findRunningUnitBuild_should_do_nothing_on_null_mission() {
+        assertThat(missionFinderBo.findRunningUnitBuild(USER_ID_1, 14D)).isNull();
+
+        verifyNoInteractions(objectRelationBo, planetRepository, obtainedUnitRepository);
+    }
+
+    @Test
+    void findRunningUnitBuild_should_work() {
+        var mission = givenBuildMission();
+        var planet = mission.getSourcePlanet();
+        var or = givenObjectRelation();
+        var missionInformation = MissionInformation.builder().relation(or).build();
+        mission.setMissionInformation(missionInformation);
+        var ou = givenObtainedUnit1();
+        var unit = givenUnit1();
+        double planetId = SOURCE_PLANET_ID;
+        given(missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue(USER_ID_1, MissionType.BUILD_UNIT.name(), planetId))
+                .willReturn(mission);
+        given(objectRelationBo.unboxObjectRelation(or)).willReturn(unit);
+        given(planetRepository.findById(SOURCE_PLANET_ID)).willReturn(Optional.of(planet));
+        given(obtainedUnitRepository.findByMissionId(BUILD_MISSION_ID)).willReturn(List.of(ou));
+
+        var retVal = this.missionFinderBo.findRunningUnitBuild(USER_ID_1, planetId);
+
+        assertThat(retVal.getUnit().getId()).isEqualTo(UNIT_ID_1);
+        assertThat(retVal.getMissionId()).isEqualTo(BUILD_MISSION_ID);
+        assertThat(retVal.getSourcePlanet().getId()).isEqualTo(SOURCE_PLANET_ID);
+        assertThat(retVal.getCount()).isEqualTo(OBTAINED_UNIT_1_COUNT);
 
     }
 
+    @ParameterizedTest
+    @MethodSource("findBuildMissions_should_work_arguments")
+    void findBuildMissions_should_work(List<ObtainedUnit> ouList, Long expectedCount) {
+        var mission = givenBuildMission();
+        var planet = mission.getSourcePlanet();
+        var or = givenObjectRelation();
+        var missionInformation = MissionInformation.builder().relation(or).value((double) SOURCE_PLANET_ID).build();
+        mission.setMissionInformation(missionInformation);
+        var unit = givenUnit1();
+        given(missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(USER_ID_1, MissionType.BUILD_UNIT.name()))
+                .willReturn(List.of(mission));
+        given(objectRelationBo.unboxObjectRelation(or)).willReturn(unit);
+        given(planetRepository.findById(SOURCE_PLANET_ID)).willReturn(Optional.of(planet));
+        given(obtainedUnitRepository.findByMissionId(BUILD_MISSION_ID)).willReturn(ouList);
+
+        var retVal = this.missionFinderBo.findBuildMissions(USER_ID_1);
+
+        assertThat(retVal).hasSize(1);
+        var entry = retVal.get(0);
+        assertThat(entry.getUnit().getId()).isEqualTo(UNIT_ID_1);
+        assertThat(entry.getMissionId()).isEqualTo(BUILD_MISSION_ID);
+        assertThat(entry.getSourcePlanet().getId()).isEqualTo(SOURCE_PLANET_ID);
+        assertThat(entry.getCount()).isEqualTo(expectedCount);
+    }
+
+    private static Stream<Arguments> findBuildMissions_should_work_arguments() {
+        return Stream.of(
+                Arguments.of(List.of(givenObtainedUnit1()), OBTAINED_UNIT_1_COUNT),
+                Arguments.of(List.of(), 0L)
+        );
+    }
 }

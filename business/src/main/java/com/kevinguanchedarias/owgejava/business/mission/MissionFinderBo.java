@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -81,5 +82,23 @@ public class MissionFinderBo {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Finds all build missions for given user
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public List<RunningUnitBuildDto> findBuildMissions(Integer userId) {
+        return missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(userId, MissionType.BUILD_UNIT.name()).stream()
+                .map(mission -> {
+                    var missionInformation = mission.getMissionInformation();
+                    var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+                    var planet = SpringRepositoryUtil.findByIdOrDie(planetRepository, missionInformation.getValue().longValue());
+                    var findByMissionId = obtainedUnitRepository.findByMissionId(mission.getId());
+                    return new RunningUnitBuildDto(unit, mission, planet,
+                            findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
+                }).toList();
     }
 }

@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business.schedule;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
@@ -43,7 +42,6 @@ import static org.mockito.Mockito.*;
         TransactionUtilService.class,
         ObtainedUnitTemporalInformationRepository.class,
         MissionRepository.class,
-        MissionBo.class,
         ObtainedUnitEventEmitter.class,
         MissionEventEmitterBo.class
 })
@@ -55,7 +53,6 @@ class TemporalUnitScheduleListenerTest {
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
 
@@ -68,7 +65,6 @@ class TemporalUnitScheduleListenerTest {
             TransactionUtilService transactionUtilService,
             ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository,
             MissionRepository missionRepository,
-            MissionBo missionBo,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
             MissionEventEmitterBo missionEventEmitterBo
     ) {
@@ -79,7 +75,6 @@ class TemporalUnitScheduleListenerTest {
         this.transactionUtilService = transactionUtilService;
         this.obtainedUnitTemporalInformationRepository = obtainedUnitTemporalInformationRepository;
         this.missionRepository = missionRepository;
-        this.missionBo = missionBo;
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.missionEventEmitterBo = missionEventEmitterBo;
     }
@@ -144,7 +139,7 @@ class TemporalUnitScheduleListenerTest {
         verify(missionRepository, times(!isEmptyList && hasAffectedMissions && !affectedMissionHasUnit ? 1 : 0))
                 .delete(affectedMission);
         verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitUnitMissions(USER_ID_1);
-        verify(missionBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitMissionCountChange(USER_ID_1);
+        verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitMissionCountChange(USER_ID_1);
         verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions && affectedMissionHasOwner && !planetOwnerIsUser ? 1 : 0))
                 .emitEnemyMissionsChange(user2);
     }
