@@ -21,10 +21,12 @@ public class FactionMock {
     public static final long UNIT_TYPE_MAX_COUNT = 180;
     public static final long OVERRIDE_MAX_COUNT = 4L;
     public static final int FACTION_SPAWN_LOCATION_ID = 19;
+    public static final int FACTION_INITIAL_ENERGY = 100;
 
     public static Faction givenFaction() {
         return Faction.builder()
                 .id(FACTION_ID)
+                .initialEnergy(FACTION_INITIAL_ENERGY)
                 .improvement(ImprovementMock.givenImprovement())
                 .build();
     }

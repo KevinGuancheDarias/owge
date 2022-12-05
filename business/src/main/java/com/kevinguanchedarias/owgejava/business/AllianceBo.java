@@ -24,8 +24,6 @@ import java.io.Serial;
 @AllArgsConstructor
 @Service
 public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
-    public static final String ALLIANCE_CACHE_TAG = "alliance";
-
     @Serial
     private static final long serialVersionUID = 2632768998010477053L;
 
@@ -127,9 +125,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
-    public AllianceJoinRequest requestJoin(Integer allianceId, Integer ownerId) {
-        Alliance alliance = findByIdOrDie(allianceId);
-        UserStorage user = userStorageBo.findByIdOrDie(ownerId);
+    public AllianceJoinRequest requestJoin(Integer allianceId, Integer invokerId) {
+        var alliance = findByIdOrDie(allianceId);
+        var user = userStorageBo.findByIdOrDie(invokerId);
         if (user.getAlliance() != null) {
             throw new SgtBackendInvalidInputException("You are already in an alliance, nice try!");
         }

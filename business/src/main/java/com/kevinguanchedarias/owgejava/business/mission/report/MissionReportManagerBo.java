@@ -24,7 +24,7 @@ public class MissionReportManagerBo {
 
     public void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder, boolean isEnemy,
                                         UserStorage user) {
-        MissionReport missionReport = missionReportBo.create(builder, isEnemy, user);
+        var missionReport = missionReportBo.create(builder, isEnemy, user);
         missionReport.setMission(mission);
         mission.setReport(missionReport);
     }
@@ -35,7 +35,7 @@ public class MissionReportManagerBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public void handleMissionReportSave(Mission mission, UnitMissionReportBuilder builder) {
-        MissionReport missionReport = new MissionReport("{}", mission);
+        var missionReport = new MissionReport("{}", mission);
         missionReport.setUser(mission.getUser());
         missionReport = missionReportBo.save(missionReport);
         missionReport.setReportDate(new Date());

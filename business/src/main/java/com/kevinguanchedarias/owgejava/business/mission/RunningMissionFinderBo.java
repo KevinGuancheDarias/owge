@@ -59,7 +59,7 @@ public class RunningMissionFinderBo {
     public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
         var user = userStorageRepository.getById(userId);
         return missionRepository.findByUserIdAndResolvedFalse(userId).stream().
-                map(UnitRunningMissionDto::new).map(current -> {
+                map(UnitRunningMissionDto::new).peek(current -> {
                     current.setInvolvedUnits(obtainedUnitFinderBo.findCompletedAsDto(
                             user,
                             obtainedUnitRepository.findByMissionId(current.getMissionId())
@@ -67,7 +67,6 @@ public class RunningMissionFinderBo {
                     if (current.getType() == MissionType.EXPLORE) {
                         planetCleanerService.cleanUpUnexplored(userId, current.getTargetPlanet());
                     }
-                    return current;
                 }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).toList();
     }
 

@@ -5,6 +5,9 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
+import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
+import com.kevinguanchedarias.owgejava.dto.PlanetDto;
+import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -21,14 +24,15 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.kevinguanchedarias.owgejava.mock.AllianceMock.givenAlliance;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.*;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = RunningMissionFinderBo.class,
@@ -51,14 +55,21 @@ class RunningMissionFinderBoTest {
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final HiddenUnitBo hiddenUnitBo;
     private final PlanetRepository planetRepository;
+    private final UserStorageRepository userStorageRepository;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
+    private final PlanetCleanerService planetCleanerService;
 
     @Autowired
     public RunningMissionFinderBoTest(
             RunningMissionFinderBo runningMissionFinderBo,
             MissionRepository missionRepository,
-            PlanetExplorationService planetExplorationService, ObtainedUnitRepository obtainedUnitRepository,
+            PlanetExplorationService planetExplorationService,
+            ObtainedUnitRepository obtainedUnitRepository,
             HiddenUnitBo hiddenUnitBo,
-            PlanetRepository planetRepository
+            PlanetRepository planetRepository,
+            UserStorageRepository userStorageRepository,
+            ObtainedUnitFinderBo obtainedUnitFinderBo,
+            PlanetCleanerService planetCleanerService
     ) {
         this.runningMissionFinderBo = runningMissionFinderBo;
         this.missionRepository = missionRepository;
@@ -66,6 +77,9 @@ class RunningMissionFinderBoTest {
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.hiddenUnitBo = hiddenUnitBo;
         this.planetRepository = planetRepository;
+        this.userStorageRepository = userStorageRepository;
+        this.obtainedUnitFinderBo = obtainedUnitFinderBo;
+        this.planetCleanerService = planetCleanerService;
     }
 
     @Test
@@ -127,5 +141,55 @@ class RunningMissionFinderBoTest {
         assertThat(invisibleUnitResult.getUnit()).isNull();
         assertThat(invisibleUnitResult.getCount()).isNull();
         verify(hiddenUnitBo, times(2)).defineHidden(eq(involvedUnits), anyList());
+    }
+
+    @Test
+    void countUserRunningMissions_should_work() {
+        var count = 4;
+        given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(count);
+
+        assertThat(runningMissionFinderBo.countUserRunningMissions(USER_ID_1)).isEqualTo(count);
+    }
+
+    @Test
+    void findUserRunningMissions_should_work_with_gather() {
+        var mission = givenGatherMission();
+        var user = givenUser1();
+        var ou = givenObtainedUnit1();
+        var ouDtoMock = mock(ObtainedUnitDto.class);
+        given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(mission));
+        given(userStorageRepository.getById(USER_ID_1)).willReturn(user);
+        given(obtainedUnitRepository.findByMissionId(any())).willReturn(List.of(ou));
+        given(obtainedUnitFinderBo.findCompletedAsDto(user, List.of(ou))).willReturn(List.of(ouDtoMock));
+        try (var mockedConstructor = mockConstruction(UnitRunningMissionDto.class)) {
+            var result = runningMissionFinderBo.findUserRunningMissions(USER_ID_1);
+
+            var dto = mockedConstructor.constructed().get(0);
+
+            verify(dto, times(1)).setInvolvedUnits(List.of(ouDtoMock));
+            verify(planetCleanerService, never()).cleanUpUnexplored(any(), any());
+            verify(dto, times(1)).nullifyInvolvedUnitsPlanets();
+        }
+    }
+
+    @Test
+    void findUserRunningMissions_should_work_with_explore() {
+        var mission = givenExploreMission();
+        var user = givenUser1();
+        mission.setUser(user);
+        user.setAlliance(givenAlliance());
+        var ou = givenObtainedUnit1();
+        var ouDtoMock = mock(ObtainedUnitDto.class);
+        given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(mission));
+        given(userStorageRepository.getById(USER_ID_1)).willReturn(user);
+        given(obtainedUnitRepository.findByMissionId(EXPLORE_MISSION_ID)).willReturn(List.of(ou));
+        given(obtainedUnitFinderBo.findCompletedAsDto(user, List.of(ou))).willReturn(List.of(ouDtoMock));
+
+        var result = runningMissionFinderBo.findUserRunningMissions(USER_ID_1);
+
+        verify(planetCleanerService, times(1)).cleanUpUnexplored(eq(USER_ID_1), any(PlanetDto.class));
+        assertThat(result).hasSize(1);
+        var resultEntry = result.get(0);
+        assertThat(resultEntry.getInvolvedUnits()).containsExactly(ouDtoMock);
     }
 }

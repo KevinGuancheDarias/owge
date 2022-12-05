@@ -22,10 +22,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.List;
-
 @Service
 @AllArgsConstructor
 public class MissionBaseService {
@@ -48,10 +44,8 @@ public class MissionBaseService {
     @Transactional
     public void retryMissionIfPossible(Long missionId, MissionType missionType, String group) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
-        mission.setUser(userStorageRepository.findOneByMissions(mission));
         if (mission.getAttemps() >= MAX_ATTEMPTS) {
-            if (missionType.isUnitMission() && missionType != MissionType.RETURN_MISSION
-                    && missionType != MissionType.BUILD_UNIT) {
+            if (missionType.isUnitMission()) {
                 returnMissionRegistrationBo.registerReturnMission(mission, null);
                 mission.setResolved(true);
             } else if (missionType == MissionType.BUILD_UNIT) {
@@ -69,16 +63,6 @@ public class MissionBaseService {
             missionSchedulerService.scheduleMission(group, mission);
             missionRepository.save(mission);
         }
-    }
-
-    /**
-     * Finds missions that couldn't execute with success
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.9
-     */
-    public List<Mission> findHangMissions() {
-        return missionRepository.findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(LocalDateTime.now(ZoneOffset.UTC));
     }
 
     /**
@@ -101,7 +85,7 @@ public class MissionBaseService {
     }
 
     private UnitMissionReportBuilder buildCommonErrorReport(Mission mission, MissionType missionType) {
-        UnitMissionReportBuilder reportBuilder = UnitMissionReportBuilder.create().withSenderUser(mission.getUser())
+        var reportBuilder = UnitMissionReportBuilder.create().withSenderUser(mission.getUser())
                 .withId(mission.getId());
         if (missionType.isUnitMission()) {
             reportBuilder = reportBuilder.withSourcePlanet(mission.getSourcePlanet())

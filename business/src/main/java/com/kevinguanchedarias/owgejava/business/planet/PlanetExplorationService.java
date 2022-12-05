@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.planet;
 
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -16,9 +15,10 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class PlanetExplorationService {
+    public static final String PLANET_EXPLORED_EVENT = "planet_explored_event";
+    
     private final PlanetRepository planetRepository;
     private final ExploredPlanetRepository exploredPlanetRepository;
-    private final UserStorageBo userStorageBo;
     private final SocketIoService socketIoService;
     private final DtoUtilService dtoUtilService;
 
@@ -31,16 +31,12 @@ public class PlanetExplorationService {
                 || exploredPlanetRepository.findOneByUserIdAndPlanetId(userId, planetId) != null;
     }
 
-    public boolean myIsExplored(Long planetId) {
-        return isExplored(userStorageBo.findLoggedIn().getId(), planetId);
-    }
-
     public void defineAsExplored(UserStorage user, Planet targetPlanet) {
-        ExploredPlanet exploredPlanet = new ExploredPlanet();
+        var exploredPlanet = new ExploredPlanet();
         exploredPlanet.setUser(user);
         exploredPlanet.setPlanet(targetPlanet);
         exploredPlanetRepository.save(exploredPlanet);
-        socketIoService.sendMessage(user, "planet_explored_event", () ->
+        socketIoService.sendMessage(user, PLANET_EXPLORED_EVENT, () ->
                 dtoUtilService.dtoFromEntity(PlanetDto.class, SpringRepositoryUtil.findByIdOrDie(planetRepository, targetPlanet.getId()))
         );
     }

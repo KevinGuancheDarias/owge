@@ -75,7 +75,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     public Long findUniTypeLimitByUser(UserStorage user, Integer typeId) {
-        UnitType type = findById(typeId);
+        var type = findById(typeId);
         return findUniTypeLimitByUser(user, type);
     }
 

@@ -121,7 +121,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
 
         verify(missionRegistrationCanDeployChecker, times(1)).checkUnitCanDeploy(ou, information);
         assertThat(retVal).containsEntry(UNIT_ID_1, ou);
-        verify(missionRegistrationOrphanMissionEraser, times(1)).doMarkAsDeletedOrphanMissions(expectedDeletedMission);
+        verify(missionRegistrationOrphanMissionEraser, times(1)).doMarkAsDeletedTheOrphanMissions(expectedDeletedMission);
     }
 
     private static Stream<Arguments> checkAndLoadObtainedUnits_should_work_arguments() {

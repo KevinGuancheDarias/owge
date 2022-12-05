@@ -21,7 +21,9 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ResourceRequirementsPojo;
 import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,6 +45,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.business.MissionBo.JOB_GROUP_NAME;
+import static com.kevinguanchedarias.owgejava.business.MissionBo.RUNNING_UPGRADE_CHANGE;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
@@ -142,6 +145,8 @@ class MissionBoTest {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MissionBaseService missionBaseService;
     private final MissionCancelBuildService missionCancelBuildService;
+    private final AsyncRunnerBo asyncRunnerBo;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
     @Autowired
     public MissionBoTest(
@@ -172,7 +177,9 @@ class MissionBoTest {
             UserStorageRepository userStorageRepository,
             MissionEventEmitterBo missionEventEmitterBo,
             MissionBaseService missionBaseService,
-            MissionCancelBuildService missionCancelBuildService
+            MissionCancelBuildService missionCancelBuildService,
+            AsyncRunnerBo asyncRunnerBo,
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -203,6 +210,8 @@ class MissionBoTest {
         this.userStorageRepository = userStorageRepository;
         this.missionEventEmitterBo = missionEventEmitterBo;
         this.missionCancelBuildService = missionCancelBuildService;
+        this.asyncRunnerBo = asyncRunnerBo;
+        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
     }
 
     @Test
@@ -421,6 +430,61 @@ class MissionBoTest {
         verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
     }
 
+    @ParameterizedTest
+    @MethodSource("findRunningLevelUpMission_should_work_arguments")
+    void findRunningLevelUpMission_should_work(Improvement improvement, int timesHibernateInitialize) {
+        var or = givenObjectRelation();
+        var mission = givenUpgradeMission(or);
+        var information = MissionInformation.builder().relation(or).value(4D).build();
+        var upgrade = givenUpgrade();
+        upgrade.setImprovement(improvement);
+        mission.setMissionInformation(information);
+        given(missionRepository.findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name())).willReturn(mission);
+        given(objectRelationBo.unboxObjectRelation(or)).willReturn(upgrade);
+        try (var mockStatic = mockStatic(Hibernate.class)) {
+            var retVal = missionBo.findRunningLevelUpMission(USER_ID_1);
+
+            mockStatic.verify(() -> Hibernate.initialize(improvement), times(timesHibernateInitialize));
+            assertThat(retVal.getUpgrade().getId()).isEqualTo(UPGRADE_ID);
+            assertThat(retVal.getMissionId()).isEqualTo(UPGRADE_MISSION_ID);
+        }
+
+    }
+
+    @Test
+    void findRunningLevelUpMission_should_return_null_on_null() {
+        var retVal = missionBo.findRunningLevelUpMission(USER_ID_1);
+
+        verify(missionRepository, times(1)).findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name());
+        assertThat(retVal).isNull();
+        verifyNoInteractions(objectRelationBo);
+    }
+
+    @Test
+    void cancelUpgradeMission_should_work() {
+        var or = givenObjectRelation();
+        var mission = givenUpgradeMission(or);
+        var userMock = mock(UserStorage.class);
+        mission.setUser(userMock);
+        var socketAnswer = new InvokeSupplierLambdaAnswer<>(2);
+        given(userMock.getId()).willReturn(USER_ID_1);
+        given(missionRepository.findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name())).willReturn(mission);
+        given(userStorageBo.findLoggedIn()).willReturn(userMock);
+        given(missionTypeBo.resolve(mission)).willReturn(MissionType.LEVEL_UP);
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(socketAnswer).when(socketIoService).sendMessage(eq(USER_ID_1), eq(RUNNING_UPGRADE_CHANGE), any());
+
+        missionBo.cancelUpgradeMission(USER_ID_1);
+
+        verify(userMock, times(1)).addtoPrimary(MISSION_PR);
+        verify(userMock, times(1)).addToSecondary(MISSION_SR);
+        verify(userStorageBo, times(1)).save(userMock);
+        verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
+        verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(RUNNING_UPGRADE_CHANGE), any());
+        assertThat(socketAnswer.getResult()).isNull();
+    }
+
     @Test
     void processLevelUpAnUpgrade_should_do_nothing_if_no_mission(CapturedOutput capturedOutput) {
         missionBo.processLevelUpAnUpgrade(UPGRADE_MISSION_ID);
@@ -468,6 +532,7 @@ class MissionBoTest {
         var buildMission = givenBuildMission();
         var sourcePlanet = givenSourcePlanet();
         var ou = givenObtainedUnit1();
+        var user = buildMission.getUser();
         var runningMissionsCount = 92;
         ou.setSourcePlanet(null);
         ou.getUnit().setImprovement(improvement);
@@ -477,6 +542,7 @@ class MissionBoTest {
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID)), any());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any(), eq(500L));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningMissionsCount);
 
         missionBo.processBuildUnit(BUILD_MISSION_ID);
@@ -493,6 +559,7 @@ class MissionBoTest {
         );
         verify(missionEventEmitterBo, times(1)).emitUnitBuildChange(USER_ID_1);
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
+        verify(obtainedUnitEventEmitter, times(1)).emitObtainedUnits(user);
     }
 
     @Test
@@ -539,6 +606,7 @@ class MissionBoTest {
         given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(mission));
         given(userStorageRepository.findOneByMissions(mission)).willReturn(user);
         given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(missionTypeBo.resolve(mission)).willReturn(MissionType.BUILD_UNIT);
 
         missionBo.cancelBuildUnit(BUILD_MISSION_ID);
 
@@ -565,6 +633,13 @@ class MissionBoTest {
         return Stream.of(
                 Arguments.of(givenUser2()),
                 Arguments.of((Object) null)
+        );
+    }
+
+    private static Stream<Arguments> findRunningLevelUpMission_should_work_arguments() {
+        return Stream.of(
+                Arguments.of(givenImprovement(), 1),
+                Arguments.of(null, 0)
         );
     }
 }

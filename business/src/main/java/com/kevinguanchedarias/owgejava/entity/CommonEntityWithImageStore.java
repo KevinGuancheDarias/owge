@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.FetchType;
@@ -15,6 +16,7 @@ import java.io.Serializable;
  */
 @MappedSuperclass
 @ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class CommonEntityWithImageStore<K extends Serializable> extends CommonEntity<K> {
     @Serial
     private static final long serialVersionUID = -5307305337524410867L;

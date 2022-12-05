@@ -50,13 +50,8 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
      */
     Integer countByUserIdAndResolvedFalse(Integer userId);
 
-    /**
-     * Finds missions
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.9
-     */
-    List<Mission> findByTerminationDateNotNullAndTerminationDateLessThanAndResolvedFalse(LocalDateTime date);
+    @Query("SELECT m FROM Mission m WHERE m.terminationDate IS NOT NULL AND  m.terminationDate < ?1 AND m.resolved = false ")
+    List<Mission> findHangMissions(LocalDateTime terminationDate);
 
     /**
      * Delete by resolved true and termination date less than.

@@ -24,7 +24,6 @@ import java.util.List;
 @Primary
 public class NonPostConstructUnitMissionBo extends UnitMissionBo {
 
-
     public NonPostConstructUnitMissionBo(
             PlanetLockUtilService planetLockUtilService, UnitMissionRegistrationBo unitMissionRegistrationBo,
             ReturnMissionRegistrationBo returnMissionRegistrationBo, PlanetRepository planetRepository,
@@ -39,5 +38,9 @@ public class NonPostConstructUnitMissionBo extends UnitMissionBo {
     @Override
     public void init() {
         // Skip init
+    }
+
+    public void invokeRealInit() {
+        super.init();
     }
 }

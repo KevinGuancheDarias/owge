@@ -21,6 +21,9 @@ public class MissionMock {
     public static final long UPGRADE_MISSION_ID = 11832;
     public static final double UPGRADE_MISSION_LEVEL = 7;
 
+    public static final double MISSION_PR = 220D;
+    public static final double MISSION_SR = 190D;
+
     public static Mission givenBuildMission() {
         var mission = new Mission();
         mission.setId(BUILD_MISSION_ID);
@@ -114,12 +117,15 @@ public class MissionMock {
 
     public static Mission givenUpgradeMission(ObjectRelation objectRelation) {
         var missionInformation = MissionInformation.builder()
-                .id(UPGRADE_MISSION_ID)
                 .relation(objectRelation)
                 .value(UPGRADE_MISSION_LEVEL)
                 .build();
         return Mission.builder()
+                .id(UPGRADE_MISSION_ID)
+                .primaryResource(MISSION_PR)
+                .secondaryResource(MISSION_SR)
                 .missionInformation(missionInformation)
+                .type(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.LEVEL_UP))
                 .build();
     }
 }

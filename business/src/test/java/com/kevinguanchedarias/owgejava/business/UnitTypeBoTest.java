@@ -1,13 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.mission.checker.EntityCanDoMissionChecker;
-import com.kevinguanchedarias.owgejava.entity.Faction;
-import com.kevinguanchedarias.owgejava.entity.FactionUnitType;
-import com.kevinguanchedarias.owgejava.entity.Improvement;
-import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementChangeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.ImprovementTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
@@ -17,6 +15,7 @@ import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeBiConsumerLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -40,6 +39,7 @@ import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,7 +66,6 @@ class UnitTypeBoTest {
     private static final int SECOND_UNIT_TYPE_ID = 11811;
 
     private final UnitTypeBo unitTypeBo;
-    private final UnitTypeRepository repository;
     private final UserStorageRepository userStorageRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ImprovementBo improvementBo;
@@ -79,7 +78,6 @@ class UnitTypeBoTest {
     @Autowired
     UnitTypeBoTest(
             UnitTypeBo unitTypeBo,
-            UnitTypeRepository repository,
             UserStorageRepository userStorageRepository,
             ObtainedUnitRepository obtainedUnitRepository,
             ImprovementBo improvementBo,
@@ -90,7 +88,6 @@ class UnitTypeBoTest {
             FactionUnitTypeRepository factionUnitTypeRepository
     ) {
         this.unitTypeBo = unitTypeBo;
-        this.repository = repository;
         this.userStorageRepository = userStorageRepository;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.improvementBo = improvementBo;
@@ -150,7 +147,7 @@ class UnitTypeBoTest {
             assertThat(unitTypeResponse).isSameAs(unitTypeResponseMock);
         }
     }
-    
+
     @SuppressWarnings("ConstantConditions")
     @ParameterizedTest
     @CsvSource({
@@ -172,6 +169,49 @@ class UnitTypeBoTest {
         verify(entityCanDoMissionChecker, atLeastOnce()).canDoMission(eq(user), eq(targetPlanet), or(eq(firstUnitType), eq(secondUnitType)), eq(missionType));
     }
 
+    @ParameterizedTest
+    @MethodSource("checkWouldReachUnitTypeLimit_should_work_arguments")
+    void checkWouldReachUnitTypeLimit_should_work(
+            UnitType shareCountRoot,
+            UnitType unitTypeUsedForCount,
+            Long countByUserAndUnitType,
+            Long countByUserAndSharedCountUnitType,
+            Long expectedComputeMaxCount
+    ) {
+        var user = givenUser1();
+        var faction = givenFaction();
+        user.setFaction(faction);
+        var unitType = givenUnitType();
+        unitType.setShareMaxCount(shareCountRoot);
+        given(unitTypeRepository.findById(UNIT_TYPE_ID)).willReturn(Optional.of(unitType));
+        if (shareCountRoot != null) {
+            given(unitTypeRepository.findById(shareCountRoot.getId())).willReturn(Optional.of(shareCountRoot));
+        }
+        given(obtainedUnitRepository.countByUserAndUnitType(user, unitTypeUsedForCount)).willReturn(countByUserAndUnitType);
+        given(obtainedUnitRepository.countByUserAndSharedCountUnitType(user, unitTypeUsedForCount)).willReturn(countByUserAndSharedCountUnitType);
+        given(improvementBo.findUserImprovement(user)).willReturn(mock(GroupedImprovement.class));
+        given(improvementBo.computeImprovementValue(anyDouble(), anyDouble())).willReturn(Double.valueOf(expectedComputeMaxCount));
+
+        unitTypeBo.checkWouldReachUnitTypeLimit(user, UNIT_TYPE_ID, 2L);
+    }
+
+    @Test
+    void checkWouldReachUnitTypeLimit_should_throw() {
+        var user = givenUser1();
+        var faction = givenFaction();
+        user.setFaction(faction);
+        var unitType = givenUnitType();
+        unitType.setMaxCount(5L);
+        given(unitTypeRepository.findById(UNIT_TYPE_ID)).willReturn(Optional.of(unitType));
+        given(obtainedUnitRepository.countByUserAndUnitType(user, unitType)).willReturn(50L);
+        given(improvementBo.findUserImprovement(user)).willReturn(mock(GroupedImprovement.class));
+        given(improvementBo.computeImprovementValue(anyDouble(), anyDouble())).willReturn(Double.valueOf(5L));
+
+        assertThatThrownBy(() -> unitTypeBo.checkWouldReachUnitTypeLimit(user, UNIT_TYPE_ID, 3L))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("try outside of Spain");
+    }
+
     private static Stream<Arguments> init_should_work_arguments() {
         var faction = givenFaction();
         return Stream.of(
@@ -180,6 +220,17 @@ class UnitTypeBoTest {
                         givenImprovementUnitType(ImprovementTypeEnum.AMOUNT), 1, faction, givenFactionUnitType(), 30L, 1, 5L, false
                 ),
                 Arguments.of(givenImprovementUnitType(ImprovementTypeEnum.AMOUNT), 1, faction, null, 0L, 0, 0L, true)
+        );
+    }
+
+    private static Stream<Arguments> checkWouldReachUnitTypeLimit_should_work_arguments() {
+        var shareCountRoot = givenUnitType(149);
+        shareCountRoot.setMaxCount(40L);
+        var unitType = givenUnitType();
+        return Stream.of(
+                Arguments.of(null, unitType, 2L, 2L, 10L),
+                Arguments.of(shareCountRoot, shareCountRoot, 2L, 2L, 10L),
+                Arguments.of(null, unitType, null, null, 10L)
         );
     }
 }

@@ -16,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ObtainedUnitEventEmitter {
     public static final String UNIT_OBTAINED_CHANGE = "unit_obtained_change";
+    public static final String UNIT_TYPE_CHANGE = "unit_type_change";
 
     private final TransactionUtilService transactionUtilService;
     private final SocketIoService socketIoService;
@@ -38,16 +39,22 @@ public class ObtainedUnitEventEmitter {
      */
     public void emitSideChanges(List<ObtainedUnit> obtainedUnits) {
         if (!obtainedUnits.isEmpty()) {
-            UserStorage user = obtainedUnits.get(0).getUser();
-            Integer userId = user.getId();
+            var user = obtainedUnits.get(0).getUser();
+            var userId = user.getId();
 
-            if (obtainedUnits.stream().anyMatch(unit -> unit.getUnit().getEnergy() > 0)) {
+            if (isOneUnitHavingEnergy(obtainedUnits)) {
                 asyncRunnerBo.runAssyncWithoutContextDelayed(() -> userEventEmitterBo.emitUserData(user));
             }
             asyncRunnerBo.runAssyncWithoutContextDelayed(() ->
-                    socketIoService.sendMessage(userId, "unit_type_change", () -> unitTypeBo.findUnitTypesWithUserInfo(userId))
+                    socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> unitTypeBo.findUnitTypesWithUserInfo(userId))
             );
             emitObtainedUnits(user);
         }
+    }
+
+    private static boolean isOneUnitHavingEnergy(List<ObtainedUnit> obtainedUnits) {
+        return obtainedUnits.stream()
+                .map(obtainedUnit -> obtainedUnit.getUnit().getEnergy())
+                .anyMatch(energy -> energy != null && energy > 0);
     }
 }

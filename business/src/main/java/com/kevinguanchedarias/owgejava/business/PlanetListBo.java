@@ -19,6 +19,8 @@ import java.util.List;
 @AllArgsConstructor
 public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
 
+    public static final String PLANET_USER_LIST_CHANGE = "planet_user_list_change";
+
     private final PlanetRepository planetRepository;
     private final PlanetListRepository repository;
     private final SocketIoService socketIoService;
@@ -53,13 +55,12 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
      * @since 0.9.0
      */
     public void myAdd(Long planetId, String name) {
-        UserStorage user = userStorageBo.findLoggedInWithDetails();
-        PlanetList planetList = new PlanetList();
+        var user = userStorageBo.findLoggedInWithReference();
+        var planetList = new PlanetList();
         planetList.setPlanetUser(new PlanetUser(user, SpringRepositoryUtil.findByIdOrDie(planetRepository, planetId)));
         planetList.setName(name);
         repository.save(planetList);
         emitChangeToUser(user);
-
     }
 
     /**
@@ -87,6 +88,6 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
     }
 
     private void emitChangeToUser(Integer userId) {
-        socketIoService.sendMessage(userId, "planet_user_list_change", () -> findByUserId(userId));
+        socketIoService.sendMessage(userId, PLANET_USER_LIST_CHANGE, () -> findByUserId(userId));
     }
 }

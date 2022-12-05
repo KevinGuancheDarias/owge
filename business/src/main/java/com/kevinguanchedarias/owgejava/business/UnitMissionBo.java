@@ -252,8 +252,8 @@ public class UnitMissionBo {
         if (!isDeployMission || !planetRepository.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
             missionBaseService.checkMissionLimitNotReached(user);
         }
-        UnitMissionInformation targetMissionInformation = copyMissionInformation(missionInformation);
-        Integer userId = user.getId();
+        var targetMissionInformation = copyMissionInformation(missionInformation);
+        var userId = user.getId();
         targetMissionInformation.setUserId(userId);
         if (missionType != MissionType.EXPLORE
                 && !planetExplorationService.isExplored(userId, missionInformation.getTargetPlanetId())) {
@@ -274,7 +274,7 @@ public class UnitMissionBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private UnitMissionInformation copyMissionInformation(UnitMissionInformation missionInformation) {
-        UnitMissionInformation retVal = new UnitMissionInformation();
+        var retVal = new UnitMissionInformation();
         BeanUtils.copyProperties(missionInformation, retVal);
         return retVal;
     }

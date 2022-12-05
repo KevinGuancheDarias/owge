@@ -1,18 +1,35 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.entity.Alliance;
+import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.mock.ConfigurationMock;
 import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.AdditionalAnswers;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static com.kevinguanchedarias.owgejava.mock.AllianceMock.givenAlliance;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
+import java.util.List;
+import java.util.Optional;
+
+import static com.kevinguanchedarias.owgejava.mock.AllianceMock.*;
+import static com.kevinguanchedarias.owgejava.mock.ConfigurationMock.givenConfigurationFalse;
+import static com.kevinguanchedarias.owgejava.mock.ConfigurationMock.givenConfigurationTrue;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -28,10 +45,112 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 class AllianceBoTest {
     private final AllianceBo allianceBo;
+    private final AllianceRepository allianceRepository;
+    private final UserStorageBo userStorageBo;
+    private final AllianceJoinRequestRepository allianceJoinRequestRepository;
+    private final ConfigurationBo configurationBo;
+    private final AuditBo auditBo;
 
     @Autowired
-    AllianceBoTest(AllianceBo allianceBo) {
+    AllianceBoTest(
+            AllianceBo allianceBo,
+            AllianceRepository allianceRepository,
+            UserStorageBo userStorageBo,
+            AllianceJoinRequestRepository allianceJoinRequestRepository,
+            ConfigurationBo configurationBo,
+            AuditBo auditBo
+    ) {
         this.allianceBo = allianceBo;
+        this.allianceRepository = allianceRepository;
+        this.userStorageBo = userStorageBo;
+        this.allianceJoinRequestRepository = allianceJoinRequestRepository;
+        this.configurationBo = configurationBo;
+        this.auditBo = auditBo;
+    }
+
+    @Test
+    void delete_should_work() {
+        var alliance = givenAlliance();
+
+        allianceBo.delete(alliance);
+
+        verify(userStorageBo, times(1)).defineAllianceByAllianceId(ALLIANCE_ID, null);
+        verify(allianceRepository, times(1)).delete(alliance);
+    }
+
+    @Test
+    void save_should_throw_when_alliances_are_disabled() {
+        var alliance = givenAlliance();
+        given(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE")).willReturn(givenConfigurationTrue());
+
+        assertThatThrownBy(() -> allianceBo.save(alliance, USER_ID_1))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("while the idea is nice");
+    }
+
+    @Test
+    void save_should_throw_when_creator_has_already_an_alliance() {
+        var alliance = givenAlliance();
+        alliance.setId(null);
+        given(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE")).willReturn(givenConfigurationFalse());
+        var user = givenUser1();
+        user.setAlliance(givenAlliance(24));
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+
+        assertThatThrownBy(() -> allianceBo.save(alliance, USER_ID_1))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("already have an alliance");
+
+    }
+
+    @Test
+    void save_should_throw_when_invoker_is_not_owner() {
+        var alliance = givenAlliance();
+        var user = givenUser1();
+        alliance.setOwner(givenUser2());
+        given(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE")).willReturn(givenConfigurationFalse());
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(allianceRepository.save(alliance)).willReturn(alliance);
+        given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
+
+        testThrowsOwnerInvalid(() -> allianceBo.save(alliance, USER_ID_1));
+    }
+
+    @Test
+    void save_should_properly_handle_new_save() {
+        var alliance = givenAlliance();
+        alliance.setId(null);
+        given(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE")).willReturn(givenConfigurationFalse());
+        var user = givenUser1();
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(allianceRepository.save(alliance)).willReturn(alliance);
+
+        var retVal = allianceBo.save(alliance, USER_ID_1);
+
+        var captor = ArgumentCaptor.forClass(Alliance.class);
+        verify(allianceRepository, times(1)).save(captor.capture());
+        assertThat(captor.getValue()).isSameAs(retVal);
+        assertThat(retVal.getOwner()).isEqualTo(user);
+        assertThat(user.getAlliance()).isEqualTo(retVal);
+        verify(userStorageBo, times(1)).save(user);
+    }
+
+    @Test
+    void save_should_properly_handle_update_save() {
+        var alliance = givenAlliance();
+        var user = givenUser1();
+        alliance.setOwner(user);
+        var allianceSpy = spy(alliance);
+        given(configurationBo.findOrSetDefault("DISABLED_FEATURE_ALLIANCE", "FALSE")).willReturn(givenConfigurationFalse());
+        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(allianceRepository.save(alliance)).willReturn(allianceSpy);
+        given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(allianceSpy));
+
+        var retVal = allianceBo.save(alliance, USER_ID_1);
+
+        verify(allianceSpy, times(1)).setName(ALLIANCE_NAME);
+        verify(allianceSpy, times(1)).setDescription(ALLIANCE_DESCRIPTION);
+        assertThat(retVal).isSameAs(allianceSpy);
     }
 
     @Test
@@ -78,5 +197,146 @@ class AllianceBoTest {
         var targetUser = givenUser1();
 
         assertThat(allianceBo.areEnemies(sourceUser, targetUser)).isFalse();
+    }
+
+    @Test
+    void requestJoin_should_work() {
+        var alliance = givenAlliance();
+        var user = givenUser1();
+        given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
+        given(userStorageBo.findByIdOrDie(USER_ID_1)).willReturn(user);
+        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(AdditionalAnswers.returnsFirstArg());
+
+        var retVal = allianceBo.requestJoin(ALLIANCE_ID, USER_ID_1);
+
+        var captor = ArgumentCaptor.forClass(AllianceJoinRequest.class);
+        verify(allianceJoinRequestRepository, times(1)).save(captor.capture());
+        var saved = captor.getValue();
+        assertThat(saved).isSameAs(retVal);
+        assertThat(saved.getAlliance()).isEqualTo(alliance);
+        assertThat(saved.getUser()).isEqualTo(user);
+    }
+
+    @Test
+    void requestJoin_should_throw_when_invoker_already_has_alliance() {
+        var alliance = givenAlliance();
+        var user = givenUser1();
+        user.setAlliance(givenAlliance(24));
+        given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
+        given(userStorageBo.findByIdOrDie(USER_ID_1)).willReturn(user);
+        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(AdditionalAnswers.returnsFirstArg());
+
+        assertThatThrownBy(() -> allianceBo.requestJoin(ALLIANCE_ID, USER_ID_1))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("nice try");
+    }
+
+    @Test
+    void acceptJoin_should_throw_when_not_owner() {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        alliance.setOwner(givenUser2());
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+
+        testThrowsOwnerInvalid(() -> allianceBo.acceptJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "100,7,14",
+            "100,0,5",
+            "1000,7,16"
+    })
+    void acceptJoin_should_throw_when_limit_reached(long userCount, String percentage, int countByAlliance) {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        var user = request.getUser();
+        alliance.setOwner(user);
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+        given(userStorageBo.countAll()).willReturn(userCount);
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7")).willReturn(ConfigurationMock.givenConfiguration(percentage));
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15")).willReturn(ConfigurationMock.givenConfiguration("15"));
+        given(userStorageBo.countByAlliance(alliance)).willReturn(countByAlliance);
+
+        assertThatThrownBy(() -> allianceBo.acceptJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessage("I18N_ERR_ALLIANCE_IS_FULL");
+    }
+
+    @Test
+    void acceptJoin_should_work() {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        var user = givenUser1();
+        int requesterId = 190;
+        var requester = givenUser(requesterId);
+        alliance.setUsers(List.of(user));
+        request.setUser(requester);
+        alliance.setOwner(user);
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7")).willReturn(ConfigurationMock.givenConfiguration("7"));
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15")).willReturn(ConfigurationMock.givenConfiguration("15"));
+        given(userStorageBo.countAll()).willReturn(1000L);
+
+        allianceBo.acceptJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1);
+
+        assertThat(requester.getAlliance()).isEqualTo(alliance);
+        verify(auditBo, times(1)).nonRequestAudit(AuditActionEnum.USER_INTERACTION, "JOIN_ALLIANCE", requester, USER_ID_1);
+        verify(auditBo, times(1)).doAudit(AuditActionEnum.ACCEPT_JOIN_ALLIANCE, null, requesterId);
+        verify(userStorageBo, times(1)).save(requester);
+        verify(allianceJoinRequestRepository, times(1)).deleteByUser(requester);
+    }
+
+    @Test
+    void acceptJoin_should_ignore_and_just_delete_the_request_when_requester_already_has_an_alliance() {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        var user = givenUser1();
+        int requesterId = 190;
+        var requester = givenUser(requesterId);
+        requester.setAlliance(givenAlliance(232));
+        alliance.setUsers(List.of(user));
+        request.setUser(requester);
+        alliance.setOwner(user);
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7")).willReturn(ConfigurationMock.givenConfiguration("7"));
+        given(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15")).willReturn(ConfigurationMock.givenConfiguration("15"));
+        given(userStorageBo.countAll()).willReturn(1000L);
+
+        allianceBo.acceptJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1);
+
+        verifyNoInteractions(auditBo);
+        verify(userStorageBo, never()).save(any(UserStorage.class));
+        verify(allianceJoinRequestRepository, times(1)).delete(request);
+    }
+
+    @Test
+    void rejectJoin_should_throw_when_invoker_is_not_owner() {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        alliance.setOwner(givenUser2());
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+
+        testThrowsOwnerInvalid(() -> allianceBo.rejectJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1));
+
+        verify(allianceJoinRequestRepository, never()).delete(any(AllianceJoinRequest.class));
+    }
+
+    @Test
+    void rejectJoin_should_work() {
+        var request = givenAllianceJoinRequest();
+        var alliance = request.getAlliance();
+        alliance.setOwner(givenUser1());
+        given(allianceJoinRequestRepository.findById(ALLIANCE_JOIN_REQUEST_ID)).willReturn(Optional.of(request));
+
+        allianceBo.rejectJoin(ALLIANCE_JOIN_REQUEST_ID, USER_ID_1);
+
+        verify(allianceJoinRequestRepository, times(1)).delete(request);
+    }
+
+    private void testThrowsOwnerInvalid(Runnable action) {
+        assertThatThrownBy(action::run)
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("try hacking the owner account");
     }
 }

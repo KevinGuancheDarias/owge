@@ -57,7 +57,7 @@ public class MissionRegistrationObtainedUnitLoader {
             }
             retVal.put(current.getId(), currentObtainedUnit);
         });
-        missionRegistrationOrphanMissionEraser.doMarkAsDeletedOrphanMissions(deletedMissions);
+        missionRegistrationOrphanMissionEraser.doMarkAsDeletedTheOrphanMissions(deletedMissions);
 
         return retVal;
     }

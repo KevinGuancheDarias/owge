@@ -282,7 +282,6 @@ public class MissionBo {
     public void cancelUpgradeMission(Integer userId) {
         cancelMission(missionRepository.findOneByUserIdAndTypeCode(userId, MissionType.LEVEL_UP.name()));
         socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, () -> null);
-        emitMissionCountChange(userId);
     }
 
     @Transactional
@@ -361,18 +360,17 @@ public class MissionBo {
         if (mission == null) {
             throw new MissionNotFoundException("The mission was not found, or was not passed to cancelMission()");
         }
-        var missionUser = userStorageRepository.findOneByMissions(mission);
+        var missionUser = mission.getUser();
         var loggedInUser = userStorageBo.findLoggedIn();
         if (missionUser != null && missionUser.getId().equals(loggedInUser.getId())) {
-            switch (MissionType.valueOf(mission.getType().getCode())) {
-                case BUILD_UNIT -> missionCancelBuildService.cancel(mission);
-                case LEVEL_UP -> {
-                    missionUser.addtoPrimary(mission.getPrimaryResource());
-                    missionUser.addToSecondary(mission.getSecondaryResource());
-                    userStorageBo.save(missionUser);
-                    emitUserAfterCommit(missionUser.getId());
-                }
-                default -> throw new CommonException("No such mission type " + mission.getType().getCode());
+            var missionType = missionTypeBo.resolve(mission);
+            if (missionType == MissionType.BUILD_UNIT) {
+                missionCancelBuildService.cancel(mission);
+            } else {
+                missionUser.addtoPrimary(mission.getPrimaryResource());
+                missionUser.addToSecondary(mission.getSecondaryResource());
+                userStorageBo.save(missionUser);
+                emitUserAfterCommit(missionUser.getId());
             }
         } else {
             throw new CommonException(

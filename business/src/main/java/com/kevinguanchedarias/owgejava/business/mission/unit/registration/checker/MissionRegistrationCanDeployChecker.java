@@ -42,7 +42,7 @@ public class MissionRegistrationCanDeployChecker {
      * @since 0.7.4
      */
     public void checkUnitCanDeploy(ObtainedUnit currentObtainedUnit, UnitMissionInformation missionInformation) {
-        MissionType unitMissionType = missionTypeBo.resolve(currentObtainedUnit.getMission());
+        var unitMissionType = missionTypeBo.resolve(currentObtainedUnit.getMission());
         boolean isOfUserProperty = planetRepository.isOfUserProperty(missionInformation.getUserId(),
                 missionInformation.getTargetPlanetId());
         var deployConfiguration = configurationBo.findDeployMissionConfiguration();

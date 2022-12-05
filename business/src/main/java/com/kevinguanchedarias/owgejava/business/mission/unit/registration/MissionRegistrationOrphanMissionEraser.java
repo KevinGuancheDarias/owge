@@ -17,7 +17,7 @@ public class MissionRegistrationOrphanMissionEraser {
     private final ObtainedUnitRepository obtainedUnitRepository;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public void doMarkAsDeletedOrphanMissions(Set<Mission> deletedMissions) {
+    public void doMarkAsDeletedTheOrphanMissions(Set<Mission> deletedMissions) {
         List<ObtainedUnit> unitsInMissionsAfterDelete = obtainedUnitRepository
                 .findByMissionIdIn(deletedMissions.stream().map(Mission::getId).toList());
         deletedMissions.stream().filter(mission -> unitsInMissionsAfterDelete.stream()

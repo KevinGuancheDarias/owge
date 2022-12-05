@@ -43,7 +43,7 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
     public SpecialLocation save(SpecialLocation entity) {
         Planet assignedPlanet = null;
         if (entity.getId() != null) {
-            SpecialLocation stored = findByIdOrDie(entity.getId());
+            var stored = findByIdOrDie(entity.getId());
             if (stored.getGalaxy() == null || !stored.getGalaxy().equals(entity.getGalaxy())) {
                 assignedPlanet = assignPlanet(entity);
                 if (stored.getAssignedPlanet() != null) {
@@ -57,7 +57,7 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
         } else {
             entity.setGalaxy(null);
         }
-        SpecialLocation saved = specialLocationRepository.save(entity);
+        var saved = specialLocationRepository.save(entity);
         if (assignedPlanet != null) {
             assignedPlanet.setSpecialLocation(saved);
             planetRepository.save(assignedPlanet);
@@ -68,7 +68,7 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
 
     @Transactional
     public void delete(SpecialLocation entity) {
-        Planet assignedPlanet = entity.getAssignedPlanet();
+        var assignedPlanet = entity.getAssignedPlanet();
         if (assignedPlanet != null) {
             planetRepository.updateSpecialLocation(assignedPlanet.getId(), null);
         }
@@ -82,7 +82,7 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
      *                        choose a random galaxy
      */
     private Planet assignPlanet(SpecialLocation specialLocation) {
-        Integer galaxyId = specialLocation.getGalaxy() != null ? specialLocation.getGalaxy().getId() : null;
+        var galaxyId = specialLocation.getGalaxy() != null ? specialLocation.getGalaxy().getId() : null;
         if (galaxyId != null) {
             return planetBo.findRandomPlanet(galaxyId.equals(0) ? null : galaxyId);
         } else {
