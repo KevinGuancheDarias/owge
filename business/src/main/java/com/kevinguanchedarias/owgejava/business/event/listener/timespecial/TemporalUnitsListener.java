@@ -1,9 +1,9 @@
 package com.kevinguanchedarias.owgejava.business.event.listener.timespecial;
 
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -12,6 +12,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import lombok.AllArgsConstructor;
@@ -23,11 +24,7 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveTemporalUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID;
@@ -36,11 +33,12 @@ import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.Tim
 @AllArgsConstructor
 @Slf4j
 public class TemporalUnitsListener {
-    private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
     private final RuleBo ruleBo;
     private final UnitRepository unitRepository;
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final ScheduledTasksManagerService scheduledTasksManagerService;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -78,11 +76,11 @@ public class TemporalUnitsListener {
 
             ouList.forEach(ou -> ou.setExpirationId(temporalInformation.getId()));
             scheduleTask(temporalInformation);
-            obtainedUnitBo.save(ouList.stream().toList());
+            obtainedUnitRepository.saveAll(ouList.stream().toList());
             isChanged.set(true);
         });
         if (isChanged.get()) {
-            obtainedUnitBo.emitObtainedUnitChange(user.getId());
+            obtainedUnitEventEmitter.emitObtainedUnits(user);
         }
     }
 

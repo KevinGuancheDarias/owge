@@ -2,7 +2,7 @@ package com.kevinguanchedarias.owgejava.business.mission.attack.listener;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterAttackEndListener;
 import com.kevinguanchedarias.owgejava.business.mission.attack.listenerdef.AfterUnitKilledCalculationListener;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;

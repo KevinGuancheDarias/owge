@@ -1,15 +1,9 @@
 package com.kevinguanchedarias.owgejava.mock;
 
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.MissionInformation;
-import com.kevinguanchedarias.owgejava.entity.MissionType;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.*;
 import lombok.experimental.UtilityClass;
 
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 
 @UtilityClass
@@ -21,9 +15,14 @@ public class MissionMock {
     public static final long CONQUEST_MISSION_ID = 2490;
     public static final long GATHER_MISSION_ID = 49281;
     public static final long EXPLORE_MISSION_ID = 1428;
+    public static final long RETURN_MISSION_ID = 817271;
+    public static final long ESTABLISH_BASE_MISSION_ID = 1836234;
     public static final long DEPLOY_MISSION_ID = 1899;
     public static final long UPGRADE_MISSION_ID = 11832;
     public static final double UPGRADE_MISSION_LEVEL = 7;
+
+    public static final double MISSION_PR = 220D;
+    public static final double MISSION_SR = 190D;
 
     public static Mission givenBuildMission() {
         var mission = new Mission();
@@ -67,6 +66,13 @@ public class MissionMock {
         return mission;
     }
 
+    public static Mission givenEstablishBaseMission() {
+        var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
+        mission.setId(ESTABLISH_BASE_MISSION_ID);
+        mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.ESTABLISH_BASE));
+        return mission;
+    }
+
     public static Mission givenGatherMission() {
         var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
         mission.setId(GATHER_MISSION_ID);
@@ -102,14 +108,24 @@ public class MissionMock {
         return mission;
     }
 
+    public static Mission givenReturnMission() {
+        var mission = givenRawMission(givenSourcePlanet(), givenTargetPlanet());
+        mission.setId(RETURN_MISSION_ID);
+        mission.setType(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.RETURN_MISSION));
+        return mission;
+    }
+
     public static Mission givenUpgradeMission(ObjectRelation objectRelation) {
         var missionInformation = MissionInformation.builder()
-                .id(UPGRADE_MISSION_ID)
                 .relation(objectRelation)
                 .value(UPGRADE_MISSION_LEVEL)
                 .build();
         return Mission.builder()
+                .id(UPGRADE_MISSION_ID)
+                .primaryResource(MISSION_PR)
+                .secondaryResource(MISSION_SR)
                 .missionInformation(missionInformation)
+                .type(givenMissionType(com.kevinguanchedarias.owgejava.enumerations.MissionType.LEVEL_UP))
                 .build();
     }
 }

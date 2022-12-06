@@ -1,26 +1,21 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.util.Date;
-import java.util.List;
-
+import com.kevinguanchedarias.owgejava.entity.SystemMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.kevinguanchedarias.owgejava.entity.SystemMessage;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- *
- * @since 0.9.16
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.16
  */
 public interface SystemMessageRepository extends JpaRepository<SystemMessage, Integer> {
 
-	/**
-	 *
-	 * @param date
-	 * @since 0.9.16
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	List<SystemMessage> findByCreationDateLessThan(Date date);
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.16
+     */
+    List<SystemMessage> findByCreationDateLessThan(LocalDateTime date);
 
 }

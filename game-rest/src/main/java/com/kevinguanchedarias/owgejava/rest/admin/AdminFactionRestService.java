@@ -10,16 +10,13 @@ import com.kevinguanchedarias.owgejava.dto.FactionSpawnLocationDto;
 import com.kevinguanchedarias.owgejava.dto.FactionUnitTypeDto;
 import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
+import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.util.List;
@@ -34,10 +31,11 @@ import java.util.Optional;
 @RequestMapping("admin/faction")
 @AllArgsConstructor
 public class AdminFactionRestService
-        implements CrudWithImprovementsRestServiceTrait<Integer, Faction, FactionBo, FactionDto>,
-        WithImageRestServiceTrait<Integer, Faction, FactionDto, FactionBo> {
+        implements CrudWithImprovementsRestServiceTrait<Integer, Faction, FactionRepository, FactionDto>,
+        WithImageRestServiceTrait<Integer, Faction, FactionDto, FactionRepository> {
 
     private final FactionBo factionBo;
+    private final FactionRepository factionRepository;
     private final ImageStoreBo imageStoreBo;
     private final AutowireCapableBeanFactory beanFactory;
     private final FactionSpawnLocationBo factionSpawnLocationBo;
@@ -59,7 +57,7 @@ public class AdminFactionRestService
 
     @GetMapping("{factionId}/spawn-locations")
     public List<FactionSpawnLocationDto> findSpawnLocations(@PathVariable int factionId) {
-        factionBo.existsOrDie(factionId);
+        SpringRepositoryUtil.existsOrDie(factionRepository, factionId);
         return factionSpawnLocationBo.findByFaction(factionId);
     }
 
@@ -78,9 +76,9 @@ public class AdminFactionRestService
     }
 
     @Override
-    public RestCrudConfigBuilder<Integer, Faction, FactionBo, FactionDto> getRestCrudConfigBuilder() {
-        RestCrudConfigBuilder<Integer, Faction, FactionBo, FactionDto> builder = RestCrudConfigBuilder.create();
-        return builder.withBeanFactory(beanFactory).withBoService(factionBo).withDtoClass(FactionDto.class)
+    public RestCrudConfigBuilder<Integer, Faction, FactionRepository, FactionDto> getRestCrudConfigBuilder() {
+        RestCrudConfigBuilder<Integer, Faction, FactionRepository, FactionDto> builder = RestCrudConfigBuilder.create();
+        return builder.withBeanFactory(beanFactory).withRepository(factionRepository).withDtoClass(FactionDto.class)
                 .withEntityClass(Faction.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
     }

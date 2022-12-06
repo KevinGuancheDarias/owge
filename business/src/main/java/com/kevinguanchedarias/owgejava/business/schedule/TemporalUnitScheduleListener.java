@@ -1,9 +1,9 @@
 package com.kevinguanchedarias.owgejava.business.schedule;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -28,13 +28,13 @@ public class TemporalUnitScheduleListener {
     public static final String TASK_NAME = "UNIT_EXPIRED";
 
     private final ObtainedUnitRepository obtainedUnitRepository;
-    private final ObtainedUnitBo obtainedUnitBo;
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final PlanetLockUtilService planetLockUtilService;
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final MissionEventEmitterBo missionEventEmitterBo;
 
     @PostConstruct
     public void init() {
@@ -43,9 +43,9 @@ public class TemporalUnitScheduleListener {
             aggressiveLockAcquire(expirationId, () ->
                     transactionUtilService.runWithRequired(() -> {
                         var ouList = obtainedUnitRepository.findByExpirationId(expirationId);
-                        ouList.forEach(obtainedUnitBo::delete);
+                        obtainedUnitRepository.deleteAll(ouList);
                         if (!ouList.isEmpty()) {
-                            obtainedUnitBo.emitObtainedUnitChange(ouList.get(0).getUser().getId());
+                            obtainedUnitEventEmitter.emitObtainedUnits(ouList.get(0).getUser());
                             handleAffectedMissions(affectedMissions(ouList));
                         }
                         obtainedUnitTemporalInformationRepository.deleteById(expirationId);
@@ -71,9 +71,9 @@ public class TemporalUnitScheduleListener {
             @SuppressWarnings("ConstantConditions") var user = SetUtils.getFirstElement(missions).getUser();
             var affectedUsers = usersOwningPlanetsOfTargetMissions(user, missions);
             deleteNonUnitsLeftMissions(missions);
-            missionBo.emitUnitMissions(user.getId());
-            missionBo.emitMissionCountChange(user.getId());
-            affectedUsers.forEach(missionBo::emitEnemyMissionsChange);
+            missionEventEmitterBo.emitUnitMissions(user.getId());
+            missionEventEmitterBo.emitMissionCountChange(user.getId());
+            affectedUsers.forEach(missionEventEmitterBo::emitEnemyMissionsChange);
         }
     }
 

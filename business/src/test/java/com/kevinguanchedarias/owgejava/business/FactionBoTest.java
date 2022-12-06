@@ -9,9 +9,7 @@ import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.FactionRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionSpawnLocationRepository;
 import com.kevinguanchedarias.owgejava.repository.FactionUnitTypeRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import com.kevinguanchedarias.owgejava.repository.GalaxyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,15 +23,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.Collection;
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.OVERRIDE_MAX_COUNT;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
-import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenOverride;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,17 +44,15 @@ import static org.mockito.Mockito.verify;
         FactionRepository.class,
         FactionUnitTypeRepository.class,
         UnitTypeBo.class,
-        GalaxyBo.class,
         FactionSpawnLocationRepository.class,
-        TaggableCacheManager.class
+        GalaxyRepository.class
 })
-class FactionBoTest extends AbstractBaseBoTest {
+class FactionBoTest {
 
     private final FactionBo factionBo;
     private final FactionRepository factionRepository;
     private final UnitTypeBo unitTypeBo;
     private final FactionUnitTypeRepository factionUnitTypeRepository;
-    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     public FactionBoTest(
@@ -69,17 +60,13 @@ class FactionBoTest extends AbstractBaseBoTest {
             FactionRepository factionRepository,
             UnitTypeBo unitTypeBo,
             FactionUnitTypeRepository factionUnitTypeRepository,
-            GalaxyBo galaxyBo,
-            FactionSpawnLocationRepository factionSpawnLocationRepository,
             DefaultConversionService conversionService,
-            TaggableCacheManager taggableCacheManager,
             Collection<Converter<?, ?>> converters
     ) {
         this.factionBo = factionBo;
         this.factionRepository = factionRepository;
         this.unitTypeBo = unitTypeBo;
         this.factionUnitTypeRepository = factionUnitTypeRepository;
-        this.taggableCacheManager = taggableCacheManager;
         converters.forEach(conversionService::addConverter);
     }
 
@@ -173,14 +160,5 @@ class FactionBoTest extends AbstractBaseBoTest {
         assertEquals(givenFaction, result.getFaction());
         assertNull(result.getId());
         assertEquals(OVERRIDE_MAX_COUNT, result.getMaxCount());
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(FactionBo.FACTION_CACHE_TAG)
-                .targetBo(factionBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 }

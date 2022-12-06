@@ -7,12 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Builder
@@ -26,7 +21,7 @@ public class AttackInformation {
     private final Planet targetPlanet;
     private final Map<String, List<Object>> contextData = new HashMap<>();
 
-    private boolean isRemoved = false;
+    private boolean isRemoved;
     private UnitMissionReportBuilder reportBuilder;
 
     public AttackInformation(Mission attackMission, Planet targetPlanet) {

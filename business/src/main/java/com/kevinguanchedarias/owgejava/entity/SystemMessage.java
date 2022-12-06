@@ -5,17 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -39,7 +32,8 @@ public class SystemMessage implements EntityWithId<Integer> {
     private String content;
 
     @Column(name = "creation_date")
-    private Date creationDate = new Date();
+    @Builder.Default
+    private LocalDateTime creationDate = LocalDateTime.now(ZoneOffset.UTC);
 
     @OneToMany(mappedBy = "message", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<UserReadSystemMessage> usersRead;

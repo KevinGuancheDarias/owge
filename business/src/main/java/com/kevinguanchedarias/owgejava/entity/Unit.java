@@ -1,27 +1,13 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -31,7 +17,7 @@ import java.util.List;
 @EntityListeners(UnitListener.class)
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Unit extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {

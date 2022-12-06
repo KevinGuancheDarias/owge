@@ -2,14 +2,14 @@ package com.kevinguanchedarias.owgejava.rest.admin;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
 import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
-import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
 import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithRequirementGroupsRestServiceTrait;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,15 +24,13 @@ import java.util.Optional;
 @RestController
 @ApplicationScope
 @RequestMapping("admin/speed-impact-group")
+@AllArgsConstructor
 public class AdminSpeedImpactGroupRestService
-        implements CrudRestServiceTrait<Integer, SpeedImpactGroup, SpeedImpactGroupBo, SpeedImpactGroupDto>,
-        CrudWithRequirementGroupsRestServiceTrait<SpeedImpactGroup, SpeedImpactGroupBo, SpeedImpactGroupDto> {
+        implements CrudRestServiceTrait<Integer, SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto>,
+        CrudWithRequirementGroupsRestServiceTrait<SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> {
 
-    @Autowired
-    private AutowireCapableBeanFactory beanFactory;
-
-    @Autowired
-    private SpeedImpactGroupBo speedImpactGroupBo;
+    private final AutowireCapableBeanFactory beanFactory;
+    private final SpeedImpactGroupRepository SpeedImpactGroupRepository;
 
     @Override
     public ObjectEnum getObject() {
@@ -40,10 +38,10 @@ public class AdminSpeedImpactGroupRestService
     }
 
     @Override
-    public RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupBo, SpeedImpactGroupDto> getRestCrudConfigBuilder() {
-        RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupBo, SpeedImpactGroupDto> builder = RestCrudConfigBuilder
+    public RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> getRestCrudConfigBuilder() {
+        RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> builder = RestCrudConfigBuilder
                 .create();
-        return builder.withBeanFactory(beanFactory).withBoService(speedImpactGroupBo)
+        return builder.withBeanFactory(beanFactory).withRepository(SpeedImpactGroupRepository)
                 .withDtoClass(SpeedImpactGroupDto.class).withEntityClass(SpeedImpactGroup.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
     }

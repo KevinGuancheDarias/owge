@@ -24,11 +24,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -38,7 +34,6 @@ import java.util.stream.Collectors;
 public class SocketIoService {
 
     private static final String EVENT_WARN_MESSAGE = "warn_message";
-
     private static final String AUTHENTICATION = "authentication";
     private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
     private static final String USER_TOKEN_KEY = "user_token";
@@ -61,7 +56,6 @@ public class SocketIoService {
     @Autowired
     @Lazy
     private List<OwgeJwtAuthenticationFilter> authenticationFilters;
-
 
     private SocketIOServer server;
     private final ObjectMapper mapper;

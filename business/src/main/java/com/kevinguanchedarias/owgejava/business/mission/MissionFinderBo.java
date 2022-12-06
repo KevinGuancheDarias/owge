@@ -1,25 +1,28 @@
 package com.kevinguanchedarias.owgejava.business.mission;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
+import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class MissionFinderBo {
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final MissionTypeBo missionTypeBo;
+    private final PlanetRepository planetRepository;
+    private final ObjectRelationBo objectRelationBo;
 
     /**
      * finds user <b>not resolved</b> deployed mission, if none exists creates one
@@ -46,8 +49,8 @@ public class MissionFinderBo {
             obtainedUnitRepository.save(unit);
             return existingMission;
         } else {
-            final Mission deployedMission = new Mission();
-            deployedMission.setType(missionBo.findMissionType(MissionType.DEPLOYED));
+            Mission deployedMission = new Mission();
+            deployedMission.setType(missionTypeBo.find(MissionType.DEPLOYED));
             deployedMission.setUser(user);
             deployedMission.setInvolvedUnits(new ArrayList<>());
             deployedMission.getInvolvedUnits().add(unit);
@@ -67,5 +70,35 @@ public class MissionFinderBo {
                 return missionRepository.save(deployedMission);
             }
         }
+    }
+
+    public RunningUnitBuildDto findRunningUnitBuild(Integer userId, Double planetId) {
+        var mission = missionRepository.findByUserIdAndTypeCodeAndMissionInformationValue(userId, MissionType.BUILD_UNIT.name(), planetId);
+        if (mission != null) {
+            var missionInformation = mission.getMissionInformation();
+            var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+            return new RunningUnitBuildDto(unit, mission, SpringRepositoryUtil.findByIdOrDie(planetRepository, planetId.longValue()),
+                    obtainedUnitRepository.findByMissionId(mission.getId()).get(0).getCount());
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Finds all build missions for given user
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.0
+     */
+    public List<RunningUnitBuildDto> findBuildMissions(Integer userId) {
+        return missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(userId, MissionType.BUILD_UNIT.name()).stream()
+                .map(mission -> {
+                    var missionInformation = mission.getMissionInformation();
+                    var unit = (Unit) objectRelationBo.unboxObjectRelation(missionInformation.getRelation());
+                    var planet = SpringRepositoryUtil.findByIdOrDie(planetRepository, missionInformation.getValue().longValue());
+                    var findByMissionId = obtainedUnitRepository.findByMissionId(mission.getId());
+                    return new RunningUnitBuildDto(unit, mission, planet,
+                            findByMissionId.isEmpty() ? 0 : findByMissionId.get(0).getCount());
+                }).toList();
     }
 }

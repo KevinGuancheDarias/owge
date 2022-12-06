@@ -8,7 +8,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.repository.TranslatableRepository;
 import com.kevinguanchedarias.owgejava.repository.TranslatableTranslationRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -38,9 +37,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     @Autowired
     private transient DtoUtilService dtoUtilService;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
     @Override
     public Class<TranslatableDto> getDtoClass() {
         return TranslatableDto.class;
@@ -49,16 +45,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     @Override
     public JpaRepository<Translatable, Long> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return TRANSLATION_CACHE_TAG;
     }
 
     /**
@@ -72,9 +58,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     }
 
     /**
-     * @param translatableId
-     * @param langCode
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -88,9 +71,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     }
 
     /**
-     * @param translatableId
-     * @param langCode
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -111,9 +91,6 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
     }
 
     /**
-     * @param translatableDto
-     * @param translatableTranslationDto
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -135,20 +112,11 @@ public class TranslationBo implements BaseBo<Long, Translatable, TranslatableDto
         }
         translatable.setDefaultLangCode(translatable.getDefaultLangCode());
         translatable.setName(translatableDto.getName());
-        translatable = save(translatable);
+        translatable = repository.save(translatable);
         translatableTranslation.setTranslatable(translatable);
         translatableTranslation.setLangCode(translatableTranslationDto.getLangCode());
         translatableTranslation.setValue(translatableTranslationDto.getValue());
         return dtoUtilService.dtoFromEntity(TranslatableTranslationDto.class,
                 translatableTranslationRepository.save(translatableTranslation));
-    }
-
-    /**
-     * @param translationId
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public void deleteTranslation(Long translationId) {
-        translatableTranslationRepository.delete(translatableTranslationRepository.getOne(translationId));
     }
 }

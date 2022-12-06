@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
@@ -13,7 +14,6 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,9 +64,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     private transient ScheduledTasksManagerService scheduledTasksManagerService;
 
     @Autowired
-    private DtoUtilService dtoUtilService;
-
-    @Autowired
     private transient SocketIoService socketIoService;
 
     @Autowired
@@ -79,11 +76,10 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     private transient RuleRepository ruleRepository;
 
     @Autowired
-    @Lazy
-    private ObtainedUnitBo obtainedUnitBo;
+    private transient ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    private transient ApplicationEventPublisher applicationEventPublisher;
+    private transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
     @PostConstruct
     public void init() {
@@ -96,7 +92,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
                 Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
                 activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
-                save(activeTimeSpecial);
+                repository.save(activeTimeSpecial);
                 UserStorage user = activeTimeSpecial.getUser();
                 improvementBo.clearSourceCache(user, this);
                 task.setType("TIME_SPECIAL_IS_READY");
@@ -115,7 +111,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
             ActiveTimeSpecial forDelete = findById(id);
             if (forDelete != null) {
-                delete(forDelete);
+                repository.delete(forDelete);
                 emitTimeSpecialChange(forDelete.getUser());
             }
         });
@@ -189,7 +185,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             newActive.setTimeSpecial(timeSpecial);
             UserStorage user = userStorageBo.findLoggedInWithDetails();
             newActive.setUser(user);
-            newActive = save(newActive);
+            newActive = repository.save(newActive);
             improvementBo.clearSourceCache(user, this);
             ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
             scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
@@ -213,16 +209,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     @Override
     public JpaRepository<ActiveTimeSpecial, Long> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return ACTIVE_TIME_SPECIAL_CACHE_TAG;
     }
 
     /*
@@ -273,7 +259,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 activeTimeSpecial.getTimeSpecial().getId().longValue(),
                 List.of(ObjectEnum.UNIT.name(), "UNIT_TYPE")
         )) {
-            obtainedUnitBo.emitObtainedUnitChange(activeTimeSpecial.getUser().getId());
+            obtainedUnitEventEmitter.emitObtainedUnits(activeTimeSpecial.getUser());
         }
     }
 

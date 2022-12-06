@@ -5,7 +5,6 @@ import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedException;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,10 +28,7 @@ public class ObjectRelationToObjectRelationBo
     @Autowired
     @Lazy
     private transient ObjectRelationToObjectRelationRepository repository;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    
     @Override
     public Class<DtoFromEntity<ObjectRelationToObjectRelation>> getDtoClass() {
         throw new SgtBackendNotImplementedException("No DTO for now");
@@ -41,16 +37,6 @@ public class ObjectRelationToObjectRelationBo
     @Override
     public JpaRepository<ObjectRelationToObjectRelation, Integer> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return OBJECT_RELATION_TO_OBJECT_RELATION_CACHE_TAG;
     }
 
     /**

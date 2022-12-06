@@ -1,22 +1,10 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 
 @Entity
@@ -25,7 +13,9 @@ import java.io.Serial;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "obtained_upgrades")
-public class ObtainedUpgrade implements EntityWithId<Long> {
+public class ObtainedUpgrade implements EntityWithCache<Long> {
+    public static final String OBTAINED_UPGRADE_CACHE_TAG = "obtained_upgrade";
+
     @Serial
     private static final long serialVersionUID = 2859853666452009827L;
 
@@ -57,4 +47,8 @@ public class ObtainedUpgrade implements EntityWithId<Long> {
         return Boolean.TRUE.equals(available);
     }
 
+    @Override
+    public String getCacheTag() {
+        return OBTAINED_UPGRADE_CACHE_TAG;
+    }
 }

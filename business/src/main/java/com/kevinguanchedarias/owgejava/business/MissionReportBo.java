@@ -10,8 +10,8 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -46,25 +46,14 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     private static final int DAYS_TO_PRESERVE_MESSAGES = 15;
 
     private final MissionReportRepository missionReportRepository;
-    private final transient MissionBo missionBo;
     private final transient SocketIoService socketIoService;
     private final transient TransactionUtilService transactionUtilService;
     private final ObjectMapper mapper;
-    private final transient TaggableCacheManager taggableCacheManager;
+    private final MissionRepository missionRepository;
 
     @Override
     public JpaRepository<MissionReport, Long> getRepository() {
         return missionReportRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return MISSION_REPORT_CACHE_TAG;
     }
 
     /*
@@ -78,9 +67,8 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     }
 
     @Transactional
-    @Override
     public MissionReport save(MissionReport entity) {
-        MissionReport savedReport = BaseBo.super.save(entity);
+        MissionReport savedReport = missionReportRepository.save(entity);
         UserStorage user = entity.getUser();
 
         transactionUtilService.doAfterCommit(() -> emitOneToUser(savedReport, user));
@@ -119,10 +107,10 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
                 Mission mission = report.getMission();
                 if (mission != null) {
                     mission.setReport(null);
-                    missionBo.save(mission);
+                    missionRepository.save(mission);
                 }
                 affectedUsers.add(report.getUser().getId());
-                delete(report);
+                missionReportRepository.delete(report);
             });
             page++;
         } while (!reports.isEmpty());
@@ -151,7 +139,7 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
         return retVal.stream().map(current -> {
             MissionReportDto currentDto = new MissionReportDto();
             currentDto.dtoFromEntity(current);
-            currentDto.parseMission(missionBo.findOneByReportId(current.getId()));
+            currentDto.parseMission(missionRepository.findOneByReportId(current.getId()));
             return currentDto;
         }).toList();
     }

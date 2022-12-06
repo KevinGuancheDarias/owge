@@ -1,11 +1,11 @@
 package com.kevinguanchedarias.owgejava.business.mission.checker;
 
-import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionSupportEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -23,24 +23,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = EntityCanDoMissionChecker.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
-@MockBean(PlanetBo.class)
+@MockBean(PlanetRepository.class)
 class EntityCanDoMissionCheckerTest {
     private final EntityCanDoMissionChecker entityCanDoMissionChecker;
-    private final PlanetBo planetBo;
+    private final PlanetRepository planetRepository;
 
     @Autowired
-    public EntityCanDoMissionCheckerTest(EntityCanDoMissionChecker entityCanDoMissionChecker, PlanetBo planetBo) {
+    public EntityCanDoMissionCheckerTest(EntityCanDoMissionChecker entityCanDoMissionChecker, PlanetRepository planetRepository) {
         this.entityCanDoMissionChecker = entityCanDoMissionChecker;
-        this.planetBo = planetBo;
+        this.planetRepository = planetRepository;
     }
 
     @ParameterizedTest
@@ -56,10 +53,10 @@ class EntityCanDoMissionCheckerTest {
         var unitType = givenUnitType();
         unitType.setCanExplore(missionSupportEnum);
         var missionType = MissionType.EXPLORE;
-        given(planetBo.isOfUserProperty(user, targetPlanet)).willReturn(planetIsOfUserProperty);
+        given(planetRepository.isOfUserProperty(user, targetPlanet)).willReturn(planetIsOfUserProperty);
 
         assertThat(entityCanDoMissionChecker.canDoMission(user, targetPlanet, unitType, missionType)).isEqualTo(expectedResult);
-        verify(planetBo, times(isOfUserPropertyInvocations)).isOfUserProperty(user, targetPlanet);
+        verify(planetRepository, times(isOfUserPropertyInvocations)).isOfUserProperty(user, targetPlanet);
 
     }
 
@@ -88,7 +85,7 @@ class EntityCanDoMissionCheckerTest {
         assertThat(
                 entityCanDoMissionChecker.canDoMission(user, targetPlanet, unitType, missionType)
         ).isFalse();
-        verify(planetBo, never()).isOfUserProperty(any(UserStorage.class), any());
+        verify(planetRepository, never()).isOfUserProperty(any(UserStorage.class), any());
     }
 
     private static Stream<Arguments> canDoMission_should_work_arguments() {

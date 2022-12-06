@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -31,24 +32,13 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.ACTIVE_TIME_SPECIAL_RECHARGE_TIME;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.ACTIVE_TIME_SPECICAL_ID;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_DURATION;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenActiveTimeSpecial;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -66,8 +56,8 @@ import static org.mockito.Mockito.verify;
         SocketIoService.class,
         RequirementBo.class,
         TaggableCacheManager.class,
-        ObtainedUnitBo.class,
         RuleRepository.class,
+        ObtainedUnitEventEmitter.class
 })
 @Import(SpyEventPublisherConfiguration.class)
 class ActiveTimeSpecialBoTest {
@@ -81,9 +71,9 @@ class ActiveTimeSpecialBoTest {
     private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
     private final SocketIoService socketIoService;
     private final TaggableCacheManager taggableCacheManager;
-    private final ObtainedUnitBo obtainedUnitBo;
     private final RuleRepository ruleRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
     @Autowired
     ActiveTimeSpecialBoTest(
@@ -97,9 +87,9 @@ class ActiveTimeSpecialBoTest {
             ActiveTimeSpecialRepository activeTimeSpecialRepository,
             SocketIoService socketIoService,
             TaggableCacheManager taggableCacheManager,
-            ObtainedUnitBo obtainedUnitBo,
             RuleRepository ruleRepository,
-            ApplicationEventPublisher applicationEventPublisher
+            ApplicationEventPublisher applicationEventPublisher,
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter
     ) {
         this.activeTimeSpecialBo = activeTimeSpecialBo;
         this.timeSpecialBo = timeSpecialBo;
@@ -111,7 +101,7 @@ class ActiveTimeSpecialBoTest {
         this.activeTimeSpecialRepository = activeTimeSpecialRepository;
         this.socketIoService = socketIoService;
         this.taggableCacheManager = taggableCacheManager;
-        this.obtainedUnitBo = obtainedUnitBo;
+        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.ruleRepository = ruleRepository;
         this.applicationEventPublisher = applicationEventPublisher;
     }
@@ -189,7 +179,7 @@ class ActiveTimeSpecialBoTest {
         verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
         verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
-        verify(obtainedUnitBo, times(emitUnitsTimes)).emitObtainedUnitChange(USER_ID_1);
+        verify(obtainedUnitEventEmitter, times(emitUnitsTimes)).emitObtainedUnits(user);
     }
 
     @Test
@@ -297,7 +287,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(scheduledTask.getContent()).isEqualTo(activeTimeSpecialId);
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, timeSpecial);
         verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
-        verify(obtainedUnitBo, times(emitUnitsTimes)).emitObtainedUnitChange(USER_ID_1);
+        verify(obtainedUnitEventEmitter, times(emitUnitsTimes)).emitObtainedUnits(user);
         verify(applicationEventPublisher, times(1)).publishEvent(savedActive);
     }
 
@@ -329,7 +319,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(capturedOutput.getOut()).contains("The specified time special, is already active, doing nothing");
         assertThat(result).isSameAs(activeTimeSpecial);
         verify(taggableCacheManager, never()).evictByCacheTag(any(), any());
-        verify(obtainedUnitBo, never()).emitObtainedUnitChange(any());
+        verify(obtainedUnitEventEmitter, never()).emitObtainedUnits(any());
     }
 
 }

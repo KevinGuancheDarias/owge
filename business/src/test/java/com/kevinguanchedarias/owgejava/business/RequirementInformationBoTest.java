@@ -2,8 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +31,7 @@ import static org.mockito.Mockito.verify;
         RequirementInformationRepository.class,
         TaggableCacheManager.class
 })
-class RequirementInformationBoTest extends AbstractBaseBoTest {
+class RequirementInformationBoTest {
     private final RequirementInformationBo requirementInformationBo;
     private final TaggableCacheManager taggableCacheManager;
     private final RequirementBo requirementBo;
@@ -49,15 +47,6 @@ class RequirementInformationBoTest extends AbstractBaseBoTest {
         this.taggableCacheManager = taggableCacheManager;
         this.requirementBo = requirementBo;
         this.requirementInformationRepository = requirementInformationRepository;
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(REQUIREMENT_INFORMATION_CACHE_TAG)
-                .targetBo(requirementInformationBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 
     @Test

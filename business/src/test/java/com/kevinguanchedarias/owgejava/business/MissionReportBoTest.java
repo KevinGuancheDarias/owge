@@ -9,12 +9,10 @@ import com.kevinguanchedarias.owgejava.dto.MissionReportDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;
-import com.kevinguanchedarias.owgejava.test.abstracts.AbstractBaseBoTest;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
-import com.kevinguanchedarias.owgejava.test.model.CacheTagTestModel;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,12 +28,7 @@ import java.util.Map;
 
 import static com.kevinguanchedarias.owgejava.business.MissionReportBo.EMIT_COUNT_CHANGE;
 import static com.kevinguanchedarias.owgejava.business.MissionReportBo.EMIT_NEW;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.REPORT_BODY;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.REPORT_DATE;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.REPORT_ID;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.REPORT_IS_ENEMY;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.REPORT_USER_READ_DATE;
-import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.givenReport;
+import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,10 +36,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -55,38 +45,34 @@ import static org.mockito.Mockito.verify;
 )
 @MockBean({
         MissionReportRepository.class,
-        MissionBo.class,
         SocketIoService.class,
         ObjectMapper.class,
         TransactionUtilService.class,
-        TaggableCacheManager.class
+        MissionRepository.class
 })
-class MissionReportBoTest extends AbstractBaseBoTest {
+class MissionReportBoTest {
     private final MissionReportBo missionReportBo;
     private final MissionReportRepository missionReportRepository;
-    private final MissionBo missionBo;
     private final TransactionUtilService transactionUtilService;
     private final SocketIoService socketIoService;
     private final ObjectMapper mapper;
-    private final TaggableCacheManager taggableCacheManager;
+    private final MissionRepository missionRepository;
 
     @Autowired
     public MissionReportBoTest(
             MissionReportBo missionReportBo,
             MissionReportRepository missionReportRepository,
-            MissionBo missionBo,
             TransactionUtilService transactionUtilService,
             SocketIoService socketIoService,
             ObjectMapper mapper,
-            TaggableCacheManager taggableCacheManager
+            MissionRepository missionRepository
     ) {
         this.missionReportBo = missionReportBo;
         this.missionReportRepository = missionReportRepository;
-        this.missionBo = missionBo;
         this.transactionUtilService = transactionUtilService;
         this.socketIoService = socketIoService;
         this.mapper = mapper;
-        this.taggableCacheManager = taggableCacheManager;
+        this.missionRepository = missionRepository;
     }
 
     @Test
@@ -100,7 +86,7 @@ class MissionReportBoTest extends AbstractBaseBoTest {
                 .willReturn(List.of(report));
         given(reportMissionIdAndDateMock.getId()).willReturn(missionId);
         given(reportMissionIdAndDateMock.getDate()).willReturn(missionDate);
-        given(missionBo.findOneByReportId(REPORT_ID)).willReturn(reportMissionIdAndDateMock);
+        given(missionRepository.findOneByReportId(REPORT_ID)).willReturn(reportMissionIdAndDateMock);
 
 
         var result = missionReportBo.findPaginatedByUserId(USER_ID_1, page);
@@ -160,14 +146,5 @@ class MissionReportBoTest extends AbstractBaseBoTest {
         var emittedCounts = emitCountChangeAnswer.getResult();
         assertThat(emittedCounts.getEnemyUnread()).isEqualTo(enemyUnread);
         assertThat(emittedCounts.getUserUnread()).isEqualTo(userUnread);
-    }
-
-    @Override
-    public CacheTagTestModel findCacheTagInfo() {
-        return CacheTagTestModel.builder()
-                .tag(MissionReportBo.MISSION_REPORT_CACHE_TAG)
-                .targetBo(missionReportBo)
-                .taggableCacheManager(taggableCacheManager)
-                .build();
     }
 }

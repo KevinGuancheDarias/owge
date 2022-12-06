@@ -1,24 +1,17 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
-import com.kevinguanchedarias.owgejava.dto.AllianceDto;
-import com.kevinguanchedarias.owgejava.dto.FactionDto;
-import com.kevinguanchedarias.owgejava.dto.PlanetDto;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
-import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
-import com.kevinguanchedarias.owgejava.exception.NotYourPlanetException;
-import com.kevinguanchedarias.owgejava.exception.PlanetNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtFactionNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
@@ -40,8 +33,6 @@ import java.util.List;
  */
 @Service
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
-    public static final String USER_CACHE_TAG = "user";
-
     @Serial
     private static final long serialVersionUID = 2837362546838035726L;
 
@@ -54,13 +45,13 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     private FactionBo factionBo;
 
     @Autowired
+    private PlanetRepository planetRepository;
+
+    @Autowired
     private PlanetBo planetBo;
 
     @Autowired
     private RequirementBo requirementBo;
-
-    @Autowired
-    private ObtainedUnitBo obtainedUnitBo;
 
     @Autowired
     private AllianceBo allianceBo;
@@ -75,34 +66,21 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     private transient EntityManager entityManager;
 
     @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private DtoUtilService dtoUtilService;
-
-    @Autowired
     private transient FactionSpawnLocationBo factionSpawnLocationBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
 
     @Autowired
     @Lazy
     private AuditBo auditBo;
 
+    @Autowired
+    private transient UserEventEmitterBo userEventEmitterBo;
+
+    @Autowired
+    private transient TransactionUtilService transactionUtilService;
+
     @Override
     public JpaRepository<UserStorage, Integer> getRepository() {
         return userStorageRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return USER_CACHE_TAG;
     }
 
     /*
@@ -174,8 +152,8 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
         }
     }
 
-    public UserStorage findOneByMission(Mission mission) {
-        return userStorageRepository.findOneByMissions(mission);
+    public UserStorage findLoggedInWithReference() {
+        return userStorageRepository.getById(findLoggedIn().getId());
     }
 
     /**
@@ -197,10 +175,10 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean subscribe(Integer factionId) {
         if (!factionBo.exists(factionId)) {
-            throw new SgtFactionNotFoundException("La facción escogida NO existe");
+            throw new SgtFactionNotFoundException("No such faction");
         }
 
-        UserStorage user = findLoggedIn();
+        var user = findLoggedIn();
 
         if (userStorageRepository.existsById(user.getId())) {
             return false;
@@ -219,7 +197,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
         selectedPlanet.setOwner(user);
         selectedPlanet.setHome(true);
 
-        planetBo.save(selectedPlanet);
+        planetRepository.save(selectedPlanet);
 
         requirementBo.triggerFactionSelection(user);
         requirementBo.triggerHomeGalaxySelection(user);
@@ -254,59 +232,8 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
                         userImprovements.getMoreSecondaryResourceProduction())));
     }
 
-    public boolean isYourPlanet(Planet planet, UserStorage user) {
-        return planet.getOwner() != null && planet.getOwner().getId().equals(user.getId());
-    }
-
-    /**
-     * Checks if you own the specified planet
-     *
-     * @throws PlanetNotFoundException when planet doesn't exists
-     * @throws NotYourPlanetException  When you do not own the planet
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public void checkOwnPlanet(Long planetId) {
-        var planet = planetBo.findById(planetId);
-        if (planet == null) {
-            throw new PlanetNotFoundException("No such planet, with id " + planetId);
-        }
-        if (!isYourPlanet(planet, findLoggedIn())) {
-            throw new NotYourPlanetException("Yo do not own that planet, buy it in the black market?");
-        }
-    }
-
     public void addPointsToUser(UserStorage user, Double points) {
         userStorageRepository.addPointsToUser(user, points);
-    }
-
-    public Double findConsumedEnergy(UserStorage user) {
-        return obtainedUnitBo.findConsumeEnergyByUser(user);
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Double findMaxEnergy(Integer userId) {
-        return findMaxEnergy(findByIdOrDie(userId));
-    }
-
-    public Double findMaxEnergy(UserStorage user) {
-        var groupedImprovement = improvementBo.findUserImprovement(user);
-        var faction = user.getFaction();
-        return improvementBo.computeImprovementValue(faction.getInitialEnergy().floatValue(),
-                groupedImprovement.getMoreEnergyProduction());
-    }
-
-    /**
-     * Returns the available energy of the user <br>
-     * <b>NOTICE: Expensive method </b>
-     *
-     * @todo For god's sake create a cache system
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public Double findAvailableEnergy(UserStorage user) {
-        return findMaxEnergy(user) - findConsumedEnergy(user);
     }
 
     /**
@@ -345,46 +272,19 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
      */
     @Transactional
     public UserStorage save(UserStorage user, boolean emitChange) {
-        UserStorage savedUser = BaseBo.super.save(user);
+        var savedUser = userStorageRepository.save(user);
         if (emitChange && user.getId() != null) {
-            TransactionUtil.doAfterCommit(() -> {
+            transactionUtilService.doAfterCommit(() -> {
                 entityManager.refresh(savedUser);
-                emitUserData(user);
+                userEventEmitterBo.emitUserData(user);
             });
         }
         return savedUser;
     }
 
     @Transactional
-    @Override
     public UserStorage save(UserStorage user) {
         return save(user, true);
-    }
-
-    /**
-     * Finds all the user data as a DTO
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public UserStorageDto findData(UserStorage user) {
-        var userDto = new UserStorageDto();
-        userDto.dtoFromEntity(user);
-        userDto.setImprovements(improvementBo.findUserImprovement(user));
-        userDto.setFactionDto(dtoUtilService.dtoFromEntity(FactionDto.class, user.getFaction()));
-        userDto.setHomePlanetDto(dtoUtilService.dtoFromEntity(PlanetDto.class, user.getHomePlanet()));
-        userDto.setAlliance(dtoUtilService.dtoFromEntity(AllianceDto.class, user.getAlliance()));
-
-        var galaxyData = user.getHomePlanet().getGalaxy();
-        userDto.getHomePlanetDto().setGalaxyId(galaxyData.getId());
-        userDto.getHomePlanetDto().setGalaxyName(galaxyData.getName());
-        userDto.setConsumedEnergy(findConsumedEnergy(user));
-        userDto.setMaxEnergy(findMaxEnergy(user));
-        return userDto;
-    }
-
-    public boolean isBanned(Integer userId) {
-        return userStorageRepository.isBanned(userId);
     }
 
     public List<UserStorage> findByLastMultiAccountCheckNewerThan(LocalDateTime date) {
@@ -393,14 +293,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
                         date,
                         PageRequest.of(0, 50)
                 );
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.7
-     */
-    public void emitUserData(UserStorage user) {
-        socketIoService.sendMessage(user, "user_data_change", () -> findData(user));
     }
 
     private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {

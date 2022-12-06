@@ -3,9 +3,9 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.dto.SpecialLocationDto;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.SpecialLocationRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,34 +13,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serial;
 
 @Service
+@AllArgsConstructor
 public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, SpecialLocationDto> {
     public static final String SPECIAL_LOCATION_CACHE_TAG = "special_location";
 
     @Serial
     private static final long serialVersionUID = 2511602524693638404L;
 
-    @Autowired
-    private SpecialLocationRepository specialLocationRepository;
-
-    @Autowired
-    private PlanetBo planetBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
+    private final SpecialLocationRepository specialLocationRepository;
+    private final PlanetRepository planetRepository;
+    private final PlanetBo planetBo;
 
     @Override
     public JpaRepository<SpecialLocation, Integer> getRepository() {
         return specialLocationRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return SPECIAL_LOCATION_CACHE_TAG;
     }
 
     /*
@@ -53,17 +39,16 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
         return SpecialLocationDto.class;
     }
 
-    @Override
     @Transactional
     public SpecialLocation save(SpecialLocation entity) {
         Planet assignedPlanet = null;
         if (entity.getId() != null) {
-            SpecialLocation stored = findByIdOrDie(entity.getId());
+            var stored = findByIdOrDie(entity.getId());
             if (stored.getGalaxy() == null || !stored.getGalaxy().equals(entity.getGalaxy())) {
                 assignedPlanet = assignPlanet(entity);
                 if (stored.getAssignedPlanet() != null) {
                     stored.getAssignedPlanet().setSpecialLocation(null);
-                    planetBo.save(stored.getAssignedPlanet());
+                    planetRepository.save(stored.getAssignedPlanet());
                 }
             }
         }
@@ -72,26 +57,22 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
         } else {
             entity.setGalaxy(null);
         }
-        SpecialLocation saved = WithNameBo.super.save(entity);
+        var saved = specialLocationRepository.save(entity);
         if (assignedPlanet != null) {
             assignedPlanet.setSpecialLocation(saved);
-            planetBo.save(assignedPlanet);
+            planetRepository.save(assignedPlanet);
         }
         saved.setAssignedPlanet(assignedPlanet);
         return saved;
     }
 
-    @Override
     @Transactional
     public void delete(SpecialLocation entity) {
-        if (entity.getAssignedPlanet() != null) {
-            Planet planet = planetBo.findById(entity.getAssignedPlanet().getId());
-            if (planet != null) {
-                planet.setSpecialLocation(null);
-                planetBo.save(planet);
-            }
+        var assignedPlanet = entity.getAssignedPlanet();
+        if (assignedPlanet != null) {
+            planetRepository.updateSpecialLocation(assignedPlanet.getId(), null);
         }
-        WithNameBo.super.delete(entity);
+        specialLocationRepository.delete(entity);
     }
 
     /**
@@ -101,7 +82,7 @@ public class SpecialLocationBo implements WithNameBo<Integer, SpecialLocation, S
      *                        choose a random galaxy
      */
     private Planet assignPlanet(SpecialLocation specialLocation) {
-        Integer galaxyId = specialLocation.getGalaxy() != null ? specialLocation.getGalaxy().getId() : null;
+        var galaxyId = specialLocation.getGalaxy() != null ? specialLocation.getGalaxy().getId() : null;
         if (galaxyId != null) {
             return planetBo.findRandomPlanet(galaxyId.equals(0) ? null : galaxyId);
         } else {

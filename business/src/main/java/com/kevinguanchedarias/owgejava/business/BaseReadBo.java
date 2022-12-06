@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Optional;
 
 public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
 
@@ -48,11 +47,7 @@ public interface BaseReadBo<K extends Serializable, E extends EntityWithId<K>> {
     }
 
     default E findByIdOrDie(K id) {
-        Optional<E> retVal = getRepository().findById(id);
-        if (retVal.isEmpty()) {
-            throwNotFound(id);
-        }
-        return onFind(retVal.get());
+        return onFind(SpringRepositoryUtil.findByIdOrDie(getRepository(), id));
     }
 
     /**

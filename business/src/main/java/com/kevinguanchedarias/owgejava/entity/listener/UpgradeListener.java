@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.entity.listener;
 
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
+import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import org.springframework.context.annotation.Lazy;
@@ -16,16 +16,16 @@ import javax.persistence.PostLoad;
  */
 @Component
 public class UpgradeListener {
-    private final RequirementBo requirementBo;
+    private final RequirementInformationBo requirementInformationBo;
 
     @Lazy
-    public UpgradeListener(RequirementBo requirementBo) {
-        this.requirementBo = requirementBo;
+    public UpgradeListener(RequirementInformationBo requirementInformationBo) {
+        this.requirementInformationBo = requirementInformationBo;
     }
 
     @PostLoad
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void loadRequirements(Upgrade upgrade) {
-        upgrade.setRequirements(requirementBo.findRequirements(ObjectEnum.UPGRADE, upgrade.getId()));
+        upgrade.setRequirements(requirementInformationBo.findRequirements(ObjectEnum.UPGRADE, upgrade.getId()));
     }
 }

@@ -1,14 +1,13 @@
 package com.kevinguanchedarias.owgejava.business.mission.attack;
 
-import com.kevinguanchedarias.owgejava.business.AllianceBo;
-import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
-import com.kevinguanchedarias.owgejava.business.CriticalAttackBo;
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.*;
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -19,6 +18,8 @@ import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,37 +33,19 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static com.kevinguanchedarias.owgejava.business.AbstractMissionBo.UNIT_OBTAINED_CHANGE;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackInformation;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtainedUnit;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackRule;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackUserInformation;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenCriticalAttack;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenCriticalAttackEntry;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
+import static com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter.UNIT_OBTAINED_CHANGE;
+import static com.kevinguanchedarias.owgejava.mock.AttackMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenUserImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.ATTACK_MISSION_ID;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnitWithBypassShields;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.*;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_2;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -81,7 +64,16 @@ import static org.mockito.Mockito.when;
         SocketIoService.class,
         MissionBo.class,
         AllianceBo.class,
-        AttackEventEmitter.class
+        AttackEventEmitter.class,
+        ObtainedUnitRepository.class,
+        MissionEventEmitterBo.class,
+        UserEventEmitterBo.class,
+        UserStorageRepository.class,
+        ObtainedUnitEventEmitter.class,
+        TransactionUtilService.class,
+        ObtainedUnitImprovementCalculationService.class,
+        ObtainedUnitFinderBo.class,
+        ConfigurationBo.class
 })
 class AttackMissionManagerBoTest {
     private final AttackMissionManagerBo attackMissionManagerBo;
@@ -93,6 +85,8 @@ class AttackMissionManagerBoTest {
     private final SocketIoService socketIoService;
     private final AllianceBo allianceBo;
     private final AttackEventEmitter attackEventEmitter;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
 
     @Autowired
     public AttackMissionManagerBoTest(
@@ -104,7 +98,9 @@ class AttackMissionManagerBoTest {
             CriticalAttackBo criticalAttackBo,
             SocketIoService socketIoService,
             AllianceBo allianceBo,
-            AttackEventEmitter attackEventEmitter
+            AttackEventEmitter attackEventEmitter,
+            ObtainedUnitRepository obtainedUnitRepository,
+            ObtainedUnitFinderBo obtainedUnitFinderBo
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
         this.obtainedUnitBo = obtainedUnitBo;
@@ -116,14 +112,16 @@ class AttackMissionManagerBoTest {
         this.allianceBo = allianceBo;
 
         this.attackEventEmitter = attackEventEmitter;
+        this.obtainedUnitRepository = obtainedUnitRepository;
+        this.obtainedUnitFinderBo = obtainedUnitFinderBo;
     }
 
     @Test
     void buildAttackInformation_should_work() {
         var attackMission = givenAttackMission();
         var targetPlanet = givenTargetPlanet();
-        when(obtainedUnitBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(givenObtainedUnit1()));
-        when(obtainedUnitBo.findByMissionId(ATTACK_MISSION_ID)).thenReturn(List.of(givenObtainedUnit2()));
+        when(obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(givenObtainedUnit1()));
+        when(obtainedUnitRepository.findByMissionId(ATTACK_MISSION_ID)).thenReturn(List.of(givenObtainedUnit2()));
         when(improvementBo.findUserImprovement(givenUser1())).thenReturn(givenUserImprovement());
         when(improvementBo.findUserImprovement(givenUser2())).thenReturn(givenUserImprovement());
         var attackOu1 = givenAttackObtainedUnit(givenObtainedUnit1());
@@ -133,8 +131,8 @@ class AttackMissionManagerBoTest {
 
         var information = attackMissionManagerBo.buildAttackInformation(targetPlanet, attackMission);
 
-        verify(obtainedUnitBo, times(1)).findInvolvedInAttack(targetPlanet);
-        verify(obtainedUnitBo, times(1)).findByMissionId(ATTACK_MISSION_ID);
+        verify(obtainedUnitFinderBo, times(1)).findInvolvedInAttack(targetPlanet);
+        verify(obtainedUnitRepository, times(1)).findByMissionId(ATTACK_MISSION_ID);
         var attackUserInformation1 = ArgumentCaptor.forClass(AttackUserInformation.class);
         var attackUserInformation2 = ArgumentCaptor.forClass(AttackUserInformation.class);
         verify(attackObtainedUnitBo, times(1)).create(eq(givenObtainedUnit1()), attackUserInformation1.capture());
@@ -264,7 +262,7 @@ class AttackMissionManagerBoTest {
             answer.getArgument(2, Supplier.class).get();
             return null;
         }).when(socketIoService).sendMessage(any(), eq(UNIT_OBTAINED_CHANGE), any());
-        when(obtainedUnitBo.findDeployedInUserOwnedPlanets(any())).thenReturn(List.of(fakedFindDeployedInUserOwnedPlanets));
+        when(obtainedUnitRepository.findDeployedInUserOwnedPlanets(any())).thenReturn(List.of(fakedFindDeployedInUserOwnedPlanets));
         when(obtainedUnitBo.toDto(anyList())).thenReturn(List.of(fakedToDtoOfindDeployedInUserOwnedPlanets));
 
         try (var transactionUtilMock = mockStatic(TransactionUtil.class)) {
@@ -277,7 +275,7 @@ class AttackMissionManagerBoTest {
             attackMissionManagerBo.startAttack(information);
 
             verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());
-            verify(obtainedUnitBo, times(2)).delete(any(ObtainedUnit.class));
+            verify(obtainedUnitRepository, times(2)).delete(any(ObtainedUnit.class));
             verify(attackEventEmitter, times(9)).emitAfterUnitKilledCalculation(any(), any(), any(), anyLong());
             assertThat(capturedOutput.getOut()).contains("Element side deleted");
             assertThat(user1.getAttackableUnits())

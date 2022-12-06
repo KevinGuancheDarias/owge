@@ -7,8 +7,8 @@ import com.kevinguanchedarias.owgejava.entity.AdminUser;
 import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
 import com.kevinguanchedarias.owgejava.pojo.TokenPojo;
 import com.kevinguanchedarias.owgejava.repository.AdminUserRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,31 +25,25 @@ import java.util.Map;
  * @since 0.8.0
  */
 @Service
+@RequiredArgsConstructor
 public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
-    public static final String ADMIN_USER_CACHE_TAG = "admin_user";
-
     @Serial
     private static final long serialVersionUID = -5545554818842439920L;
-
+    
+    public static final String ADMIN_USER_CACHE_TAG = "admin_user";
     public static final String JWT_SECRET_DB_CODE = "ADMIN_JWT_SECRET";
     public static final String JWT_HASHING_ALGO = "ADMIN_JWT_ALGO";
     public static final String JWT_DURATION_CODE = "ADMIN_JWT_DURATION_SECONDS";
 
-    @Autowired
-    private transient AdminUserRepository adminUserRepository;
+    private final transient AdminUserRepository adminUserRepository;
 
-    @Autowired
-    private AuthenticationBo authenticationBo;
+    private final AuthenticationBo authenticationBo;
 
-    @Autowired
-    private ConfigurationBo configurationBo;
+    private final ConfigurationBo configurationBo;
 
-    @Autowired
-    private transient JwtService jwtService;
+    private final transient JwtService jwtService;
 
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    @SuppressWarnings("SpringQualifierCopyableLombok")
     @Autowired
     @Qualifier("adminOwgeTokenConfigLoader")
     private transient TokenConfigLoader tokenConfigLoader;
@@ -76,16 +70,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
         return adminUserRepository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return ADMIN_USER_CACHE_TAG;
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -100,7 +84,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
      * Login by using the Game credentials <br>
      * <b>NOTICE: </b> If username or email is different will update it
      *
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -114,7 +97,7 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
         }
         if (isUserChanged(tokenUser, adminUser)) {
             adminUser.setUsername(tokenUser.getUsername());
-            save(adminUser);
+            adminUserRepository.save(adminUser);
         }
         return createToken(adminUser);
     }
@@ -122,9 +105,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
     /**
      * Adds a admin user to the system
      *
-     * @param accountUserId
-     * @param username
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -135,7 +115,7 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
             adminUser.setId(accountUserId);
             adminUser.setUsername(username);
             adminUser.setEnabled(true);
-            save(adminUser);
+            adminUserRepository.save(adminUser);
             return adminUser;
         } else {
             return existing;
@@ -145,7 +125,6 @@ public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
     /**
      * Will generate the token
      *
-     * @return
      * @author Kevin Guanche Darias
      */
     private TokenPojo createToken(AdminUser user) {

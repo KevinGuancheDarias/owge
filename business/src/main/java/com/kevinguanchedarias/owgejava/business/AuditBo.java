@@ -8,7 +8,6 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
@@ -32,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @Log4j2
@@ -51,7 +51,6 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     private final transient TorClientBo torClientBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient SocketIoService socketIoService;
-    private final transient TaggableCacheManager taggableCacheManager;
 
     @Value("${OWGE_PROXY_TRUSTED_NETWORKS:PRIVATE}")
     private String proxyTrustedNetworks;
@@ -62,16 +61,6 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     @Override
     public JpaRepository<Audit, Long> getRepository() {
         return repository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return AUDIT_CACHE_TAG;
     }
 
     @Override
@@ -185,7 +174,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     }
 
     private boolean isTrustedProxyIp(String ip) {
-        return List.of(proxyTrustedNetworks.split(",")).stream().anyMatch(trusted ->
+        return Stream.of(proxyTrustedNetworks.split(",")).anyMatch(trusted ->
                 (trusted.equals(TRUSTED_PRIVATE_NET_KEYWORD) && isPrivate(ip))
                         || trusted.equals(ip)
         );

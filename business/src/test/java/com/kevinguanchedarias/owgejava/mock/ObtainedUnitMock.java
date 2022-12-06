@@ -2,7 +2,11 @@ package com.kevinguanchedarias.owgejava.mock;
 
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection;
 import lombok.experimental.UtilityClass;
+
+import static com.kevinguanchedarias.owgejava.mock.ImageStoreMock.givenImageStore;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
 
 @UtilityClass
 public class ObtainedUnitMock {
@@ -32,6 +36,15 @@ public class ObtainedUnitMock {
         ou.setTargetPlanet(PlanetMock.givenTargetPlanet());
         ou.setCount(OBTAINED_UNIT_2_COUNT);
         return ou;
+    }
+
+    public static ObtainedUnitBasicInfoProjection givenObtainedUnitBasicInfoProjection() {
+        return ObtainedUnitBasicInfoProjection.builder()
+                .id(OBTAINED_UNIT_2_ID)
+                .count(OBTAINED_UNIT_2_COUNT)
+                .unitName(UNIT_NAME)
+                .unitImage(givenImageStore())
+                .build();
     }
 
     public static ObtainedUnit givenObtainedUnitWithBypassShields(UserStorage user) {

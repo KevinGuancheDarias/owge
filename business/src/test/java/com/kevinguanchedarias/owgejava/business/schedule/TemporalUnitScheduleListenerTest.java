@@ -1,9 +1,9 @@
 package com.kevinguanchedarias.owgejava.business.schedule;
 
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -29,9 +29,7 @@ import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = TemporalUnitScheduleListener.class,
@@ -39,46 +37,46 @@ import static org.mockito.Mockito.verify;
 )
 @MockBean({
         ObtainedUnitRepository.class,
-        ObtainedUnitBo.class,
         ScheduledTasksManagerService.class,
         PlanetLockUtilService.class,
         TransactionUtilService.class,
         ObtainedUnitTemporalInformationRepository.class,
         MissionRepository.class,
-        MissionBo.class
+        ObtainedUnitEventEmitter.class,
+        MissionEventEmitterBo.class
 })
 class TemporalUnitScheduleListenerTest {
     private final TemporalUnitScheduleListener temporalUnitScheduleListener;
     private final ObtainedUnitRepository obtainedUnitRepository;
-    private final ObtainedUnitBo obtainedUnitBo;
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final PlanetLockUtilService planetLockUtilService;
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final MissionRepository missionRepository;
-    private final MissionBo missionBo;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final MissionEventEmitterBo missionEventEmitterBo;
 
     @Autowired
     public TemporalUnitScheduleListenerTest(
             TemporalUnitScheduleListener temporalUnitScheduleListener,
             ObtainedUnitRepository obtainedUnitRepository,
-            ObtainedUnitBo obtainedUnitBo,
             ScheduledTasksManagerService scheduledTasksManagerService,
             PlanetLockUtilService planetLockUtilService,
             TransactionUtilService transactionUtilService,
             ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository,
             MissionRepository missionRepository,
-            MissionBo missionBo
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
+            MissionEventEmitterBo missionEventEmitterBo
     ) {
         this.temporalUnitScheduleListener = temporalUnitScheduleListener;
         this.obtainedUnitRepository = obtainedUnitRepository;
-        this.obtainedUnitBo = obtainedUnitBo;
         this.scheduledTasksManagerService = scheduledTasksManagerService;
         this.planetLockUtilService = planetLockUtilService;
         this.transactionUtilService = transactionUtilService;
         this.obtainedUnitTemporalInformationRepository = obtainedUnitTemporalInformationRepository;
         this.missionRepository = missionRepository;
-        this.missionBo = missionBo;
+        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
+        this.missionEventEmitterBo = missionEventEmitterBo;
     }
 
     @ParameterizedTest
@@ -134,14 +132,15 @@ class TemporalUnitScheduleListenerTest {
         invokeHandlerAnswer.getPassedLambda().accept(task);
 
         verify(obtainedUnitRepository, times(4)).findPlanetIdsByExpirationId(expirationId);
-        verify(obtainedUnitBo, times(isEmptyList ? 0 : 1)).delete(ou);
-        verify(obtainedUnitBo, times(isEmptyList ? 0 : 1)).emitObtainedUnitChange(USER_ID_1);
+        verify(obtainedUnitRepository, times(isEmptyList ? 0 : 1)).deleteAll(List.of(ou));
+        verify(obtainedUnitEventEmitter, times(isEmptyList ? 0 : 1)).emitObtainedUnits(user);
         verify(obtainedUnitTemporalInformationRepository, times(1)).deleteById(expirationId);
         verify(obtainedUnitRepository, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).existsByMission(affectedMission);
         verify(missionRepository, times(!isEmptyList && hasAffectedMissions && !affectedMissionHasUnit ? 1 : 0))
                 .delete(affectedMission);
-        verify(missionBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitUnitMissions(USER_ID_1);
-        verify(missionBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitMissionCountChange(USER_ID_1);
-        verify(missionBo, times(!isEmptyList && hasAffectedMissions && affectedMissionHasOwner && !planetOwnerIsUser ? 1 : 0)).emitEnemyMissionsChange(user2);
+        verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitUnitMissions(USER_ID_1);
+        verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitMissionCountChange(USER_ID_1);
+        verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions && affectedMissionHasOwner && !planetOwnerIsUser ? 1 : 0))
+                .emitEnemyMissionsChange(user2);
     }
 }

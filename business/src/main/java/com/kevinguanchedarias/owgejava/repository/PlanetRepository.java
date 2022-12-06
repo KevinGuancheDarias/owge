@@ -1,57 +1,61 @@
 package com.kevinguanchedarias.owgejava.repository;
 
+import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+
 import java.io.Serializable;
 import java.util.List;
 
-import org.springframework.data.domain.Pageable;
-
-import com.kevinguanchedarias.owgejava.entity.Planet;
-
 public interface PlanetRepository extends WithNameRepository<Planet, Long>, Serializable {
-	public Planet findOneByGalaxyIdAndOwnerNotNullOrderByGalaxyId(Integer galaxyId);
+    Planet findOneByGalaxyIdAndOwnerNotNullOrderByGalaxyId(Integer galaxyId);
 
-	public long countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId);
+    long countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId);
 
-	public long countByOwnerIsNullAndSpecialLocationIsNull();
+    long countByOwnerIsNullAndSpecialLocationIsNull();
 
-	public List<Planet> findOneByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId, Pageable pageable);
+    List<Planet> findByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId, Pageable pageable);
 
-	public List<Planet> findOneByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
+    List<Planet> findByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
 
-	public Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
+    Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
 
-	public List<Planet> findByOwnerId(Integer ownerId);
+    @Query("SELECT p.id FROM Planet p WHERE p.id = ?2 AND p.owner.id = ?1 ")
+    boolean isOfUserProperty(Integer ownerId, Long planetId);
 
-	public int countByOwnerId(Integer ownerId);
+    @Query("SELECT p.id FROM Planet p WHERE p = ?2 AND p.owner = ?1 ")
+    boolean isOfUserProperty(UserStorage user, Planet planet);
 
-	public List<Planet> findByGalaxyIdAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant);
+    List<Planet> findByOwnerId(Integer ownerId);
 
-	public Planet findOneByIdAndHomeTrue(Long planetId);
+    int countByOwnerId(Integer ownerId);
 
-	/**
-	 *
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 * @param galaxyId
-	 * @return
-	 */
-	public List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId);
+    List<Planet> findByGalaxyIdAndSectorAndQuadrant(Integer galaxy, Long sector, Long quadrant);
 
-	/**
-	 *
-	 * @author Kevin Guanche Darias
-	 * @since 0.9.0
-	 * @param specialLocationId
-	 * @return
-	 */
-	public Planet findOneBySpecialLocationId(Integer specialLocationId);
+    Planet findOneByIdAndHomeTrue(Long planetId);
 
-	/**
-	 *
-	 * @param galaxyId
-	 * @since 0.9.14
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void deleteByGalaxyId(Integer galaxyId);
+    /**
+     * @author Kevin Guanche Darias
+     * @since 0.9.0
+     */
+    List<Planet> findByGalaxyIdAndOwnerNotNull(Integer galaxyId);
 
+    /**
+     * @author Kevin Guanche Darias
+     * @since 0.9.0
+     */
+    Planet findOneBySpecialLocationId(Integer specialLocationId);
+
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.14
+     */
+    void deleteByGalaxyId(Integer galaxyId);
+
+    @Query("UPDATE Planet SET specialLocation = ?2 WHERE id = ?1")
+    @Modifying
+    void updateSpecialLocation(long planetId, SpecialLocation specialLocation);
 }

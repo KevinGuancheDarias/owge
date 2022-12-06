@@ -2,14 +2,8 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
-import com.kevinguanchedarias.owgejava.entity.RequirementInformation;
-import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
-import com.kevinguanchedarias.owgejava.entity.Upgrade;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.InvalidConfigurationException;
@@ -17,10 +11,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendNotImplementedExcepti
 import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructRequirementBo;
 import com.kevinguanchedarias.owgejava.mock.ObjectRelationMock;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
-import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
-import com.kevinguanchedarias.owgejava.repository.UnitRepository;
+import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.test.util.ValidationUtilTestHelper;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
@@ -38,39 +29,16 @@ import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.BEEN_RACE;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_AVAILABLE;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_ENABLED;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_SPECIAL_LOCATION;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HAVE_UNIT;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.HOME_GALAXY;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UNIMPLEMENTED_PLACEHOLDER;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UNIT_AMOUNT;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.UPGRADE_LEVEL_LOWER_THAN;
-import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.WORST_PLAYER;
+import static com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum.*;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.FACTION_ID;
 import static com.kevinguanchedarias.owgejava.mock.FactionMock.givenFaction;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.givenGalaxy;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.DTO_OBJECT_CODE;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.REFERENCE_ID;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.UNLOCKED_RELATION_ID;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectEntity;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenUnlockedRelation;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.givenObtainedUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_CODE;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_INFORMATION_SECOND_VALUE;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.REQUIREMENT_INFORMATION_THIRD_VALUE;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirement;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformation;
-import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformationDto;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.SECOND_VALUE;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
-import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.RequirementMock.*;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
@@ -78,16 +46,12 @@ import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.givenUpgrade;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeTypeMock.givenUpgradeType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -96,9 +60,7 @@ import static org.mockito.Mockito.verify;
 @MockBean({
         RequirementRepository.class,
         UserStorageBo.class,
-        RequirementInformationDao.class,
         UnlockedRelationBo.class,
-        ObtainedUpgradeBo.class,
         UpgradeBo.class,
         ObjectRelationBo.class,
         ObjectRelationToObjectRelationBo.class,
@@ -117,14 +79,15 @@ import static org.mockito.Mockito.verify;
         ObtainedUpgradeRepository.class,
         FactionBo.class,
         SpecialLocationBo.class,
-        GalaxyBo.class
+        GalaxyBo.class,
+        UnlockedRelationRepository.class,
+        PlanetRepository.class
 })
 class RequirementBoTest {
     private final NonPostConstructRequirementBo requirementBo;
     private final RequirementSource requirementSource;
     private final ObjectRelationBo objectRelationBo;
     private final UnlockedRelationBo unlockedRelationBo;
-    private final ObtainedUpgradeBo obtainedUpgradeBo;
     private final UpgradeBo upgradeBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final RequirementRepository requirementRepository;
@@ -133,6 +96,7 @@ class RequirementBoTest {
     private final UserStorageBo userStorageBo;
     private final DtoUtilService dtoUtilService;
     private final RequirementInformationBo requirementInformationBo;
+    private final UnlockedRelationRepository unlockedRelationRepository;
 
     @Autowired
     RequirementBoTest(
@@ -140,7 +104,6 @@ class RequirementBoTest {
             RequirementSource requirementSource,
             ObjectRelationBo objectRelationBo,
             UnlockedRelationBo unlockedRelationBo,
-            ObtainedUpgradeBo obtainedUpgradeBo,
             UpgradeBo upgradeBo,
             ObtainedUpgradeRepository obtainedUpgradeRepository,
             RequirementRepository requirementRepository,
@@ -148,13 +111,13 @@ class RequirementBoTest {
             ObtainedUnitRepository obtainedUnitRepository,
             UserStorageBo userStorageBo,
             DtoUtilService dtoUtilService,
-            RequirementInformationBo requirementInformationBo
+            RequirementInformationBo requirementInformationBo,
+            UnlockedRelationRepository unlockedRelationRepository
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
         this.objectRelationBo = objectRelationBo;
         this.unlockedRelationBo = unlockedRelationBo;
-        this.obtainedUpgradeBo = obtainedUpgradeBo;
         this.upgradeBo = upgradeBo;
         this.obtainedUpgradeRepository = obtainedUpgradeRepository;
         this.requirementRepository = requirementRepository;
@@ -163,6 +126,7 @@ class RequirementBoTest {
         this.userStorageBo = userStorageBo;
         this.dtoUtilService = dtoUtilService;
         this.requirementInformationBo = requirementInformationBo;
+        this.unlockedRelationRepository = unlockedRelationRepository;
     }
 
     @Test
@@ -231,7 +195,7 @@ class RequirementBoTest {
         verify(requirementSource, times(1)).supports(RequirementTypeEnum.HAVE_SPECIAL_ENABLED.name());
         verify(requirementSource, times(1)).checkRequirementIsMet(requirement, user);
         var captor = ArgumentCaptor.forClass(UnlockedRelation.class);
-        verify(unlockedRelationBo, times(1)).save(captor.capture());
+        verify(unlockedRelationRepository, times(1)).save(captor.capture());
         var savedUnlocked = captor.getValue();
         assertThat(savedUnlocked.getRelation()).isEqualTo(or);
         assertThat(savedUnlocked.getUser()).isEqualTo(user);
@@ -274,10 +238,10 @@ class RequirementBoTest {
         verify(requirementSource, times(1)).checkRequirementIsMet(requirement, user);
 
         verify(unlockedRelationBo, times(1)).findOneByUserIdAndRelationId(USER_ID_1, OBJECT_RELATION_ID);
-        verify(unlockedRelationBo, times(1)).delete(UNLOCKED_RELATION_ID);
+        verify(unlockedRelationRepository, times(1)).delete(ur);
         verify(obtainedUpgradeRepository, times(isUpgrade ? 1 : 0)).existsByUserIdAndUpgradeId(USER_ID_1, REFERENCE_ID);
         var captor = ArgumentCaptor.forClass(ObtainedUpgrade.class);
-        verify(obtainedUpgradeBo, times(isUpgrade && lostUpgradeRelationExists ? 1 : 0)).save(captor.capture());
+        verify(obtainedUpgradeRepository, times(isUpgrade && lostUpgradeRelationExists ? 1 : 0)).save(captor.capture());
         if (lostUpgradeRelationExists && isUpgrade) {
             var savedLostUpgrade = captor.getValue();
             assertThat(savedLostUpgrade).isSameAs(obtainedUpgrade);
@@ -333,14 +297,14 @@ class RequirementBoTest {
         requirementBo.triggerLevelUpCompleted(user, UPGRADE_ID);
 
         var captor = ArgumentCaptor.forClass(UnlockedRelation.class);
-        verify(unlockedRelationBo, times(unlockedRelationExists ? 0 : 1)).save(captor.capture());
+        verify(unlockedRelationRepository, times(unlockedRelationExists ? 0 : 1)).save(captor.capture());
         if (!unlockedRelationExists) {
             var savedUr = captor.getValue();
             assertThat(savedUr.getRelation()).isEqualTo(or);
             assertThat(savedUr.getUser()).isEqualTo(user);
         }
         var newOuCaptor = ArgumentCaptor.forClass(ObtainedUpgrade.class);
-        verify(obtainedUpgradeBo, times(!obtainedUpgradeExists || !unlockedRelationExists ? 1 : 0)).save(newOuCaptor.capture());
+        verify(obtainedUpgradeRepository, times(!obtainedUpgradeExists || !unlockedRelationExists ? 1 : 0)).save(newOuCaptor.capture());
         if (!obtainedUpgradeExists) {
             var newOu = newOuCaptor.getValue();
             assertThat(newOu.getLevel()).isZero();
@@ -419,7 +383,7 @@ class RequirementBoTest {
 
         requirementBo.triggerHomeGalaxySelection(user);
 
-        verify(unlockedRelationBo, times(expectedUnlockedSaveCalls)).save(any(UnlockedRelation.class));
+        verify(unlockedRelationRepository, times(expectedUnlockedSaveCalls)).save(any(UnlockedRelation.class));
     }
 
     @ParameterizedTest
@@ -449,7 +413,7 @@ class RequirementBoTest {
 
         verify(obtainedUnitRepository, times(1)).isBuiltUnit(user, unit);
         verify(obtainedUnitRepository, times(2)).countByUserAndUnit(user, unit);
-        verify(unlockedRelationBo, times(unlockedTimes)).save(any(UnlockedRelation.class));
+        verify(unlockedRelationRepository, times(unlockedTimes)).save(any(UnlockedRelation.class));
 
     }
 
@@ -498,7 +462,7 @@ class RequirementBoTest {
         checkUnlockedUpgrade(or, user);
         verify(upgradeBo, times(1)).findById(upgrade.getId());
         var captor = ArgumentCaptor.forClass(ObtainedUpgrade.class);
-        verify(obtainedUpgradeBo, times(1)).save(captor.capture());
+        verify(obtainedUpgradeRepository, times(1)).save(captor.capture());
         var savedObtainedUpgrade = captor.getValue();
         assertThat(savedObtainedUpgrade.getLevel()).isZero();
         assertThat(savedObtainedUpgrade.getUpgrade()).isEqualTo(upgrade);

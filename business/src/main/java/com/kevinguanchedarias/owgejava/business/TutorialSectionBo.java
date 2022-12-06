@@ -12,9 +12,8 @@ import com.kevinguanchedarias.owgejava.repository.TutorialSectionRepository;
 import com.kevinguanchedarias.owgejava.repository.VisitedTutorialSectionEntryRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.TransactionUtil;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -31,38 +30,21 @@ import java.util.stream.Collectors;
  * @since 0.9.0
  */
 @Service
+@AllArgsConstructor
 public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, TutorialSectionDto> {
     public static final String TUTORIAL_SECTION_CACHE_TAG = "tutorial_section";
 
     @Serial
     private static final long serialVersionUID = -1495931971344790940L;
 
-    @Autowired
-    private transient TutorialSectionRepository repository;
-
-    @Autowired
-    private transient TutorialSectionEntryRepository entryRepository;
-
-    @Autowired
-    private transient TutorialSectionAvailableHtmlSymbolRepository htmlSymbolRepository;
-
-    @Autowired
-    private transient VisitedTutorialSectionEntryRepository visitedTutorialSectionEntryRepository;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private TranslationBo translationBo;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private transient DtoUtilService dtoUtilService;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
+    private final transient TutorialSectionRepository repository;
+    private final transient TutorialSectionEntryRepository entryRepository;
+    private final transient TutorialSectionAvailableHtmlSymbolRepository htmlSymbolRepository;
+    private final transient VisitedTutorialSectionEntryRepository visitedTutorialSectionEntryRepository;
+    private final UserStorageBo userStorageBo;
+    private final TranslationBo translationBo;
+    private final transient SocketIoService socketIoService;
+    private final transient DtoUtilService dtoUtilService;
 
     @Override
     public Class<TutorialSectionDto> getDtoClass() {
@@ -74,20 +56,9 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
         return repository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return TUTORIAL_SECTION_CACHE_TAG;
-    }
-
     /**
      * Returns all tutorial sections, with their available symbols
      *
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -97,7 +68,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     }
 
     /**
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -110,7 +80,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     /**
      * Finds all the tutorial entries
      *
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -121,8 +90,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     }
 
     /**
-     * @param id
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -133,8 +100,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     }
 
     /**
-     * @param userId
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -144,8 +109,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     }
 
     /**
-     * @param userId
-     * @param entryId
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -161,8 +124,6 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
     }
 
     /**
-     * @param entryDto
-     * @return
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -176,15 +137,7 @@ public class TutorialSectionBo implements BaseBo<Integer, TutorialSection, Tutor
         entity.setText(translationBo.findByIdOrDie(entryDto.getText().getId()));
         return dtoUtilService.dtoFromEntity(TutorialSectionEntryDto.class, entryRepository.save(entity));
     }
-
-    /**
-     * @param entryId
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public void deleteEntry(Long entryId) {
-        entryRepository.deleteById(entryId);
-    }
+    
 
     private TutorialSectionDto hydrate(TutorialSection tutorialSection) {
         Hibernate.initialize(tutorialSection.getAvailableHtmlSymbols());

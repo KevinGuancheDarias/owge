@@ -16,13 +16,18 @@ import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 public class UnitMissionMock {
     public static final long SELECTED_UNIT_COUNT = 721239;
 
+
     public static UnitMissionInformation givenUnitMissionInformation(MissionType missionType) {
+        return givenUnitMissionInformation(missionType, null);
+    }
+
+    public static UnitMissionInformation givenUnitMissionInformation(MissionType missionType, Long expirationId) {
         return UnitMissionInformation.builder()
                 .userId(USER_ID_1)
                 .sourcePlanetId(SOURCE_PLANET_ID)
                 .targetPlanetId(TARGET_PLANET_ID)
                 .missionType(missionType)
-                .involvedUnits(List.of(givenSelectedUnit(null)))
+                .involvedUnits(List.of(givenSelectedUnit(expirationId)))
                 .build();
     }
 

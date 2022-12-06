@@ -1,14 +1,10 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
-import com.kevinguanchedarias.owgejava.business.CriticalAttackBo;
-import com.kevinguanchedarias.owgejava.business.FactionBo;
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
-import com.kevinguanchedarias.owgejava.business.UnitBo;
-import com.kevinguanchedarias.owgejava.business.UnlockedRelationBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.*;
+import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
@@ -19,15 +15,10 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.CriticalAttackInformationResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.util.List;
@@ -41,17 +32,16 @@ import java.util.function.Function;
 public class UnitRestService implements SyncSource {
 
     private final UserStorageBo userStorageBo;
-
     private final UnlockedRelationBo unlockedRelationBo;
-
     private final MissionBo missionBo;
-
+    private final MissionFinderBo missionFinderBo;
     private final ObtainedUnitBo obtainedUnitBo;
-
     private final RequirementBo requirementBo;
     private final FactionBo factionBo;
     private final UnitBo unitBo;
     private final CriticalAttackBo criticalAttackBo;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
+    private final MissionRepository missionRepository;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -60,7 +50,7 @@ public class UnitRestService implements SyncSource {
     @Deprecated(since = "0.9.0")
     @GetMapping("findRunning")
     public Object findRunning(@RequestParam("planetId") Double planetId) {
-        RunningUnitBuildDto retVal = missionBo.findRunningUnitBuild(findLoggedInUser().getId(), planetId);
+        RunningUnitBuildDto retVal = missionFinderBo.findRunningUnitBuild(findLoggedInUser().getId(), planetId);
         if (retVal == null) {
             return "";
         }
@@ -76,7 +66,7 @@ public class UnitRestService implements SyncSource {
         if (retVal == null) {
             return "";
         }
-        retVal.setMissionsCount(missionBo.countUserMissions(userId));
+        retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
         return retVal;
     }
 
@@ -104,7 +94,7 @@ public class UnitRestService implements SyncSource {
     @Override
     public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
         return SyncHandlerBuilder.create().withHandler("unit_unlocked_change", this::findUnlocked)
-                .withHandler("unit_build_mission_change", user -> missionBo.findBuildMissions(user.getId()))
+                .withHandler("unit_build_mission_change", user -> missionFinderBo.findBuildMissions(user.getId()))
                 .withHandler("unit_obtained_change", this::findInMyPlanets)
                 .withHandler("unit_requirements_change", this::requirements).build();
     }
@@ -115,11 +105,11 @@ public class UnitRestService implements SyncSource {
         var ous = units.stream()
                 .map(unit -> ObtainedUnit.builder().unit(unit).user(user).build())
                 .toList();
-        return obtainedUnitBo.findCompletedAsDto(user, ous).stream().map(ObtainedUnitDto::getUnit).toList();
+        return obtainedUnitFinderBo.findCompletedAsDto(user, ous).stream().map(ObtainedUnitDto::getUnit).toList();
     }
 
     private List<ObtainedUnitDto> findInMyPlanets(UserStorage user) {
-        return obtainedUnitBo.findCompletedAsDto(user);
+        return obtainedUnitFinderBo.findCompletedAsDto(user);
     }
 
     private UserStorage findLoggedInUser() {
@@ -131,7 +121,7 @@ public class UnitRestService implements SyncSource {
                 .filter(unitWithRequirementInformation -> unitWithRequirementInformation.getUnit()
                         .getHasToDisplayInRequirements())
                 .map(current -> {
-                    final UnitDto unit = current.getUnit();
+                    UnitDto unit = current.getUnit();
                     unit.setImprovement(null);
                     unit.setSpeedImpactGroup(null);
                     current.getRequirements().forEach(requirement -> requirement.getUpgrade().setRequirements(null));

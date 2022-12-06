@@ -1,26 +1,26 @@
 package com.kevinguanchedarias.owgejava.business.mission.attack;
 
-import com.kevinguanchedarias.owgejava.business.AbstractMissionBo;
-import com.kevinguanchedarias.owgejava.business.AllianceBo;
-import com.kevinguanchedarias.owgejava.business.AttackRuleBo;
-import com.kevinguanchedarias.owgejava.business.CriticalAttackBo;
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
-import com.kevinguanchedarias.owgejava.business.MissionBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
-import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.*;
+import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.OwgeElementSideDeletedException;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackInformation;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnit;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackObtainedUnitWithScore;
 import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -43,21 +43,34 @@ public class AttackMissionManagerBo {
     private final MissionRepository missionRepository;
     private final UserStorageBo userStorageBo;
     private final UnitTypeBo unitTypeBo;
-    private final SocketIoService socketIoService;
-    private final MissionBo missionBo;
     private final AllianceBo allianceBo;
     private final AttackEventEmitter attackEventEmitter;
+    private final MissionEventEmitterBo missionEventEmitterBo;
+    private final UserEventEmitterBo userEventEmitterBo;
+    private final UserStorageRepository userStorageRepository;
+    private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final TransactionUtilService transactionUtilService;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
+    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+    private final ConfigurationBo configurationBo;
 
     public AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
         AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
-        obtainedUnitBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
+        obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet).forEach(unit -> {
             if (!attackMission.equals(unit.getMission())) {
                 addUnit(retVal, unit);
             }
         });
-        obtainedUnitBo.findByMissionId(attackMission.getId()).forEach(unit -> addUnit(retVal, unit));
+        obtainedUnitRepository.findByMissionId(attackMission.getId()).forEach(unit -> addUnit(retVal, unit));
         return retVal;
     }
+
+    public boolean isAttackTriggerEnabledForMission(MissionType missionType) {
+        return Boolean.parseBoolean(configurationBo
+                .findOrSetDefault("MISSION_" + missionType.name() + "_TRIGGER_ATTACK", "FALSE").getValue());
+    }
+    
 
     public void addUnit(AttackInformation attackInformation, ObtainedUnit unitEntity) {
         UserStorage userEntity = unitEntity.getUser();
@@ -84,21 +97,21 @@ public class AttackMissionManagerBo {
         doAttack(attackInformation);
         updatePoints(attackInformation);
         attackInformation.getUsersWithDeletedMissions().forEach(userId -> {
-            missionBo.emitUnitMissions(userId);
-            userStorageBo.emitUserData(userStorageBo.findById(userId));
+            missionEventEmitterBo.emitUnitMissions(userId);
+            userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
             attackInformation.getUsersWithChangedCounts().remove(userId);
         });
         var targetPlanet = attackInformation.getTargetPlanet();
         attackInformation.getUsersWithChangedCounts().forEach(userId -> {
             if (targetPlanet.getOwner() != null && targetPlanet.getOwner().getId().equals(userId)) {
-                obtainedUnitBo.emitObtainedUnitChange(userId);
+                obtainedUnitEventEmitter.emitObtainedUnits(userStorageRepository.getById(userId));
                 if (!attackInformation.getUsersWithDeletedMissions().isEmpty()
                         || attackInformation.getUsersWithChangedCounts().size() > 1) {
-                    missionBo.emitEnemyMissionsChange(targetPlanet.getOwner());
+                    missionEventEmitterBo.emitEnemyMissionsChange(targetPlanet.getOwner());
                 }
             }
-            missionBo.emitUnitMissions(userId);
-            userStorageBo.emitUserData(userStorageBo.findById(userId));
+            missionEventEmitterBo.emitUnitMissions(userId);
+            userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
         });
         attackEventEmitter.emitAttackEnd(attackInformation);
     }
@@ -121,11 +134,9 @@ public class AttackMissionManagerBo {
             });
         });
         alteredUsers.addAll(attackInformation.getUsersWithChangedCounts());
-        TransactionUtil.doAfterCommit(() -> alteredUsers.forEach(current -> {
+        transactionUtilService.doAfterCommit(() -> alteredUsers.forEach(current -> {
             unitTypeBo.emitUserChange(current);
-            socketIoService.sendMessage(current, AbstractMissionBo.UNIT_OBTAINED_CHANGE,
-                    () -> obtainedUnitBo.toDto(obtainedUnitBo.findDeployedInUserOwnedPlanets(current)));
-
+            obtainedUnitEventEmitter.emitObtainedUnits(userStorageRepository.getById(current));
         }));
     }
 
@@ -183,11 +194,11 @@ public class AttackMissionManagerBo {
             }
             target.setAvailableHealth(0D);
             target.setAvailableShield(0D);
-            obtainedUnitBo.delete(target.getObtainedUnit());
+            obtainedUnitRepository.delete(target.getObtainedUnit());
             deleteMissionIfRequired(attackInformation, target.getObtainedUnit());
             attackInformation.getUsersWithChangedCounts().add(target.getUser().getUser().getId());
         }
-        improvementBo.clearCacheEntriesIfRequired(target.getObtainedUnit().getUnit(), obtainedUnitBo);
+        improvementBo.clearCacheEntriesIfRequired(target.getObtainedUnit().getUnit(), obtainedUnitImprovementCalculationService);
 
     }
 
@@ -218,7 +229,7 @@ public class AttackMissionManagerBo {
      */
     private void deleteMissionIfRequired(AttackInformation attackInformation, ObtainedUnit obtainedUnit) {
         var mission = obtainedUnit.getMission();
-        if (mission != null && !obtainedUnitBo.existsByMission(mission)) {
+        if (mission != null && !obtainedUnitRepository.existsByMission(mission)) {
             if (attackInformation.getAttackMission().getId().equals(mission.getId())) {
                 attackInformation.setRemoved(true);
             } else {

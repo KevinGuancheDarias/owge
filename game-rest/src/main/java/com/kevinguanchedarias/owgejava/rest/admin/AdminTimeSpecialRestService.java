@@ -1,13 +1,13 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
+import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
-import com.kevinguanchedarias.owgejava.business.TimeSpecialBo;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.repository.TimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithFullRestService;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -28,13 +28,13 @@ import java.util.Optional;
 @AllArgsConstructor
 @RequestMapping("admin/time_special")
 public class AdminTimeSpecialRestService
-        implements CrudWithFullRestService<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto>,
-        WithImageRestServiceTrait<Integer, TimeSpecial, TimeSpecialDto, TimeSpecialBo> {
+        implements CrudWithFullRestService<Integer, TimeSpecial, TimeSpecialRepository, TimeSpecialDto>,
+        WithImageRestServiceTrait<Integer, TimeSpecial, TimeSpecialDto, TimeSpecialRepository> {
 
-    private final TimeSpecialBo timeSpecialBo;
+    private final TimeSpecialRepository timeSpecialRepository;
     private final AutowireCapableBeanFactory beanFactory;
     private final DtoUtilService dtoUtilService;
-    private final RequirementBo requirementBo;
+    private final RequirementInformationBo requirementInformationBo;
 
     /*
      * (non-Javadoc)
@@ -43,10 +43,10 @@ public class AdminTimeSpecialRestService
      * CrudWithRequirementsRestServiceTrait#getRestCrudConfigBuilder()
      */
     @Override
-    public RestCrudConfigBuilder<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> getRestCrudConfigBuilder() {
-        RestCrudConfigBuilder<Integer, TimeSpecial, TimeSpecialBo, TimeSpecialDto> builder = RestCrudConfigBuilder
+    public RestCrudConfigBuilder<Integer, TimeSpecial, TimeSpecialRepository, TimeSpecialDto> getRestCrudConfigBuilder() {
+        RestCrudConfigBuilder<Integer, TimeSpecial, TimeSpecialRepository, TimeSpecialDto> builder = RestCrudConfigBuilder
                 .create();
-        return builder.withBeanFactory(beanFactory).withBoService(timeSpecialBo).withDtoClass(TimeSpecialDto.class)
+        return builder.withBeanFactory(beanFactory).withRepository(timeSpecialRepository).withDtoClass(TimeSpecialDto.class)
                 .withEntityClass(TimeSpecial.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
     }
@@ -71,7 +71,7 @@ public class AdminTimeSpecialRestService
     @Override
     public Optional<TimeSpecialDto> beforeRequestEnd(TimeSpecialDto dto, TimeSpecial savedEntity) {
         dto.setRequirements(dtoUtilService.convertEntireArray(RequirementInformationDto.class,
-                requirementBo.findRequirements(getObject(), dto.getId())));
+                requirementInformationBo.findRequirements(getObject(), dto.getId())));
         return CrudWithFullRestService.super.beforeRequestEnd(dto, savedEntity);
     }
 

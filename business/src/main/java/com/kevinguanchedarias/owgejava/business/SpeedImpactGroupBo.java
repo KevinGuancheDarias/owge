@@ -3,18 +3,12 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
-import com.kevinguanchedarias.owgejava.entity.EntityWithMissionLimitation;
-import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
+import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,9 +38,6 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     private transient ObjectRelationToObjectRelationRepository objectRelationToObjectRelationRepository;
 
     @Autowired
-    private RequirementGroupBo requirementGroupBo;
-
-    @Autowired
     private RequirementBo requirementBo;
 
     @Autowired
@@ -59,25 +50,15 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     private DtoUtilService dtoUtilService;
 
     @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
-    @Autowired
     @Lazy
     private transient SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
+
+    @Autowired
+    private transient RequirementGroupRepository requirementGroupRepository;
 
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {
         return speedImpactGroupRepository;
-    }
-
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return SPEED_IMPACT_GROUP_CACHE_TAG;
     }
 
     /*
@@ -100,7 +81,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
         SpeedImpactGroup saved = save(dtoUtilService.entityFromDto(SpeedImpactGroup.class, speedImpactGroupDto));
         speedImpactGroupDto.getRequirementsGroups().forEach(requirementGroupDto -> {
             ObjectRelationToObjectRelation currentGroup = new ObjectRelationToObjectRelation();
-            RequirementGroup requirementGroup = requirementGroupBo.save(new RequirementGroup());
+            RequirementGroup requirementGroup = requirementGroupRepository.save(new RequirementGroup());
             currentGroup.setMaster(
                     objectRelationBo.findObjectRelationOrCreate(ObjectEnum.SPEED_IMPACT_GROUP, saved.getId()));
             requirementGroupDto.getRequirements().forEach(requirementInformationDto -> {
@@ -109,14 +90,13 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
                 requirementInformationDto.setRelation(objectRelationDto);
                 requirementBo.addRequirementFromDto(requirementInformationDto);
             });
-            currentGroup.setSlave(requirementGroupBo.save(requirementGroup).getRelation());
+            currentGroup.setSlave(requirementGroupRepository.save(requirementGroup).getRelation());
             objectRelationToObjectRelationRepository.save(currentGroup);
         });
-        return BaseBo.super.save(saved);
+        return speedImpactGroupRepository.save(saved);
 
     }
 
-    @Override
     public SpeedImpactGroup save(SpeedImpactGroup speedImpactGroup) {
         SpeedImpactGroup alreadySaved = speedImpactGroup.getId() == null ? null : findById(speedImpactGroup.getId());
         SpeedImpactGroup target = alreadySaved == null ? new SpeedImpactGroup() : alreadySaved;
@@ -134,7 +114,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
         }
         target.setImage(speedImpactGroup.getImage());
         target.setRequirementGroups(new ArrayList<>());
-        return BaseBo.super.save(target);
+        return speedImpactGroupRepository.save(target);
     }
 
     /**

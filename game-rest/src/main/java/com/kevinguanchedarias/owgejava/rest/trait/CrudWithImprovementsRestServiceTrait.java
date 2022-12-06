@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.rest.trait;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
-import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementBo;
 import com.kevinguanchedarias.owgejava.business.ImprovementUnitTypeBo;
 import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
@@ -13,16 +12,14 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
 import com.kevinguanchedarias.owgejava.entity.ImprovementUnitType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
+import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.transaction.Transactional;
 import java.util.List;
@@ -33,7 +30,6 @@ import java.util.Optional;
  *
  * @param <N> Entity <b>Numeric</b> id type
  * @param <E> Entity class
- * @param <S> Business service used for crud operations
  * @param <D> DTO class used to build the response, or to build the
  *            "RequestBody" object for POST PUT crud operations
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -42,9 +38,9 @@ import java.util.Optional;
 public interface CrudWithImprovementsRestServiceTrait
         <
                 N extends Number, E extends EntityWithImprovements<N>,
-                S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>
+                R extends JpaRepository<E, N>, D extends DtoFromEntity<E>
                 >
-        extends CrudRestServiceTrait<N, E, S, D> {
+        extends CrudRestServiceTrait<N, E, R, D> {
 
     /**
      * Config
@@ -52,7 +48,7 @@ public interface CrudWithImprovementsRestServiceTrait
      * @since 0.8.0
      */
     @Override
-    RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
+    RestCrudConfigBuilder<N, E, R, D> getRestCrudConfigBuilder();
 
     /*
      * (non-Javadoc)
@@ -70,10 +66,12 @@ public interface CrudWithImprovementsRestServiceTrait
     @Override
     default Optional<E> beforeSave(D parsedDto, E entity) {
         if (entity.getId() != null && entity.getImprovement() == null) {
-            entity.setImprovement(getBo().findById(entity.getId()).getImprovement());
+            getRepository().findById(entity.getId())
+                    .map(EntityWithImprovements::getImprovement)
+                    .ifPresent(entity::setImprovement);
         }
         if (entity.getImprovement() == null) {
-            entity.setImprovement(getBeanFactory().getBean(ImprovementBo.class).save(new Improvement()));
+            entity.setImprovement(getBeanFactory().getBean(ImprovementRepository.class).save(new Improvement()));
         }
         return CrudRestServiceTrait.super.beforeSave(parsedDto, entity);
     }
@@ -98,8 +96,6 @@ public interface CrudWithImprovementsRestServiceTrait
     /**
      * Creates or updates the entity's improvement
      *
-     * @todo In the future refactor not to use the controller for the saving of the
-     * entity
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
      */
@@ -111,7 +107,7 @@ public interface CrudWithImprovementsRestServiceTrait
         improvementDto.setUnitTypesUpgrades(null);
         var improvement = getBeanFactory().getBean(ImprovementBo.class)
                 .createOrUpdateFromDto((EntityWithImprovements<Number>) entity, improvementDto);
-        getBo().save(entity);
+        getRepository().save(entity);
         return getDtoUtilService().dtoFromEntity(ImprovementDto.class, improvement);
     }
 
@@ -145,7 +141,7 @@ public interface CrudWithImprovementsRestServiceTrait
                 getBeanFactory().getBean(UnitTypeBo.class).findByIdOrDie(improvementUnitTypeDto.getUnitTypeId()));
         var improvementUnitTypeBo = getBeanFactory().getBean(ImprovementUnitTypeBo.class);
         var improvement = improvementUnitTypeBo.add(entity.getImprovement(), improvementUnitTypeEntity);
-        getBeanFactory().getBean(ImprovementBo.class).save(improvement);
+        getBeanFactory().getBean(ImprovementRepository.class).save(improvement);
         improvementUnitTypeBo.loadImprovementUnitTypes(improvement);
         List<ImprovementUnitTypeDto> improvementUnitTypeDtos = getDtoUtilService()
                 .convertEntireArray(ImprovementUnitTypeDto.class, improvement.getUnitTypesUpgrades());
@@ -171,11 +167,7 @@ public interface CrudWithImprovementsRestServiceTrait
     }
 
     private E findEntityOrDie(N id) {
-        var entity = getBo().findById(id);
-        if (entity == null) {
-            throw new NotFoundException();
-        }
-        return entity;
+        return SpringRepositoryUtil.findByIdOrDie(getRepository(), id);
     }
 
     /**
@@ -193,8 +185,8 @@ public interface CrudWithImprovementsRestServiceTrait
         return getBeanFactory().getBean(DtoUtilService.class);
     }
 
-    private S getBo() {
-        return getRestCrudConfigBuilder().build().getBoService();
+    private R getRepository() {
+        return getRestCrudConfigBuilder().build().getRepository();
     }
 
     private BeanFactory getBeanFactory() {

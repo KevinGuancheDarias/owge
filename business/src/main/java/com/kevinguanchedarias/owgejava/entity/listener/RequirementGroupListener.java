@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.entity.listener;
 
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
+import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import org.springframework.context.annotation.Lazy;
@@ -16,11 +16,11 @@ import javax.persistence.PostLoad;
 @Component
 public class RequirementGroupListener {
 
-    private final RequirementBo requirementBo;
+    private final RequirementInformationBo requirementInformationBo;
 
     @Lazy
-    public RequirementGroupListener(RequirementBo requirementBo) {
-        this.requirementBo = requirementBo;
+    public RequirementGroupListener(RequirementInformationBo requirementInformationBo) {
+        this.requirementInformationBo = requirementInformationBo;
     }
 
     /**
@@ -30,6 +30,6 @@ public class RequirementGroupListener {
     @PostLoad
     public void computeRequirements(RequirementGroup requirementGroup) {
         requirementGroup.setRequirements(
-                requirementBo.findRequirements(ObjectEnum.REQUIREMENT_GROUP, requirementGroup.getId()));
+                requirementInformationBo.findRequirements(ObjectEnum.REQUIREMENT_GROUP, requirementGroup.getId()));
     }
 }

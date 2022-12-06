@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.ImprovementSource;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
@@ -19,8 +18,7 @@ import java.util.List;
 
 @Component
 public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto>, ImprovementSource {
-    public static final String OBTAINED_UPGRADE_CACHE_TAG = "obtained_upgrade";
-    public static final String OBTANED_UPGRADE_CHANGE_EVENT = "obtained_upgrades_change";
+    public static final String OBTAINED_UPGRADES_CHANGE = "obtained_upgrades_change";
 
     @Serial
     private static final long serialVersionUID = 2294363946431892708L;
@@ -33,10 +31,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 
     @Autowired
     private transient SocketIoService socketIoService;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
-
+    
     @PostConstruct
     public void init() {
         improvementBo.addImprovementSource(this);
@@ -47,15 +42,6 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
         return obtainedUpgradeRepository;
     }
 
-    @Override
-    public TaggableCacheManager getTaggableCacheManager() {
-        return taggableCacheManager;
-    }
-
-    @Override
-    public String getCacheTag() {
-        return OBTAINED_UPGRADE_CACHE_TAG;
-    }
 
     /*
      * (non-Javadoc)
@@ -81,7 +67,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
      * @since 0.9.0
      */
     public void emitObtainedChange(Integer userId) {
-        socketIoService.sendMessage(userId, OBTANED_UPGRADE_CHANGE_EVENT, () -> toDto(obtainedUpgradeRepository.findByUserId(userId)));
+        socketIoService.sendMessage(userId, OBTAINED_UPGRADES_CHANGE, () -> toDto(obtainedUpgradeRepository.findByUserId(userId)));
     }
 
     /**

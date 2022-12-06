@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.rest.trait;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
-import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.business.ObjectEntityBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
@@ -12,17 +11,15 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -42,10 +39,14 @@ import java.util.stream.IntStream;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
-public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extends EntityWithId<N>, S extends BaseBo<N, E, D>, D extends DtoFromEntity<E>>
-        extends CrudRestServiceNoOpEventsTrait<D, E> {
+public interface CrudWithRequirementsRestServiceTrait<
+        N extends Number,
+        E extends EntityWithId<N>,
+        R extends JpaRepository<E, N>,
+        D extends DtoFromEntity<E>
+        > extends CrudRestServiceNoOpEventsTrait<D, E> {
 
-    RestCrudConfigBuilder<N, E, S, D> getRestCrudConfigBuilder();
+    RestCrudConfigBuilder<N, E, R, D> getRestCrudConfigBuilder();
 
     /**
      * Returns the object the entity <i>E</i> represents in the {@link ObjectEntity}
@@ -81,9 +82,9 @@ public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extend
      */
     @GetMapping("{id}/requirements")
     default List<RequirementInformationDto> findRequirements(@PathVariable N id) {
-        getBo().existsOrDie(id);
+        SpringRepositoryUtil.existsOrDie(getRepository(), id);
         List<RequirementInformationDto> requirements = getBeanFactory().getBean(DtoUtilService.class)
-                .convertEntireArray(RequirementInformationDto.class, getBeanFactory().getBean(RequirementBo.class)
+                .convertEntireArray(RequirementInformationDto.class, getBeanFactory().getBean(RequirementInformationBo.class)
                         .findRequirements(getObject(), Integer.valueOf(id.toString())));
         requirements.forEach(current -> current.setRelation(null));
         return requirements;
@@ -101,7 +102,7 @@ public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extend
     @PostMapping("{id}/requirements")
     default RequirementInformationDto addRequirement(@PathVariable N id,
                                                      @RequestBody RequirementInformationDto requirementInformationDto) {
-        getBo().existsOrDie(id);
+        SpringRepositoryUtil.existsOrDie(getRepository(), id);
         requirementInformationDto.setRelation(new ObjectRelationDto(getObject().name(), (Integer) id));
         return getBeanFactory().getBean(RequirementBo.class).addRequirementFromDto(requirementInformationDto);
     }
@@ -109,7 +110,7 @@ public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extend
     @DeleteMapping("{id}/requirements/{requirementInformationId}")
     default ResponseEntity<Void> deleteRequirement(@PathVariable N id,
                                                    @PathVariable Integer requirementInformationId) {
-        getBo().existsOrDie(id);
+        SpringRepositoryUtil.existsOrDie(getRepository(), id);
         getBeanFactory().getBean(RequirementInformationBo.class).delete(requirementInformationId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -136,8 +137,8 @@ public interface CrudWithRequirementsRestServiceTrait<N extends Number, E extend
         }
     }
 
-    private S getBo() {
-        return getRestCrudConfigBuilder().build().getBoService();
+    private R getRepository() {
+        return getRestCrudConfigBuilder().build().getRepository();
     }
 
     private BeanFactory getBeanFactory() {

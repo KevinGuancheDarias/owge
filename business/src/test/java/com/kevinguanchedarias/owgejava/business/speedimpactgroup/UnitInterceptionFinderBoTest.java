@@ -3,8 +3,8 @@ package com.kevinguanchedarias.owgejava.business.speedimpactgroup;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.AllianceBo;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
-import com.kevinguanchedarias.owgejava.business.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -14,9 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.INTERCEPTOR_UNIT;
-import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.INTERCEPTOR_USER;
-import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.givenInterceptedUnitsInformation;
+import static com.kevinguanchedarias.owgejava.mock.InterceptedUnitsInformationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionReportMock.givenReport;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
@@ -26,24 +24,21 @@ import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnitWithInterception1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = UnitInterceptionFinderBo.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 @MockBean({
-        ObtainedUnitBo.class,
+        ObtainedUnitFinderBo.class,
         SpeedImpactGroupBo.class,
         AllianceBo.class,
         MissionReportBo.class
 })
 class UnitInterceptionFinderBoTest {
     private final UnitInterceptionFinderBo unitInterceptionFinderBo;
-    private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final SpeedImpactGroupBo speedImpactGroupBo;
     private final AllianceBo allianceBo;
     private final MissionReportBo missionReportBo;
@@ -51,13 +46,13 @@ class UnitInterceptionFinderBoTest {
     @Autowired
     public UnitInterceptionFinderBoTest(
             UnitInterceptionFinderBo unitInterceptionFinderBo,
-            ObtainedUnitBo obtainedUnitBo,
+            ObtainedUnitFinderBo obtainedUnitFinderBo,
             SpeedImpactGroupBo speedImpactGroupBo,
             AllianceBo allianceBo,
             MissionReportBo missionReportBo
     ) {
         this.unitInterceptionFinderBo = unitInterceptionFinderBo;
-        this.obtainedUnitBo = obtainedUnitBo;
+        this.obtainedUnitFinderBo = obtainedUnitFinderBo;
         this.speedImpactGroupBo = speedImpactGroupBo;
         this.allianceBo = allianceBo;
         this.missionReportBo = missionReportBo;
@@ -85,7 +80,7 @@ class UnitInterceptionFinderBoTest {
                 .unit(unitWithInterception)
                 .build();
         var userThatIntercepted = interceptorUnitWithInterception.getUser();
-        given(obtainedUnitBo.findInvolvedInAttack(planet)).willReturn(List.of(attackerInterceptedUnit, attackerInterceptedUnit2, interceptorUnit, interceptorUnitWithInterception, interceptorUnitWithInterception));
+        given(obtainedUnitFinderBo.findInvolvedInAttack(planet)).willReturn(List.of(attackerInterceptedUnit, attackerInterceptedUnit2, interceptorUnit, interceptorUnitWithInterception, interceptorUnitWithInterception));
         given(speedImpactGroupBo.canIntercept(groupThatCanIntercept, interceptedUser, attackerInterceptedUnit.getUnit())).willReturn(true);
         given(allianceBo.areEnemies(userThatIntercepted, interceptedUser)).willReturn(areEnemies);
 

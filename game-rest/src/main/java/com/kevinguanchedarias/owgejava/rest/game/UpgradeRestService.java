@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
@@ -32,13 +33,14 @@ public class UpgradeRestService implements SyncSource {
     private final ObtainedUpgradeBo obtainedUpgradeBo;
     private final MissionBo missionBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
+    private final MissionRepository missionRepository;
 
     @GetMapping("registerLevelUp")
     public RunningUpgradeDto registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
         Integer userId = userStorageBo.findLoggedIn().getId();
         missionBo.registerLevelUpAnUpgrade(userId, upgradeId);
         RunningUpgradeDto retVal = missionBo.findRunningLevelUpMission(userId);
-        retVal.setMissionsCount(missionBo.countUserMissions(userId));
+        retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
         return retVal;
     }
 

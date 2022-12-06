@@ -5,17 +5,20 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.List;
+
 /**
  * Represents the units that should be send to the mission
  *
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Value
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @Jacksonized
 public class SelectedUnit {
     Integer id;
     Long count;
     Long expirationId;
+    List<SelectedUnit> storedUnits;
 }
