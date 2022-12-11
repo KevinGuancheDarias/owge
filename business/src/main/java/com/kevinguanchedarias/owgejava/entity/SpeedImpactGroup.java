@@ -1,24 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRelationListener;
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRequirementGroupsListener;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -37,8 +27,12 @@ import java.util.List;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EntityListeners({EntityWithRelationListener.class, EntityWithRequirementGroupsListener.class})
-public class SpeedImpactGroup extends EntityWithMissionLimitation<Integer> implements EntityWithRequirementGroups {
+@EntityListeners({
+        EntityWithRelationListener.class, EntityWithRequirementGroupsListener.class, EntityWithTaggableCacheListener.class
+})
+public class SpeedImpactGroup extends EntityWithMissionLimitation<Integer> implements EntityWithRequirementGroups, EntityWithTaggableCache<Integer> {
+    public static final String SPEED_IMPACT_GROUP_CACHE_TAG = "speed_impact_group";
+
     @Serial
     private static final long serialVersionUID = 8120163868349636675L;
 
@@ -81,5 +75,10 @@ public class SpeedImpactGroup extends EntityWithMissionLimitation<Integer> imple
     @Override
     public ObjectEnum getObject() {
         return ObjectEnum.SPEED_IMPACT_GROUP;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return SPEED_IMPACT_GROUP_CACHE_TAG;
     }
 }

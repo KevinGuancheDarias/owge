@@ -11,8 +11,6 @@ import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
-import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionService;
@@ -28,13 +26,11 @@ import java.util.Optional;
 @Slf4j
 public class RuleBo {
     public static final String ARGS_DELIMITER = "#";
-    public static final String RULE_CACHE_TAG = "rules";
 
     private final RuleRepository ruleRepository;
     private final ConversionService conversionService;
     private final List<RuleItemTypeProvider> ruleItemTypeProviders;
     private final List<RuleTypeProvider> ruleTypeProviders;
-    private final TaggableCacheManager taggableCacheManager;
     private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     public List<RuleDto> findByOriginTypeAndOriginId(String originType, long id) {
@@ -56,17 +52,12 @@ public class RuleBo {
                 .toList();
     }
 
-    @TaggableCacheEvictByTag(tags = {RULE_CACHE_TAG + ":#id", RULE_CACHE_TAG + ":list"})
     public void deleteById(int id) {
         ruleRepository.deleteById(id);
     }
 
-    @TaggableCacheEvictByTag(tags = RULE_CACHE_TAG + ":list")
     public RuleDto save(RuleDto ruleDto) {
         var saved = ruleRepository.save(Objects.requireNonNull(conversionService.convert(ruleDto, Rule.class)));
-        if (ruleDto.getId() != 0) {
-            taggableCacheManager.evictByCacheTag(RULE_CACHE_TAG, ruleDto.getId());
-        }
         return conversionService.convert(saved, RuleDto.class);
     }
 

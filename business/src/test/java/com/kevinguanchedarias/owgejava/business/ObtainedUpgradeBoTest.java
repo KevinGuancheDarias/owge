@@ -56,14 +56,14 @@ class ObtainedUpgradeBoTest {
         ou.getUpgrade().setImprovement(improvement);
         var multipliedResult = new ImprovementDto();
         multipliedResult.setId(2);
-        multipliedResult.setMoreMisions(2F);
+        multipliedResult.setMoreMissions(2F);
         given(obtainedUpgradeRepository.findByUserId(USER_ID_1)).willReturn(List.of(ou));
         given(improvementBo.multiplyValues(improvement, ou.getLevel())).willReturn(multipliedResult);
 
 
         var result = obtainedUpgradeBo.calculateImprovement(ou.getUser());
 
-        assertThat(result.getMoreMisions()).isEqualTo(2F);
+        assertThat(result.getMoreMissions()).isEqualTo(2F);
 
     }
 

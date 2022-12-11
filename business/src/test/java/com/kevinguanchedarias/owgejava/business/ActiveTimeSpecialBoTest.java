@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.Optional;
 
+import static com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
@@ -178,7 +179,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(registeredTask.getContent()).isEqualTo(ACTIVE_TIME_SPECICAL_ID);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
-        verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
+        verify(taggableCacheManager, times(1)).evictByCacheTag(ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG, USER_ID_1);
         verify(obtainedUnitEventEmitter, times(emitUnitsTimes)).emitObtainedUnits(user);
     }
 
@@ -286,7 +287,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(scheduledTask.getType()).isEqualTo("TIME_SPECIAL_EFFECT_END");
         assertThat(scheduledTask.getContent()).isEqualTo(activeTimeSpecialId);
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, timeSpecial);
-        verify(taggableCacheManager, times(1)).evictByCacheTag(ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, USER_ID_1);
+        verify(taggableCacheManager, times(1)).evictByCacheTag(ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG, USER_ID_1);
         verify(obtainedUnitEventEmitter, times(emitUnitsTimes)).emitObtainedUnits(user);
         verify(applicationEventPublisher, times(1)).publishEvent(savedActive);
     }

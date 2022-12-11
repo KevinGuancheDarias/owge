@@ -134,7 +134,11 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
         var retVal = new AllianceJoinRequest();
         retVal.setAlliance(alliance);
         retVal.setUser(user);
-        return allianceJoinRequestRepository.save(retVal);
+        return allianceJoinRequestRepository.save(AllianceJoinRequest.builder()
+                .alliance(alliance)
+                .user(user)
+                .build()
+        );
     }
 
     @Transactional

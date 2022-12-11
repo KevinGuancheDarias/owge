@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
+import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
@@ -21,11 +22,10 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER;
-import static com.kevinguanchedarias.owgejava.business.UnitBo.UNIT_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.UnitTypeBo.UNIT_TYPE_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.rule.RuleBo.RULE_CACHE_TAG;
 import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID;
+import static com.kevinguanchedarias.owgejava.entity.Rule.RULE_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.Unit.UNIT_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.UnitType.UNIT_TYPE_CACHE_TAG;
 import static com.kevinguanchedarias.owgejava.mock.ActiveTimeSpecialMock.givenActiveTimeSpecialMock;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
@@ -34,9 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -154,7 +152,7 @@ class HiddenUnitBoTest {
         verify(ruleBo, times(1)).findByOriginTypeAndOriginId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID);
         verify(taggableCacheManager, times(1)).saveEntry(any(), eq(expectation), eq(List.of(
                 RULE_CACHE_TAG,
-                ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER + ":" + USER_ID_1,
+                ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":" + USER_ID_1,
                 UNIT_TYPE_CACHE_TAG,
                 UNIT_CACHE_TAG
         )));

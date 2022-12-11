@@ -17,7 +17,7 @@ public class ImprovementMock {
 
     public static GroupedImprovement givenUserImprovement() {
         var instance = new GroupedImprovement();
-        instance.setMoreMisions(GROUPED_IMPROVEMENT_MORE_MISSIONS);
+        instance.setMoreMissions(GROUPED_IMPROVEMENT_MORE_MISSIONS);
         return instance;
     }
 }

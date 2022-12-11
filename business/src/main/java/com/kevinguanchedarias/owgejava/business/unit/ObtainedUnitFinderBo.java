@@ -6,9 +6,11 @@ import com.kevinguanchedarias.owgejava.business.unit.loader.UnitDataLoader;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,10 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
         return ObtainedUnitDto.class;
     }
 
+    @TaggableCacheable(tags = {
+            Unit.UNIT_CACHE_TAG,
+            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#user.id"
+    }, keySuffix = "#user.id")
     public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user) {
         return findCompletedAsDto(user, obtainedUnitRepository.findDeployedInUserOwnedPlanets(user.getId()));
     }

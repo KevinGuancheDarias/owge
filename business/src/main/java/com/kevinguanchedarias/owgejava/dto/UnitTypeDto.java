@@ -1,18 +1,17 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.dto.base.DtoWithMissionLimitation;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
+
+@Data
 @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEntity<UnitType> {
-
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -27,8 +26,6 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
     private SpeedImpactGroupDto speedImpactGroup;
     private AttackRuleDto attackRule;
 
-    @Getter
-    @Setter
     private CriticalAttackDto criticalAttack;
 
     private Boolean hasToInheritImprovements = false;
@@ -36,7 +33,7 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 
     @Override
     public void dtoFromEntity(UnitType entity) {
-        EntityPojoConverterUtil.convertFromTo(this, entity);
+        copyBasicProperties(entity);
         if (entity.getImage() != null) {
             image = entity.getImage().getId();
             imageUrl = entity.getImage().getUrl();
@@ -65,191 +62,10 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
         }
     }
 
-    public Integer getId() {
-        return id;
+    private void copyBasicProperties(UnitType unitType) {
+        id = unitType.getId();
+        name = unitType.getName();
+        maxCount = unitType.getMaxCount();
+        hasToInheritImprovements = unitType.getHasToInheritImprovements();
     }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Long getImage() {
-        return image;
-    }
-
-    public void setImage(Long image) {
-        this.image = image;
-    }
-
-    /**
-     * @return the imageUrl
-     * @author Kevin Guanche Darias
-     * @since 0.8.1
-     */
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    /**
-     * @param imageUrl the imageUrl to set
-     * @author Kevin Guanche Darias
-     * @since 0.8.1
-     */
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public Long getMaxCount() {
-        return maxCount;
-    }
-
-    public void setMaxCount(Long maxCount) {
-        this.maxCount = maxCount;
-    }
-
-    /**
-     * @return the shareMaxCount
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public UnitTypeDto getShareMaxCount() {
-        return shareMaxCount;
-    }
-
-    /**
-     * @param shareMaxCount the shareMaxCount to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setShareMaxCount(UnitTypeDto shareMaxCount) {
-        this.shareMaxCount = shareMaxCount;
-    }
-
-    /**
-     * Transient property, when defined, represents the maxCount with all user
-     * improvements applied
-     *
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public Long getComputedMaxCount() {
-        return computedMaxCount;
-    }
-
-    public void setComputedMaxCount(Long computedMaxCount) {
-        this.computedMaxCount = computedMaxCount;
-    }
-
-    /**
-     * @return the parent
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public UnitTypeDto getParent() {
-        return parent;
-    }
-
-    /**
-     * @param parent the parent to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setParent(UnitTypeDto parent) {
-        this.parent = parent;
-    }
-
-    /**
-     * Represents the amount built by the user
-     *
-     * @return
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    public Long getUserBuilt() {
-        return userBuilt;
-    }
-
-    public void setUserBuilt(Long userBuilt) {
-        this.userBuilt = userBuilt;
-    }
-
-    /**
-     * @return the speedImpactGroup
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public SpeedImpactGroupDto getSpeedImpactGroup() {
-        return speedImpactGroup;
-    }
-
-    /**
-     * @param speedImpactGroup the speedImpactGroup to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSpeedImpactGroup(SpeedImpactGroupDto speedImpactGroup) {
-        this.speedImpactGroup = speedImpactGroup;
-    }
-
-    /**
-     * @return the attackRule
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public AttackRuleDto getAttackRule() {
-        return attackRule;
-    }
-
-    /**
-     * @param attackRule the attackRule to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setAttackRule(AttackRuleDto attackRule) {
-        this.attackRule = attackRule;
-    }
-
-    /**
-     * @return the hasToInheritImprovements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Boolean getHasToInheritImprovements() {
-        return hasToInheritImprovements;
-    }
-
-    /**
-     * @param hasToInheritImprovements the hasToInheritImprovements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setHasToInheritImprovements(Boolean hasToInheritImprovements) {
-        this.hasToInheritImprovements = hasToInheritImprovements;
-    }
-
-    /**
-     * @return the inheritedImprovementUnitTypes
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<InheritedImprovementUnitType> getInheritedImprovementUnitTypes() {
-        return inheritedImprovementUnitTypes;
-    }
-
-    /**
-     * @param inheritedImprovementUnitTypes the inheritedImprovementUnitTypes to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setInheritedImprovementUnitTypes(List<InheritedImprovementUnitType> inheritedImprovementUnitTypes) {
-        this.inheritedImprovementUnitTypes = inheritedImprovementUnitTypes;
-    }
-
 }

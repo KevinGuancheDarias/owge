@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, SpeedImpactGroupDto> {
-    public static final String SPEED_IMPACT_GROUP_CACHE_TAG = "speed_impact_group";
-
     @Serial
     private static final long serialVersionUID = 1367954885113224567L;
 

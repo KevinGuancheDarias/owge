@@ -103,6 +103,6 @@ public class MissionBaseService {
      * @since 0.8.0
      */
     private Integer findUserMaxAllowedMissions(UserStorage user) {
-        return improvementBo.findUserImprovement(user).getMoreMisions().intValue() + 1;
+        return improvementBo.findUserImprovement(user).getMoreMissions().intValue() + 1;
     }
 }

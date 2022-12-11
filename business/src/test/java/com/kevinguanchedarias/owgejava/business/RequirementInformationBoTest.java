@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMENT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.REFERENCE_ID;
 import static com.kevinguanchedarias.owgejava.mock.RequirementMock.givenRequirementInformation;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -73,7 +73,7 @@ class RequirementInformationBoTest {
         verify(requirementBo, times(1)).triggerRelationChanged(or);
         verify(taggableCacheManager, times(1)).evictByCacheTag(
                 REQUIREMENT_INFORMATION_CACHE_TAG,
-                ":#UPGRADE_" + REFERENCE_ID
+                "#UPGRADE_" + REFERENCE_ID
         );
         verify(taggableCacheManager, times(1)).evictByCacheTag(REQUIREMENT_GROUP_CACHE_TAG);
     }

@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUser;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -14,12 +16,14 @@ import java.util.List;
 @Entity
 @Table(name = "missions")
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EntityListeners(EntityWithByUserCacheTagListener.class)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Mission implements EntityWithCache<Long> {
+public class Mission implements EntityWithCache<Long>, EntityWithTaggableCacheByUser<Long> {
     public static final String MISSION_CACHE_TAG = "mission";
+    public static final String MISSION_BY_USER_CACHE_TAG = "mission_by_user";
 
     @Serial
     private static final long serialVersionUID = -5258361356566850987L;
@@ -103,5 +107,10 @@ public class Mission implements EntityWithCache<Long> {
     @Override
     public String getCacheTag() {
         return MISSION_CACHE_TAG;
+    }
+
+    @Override
+    public String getByUserCacheTag() {
+        return MISSION_BY_USER_CACHE_TAG;
     }
 }

@@ -1,10 +1,6 @@
 package com.kevinguanchedarias.owgejava.dao;
 
-import com.kevinguanchedarias.owgejava.business.FactionBo;
-import com.kevinguanchedarias.owgejava.business.GalaxyBo;
-import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
-import com.kevinguanchedarias.owgejava.business.SpecialLocationBo;
-import com.kevinguanchedarias.owgejava.business.UpgradeBo;
+import com.kevinguanchedarias.owgejava.business.*;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementRepository;
@@ -15,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 

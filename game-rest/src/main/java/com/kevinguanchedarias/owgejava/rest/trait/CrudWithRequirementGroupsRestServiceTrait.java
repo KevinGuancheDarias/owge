@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMENT_GROUP_CACHE_TAG;
+
 /**
  * Crud for requirement groups
  *
@@ -89,7 +91,7 @@ public interface CrudWithRequirementGroupsRestServiceTrait<
                                          @RequestBody RequirementGroupDto requirementGroupDto) {
         SpringRepositoryUtil.existsOrDie(getRepository(), id);
         RequirementGroupBo requirementGroupBo = getBeanFactory().getBean(RequirementGroupBo.class);
-        return requirementGroupBo.toDto(requirementGroupBo.addRequirementGroup(getObject(), id, requirementGroupDto));
+        return requirementGroupBo.toDto(requirementGroupBo.add(getObject(), id, requirementGroupDto));
     }
 
     /**
@@ -141,6 +143,6 @@ public interface CrudWithRequirementGroupsRestServiceTrait<
     }
 
     private void clearGroupCache() {
-        getBeanFactory().getBean(TaggableCacheManager.class).evictByCacheTag(RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG);
+        getBeanFactory().getBean(TaggableCacheManager.class).evictByCacheTag(REQUIREMENT_GROUP_CACHE_TAG);
     }
 }

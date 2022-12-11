@@ -5,6 +5,8 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
+import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -13,6 +15,7 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +50,7 @@ public class RunningMissionFinderBo {
                 }).toList();
     }
 
+    @TaggableCacheable(tags = Mission.MISSION_BY_USER_CACHE_TAG + ":#userId")
     public Integer countUserRunningMissions(Integer userId) {
         return missionRepository.countByUserIdAndResolvedFalse(userId);
     }
@@ -56,6 +60,10 @@ public class RunningMissionFinderBo {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
+    @TaggableCacheable(tags = {
+            Mission.MISSION_BY_USER_CACHE_TAG + ":#userId",
+            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + "#:userId"
+    }, keySuffix = "#userId")
     public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
         var user = userStorageRepository.getById(userId);
         return missionRepository.findByUserIdAndResolvedFalse(userId).stream().

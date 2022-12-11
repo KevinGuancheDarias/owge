@@ -38,7 +38,7 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     };
     userStore.currentUser.subscribe(user => this._currentUser = user);
     userStore.currentUserImprovements.subscribe(improvement =>
-      _missionStore.maxMissions.next(improvement.moreMisions)
+      _missionStore.maxMissions.next(improvement.moreMissions)
     );
   }
 

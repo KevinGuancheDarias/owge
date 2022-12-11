@@ -394,7 +394,7 @@ class MissionBoTest {
         given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
+        given(groupedImprovementMock.getMoreMissions()).willReturn(20F);
         given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
         given(unitBo.calculateRequirements(any(), any())).willReturn(resourceRequirementsSpy);
@@ -617,7 +617,7 @@ class MissionBoTest {
 
     private GroupedImprovement givenMaxMissionsCount(UserStorage user) {
         var groupedImprovementMock = mock(GroupedImprovement.class);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(20F);
+        given(groupedImprovementMock.getMoreMissions()).willReturn(20F);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
         return groupedImprovementMock;
     }

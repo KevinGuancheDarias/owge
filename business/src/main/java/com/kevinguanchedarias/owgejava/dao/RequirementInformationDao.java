@@ -23,8 +23,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMENT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 
 @Repository
 public class RequirementInformationDao implements Serializable {
@@ -35,7 +35,7 @@ public class RequirementInformationDao implements Serializable {
 
     @Autowired
     private RequirementInformationRepository requirementInformationRepository;
-    
+
     @Autowired
     private ObjectRelationBo objectRelationsBo;
 

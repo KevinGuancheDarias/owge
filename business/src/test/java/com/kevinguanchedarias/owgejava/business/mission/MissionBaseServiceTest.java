@@ -191,7 +191,7 @@ class MissionBaseServiceTest {
         var groupedImprovementMock = mock(GroupedImprovement.class);
         given(missionRepository.countByUserIdAndResolvedFalse(user.getId())).willReturn(runningMissions);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(maxMissions);
+        given(groupedImprovementMock.getMoreMissions()).willReturn(maxMissions);
 
         missionBaseService.checkMissionLimitNotReached(user);
 
@@ -207,7 +207,7 @@ class MissionBaseServiceTest {
         var exceptionMock = mock(CommonException.class);
         given(missionRepository.countByUserIdAndResolvedFalse(user.getId())).willReturn(2);
         given(improvementBo.findUserImprovement(user)).willReturn(groupedImprovementMock);
-        given(groupedImprovementMock.getMoreMisions()).willReturn(maxMissions);
+        given(groupedImprovementMock.getMoreMissions()).willReturn(maxMissions);
         given(exceptionUtilService.createExceptionBuilder(SgtBackendInvalidInputException.class, "I18N_ERR_MISSION_LIMIT_EXCEEDED"))
                 .willReturn(exceptionBuilderMock);
         given(exceptionBuilderMock.withDeveloperHintDoc(GameProjectsEnum.BUSINESS, MissionBaseService.class, DocTypeEnum.EXCEPTIONS))

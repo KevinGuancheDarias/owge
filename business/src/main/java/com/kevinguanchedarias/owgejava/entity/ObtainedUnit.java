@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUser;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,8 +14,9 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class ObtainedUnit implements EntityWithCache<Long> {
-    public static final String OBTAINED_UNIT_CACHE_TAG = "obtained_unit";
+@EntityListeners(EntityWithByUserCacheTagListener.class)
+public class ObtainedUnit implements EntityWithTaggableCacheByUser<Long> {
+    public static final String OBTAINED_UNIT_CACHE_TAG_BY_USER = "obtained_unit_by_user";
 
     @Serial
     private static final long serialVersionUID = -373057104230776167L;
@@ -54,7 +57,7 @@ public class ObtainedUnit implements EntityWithCache<Long> {
     private Long expirationId;
 
     @Override
-    public String getCacheTag() {
-        return OBTAINED_UNIT_CACHE_TAG;
+    public String getByUserCacheTag() {
+        return OBTAINED_UNIT_CACHE_TAG_BY_USER;
     }
 }

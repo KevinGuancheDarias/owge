@@ -24,8 +24,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockableBo<Integer, Unit, UnitDto> {
-    public static final String UNIT_CACHE_TAG = "unit";
-
     @Serial
     private static final long serialVersionUID = 8956360591688432113L;
 

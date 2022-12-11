@@ -5,20 +5,20 @@ import com.kevinguanchedarias.owgejava.enumerations.DeployMissionConfigurationEn
 import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
+import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class ConfigurationBo implements Serializable {
+    @Serial
     private static final long serialVersionUID = -9297616911916053L;
 
     private static final Logger LOCAL_LOGGER = Logger.getLogger(ConfigurationBo.class);
@@ -29,8 +29,7 @@ public class ConfigurationBo implements Serializable {
     public static final Long MISSION_TIME_MINIMUM_VALUE = 10L;
 
 
-    @Autowired
-    private ConfigurationRepository configurationRepository;
+    private final ConfigurationRepository configurationRepository;
 
     @PostConstruct
     public void init() {
@@ -112,6 +111,7 @@ public class ConfigurationBo implements Serializable {
         save(new Configuration(key, value));
     }
 
+    @TaggableCacheable(tags = Configuration.CONFIGURATION_CACHE_KEY)
     public Configuration findOrSetDefault(String name, String defaultValue) {
         try {
             return findConfigurationParam(name);

@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.exception.CommonException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class DtoUtilService implements Serializable {
+    @Serial
     private static final long serialVersionUID = -2451840948119691965L;
 
     private static final String INSTANTIATION_ERROR = "Could not create a new instance";

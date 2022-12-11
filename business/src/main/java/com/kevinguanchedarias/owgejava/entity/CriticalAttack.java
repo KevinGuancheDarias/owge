@@ -1,19 +1,9 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -37,7 +27,9 @@ public class CriticalAttack implements EntityWithId<Integer> {
     private String name;
 
     @OneToMany(mappedBy = "criticalAttack")
+
     @ToString.Exclude
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private List<CriticalAttackEntry> entries;
 
 }

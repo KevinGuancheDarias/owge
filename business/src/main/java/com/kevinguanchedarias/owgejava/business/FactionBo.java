@@ -23,8 +23,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class FactionBo implements BaseBo<Integer, Faction, FactionDto> {
-    public static final String FACTION_CACHE_TAG = "faction";
-
     @Serial
     private static final long serialVersionUID = -6735454832872729630L;
 

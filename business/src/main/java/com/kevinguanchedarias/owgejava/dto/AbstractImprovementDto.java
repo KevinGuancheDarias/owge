@@ -1,239 +1,103 @@
 /**
- * 
+ *
  */
 package com.kevinguanchedarias.owgejava.dto;
+
+import com.kevinguanchedarias.owgejava.entity.Improvement;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
-public abstract class AbstractImprovementDto {
-	private Float moreSoldiersProduction;
-	private Float morePrimaryResourceProduction;
-	private Float moreSecondaryResourceProduction;
-	private Float moreEnergyProduction;
-	private Float moreChargeCapacity;
-	private Float moreMisions;
-	private Float moreUpgradeResearchSpeed;
-	private Float moreUnitBuildSpeed;
-	private List<ImprovementUnitTypeDto> unitTypesUpgrades;
+@Data
+public abstract class AbstractImprovementDto implements DtoFromEntity<Improvement> {
+    private Float morePrimaryResourceProduction;
+    private Float moreSecondaryResourceProduction;
+    private Float moreEnergyProduction;
+    private Float moreChargeCapacity;
+    private Float moreMissions;
+    private Float moreUpgradeResearchSpeed;
+    private Float moreUnitBuildSpeed;
+    private List<ImprovementUnitTypeDto> unitTypesUpgrades;
 
-	/**
-	 * @return the moreSoldiersProduction
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreSoldiersProduction() {
-		return moreSoldiersProduction;
-	}
+    @Override
+    public void dtoFromEntity(Improvement entity) {
+        morePrimaryResourceProduction = entity.getMorePrimaryResourceProduction();
+        moreSecondaryResourceProduction = entity.getMoreSecondaryResourceProduction();
+        moreEnergyProduction = entity.getMoreEnergyProduction();
+        moreChargeCapacity = entity.getMoreChargeCapacity();
+        moreMissions = entity.getMoreMisions();
+        moreUpgradeResearchSpeed = entity.getMoreUpgradeResearchSpeed();
+        moreUnitBuildSpeed = entity.getMoreUnitBuildSpeed();
+        loadUnitTypes(entity);
+    }
 
-	/**
-	 * @param moreSoldiersProduction the moreSoldiersProduction to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreSoldiersProduction(Float moreSoldiersProduction) {
-		this.moreSoldiersProduction = moreSoldiersProduction;
-	}
+    public AbstractImprovementDto addMorePrimaryResourceProduction(Float value) {
+        morePrimaryResourceProduction += value;
+        return this;
+    }
 
-	/**
-	 * @return the morePrimaryResourceProduction
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMorePrimaryResourceProduction() {
-		return morePrimaryResourceProduction;
-	}
+    public AbstractImprovementDto addMoreSecondaryResourceProduction(Float value) {
+        moreSecondaryResourceProduction += value;
+        return this;
+    }
 
-	/**
-	 * @param morePrimaryResourceProduction the morePrimaryResourceProduction to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMorePrimaryResourceProduction(Float morePrimaryResourceProduction) {
-		this.morePrimaryResourceProduction = morePrimaryResourceProduction;
-	}
+    public AbstractImprovementDto addMoreEnergyProduction(Float value) {
+        moreEnergyProduction += value;
+        return this;
+    }
 
-	/**
-	 * @return the moreSecondaryResourceProduction
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreSecondaryResourceProduction() {
-		return moreSecondaryResourceProduction;
-	}
+    public AbstractImprovementDto addMoreChargeCapacity(Float value) {
+        moreChargeCapacity += value;
+        return this;
+    }
 
-	/**
-	 * @param moreSecondaryResourceProduction the moreSecondaryResourceProduction to
-	 *                                        set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreSecondaryResourceProduction(Float moreSecondaryResourceProduction) {
-		this.moreSecondaryResourceProduction = moreSecondaryResourceProduction;
-	}
+    public AbstractImprovementDto addMoreMissions(Float value) {
+        moreMissions += value;
+        return this;
+    }
 
-	/**
-	 * @return the moreEnergyProduction
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreEnergyProduction() {
-		return moreEnergyProduction;
-	}
+    public AbstractImprovementDto addMoreUpgradeResearchSpeed(Float value) {
+        moreUpgradeResearchSpeed += value;
+        return this;
+    }
 
-	/**
-	 * @param moreEnergyProduction the moreEnergyProduction to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreEnergyProduction(Float moreEnergyProduction) {
-		this.moreEnergyProduction = moreEnergyProduction;
-	}
+    public AbstractImprovementDto addMoreUnitBuildSpeed(Float value) {
+        moreUnitBuildSpeed += value;
+        return this;
+    }
 
-	/**
-	 * @return the moreChargeCapacity
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreChargeCapacity() {
-		return moreChargeCapacity;
-	}
+    /**
+     * Initializes all the values to zero
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
+     */
+    protected void initToZeroes() {
+        morePrimaryResourceProduction = 0F;
+        moreSecondaryResourceProduction = 0F;
+        moreEnergyProduction = 0F;
+        moreChargeCapacity = 0F;
+        moreMissions = 0F;
+        moreUpgradeResearchSpeed = 0F;
+        moreUnitBuildSpeed = 0F;
+        unitTypesUpgrades = new ArrayList<>();
+    }
 
-	/**
-	 * @param moreChargeCapacity the moreChargeCapacity to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreChargeCapacity(Float moreChargeCapacity) {
-		this.moreChargeCapacity = moreChargeCapacity;
-	}
-
-	/**
-	 * @return the moreMisions
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreMisions() {
-		return moreMisions;
-	}
-
-	/**
-	 * @param moreMisions the moreMisions to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreMisions(Float moreMisions) {
-		this.moreMisions = moreMisions;
-	}
-
-	/**
-	 * @return the moreUpgradeResearchSpeed
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreUpgradeResearchSpeed() {
-		return moreUpgradeResearchSpeed;
-	}
-
-	/**
-	 * @param moreUpgradeResearchSpeed the moreUpgradeResearchSpeed to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreUpgradeResearchSpeed(Float moreUpgradeResearchSpeed) {
-		this.moreUpgradeResearchSpeed = moreUpgradeResearchSpeed;
-	}
-
-	/**
-	 * @return the moreUnitBuildSpeed
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public Float getMoreUnitBuildSpeed() {
-		return moreUnitBuildSpeed;
-	}
-
-	/**
-	 * @param moreUnitBuildSpeed the moreUnitBuildSpeed to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setMoreUnitBuildSpeed(Float moreUnitBuildSpeed) {
-		this.moreUnitBuildSpeed = moreUnitBuildSpeed;
-	}
-
-	/**
-	 * @return the unitTypesUpgrades
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public List<ImprovementUnitTypeDto> getUnitTypesUpgrades() {
-		return unitTypesUpgrades;
-	}
-
-	/**
-	 * @param unitTypesUpgrades the unitTypesUpgrades to set
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	public void setUnitTypesUpgrades(List<ImprovementUnitTypeDto> unitTypesUpgrades) {
-		this.unitTypesUpgrades = unitTypesUpgrades;
-	}
-
-	public AbstractImprovementDto addMorePrimaryResourceProduction(Float value) {
-		morePrimaryResourceProduction += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreSecondaryResourceProduction(Float value) {
-		moreSecondaryResourceProduction += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreEnergyProduction(Float value) {
-		moreEnergyProduction += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreChargeCapacity(Float value) {
-		moreChargeCapacity += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreMissions(Float value) {
-		moreMisions += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreUpgradeResearchSpeed(Float value) {
-		moreUpgradeResearchSpeed += value;
-		return this;
-	}
-
-	public AbstractImprovementDto addMoreUnitBuildSpeed(Float value) {
-		moreUnitBuildSpeed += value;
-		return this;
-	}
-
-	/**
-	 * Initializes all the values to zero
-	 * 
-	 * @since 0.8.0
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 */
-	protected void initToZeroes() {
-		morePrimaryResourceProduction = 0F;
-		moreSecondaryResourceProduction = 0F;
-		moreEnergyProduction = 0F;
-		moreChargeCapacity = 0F;
-		moreMisions = 0F;
-		moreUpgradeResearchSpeed = 0F;
-		moreUnitBuildSpeed = 0F;
-		unitTypesUpgrades = new ArrayList<>();
-	}
+    private void loadUnitTypes(Improvement entity) {
+        unitTypesUpgrades = List.of();
+        if (entity.getUnitTypesUpgrades() != null) {
+            unitTypesUpgrades = entity.getUnitTypesUpgrades()
+                    .stream()
+                    .map(current -> {
+                        var currentDto = new ImprovementUnitTypeDto();
+                        currentDto.dtoFromEntity(current);
+                        return currentDto;
+                    }).toList();
+        }
+    }
 }

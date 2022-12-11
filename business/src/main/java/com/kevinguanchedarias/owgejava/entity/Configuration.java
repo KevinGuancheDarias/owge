@@ -1,14 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
+import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -18,7 +18,10 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Configuration implements Serializable {
+@EntityListeners(EntityWithTaggableCacheListener.class)
+public class Configuration implements Serializable, EntityWithTaggableCache<String> {
+    public static final String CONFIGURATION_CACHE_KEY = "configuration";
+
     @Serial
     private static final long serialVersionUID = -298326125776225265L;
 
@@ -42,5 +45,20 @@ public class Configuration implements Serializable {
         this.name = name;
         this.value = value;
         this.displayName = displayName;
+    }
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    @Override
+    public void setId(String id) {
+        throw new ProgrammingException("Read only prop");
+    }
+
+    @Override
+    public String getCacheTag() {
+        return CONFIGURATION_CACHE_KEY;
     }
 }

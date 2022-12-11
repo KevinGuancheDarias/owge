@@ -1,22 +1,9 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -32,7 +19,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Faction extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+@EntityListeners(EntityWithTaggableCache.class)
+public class Faction extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer>, EntityWithTaggableCache<Integer> {
+    public static final String FACTION_CACHE_TAG = "faction";
+
     @Serial
     private static final long serialVersionUID = -8190094507195501651L;
 
@@ -102,4 +92,9 @@ public class Faction extends CommonEntityWithImageStore<Integer> implements Enti
     @OneToMany(mappedBy = "faction", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<FactionUnitType> unitTypes;
+
+    @Override
+    public String getCacheTag() {
+        return FACTION_CACHE_TAG;
+    }
 }

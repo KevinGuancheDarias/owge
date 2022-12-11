@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
-import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
@@ -10,7 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.Serial;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -20,8 +20,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinRequest, AllianceJoinRequestDto> {
-    public static final String ALLIANCE_JOIN_REQUEST_CACHE_TAG = "alliance_join_request";
-
     @Serial
     private static final long serialVersionUID = -596625245649965948L;
 
@@ -58,25 +56,15 @@ public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinReques
      */
     public AllianceJoinRequest save(AllianceJoinRequest allianceJoinRequest) {
         if (allianceJoinRequest.getId() == null) {
-            allianceJoinRequest.setRequestDate(new Date());
-            if (repository.findOneByUserAndAlliance(allianceJoinRequest.getUser(),
-                    allianceJoinRequest.getAlliance()) != null) {
+            if (repository.existsByUserAndAlliance(allianceJoinRequest.getUser(),
+                    allianceJoinRequest.getAlliance())) {
                 throw new SgtBackendInvalidInputException("You already have a join request for this alliance");
             }
         } else {
             throw new SgtBackendInvalidInputException("You cannot modify a join request");
         }
+        allianceJoinRequest.setRequestDate(LocalDateTime.now(ZoneOffset.UTC));
         return repository.save(allianceJoinRequest);
-    }
-
-    /**
-     * Finds all request for given alliance
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.0
-     */
-    public List<AllianceJoinRequest> findByAlliance(Alliance alliance) {
-        return repository.findByAlliance(alliance);
     }
 
     /**

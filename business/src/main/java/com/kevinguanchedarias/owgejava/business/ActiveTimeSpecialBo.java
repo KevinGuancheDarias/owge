@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +36,9 @@ import java.util.List;
  */
 @Service
 public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource {
-    public static final String ACTIVE_TIME_SPECIAL_CACHE_TAG = "active_time_special";
 
     @Serial
     private static final long serialVersionUID = -3981337002238422272L;
-
-    public static final String ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER = ACTIVE_TIME_SPECIAL_CACHE_TAG + "::by_user";
 
     private static final Logger LOG = Logger.getLogger(ActiveTimeSpecialBo.class);
 
@@ -99,7 +97,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
                 scheduledTasksManagerService.registerEvent(task, rechargeTime);
                 requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
                 emitTimeSpecialChange(user);
-                taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, activeTimeSpecial.getUser().getId());
                 emitIfActivationAffectingUnits(activeTimeSpecial);
             } else {
                 LOG.debug(
@@ -142,6 +139,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.7
      */
+    @TaggableCacheable(tags = ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":#user.id", keySuffix = "#user.id")
     public List<TimeSpecialDto> findByUserWithCurrentStatus(UserStorage user) {
         List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user));
         unlockeds.forEach(
@@ -190,7 +188,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
             scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
             requirementBo.triggerTimeSpecialStateChange(user, timeSpecial);
-            taggableCacheManager.evictByCacheTag(ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER, user.getId());
             emitTimeSpecialChange(user);
             emitIfActivationAffectingUnits(newActive);
             applicationEventPublisher.publishEvent(newActive);

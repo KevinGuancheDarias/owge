@@ -13,7 +13,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokePredicateLambdaAnswer;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,29 +34,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.FIRST_EXTRA_ARG;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.ORIGIN_ID;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.ORIGIN_TYPE;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.SECOND_EXTRA_ARG;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.TYPE;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRule;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleDto;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleItemTypeDescriptor;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleTypeDescriptorDto;
+import static com.kevinguanchedarias.owgejava.mock.RuleMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.UNIT_TYPE_ID;
-import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -73,7 +59,6 @@ import static org.mockito.Mockito.when;
         RuleRepository.class,
         RuleItemTypeProvider.class,
         RuleTypeProvider.class,
-        TaggableCacheManager.class,
         UnitTypeInheritanceFinderService.class
 })
 class RuleBoTest {
@@ -81,7 +66,6 @@ class RuleBoTest {
     private final RuleBo ruleBo;
     private final RuleItemTypeProvider ruleItemTypeProvider;
     private final RuleTypeProvider ruleTypeProvider;
-    private final TaggableCacheManager taggableCacheManager;
     private final UnitTypeInheritanceFinderService unitTypeInheritanceFinderService;
 
     @Autowired
@@ -92,14 +76,12 @@ class RuleBoTest {
             Collection<Converter<?, ?>> converters,
             RuleItemTypeProvider ruleItemTypeProvider,
             RuleTypeProvider ruleTypeProvider,
-            TaggableCacheManager taggableCacheManager,
             UnitTypeInheritanceFinderService unitTypeInheritanceFinderService
     ) {
         this.ruleRepository = ruleRepository;
         this.ruleBo = ruleBo;
         this.ruleItemTypeProvider = ruleItemTypeProvider;
         this.ruleTypeProvider = ruleTypeProvider;
-        this.taggableCacheManager = taggableCacheManager;
         this.unitTypeInheritanceFinderService = unitTypeInheritanceFinderService;
         converters.forEach(conversionService::addConverter);
     }
@@ -172,17 +154,6 @@ class RuleBoTest {
         assertEquals(dto.getDestinationType(), entityToBeSaved.getDestinationType());
         assertEquals(dto.getDestinationId(), entityToBeSaved.getDestinationId());
         assertEquals(FIRST_EXTRA_ARG + "#" + SECOND_EXTRA_ARG, entityToBeSaved.getExtraArgs());
-        verify(taggableCacheManager, times(1)).evictByCacheTag(RuleBo.RULE_CACHE_TAG, dto.getId());
-    }
-
-    @Test
-    void save_should_not_clear_id_cache_if_entity_is_new() {
-        var dto = givenRuleDto().toBuilder().id(0).build();
-        when(ruleRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
-        ruleBo.save(dto);
-
-        verify(taggableCacheManager, never()).evictByCacheTag(any(), any());
     }
 
     @Test

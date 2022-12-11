@@ -8,9 +8,8 @@ import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
-import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,28 +17,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serial;
 import java.util.List;
 
+import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMENT_GROUP_CACHE_TAG;
+
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  */
 @Service
+@AllArgsConstructor
 public class RequirementGroupBo implements BaseBo<Integer, RequirementGroup, RequirementGroupDto> {
-    public static final String REQUIREMENT_GROUP_CACHE_TAG = "requirement_group";
-
     @Serial
     private static final long serialVersionUID = 7208249910149543205L;
 
-    @Autowired
-    private transient RequirementGroupRepository repository;
-
-    @Autowired
-    private ObjectRelationBo objectRelationBo;
-
-    @Autowired
-    private RequirementBo requirementBo;
-
-    @Autowired
-    private transient ObjectRelationToObjectRelationRepository objectRelationRequirementGroupRepository;
+    private final transient RequirementGroupRepository repository;
+    private final ObjectRelationBo objectRelationBo;
+    private final RequirementBo requirementBo;
+    private final transient ObjectRelationToObjectRelationRepository objectRelationRequirementGroupRepository;
 
     @Override
     public Class<RequirementGroupDto> getDtoClass() {
@@ -56,18 +49,17 @@ public class RequirementGroupBo implements BaseBo<Integer, RequirementGroup, Req
      * @since 0.9.0
      */
     @Transactional
-    @TaggableCacheEvictByTag(tags = REQUIREMENT_GROUP_CACHE_TAG)
-    public RequirementGroup addRequirementGroup(ObjectEnum targetObject, Integer referenceId,
-                                                RequirementGroupDto requirementGroupDto) {
-        ObjectRelationToObjectRelation currentGroup = new ObjectRelationToObjectRelation();
-        RequirementGroup requirementGroup = new RequirementGroup();
+    public RequirementGroup add(ObjectEnum targetObject, Integer referenceId,
+                                RequirementGroupDto requirementGroupDto) {
+        var currentGroup = new ObjectRelationToObjectRelation();
+        var requirementGroup = new RequirementGroup();
         requirementGroup.setName(requirementGroupDto.getName());
-        RequirementGroup saved = repository.save(requirementGroup);
+        var saved = repository.save(requirementGroup);
         currentGroup.setMaster(objectRelationBo.findObjectRelationOrCreate(targetObject, referenceId));
 
         if (requirementGroupDto.getRequirements() != null) {
             requirementGroupDto.getRequirements().forEach(requirementInformationDto -> {
-                ObjectRelationDto objectRelationDto = new ObjectRelationDto();
+                var objectRelationDto = new ObjectRelationDto();
                 objectRelationDto.dtoFromEntity(saved.getRelation());
                 requirementInformationDto.setRelation(objectRelationDto);
                 requirementBo.addRequirementFromDto(requirementInformationDto);

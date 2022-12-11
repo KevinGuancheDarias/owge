@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,16 +29,16 @@ import java.util.function.Function;
 @ApplicationScope
 @AllArgsConstructor
 public class UpgradeRestService implements SyncSource {
-
     private final UserStorageBo userStorageBo;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
     private final MissionBo missionBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final MissionRepository missionRepository;
+    private final TaggableCacheManager taggableCacheManager;
 
     @GetMapping("registerLevelUp")
     public RunningUpgradeDto registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
-        Integer userId = userStorageBo.findLoggedIn().getId();
+        var userId = userStorageBo.findLoggedIn().getId();
         missionBo.registerLevelUpAnUpgrade(userId, upgradeId);
         RunningUpgradeDto retVal = missionBo.findRunningLevelUpMission(userId);
         retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
@@ -68,7 +69,14 @@ public class UpgradeRestService implements SyncSource {
 
     private void initImprovement(Upgrade upgrade) {
         if (upgrade.getImprovement() != null) {
-            Hibernate.initialize(upgrade.getImprovement());
+            upgrade.setImprovement(taggableCacheManager.computeIfAbsent(
+                    getClass().getCanonicalName() + "_initImprovement_" + upgrade.getId(),
+                    List.of(Upgrade.UPGRADE_CACHE_TAG),
+                    () -> {
+                        Hibernate.initialize(upgrade.getImprovement());
+                        return upgrade.getImprovement();
+                    }
+            ));
         }
     }
 }
