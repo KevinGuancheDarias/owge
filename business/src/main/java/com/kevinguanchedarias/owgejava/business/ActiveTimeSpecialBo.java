@@ -15,7 +15,6 @@ import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
-import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -66,9 +65,6 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
     @Autowired
     private RequirementBo requirementBo;
-
-    @Autowired
-    private transient TaggableCacheManager taggableCacheManager;
 
     @Autowired
     private transient RuleRepository ruleRepository;
