@@ -44,13 +44,13 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     List<ObtainedUnit> findBySourcePlanetIdAndMissionIsNull(Long id);
 
 
-    @Query("SELECT SUM(ou.count * ou.unit.energy) FROM ObtainedUnit ou WHERE user = ?1")
+    @Query("SELECT SUM(ou.count * ou.unit.energy) FROM ObtainedUnit ou WHERE ou.user = ?1")
     Double computeConsumedEnergyByUser(UserStorage user);
 
-    @Query("SELECT SUM(ou.count) FROM ObtainedUnit ou WHERE user = ?1 AND ou.unit.type = ?2")
+    @Query("SELECT SUM(ou.count) FROM ObtainedUnit ou WHERE ou.user = ?1 AND ou.unit.type = ?2")
     Long countByUserAndUnitType(UserStorage user, UnitType type);
 
-    @Query("SELECT SUM(ou.count) FROM ObtainedUnit ou WHERE user = ?1 AND ou.unit.type.shareMaxCount = ?2")
+    @Query("SELECT SUM(ou.count) FROM ObtainedUnit ou WHERE ou.user = ?1 AND ou.unit.type.shareMaxCount = ?2")
     Long countByUserAndSharedCountUnitType(UserStorage user, UnitType type);
 
     /**

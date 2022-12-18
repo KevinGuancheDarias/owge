@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business.unit;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveHideUnitsTypeProviderBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
+import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
@@ -15,10 +16,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER;
-import static com.kevinguanchedarias.owgejava.business.UnitBo.UNIT_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.UnitTypeBo.UNIT_TYPE_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.rule.RuleBo.RULE_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.Rule.RULE_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.Unit.UNIT_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.UnitType.UNIT_TYPE_CACHE_TAG;
 
 @Service
 @AllArgsConstructor
@@ -40,7 +40,7 @@ public class HiddenUnitBo {
             var compute = isHiddenUnitInternal(obtainedUnit);
             taggableCacheManager.saveEntry(cacheKey, compute, List.of(
                     RULE_CACHE_TAG,
-                    ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER + ":" + obtainedUnit.getUser().getId(),
+                    ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":" + obtainedUnit.getUser().getId(),
                     UNIT_TYPE_CACHE_TAG,
                     UNIT_CACHE_TAG
             ));

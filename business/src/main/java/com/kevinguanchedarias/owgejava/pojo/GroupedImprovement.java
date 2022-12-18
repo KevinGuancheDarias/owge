@@ -65,18 +65,6 @@ public class GroupedImprovement extends AbstractImprovementDto {
     }
 
     /**
-     * Finds the value of a unit type improvement (sum of all even of different
-     * {@link UnitType}
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.0
-     */
-    public Long findUnitTypeImprovement(ImprovementTypeEnum improvementTypeEnum) {
-        return getUnitTypesUpgrades().stream().filter(current -> improvementTypeEnum.name().equals(current.getType()))
-                .map(ImprovementUnitTypeDto::getValue).reduce(0L, Long::sum);
-    }
-
-    /**
      * Finds the value of a unit type improvement for a given unit type
      *
      * @param improvementTypeEnum Type of improvement
@@ -100,13 +88,13 @@ public class GroupedImprovement extends AbstractImprovementDto {
 
     private void doAdd(AbstractImprovementDto improvementDto) {
         if (improvementDto != null) {
-            addMoreChargeCapacity(safeSum(improvementDto.getMoreChargeCapacity()));
-            addMoreEnergyProduction(safeSum(improvementDto.getMoreEnergyProduction()));
-            addMoreMissions(safeSum(improvementDto.getMoreMisions()));
-            addMorePrimaryResourceProduction(safeSum(improvementDto.getMorePrimaryResourceProduction()));
-            addMoreSecondaryResourceProduction(safeSum(improvementDto.getMoreSecondaryResourceProduction()));
-            addMoreUnitBuildSpeed(safeSum(improvementDto.getMoreUnitBuildSpeed()));
-            addMoreUpgradeResearchSpeed(safeSum(improvementDto.getMoreUpgradeResearchSpeed()));
+            addMoreChargeCapacity(safeSum(improvementDto.getMoreChargeCapacity()))
+                    .addMoreEnergyProduction(safeSum(improvementDto.getMoreEnergyProduction()))
+                    .addMoreMissions(safeSum(improvementDto.getMoreMissions()))
+                    .addMorePrimaryResourceProduction(safeSum(improvementDto.getMorePrimaryResourceProduction()))
+                    .addMoreSecondaryResourceProduction(safeSum(improvementDto.getMoreSecondaryResourceProduction()))
+                    .addMoreUnitBuildSpeed(safeSum(improvementDto.getMoreUnitBuildSpeed()))
+                    .addMoreUpgradeResearchSpeed(safeSum(improvementDto.getMoreUpgradeResearchSpeed()));
             if (improvementDto.getUnitTypesUpgrades() != null) {
                 improvementDto.getUnitTypesUpgrades().forEach(this::addToType);
             }

@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import com.kevinguanchedarias.owgejava.entity.listener.UnitListener;
 import lombok.*;
 import org.hibernate.annotations.Cascade;
@@ -14,13 +16,18 @@ import java.util.List;
 @ToString(callSuper = true)
 @Entity
 @Table(name = "units")
-@EntityListeners(UnitListener.class)
+@EntityListeners({
+        UnitListener.class,
+        EntityWithTaggableCacheListener.class
+})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Unit extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+public class Unit extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer>, EntityWithTaggableCache<Integer> {
+    public static final String UNIT_CACHE_TAG = "unit";
+
     @Serial
     private static final long serialVersionUID = -1923291486680931835L;
 
@@ -102,4 +109,9 @@ public class Unit extends CommonEntityWithImageStore<Integer> implements EntityW
     private Integer storedWeight = 1;
 
     private Long storageCapacity;
+
+    @Override
+    public String getCacheTag() {
+        return UNIT_CACHE_TAG;
+    }
 }

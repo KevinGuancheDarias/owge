@@ -1,8 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
@@ -18,6 +17,9 @@ import java.util.List;
 @Entity
 @Table(name = "improvements")
 @Data
+@SuperBuilder
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Improvement extends ImprovementBase<Integer> {
     @Serial

@@ -1,18 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import com.kevinguanchedarias.owgejava.entity.listener.UpgradeListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -23,12 +19,17 @@ import java.util.List;
  */
 @Entity
 @Table(name = "upgrades")
-@EntityListeners(UpgradeListener.class)
+@EntityListeners({
+        UpgradeListener.class,
+        EntityWithTaggableCacheListener.class
+})
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Upgrade extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+public class Upgrade extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer>, EntityWithTaggableCache<Integer> {
+    public static final String UPGRADE_CACHE_TAG = "upgrade";
+
     @Serial
     private static final long serialVersionUID = 905268542123876248L;
 
@@ -85,5 +86,10 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
         if (getId() == null) {
             return other.getId() == null;
         } else return getId().equals(other.getId());
+    }
+
+    @Override
+    public String getCacheTag() {
+        return UPGRADE_CACHE_TAG;
     }
 }

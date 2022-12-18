@@ -34,12 +34,12 @@ export class WidgetDisplayImprovementsComponent implements OnChanges {
   ];
 
   public allowedOfAmount: Array<keyof Improvement> = [
-    'moreMisions'
+    'moreMissions'
   ];
 
   public imageOfImprovement: Partial<{ [key in keyof Improvement]: ImageInfo }> = {
     moreChargeCapacity: this._createImageInfo('carry.png'),
-    moreMisions: this._createImageInfo('ui_icons/mission.png', false, true),
+    moreMissions: this._createImageInfo('ui_icons/mission.png', false, true),
     moreUnitBuildSpeed: this._createImageInfo('unit-build-speed.png'),
     moreUpgradeResearchSpeed: this._createImageInfo('upgrade-research-speed.png'),
   };

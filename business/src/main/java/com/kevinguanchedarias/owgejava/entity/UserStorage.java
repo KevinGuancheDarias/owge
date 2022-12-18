@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.*;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -26,8 +27,9 @@ public class UserStorage implements EntityWithId<Integer> {
     private String username;
     private String email;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "faction", nullable = false)
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Faction faction;
 
     @Column(name = "last_action")
@@ -36,6 +38,7 @@ public class UserStorage implements EntityWithId<Integer> {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "home_planet", nullable = false)
     @ToString.Exclude
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Planet homePlanet;
 
     @Column(name = "primary_resource")

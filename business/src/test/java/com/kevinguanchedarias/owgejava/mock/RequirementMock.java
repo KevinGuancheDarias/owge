@@ -18,6 +18,10 @@ public class RequirementMock {
     public static final long REQUIREMENT_INFORMATION_SECOND_VALUE = 9731;
     public static final long REQUIREMENT_INFORMATION_THIRD_VALUE = 1379;
 
+    public static RequirementInformation givenRequirementInformation() {
+        return givenRequirementInformation(REQUIREMENT_INFORMATION_SECOND_VALUE);
+    }
+
     public static RequirementInformation givenRequirementInformation(long secondValue) {
         return RequirementInformation.builder()
                 .secondValue(secondValue)

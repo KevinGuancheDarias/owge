@@ -1,19 +1,13 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 
 /**
@@ -28,7 +22,10 @@ import java.io.Serial;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequirementInformation implements EntityWithId<Integer> {
+@EntityListeners(EntityWithTaggableCacheListener.class)
+public class RequirementInformation implements EntityWithTaggableCache<Integer> {
+    public static final String REQUIREMENT_INFORMATION_CACHE_TAG = "requirement_information";
+
     @Serial
     private static final long serialVersionUID = -4898440527789250186L;
 
@@ -49,4 +46,9 @@ public class RequirementInformation implements EntityWithId<Integer> {
 
     @Column(name = "third_value")
     private Long thirdValue;
+
+    @Override
+    public String getCacheTag() {
+        return REQUIREMENT_INFORMATION_CACHE_TAG;
+    }
 }

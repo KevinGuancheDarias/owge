@@ -1,21 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import com.kevinguanchedarias.owgejava.entity.listener.RequirementGroupListener;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -27,13 +18,18 @@ import java.util.List;
  */
 @Entity
 @Table(name = "requirement_group")
-@EntityListeners(RequirementGroupListener.class)
+@EntityListeners({
+        RequirementGroupListener.class,
+        EntityWithTaggableCacheListener.class
+})
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RequirementGroup extends EntityWithRelationImp {
+public class RequirementGroup extends EntityWithRelationImp implements EntityWithTaggableCache<Integer> {
+    public static final String REQUIREMENT_GROUP_CACHE_TAG = "requirement_group";
+
     @Serial
     private static final long serialVersionUID = 6503065882978157947L;
 
@@ -50,5 +46,10 @@ public class RequirementGroup extends EntityWithRelationImp {
     @Override
     public ObjectEnum getObject() {
         return ObjectEnum.REQUIREMENT_GROUP;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return REQUIREMENT_GROUP_CACHE_TAG;
     }
 }

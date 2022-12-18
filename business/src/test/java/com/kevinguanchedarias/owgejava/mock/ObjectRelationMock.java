@@ -1,11 +1,7 @@
 package com.kevinguanchedarias.owgejava.mock;
 
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
-import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelationToObjectRelation;
-import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import lombok.experimental.UtilityClass;
 
@@ -18,8 +14,12 @@ public class ObjectRelationMock {
     public static final String DTO_OBJECT_CODE_NAME = DTO_OBJECT_CODE.name();
 
     public static ObjectRelation givenObjectRelation() {
+        return givenObjectRelation(OBJECT_RELATION_ID);
+    }
+
+    public static ObjectRelation givenObjectRelation(Integer id) {
         return ObjectRelation.builder()
-                .id(OBJECT_RELATION_ID)
+                .id(id)
                 .object(givenObjectEntity())
                 .referenceId(REFERENCE_ID)
                 .build();

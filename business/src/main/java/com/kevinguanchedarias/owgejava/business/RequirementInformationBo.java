@@ -16,13 +16,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serial;
 import java.util.List;
 
-import static com.kevinguanchedarias.owgejava.business.RequirementGroupBo.REQUIREMENT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMENT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 
 @Component
 @Transactional
 public class RequirementInformationBo implements BaseBo<Integer, RequirementInformation, RequirementInformationDto> {
-    public static final String REQUIREMENT_INFORMATION_CACHE_TAG = "requirement_information";
-
     @Serial
     private static final long serialVersionUID = 4755638529538733332L;
 
@@ -115,7 +114,7 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
         requirementBo.triggerRelationChanged(relation);
         taggableCacheManager.evictByCacheTag(
                 REQUIREMENT_INFORMATION_CACHE_TAG,
-                ":#" + relation.getObject().getCode() + "_" + relation.getReferenceId()
+                "#" + relation.getObject().getCode() + "_" + relation.getReferenceId()
         );
         taggableCacheManager.evictByCacheTag(REQUIREMENT_GROUP_CACHE_TAG);
     }

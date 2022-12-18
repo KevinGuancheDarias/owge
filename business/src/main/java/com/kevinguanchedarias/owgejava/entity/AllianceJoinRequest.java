@@ -7,16 +7,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Represents a join request for an alliance
@@ -49,5 +43,6 @@ public class AllianceJoinRequest implements EntityWithId<Integer> {
     private UserStorage user;
 
     @Column(name = "request_date", nullable = false)
-    private Date requestDate;
+    @Builder.Default
+    private LocalDateTime requestDate = LocalDateTime.now(ZoneOffset.UTC);
 }

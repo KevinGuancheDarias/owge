@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.responses.UnitTypeResponse;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,7 +27,6 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
-    public static final String UNIT_TYPE_CACHE_TAG = "unit_type";
     public static final String UNIT_TYPE_CHANGE = "unit_type_change";
 
     @Serial
@@ -87,6 +87,11 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
      */
+    @TaggableCacheable(tags = {
+            ImprovementBo.IMPROVEMENT_CACHE_TAG_BY_USER + ":#user.id",
+            UnitType.UNIT_TYPE_CACHE_TAG,
+            Faction.FACTION_CACHE_TAG,
+    }, keySuffix = "#user.id #type.id")
     public Long findUniTypeLimitByUser(UserStorage user, UnitType type) {
         var retVal = 0L;
         var faction = user.getFaction();
@@ -152,11 +157,30 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
      * @throws SgtBackendInvalidInputException When reached
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
+    @TaggableCacheable(tags = {
+            Faction.FACTION_CACHE_TAG,
+            Faction.FACTION_CACHE_TAG + ":#user.faction.id",
+            UnitType.UNIT_TYPE_CACHE_TAG,
+            UnitType.UNIT_TYPE_CACHE_TAG + "#typeId"
+    })
     public void checkWouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
         if (wouldReachUnitTypeLimit(user, typeId, count)) {
             throw new SgtBackendInvalidInputException(
                     "Nice try to buy over your possibilities!!!, try outside of Spain!");
         }
+    }
+
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.1
+     */
+    @TaggableCacheable(tags = {
+            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#user.id",
+            UnitType.UNIT_TYPE_CACHE_TAG + ":#type.id"
+    }, keySuffix = "#user.id #type.id")
+    public long countUnitsByUserAndUnitType(UserStorage user, UnitType type) {
+        return ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndUnitType(user, type), 0L)
+                + ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndSharedCountUnitType(user, type), 0L);
     }
 
     private boolean wouldReachUnitTypeLimit(UserStorage user, Integer typeId, Long count) {
@@ -170,14 +194,5 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
 
     private UnitType findMaxShareCountRoot(UnitType type) {
         return type.getShareMaxCount() == null ? type : findMaxShareCountRoot(type.getShareMaxCount());
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.8.1
-     */
-    private long countUnitsByUserAndUnitType(UserStorage user, UnitType type) {
-        return ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndUnitType(user, type), 0L)
-                + ObjectUtils.firstNonNull(obtainedUnitRepository.countByUserAndSharedCountUnitType(user, type), 0L);
     }
 }

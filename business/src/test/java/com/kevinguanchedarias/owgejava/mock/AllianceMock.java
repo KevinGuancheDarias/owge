@@ -26,10 +26,15 @@ public class AllianceMock {
     }
 
     public AllianceJoinRequest givenAllianceJoinRequest() {
+        return givenAllianceJoinRequest(ALLIANCE_JOIN_REQUEST_ID);
+    }
+
+    public AllianceJoinRequest givenAllianceJoinRequest(Integer id) {
         return AllianceJoinRequest.builder()
-                .id(ALLIANCE_JOIN_REQUEST_ID)
+                .id(id)
                 .alliance(givenAlliance())
                 .user(givenUser1())
                 .build();
     }
+
 }

@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
-import com.kevinguanchedarias.owgejava.trait.WithDtoFromEntityTrait;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ObjectRelationDto implements WithDtoFromEntityTrait<ObjectRelation> {
+public class ObjectRelationDto implements DtoFromEntity<ObjectRelation> {
     private Integer id;
     private String objectCode;
     private Integer referenceId;
@@ -41,8 +40,9 @@ public class ObjectRelationDto implements WithDtoFromEntityTrait<ObjectRelation>
      */
     @Override
     public void dtoFromEntity(ObjectRelation entity) {
-        WithDtoFromEntityTrait.super.dtoFromEntity(entity);
+        id = entity.getId();
         objectCode = entity.getObject().getCode();
+        referenceId = entity.getReferenceId();
     }
 
 }

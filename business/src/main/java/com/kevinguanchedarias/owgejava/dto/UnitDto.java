@@ -4,14 +4,16 @@ import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.hibernate.Hibernate;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Data
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements DtoWithImprovements {
     private Boolean hasToDisplayInRequirements;
     private Integer points = 0;
@@ -32,21 +34,10 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
     private Boolean clonedImprovements = false;
     private SpeedImpactGroupDto speedImpactGroup;
     private AttackRuleDto attackRule;
-
-    @Getter
-    @Setter
     private CriticalAttackDto criticalAttack;
-
-
     private Boolean bypassShield = false;
     private Boolean isInvisible = false;
-
-    @Getter
-    @Setter
     private Integer storedWeight = 1;
-
-    @Getter
-    @Setter
     private Long storageCapacity;
 
     private List<RequirementInformationDto> requirements;
@@ -55,6 +46,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
     @Override
     public void dtoFromEntity(Unit entity) {
         super.dtoFromEntity(entity);
+        loadData(entity);
         interceptableSpeedGroups = null;
         UnitType typeEntity = entity.getType();
         typeId = typeEntity.getId();
@@ -85,280 +77,24 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
         DtoWithImprovements.super.dtoFromEntity(entity);
     }
 
-    /**
-     * @return the hasToDisplayInRequirements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Boolean getHasToDisplayInRequirements() {
-        return Boolean.TRUE.equals(hasToDisplayInRequirements);
+    private void loadData(Unit entity) {
+        hasToDisplayInRequirements = Boolean.TRUE.equals(entity.getHasToDisplayInRequirements());
+        points = entity.getPoints();
+        time = entity.getTime();
+        primaryResource = entity.getPrimaryResource();
+        secondaryResource = entity.getSecondaryResource();
+        energy = entity.getEnergy();
+        attack = entity.getAttack();
+        health = entity.getHealth();
+        shield = entity.getShield();
+        charge = entity.getCharge();
+        isUnique = Boolean.TRUE.equals(entity.getIsUnique());
+        canFastExplore = Boolean.TRUE.equals(entity.getCanFastExplore());
+        speed = entity.getSpeed();
+        clonedImprovements = Boolean.TRUE.equals(entity.getClonedImprovements());
+        bypassShield = Boolean.TRUE.equals(entity.getBypassShield());
+        isInvisible = Boolean.TRUE.equals(entity.getIsInvisible());
+        storedWeight = entity.getStoredWeight();
+        storageCapacity = entity.getStorageCapacity();
     }
-
-    /**
-     * @param hasToDisplayInRequirements the hasToDisplayInRequirements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setHasToDisplayInRequirements(Boolean hasToDisplayInRequirements) {
-        this.hasToDisplayInRequirements = hasToDisplayInRequirements;
-    }
-
-    public Integer getPoints() {
-        return points;
-    }
-
-    public void setPoints(Integer points) {
-        this.points = points;
-    }
-
-    public Integer getTime() {
-        return time;
-    }
-
-    public void setTime(Integer time) {
-        this.time = time;
-    }
-
-    public Integer getPrimaryResource() {
-        return primaryResource;
-    }
-
-    public void setPrimaryResource(Integer primaryResource) {
-        this.primaryResource = primaryResource;
-    }
-
-    public Integer getSecondaryResource() {
-        return secondaryResource;
-    }
-
-    public void setSecondaryResource(Integer secondaryResource) {
-        this.secondaryResource = secondaryResource;
-    }
-
-    public Integer getEnergy() {
-        return energy;
-    }
-
-    public void setEnergy(Integer energy) {
-        this.energy = energy;
-    }
-
-    public Integer getTypeId() {
-        return typeId;
-    }
-
-    public void setTypeId(Integer typeId) {
-        this.typeId = typeId;
-    }
-
-    public String getTypeName() {
-        return typeName;
-    }
-
-    public void setTypeName(String typeName) {
-        this.typeName = typeName;
-    }
-
-    public Integer getAttack() {
-        return attack;
-    }
-
-    public void setAttack(Integer attack) {
-        this.attack = attack;
-    }
-
-    public Integer getHealth() {
-        return health;
-    }
-
-    public void setHealth(Integer health) {
-        this.health = health;
-    }
-
-    public Integer getShield() {
-        return shield;
-    }
-
-    public void setShield(Integer shield) {
-        this.shield = shield;
-    }
-
-    public Integer getCharge() {
-        return charge;
-    }
-
-    public void setCharge(Integer charge) {
-        this.charge = charge;
-    }
-
-    public Boolean getIsUnique() {
-        return isUnique;
-    }
-
-    public void setIsUnique(Boolean isUnique) {
-        this.isUnique = isUnique;
-    }
-
-    /**
-     * @return the canFastExplore
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Boolean getCanFastExplore() {
-        return canFastExplore;
-    }
-
-    /**
-     * @param canFastExplore the canFastExplore to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setCanFastExplore(Boolean canFastExplore) {
-        this.canFastExplore = canFastExplore;
-    }
-
-    /**
-     * @return the speed
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public Double getSpeed() {
-        return speed;
-    }
-
-    /**
-     * @param speed the speed to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSpeed(Double speed) {
-        this.speed = speed;
-    }
-
-    @Override
-    public ImprovementDto getImprovement() {
-        return improvement;
-    }
-
-    @Override
-    public void setImprovement(ImprovementDto improvement) {
-        this.improvement = improvement;
-    }
-
-    public Boolean getClonedImprovements() {
-        return clonedImprovements;
-    }
-
-    public void setClonedImprovements(Boolean clonedImprovements) {
-        this.clonedImprovements = clonedImprovements;
-    }
-
-    /**
-     * @return the speedImpactGroup
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public SpeedImpactGroupDto getSpeedImpactGroup() {
-        return speedImpactGroup;
-    }
-
-    /**
-     * @param speedImpactGroup the speedImpactGroup to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setSpeedImpactGroup(SpeedImpactGroupDto speedImpactGroup) {
-        this.speedImpactGroup = speedImpactGroup;
-    }
-
-    /**
-     * @return the attackRule
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public AttackRuleDto getAttackRule() {
-        return attackRule;
-    }
-
-    /**
-     * @param attackRule the attackRule to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setAttackRule(AttackRuleDto attackRule) {
-        this.attackRule = attackRule;
-    }
-
-    /**
-     * @return the bypassShield
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Boolean getBypassShield() {
-        return bypassShield;
-    }
-
-    /**
-     * @param bypassShield the bypassShield to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setBypassShield(Boolean bypassShield) {
-        this.bypassShield = bypassShield;
-    }
-
-    /**
-     * @return the isInvisible
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public Boolean getIsInvisible() {
-        return isInvisible;
-    }
-
-    /**
-     * @param isInvisible the isInvisible to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setIsInvisible(Boolean isInvisible) {
-        this.isInvisible = isInvisible;
-    }
-
-    /**
-     * @return the requirements
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<RequirementInformationDto> getRequirements() {
-        return requirements;
-    }
-
-    /**
-     * @param requirements the requirements to set
-     * @author Kevin Guanche Darias
-     * @since 0.9.0
-     */
-    public void setRequirements(List<RequirementInformationDto> requirements) {
-        this.requirements = requirements;
-    }
-
-    /**
-     * @return the interceptableSpeedGroups
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.10.0
-     */
-    public List<InterceptableSpeedGroupDto> getInterceptableSpeedGroups() {
-        return interceptableSpeedGroups;
-    }
-
-    /**
-     * @param interceptableSpeedGroups the interceptableSpeedGroups to set
-     * @author Kevin Guanche Darias
-     * @since 0.10.0
-     */
-    public void setInterceptableSpeedGroups(List<InterceptableSpeedGroupDto> interceptableSpeedGroups) {
-        this.interceptableSpeedGroups = interceptableSpeedGroups;
-    }
-
 }

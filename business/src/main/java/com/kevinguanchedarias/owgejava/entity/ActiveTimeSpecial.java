@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUser;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,18 +10,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.Date;
 
@@ -32,10 +23,13 @@ import java.util.Date;
 @Entity
 @Table(name = "active_time_specials")
 @Data
+@EntityListeners(EntityWithByUserCacheTagListener.class)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ActiveTimeSpecial implements EntityWithId<Long> {
+public class ActiveTimeSpecial implements EntityWithTaggableCacheByUser<Long> {
+    public static final String ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG = "active_time_special_by_user";
+
     @Serial
     private static final long serialVersionUID = 3520607499758897866L;
 
@@ -67,4 +61,9 @@ public class ActiveTimeSpecial implements EntityWithId<Long> {
 
     @Transient
     private Long pendingTime;
+
+    @Override
+    public String getByUserCacheTag() {
+        return ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG;
+    }
 }

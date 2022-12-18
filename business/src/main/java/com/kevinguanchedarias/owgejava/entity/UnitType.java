@@ -1,26 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 import java.util.List;
 
@@ -36,7 +24,12 @@ import java.util.List;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UnitType extends EntityWithMissionLimitation<Integer> {
+@EntityListeners(EntityWithTaggableCacheListener.class)
+@Cacheable
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+public class UnitType extends EntityWithMissionLimitation<Integer> implements EntityWithTaggableCache<Integer> {
+    public static final String UNIT_TYPE_CACHE_TAG = "unit_type";
+
     @Serial
     private static final long serialVersionUID = 6571633664776386521L;
 
@@ -96,7 +89,7 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "type")
     @ToString.Exclude
     private List<Unit> units;
-    
+
     public UnitType(Integer id, String name, UnitType parent) {
         this.id = id;
         this.name = name;
@@ -105,5 +98,10 @@ public class UnitType extends EntityWithMissionLimitation<Integer> {
 
     public boolean hasMaxCount() {
         return maxCount != null && maxCount > 0;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return UNIT_TYPE_CACHE_TAG;
     }
 }

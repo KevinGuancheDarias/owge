@@ -34,8 +34,8 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.kevinguanchedarias.owgejava.business.FactionBo.FACTION_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.RequirementInformationBo.REQUIREMENT_INFORMATION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.Faction.FACTION_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 
 @Component
 @Transactional
@@ -141,7 +141,7 @@ public class RequirementBo implements Serializable {
     @TaggableCacheable(tags = {
             FACTION_CACHE_TAG + ":#faction.id",
             REQUIREMENT_INFORMATION_CACHE_TAG
-    })
+    }, keySuffix = "#faction.id")
     public List<UnitWithRequirementInformation> findFactionUnitLevelRequirements(Faction faction) {
         return objectRelationBo
                 .findByRequirementTypeAndSecondValue(RequirementTypeEnum.BEEN_RACE, faction.getId().longValue())
@@ -267,10 +267,7 @@ public class RequirementBo implements Serializable {
      * @since 0.8.0
      */
     @Transactional
-    @TaggableCacheEvictByTag(tags = {
-            REQUIREMENT_INFORMATION_CACHE_TAG,
-            REQUIREMENT_INFORMATION_CACHE_TAG + "#input.relation.objectCode_#input.relation.referenceId"
-    })
+    @TaggableCacheEvictByTag(tags = REQUIREMENT_INFORMATION_CACHE_TAG + "#input.relation.objectCode_#input.relation.referenceId")
     public RequirementInformationDto addRequirementFromDto(RequirementInformationDto input) {
         ValidationUtil.getInstance().requireNotNull(input.getRequirement(), "requirement")
                 .requireNull(input.getId(), "requirement.id").
@@ -390,13 +387,13 @@ public class RequirementBo implements Serializable {
     private boolean checkHaveUnitRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.isBuiltUnit(
                 user,
-                unitRepository.getById(requirementInformation.getSecondValue().intValue())
+                unitRepository.getReferenceById(requirementInformation.getSecondValue().intValue())
         );
     }
 
     private boolean checkUnitAmountRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.countByUserAndUnit(user,
-                unitRepository.getById(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
+                unitRepository.getReferenceById(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
     }
 
     private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {

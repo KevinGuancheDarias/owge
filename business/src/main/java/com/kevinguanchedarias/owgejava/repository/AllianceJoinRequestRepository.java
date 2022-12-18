@@ -12,23 +12,21 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- *
- * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.7.0
  */
 public interface AllianceJoinRequestRepository extends JpaRepository<AllianceJoinRequest, Integer>, Serializable {
-    AllianceJoinRequest findOneByUserAndAlliance(UserStorage user, Alliance alliance);
+    boolean existsByUserAndAlliance(UserStorage user, Alliance alliance);
 
     List<AllianceJoinRequest> findByAlliance(Alliance alliance);
 
     /**
-     * @since 0.7.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
      */
     void deleteByUser(UserStorage user);
 
     /**
-     *
      * @param id
      * @return
      * @author Kevin Guanche Darias

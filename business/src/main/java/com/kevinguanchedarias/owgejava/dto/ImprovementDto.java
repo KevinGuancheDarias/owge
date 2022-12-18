@@ -1,31 +1,18 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.entity.Improvement;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-
+@Data
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class ImprovementDto extends AbstractImprovementDto implements DtoFromEntity<Improvement> {
+    @EqualsAndHashCode.Include
     private Integer id;
 
     @Override
     public void dtoFromEntity(Improvement entity) {
-        EntityPojoConverterUtil.convertFromTo(this, entity);
-        setUnitTypesUpgrades(new ArrayList<>());
-        if (entity.getUnitTypesUpgrades() != null) {
-            entity.getUnitTypesUpgrades().forEach(current -> {
-                ImprovementUnitTypeDto currentDto = new ImprovementUnitTypeDto();
-                currentDto.dtoFromEntity(current);
-                getUnitTypesUpgrades().add(currentDto);
-            });
-        }
-    }
-    
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
+        id = entity.getId();
+        super.dtoFromEntity(entity);
     }
 }

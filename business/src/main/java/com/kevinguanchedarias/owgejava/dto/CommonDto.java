@@ -3,64 +3,28 @@
  */
 package com.kevinguanchedarias.owgejava.dto;
 
+import com.kevinguanchedarias.owgejava.entity.CommonEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.io.Serializable;
 
 /**
- *
- * @since 0.7.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.7.0
  */
-public abstract class CommonDto<K extends Serializable> {
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public abstract class CommonDto<K extends Serializable, E extends CommonEntity<K>> implements DtoFromEntity<E> {
+    @EqualsAndHashCode.Include
     private K id;
     private String name;
     private String description;
 
-    /**
-     * @since 0.7.0
-     * @return the id
-     */
-    public K getId() {
-        return id;
+    @Override
+    public void dtoFromEntity(E entity) {
+        id = entity.getId();
+        name = entity.getName();
+        description = entity.getDescription();
     }
-
-    /**
-     * @since 0.7.0
-     * @param id the id to set
-     */
-    public void setId(K id) {
-        this.id = id;
-    }
-
-    /**
-     * @since 0.7.0
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @since 0.7.0
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @since 0.7.0
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * @since 0.7.0
-     * @param description the description to set
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
 }

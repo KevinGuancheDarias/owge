@@ -3,10 +3,7 @@ package com.kevinguanchedarias.owgejava.business.speedimpactgroup;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.unit.util.UnitTypeInheritanceFinderService;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
-import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
@@ -17,12 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-import static com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo.ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER;
-import static com.kevinguanchedarias.owgejava.business.SpeedImpactGroupBo.SPEED_IMPACT_GROUP_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.UnitBo.UNIT_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.UnitTypeBo.UNIT_TYPE_CACHE_TAG;
-import static com.kevinguanchedarias.owgejava.business.rule.RuleBo.RULE_CACHE_TAG;
 import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveSwapSpeedImpactGroupProviderBo.TIME_SPECIAL_IS_ACTIVE_SWAP_SPEED_IMPACT_GROUP_ID;
+import static com.kevinguanchedarias.owgejava.entity.Rule.RULE_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup.SPEED_IMPACT_GROUP_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.Unit.UNIT_CACHE_TAG;
+import static com.kevinguanchedarias.owgejava.entity.UnitType.UNIT_TYPE_CACHE_TAG;
 
 @Service
 @AllArgsConstructor
@@ -51,7 +47,7 @@ public class SpeedImpactGroupFinderBo {
             tags = {
                     UNIT_CACHE_TAG + ":#unit.id",
                     UNIT_TYPE_CACHE_TAG,
-                    ACTIVE_TIME_SPECIAL_CACHE_TAG_BY_USER + ":#user.id",
+                    ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":#user.id",
                     RULE_CACHE_TAG,
                     SPEED_IMPACT_GROUP_CACHE_TAG
             },

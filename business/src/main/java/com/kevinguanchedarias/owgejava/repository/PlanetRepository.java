@@ -23,10 +23,10 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
     Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
 
-    @Query("SELECT p.id FROM Planet p WHERE p.id = ?2 AND p.owner.id = ?1 ")
+    @Query("SELECT case when count(p)> 0 then true else false end FROM Planet p WHERE p.id = ?2 AND p.owner.id = ?1 ")
     boolean isOfUserProperty(Integer ownerId, Long planetId);
 
-    @Query("SELECT p.id FROM Planet p WHERE p = ?2 AND p.owner = ?1 ")
+    @Query("SELECT case when count(p)> 0 then true else false end FROM Planet p WHERE p = ?2 AND p.owner = ?1 ")
     boolean isOfUserProperty(UserStorage user, Planet planet);
 
     List<Planet> findByOwnerId(Integer ownerId);

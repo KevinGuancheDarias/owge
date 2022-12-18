@@ -14,7 +14,7 @@ export interface Improvement {
     moreSecondaryResourceProduction: number;
     moreEnergyProduction: number;
     moreChargeCapacity: number;
-    moreMisions: number;
+    moreMissions: number;
     moreUpgradeResearchSpeed: number;
     moreUnitBuildSpeed: number;
     unitTypesUpgrades?: ImprovementUnitType[];

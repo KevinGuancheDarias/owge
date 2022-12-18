@@ -158,11 +158,11 @@ class RunningMissionFinderBoTest {
         var ou = givenObtainedUnit1();
         var ouDtoMock = mock(ObtainedUnitDto.class);
         given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(mission));
-        given(userStorageRepository.getById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.getReferenceById(USER_ID_1)).willReturn(user);
         given(obtainedUnitRepository.findByMissionId(any())).willReturn(List.of(ou));
         given(obtainedUnitFinderBo.findCompletedAsDto(user, List.of(ou))).willReturn(List.of(ouDtoMock));
         try (var mockedConstructor = mockConstruction(UnitRunningMissionDto.class)) {
-            var result = runningMissionFinderBo.findUserRunningMissions(USER_ID_1);
+            runningMissionFinderBo.findUserRunningMissions(USER_ID_1);
 
             var dto = mockedConstructor.constructed().get(0);
 
@@ -181,7 +181,7 @@ class RunningMissionFinderBoTest {
         var ou = givenObtainedUnit1();
         var ouDtoMock = mock(ObtainedUnitDto.class);
         given(missionRepository.findByUserIdAndResolvedFalse(USER_ID_1)).willReturn(List.of(mission));
-        given(userStorageRepository.getById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.getReferenceById(USER_ID_1)).willReturn(user);
         given(obtainedUnitRepository.findByMissionId(EXPLORE_MISSION_ID)).willReturn(List.of(ou));
         given(obtainedUnitFinderBo.findCompletedAsDto(user, List.of(ou))).willReturn(List.of(ouDtoMock));
 

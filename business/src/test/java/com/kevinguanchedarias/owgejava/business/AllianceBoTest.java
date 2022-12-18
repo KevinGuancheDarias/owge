@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +27,7 @@ import static com.kevinguanchedarias.owgejava.mock.ConfigurationMock.givenConfig
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -205,7 +205,7 @@ class AllianceBoTest {
         var user = givenUser1();
         given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
         given(userStorageBo.findByIdOrDie(USER_ID_1)).willReturn(user);
-        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(AdditionalAnswers.returnsFirstArg());
+        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(returnsFirstArg());
 
         var retVal = allianceBo.requestJoin(ALLIANCE_ID, USER_ID_1);
 
@@ -215,6 +215,7 @@ class AllianceBoTest {
         assertThat(saved).isSameAs(retVal);
         assertThat(saved.getAlliance()).isEqualTo(alliance);
         assertThat(saved.getUser()).isEqualTo(user);
+        assertThat(saved.getRequestDate()).isNotNull();
     }
 
     @Test
@@ -224,7 +225,7 @@ class AllianceBoTest {
         user.setAlliance(givenAlliance(24));
         given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
         given(userStorageBo.findByIdOrDie(USER_ID_1)).willReturn(user);
-        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(AdditionalAnswers.returnsFirstArg());
+        given(allianceJoinRequestRepository.save(any(AllianceJoinRequest.class))).will(returnsFirstArg());
 
         assertThatThrownBy(() -> allianceBo.requestJoin(ALLIANCE_ID, USER_ID_1))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
