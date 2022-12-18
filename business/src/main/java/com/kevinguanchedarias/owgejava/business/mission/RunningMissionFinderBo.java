@@ -65,7 +65,7 @@ public class RunningMissionFinderBo {
             ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + "#:userId"
     }, keySuffix = "#userId")
     public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
-        var user = userStorageRepository.getById(userId);
+        var user = userStorageRepository.getReferenceById(userId);
         return missionRepository.findByUserIdAndResolvedFalse(userId).stream().
                 map(UnitRunningMissionDto::new).map(current -> {
                     current.setInvolvedUnits(obtainedUnitFinderBo.findCompletedAsDto(

@@ -13,10 +13,10 @@ import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.ImprovementRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,6 +37,7 @@ import java.util.function.BiConsumer;
  * @since 0.8.0
  */
 @Service
+@AllArgsConstructor
 public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDto> {
     public static final String IMPROVEMENT_CACHE_TAG_BY_USER = "improvement";
 
@@ -47,23 +48,12 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     private static final Double DEFAULT_STEP = 10D;
     private static final String CACHE_KEY = "improvements_user";
 
-    @Autowired
-    private ImprovementRepository repository;
-
-    @Autowired
-    private DtoUtilService dtoUtilService;
-
-    @Autowired
-    private transient CacheManager cacheManager;
-
-    @Autowired
-    private ConfigurationBo configurationBo;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private transient BeanFactory beanFactory;
+    private final ImprovementRepository repository;
+    private final DtoUtilService dtoUtilService;
+    private final transient CacheManager cacheManager;
+    private final ConfigurationBo configurationBo;
+    private final transient SocketIoService socketIoService;
+    private final transient BeanFactory beanFactory;
 
     @Getter
     private final transient List<ImprovementSource> improvementSources = new ArrayList<>();

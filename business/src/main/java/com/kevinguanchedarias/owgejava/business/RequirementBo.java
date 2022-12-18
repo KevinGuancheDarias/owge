@@ -387,13 +387,13 @@ public class RequirementBo implements Serializable {
     private boolean checkHaveUnitRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.isBuiltUnit(
                 user,
-                unitRepository.getById(requirementInformation.getSecondValue().intValue())
+                unitRepository.getReferenceById(requirementInformation.getSecondValue().intValue())
         );
     }
 
     private boolean checkUnitAmountRequirement(RequirementInformation requirementInformation, UserStorage user) {
         return obtainedUnitRepository.countByUserAndUnit(user,
-                unitRepository.getById(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
+                unitRepository.getReferenceById(requirementInformation.getSecondValue().intValue())) >= requirementInformation.getThirdValue();
     }
 
     private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {

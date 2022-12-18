@@ -407,7 +407,7 @@ class RequirementBoTest {
         given(obtainedUnitRepository.countByUserAndUnit(user, unit)).willReturn(unitCount);
         given(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(UNIT_AMOUNT, UNIT_ID_1, unitCount))
                 .willReturn(List.of(orHaveAmount));
-        given(unitRepository.getById(UNIT_ID_1)).willReturn(unit);
+        given(unitRepository.getReferenceById(UNIT_ID_1)).willReturn(unit);
         given(obtainedUnitRepository.isBuiltUnit(user, unit)).willReturn(isUnitBuilt);
         requirementBo.triggerUnitBuildCompletedOrKilled(user, unit);
 

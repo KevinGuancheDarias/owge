@@ -1,71 +1,41 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo;
-import com.kevinguanchedarias.owgejava.entity.Configuration;
-import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.mock.ConfigurationMock;
 import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.List;
+import java.util.Optional;
 
-import static com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo.DEFAULT_TIME_EXPLORE;
-import static com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo.MISSION_TIME_EXPLORE_KEY;
-import static com.kevinguanchedarias.owgejava.business.mission.MissionConfigurationBo.MISSION_TIME_GATHER_KEY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.NONE,
-        classes = MissionConfigurationBo.class
+        classes = ConfigurationBo.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
-@MockBean({
-        ConfigurationRepository.class,
-        ConfigurationBo.class
-})
-class MissionConfigurationBoTest {
-    private final MissionConfigurationBo missionConfigurationBo;
-    private final ConfigurationRepository configurationRepository;
+@MockBean(ConfigurationRepository.class)
+class ConfigurationBoTest {
     private final ConfigurationBo configurationBo;
+    private final ConfigurationRepository configurationRepository;
 
     @Autowired
-    public MissionConfigurationBoTest(
-            ConfigurationBo configurationBo,
-            ConfigurationRepository configurationRepository,
-            MissionConfigurationBo missionConfigurationBo
-    ) {
+    ConfigurationBoTest(ConfigurationBo configurationBo, ConfigurationRepository configurationRepository) {
         this.configurationBo = configurationBo;
         this.configurationRepository = configurationRepository;
-        this.missionConfigurationBo = missionConfigurationBo;
     }
 
     @Test
-    void init_should_store_non_existing_configurations() {
-        var existingConfigurations = List.of(
-                Configuration.builder().name(MISSION_TIME_EXPLORE_KEY).value("12").build(),
-                Configuration.builder().name(MISSION_TIME_GATHER_KEY).value("40").build()
-        );
-        given(configurationRepository.findByNameIn(anyList())).willReturn(existingConfigurations);
-    }
+    void findOne_should_work() {
+        var config = "FOO";
+        var expectedRetVal = ConfigurationMock.givenConfiguration(config);
+        given(configurationRepository.findById(config)).willReturn(Optional.of(expectedRetVal));
+        
 
-    @Test
-    void findMissionBaseTimeByType_should_properly_return_configured_explore_time() {
-        var expectedValue = "42";
-        var expectedConfiguration = Configuration.builder().name("foo").value(expectedValue).build();
-        given(configurationBo.findOrSetDefault(MISSION_TIME_EXPLORE_KEY, DEFAULT_TIME_EXPLORE))
-                .willReturn(expectedConfiguration);
-
-        var retVal = missionConfigurationBo.findMissionBaseTimeByType(MissionType.EXPLORE);
-
-        verify(configurationBo, times(1)).findOrSetDefault(MISSION_TIME_EXPLORE_KEY, DEFAULT_TIME_EXPLORE);
-        assertEquals(expectedValue, retVal.toString());
+        Assertions.assertThat(configurationBo.findOne(config))
+                .isPresent()
+                .contains(expectedRetVal);
     }
 }
