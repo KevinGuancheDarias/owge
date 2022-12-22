@@ -11,10 +11,12 @@ import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
+import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
+import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
+import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -24,7 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Component
+@Service
+@AllArgsConstructor
 public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectRelationDto> {
     public static final String OBJECT_RELATION_CACHE_TAG = "object_relation";
 
@@ -33,18 +36,14 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
 
     private static final Logger LOG = Logger.getLogger(ObjectRelationBo.class);
 
-    @Autowired
-    private ObjectEntityBo objectEntityBo;
+    private final ObjectEntityBo objectEntityBo;
 
-    @Autowired
-    private UnlockedRelationBo unlockedRelationBo;
+    private final UnlockedRelationRepository unlockedRelationRepository;
 
-    @Autowired
-    private ObjectRelationsRepository objectRelationsRepository;
+    private final ObjectRelationsRepository objectRelationsRepository;
 
-    @Autowired
-    private RequirementInformationBo requirementInformationBo;
-    
+    private final RequirementInformationRepository requirementInformationRepository;
+
     @Override
     public JpaRepository<ObjectRelation, Integer> getRepository() {
         return objectRelationsRepository;
@@ -195,15 +194,15 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
      * @since 0.8.0
      */
     public void checkIsUnlocked(Integer userId, Integer relationId) {
-        if (unlockedRelationBo.findOneByUserIdAndRelationId(userId, relationId) == null) {
+        if (unlockedRelationRepository.findOneByUserIdAndRelationId(userId, relationId) == null) {
             throw new SgtBackendTargetNotUnlocked("The target object relation has not been unlocked");
         }
     }
 
     @Transactional
     public void delete(ObjectRelation objectRelation) {
-        requirementInformationBo.deleteByRelation(objectRelation);
-        unlockedRelationBo.deleteByRelation(objectRelation);
+        requirementInformationRepository.deleteByRelation(objectRelation);
+        unlockedRelationRepository.deleteByRelation(objectRelation);
         objectRelationsRepository.delete(objectRelation);
     }
 

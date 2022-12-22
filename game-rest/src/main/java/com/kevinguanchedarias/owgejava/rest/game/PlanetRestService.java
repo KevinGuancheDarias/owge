@@ -2,7 +2,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
@@ -24,11 +24,11 @@ public class PlanetRestService implements SyncSource {
 
     private final PlanetRepository planetRepository;
     private final PlanetBo planetBo;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
 
     @PostMapping("leave")
     public String leave(@RequestParam("planetId") Long planetId) {
-        planetBo.doLeavePlanet(userStorageBo.findLoggedIn().getId(), planetId);
+        planetBo.doLeavePlanet(userSessionService.findLoggedIn().getId(), planetId);
         return "\"OK\"";
     }
 

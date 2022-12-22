@@ -53,19 +53,6 @@ public class RequirementInformationBo implements BaseBo<Integer, RequirementInfo
     }
 
     /**
-     * Deletes all requirement informations <br>
-     * <b>IMPORTANT:</b> Doesn't trigger relation changed, as we are probably going
-     * to delete the relation
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    @Transactional
-    public void deleteByRelation(ObjectRelation relation) {
-        repository.deleteByRelation(relation);
-    }
-
-    /**
      * Saves to database and <b>triggers relation changed!</b>
      *
      * @author Kevin Guanche Darias

@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -48,21 +50,22 @@ import static org.mockito.Mockito.*;
         ActiveTimeSpecialRepository.class,
         TimeSpecialBo.class,
         ObjectRelationBo.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         ImprovementBo.class,
         ScheduledTasksManagerService.class,
         DtoUtilService.class,
         SocketIoService.class,
         RequirementBo.class,
         RuleRepository.class,
-        ObtainedUnitEventEmitter.class
+        ObtainedUnitEventEmitter.class,
+        UnlockableTimeSpecialService.class
 })
 @Import(SpyEventPublisherConfiguration.class)
 class ActiveTimeSpecialBoTest {
     private final NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo;
     private final TimeSpecialBo timeSpecialBo;
     private final ObjectRelationBo objectRelationBo;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final ImprovementBo improvementBo;
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final RequirementBo requirementBo;
@@ -71,13 +74,14 @@ class ActiveTimeSpecialBoTest {
     private final RuleRepository ruleRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final UnlockableTimeSpecialService unlockableTimeSpecialService;
 
     @Autowired
     ActiveTimeSpecialBoTest(
             NonPostConstructActiveTimeSpecialBo activeTimeSpecialBo,
             TimeSpecialBo timeSpecialBo,
             ObjectRelationBo objectRelationBo,
-            UserStorageBo userStorageBo,
+            UserSessionService userSessionService,
             ImprovementBo improvementBo,
             ScheduledTasksManagerService scheduledTasksManagerService,
             RequirementBo requirementBo,
@@ -85,13 +89,14 @@ class ActiveTimeSpecialBoTest {
             SocketIoService socketIoService,
             RuleRepository ruleRepository,
             ApplicationEventPublisher applicationEventPublisher,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
+            UnlockableTimeSpecialService unlockableTimeSpecialService
     ) {
         this.activeTimeSpecialBo = activeTimeSpecialBo;
         this.timeSpecialBo = timeSpecialBo;
         this.objectRelationBo = objectRelationBo;
-        this.userStorageBo = userStorageBo;
         this.improvementBo = improvementBo;
+        this.userSessionService = userSessionService;
         this.scheduledTasksManagerService = scheduledTasksManagerService;
         this.requirementBo = requirementBo;
         this.activeTimeSpecialRepository = activeTimeSpecialRepository;
@@ -99,6 +104,7 @@ class ActiveTimeSpecialBoTest {
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.ruleRepository = ruleRepository;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.unlockableTimeSpecialService = unlockableTimeSpecialService;
     }
 
     @Test
@@ -196,7 +202,7 @@ class ActiveTimeSpecialBoTest {
                 .when(socketIoService).sendMessage(eq(user), eq("time_special_change"), any());
         given(activeTimeSpecialRepository.findById(ACTIVE_TIME_SPECICAL_ID))
                 .willReturn(Optional.of(activeTimeSpecial));
-        given(timeSpecialBo.findUnlocked(user)).willReturn(unlockedList);
+        given(unlockableTimeSpecialService.findUnlocked(user)).willReturn(unlockedList);
         given(timeSpecialBo.toDto(unlockedList)).willReturn(List.of(unlockedTimeSpecialDto));
 
         activeTimeSpecialBo.realInit();
@@ -206,7 +212,7 @@ class ActiveTimeSpecialBoTest {
         assertThat(capturedOutput.getOut()).contains("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + ACTIVE_TIME_SPECICAL_ID);
         verify(activeTimeSpecialRepository, times(1)).delete(activeTimeSpecial);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq("time_special_change"), any());
-        verify(timeSpecialBo, times(1)).findUnlocked(user);
+        verify(unlockableTimeSpecialService, times(1)).findUnlocked(user);
         verify(timeSpecialBo, times(1)).toDto(unlockedList);
         var sentMessage = socketMessageAnswer.getResult();
         assertThat(sentMessage)
@@ -246,8 +252,8 @@ class ActiveTimeSpecialBoTest {
         given(timeSpecialBo.findByIdOrDie(TIME_SPECIAL_ID)).willReturn(timeSpecial);
         given(objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
                 .willReturn(or);
-        given(userStorageBo.findLoggedIn()).willReturn(user);
-        given(userStorageBo.findLoggedInWithDetails()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedInWithDetails()).willReturn(user);
         given(activeTimeSpecialRepository.save(any())).willAnswer(invocationOnMock -> {
             var newActivated = invocationOnMock.getArgument(0, ActiveTimeSpecial.class);
             newActivated.setId(activeTimeSpecialId);
@@ -262,10 +268,10 @@ class ActiveTimeSpecialBoTest {
 
         verify(timeSpecialBo, times(1)).findByIdOrDie(TIME_SPECIAL_ID);
         verify(objectRelationBo, times(1)).findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
-        verify(userStorageBo, times(1)).findLoggedIn();
+        verify(userSessionService, times(1)).findLoggedIn();
         verify(objectRelationBo, times(1)).checkIsUnlocked(user, or);
         verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);
-        verify(userStorageBo, times(1)).findLoggedInWithDetails();
+        verify(userSessionService, times(1)).findLoggedInWithDetails();
         var captor = ArgumentCaptor.forClass(ActiveTimeSpecial.class);
         verify(activeTimeSpecialRepository, times(1)).save(captor.capture());
         verify(improvementBo, times(1)).clearSourceCache(user, activeTimeSpecialBo);
@@ -293,7 +299,7 @@ class ActiveTimeSpecialBoTest {
         given(timeSpecialBo.findByIdOrDie(TIME_SPECIAL_ID)).willReturn(timeSpecial);
         given(objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID))
                 .willReturn(or);
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1))
                 .willReturn(Optional.of(activeTimeSpecial));
 
@@ -301,10 +307,10 @@ class ActiveTimeSpecialBoTest {
 
         verify(timeSpecialBo, times(1)).findByIdOrDie(TIME_SPECIAL_ID);
         verify(objectRelationBo, times(1)).findOne(ObjectEnum.TIME_SPECIAL, TIME_SPECIAL_ID);
-        verify(userStorageBo, times(1)).findLoggedIn();
+        verify(userSessionService, times(1)).findLoggedIn();
         verify(objectRelationBo, times(1)).checkIsUnlocked(user, or);
         verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);
-        verify(userStorageBo, never()).findLoggedInWithDetails();
+        verify(userSessionService, never()).findLoggedInWithDetails();
         verify(improvementBo, never()).clearSourceCache(any(), any());
         verify(scheduledTasksManagerService, never()).registerEvent(any(), anyLong());
         verify(requirementBo, never()).triggerTimeSpecialStateChange(any(), any());

@@ -1,19 +1,16 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.kevinsuite.commons.rest.security.TokenUser;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
-import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtFactionNotFoundException;
 import com.kevinguanchedarias.owgejava.pojo.GroupedImprovement;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
@@ -32,51 +29,26 @@ import java.util.List;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  */
 @Service
+@AllArgsConstructor
 public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDto> {
     @Serial
     private static final long serialVersionUID = 2837362546838035726L;
 
     public static final String JWT_SECRET_DB_CODE = "JWT_SECRET";
 
-    @Autowired
-    private UserStorageRepository userStorageRepository;
-
-    @Autowired
-    private FactionBo factionBo;
-
-    @Autowired
-    private PlanetRepository planetRepository;
-
-    @Autowired
-    private PlanetBo planetBo;
-
-    @Autowired
-    private RequirementBo requirementBo;
-
-    @Autowired
-    private AllianceBo allianceBo;
-
-    @Autowired
-    private AuthenticationBo authenticationBo;
-
-    @Autowired
-    private ImprovementBo improvementBo;
-
-    @Autowired
-    private transient EntityManager entityManager;
-
-    @Autowired
-    private transient FactionSpawnLocationBo factionSpawnLocationBo;
-
-    @Autowired
-    @Lazy
-    private AuditBo auditBo;
-
-    @Autowired
-    private transient UserEventEmitterBo userEventEmitterBo;
-
-    @Autowired
-    private transient TransactionUtilService transactionUtilService;
+    private final UserStorageRepository userStorageRepository;
+    private final FactionBo factionBo;
+    private final PlanetRepository planetRepository;
+    private final PlanetBo planetBo;
+    private final RequirementBo requirementBo;
+    private final AllianceBo allianceBo;
+    private final ImprovementBo improvementBo;
+    private final transient EntityManager entityManager;
+    private final transient FactionSpawnLocationBo factionSpawnLocationBo;
+    private final AuditBo auditBo;
+    private final transient UserEventEmitterBo userEventEmitterBo;
+    private final transient TransactionUtilService transactionUtilService;
+    private final transient UserSessionService userSessionService;
 
     @Override
     public JpaRepository<UserStorage, Integer> getRepository() {
@@ -115,53 +87,11 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
     }
 
     /**
-     * Finds the logged in user information ONLY the base one, and from token<br />
-     * Only id, email, and username will be returned, used
-     * findLoggedInWithDetailts() for everything
-     *
-     * @author Kevin Guanche Darias
-     */
-    public UserStorage findLoggedIn() {
-        var token = authenticationBo.findTokenUser();
-        return token != null ? convertTokenUserToUserStorage(token) : null;
-    }
-
-    /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.16
      */
     public List<Integer> findAllIds() {
         return userStorageRepository.findAllIds();
-    }
-
-    @Transactional
-    public UserStorage findLoggedInWithDetails() {
-        UserStorage tokenSimpleUser = findLoggedIn();
-        if (tokenSimpleUser != null) {
-            UserStorage dbFullUser = findById(tokenSimpleUser.getId());
-
-            if (!tokenSimpleUser.getEmail().equals(dbFullUser.getEmail())
-                    || !tokenSimpleUser.getUsername().equals(dbFullUser.getUsername())) {
-                dbFullUser.setEmail(tokenSimpleUser.getEmail());
-                dbFullUser.setUsername(tokenSimpleUser.getUsername());
-                save(dbFullUser);
-            }
-            return dbFullUser;
-        } else {
-            return null;
-        }
-    }
-
-    public UserStorage findLoggedInWithReference() {
-        return userStorageRepository.getById(findLoggedIn().getId());
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.14
-     */
-    public int countByAlliance(Alliance alliance) {
-        return userStorageRepository.countByAlliance(alliance);
     }
 
     /**
@@ -178,7 +108,7 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
             throw new SgtFactionNotFoundException("No such faction");
         }
 
-        var user = findLoggedIn();
+        var user = userSessionService.findLoggedIn();
 
         if (userStorageRepository.existsById(user.getId())) {
             return false;
@@ -207,10 +137,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
         return user.getId() > 0;
     }
 
-    public Boolean isOfFaction(Integer factionId, Integer userId) {
-        return userStorageRepository.findOneByIdAndFactionId(userId, factionId) != null;
-    }
-
     /**
      * Will update <b>logged in user</b> resources, based on seconds passed since
      * last resources update
@@ -234,33 +160,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
 
     public void addPointsToUser(UserStorage user, Double points) {
         userStorageRepository.addPointsToUser(user, points);
-    }
-
-    /**
-     * Defines the new alliance for all the users having and old alliance <br>
-     * Usually used to delete an alliance
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.0
-     */
-    @Transactional
-    public void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
-        Alliance targetNewAlliance = newAlliance == null ? null : allianceBo.findById(newAlliance);
-        userStorageRepository.defineAllianceByAllianceId(allianceBo.findById(oldAlliance), targetNewAlliance);
-    }
-
-    /**
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.7.0
-     */
-    @Transactional
-    public void leave(Integer userId) {
-        UserStorage userRef = getOne(userId);
-        if (allianceBo.isOwnerOfAnAlliance(userId)) {
-            throw new SgtBackendInvalidInputException("You can't leave your own alliance");
-        }
-        userRef.setAlliance(null);
-        save(userRef);
     }
 
     /**
@@ -293,14 +192,6 @@ public class UserStorageBo implements BaseBo<Integer, UserStorage, UserStorageDt
                         date,
                         PageRequest.of(0, 50)
                 );
-    }
-
-    private UserStorage convertTokenUserToUserStorage(TokenUser tokenUser) {
-        var user = new UserStorage();
-        user.setId(tokenUser.getId().intValue());
-        user.setEmail(tokenUser.getEmail());
-        user.setUsername(tokenUser.getUsername());
-        return user;
     }
 
     /**

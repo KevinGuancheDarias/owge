@@ -3,7 +3,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.ObtainedUpgradeBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
@@ -29,7 +29,7 @@ import java.util.function.Function;
 @ApplicationScope
 @AllArgsConstructor
 public class UpgradeRestService implements SyncSource {
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final ObtainedUpgradeBo obtainedUpgradeBo;
     private final MissionBo missionBo;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
@@ -38,7 +38,7 @@ public class UpgradeRestService implements SyncSource {
 
     @GetMapping("registerLevelUp")
     public RunningUpgradeDto registerLevelUp(@RequestParam("upgradeId") Integer upgradeId) {
-        var userId = userStorageBo.findLoggedIn().getId();
+        var userId = userSessionService.findLoggedIn().getId();
         missionBo.registerLevelUpAnUpgrade(userId, upgradeId);
         RunningUpgradeDto retVal = missionBo.findRunningLevelUpMission(userId);
         retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
@@ -47,7 +47,7 @@ public class UpgradeRestService implements SyncSource {
 
     @GetMapping("cancelUpgrade")
     public Object cancelUpgrade() {
-        missionBo.cancelUpgradeMission(userStorageBo.findLoggedIn().getId());
+        missionBo.cancelUpgradeMission(userSessionService.findLoggedIn().getId());
         return "{}";
     }
 

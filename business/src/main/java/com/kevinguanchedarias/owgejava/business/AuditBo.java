@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.AuditDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -8,6 +9,7 @@ import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
@@ -37,8 +39,6 @@ import java.util.stream.Stream;
 @Log4j2
 @RequiredArgsConstructor
 public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
-    public static final String AUDIT_CACHE_TAG = "audit";
-
     @Serial
     private static final long serialVersionUID = -890947636309038855L;
 
@@ -47,10 +47,11 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     private static final String TRUSTED_PRIVATE_NET_KEYWORD = "PRIVATE";
 
     private final transient AuditRepository repository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final transient TorClientBo torClientBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient SocketIoService socketIoService;
+    private final UserStorageRepository userStorageRepository;
 
     @Value("${OWGE_PROXY_TRUSTED_NETWORKS:PRIVATE}")
     private String proxyTrustedNetworks;
@@ -118,7 +119,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                 .userAgent(ua)
                 .cookie(cookie)
                 .user(user)
-                .relatedUser(userStorageBo.getOne(relatedUser))
+                .relatedUser(userStorageRepository.getReferenceById(relatedUser))
                 .creationDate(now)
                 .build()
         );
@@ -147,8 +148,8 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                     repository.save(Audit.builder()
                             .action(action)
                             .actionDetail(actionDetails)
-                            .user(userStorageBo.getOne(userStorageBo.findLoggedIn().getId()))
-                            .relatedUser(userStorageBo.getOne(relatedUserId))
+                            .user(userSessionService.findLoggedInWithReference())
+                            .relatedUser(relatedUserId == null ? null : userStorageRepository.getReferenceById(relatedUserId))
                             .ip(resolveIp(request))
                             .userAgent(request.getHeader("User-Agent"))
                             .cookie(cookie.getValue())

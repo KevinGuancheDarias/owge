@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.PlanetListDto;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.PlanetList;
@@ -24,7 +25,7 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
     private final PlanetRepository planetRepository;
     private final PlanetListRepository repository;
     private final SocketIoService socketIoService;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final PlanetCleanerService planetCleanerService;
     private final DtoUtilService dtoUtilService;
 
@@ -55,7 +56,7 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
      * @since 0.9.0
      */
     public void myAdd(Long planetId, String name) {
-        var user = userStorageBo.findLoggedInWithReference();
+        var user = userSessionService.findLoggedInWithReference();
         var planetList = new PlanetList();
         planetList.setPlanetUser(new PlanetUser(user, SpringRepositoryUtil.findByIdOrDie(planetRepository, planetId)));
         planetList.setName(name);
@@ -68,8 +69,8 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
      * @since 0.9.0
      */
     public void myDelete(Long planetId) {
-        var user = userStorageBo.findLoggedInWithReference();
-        repository.deleteById(new PlanetUser(user, planetRepository.getById(planetId)));
+        var user = userSessionService.findLoggedInWithReference();
+        repository.deleteById(new PlanetUser(user, planetRepository.getReferenceById(planetId)));
         emitChangeToUser(user);
     }
 

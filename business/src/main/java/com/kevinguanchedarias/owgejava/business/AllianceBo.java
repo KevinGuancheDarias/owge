@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,8 +29,8 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     private static final long serialVersionUID = 2632768998010477053L;
 
     private final AllianceRepository repository;
-    private final UserStorageBo userStorageBo;
     private final ConfigurationBo configurationBo;
+    private final UserStorageRepository userStorageRepository;
     private final AuditBo auditBo;
     private final AllianceJoinRequestRepository allianceJoinRequestRepository;
 
@@ -61,7 +62,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      */
     @Transactional
     public void delete(Alliance alliance) {
-        userStorageBo.defineAllianceByAllianceId(alliance.getId(), null);
+        defineAllianceByAllianceId(alliance.getId(), null);
         repository.delete(alliance);
     }
 
@@ -83,7 +84,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
         }
         Alliance retVal;
         if (alliance.getId() == null) {
-            var creator = userStorageBo.findById(invokerId);
+            var creator = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, invokerId);
             if (creator.getAlliance() != null) {
                 throw new SgtBackendInvalidInputException("You already have an alliance, leave it first");
             }
@@ -91,7 +92,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
             retVal = repository.save(alliance);
             retVal.getOwner().setAlliance(retVal);
             auditBo.doAudit(AuditActionEnum.JOIN_ALLIANCE);
-            userStorageBo.save(retVal.getOwner());
+            userStorageRepository.save(retVal.getOwner());
         } else {
             var storedAlliance = findById(alliance.getId());
             checkInvokerIsOwner(storedAlliance, invokerId);
@@ -127,7 +128,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      */
     public AllianceJoinRequest requestJoin(Integer allianceId, Integer invokerId) {
         var alliance = findByIdOrDie(allianceId);
-        var user = userStorageBo.findByIdOrDie(invokerId);
+        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, invokerId);
         if (user.getAlliance() != null) {
             throw new SgtBackendInvalidInputException("You are already in an alliance, nice try!");
         }
@@ -152,7 +153,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
             alliance.getUsers()
                     .forEach(user -> auditBo.nonRequestAudit(AuditActionEnum.USER_INTERACTION, "JOIN_ALLIANCE", request.getUser(), user.getId()));
             auditBo.doAudit(AuditActionEnum.ACCEPT_JOIN_ALLIANCE, null, request.getUser().getId());
-            userStorageBo.save(request.getUser());
+            userStorageRepository.save(request.getUser());
             allianceJoinRequestRepository.deleteByUser(request.getUser());
         } else {
             allianceJoinRequestRepository.delete(request);
@@ -177,8 +178,14 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
+    @Transactional
     public void leave(Integer userId) {
-        userStorageBo.leave(userId);
+        var userRef = userStorageRepository.getReferenceById(userId);
+        if (isOwnerOfAnAlliance(userId)) {
+            throw new SgtBackendInvalidInputException("You can't leave your own alliance");
+        }
+        userRef.setAlliance(null);
+        userStorageRepository.save(userRef);
     }
 
     /**
@@ -191,7 +198,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      */
     @Transactional
     public void delete(UserStorage transientUser) {
-        UserStorage user = userStorageBo.findById(transientUser.getId());
+        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, transientUser.getId());
         Alliance alliance = user.getAlliance();
         if (alliance == null) {
             throw new SgtBackendInvalidInputException("You don't have any alliance");
@@ -236,16 +243,28 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
     }
 
     private void checkIsLimitReached(AllianceJoinRequest request) {
-        long userCount = userStorageBo.countAll();
+        long userCount = userStorageRepository.count();
         float allowedPercentage = Integer
                 .parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE_PERCENTAGE", "7").getValue());
         var max = Integer.parseInt(configurationBo.findOrSetDefault("ALLIANCE_MAX_SIZE", "15").getValue());
         float allowedByPercentage = userCount * (allowedPercentage / 100);
         allowedByPercentage = allowedByPercentage < 2 ? 2 : allowedByPercentage;
         int maxAllowed = (int) (allowedByPercentage < max ? allowedByPercentage : max);
-        if (maxAllowed <= userStorageBo.countByAlliance(request.getAlliance())) {
+        if (maxAllowed <= userStorageRepository.countByAlliance(request.getAlliance())) {
             throw new SgtBackendInvalidInputException("I18N_ERR_ALLIANCE_IS_FULL");
         }
 
+    }
+
+    /**
+     * Defines the new alliance for all the users having and old alliance <br>
+     * Usually used to delete an alliance
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.7.0
+     */
+    private void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
+        Alliance targetNewAlliance = newAlliance == null ? null : findById(newAlliance);
+        userStorageRepository.defineAllianceByAllianceId(findById(oldAlliance), targetNewAlliance);
     }
 }

@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -48,7 +49,7 @@ public class SocketIoService {
     private ConfigurationBo configurationBo;
 
     @Autowired
-    private UserStorageBo userStorageBo;
+    private UserStorageRepository userStorageRepository;
 
     @Autowired
     private AsyncRunnerBo asyncRunnerBo;
@@ -99,7 +100,7 @@ public class SocketIoService {
                 .collect(Collectors.toList());
         Map<Integer, WebsocketEventsInformation> savedInformation = new HashMap<>();
         if (targetUserId == 0) {
-            userStorageBo.findAll().forEach(user -> {
+            userStorageRepository.findAll().forEach(user -> {
                 WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, user.getId());
                 savedInformation.put(user.getId(), saved);
                 websocketEventsInformationBo.save(saved);

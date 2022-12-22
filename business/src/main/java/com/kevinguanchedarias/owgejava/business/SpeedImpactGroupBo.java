@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -41,8 +40,6 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     @Autowired
     private ObjectRelationBo objectRelationBo;
 
-    @Autowired
-    private UnlockedRelationBo unlockedRelationBo;
 
     @Autowired
     private DtoUtilService dtoUtilService;
@@ -113,18 +110,6 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
         target.setImage(speedImpactGroup.getImage());
         target.setRequirementGroups(new ArrayList<>());
         return speedImpactGroupRepository.save(target);
-    }
-
-    /**
-     * Finds the ids of the unlocked cross galaxy speed impact
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     */
-    public List<Integer> findCrossGalaxyUnlocked(UserStorage user) {
-        List<SpeedImpactGroup> speedImpactGroups = unlockedRelationBo.unboxToTargetEntity(
-                unlockedRelationBo.findByUserIdAndObjectType(user.getId(), ObjectEnum.SPEED_IMPACT_GROUP));
-        return speedImpactGroups.stream().map(EntityWithMissionLimitation::getId).collect(Collectors.toList());
     }
 
     public boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, UserStorage user, Unit unit) {

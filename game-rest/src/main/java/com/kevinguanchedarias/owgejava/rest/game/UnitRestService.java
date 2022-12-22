@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.*;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
@@ -31,7 +32,7 @@ import java.util.function.Function;
 @AllArgsConstructor
 public class UnitRestService implements SyncSource {
 
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final UnlockedRelationBo unlockedRelationBo;
     private final MissionBo missionBo;
     private final MissionFinderBo missionFinderBo;
@@ -78,7 +79,7 @@ public class UnitRestService implements SyncSource {
 
     @PostMapping("delete")
     public String delete(@RequestBody ObtainedUnitDto obtainedUnitDto) {
-        obtainedUnitDto.setUserId(userStorageBo.findLoggedIn().getId());
+        obtainedUnitDto.setUserId(userSessionService.findLoggedIn().getId());
         obtainedUnitBo.saveWithSubtraction(obtainedUnitDto, true);
         return "\"OK\"";
     }
@@ -113,7 +114,7 @@ public class UnitRestService implements SyncSource {
     }
 
     private UserStorage findLoggedInUser() {
-        return userStorageBo.findLoggedIn();
+        return userSessionService.findLoggedIn();
     }
 
     private List<UnitWithRequirementInformation> requirements(UserStorage user) {

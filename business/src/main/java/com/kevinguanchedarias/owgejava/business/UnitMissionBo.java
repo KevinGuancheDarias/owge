@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.business.mission.unit.registration.UnitMi
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -50,7 +51,7 @@ public class UnitMissionBo {
     private final PlanetBo planetBo;
     private final PlanetExplorationService planetExplorationService;
     private final MissionRepository missionRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final ExceptionUtilService exceptionUtilService;
     private final MissionReportManagerBo missionReportManagerBo;
     private final MissionBaseService missionBaseService;
@@ -183,7 +184,7 @@ public class UnitMissionBo {
         var mission = missionRepository.findById(missionId).orElse(null);
         if (mission == null) {
             throw new NotFoundException("No mission with id " + missionId + " was found");
-        } else if (!mission.getUser().getId().equals(userStorageBo.findLoggedIn().getId())) {
+        } else if (!mission.getUser().getId().equals(userSessionService.findLoggedIn().getId())) {
             throw new SgtBackendInvalidInputException("You can't cancel other player missions");
         } else if (missionBaseService.isOfType(mission, MissionType.RETURN_MISSION)) {
             throw new SgtBackendInvalidInputException("can't cancel return missions");
@@ -239,7 +240,7 @@ public class UnitMissionBo {
      */
     private void myRegister(UnitMissionInformation missionInformation) {
         if (missionInformation.getUserId() == null) {
-            missionInformation.setUserId(userStorageBo.findLoggedIn().getId());
+            missionInformation.setUserId(userSessionService.findLoggedIn().getId());
         } else {
             checkInvokerIsTheLoggedUser(missionInformation.getUserId());
         }
@@ -247,7 +248,7 @@ public class UnitMissionBo {
 
     private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
         missionInformation.setMissionType(missionType);
-        var user = userStorageBo.findLoggedIn();
+        var user = userSessionService.findLoggedIn();
         var isDeployMission = missionType.equals(MissionType.DEPLOY);
         if (!isDeployMission || !planetRepository.isOfUserProperty(user.getId(), missionInformation.getTargetPlanetId())) {
             missionBaseService.checkMissionLimitNotReached(user);
@@ -286,7 +287,7 @@ public class UnitMissionBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private void checkInvokerIsTheLoggedUser(Integer invoker) {
-        if (!invoker.equals(userStorageBo.findLoggedIn().getId())) {
+        if (!invoker.equals(userSessionService.findLoggedIn().getId())) {
             throw new SgtBackendInvalidInputException("Invoker is not the logged in user");
         }
     }

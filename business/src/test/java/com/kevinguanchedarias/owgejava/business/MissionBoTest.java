@@ -10,6 +10,7 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.entity.*;
@@ -79,7 +80,7 @@ import static org.mockito.Mockito.*;
         ObtainedUpgradeBo.class,
         ObjectRelationBo.class,
         UpgradeBo.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         MissionTypeRepository.class,
         ImprovementBo.class,
         RequirementBo.class,
@@ -126,7 +127,7 @@ class MissionBoTest {
     private final RequirementBo requirementBo;
     private final ImprovementBo improvementBo;
     private final ObjectRelationBo objectRelationBo;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final UnitBo unitBo;
     private final ConfigurationBo configurationBo;
     private final MissionTypeRepository missionTypeRepository;
@@ -160,7 +161,7 @@ class MissionBoTest {
             RequirementBo requirementBo,
             ImprovementBo improvementBo,
             ObjectRelationBo objectRelationBo,
-            UserStorageBo userStorageBo,
+            UserSessionService userSessionService,
             UnitBo unitBo,
             ConfigurationBo configurationBo,
             MissionTypeRepository missionTypeRepository,
@@ -191,7 +192,7 @@ class MissionBoTest {
         this.requirementBo = requirementBo;
         this.improvementBo = improvementBo;
         this.objectRelationBo = objectRelationBo;
-        this.userStorageBo = userStorageBo;
+        this.userSessionService = userSessionService;
         this.missionBaseService = missionBaseService;
         this.unitBo = unitBo;
         this.configurationBo = configurationBo;
@@ -256,7 +257,7 @@ class MissionBoTest {
         ou.setAvailable(true);
         var resourceRequirements = ResourceRequirementsPojo.builder().build();
         var resourceRequirementsSpy = spy(resourceRequirements);
-        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         givenMaxMissionsCount(user);
         given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
         doReturn(false).when(resourceRequirementsSpy).canRun(eq(user), any(UserEnergyServiceBo.class));
@@ -287,7 +288,7 @@ class MissionBoTest {
         user.setPrimaryResource(primary * 3);
         user.setSecondaryResource(secondary * 3);
         var resourceRequirementsSpy = spy(resourceRequirements);
-        given(userStorageBo.findById(USER_ID_1)).willReturn(user);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         var groupedImprovementMock = givenMaxMissionsCount(user);
         given(upgradeBo.calculateRequirementsAreMet(ou)).willReturn(resourceRequirementsSpy);
         doReturn(true).when(resourceRequirementsSpy).canRun(eq(user), any(UserEnergyServiceBo.class));
@@ -323,7 +324,7 @@ class MissionBoTest {
         assertThat(saved.getTerminationDate()).isEqualTo(terminationDate);
         assertThat(user.getPrimaryResource()).isEqualTo(60D);
         assertThat(user.getSecondaryResource()).isEqualTo(80D);
-        verify(userStorageBo, times(1)).save(user);
+        verify(userStorageRepository, times(1)).save(user);
         verify(missionRepository, times(1)).save(saved);
         verify(missionSchedulerService, times(1)).scheduleMission(any(), eq(saved));
         verify(entityManager, times(1)).refresh(saved);
@@ -469,7 +470,7 @@ class MissionBoTest {
         var socketAnswer = new InvokeSupplierLambdaAnswer<>(2);
         given(userMock.getId()).willReturn(USER_ID_1);
         given(missionRepository.findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name())).willReturn(mission);
-        given(userStorageBo.findLoggedIn()).willReturn(userMock);
+        given(userSessionService.findLoggedIn()).willReturn(userMock);
         given(missionTypeBo.resolve(mission)).willReturn(MissionType.LEVEL_UP);
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
         doAnswer(socketAnswer).when(socketIoService).sendMessage(eq(USER_ID_1), eq(RUNNING_UPGRADE_CHANGE), any());
@@ -478,7 +479,7 @@ class MissionBoTest {
 
         verify(userMock, times(1)).addtoPrimary(MISSION_PR);
         verify(userMock, times(1)).addToSecondary(MISSION_SR);
-        verify(userStorageBo, times(1)).save(userMock);
+        verify(userStorageRepository, times(1)).save(userMock);
         verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
         verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(RUNNING_UPGRADE_CHANGE), any());
@@ -589,7 +590,7 @@ class MissionBoTest {
         mission.setUser(missionUser);
         given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(mission));
         given(userStorageRepository.findOneByMissions(mission)).willReturn(missionUser);
-        given(userStorageBo.findLoggedIn()).willReturn(loggedUser);
+        given(userSessionService.findLoggedIn()).willReturn(loggedUser);
 
         assertThatThrownBy(() -> missionBo.cancelBuildUnit(BUILD_MISSION_ID))
                 .isInstanceOf(CommonException.class)
@@ -605,7 +606,7 @@ class MissionBoTest {
         var mission = givenBuildMission();
         given(missionRepository.findById(BUILD_MISSION_ID)).willReturn(Optional.of(mission));
         given(userStorageRepository.findOneByMissions(mission)).willReturn(user);
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(missionTypeBo.resolve(mission)).willReturn(MissionType.BUILD_UNIT);
 
         missionBo.cancelBuildUnit(BUILD_MISSION_ID);

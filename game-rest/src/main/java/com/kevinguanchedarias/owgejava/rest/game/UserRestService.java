@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.AuditBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
@@ -26,13 +27,14 @@ import java.util.function.Function;
 public class UserRestService implements SyncSource {
 
     private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final AuditBo auditBo;
     private final UserEventEmitterBo userEventEmitterBo;
 
     @GetMapping("exists")
     public boolean exists(HttpServletRequest request, HttpServletResponse response) {
         auditBo.creteCookieIfMissing(request, response);
-        return userStorageBo.exists(userStorageBo.findLoggedIn().getId());
+        return userStorageBo.exists(userSessionService.findLoggedIn().getId());
     }
 
     /**

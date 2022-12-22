@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
@@ -26,8 +27,7 @@ import static org.mockito.Mockito.verify;
 @MockBean({
         ImprovementBo.class,
         ActiveTimeSpecialBo.class,
-        UnlockedRelationBo.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         TimeSpecialRepository.class,
         ObjectRelationsRepository.class,
         UnlockedRelationRepository.class,

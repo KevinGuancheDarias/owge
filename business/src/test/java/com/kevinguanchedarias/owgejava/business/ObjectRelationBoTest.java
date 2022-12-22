@@ -2,6 +2,8 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
+import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
+import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,9 +20,9 @@ import static org.mockito.BDDMockito.given;
 )
 @MockBean({
         ObjectEntityBo.class,
-        UnlockedRelationBo.class,
+        UnlockedRelationRepository.class,
         ObjectRelationsRepository.class,
-        RequirementInformationBo.class,
+        RequirementInformationRepository.class,
 })
 class ObjectRelationBoTest {
     private final ObjectRelationBo objectRelationBo;

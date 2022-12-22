@@ -1,10 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
-import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
@@ -52,7 +53,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
     private ObjectRelationBo objectRelationBo;
 
     @Autowired
-    private UserStorageBo userStorageBo;
+    private transient UserSessionService userSessionService;
 
     @Autowired
     private ImprovementBo improvementBo;
@@ -74,6 +75,9 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
 
     @Autowired
     private transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+
+    @Autowired
+    private transient UnlockableTimeSpecialService unlockableTimeSpecialService;
 
     @PostConstruct
     public void init() {
@@ -137,7 +141,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      */
     @TaggableCacheable(tags = ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":#user.id", keySuffix = "#user.id")
     public List<TimeSpecialDto> findByUserWithCurrentStatus(UserStorage user) {
-        List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(timeSpecialBo.findUnlocked(user));
+        List<TimeSpecialDto> unlockeds = timeSpecialBo.toDto(unlockableTimeSpecialService.findUnlocked(user));
         unlockeds.forEach(
                 current -> current.setActiveTimeSpecialDto(toDto(findOneByTimeSpecial(current.getId(), user.getId()))));
         return unlockeds;
@@ -164,20 +168,20 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      */
     @Transactional
     public ActiveTimeSpecial activate(Integer timeSpecialId) {
-        TimeSpecial timeSpecial = timeSpecialBo.findByIdOrDie(timeSpecialId);
-        ObjectRelation relation = objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL,
+        var timeSpecial = timeSpecialBo.findByIdOrDie(timeSpecialId);
+        var relation = objectRelationBo.findOne(ObjectEnum.TIME_SPECIAL,
                 timeSpecial.getId());
-        UserStorage loggedUser = userStorageBo.findLoggedIn();
+        var loggedUser = userSessionService.findLoggedIn();
         objectRelationBo.checkIsUnlocked(loggedUser, relation);
-        ActiveTimeSpecial currentlyActive = findOneByTimeSpecial(timeSpecial.getId(), loggedUser.getId());
+        var currentlyActive = findOneByTimeSpecial(timeSpecial.getId(), loggedUser.getId());
         if (currentlyActive == null) {
-            ActiveTimeSpecial newActive = new ActiveTimeSpecial();
+            var newActive = new ActiveTimeSpecial();
             newActive.setActivationDate(new Date());
             newActive.setExpiringDate(computeExpiringDate(timeSpecial.getDuration()));
             newActive.setState(TimeSpecialStateEnum.ACTIVE);
             definePendingTime(newActive);
             newActive.setTimeSpecial(timeSpecial);
-            UserStorage user = userStorageBo.findLoggedInWithDetails();
+            var user = userSessionService.findLoggedInWithDetails();
             newActive.setUser(user);
             newActive = repository.save(newActive);
             improvementBo.clearSourceCache(user, this);

@@ -3,8 +3,8 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import com.kevinguanchedarias.owgejava.business.AuditBo;
 import com.kevinguanchedarias.owgejava.business.GalaxyBo;
 import com.kevinguanchedarias.owgejava.business.PlanetBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.GalaxyDto;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
@@ -29,7 +29,7 @@ public class GalaxyRestService {
     private final PlanetCleanerService planetCleanerService;
     private final DtoUtilService dtoUtilService;
     private final AuditBo auditBo;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
 
     @GetMapping("navigate")
     @Transactional
@@ -40,7 +40,7 @@ public class GalaxyRestService {
         retVal.setGalaxies(dtoUtilService.convertEntireArray(GalaxyDto.class, galaxyBo.findAll()));
         var planets = dtoUtilService.convertEntireArray(PlanetDto.class,
                 planetBo.findByGalaxyAndSectorAndQuadrant(galaxyId, sector, quadrant));
-        var userId = userStorageBo.findLoggedIn().getId();
+        var userId = userSessionService.findLoggedIn().getId();
         planets.forEach(planet -> planetCleanerService.cleanUpUnexplored(userId, planet));
         retVal.setPlanets(planets);
         return retVal;

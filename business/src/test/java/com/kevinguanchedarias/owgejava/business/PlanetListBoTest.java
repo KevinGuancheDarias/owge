@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.dto.PlanetListDto;
 import com.kevinguanchedarias.owgejava.entity.PlanetList;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.*;
         PlanetRepository.class,
         PlanetListRepository.class,
         SocketIoService.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         PlanetCleanerService.class,
         DtoUtilService.class
 })
@@ -47,7 +48,7 @@ class PlanetListBoTest {
     private final PlanetRepository planetRepository;
     private final PlanetListRepository repository;
     private final SocketIoService socketIoService;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final PlanetCleanerService planetCleanerService;
     private final DtoUtilService dtoUtilService;
 
@@ -62,7 +63,7 @@ class PlanetListBoTest {
             PlanetRepository planetRepository,
             PlanetListRepository repository,
             SocketIoService socketIoService,
-            UserStorageBo userStorageBo,
+            UserSessionService userSessionService,
             PlanetCleanerService planetCleanerService,
             DtoUtilService dtoUtilService
     ) {
@@ -70,7 +71,7 @@ class PlanetListBoTest {
         this.planetRepository = planetRepository;
         this.repository = repository;
         this.socketIoService = socketIoService;
-        this.userStorageBo = userStorageBo;
+        this.userSessionService = userSessionService;
         this.planetCleanerService = planetCleanerService;
         this.dtoUtilService = dtoUtilService;
     }
@@ -98,7 +99,7 @@ class PlanetListBoTest {
     void myAdd_should_work() {
         var user = givenUser1();
         var planet = givenTargetPlanet();
-        given(userStorageBo.findLoggedInWithReference()).willReturn(user);
+        given(userSessionService.findLoggedInWithReference()).willReturn(user);
         given(planetRepository.findById(TARGET_PLANET_ID)).willReturn(Optional.of(planet));
 
         planetListBo.myAdd(TARGET_PLANET_ID, PLANET_LIST_NAME);
@@ -116,8 +117,8 @@ class PlanetListBoTest {
     void myDelete_should_work() {
         var user = givenUser1();
         var planet = givenTargetPlanet();
-        given(userStorageBo.findLoggedInWithReference()).willReturn(user);
-        given(planetRepository.getById(TARGET_PLANET_ID)).willReturn(planet);
+        given(userSessionService.findLoggedInWithReference()).willReturn(user);
+        given(planetRepository.getReferenceById(TARGET_PLANET_ID)).willReturn(planet);
 
         planetListBo.myDelete(TARGET_PLANET_ID);
 

@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
@@ -29,7 +30,7 @@ public class WebsocketSyncService {
     private static final Logger LOG = Logger.getLogger(WebsocketSyncService.class);
 
     private final List<SyncSource> syncSources;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final WebsocketEventsInformationBo websocketEventsInformationBo;
 
     private final Map<String, Function<UserStorage, Object>> handlers = new HashMap<>();
@@ -58,7 +59,7 @@ public class WebsocketSyncService {
     @Transactional
     public Map<String, Object> findWantedData(List<String> keys) {
         Map<String, Object> retVal = new HashMap<>();
-        UserStorage loggedUser = userStorageBo.findLoggedIn();
+        var loggedUser = userSessionService.findLoggedIn();
         keys.stream()
                 .filter(handlers::containsKey)
                 .forEach(key -> {
@@ -66,10 +67,10 @@ public class WebsocketSyncService {
                     var data = handler.apply(loggedUser);
 
                     Map<String, Object> pair = new HashMap<>();
-                    Instant date = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+                    var date = Instant.now().truncatedTo(ChronoUnit.SECONDS);
                     pair.put("data", data);
                     pair.put("lastSent", date);
-                    Integer userId = loggedUser.getId();
+                    var userId = loggedUser.getId();
                     websocketEventsInformationBo.save(key, userId, date);
                     retVal.put(key, pair);
 

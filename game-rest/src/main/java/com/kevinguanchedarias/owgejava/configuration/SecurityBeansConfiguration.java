@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.configuration;
 
 import com.kevinguanchedarias.kevinsuite.commons.rest.security.*;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.event.ResourceAutoUpdateEventHandler;
 import com.kevinguanchedarias.owgejava.filter.BootJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
@@ -70,8 +71,10 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public FilterEventHandler owgeResourceAutoUpdateEventHandler(UserStorageBo userStorageBo, UserStorageRepository userStorageRepository) {
-        return new ResourceAutoUpdateEventHandler(userStorageBo, userStorageRepository);
+    public FilterEventHandler owgeResourceAutoUpdateEventHandler(
+            UserStorageBo userStorageBo, UserSessionService userSessionService, UserStorageRepository userStorageRepository
+    ) {
+        return new ResourceAutoUpdateEventHandler(userStorageBo, userStorageRepository, userSessionService);
     }
 
     @Bean

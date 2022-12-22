@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.planet;
 
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
@@ -22,24 +22,24 @@ import static org.mockito.Mockito.verify;
 )
 @MockBean({
         PlanetRepository.class,
-        UserStorageBo.class
+        UserSessionService.class
 })
 class PlanetCheckerServiceTest {
     private final PlanetCheckerService planetCheckerService;
     private final PlanetRepository planetRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
 
     @Autowired
-    PlanetCheckerServiceTest(PlanetCheckerService planetCheckerService, PlanetRepository planetRepository, UserStorageBo userStorageBo) {
+    PlanetCheckerServiceTest(PlanetCheckerService planetCheckerService, PlanetRepository planetRepository, UserSessionService userSessionService) {
         this.planetCheckerService = planetCheckerService;
         this.planetRepository = planetRepository;
-        this.userStorageBo = userStorageBo;
+        this.userSessionService = userSessionService;
     }
 
     @Test
     void myCheckIsOfUserProperty_should_throw() {
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
 
         assertThatThrownBy(() -> planetCheckerService.myCheckIsOfUserProperty(TARGET_PLANET_ID))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
@@ -49,7 +49,7 @@ class PlanetCheckerServiceTest {
     @Test
     void myCheckIsOfUserProperty_works() {
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(planetRepository.isOfUserProperty(USER_ID_1, TARGET_PLANET_ID)).willReturn(true);
 
         planetCheckerService.myCheckIsOfUserProperty(TARGET_PLANET_ID);

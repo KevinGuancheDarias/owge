@@ -31,7 +31,6 @@ import static org.mockito.BDDMockito.given;
         ObjectRelationToObjectRelationRepository.class,
         RequirementBo.class,
         ObjectRelationBo.class,
-        UnlockedRelationBo.class,
         DtoUtilService.class,
         SpeedImpactGroupFinderBo.class,
         RequirementGroupRepository.class

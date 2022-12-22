@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -23,18 +24,15 @@ import java.util.List;
  */
 @Service
 @AllArgsConstructor
-public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto>,
-        WithUnlockableBo<Integer, TimeSpecial, TimeSpecialDto> {
-    public static final String TIME_SPECIAL_CACHE_TAG = "time_special";
+public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpecialDto> {
 
     @Serial
     private static final long serialVersionUID = -2736277577264790898L;
 
     private final ImprovementBo improvementBo;
     private final ActiveTimeSpecialBo activeTimeSpecialBo;
-    private final UnlockedRelationBo unlockedRelationBo;
-    private final UserStorageBo userStorageBo;
     private final transient TimeSpecialRepository repository;
+    private final transient UserSessionService userSessionService;
     private final ObjectRelationsRepository objectRelationsRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final RequirementInformationRepository requirementInformationRepository;
@@ -57,16 +55,6 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     @Override
     public Class<TimeSpecialDto> getDtoClass() {
         return TimeSpecialDto.class;
-    }
-
-    @Override
-    public ObjectEnum getObject() {
-        return ObjectEnum.TIME_SPECIAL;
-    }
-
-    @Override
-    public UnlockedRelationBo getUnlockedRelationBo() {
-        return unlockedRelationBo;
     }
 
     /*
@@ -113,7 +101,7 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
     @Override
     public TimeSpecialDto toDto(TimeSpecial entity) {
         TimeSpecialDto timeSpecialDto = WithNameBo.super.toDto(entity);
-        UserStorage loggedUser = userStorageBo.findLoggedIn();
+        UserStorage loggedUser = userSessionService.findLoggedIn();
         if (loggedUser != null) {
             timeSpecialDto.setActiveTimeSpecialDto(activeTimeSpecialBo
                     .toDto(activeTimeSpecialBo.findOneByTimeSpecial(entity.getId(), loggedUser.getId())));

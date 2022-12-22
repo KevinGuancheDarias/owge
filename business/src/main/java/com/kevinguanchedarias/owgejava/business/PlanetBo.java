@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -36,7 +37,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     private static final long serialVersionUID = 3000986169771610777L;
 
     private final PlanetRepository planetRepository;
-    private final UserStorageBo userStorageBo;
+    private final transient UserSessionService userSessionService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final transient SocketIoService socketIoService;
     private final RequirementBo requirementBo;
@@ -112,7 +113,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     }
 
     public boolean myIsOfUserProperty(Long planetId) {
-        return planetRepository.isOfUserProperty(userStorageBo.findLoggedIn().getId(), planetId);
+        return planetRepository.isOfUserProperty(userSessionService.findLoggedIn().getId(), planetId);
     }
 
     /**
