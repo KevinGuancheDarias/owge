@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.repository.WebsocketEventsInformationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class WebsocketEventsInformationBo
     private WebsocketEventsInformationRepository repository;
 
     @Autowired
-    private UserStorageBo userStorageBo;
+    private UserStorageRepository userStorageRepository;
 
     @Override
     public Class<WebsocketEventsInformationDto> getDtoClass() {
@@ -48,7 +49,7 @@ public class WebsocketEventsInformationBo
      */
     @Transactional
     public void clear() {
-        userStorageBo.findAllIds().forEach(userId -> repository.updateLastSent(userId, Instant.now()));
+        userStorageRepository.findAllIds().forEach(userId -> repository.updateLastSent(userId, Instant.now()));
     }
 
     /**

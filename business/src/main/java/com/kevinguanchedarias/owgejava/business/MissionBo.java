@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
@@ -74,7 +75,7 @@ public class MissionBo {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MissionCancelBuildService missionCancelBuildService;
     private final MissionRepository missionRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final UserStorageRepository userStorageRepository;
     private final ImprovementBo improvementBo;
     private final MissionSchedulerService missionSchedulerService;
@@ -110,7 +111,7 @@ public class MissionBo {
         var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgradeId);
         checkUpgradeIsAvailable(obtainedUpgrade);
 
-        var user = userStorageBo.findById(userId);
+        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
         missionBaseService.checkMissionLimitNotReached(user);
         ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
         if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
@@ -140,7 +141,7 @@ public class MissionBo {
 
         substractResources(user, mission);
 
-        userStorageBo.save(user);
+        userStorageRepository.save(user);
         missionRepository.save(mission);
         missionSchedulerService.scheduleMission(JOB_GROUP_NAME, mission);
         transactionUtilService.doAfterCommit(() -> {
@@ -361,7 +362,7 @@ public class MissionBo {
             throw new MissionNotFoundException("The mission was not found, or was not passed to cancelMission()");
         }
         var missionUser = mission.getUser();
-        var loggedInUser = userStorageBo.findLoggedIn();
+        var loggedInUser = userSessionService.findLoggedIn();
         if (missionUser != null && missionUser.getId().equals(loggedInUser.getId())) {
             var missionType = missionTypeBo.resolve(mission);
             if (missionType == MissionType.BUILD_UNIT) {
@@ -369,7 +370,7 @@ public class MissionBo {
             } else {
                 missionUser.addtoPrimary(mission.getPrimaryResource());
                 missionUser.addToSecondary(mission.getSecondaryResource());
-                userStorageBo.save(missionUser);
+                userStorageRepository.save(missionUser);
                 emitUserAfterCommit(missionUser.getId());
             }
         } else {

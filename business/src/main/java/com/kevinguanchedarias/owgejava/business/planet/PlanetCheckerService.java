@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.planet;
 
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class PlanetCheckerService {
     private final PlanetRepository planetRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
 
     public void checkIsOfUserProperty(UserStorage user, Long planetId) {
         if (!planetRepository.isOfUserProperty(user.getId(), planetId)) {
@@ -21,6 +21,6 @@ public class PlanetCheckerService {
     }
 
     public void myCheckIsOfUserProperty(Long planetId) {
-        checkIsOfUserProperty(userStorageBo.findLoggedIn(), planetId);
+        checkIsOfUserProperty(userSessionService.findLoggedIn(), planetId);
     }
 }

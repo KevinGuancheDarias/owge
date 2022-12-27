@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
+import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
+import com.kevinguanchedarias.owgejava.business.unit.UnlockableUnitService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
@@ -20,8 +23,8 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
+import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -39,74 +42,34 @@ import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQU
 
 @Component
 @Transactional
+@AllArgsConstructor
 public class RequirementBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -7069590234333605969L;
 
     private static final Logger LOG = Logger.getLogger(RequirementBo.class);
+    private final RequirementRepository requirementRepository;
+    private final UnlockedRelationBo unlockedRelationBo;
+    private final UpgradeBo upgradeBo;
+    private final ObjectRelationBo objectRelationBo;
+    private final ObjectRelationToObjectRelationBo objectRelationToObjectRelationBo;
+    private final DtoUtilService dtoUtilService;
+    private final RequirementInformationRepository requirementInformationRepository;
+    private final transient AutowireCapableBeanFactory beanFactory;
+    private final transient SocketIoService socketIoService;
 
-    @Autowired
-    private UserStorageBo userStorageBo;
-
-    @Autowired
-    private RequirementRepository requirementRepository;
-
-    @Autowired
-    private UnlockedRelationBo unlockedRelationBo;
-
-    @Autowired
-    private UpgradeBo upgradeBo;
-
-    @Autowired
-    private ObjectRelationBo objectRelationBo;
-
-    @Autowired
-    private ObjectRelationToObjectRelationBo objectRelationToObjectRelationBo;
-
-    @Autowired
-    private DtoUtilService dtoUtilService;
-
-    @Autowired
-    private RequirementInformationBo requirementInformationBo;
-
-    @Autowired
-    private transient AutowireCapableBeanFactory beanFactory;
-
-    @Autowired
-    private transient SocketIoService socketIoService;
-
-    @Autowired
-    private TimeSpecialBo timeSpecialBo;
-
-    @Autowired
-    private UnitBo unitBo;
-
-    @Autowired
-    private SpeedImpactGroupBo speedImpactGroupBo;
-
-    @Autowired
-    private PlanetRepository planetRepository;
-
-    @Autowired
-    private transient EntityManager entityManager;
-
-    @Autowired
-    private ObtainedUnitRepository obtainedUnitRepository;
-
-    @Autowired
-    private UnitRepository unitRepository;
-
-    @Autowired
-    private transient List<RequirementSource> requirementSources;
-
-    @Autowired
-    private transient TransactionUtilService transactionUtilService;
-
-    @Autowired
-    private ObtainedUpgradeRepository obtainedUpgradeRepository;
-
-    @Autowired
-    private UnlockedRelationRepository unlockedRelationRepository;
+    private final transient UnlockableTimeSpecialService unlockableTimeSpecialService;
+    private final transient UnlockableUnitService unlockableUnitService;
+    private final transient UnlockedSpeedImpactGroupService unlockedSpeedImpactGroupService;
+    private final PlanetRepository planetRepository;
+    private final transient EntityManager entityManager;
+    private final ObtainedUnitRepository obtainedUnitRepository;
+    private final UnitRepository unitRepository;
+    private final transient List<RequirementSource> requirementSources;
+    private final transient TransactionUtilService transactionUtilService;
+    private final ObtainedUpgradeRepository obtainedUpgradeRepository;
+    private final UnlockedRelationRepository unlockedRelationRepository;
+    private final UserStorageRepository userStorageRepository;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -256,7 +219,7 @@ public class RequirementBo implements Serializable {
     @Transactional
     public void triggerRelationChanged(ObjectRelation relation) {
         ObjectRelation withSessionRelation = objectRelationBo.refresh(relation);
-        List<UserStorage> users = userStorageBo.findAll();
+        var users = userStorageRepository.findAll();
         for (UserStorage user : users) {
             processRelation(withSessionRelation, user);
         }
@@ -283,7 +246,7 @@ public class RequirementBo implements Serializable {
                 ObjectEnum.valueOf(input.getRelation().getObjectCode()), input.getRelation().getReferenceId()));
         requirementInformation
                 .setRequirement(findOneByCode(RequirementTypeEnum.valueOf(input.getRequirement().getCode())));
-        requirementInformation = requirementInformationBo.save(requirementInformation);
+        requirementInformation = requirementInformationRepository.save(requirementInformation);
         return dtoUtilService.dtoFromEntity(RequirementInformationDto.class, requirementInformation);
     }
 
@@ -409,7 +372,7 @@ public class RequirementBo implements Serializable {
     }
 
     private boolean checkBeenFactionRequirement(RequirementInformation requirement, Integer userId) {
-        return userStorageBo.isOfFaction(requirement.getSecondValue().intValue(), userId);
+        return userStorageRepository.isOfFaction(requirement.getSecondValue().intValue(), userId) != null;
     }
 
     private boolean checkBeenGalaxyRequirement(RequirementInformation requirement, UserStorage user) {
@@ -442,10 +405,10 @@ public class RequirementBo implements Serializable {
                     }
                     break;
                 case UNIT:
-                    emitUnlockedChange(unlockedRelation, object, unitBo);
+                    emitUnlockedChange(unlockedRelation, object, unlockableUnitService);
                     break;
                 case TIME_SPECIAL:
-                    emitUnlockedChange(unlockedRelation, object, timeSpecialBo);
+                    emitUnlockedChange(unlockedRelation, object, unlockableTimeSpecialService);
                     break;
                 case REQUIREMENT_GROUP:
                     break;
@@ -458,7 +421,7 @@ public class RequirementBo implements Serializable {
 
     private void emitUnlockedSpeedImpactGroups(UserStorage user) {
         transactionUtilService.doAfterCommit(() -> socketIoService.sendMessage(user.getId(),
-                "speed_impact_group_unlocked_change", () -> speedImpactGroupBo.findCrossGalaxyUnlocked(user)));
+                "speed_impact_group_unlocked_change", () -> unlockedSpeedImpactGroupService.findCrossGalaxyUnlocked(user)));
     }
 
     private void unregisterLostRelation(ObjectRelation relation, UserStorage user) {
@@ -474,7 +437,7 @@ public class RequirementBo implements Serializable {
         } else if (object == ObjectEnum.SPEED_IMPACT_GROUP) {
             emitUnlockedSpeedImpactGroups(user);
         } else if (unlockedRelation != null) {
-            emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unitBo : timeSpecialBo);
+            emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unlockableUnitService : unlockableTimeSpecialService);
         }
     }
 

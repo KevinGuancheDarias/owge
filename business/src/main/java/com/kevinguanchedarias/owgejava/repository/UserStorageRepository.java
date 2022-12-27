@@ -15,7 +15,9 @@ import java.util.Date;
 import java.util.List;
 
 public interface UserStorageRepository extends JpaRepository<UserStorage, Integer>, Serializable {
-    UserStorage findOneByIdAndFactionId(Integer userId, Integer factionId);
+
+    @Query("SELECT u FROM UserStorage  u WHERE u.id = ?1 AND u.faction.id = ?2")
+    UserStorage isOfFaction(Integer userId, Integer factionId);
 
     List<UserStorage> findAllByOrderByPointsDesc();
 

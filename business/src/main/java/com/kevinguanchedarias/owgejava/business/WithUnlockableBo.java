@@ -15,7 +15,7 @@ import java.util.List;
  * @since 0.9.0
  */
 public interface WithUnlockableBo<K extends Serializable, E extends EntityWithId<K>, D extends DtoFromEntity<E>>
-        extends BaseBo<K, E, D> {
+        extends WithToDtoTrait<E, D> {
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0

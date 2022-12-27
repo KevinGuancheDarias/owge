@@ -2,7 +2,7 @@ package com.kevinguanchedarias.owgejava.rest.game;
 
 import com.kevinguanchedarias.owgejava.business.AllianceBo;
 import com.kevinguanchedarias.owgejava.business.AllianceJoinRequestBo;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;
@@ -35,7 +35,7 @@ public class AllianceRestService implements BaseRestServiceTrait {
 
     private final AllianceBo allianceBo;
     private final AllianceRepository allianceRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final AllianceJoinRequestRepository allianceJoinRequestRepository;
     private final AllianceJoinRequestBo allianceJoinRequestBo;
     private final DtoUtilService dtoUtilService;
@@ -77,18 +77,18 @@ public class AllianceRestService implements BaseRestServiceTrait {
     public AllianceDto save(@RequestBody AllianceDto allianceDto) {
         checkPost(allianceDto.getId(), request);
         var alliance = dtoUtilService.entityFromDto(Alliance.class, allianceDto);
-        alliance = allianceBo.save(alliance, userStorageBo.findLoggedIn().getId());
+        alliance = allianceBo.save(alliance, userSessionService.findLoggedIn().getId());
         return dtoUtilService.dtoFromEntity(AllianceDto.class, alliance);
     }
 
     @DeleteMapping()
     public void delete() {
-        allianceBo.delete(userStorageBo.findLoggedIn());
+        allianceBo.deleteByUser(userSessionService.findLoggedIn());
     }
 
     @GetMapping(value = "/listRequest")
     public List<AllianceJoinRequestDto> listRequest() {
-        var user = userStorageBo.findLoggedInWithDetails();
+        var user = userSessionService.findLoggedInWithDetails();
         var alliance = user.getAlliance();
         if (user.getAlliance() == null) {
             throw new SgtBackendInvalidInputException("You don't have any alliance");
@@ -107,7 +107,7 @@ public class AllianceRestService implements BaseRestServiceTrait {
      */
     @GetMapping(value = "/my-requests")
     public List<AllianceJoinRequestDto> myRequests() {
-        var user = userStorageBo.findLoggedIn();
+        var user = userSessionService.findLoggedIn();
         return dtoUtilService.convertEntireArray(AllianceJoinRequestDto.class,
                 allianceJoinRequestRepository.findByUserId(user.getId()));
     }
@@ -121,23 +121,23 @@ public class AllianceRestService implements BaseRestServiceTrait {
     public AllianceJoinRequestDto join(@RequestBody Map<String, Integer> body) {
         checkMapEntry(body, ALLIANCE_ID_KEY);
         return allianceJoinRequestBo
-                .toDto(allianceBo.requestJoin(body.get(ALLIANCE_ID_KEY), userStorageBo.findLoggedIn().getId()));
+                .toDto(allianceBo.requestJoin(body.get(ALLIANCE_ID_KEY), userSessionService.findLoggedIn().getId()));
     }
 
     @PostMapping(value = "/acceptJoinRequest")
     public void acceptRequest(@RequestBody Map<String, Integer> body) {
         checkMapEntry(body, JOIN_REQUEST_ID);
-        allianceBo.acceptJoin(body.get(JOIN_REQUEST_ID), userStorageBo.findLoggedIn().getId());
+        allianceBo.acceptJoin(body.get(JOIN_REQUEST_ID), userSessionService.findLoggedIn().getId());
     }
 
     @PostMapping(value = "/rejectJoinRequest")
     public void rejectRequest(@RequestBody Map<String, Integer> body) {
         checkMapEntry(body, JOIN_REQUEST_ID);
-        allianceBo.rejectJoin(body.get(JOIN_REQUEST_ID), userStorageBo.findLoggedIn().getId());
+        allianceBo.rejectJoin(body.get(JOIN_REQUEST_ID), userSessionService.findLoggedIn().getId());
     }
 
     @PostMapping(value = "/leave")
     public void leave() {
-        allianceBo.leave(userStorageBo.findLoggedIn().getId());
+        allianceBo.leave(userSessionService.findLoggedIn().getId());
     }
 }

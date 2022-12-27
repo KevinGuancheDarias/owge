@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.fake;
 
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
 import com.kevinguanchedarias.owgejava.business.WebsocketEventsInformationBo;
 import com.kevinguanchedarias.owgejava.business.WebsocketSyncService;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -13,8 +13,8 @@ import java.util.List;
 @Service
 @Primary
 public class NonPostConstructWebsocketSyncService extends WebsocketSyncService {
-    public NonPostConstructWebsocketSyncService(List<SyncSource> syncSources, UserStorageBo userStorageBo, WebsocketEventsInformationBo websocketEventsInformationBo) {
-        super(syncSources, userStorageBo, websocketEventsInformationBo);
+    public NonPostConstructWebsocketSyncService(List<SyncSource> syncSources, UserSessionService userSessionService, WebsocketEventsInformationBo websocketEventsInformationBo) {
+        super(syncSources, userSessionService, websocketEventsInformationBo);
     }
 
     @Override

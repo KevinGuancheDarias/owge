@@ -1,6 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
+import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
+import com.kevinguanchedarias.owgejava.business.unit.UnlockableUnitService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.*;
@@ -59,13 +62,13 @@ import static org.mockito.Mockito.*;
 )
 @MockBean({
         RequirementRepository.class,
-        UserStorageBo.class,
+        UserStorageRepository.class,
         UnlockedRelationBo.class,
         UpgradeBo.class,
         ObjectRelationBo.class,
         ObjectRelationToObjectRelationBo.class,
         DtoUtilService.class,
-        RequirementInformationBo.class,
+        RequirementInformationRepository.class,
         SocketIoService.class,
         TimeSpecialBo.class,
         UnitBo.class,
@@ -81,7 +84,10 @@ import static org.mockito.Mockito.*;
         SpecialLocationBo.class,
         GalaxyBo.class,
         UnlockedRelationRepository.class,
-        PlanetRepository.class
+        PlanetRepository.class,
+        UnlockableUnitService.class,
+        UnlockableTimeSpecialService.class,
+        UnlockedSpeedImpactGroupService.class
 })
 class RequirementBoTest {
     private final NonPostConstructRequirementBo requirementBo;
@@ -93,9 +99,9 @@ class RequirementBoTest {
     private final RequirementRepository requirementRepository;
     private final UnitRepository unitRepository;
     private final ObtainedUnitRepository obtainedUnitRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserStorageRepository userStorageRepository;
     private final DtoUtilService dtoUtilService;
-    private final RequirementInformationBo requirementInformationBo;
+    private final RequirementInformationRepository requirementInformationRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
 
     @Autowired
@@ -109,9 +115,9 @@ class RequirementBoTest {
             RequirementRepository requirementRepository,
             UnitRepository unitRepository,
             ObtainedUnitRepository obtainedUnitRepository,
-            UserStorageBo userStorageBo,
+            UserStorageRepository userStorageRepository,
             DtoUtilService dtoUtilService,
-            RequirementInformationBo requirementInformationBo,
+            RequirementInformationRepository requirementInformationRepository,
             UnlockedRelationRepository unlockedRelationRepository
     ) {
         this.requirementBo = requirementBo;
@@ -123,9 +129,9 @@ class RequirementBoTest {
         this.requirementRepository = requirementRepository;
         this.unitRepository = unitRepository;
         this.obtainedUnitRepository = obtainedUnitRepository;
-        this.userStorageBo = userStorageBo;
+        this.userStorageRepository = userStorageRepository;
         this.dtoUtilService = dtoUtilService;
-        this.requirementInformationBo = requirementInformationBo;
+        this.requirementInformationRepository = requirementInformationRepository;
         this.unlockedRelationRepository = unlockedRelationRepository;
     }
 
@@ -362,7 +368,7 @@ class RequirementBoTest {
 
         requirementBo.triggerFactionSelection(user);
 
-        verify(userStorageBo, times(1)).isOfFaction(FACTION_ID, USER_ID_1);
+        verify(userStorageRepository, times(1)).isOfFaction(FACTION_ID, USER_ID_1);
     }
 
     @ParameterizedTest
@@ -424,7 +430,7 @@ class RequirementBoTest {
         var or = givenObjectRelation();
         var requirementEntity = givenRequirement(UPGRADE_LEVEL);
         given(objectRelationBo.findObjectRelationOrCreate(DTO_OBJECT_CODE, REFERENCE_ID)).willReturn(or);
-        given(requirementInformationBo.save(any(RequirementInformation.class))).willAnswer(returnsFirstArg());
+        given(requirementInformationRepository.save(any(RequirementInformation.class))).willAnswer(returnsFirstArg());
         given(dtoUtilService.dtoFromEntity(eq(RequirementInformationDto.class), any(RequirementInformation.class))).willReturn(output);
         given(requirementRepository.findOneByCode(REQUIREMENT_CODE)).willReturn(requirementEntity);
 
@@ -441,7 +447,7 @@ class RequirementBoTest {
                     .assertRequireValidEnumValue(input.getRequirement().getCode(), RequirementTypeEnum.class, "requirement.code")
                     .assertRequireNotNull(input.getSecondValue(), "secondValue");
             var savedCaptor = ArgumentCaptor.forClass(RequirementInformation.class);
-            verify(requirementInformationBo, times(1)).save(savedCaptor.capture());
+            verify(requirementInformationRepository, times(1)).save(savedCaptor.capture());
             var saved = savedCaptor.getValue();
             assertThat(saved.getSecondValue()).isEqualTo(REQUIREMENT_INFORMATION_SECOND_VALUE);
             assertThat(saved.getThirdValue()).isEqualTo(REQUIREMENT_INFORMATION_THIRD_VALUE);

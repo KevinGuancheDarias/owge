@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
@@ -8,7 +9,6 @@ import com.kevinguanchedarias.owgejava.exception.SgtFactionNotFoundException;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -23,7 +23,6 @@ import static com.kevinguanchedarias.owgejava.mock.FactionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.TokenUserMock.TOKEN_USER_ID;
-import static com.kevinguanchedarias.owgejava.mock.TokenUserMock.givenTokenUser;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,18 +43,18 @@ import static org.mockito.Mockito.*;
         PlanetBo.class,
         RequirementBo.class,
         AllianceBo.class,
-        AuthenticationBo.class,
         ImprovementBo.class,
         EntityManager.class,
         FactionSpawnLocationBo.class,
         AuditBo.class,
         UserEventEmitterBo.class,
-        TransactionUtilService.class
+        TransactionUtilService.class,
+        UserSessionService.class
 })
 class UserStorageBoTest {
     private final UserStorageBo userStorageBo;
     private final UserStorageRepository repository;
-    private final AuthenticationBo authenticationBo;
+
     private final FactionBo factionBo;
     private final PlanetBo planetBo;
     private final PlanetRepository planetRepository;
@@ -65,12 +64,12 @@ class UserStorageBoTest {
     private final TransactionUtilService transactionUtilService;
     private final EntityManager entityManager;
     private final UserEventEmitterBo userEventEmitterBo;
+    private final UserSessionService userSessionService;
 
     @Autowired
     UserStorageBoTest(
             UserStorageBo userStorageBo,
             UserStorageRepository repository,
-            AuthenticationBo authenticationBo,
             FactionBo factionBo,
             PlanetBo planetBo,
             PlanetRepository planetRepository,
@@ -79,11 +78,11 @@ class UserStorageBoTest {
             FactionSpawnLocationBo factionSpawnLocationBo,
             TransactionUtilService transactionUtilService,
             EntityManager entityManager,
-            UserEventEmitterBo userEventEmitterBo
+            UserEventEmitterBo userEventEmitterBo,
+            UserSessionService userSessionService
     ) {
         this.userStorageBo = userStorageBo;
         this.repository = repository;
-        this.authenticationBo = authenticationBo;
         this.factionBo = factionBo;
         this.planetBo = planetBo;
         this.planetRepository = planetRepository;
@@ -93,21 +92,7 @@ class UserStorageBoTest {
         this.transactionUtilService = transactionUtilService;
         this.entityManager = entityManager;
         this.userEventEmitterBo = userEventEmitterBo;
-    }
-
-    @BeforeEach
-    public void setup_logged_in() {
-        given(authenticationBo.findTokenUser()).willReturn(givenTokenUser());
-    }
-
-    @Test
-    void findLoggedInWithReference_should_work() {
-        var user = givenUser1();
-        given(repository.getById(TOKEN_USER_ID)).willReturn(user);
-
-        var retVal = userStorageBo.findLoggedInWithReference();
-
-        assertThat(retVal).isSameAs(user);
+        this.userSessionService = userSessionService;
     }
 
     @Test
@@ -120,6 +105,7 @@ class UserStorageBoTest {
     void subscribe_should_do_nothing_if_user_already_exists_in_the_universe() {
         given(factionBo.exists(FACTION_ID)).willReturn(true);
         given(repository.existsById(TOKEN_USER_ID)).willReturn(true);
+        given(userSessionService.findLoggedIn()).willReturn(givenUser1());
 
         assertThat(userStorageBo.subscribe(FACTION_ID)).isFalse();
         verifyNoInteractions(planetBo, planetRepository, requirementBo, auditBo);
@@ -131,10 +117,9 @@ class UserStorageBoTest {
             "1,1,true"
     })
     void subscribe_should_work(Integer userId, int timesAuditSubscribe, boolean subscribeIsSuccess) {
-        reset(authenticationBo);
-        given(authenticationBo.findTokenUser()).willReturn(givenTokenUser(userId));
         var faction = givenFaction();
         var homePlanet = givenSourcePlanet();
+        given(userSessionService.findLoggedIn()).willReturn(givenUser(userId));
         given(factionBo.exists(FACTION_ID)).willReturn(true);
         given(factionBo.findById(FACTION_ID)).willReturn(faction);
         given(factionSpawnLocationBo.determineSpawnGalaxy(faction)).willReturn(GALAXY_ID);
@@ -142,6 +127,7 @@ class UserStorageBoTest {
         given(repository.save(any(UserStorage.class))).will(returnsFirstArg());
 
         var retVal = userStorageBo.subscribe(FACTION_ID);
+
         var userSaveCaptor = ArgumentCaptor.forClass(UserStorage.class);
         verify(repository, times(1)).save(userSaveCaptor.capture());
         var savedUser = userSaveCaptor.getValue();

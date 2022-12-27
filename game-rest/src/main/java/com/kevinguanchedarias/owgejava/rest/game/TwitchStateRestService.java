@@ -3,16 +3,12 @@ package com.kevinguanchedarias.owgejava.rest.game;
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
 import com.kevinguanchedarias.owgejava.business.ConfigurationBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
 
 import java.util.Map;
@@ -25,17 +21,12 @@ import java.util.function.Function;
 @RestController
 @RequestMapping("game/twitch-state")
 @ApplicationScope
+@AllArgsConstructor
 public class TwitchStateRestService implements SyncSource {
     private static final String TWITCH_STATE_CHANGE = "twitch_state_change";
-
-    @Autowired
-    private ConfigurationBo configurationBo;
-
-    @Autowired
-    private SocketIoService socketIoService;
-
-    @Autowired
-    private UserStorageBo userStorageBo;
+    private final ConfigurationBo configurationBo;
+    private final SocketIoService socketIoService;
+    private final UserSessionService userSessionService;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -53,7 +44,7 @@ public class TwitchStateRestService implements SyncSource {
     @PutMapping
     public void defineState(@RequestBody String status) {
         boolean statusBool = Boolean.parseBoolean(status.replace("\"", ""));
-        if (Boolean.TRUE.equals(userStorageBo.findLoggedInWithDetails().getCanAlterTwitchState())) {
+        if (Boolean.TRUE.equals(userSessionService.findLoggedInWithDetails().getCanAlterTwitchState())) {
             configurationBo.saveByKeyAndValue("TWITCH_STATE", String.valueOf(statusBool));
             socketIoService.sendMessage(null, TWITCH_STATE_CHANGE, () -> statusBool);
         } else {

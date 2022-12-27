@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnitInterceptionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -28,7 +29,6 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +73,7 @@ import static org.mockito.Mockito.*;
 )
 @MockBean({
         MissionRepository.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         ImprovementBo.class,
         ExceptionUtilService.class,
         SocketIoService.class,
@@ -100,8 +100,8 @@ import static org.mockito.Mockito.*;
 })
 class UnitMissionBoTest {
     private final NonPostConstructUnitMissionBo unitMissionBo;
+    private final UserSessionService userSessionService;
     private final MissionRepository missionRepository;
-    private final UserStorageBo userStorageBo;
     private final PlanetLockUtilService planetLockUtilService;
     private final MissionInterceptionManagerBo missionInterceptionManagerBo;
     private final MissionReportManagerBo missionReportManagerBo;
@@ -118,8 +118,8 @@ class UnitMissionBoTest {
     @Autowired
     public UnitMissionBoTest(
             NonPostConstructUnitMissionBo unitMissionBo,
+            UserSessionService userSessionService,
             MissionRepository missionRepository,
-            UserStorageBo userStorageBo,
             PlanetLockUtilService planetLockUtilService,
             MissionInterceptionManagerBo missionInterceptionManagerBo,
             MissionReportManagerBo missionReportManagerBo,
@@ -133,8 +133,8 @@ class UnitMissionBoTest {
             MissionProcessor missionProcessor
     ) {
         this.unitMissionBo = unitMissionBo;
+        this.userSessionService = userSessionService;
         this.missionRepository = missionRepository;
-        this.userStorageBo = userStorageBo;
         this.planetLockUtilService = planetLockUtilService;
         this.missionInterceptionManagerBo = missionInterceptionManagerBo;
         this.missionReportManagerBo = missionReportManagerBo;
@@ -176,9 +176,14 @@ class UnitMissionBoTest {
     @Test
     void adminRegisterCounterattackMission_should_throw_when_planet_is_not_owned() {
         var information = givenUnitMissionInformation(MissionType.COUNTERATTACK);
-        Assertions.assertThatThrownBy(() -> unitMissionBo.adminRegisterCounterattackMission(information))
+        information.setUserId(null);
+        given(userSessionService.findLoggedIn()).willReturn(givenUser1());
+
+        assertThatThrownBy(() -> unitMissionBo.myRegisterCounterattackMission(information))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
                 .hasMessageContaining("try again dear Hacker");
+
+        verify(planetRepository, times(1)).isOfUserProperty(USER_ID_1, TARGET_PLANET_ID);
     }
 
     @Test
@@ -186,7 +191,7 @@ class UnitMissionBoTest {
         var information = givenUnitMissionInformation(MissionType.COUNTERATTACK);
         var user = givenUser1();
         given(planetRepository.isOfUserProperty(USER_ID_1, TARGET_PLANET_ID)).willReturn(true);
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(planetExplorationService.isExplored(USER_ID_1, TARGET_PLANET_ID)).willReturn(true);
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
@@ -203,7 +208,7 @@ class UnitMissionBoTest {
             boolean isReturnMission, Class<RuntimeException> exceptionClass, String message, Mission mission
     ) {
         given(missionRepository.findById(EXPLORE_MISSION_ID)).willReturn(Optional.ofNullable(mission));
-        given(userStorageBo.findLoggedIn()).willReturn(givenUser1());
+        given(userSessionService.findLoggedIn()).willReturn(givenUser1());
         given(missionBaseService.isOfType(mission, MissionType.RETURN_MISSION)).willReturn(isReturnMission);
 
         assertThatThrownBy(() -> unitMissionBo.myCancelMission(EXPLORE_MISSION_ID))
@@ -225,7 +230,7 @@ class UnitMissionBoTest {
         var terminationDate = LocalDateTime.now(ZoneOffset.UTC).plusSeconds(secondsToNow);
         mission.setTerminationDate(terminationDate);
         given(missionRepository.findById(EXPLORE_MISSION_ID)).willReturn(Optional.of(mission));
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
 
         unitMissionBo.myCancelMission(EXPLORE_MISSION_ID);
 
@@ -265,7 +270,7 @@ class UnitMissionBoTest {
     void registerExploreMission_should_work() {
         var information = givenUnitMissionInformation(MissionType.EXPLORE);
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLockById(eq(List.of(SOURCE_PLANET_ID, TARGET_PLANET_ID)), any());
 
@@ -305,7 +310,7 @@ class UnitMissionBoTest {
     ) {
         var information = givenUnitMissionInformation(MissionType.EXPLORE);
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(planetRepository.isOfUserProperty(USER_ID_1, TARGET_PLANET_ID)).willReturn(isOfUserProperty);
         given(planetExplorationService.isExplored(USER_ID_1, TARGET_PLANET_ID)).willReturn(true);
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
@@ -323,7 +328,7 @@ class UnitMissionBoTest {
     void register_non_explore_mission_should_throw_due_to_planet_not_explored() {
         var information = givenUnitMissionInformation(MissionType.EXPLORE);
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
 
         assertThatThrownBy(() -> unitMissionBo.adminRegisterDeploy(information))
                 .isInstanceOf(SgtBackendInvalidInputException.class)

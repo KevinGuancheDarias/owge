@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructWebsocketSyncService;
@@ -24,10 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -35,25 +33,25 @@ import static org.mockito.Mockito.verify;
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 @MockBean({
-        UserStorageBo.class,
+        UserSessionService.class,
         SyncSource.class,
         WebsocketEventsInformationBo.class
 })
 class WebsocketSyncServiceTest {
     private final NonPostConstructWebsocketSyncService websocketSyncService;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final SyncSource syncSource;
     private final WebsocketEventsInformationBo websocketEventsInformationBo;
 
     @Autowired
     public WebsocketSyncServiceTest(
             NonPostConstructWebsocketSyncService websocketSyncService,
-            UserStorageBo userStorageBo,
+            UserSessionService userSessionService,
             SyncSource syncSource,
             WebsocketEventsInformationBo websocketEventsInformationBo
     ) {
         this.websocketSyncService = websocketSyncService;
-        this.userStorageBo = userStorageBo;
+        this.userSessionService = userSessionService;
         this.syncSource = syncSource;
         this.websocketEventsInformationBo = websocketEventsInformationBo;
     }
@@ -101,7 +99,7 @@ class WebsocketSyncServiceTest {
         var data = "Hello World";
         ReflectionTestUtils.setField(websocketSyncService, "handlers", mapMock);
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(mapMock.containsKey(existingHandlerKey)).willReturn(true);
         given(mapMock.get(existingHandlerKey)).willReturn(functionMock);
         given(functionMock.apply(user)).willReturn(data);

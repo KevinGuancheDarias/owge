@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.*;
 )
 @MockBean({
         PlanetRepository.class,
-        UserStorageBo.class,
+        UserSessionService.class,
         ObtainedUnitRepository.class,
         SocketIoService.class,
         RequirementBo.class,
@@ -74,7 +75,7 @@ class PlanetBoTest {
     private final PlanetBo planetBo;
 
     private final PlanetRepository planetRepository;
-    private final UserStorageBo userStorageBo;
+    private final UserSessionService userSessionService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final SocketIoService socketIoService;
     private final RequirementBo requirementBo;
@@ -92,7 +93,7 @@ class PlanetBoTest {
     PlanetBoTest(
             PlanetBo planetBo,
             PlanetRepository planetRepository,
-            UserStorageBo userStorageBo,
+            UserSessionService userSessionService,
             ObtainedUnitRepository obtainedUnitRepository,
             SocketIoService socketIoService,
             RequirementBo requirementBo,
@@ -108,7 +109,7 @@ class PlanetBoTest {
     ) {
         this.planetBo = planetBo;
         this.planetRepository = planetRepository;
-        this.userStorageBo = userStorageBo;
+        this.userSessionService = userSessionService;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.socketIoService = socketIoService;
         this.requirementBo = requirementBo;
@@ -171,7 +172,7 @@ class PlanetBoTest {
     @ValueSource(booleans = {true, false})
     void myIsOfUserProperty_should_work(boolean expectedResult) {
         var user = givenUser1();
-        given(userStorageBo.findLoggedIn()).willReturn(user);
+        given(userSessionService.findLoggedIn()).willReturn(user);
         given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(expectedResult);
 
         assertThat(planetBo.myIsOfUserProperty(SOURCE_PLANET_ID)).isEqualTo(expectedResult);

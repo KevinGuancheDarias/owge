@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
+import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -24,19 +25,21 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @Service
 @DependsOn("bootJacksonConfigurationService")
 @Slf4j
 public class SocketIoService {
+    public static final String AUTHENTICATION = "authentication";
+    public static final String USER_TOKEN_KEY = "user_token";
 
     private static final String EVENT_WARN_MESSAGE = "warn_message";
-    private static final String AUTHENTICATION = "authentication";
     private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
-    private static final String USER_TOKEN_KEY = "user_token";
 
     @Autowired
     private WebsocketConfiguration websocketConfiguration;
@@ -48,7 +51,7 @@ public class SocketIoService {
     private ConfigurationBo configurationBo;
 
     @Autowired
-    private UserStorageBo userStorageBo;
+    private UserStorageRepository userStorageRepository;
 
     @Autowired
     private AsyncRunnerBo asyncRunnerBo;
@@ -57,8 +60,8 @@ public class SocketIoService {
     @Lazy
     private List<OwgeJwtAuthenticationFilter> authenticationFilters;
 
-    private SocketIOServer server;
-    private final ObjectMapper mapper;
+    protected SocketIOServer server;
+    protected final ObjectMapper mapper;
 
     public SocketIoService(ObjectMapper springMapper) {
         mapper = springMapper.copy();
@@ -93,19 +96,19 @@ public class SocketIoService {
      */
     public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
                                 Runnable notConnectedAction) {
-        List<SocketIOClient> userSockets = server.getAllClients().stream()
+        var userSockets = server.getAllClients().stream()
                 .filter(client -> client.get(USER_TOKEN_KEY) != null
                         && (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
-                .collect(Collectors.toList());
+                .toList();
         Map<Integer, WebsocketEventsInformation> savedInformation = new HashMap<>();
         if (targetUserId == 0) {
-            userStorageBo.findAll().forEach(user -> {
-                WebsocketEventsInformation saved = new WebsocketEventsInformation(eventName, user.getId());
+            userStorageRepository.findAll().forEach(user -> {
+                var saved = new WebsocketEventsInformation(eventName, user.getId());
                 savedInformation.put(user.getId(), saved);
                 websocketEventsInformationBo.save(saved);
             });
         } else {
-            WebsocketEventsInformation saved = websocketEventsInformationBo
+            var saved = websocketEventsInformationBo
                     .save(new WebsocketEventsInformation(eventName, targetUserId));
             savedInformation.put(targetUserId, saved);
         }
@@ -113,7 +116,7 @@ public class SocketIoService {
             T sendValue = messageContent.get();
             asyncRunnerBo.runAssyncWithoutContext(() -> userSockets.forEach(client -> {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    LOCAL_LOGGER.warn("Should never happend, if everything is nice!!!");
+                    LOCAL_LOGGER.warn("Should never happened, if everything is nice!!!");
                 }
                 TokenUser user = client.get(USER_TOKEN_KEY);
                 log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
@@ -128,10 +131,6 @@ public class SocketIoService {
     /**
      * Sends a message to all sockets from related target user, if any
      *
-     * @param <T>
-     * @param targetUserId
-     * @param eventName
-     * @param messageContent
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -180,37 +179,35 @@ public class SocketIoService {
         server.addConnectListener(
                 client -> LOCAL_LOGGER.debug("Client connected from " + client.getRemoteAddress().toString()));
         server.addEventListener(AUTHENTICATION, String.class, (client, data, ack) -> {
-            String token = mapper.readValue(data, new TypeReference<Map<String, String>>() {
+            var token = mapper.readValue(data, new TypeReference<Map<String, String>>() {
             }).get("value");
             if (StringUtils.isEmpty(token)) {
-                sendError(client, AUTHENTICATION, "invalid token sent from client", true);
+                sendError(client, AUTHENTICATION, "invalid token sent from client");
             } else {
                 LOCAL_LOGGER.trace("Authenticating using token " + token);
-                Optional<TokenUser> authenticatedToken = authenticationFilters.stream()
+                var authenticatedToken = authenticationFilters.stream()
                         .map(current -> current.findUserFromToken(token)).filter(Objects::nonNull).findFirst();
                 if (authenticatedToken.isPresent()) {
-                    TokenUser tokenUser = authenticatedToken.get();
+                    var tokenUser = authenticatedToken.get();
                     client.set(USER_TOKEN_KEY, tokenUser);
-                    List<WebsocketEventsInformationDto> eventsInfo = websocketEventsInformationBo
+                    var eventsInfo = websocketEventsInformationBo
                             .toDto(websocketEventsInformationBo.findByUserId((Integer) tokenUser.getId()));
-                    WebsocketEventsInformationDto universeIdInfo = new WebsocketEventsInformationDto();
+                    var universeIdInfo = new WebsocketEventsInformationDto();
                     universeIdInfo.setEventName(
                             "_universe_id:" + configurationBo.findConfigurationParam("UNIVERSE_ID").getValue());
                     eventsInfo.add(universeIdInfo);
                     client.sendEvent(AUTHENTICATION, new WebsocketMessage<>(AUTHENTICATION, eventsInfo));
                 } else {
-                    sendError(client, AUTHENTICATION, "Invalid credentials", true);
+                    sendError(client, AUTHENTICATION, "Invalid credentials");
                 }
             }
         });
     }
 
-    private void sendError(SocketIOClient client, String event, String text, boolean close) {
+    private void sendError(SocketIOClient client, String event, String text) {
         LOCAL_LOGGER.warn(text);
         client.sendEvent(event, new WebsocketMessage<>(event, text, "error"));
-        if (close) {
-            client.disconnect();
-        }
+        client.disconnect();
     }
 
 }
