@@ -372,7 +372,7 @@ public class RequirementBo implements Serializable {
     }
 
     private boolean checkBeenFactionRequirement(RequirementInformation requirement, Integer userId) {
-        return userStorageRepository.isOfFaction(requirement.getSecondValue().intValue(), userId) != null;
+        return userStorageRepository.isOfFaction(userId, requirement.getSecondValue().intValue()) != null;
     }
 
     private boolean checkBeenGalaxyRequirement(RequirementInformation requirement, UserStorage user) {

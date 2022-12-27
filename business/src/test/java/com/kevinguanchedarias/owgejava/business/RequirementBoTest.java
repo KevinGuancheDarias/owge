@@ -368,7 +368,7 @@ class RequirementBoTest {
 
         requirementBo.triggerFactionSelection(user);
 
-        verify(userStorageRepository, times(1)).isOfFaction(FACTION_ID, USER_ID_1);
+        verify(userStorageRepository, times(1)).isOfFaction(USER_ID_1, FACTION_ID);
     }
 
     @ParameterizedTest
