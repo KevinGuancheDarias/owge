@@ -42,12 +42,13 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     @Serial
     private static final long serialVersionUID = -890947636309038855L;
 
-    private static final String CONTROL_COOKIE_NAME = "OWGE_TMAS";
+    public static final String CONTROL_COOKIE_NAME = "OWGE_TMAS";
+
     private static final int DAYS = 365;
     private static final String TRUSTED_PRIVATE_NET_KEYWORD = "PRIVATE";
 
     private final transient AuditRepository repository;
-    private final UserSessionService userSessionService;
+    private final transient UserSessionService userSessionService;
     private final transient TorClientBo torClientBo;
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient SocketIoService socketIoService;
@@ -119,7 +120,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                 .userAgent(ua)
                 .cookie(cookie)
                 .user(user)
-                .relatedUser(userStorageRepository.getReferenceById(relatedUser))
+                .relatedUser(relatedUser == null ? null : userStorageRepository.getReferenceById(relatedUser))
                 .creationDate(now)
                 .build()
         );

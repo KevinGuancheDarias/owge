@@ -336,6 +336,71 @@ class AllianceBoTest {
         verify(allianceJoinRequestRepository, times(1)).delete(request);
     }
 
+    @Test
+    void leave_should_work() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+        user.setAlliance(alliance);
+        given(userStorageRepository.getReferenceById(USER_ID_1)).willReturn(user);
+
+        allianceBo.leave(USER_ID_1);
+
+        assertThat(user.getAlliance()).isNull();
+        verify(userStorageRepository, times(1)).save(user);
+    }
+
+    @Test
+    void leave_should_throw_when_attempting_to_leave_owned_alliance() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+        user.setAlliance(alliance);
+        given(userStorageRepository.getReferenceById(USER_ID_1)).willReturn(user);
+        given(allianceRepository.findOneByOwnerId(USER_ID_1)).willReturn(alliance);
+
+        assertThatThrownBy(() -> allianceBo.leave(USER_ID_1))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("your own alliance");
+        verify(userStorageRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteByUser_should_throw_on_null_alliance() {
+        var user = givenUser1();
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> allianceBo.deleteByUser(user))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessageContaining("have any alliance");
+        verify(allianceRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteByUser_should_throw_on_non_owned_alliance() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+        alliance.setOwner(givenUser2());
+        user.setAlliance(alliance);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
+
+        testThrowsOwnerInvalid(() -> allianceBo.deleteByUser(user));
+        verify(allianceRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteByUser_should_work() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+        alliance.setOwner(user);
+        user.setAlliance(alliance);
+        given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
+        given(allianceRepository.findById(ALLIANCE_ID)).willReturn(Optional.of(alliance));
+
+        allianceBo.deleteByUser(user);
+
+        verify(userStorageRepository, times(1)).defineAllianceByAllianceId(alliance, null);
+        verify(allianceRepository, times(1)).delete(alliance);
+    }
+
     private void testThrowsOwnerInvalid(Runnable action) {
         assertThatThrownBy(action::run)
                 .isInstanceOf(SgtBackendInvalidInputException.class)

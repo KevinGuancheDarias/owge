@@ -29,7 +29,6 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -177,9 +176,14 @@ class UnitMissionBoTest {
     @Test
     void adminRegisterCounterattackMission_should_throw_when_planet_is_not_owned() {
         var information = givenUnitMissionInformation(MissionType.COUNTERATTACK);
-        Assertions.assertThatThrownBy(() -> unitMissionBo.adminRegisterCounterattackMission(information))
+        information.setUserId(null);
+        given(userSessionService.findLoggedIn()).willReturn(givenUser1());
+
+        assertThatThrownBy(() -> unitMissionBo.myRegisterCounterattackMission(information))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
                 .hasMessageContaining("try again dear Hacker");
+
+        verify(planetRepository, times(1)).isOfUserProperty(USER_ID_1, TARGET_PLANET_ID);
     }
 
     @Test

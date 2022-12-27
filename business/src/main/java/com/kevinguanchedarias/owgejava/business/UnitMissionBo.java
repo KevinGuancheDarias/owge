@@ -239,11 +239,7 @@ public class UnitMissionBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     private void myRegister(UnitMissionInformation missionInformation) {
-        if (missionInformation.getUserId() == null) {
-            missionInformation.setUserId(userSessionService.findLoggedIn().getId());
-        } else {
-            checkInvokerIsTheLoggedUser(missionInformation.getUserId());
-        }
+        missionInformation.setUserId(userSessionService.findLoggedIn().getId());
     }
 
     private void commonMissionRegister(UnitMissionInformation missionInformation, MissionType missionType) {
@@ -278,18 +274,6 @@ public class UnitMissionBo {
         var retVal = new UnitMissionInformation();
         BeanUtils.copyProperties(missionInformation, retVal);
         return retVal;
-    }
-
-    /**
-     * Checks if the logged in user is the creator of the mission
-     *
-     * @param invoker The creator of the mission
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     */
-    private void checkInvokerIsTheLoggedUser(Integer invoker) {
-        if (!invoker.equals(userSessionService.findLoggedIn().getId())) {
-            throw new SgtBackendInvalidInputException("Invoker is not the logged in user");
-        }
     }
 
     private MissionProcessor findFirstSupporter(MissionType missionType) {

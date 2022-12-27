@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
@@ -100,8 +99,8 @@ public class TimeSpecialBo implements WithNameBo<Integer, TimeSpecial, TimeSpeci
 
     @Override
     public TimeSpecialDto toDto(TimeSpecial entity) {
-        TimeSpecialDto timeSpecialDto = WithNameBo.super.toDto(entity);
-        UserStorage loggedUser = userSessionService.findLoggedIn();
+        var timeSpecialDto = WithNameBo.super.toDto(entity);
+        var loggedUser = userSessionService.findLoggedIn();
         if (loggedUser != null) {
             timeSpecialDto.setActiveTimeSpecialDto(activeTimeSpecialBo
                     .toDto(activeTimeSpecialBo.findOneByTimeSpecial(entity.getId(), loggedUser.getId())));

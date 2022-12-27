@@ -83,7 +83,7 @@ public class AllianceRestService implements BaseRestServiceTrait {
 
     @DeleteMapping()
     public void delete() {
-        allianceBo.delete(userSessionService.findLoggedIn());
+        allianceBo.deleteByUser(userSessionService.findLoggedIn());
     }
 
     @GetMapping(value = "/listRequest")

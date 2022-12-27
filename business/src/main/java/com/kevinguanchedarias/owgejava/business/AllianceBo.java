@@ -62,7 +62,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      */
     @Transactional
     public void delete(Alliance alliance) {
-        defineAllianceByAllianceId(alliance.getId(), null);
+        defineAllianceByAllianceId(alliance.getId());
         repository.delete(alliance);
     }
 
@@ -197,9 +197,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @since 0.7.0
      */
     @Transactional
-    public void delete(UserStorage transientUser) {
+    public void deleteByUser(UserStorage transientUser) {
         var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, transientUser.getId());
-        Alliance alliance = user.getAlliance();
+        var alliance = user.getAlliance();
         if (alliance == null) {
             throw new SgtBackendInvalidInputException("You don't have any alliance");
         }
@@ -263,8 +263,7 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.7.0
      */
-    private void defineAllianceByAllianceId(Integer oldAlliance, Integer newAlliance) {
-        Alliance targetNewAlliance = newAlliance == null ? null : findById(newAlliance);
-        userStorageRepository.defineAllianceByAllianceId(findById(oldAlliance), targetNewAlliance);
+    private void defineAllianceByAllianceId(Integer oldAlliance) {
+        userStorageRepository.defineAllianceByAllianceId(findById(oldAlliance), null);
     }
 }
