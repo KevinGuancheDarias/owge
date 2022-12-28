@@ -133,6 +133,10 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
         return unitTypeRepository.existsByUnitsTypeId(id);
     }
 
+    @TaggableCacheable(tags = {
+            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#user.id",
+            UnitType.UNIT_TYPE_CACHE_TAG
+    }, keySuffix = "#user.id")
     public List<UnitTypeResponse> findUnitTypesWithUserInfo(Integer userId) {
         return findAll().stream().map(current -> {
             current.getSpeedImpactGroup().setRequirementGroups(null);
@@ -140,7 +144,7 @@ public class UnitTypeBo implements WithNameBo<Integer, UnitType, UnitTypeDto> {
             var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
             unitTypeResponse.setComputedMaxCount(findUniTypeLimitByUser(user, current));
             if (hasMaxCount(user.getFaction(), current)) {
-                unitTypeResponse.setUserBuilt(obtainedUnitRepository.countByUserAndUnitType(user, current));
+                unitTypeResponse.setUserBuilt(countUnitsByUserAndUnitType(user, current));
             }
             unitTypeResponse.setUsed(isUsed(current.getId()));
             return unitTypeResponse;
