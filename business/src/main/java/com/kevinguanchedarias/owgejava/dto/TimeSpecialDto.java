@@ -29,6 +29,8 @@ public class TimeSpecialDto extends CommonDtoWithImageStore<Integer, TimeSpecial
      */
     @Override
     public void dtoFromEntity(TimeSpecial entity) {
+        duration = entity.getDuration();
+        rechargeTime = entity.getRechargeTime();
         DtoWithImprovements.super.dtoFromEntity(entity);
         super.dtoFromEntity(entity);
     }

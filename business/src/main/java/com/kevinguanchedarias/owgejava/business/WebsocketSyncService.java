@@ -5,7 +5,6 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,7 @@ public class WebsocketSyncService {
 
     @PostConstruct
     public void init() {
-        if (!CollectionUtils.isEmpty(syncSources)) {
+        if (syncSources != null && !syncSources.isEmpty()) {
             syncSources.forEach(source -> source.findSyncHandlers().forEach((handler, lambda) -> {
                 if (handlers.containsKey(handler)) {
                     throw new ProgrammingException("There is already a handler for " + handler);

@@ -185,7 +185,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
             newActive.setUser(user);
             newActive = repository.save(newActive);
             improvementBo.clearSourceCache(user, this);
-            ScheduledTask task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
+            var task = new ScheduledTask("TIME_SPECIAL_EFFECT_END", newActive.getId());
             scheduledTasksManagerService.registerEvent(task, timeSpecial.getDuration());
             requirementBo.triggerTimeSpecialStateChange(user, timeSpecial);
             emitTimeSpecialChange(user);

@@ -20,6 +20,7 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
+import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -139,6 +140,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     @Transactional
+    @TaggableCacheEvictByTag(tags = ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#obtainedUnit.user.id")
     public ObtainedUnit saveWithSubtraction(ObtainedUnit obtainedUnit, Long subtractionCount,
                                             boolean handleImprovements) {
         if (handleImprovements) {
@@ -161,11 +163,12 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     }
 
     @Transactional
+    @TaggableCacheEvictByTag(tags = ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#obtainedUnitDto.userId")
     public void saveWithSubtraction(ObtainedUnitDto obtainedUnitDto, boolean handleImprovements) {
-        ObtainedUnit unitBeforeDeletion = findByIdOrDie(obtainedUnitDto.getId());
+        var unitBeforeDeletion = findByIdOrDie(obtainedUnitDto.getId());
         saveWithSubtraction(unitBeforeDeletion, obtainedUnitDto.getCount(),
                 handleImprovements);
-        Integer userId = obtainedUnitDto.getUserId();
+        var userId = obtainedUnitDto.getUserId();
         if (unitBeforeDeletion.getUnit().getEnergy() > 0) {
             userEventEmitterBo.emitUserData(unitBeforeDeletion.getUser());
         }
