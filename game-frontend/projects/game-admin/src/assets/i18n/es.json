@@ -117,6 +117,7 @@
             "LEVEL_EFFECT": "Efecto nivel"
         },
         "UNIT": {
+            "ORDER": "Id orden",
             "TYPE": "Tipo",
             "UNIQUE": "Unico",
             "CAN_FAST_EXPLORE": "Reacciona a exploración rápida",

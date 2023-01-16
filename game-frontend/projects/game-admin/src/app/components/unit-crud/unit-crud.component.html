@@ -35,6 +35,10 @@
         <ng-container *ngIf="selectedEl">
             <app-resource-requirements-crud class="form-row" [isEnergyHidden]="false" [el]="selectedEl">
             </app-resource-requirements-crud>
+            <div class="form-group col-md-12">
+                <label for="input-order">{{ 'CRUD.UNIT.ORDER' | translate }}</label>
+                <input class="form-control" type="number" id="input-order" [(ngModel)]="selectedEl.order">
+            </div>
             <div class="form-group col-md-6">
                 <label for="input-unique">{{ 'CRUD.UNIT.UNIQUE' | translate }}</label>
                 <input class="form-control" type="checkbox" id="input-unique" [(ngModel)]="selectedEl.isUnique">

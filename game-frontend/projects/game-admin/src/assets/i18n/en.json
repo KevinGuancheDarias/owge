@@ -126,6 +126,7 @@
             "LEVEL_EFFECT": "Level effect"
         },
         "UNIT": {
+            "ORDER": "Order id",
             "TYPE": "Type",
             "UNIQUE": "Unique",
             "CAN_FAST_EXPLORE": "Can fast explore",

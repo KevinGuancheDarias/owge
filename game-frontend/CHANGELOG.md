@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Improvement:__ Sort units by id or admin defined "order id"
 * [class=Admin] __Feature:__ [As an admin I want to allow some units to store other units when sent to a mission #267](https://github.com/KevinGuancheDarias/owge/issues/267)  
 * __Fix:__ [As a player I want to be able to see the message of the interception of units to the owner of the iris (motivates the player and warns that they have tried to Attack/Explore). #464](https://github.com/KevinGuancheDarias/owge/issues/464)  
 * __Fix:__ [Revise speed groups (Time special, change speed group Iris Immunity) Not applicable in the time special, but YES, in units created with that speed group. #466](https://github.com/KevinGuancheDarias/owge/issues/466)  

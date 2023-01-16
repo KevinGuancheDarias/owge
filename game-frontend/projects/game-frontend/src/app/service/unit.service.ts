@@ -11,7 +11,7 @@ import {
 
   UserStorage, WsEventCacheService
 } from '@owge/universe';
-import { isEqual } from 'lodash-es';
+import { bind, isEqual } from 'lodash-es';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
@@ -266,7 +266,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   ): PlanetsUnitsRepresentation<ObtainedUnit[]> {
 
     const unitsMap: Map<string, ObtainedUnit[]> = new Map();
-    units.sort((a, b) => a.unit.name.localeCompare(b.unit.name)).forEach(unit => {
+    units.sort((a, b) => this._compareUnitForSort(a.unit, b.unit)).forEach(unit => {
       UnitUtil.createTerminationDate(unit);
       const planetId: string = keyGetter(unit);
       const collection: ObtainedUnit[] = unitsMap.get(planetId);
@@ -290,6 +290,14 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   }
 
   private _sortUnits(units: Unit[]): Unit[] {
-    return units.sort((a, b) => a.name.localeCompare(b.name));
+    return units.sort((a, b) => this._compareUnitForSort(a,b) );
+  }
+
+  private _compareUnitForSort(a: Unit, b:Unit): number {
+    return this._getIdOrderOrId(a) > this._getIdOrderOrId(b) ? 1 : -1;
+  }
+
+  private _getIdOrderOrId(unit: Unit): number {
+    return unit.order ?? unit.id;
   }
 }

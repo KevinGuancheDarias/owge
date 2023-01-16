@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements DtoWithImprovements {
+
+    private Integer order;
     private Boolean hasToDisplayInRequirements;
     private Integer points = 0;
     private Integer time = 60;
@@ -79,6 +81,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
 
     private void loadData(Unit entity) {
         hasToDisplayInRequirements = Boolean.TRUE.equals(entity.getHasToDisplayInRequirements());
+        order = entity.getOrder();
         points = entity.getPoints();
         time = entity.getTime();
         primaryResource = entity.getPrimaryResource();

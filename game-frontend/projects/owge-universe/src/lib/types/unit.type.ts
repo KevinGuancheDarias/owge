@@ -11,6 +11,7 @@ import { InterceptableSpeedGroup } from './interceptable-speed-group.type';
  */
 export interface Unit {
     id: number;
+    order: number;
     name: string;
     image?: number;
     imageUrl?: string;
