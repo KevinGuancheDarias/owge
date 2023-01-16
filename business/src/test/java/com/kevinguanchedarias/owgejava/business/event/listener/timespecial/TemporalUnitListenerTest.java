@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Unit;
@@ -60,7 +61,8 @@ import static org.mockito.Mockito.*;
         ObtainedUnitTemporalInformationRepository.class,
         ScheduledTasksManagerService.class,
         ObtainedUnitRepository.class,
-        ObtainedUnitEventEmitter.class
+        ObtainedUnitEventEmitter.class,
+        UnitImprovementUtilService.class
 })
 class TemporalUnitListenerTest {
     private final TemporalUnitsListener temporalUnitsListener;
@@ -70,6 +72,7 @@ class TemporalUnitListenerTest {
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final UnitImprovementUtilService unitImprovementUtilService;
 
     @Autowired
     public TemporalUnitListenerTest(
@@ -79,7 +82,8 @@ class TemporalUnitListenerTest {
             ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository,
             ScheduledTasksManagerService scheduledTasksManagerService,
             ObtainedUnitRepository obtainedUnitRepository,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
+            UnitImprovementUtilService unitImprovementUtilService
     ) {
         this.temporalUnitsListener = temporalUnitsListener;
         this.ruleBo = ruleBo;
@@ -88,6 +92,7 @@ class TemporalUnitListenerTest {
         this.scheduledTasksManagerService = scheduledTasksManagerService;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
+        this.unitImprovementUtilService = unitImprovementUtilService;
     }
 
     @Test
@@ -102,7 +107,12 @@ class TemporalUnitListenerTest {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @ParameterizedTest
     @MethodSource("onTimeSpecialActivated_parameters")
-    void onTimeSpecialActivated_should_work(List<String> extraArgs, String destinationType, Unit unit, CapturedOutput capturedOutput) {
+    void onTimeSpecialActivated_should_work(
+            List<String> extraArgs,
+            String destinationType,
+            Unit unit,
+            CapturedOutput capturedOutput
+    ) {
         var ats = givenActiveTimeSpecialMock(TimeSpecialStateEnum.ACTIVE);
         var user = givenUser1();
         var homePlanet = givenSourcePlanet();
@@ -142,6 +152,7 @@ class TemporalUnitListenerTest {
             ArgumentCaptor<List<ObtainedUnit>> savedUnits = ArgumentCaptor.forClass(List.class);
             verify(obtainedUnitRepository, times(1)).saveAll(savedUnits.capture());
             verify(obtainedUnitEventEmitter, times(1)).emitObtainedUnits(user);
+            verify(unitImprovementUtilService, times(1)).maybeTriggerClearImprovement(eq(user), any());
             var units = savedUnits.getValue();
             assertThat(units).hasSize(1);
             var ou = units.get(0);

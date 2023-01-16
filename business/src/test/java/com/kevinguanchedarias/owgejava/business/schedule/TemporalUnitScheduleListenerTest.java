@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -46,7 +47,8 @@ import static org.mockito.Mockito.*;
         MissionRepository.class,
         ObtainedUnitEventEmitter.class,
         MissionEventEmitterBo.class,
-        TaggableCacheManager.class
+        TaggableCacheManager.class,
+        UnitImprovementUtilService.class
 })
 class TemporalUnitScheduleListenerTest {
     private final TemporalUnitScheduleListener temporalUnitScheduleListener;
@@ -59,6 +61,7 @@ class TemporalUnitScheduleListenerTest {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final TaggableCacheManager taggableCacheManager;
+    private final UnitImprovementUtilService unitImprovementUtilService;
 
     @Autowired
     public TemporalUnitScheduleListenerTest(
@@ -71,7 +74,8 @@ class TemporalUnitScheduleListenerTest {
             MissionRepository missionRepository,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
             MissionEventEmitterBo missionEventEmitterBo,
-            TaggableCacheManager taggableCacheManager
+            TaggableCacheManager taggableCacheManager,
+            UnitImprovementUtilService unitImprovementUtilService
     ) {
         this.temporalUnitScheduleListener = temporalUnitScheduleListener;
         this.obtainedUnitRepository = obtainedUnitRepository;
@@ -83,6 +87,7 @@ class TemporalUnitScheduleListenerTest {
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.missionEventEmitterBo = missionEventEmitterBo;
         this.taggableCacheManager = taggableCacheManager;
+        this.unitImprovementUtilService = unitImprovementUtilService;
     }
 
     @ParameterizedTest
@@ -140,6 +145,7 @@ class TemporalUnitScheduleListenerTest {
 
         verify(obtainedUnitRepository, times(4)).findPlanetIdsByExpirationId(expirationId);
         verify(obtainedUnitRepository, times(isEmptyList ? 0 : 1)).deleteAll(List.of(ou));
+        verify(unitImprovementUtilService, times(isEmptyList ? 0 : 1)).maybeTriggerClearImprovement(user, List.of(ou));
         verify(obtainedUnitEventEmitter, times(isEmptyList ? 0 : 1)).emitObtainedUnitsAfterCommit(user);
         verify(obtainedUnitTemporalInformationRepository, times(1)).deleteById(expirationId);
         verify(obtainedUnitRepository, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).existsByMission(affectedMission);

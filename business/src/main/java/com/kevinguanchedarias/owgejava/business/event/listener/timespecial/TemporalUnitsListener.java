@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
+import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -39,6 +40,7 @@ public class TemporalUnitsListener {
     private final ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository;
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final UnitImprovementUtilService unitImprovementUtilService;
 
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -77,6 +79,7 @@ public class TemporalUnitsListener {
             ouList.forEach(ou -> ou.setExpirationId(temporalInformation.getId()));
             scheduleTask(temporalInformation);
             obtainedUnitRepository.saveAll(ouList.stream().toList());
+            unitImprovementUtilService.maybeTriggerClearImprovement(user, ouList);
             isChanged.set(true);
         });
         if (isChanged.get()) {

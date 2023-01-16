@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
@@ -39,6 +40,7 @@ public class TemporalUnitScheduleListener {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final TaggableCacheManager taggableCacheManager;
+    private final UnitImprovementUtilService unitImprovementUtilService;
 
     @PostConstruct
     public void init() {
@@ -50,7 +52,9 @@ public class TemporalUnitScheduleListener {
                         var ouList = obtainedUnitRepository.findByExpirationId(expirationId);
                         obtainedUnitRepository.deleteAll(ouList);
                         if (!ouList.isEmpty()) {
-                            obtainedUnitEventEmitter.emitObtainedUnitsAfterCommit(ouList.get(0).getUser());
+                            var user = ouList.get(0).getUser();
+                            unitImprovementUtilService.maybeTriggerClearImprovement(user, ouList);
+                            obtainedUnitEventEmitter.emitObtainedUnitsAfterCommit(user);
                             handleAffectedMissions(affectedMissions(ouList));
                         }
                         obtainedUnitTemporalInformationRepository.deleteById(expirationId);
