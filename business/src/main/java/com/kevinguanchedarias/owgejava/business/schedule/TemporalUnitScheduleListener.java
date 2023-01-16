@@ -13,7 +13,9 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.util.SetUtils;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class TemporalUnitScheduleListener {
     public static final String TASK_NAME = "UNIT_EXPIRED";
 
@@ -35,17 +38,19 @@ public class TemporalUnitScheduleListener {
     private final MissionRepository missionRepository;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @PostConstruct
     public void init() {
         scheduledTasksManagerService.addHandler(TASK_NAME, task -> {
+            log.debug("Deleting expired unit: {}", task.getContent());
             var expirationId = ((Double) task.getContent()).longValue();
             aggressiveLockAcquire(expirationId, () ->
                     transactionUtilService.runWithRequired(() -> {
                         var ouList = obtainedUnitRepository.findByExpirationId(expirationId);
                         obtainedUnitRepository.deleteAll(ouList);
                         if (!ouList.isEmpty()) {
-                            obtainedUnitEventEmitter.emitObtainedUnits(ouList.get(0).getUser());
+                            obtainedUnitEventEmitter.emitObtainedUnitsAfterCommit(ouList.get(0).getUser());
                             handleAffectedMissions(affectedMissions(ouList));
                         }
                         obtainedUnitTemporalInformationRepository.deleteById(expirationId);
@@ -69,10 +74,13 @@ public class TemporalUnitScheduleListener {
     private void handleAffectedMissions(Set<Mission> missions) {
         if (!missions.isEmpty()) {
             @SuppressWarnings("ConstantConditions") var user = SetUtils.getFirstElement(missions).getUser();
+            taggableCacheManager.evictByCacheTag(Mission.MISSION_BY_USER_CACHE_TAG, user.getId());
             var affectedUsers = usersOwningPlanetsOfTargetMissions(user, missions);
             deleteNonUnitsLeftMissions(missions);
-            missionEventEmitterBo.emitUnitMissions(user.getId());
-            missionEventEmitterBo.emitMissionCountChange(user.getId());
+            transactionUtilService.doAfterCommit(() -> {
+                missionEventEmitterBo.emitUnitMissions(user.getId());
+                missionEventEmitterBo.emitMissionCountChange(user.getId());
+            });
             affectedUsers.forEach(missionEventEmitterBo::emitEnemyMissionsChange);
         }
     }

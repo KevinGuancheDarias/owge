@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
+import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -53,15 +54,15 @@ class MissionRegistrationUnitManagerTest {
             Mission firstDeploymentMission,
             Planet expectedSourcePlanet
     ) {
-        var information = givenUnitMissionInformation(MissionType.EXPLORE);
+        var expirationId = 99282441L;
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, expirationId);
         var mission = givenGatherMission();
         var user = givenUser1();
-        var expirationId = 99282441L;
         var ouDb = givenObtainedUnit1().toBuilder()
                 .firstDeploymentMission(firstDeploymentMission)
                 .expirationId(expirationId)
                 .build();
-        var dbUnits = Map.of(UNIT_ID_1, ouDb);
+        var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, expirationId), ouDb);
         var unit = givenUnit1();
         given(unitRepository.getById(UNIT_ID_1)).willReturn(unit);
 

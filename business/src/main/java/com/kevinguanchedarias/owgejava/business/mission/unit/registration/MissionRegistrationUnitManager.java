@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.mission.MissionRegistrationUnitManagementResult;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
@@ -24,7 +25,7 @@ public class MissionRegistrationUnitManager {
     @Transactional(propagation = Propagation.MANDATORY)
     public MissionRegistrationUnitManagementResult manageUnitsRegistration(
             UnitMissionInformation targetMissionInformation,
-            Map<Integer, ObtainedUnit> dbUnits,
+            Map<UnitInMap, ObtainedUnit> dbUnits,
             boolean isEnemyPlanet,
             UserStorage user,
             Mission mission
@@ -34,7 +35,7 @@ public class MissionRegistrationUnitManager {
 
         targetMissionInformation.getInvolvedUnits().forEach(current -> {
             var currentObtainedUnit = new ObtainedUnit();
-            var dbUnit = dbUnits.get(current.getId());
+            var dbUnit = dbUnits.get(new UnitInMap(current.getId(), current.getExpirationId()));
             if (isEnemyPlanet) {
                 alteredVisibilityMissions.add(dbUnit.getMission());
             }

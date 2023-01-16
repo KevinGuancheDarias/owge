@@ -60,6 +60,10 @@ public class MissionEventEmitterBo {
         );
     }
 
+    public void emitUnitMissionsAfterCommit(Integer userId) {
+        transactionUtilService.doAfterCommit(() -> emitUnitMissions(userId));
+    }
+
     public void emitLocalMissionChange(Mission mission, Integer userId) {
         entityManager.refresh(mission);
         if (Boolean.FALSE.equals(mission.getInvisible())) {

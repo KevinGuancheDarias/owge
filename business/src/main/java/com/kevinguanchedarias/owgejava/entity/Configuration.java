@@ -39,12 +39,14 @@ public class Configuration implements Serializable, EntityWithTaggableCache<Stri
     public Configuration(String name, String value) {
         this.name = name;
         this.value = value;
+        this.privileged = false;
     }
 
     public Configuration(String name, String value, String displayName) {
         this.name = name;
         this.value = value;
         this.displayName = displayName;
+        this.privileged = false;
     }
 
     @Override

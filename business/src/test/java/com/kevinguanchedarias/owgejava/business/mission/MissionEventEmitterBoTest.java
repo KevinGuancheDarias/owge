@@ -150,6 +150,16 @@ class MissionEventEmitterBoTest {
         assertThat(sentMessage).hasSize(1).contains(runningUnitBuild);
     }
 
+    @Test
+    void emitUnitMissionsAfterCommit_should_work() {
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+
+        missionEventEmitterBo.emitUnitMissionsAfterCommit(USER_ID_1);
+
+        verify(transactionUtilService, times(1)).doAfterCommit(any());
+        verify(socketIoService, times(1)).sendMessage(eq(USER_ID_1), eq(UNIT_MISSION_CHANGE), any());
+    }
+
     private static Stream<Arguments> emitEnemyMissionsChange_should_work_arguments() {
         return Stream.of(
                 Arguments.of(givenUser1(), 0),

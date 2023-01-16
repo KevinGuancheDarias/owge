@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -120,7 +121,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
         var retVal = missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information);
 
         verify(missionRegistrationCanDeployChecker, times(1)).checkUnitCanDeploy(ou, information);
-        assertThat(retVal).containsEntry(UNIT_ID_1, ou);
+        assertThat(retVal).containsEntry(new UnitInMap(UNIT_ID_1, expirationId), ou);
         verify(missionRegistrationOrphanMissionEraser, times(1)).doMarkAsDeletedTheOrphanMissions(expectedDeletedMission);
     }
 

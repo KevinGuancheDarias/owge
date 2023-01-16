@@ -45,8 +45,8 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
 
     public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user, List<ObtainedUnit> entities) {
         entities.stream()
-                .filter(ou -> ou.getUnit().getSpeedImpactGroup() != null)
                 .map(ObtainedUnit::getUnit)
+                .filter(unit -> unit.getSpeedImpactGroup() != null)
                 .forEach(unit -> {
                     Hibernate.initialize(unit.getSpeedImpactGroup());
                     unit.getSpeedImpactGroup().setRequirementGroups(null);

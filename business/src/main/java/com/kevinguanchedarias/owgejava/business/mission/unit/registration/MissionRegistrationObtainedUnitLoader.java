@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import lombok.AllArgsConstructor;
@@ -30,8 +31,8 @@ public class MissionRegistrationObtainedUnitLoader {
     private final MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public Map<Integer, ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
-        Map<Integer, ObtainedUnit> retVal = new HashMap<>();
+    public Map<UnitInMap, ObtainedUnit> checkAndLoadObtainedUnits(UnitMissionInformation missionInformation) {
+        Map<UnitInMap, ObtainedUnit> retVal = new HashMap<>();
         var userId = missionInformation.getUserId();
         var sourcePlanetId = missionInformation.getSourcePlanetId();
         var targetPlanetId = missionInformation.getTargetPlanetId();
@@ -55,7 +56,7 @@ public class MissionRegistrationObtainedUnitLoader {
                     && currentObtainedUnit.getMission().getType().getCode().equals(MissionType.DEPLOYED.toString())) {
                 deletedMissions.add(currentObtainedUnit.getMission());
             }
-            retVal.put(current.getId(), currentObtainedUnit);
+            retVal.put(new UnitInMap(current.getId(), current.getExpirationId()), currentObtainedUnit);
         });
         missionRegistrationOrphanMissionEraser.doMarkAsDeletedTheOrphanMissions(deletedMissions);
 

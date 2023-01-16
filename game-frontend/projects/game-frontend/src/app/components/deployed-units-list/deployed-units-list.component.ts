@@ -68,7 +68,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   }
 
   public ngOnChanges(changes: SimpleChanges) {
-    if (changes && changes.obtainedUnits.currentValue) {
+    if (changes && changes.obtainedUnits?.currentValue) {
       this.areAllSelected = false;
       this.selectedCounts = this.obtainedUnits.map(() => null);
     }

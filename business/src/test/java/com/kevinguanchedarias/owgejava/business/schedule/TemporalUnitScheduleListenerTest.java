@@ -5,12 +5,14 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeConsumerLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,8 @@ import static org.mockito.Mockito.*;
         ObtainedUnitTemporalInformationRepository.class,
         MissionRepository.class,
         ObtainedUnitEventEmitter.class,
-        MissionEventEmitterBo.class
+        MissionEventEmitterBo.class,
+        TaggableCacheManager.class
 })
 class TemporalUnitScheduleListenerTest {
     private final TemporalUnitScheduleListener temporalUnitScheduleListener;
@@ -55,6 +58,7 @@ class TemporalUnitScheduleListenerTest {
     private final MissionRepository missionRepository;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     public TemporalUnitScheduleListenerTest(
@@ -66,7 +70,8 @@ class TemporalUnitScheduleListenerTest {
             ObtainedUnitTemporalInformationRepository obtainedUnitTemporalInformationRepository,
             MissionRepository missionRepository,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
-            MissionEventEmitterBo missionEventEmitterBo
+            MissionEventEmitterBo missionEventEmitterBo,
+            TaggableCacheManager taggableCacheManager
     ) {
         this.temporalUnitScheduleListener = temporalUnitScheduleListener;
         this.obtainedUnitRepository = obtainedUnitRepository;
@@ -77,6 +82,7 @@ class TemporalUnitScheduleListenerTest {
         this.missionRepository = missionRepository;
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.missionEventEmitterBo = missionEventEmitterBo;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @ParameterizedTest
@@ -109,6 +115,7 @@ class TemporalUnitScheduleListenerTest {
                 .when(obtainedUnitRepository).findPlanetIdsByExpirationId(expirationId);
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(any(), any());
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).runWithRequired(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
         var ou = givenObtainedUnit1();
         var affectedMission = givenExploreMission();
         var user = ou.getUser();
@@ -133,7 +140,7 @@ class TemporalUnitScheduleListenerTest {
 
         verify(obtainedUnitRepository, times(4)).findPlanetIdsByExpirationId(expirationId);
         verify(obtainedUnitRepository, times(isEmptyList ? 0 : 1)).deleteAll(List.of(ou));
-        verify(obtainedUnitEventEmitter, times(isEmptyList ? 0 : 1)).emitObtainedUnits(user);
+        verify(obtainedUnitEventEmitter, times(isEmptyList ? 0 : 1)).emitObtainedUnitsAfterCommit(user);
         verify(obtainedUnitTemporalInformationRepository, times(1)).deleteById(expirationId);
         verify(obtainedUnitRepository, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).existsByMission(affectedMission);
         verify(missionRepository, times(!isEmptyList && hasAffectedMissions && !affectedMissionHasUnit ? 1 : 0))
@@ -142,5 +149,6 @@ class TemporalUnitScheduleListenerTest {
         verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).emitMissionCountChange(USER_ID_1);
         verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions && affectedMissionHasOwner && !planetOwnerIsUser ? 1 : 0))
                 .emitEnemyMissionsChange(user2);
+        verify(taggableCacheManager, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).evictByCacheTag(Mission.MISSION_BY_USER_CACHE_TAG, USER_ID_1);
     }
 }
