@@ -18,6 +18,7 @@ public class AttackInformation {
     private final List<AttackObtainedUnit> units = new ArrayList<>();
     private final Set<Integer> usersWithDeletedMissions = new HashSet<>();
     private final Set<Integer> usersWithChangedCounts = new HashSet<>();
+    private final Set<Long> unitsStoringUnits = new HashSet<>();
     private final Planet targetPlanet;
     private final Map<String, List<Object>> contextData = new HashMap<>();
 

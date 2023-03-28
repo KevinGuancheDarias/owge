@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serial;
+import java.util.List;
 
 @Table(name = "obtained_units")
 @Entity
@@ -55,6 +56,15 @@ public class ObtainedUnit implements EntityWithTaggableCacheByUser<Long> {
     private boolean isFromCapture = false;
 
     private Long expirationId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_unit_id")
+    private ObtainedUnit ownerUnit;
+
+    @OneToMany(mappedBy = "ownerUnit")
+    @ToString.Exclude
+    private List<ObtainedUnit> storedUnits;
+
 
     @Override
     public String getByUserCacheTag() {

@@ -2,8 +2,13 @@ package com.kevinguanchedarias.owgejava.business.rule.type.unit;
 
 import com.kevinguanchedarias.owgejava.business.rule.type.RuleTypeProvider;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleTypeDescriptorDto;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
 
+@Service
+@AllArgsConstructor
 public class UnitStoresUnitRuleTypeProviderBo implements RuleTypeProvider {
+
     public static final String PROVIDER_ID = "UNIT_STORES_UNIT";
 
     @Override
@@ -15,4 +20,5 @@ public class UnitStoresUnitRuleTypeProviderBo implements RuleTypeProvider {
     public RuleTypeDescriptorDto findRuleTypeDescriptor() {
         return RuleTypeDescriptorDto.builder().build();
     }
+
 }

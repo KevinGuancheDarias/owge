@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { UserWithAlliance } from '@owge/alliance';
 import { User } from '@owge/core';
-import { ObtainedUpgrade, TutorialService, UnitRunningMission, UpgradeRunningMission, UserStorage } from '@owge/universe';
+import { ObtainedUpgrade, TutorialService, UnitRunningMission, UpgradeRunningMission, UserStorage, MissionService } from '@owge/universe';
 import { BaseComponent } from '../base/base.component';
 import { UpgradeService } from '../service/upgrade.service';
-import { MissionService } from '../services/mission.service';
 
 @Component({
   selector: 'app-game-index',

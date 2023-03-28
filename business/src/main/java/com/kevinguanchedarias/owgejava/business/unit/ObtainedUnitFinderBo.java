@@ -43,21 +43,22 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
         return findCompletedAsDto(user, obtainedUnitRepository.findDeployedInUserOwnedPlanets(user.getId()));
     }
 
-    public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user, List<ObtainedUnit> entities) {
-        entities.stream()
+    public List<ObtainedUnitDto> findCompletedAsDto(UserStorage user, List<ObtainedUnit> sourceEntities) {
+        var entitiesThatAreNotStoredUnits = sourceEntities.stream().filter(obtainedUnit -> obtainedUnit.getOwnerUnit() == null).toList();
+        entitiesThatAreNotStoredUnits.stream()
                 .map(ObtainedUnit::getUnit)
                 .filter(unit -> unit.getSpeedImpactGroup() != null)
                 .forEach(unit -> {
                     Hibernate.initialize(unit.getSpeedImpactGroup());
                     unit.getSpeedImpactGroup().setRequirementGroups(null);
                 });
-        entities.forEach(current -> {
+        entitiesThatAreNotStoredUnits.forEach(current -> {
             var unit = current.getUnit();
             Hibernate.initialize(unit.getInterceptableSpeedGroups());
             entityManager.detach(unit);
-            unit.setIsInvisible(hiddenUnitBo.isHiddenUnit(current));
+            unit.setIsInvisible(hiddenUnitBo.isHiddenUnit(current.getUser(), current.getUnit()));
         });
-        entities
+        entitiesThatAreNotStoredUnits
                 .stream()
                 .map(ObtainedUnit::getUnit)
                 .filter(unit -> unit.getSpeedImpactGroup() == null)
@@ -67,8 +68,8 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
                             unitWithNullSpeedImpact.getSpeedImpactGroup().setRequirementGroups(null);
                         }
                 );
-        var dtoList = toDto(entities);
-        loadNonJpaData(entities, dtoList);
+        var dtoList = toDto(entitiesThatAreNotStoredUnits);
+        loadExtraDataToDto(entitiesThatAreNotStoredUnits, dtoList);
         return dtoList;
     }
 
@@ -95,7 +96,7 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
         return retVal;
     }
 
-    private void loadNonJpaData(List<ObtainedUnit> entities, List<ObtainedUnitDto> dtoList) {
+    private void loadExtraDataToDto(List<ObtainedUnit> entities, List<ObtainedUnitDto> dtoList) {
         IntStream.range(0, dtoList.size()).forEach(i -> {
             var entity = entities.get(i);
             var dto = dtoList.get(i);

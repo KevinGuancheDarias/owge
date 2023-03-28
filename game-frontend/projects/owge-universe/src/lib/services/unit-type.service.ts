@@ -4,15 +4,14 @@ import { Observable } from 'rxjs';
 
 import {
   ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper,
-  UnitType, AttackRule, LoggerHelper, AttackRuleEntry
+  UnitType, AttackRule, AttackRuleEntry
 } from '@owge/core';
-import {
-  UniverseGameService, Planet, UnitTypeStore, UniverseCacheManagerService,
-  WsEventCacheService
-} from '@owge/universe';
 
 import { MissionType } from '@owge/core';
 import { MissionService } from './mission.service';
+import { UnitTypeStore } from '../storages/unit-type.store';
+import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { Planet } from '../pojos/planet.pojo';
 
 @Injectable()
 export class UnitTypeService extends AbstractWebsocketApplicationHandler {
@@ -22,13 +21,12 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
   private _offlineUnitTypes: StorageOfflineHelper<UnitType[]>;
 
   public constructor(
-    private _universeGameService: UniverseGameService,
-    private _wsEventCacheService: WsEventCacheService,
     private _universeCacheManagerService: UniverseCacheManagerService,
     private _missionService: MissionService
   ) {
     super();
     this._eventsMap = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       unit_type_change: '_onUnitTypeChange'
     };
   }
@@ -49,8 +47,8 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * Returns the available number that the user can build of a given unit type
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {number} id unit type id
-   * @returns {number}
+   * @param id unit type id
+   * @returns
    * @throws {ProgrammingError} If type doesn't exists
    * @memberof UnitTypeService
    */
@@ -63,9 +61,9 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * Returns true, if user has enough avaiable for the given unit type
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {number} typeId
-   * @param {number} requiredCount Count wanted to be added by the user
-   * @returns {boolean}
+   * @param typeId
+   * @param requiredCount Count wanted to be added by the user
+   * @returns
    * @memberof UnitTypeService
    */
   public hasAvailable(typeId: number, requiredCount: number): boolean {
@@ -78,10 +76,10 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * Test if all the unitTypes passed can do the specified mission
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {PlanetPojo} planet
-   * @param {UnitType[]} unitTypes
-   * @param {MissionType} missionType
-   * @returns {boolean}
+   * @param planet
+   * @param unitTypes
+   * @param missionType
+   * @returns
    * @memberof UnitTypeService
    */
   public canDoMission(planet: Planet, unitTypes: UnitType[], missionType: MissionType): boolean {
@@ -92,8 +90,8 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * Converts an array of ids to an array of unitTypes
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {...number[]} ids
-   * @returns {Promise<UnitType[]>}
+   * @param ids
+   * @returns
    * @memberof UnitTypeService
    */
   public idsToUnitTypes(...ids: number[]): Promise<UnitType[]> {

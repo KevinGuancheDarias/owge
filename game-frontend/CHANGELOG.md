@@ -2,6 +2,9 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I want to send units stored in other units #268](https://github.com/KevinGuancheDarias/owge/issues/268)  
+* __Improvement:__ Greatly improve sync performance  
+* __Fix:__ Invisible units crashing the home screen when enemy users has incoming invisible units in a visible mission (only neon theme)
 * __Improvement:__ Sort units by id or admin defined "order id"
 * [class=Admin] __Feature:__ [As an admin I want to allow some units to store other units when sent to a mission #267](https://github.com/KevinGuancheDarias/owge/issues/267)  
 * __Fix:__ [As a player I want to be able to see the message of the interception of units to the owner of the iris (motivates the player and warns that they have tried to Attack/Explore). #464](https://github.com/KevinGuancheDarias/owge/issues/464)  
@@ -32,6 +35,31 @@ v0.11.0 (latest)
 * [class=Admin] __Feature:__  [As an admin I want to define where certain factions can spawn their home planet #405](https://github.com/KevinGuancheDarias/owge/issues/405)  
 * __Feature:__ [As a player I want to be able to increase units speed #401](https://github.com/KevinGuancheDarias/owge/issues/401)  
 * [class=Admin] __Feature:__ [As an admin I want to be able to define improvements that improve the speed of units having speed #400](https://github.com/KevinGuancheDarias/owge/issues/400)  
+
+v0.10.2 (2021-07-25 18:50)
+===========================
+* [class=Advanced] __Fix:__ Share Max Count not working as expected, unit types with this property set to "have its own counter" would still inherit
+* [class=Admin] __Fix:__ [Requirement time special active doesn't appear #422](https://github.com/KevinGuancheDarias/owge/issues/422)  
+* [class=Admin] __Fix:__ [Requirements groups not working in admin panel #419](https://github.com/KevinGuancheDarias/owge/issues/419)  
+* __Improvement:__ [Display unit type in the unit's screen #423](https://github.com/KevinGuancheDarias/owge/issues/423)  
+* __Fix:__ [Attackable types in info modal of unit doesn't display the colors, nor in classic, neither in neon #420](https://github.com/KevinGuancheDarias/owge/issues/420)  
+* __Fix:__ [Neón doesn't display the unit upgrade requirements colors #421](https://github.com/KevinGuancheDarias/owge/issues/421)  
+* __Fix:__ Intercepted units not displaying in the Neon theme
+* __Fix:__ [Reports screen hangs on Neón #418](https://github.com/KevinGuancheDarias/owge/issues/418) 
+* __Fix:__ [Return missions and unit buildings are failing when terminating at almost the same time #417](https://github.com/KevinGuancheDarias/owge/issues/417)  
+
+v0.10.1 (2021-07-17 17:23)
+============================
+* [class=Admin] __Improvement:__ [Change time specials, upgrades and units main filter to be the widget one... which works properly #410](https://github.com/KevinGuancheDarias/owge/issues/410)  
+* [class=Admin] __Fix:__ [When an improvements error occur in units, upgrades, no error is displayed #415](https://github.com/KevinGuancheDarias/owge/issues/415)  
+![When an improvements error occur in units, upgrades, no error is displayed #415](https://user-images.githubusercontent.com/6832422/125193606-29fd0280-e245-11eb-9c35-e229e7395ef6.png)  
+* [class=Admin] __Fix:__ [When saving an improvement for unit type, the frontend makes infinite request to the backend #411](https://github.com/KevinGuancheDarias/owge/issues/411)  
+* [class=Admin] __Fix:__ [When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://github.com/KevinGuancheDarias/owge/issues/412)  
+![When displaying the modal of an upgrade or an unit, the current type of the unit is not displayed, picture evidence #412](https://user-images.githubusercontent.com/6832422/125175135-e319f900-e1c1-11eb-834e-834b23a9a4dd.png)
+* [class=Admin] __Fix:__ [Displaying the improvement for unit types, won't display to which unit the improvement affect #413](https://github.com/KevinGuancheDarias/owge/issues/413)  
+![Displaying the improvement for unit types, won't display to which unit the improvement affect #413](https://user-images.githubusercontent.com/6832422/125175159-1a88a580-e1c2-11eb-90b6-f7fe6e03f7aa.png)  
+* [class=Admin] __Fix:__ [Fix all the admin missing literals #414](https://github.com/KevinGuancheDarias/owge/issues/414)  
+* __Fix:__ In classic theme fix duplicated planets
 
 v0.10.0 (2021-07-10 20:08)
 ===========================

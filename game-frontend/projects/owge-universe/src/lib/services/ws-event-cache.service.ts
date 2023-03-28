@@ -1,6 +1,6 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AsyncCollectionUtil, Instant, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
+import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CacheListener } from '../interfaces/cache-listener.interface';
@@ -11,7 +11,7 @@ import { UniverseGameService } from './universe-game.service';
 interface WebsocketEventInformation {
     eventName: string;
     userId: number;
-    lastSent: Instant;
+    lastSent: number;
 
     /**
      * Changed computes at browser by comparing cached lastSent with remote
@@ -30,6 +30,10 @@ interface WebsocketEventInformation {
  */
 @Injectable()
 export class WsEventCacheService {
+    public static readonly eventsForOpen = [
+        'rule_change'
+    ];
+
     private static readonly _ALLOWED_EVENTS: Array<keyof WebsocketSyncResponse> = [
         'planet_owned_change',
         'running_upgrade_change',
@@ -51,8 +55,9 @@ export class WsEventCacheService {
         'unit_requirements_change',
         'visited_tutorial_entry_change',
         'user_data_change',
-        'system_message_change'
+        'system_message_change',
     ];
+
     private _eventsInformation: { [key: string]: WebsocketEventInformation };
     private _eventInformationStore: StorageOfflineHelper<{ [key: string]: WebsocketEventInformation }>;
     private _eventsOfflineStore: { [key: string]: StorageOfflineHelper<any> } = {};
@@ -95,13 +100,9 @@ export class WsEventCacheService {
             }
         });
         content.forEach(current => {
-            if(current.eventName === 'unit_obtained_change') {
-                console.log('Usando valor almacenado', this._eventsInformation[current.eventName]?.lastSent?.epochSecond);
-                console.log('Valor que comparo con respuesta', current?.lastSent?.epochSecond);
-            }
             if(!current.eventName.startsWith('_universe_id:')) {
                 current.changed = !this._eventsInformation[current.eventName]
-                    || this._eventsInformation[current.eventName].lastSent.epochSecond !== current.lastSent.epochSecond;
+                    || this._eventsInformation[current.eventName].lastSent !== current.lastSent;
             }
             this._eventsInformation[current.eventName] = current;
         });
@@ -129,7 +130,7 @@ export class WsEventCacheService {
 
     public async createOfflineStores(): Promise<void> {
         await this._universeCacheManagerService.beforeWorkaroundSync();
-        WsEventCacheService._ALLOWED_EVENTS.forEach(event => {
+        [...WsEventCacheService._ALLOWED_EVENTS, ...WsEventCacheService.eventsForOpen].forEach(event => {
             if (!this._eventsOfflineStore[event]) {
                 this._eventsOfflineStore[event] = this._universeCacheManagerService.getStore(this._findCacheKey(event));
             }
@@ -160,7 +161,7 @@ export class WsEventCacheService {
                         })
                     ).subscribe(async events => {
                         wantedKeys.filter(key => typeof events[key] === 'undefined').forEach(key => events[key] = null);
-                        const keys: Array<keyof WebsocketSyncResponse> = <any>Object.keys(events);
+                        const keys: Array<keyof WebsocketSyncResponse> = Object.keys(events) as any;
                         await AsyncCollectionUtil.forEach(keys, async key => {
                             await this._eventsOfflineStore[key].save(events[key].data);
                             if(!this._eventsInformation[key]) {
@@ -168,13 +169,10 @@ export class WsEventCacheService {
                                     eventName: key,
                                     changed: false,
                                     userId: -1,
-                                    lastSent: { epochSecond: events[key].lastSent}
+                                    lastSent: events[key].lastSent
                                 };
                             } else {
-                                this._eventsInformation[key].lastSent = { epochSecond: events[key].lastSent };
-                            }
-                            if(key === 'unit_obtained_change') {
-                                console.log('Guardando valor', events[key]?.lastSent);
+                                this._eventsInformation[key].lastSent = events[key].lastSent;
                             }
                             this._markEventAsUnchanged(key, events[key]);
                         });
@@ -263,7 +261,11 @@ export class WsEventCacheService {
      * @returns
      */
     public isSynchronizableEvent(event: string): boolean {
-        return WsEventCacheService._ALLOWED_EVENTS.includes(<any>event);
+        return WsEventCacheService._ALLOWED_EVENTS.includes(event as any);
+    }
+
+    public updateOfflineStore(event: string, content: any): Promise<void> {
+        return this._eventsOfflineStore[event].save(content);
     }
 
     /**
@@ -277,19 +279,19 @@ export class WsEventCacheService {
         this._cacheListeners = this._cacheListeners.concat(listeners);
     }
 
-    private _findCacheKey(event: keyof WebsocketSyncResponse): string {
+    private _findCacheKey(event: string): string {
         return `ws_cache::${event}`;
     }
 
     private _markEventAsUnchanged(event: keyof WebsocketSyncResponse, info: WebsocketSyncItem): void {
         if (this._eventsInformation[event]) {
             this._eventsInformation[event].changed = false;
-            this._eventsInformation[event].lastSent = { epochSecond: info.lastSent };
+            this._eventsInformation[event].lastSent = info.lastSent;
         } else {
             this._eventsInformation[event] = {
                 changed: false,
                 eventName: event,
-                lastSent: { epochSecond: info.lastSent },
+                lastSent: info.lastSent,
                 userId: -1
             };
         }

@@ -55,7 +55,7 @@ class MissionRegistrationInvisibleManagerTest {
     void handleDefineMissionAsInvisible_should_work(boolean isHiddenUnit) {
         var mission = givenExploreMission();
         var ou = givenObtainedUnit1();
-        given(hiddenUnitBo.isHiddenUnit(ou)).willReturn(isHiddenUnit);
+        given(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).willReturn(isHiddenUnit);
 
         missionRegistrationInvisibleManager.handleDefineMissionAsInvisible(mission, List.of(ou));
 
@@ -73,7 +73,7 @@ class MissionRegistrationInvisibleManagerTest {
         mission.setInvisible(initialIsInvisible);
         var ou = givenObtainedUnit1();
         given(obtainedUnitRepository.findByMissionId(EXPLORE_MISSION_ID)).willReturn(List.of(ou));
-        given(hiddenUnitBo.isHiddenUnit(ou)).willReturn(newVisibilityValue);
+        given(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).willReturn(newVisibilityValue);
 
         missionRegistrationInvisibleManager.maybeUpdateMissionsVisibility(List.of(mission));
 

@@ -16,6 +16,7 @@ import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.mission.MissionRegistrationUnitManagementResult;
+import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -137,7 +138,7 @@ class UnitMissionRegistrationBoTest {
         var missionInformationMock = mock(UnitMissionInformation.class);
         var targetMissionInformationMock = mock(UnitMissionInformation.class);
         var ouDb = givenObtainedUnit1();
-        var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, null), ouDb);
+        var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, null), new UnitWithItsStoredUnits(ouDb, null));
         var managedOuList = List.of(ouDb.toBuilder().id(49L).build());
         long expectedWantedTime = 190;
         given(missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(missionInformationMock)).willReturn(dbUnits);

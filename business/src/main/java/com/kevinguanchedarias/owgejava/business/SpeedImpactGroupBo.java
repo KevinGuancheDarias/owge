@@ -6,6 +6,7 @@ import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
 import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -50,6 +51,9 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
 
     @Autowired
     private transient RequirementGroupRepository requirementGroupRepository;
+
+    @Autowired
+    private ObtainedUnitRepository obtainedUnitRepository;
 
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {
@@ -112,9 +116,16 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
         return speedImpactGroupRepository.save(target);
     }
 
-    public boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, UserStorage user, Unit unit) {
-        SpeedImpactGroup speedImpactGroup = speedImpactGroupFinderBo.findApplicable(user, unit);
+    public boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, UserStorage user, ObtainedUnit obtainedUnit) {
+        var unit = determineTargetUnit(obtainedUnit);
+        var speedImpactGroup = speedImpactGroupFinderBo.findApplicable(user, unit);
         return speedImpactGroup != null && interceptableSpeedGroups.stream().anyMatch(current -> current.getSpeedImpactGroup().getId()
                 .equals(speedImpactGroup.getId()));
+    }
+
+    private Unit determineTargetUnit(ObtainedUnit obtainedUnit) {
+        return obtainedUnit.getOwnerUnit() != null && obtainedUnit.getOwnerUnit().getId() != null
+                ? obtainedUnitRepository.findUnitByOuId(obtainedUnit.getOwnerUnit().getId())
+                : obtainedUnit.getUnit();
     }
 }

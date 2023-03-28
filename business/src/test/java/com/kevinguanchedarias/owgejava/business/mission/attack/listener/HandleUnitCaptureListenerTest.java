@@ -2,20 +2,17 @@ package com.kevinguanchedarias.owgejava.business.mission.attack.listener;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.MissionReportBo;
-import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
-import com.kevinguanchedarias.owgejava.business.rule.itemtype.UnitRuleItemTypeProviderBo;
+import com.kevinguanchedarias.owgejava.business.rule.UnitRuleFinderService;
 import com.kevinguanchedarias.owgejava.business.rule.type.unit.UnitCaptureRuleTypeProviderBo;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Rule;
-import com.kevinguanchedarias.owgejava.mock.AttackMock;
+import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
-import com.kevinguanchedarias.owgejava.mock.UnitMock;
-import com.kevinguanchedarias.owgejava.mock.UnitTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.attack.listener.UnitCaptureContext;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
-import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -28,31 +25,18 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.kevinguanchedarias.owgejava.business.mission.attack.listener.HandleUnitCaptureListener.CAPTURE_UNIT_CONTEXT_NAME;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackInformation;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenAttackObtainedUnit;
-import static com.kevinguanchedarias.owgejava.mock.AttackMock.givenFullAttackInformation;
+import static com.kevinguanchedarias.owgejava.mock.AttackMock.*;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenAttackMission;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
-import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRule;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenUnitCaptureRule;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit2;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(
@@ -60,94 +44,48 @@ import static org.mockito.Mockito.when;
         classes = HandleUnitCaptureListener.class
 )
 @MockBean({
-        RuleRepository.class,
         RuleBo.class,
         ObtainedUnitBo.class,
         MissionFinderBo.class,
         MissionReportBo.class,
-        ObtainedUnitRepository.class
+        ObtainedUnitRepository.class,
+        UnitRuleFinderService.class
 })
 class HandleUnitCaptureListenerTest {
-    private static final String RULE_DESTINATION_UNIT = "UNIT";
-    private static final String RULE_DESTINATION_UNIT_TYPE = "UNIT_TYPE";
-    private static final long UNIT_ID = UnitMock.UNIT_ID_1;
-    private static final long UNIT_TYPE_ID = UnitTypeMock.UNIT_TYPE_ID;
 
     private final HandleUnitCaptureListener handleUnitCaptureListener;
-    private final RuleRepository ruleRepository;
     private final RuleBo ruleBo;
     private final ObtainedUnitBo obtainedUnitBo;
     private final MissionFinderBo missionFinderBo;
     private final MissionReportBo missionReportBo;
+    private final UnitRuleFinderService unitRuleFinderService;
 
     @Autowired
     HandleUnitCaptureListenerTest(
             HandleUnitCaptureListener handleUnitCaptureListener,
-            RuleRepository ruleRepository,
             RuleBo ruleBo,
             ObtainedUnitBo obtainedUnitBo,
             MissionFinderBo missionFinderBo,
-            MissionReportBo missionReportBo
+            MissionReportBo missionReportBo,
+            UnitRuleFinderService unitRuleFinderService
     ) {
         this.handleUnitCaptureListener = handleUnitCaptureListener;
-        this.ruleRepository = ruleRepository;
         this.ruleBo = ruleBo;
         this.obtainedUnitBo = obtainedUnitBo;
         this.missionFinderBo = missionFinderBo;
         this.missionReportBo = missionReportBo;
-    }
-
-    @Test
-    void onAfterUnitKilledCalculation_should_use_unitVsUnit_as_first_option() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
-        var killed = 1L;
-
-        mockUnitVsUnit();
-        mockUnitVsUnitType();
-        mockUnitTypeVsUnit();
-        mockUnitTypeVsUnitType();
-
-        handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
-
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-
+        this.unitRuleFinderService = unitRuleFinderService;
     }
 
     @Test
     void onAfterUnitKilledCalculation_should_use_attack_mission_info_when_attacker_unit_has_mission() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
+        var attacker = givenAttackObtainedUnit();
+        var attackerOu = attacker.getObtainedUnit();
         attacker.getObtainedUnit().setMission(givenAttackMission());
         var killed = 1L;
-        mockUnitVsUnit();
         var deployedMission = MissionMock.givenDeployedMission();
         int probability = 100;
+        mockRule(attackerOu.getUnit(), attackerOu.getUnit(), probability);
         int captureAmountPercentage = 50;
         when(missionFinderBo.findDeployedMissionOrCreate(any()))
                 .thenReturn(deployedMission);
@@ -169,131 +107,8 @@ class HandleUnitCaptureListenerTest {
     }
 
     @Test
-    void onAfterUnitKilledCalculation_should_use_unitVsUnitType_as_second_option() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
-        var killed = 1L;
-
-        mockUnitVsUnitType();
-        mockUnitTypeVsUnit();
-        mockUnitTypeVsUnitType();
-
-        handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
-
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-
-    }
-
-    @Test
-    void onAfterUnitKilledCalculation_should_use_unitTypeVsUnit_as_third_option() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
-        var killed = 1L;
-
-        mockUnitTypeVsUnit();
-        mockUnitTypeVsUnitType();
-
-        handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
-
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, never()).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-
-    }
-
-    @Test
-    void onAfterUnitKilledCalculation_should_use_unitTypeVsUnitType_as_last_option() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
-        var killed = 1L;
-
-        mockUnitTypeVsUnitType();
-
-        handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
-
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT,
-                UNIT_ID
-        );
-        verify(ruleRepository, times(1)).findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID,
-                RULE_DESTINATION_UNIT_TYPE,
-                UNIT_TYPE_ID
-        );
-
-    }
-
-    @Test
     void onAfterUnitKilledCalculation_should_not_try_to_save_if_not_rule() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
+        var attacker = givenAttackObtainedUnit();
         var killed = 1L;
 
         handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
@@ -303,16 +118,16 @@ class HandleUnitCaptureListenerTest {
 
     @Test
     void onAfterUnitKilledCalculation_should_try_to_save_rule_and_probability() {
-        var attacker = AttackMock.givenAttackObtainedUnit();
-        var victim = AttackMock.givenAttackObtainedUnit(givenObtainedUnit2());
+        var attacker = givenAttackObtainedUnit();
+        var victim = givenAttackObtainedUnit(givenObtainedUnit2());
         var killed = 4L;
         int probability = 100;
         var captureRule = givenUnitCaptureRule(probability);
         int captureAmountPercentage = 50;
         var information = givenAttackInformation();
-        mockUnitTypeVsUnitType(probability);
-        when(this.ruleBo.findExtraArgs(captureRule)).thenReturn(List.of(Integer.toString(probability), Integer.toString(captureAmountPercentage)));
+        when(ruleBo.findExtraArgs(captureRule)).thenReturn(List.of(Integer.toString(probability), Integer.toString(captureAmountPercentage)));
         when(ruleBo.hasExtraArg(eq(captureRule), anyInt())).thenReturn(true);
+        mockRule(attacker.getObtainedUnit().getUnit(), victim.getObtainedUnit().getUnit(), probability);
 
         handleUnitCaptureListener.onAfterUnitKilledCalculation(information, attacker, victim, killed);
 
@@ -361,54 +176,8 @@ class HandleUnitCaptureListenerTest {
         }
     }
 
-    private void mockUnitVsUnit() {
-        when(this.ruleRepository.findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                UnitRuleItemTypeProviderBo.PROVIDER_ID,
-                UNIT_ID,
-                UnitRuleItemTypeProviderBo.PROVIDER_ID,
-                UNIT_ID
-        )).thenReturn(Optional.of(givenRule()));
-    }
-
-    private void mockUnitVsUnitType() {
-        when(this.ruleRepository.findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                UnitRuleItemTypeProviderBo.PROVIDER_ID,
-                UNIT_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID
-        )).thenReturn(Optional.of(givenRule()));
-    }
-
-    private void mockUnitTypeVsUnit() {
-        when(this.ruleRepository.findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID,
-                UnitRuleItemTypeProviderBo.PROVIDER_ID,
-                UNIT_ID
-        )).thenReturn(Optional.of(givenRule()));
-    }
-
-    private void mockUnitTypeVsUnitType() {
-        when(this.ruleRepository.findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID
-        )).thenReturn(Optional.of(givenRule()));
-    }
-
-    private void mockUnitTypeVsUnitType(int probability) {
-        when(this.ruleRepository.findOneByTypeAndOriginTypeAndOriginIdAndDestinationTypeAndDestinationId(
-                UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID,
-                HandleUnitCaptureListener.UNIT_TYPE,
-                UNIT_TYPE_ID
-        )).thenReturn(Optional.of(givenUnitCaptureRule(probability)));
+    private void mockRule(Unit from, Unit to, int captureProbability) {
+        given(unitRuleFinderService.findRule(UnitCaptureRuleTypeProviderBo.PROVIDER_ID, from, to)).willReturn(Optional.of(givenUnitCaptureRule(captureProbability)));
     }
 
 }

@@ -1,5 +1,13 @@
+.owge-theme.owge-theme-classic .modal.fade.stored-unit-modal .body{
+    display: flex;
+    flex-wrap: wrap;
+
+    .weight-info {
+        flex-basis: 100%;
+    }
+}
 .owge-theme.owge-theme-classic app-deployed-units-list {
-    owge-core-loading {
+    owge-core-loading, .stored-unit-modal .body {
         display: flex;
         flex-wrap: wrap;
     }
@@ -10,6 +18,11 @@
             
             margin-bottom: 0px;
             font-size: 8pt;        
+        }
+        .stored-units {
+            position: absolute;
+            top: 5px;
+            left: 5px;
         }
     }
 

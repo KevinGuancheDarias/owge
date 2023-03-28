@@ -13,8 +13,10 @@
     "I18N_ALLIANCE_NOT_DEFEATED": "Units of the owner of the planet were killed, but units from members of his alliance has survived",
     "I18N_APP_UPDATE_DETECTED": "The game has been updated, will reload soon, or reload by yourself",
     "I18N_ERR_ALLIANCE_IS_FULL": "The alliance is full, check again later. the limits are defined by max, and by a percentage of current total players of the universe",
+    "I18N_ERR_REPEATED_UNIT": "Can not specify the same unit to be stored, and to go free in the same mission",
     "GLOBAL": {
-        "BTN_CLOSE": "Close"
+        "BTN_CLOSE": "Close",
+        "BTN_SAVE": "Save"
     },
     "APP": {
         "CONNECTED": "Connected",
@@ -175,7 +177,13 @@
             "CHOOSE_COUNT": "Select count",
             "BTN_SELECT_ALL": "Select all units",
             "BTN_UNSELECT_ALL": "Unselect all units",
-            "OWNER_OF_UNITS": "Units from player {{username}}"
+            "OWNER_OF_UNITS": "Units from player {{username}}",
+            "STORED_UNITS_MODAL": {
+                "TITLE": "Stored units in the selected {{selectedUnitName}} ({{count}})",
+                "NO_COUNT_SELECTED": "Must select at least 1 to be able to select stored units",
+                "WEIGHT_INFO": "Used storage capacity {{usedWeight}} of {{storageCapacity}}",
+                "WOULD_OVERPASS_STORED_WEIGHT": "Would overpass the max allowed stored units weight"
+            }
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxy",

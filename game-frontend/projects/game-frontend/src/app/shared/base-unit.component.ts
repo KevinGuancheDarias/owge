@@ -1,11 +1,10 @@
 import { Input, Directive } from '@angular/core';
 
 import { UnitType } from '@owge/core';
-import { Unit } from '@owge/universe';
+import { Unit, UnitTypeService } from '@owge/universe';
 
 import { BaseComponent } from '../base/base.component';
 import { ServiceLocator } from '../service-locator/service-locator';
-import { UnitTypeService } from '../services/unit-type.service';
 
 @Directive()
 export class BaseUnitComponent extends BaseComponent {

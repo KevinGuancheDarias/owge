@@ -193,6 +193,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
             unit.setMission(null);
             unit.setTargetPlanet(null);
             unit.setFirstDeploymentMission(null);
+            unit.setOwnerUnit(null);
         } else if (unit.getMission() != null && MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
             savedUnit = repository.save(unit);
         } else {

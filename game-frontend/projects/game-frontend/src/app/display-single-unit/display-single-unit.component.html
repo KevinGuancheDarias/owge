@@ -56,6 +56,9 @@
     [hideDesktopSections]="[0,0, isCompactView]"
     [hasToDisplayCountdown]="building && building.unit.id === unit.id && building.pendingMillis"
     [countdownDate]="building && building.browserComputedTerminationDate">
+    <ng-template owgeCoreContent select="extra-header">
+      {{ unit.typeName }}
+    </ng-template>
     <ng-template owgeCoreContent select="extra-section">
       <a class="btn" (click)="selectedView = 'requirements'"
         [ngClass]="{ 'selected-menu': selectedView === 'requirements'}">{{ 'APP.UNITS.DISPLAY_SINGLE.REQUIREMENTS' |

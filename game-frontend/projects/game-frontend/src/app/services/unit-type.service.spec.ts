@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { UnitType } from '@owge/universe';
 
-import { UnitTypeService } from './unit-type.service';
+import { UnitTypeService } from '../../../../owge-universe/src/lib/services/unit-type.service';
 import { CommonServiceTestHelper } from '../../helpers/common-service-test.helper';
 import { TestMetadataBuilder } from '../../helpers/test-metadata.builder';
 import { LoginSessionService } from '../login-session/login-session.service';

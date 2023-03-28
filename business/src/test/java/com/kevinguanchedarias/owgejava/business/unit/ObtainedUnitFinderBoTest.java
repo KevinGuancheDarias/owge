@@ -80,7 +80,7 @@ class ObtainedUnitFinderBoTest {
         }
         sig.setRequirementGroups(List.of(requirementGroup));
         unit.setInterceptableSpeedGroups(isgList);
-        given(hiddenUnitBo.isHiddenUnit(ou)).willReturn(true);
+        given(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).willReturn(true);
         given(speedImpactGroupFinderBo.findApplicable(user, unit)).willReturn(sig);
         given(obtainedUnitRepository.findDeployedInUserOwnedPlanets(USER_ID_1))
                 .willReturn(List.of(ou));
@@ -93,7 +93,7 @@ class ObtainedUnitFinderBoTest {
             }
             hibernateMock.verify(() -> Hibernate.initialize(isgList));
             verify(entityManager, times(1)).detach(unit);
-            verify(hiddenUnitBo, times(1)).isHiddenUnit(ou);
+            verify(hiddenUnitBo, times(1)).isHiddenUnit(ou.getUser(), ou.getUnit());
             verify(speedImpactGroupFinderBo, times(hasSig ? 0 : 1)).findApplicable(user, unit);
             assertThat(result)
                     .hasSize(1);

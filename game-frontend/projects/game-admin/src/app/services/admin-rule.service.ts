@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@angular/core';
 import { IdName, ProgrammingError } from '@owge/core';
-import { UniverseGameService } from '@owge/universe';
+import { UniverseGameService, Rule } from '@owge/universe';
 import { combineLatest, Observable } from 'rxjs';
 import { map, take, tap } from 'rxjs/operators';
 import { RuleTypeDescriptor } from '../types/rule-type-descriptor.type';
-import { Rule } from '../types/rule.type';
 import {
     RuleDestinationProviderService,
     ruleDestinationProviderServiceToken

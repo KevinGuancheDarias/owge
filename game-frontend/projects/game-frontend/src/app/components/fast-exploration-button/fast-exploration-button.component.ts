@@ -1,8 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MissionUtil, ToastrService } from '@owge/core';
-import { MissionStore, ObtainedUnit, Planet, UnitRunningMission } from '@owge/universe';
+import { MissionStore, ObtainedUnit, Planet, UnitRunningMission, MissionService } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
-import { MissionService } from '../../services/mission.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
 
 interface DisplayQuadrantUnitRunningMission extends UnitRunningMission {

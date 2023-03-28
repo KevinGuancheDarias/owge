@@ -9,48 +9,50 @@ import { Subscription } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WidgetDisplayImageComponent implements OnChanges, OnDestroy {
+  private static readonly commonTheme = 'common';
 
-  @Input()
-  public image: string;
-
-  @Input()
-  public title: string;
-
-  @Input()
-  public staticImage = false;
-
-  @Input()
-  public assetsImage = false;
+  @Input() image: string;
+  @Input() title: string;
+  @Input() staticImage = false;
+  @Input() assetsImage = false;
+  @Input() isCommonAssetImage = false;
+  @Input() width: number = undefined;
+  @Input() height: number = undefined;
 
   /**
-   * @var {string} Can be one or multiple CSS classes, delimited by space
+   * @var {string} customClass Can be one or multiple CSS classes, delimited by space
    */
-  @Input()
-  public customClass: string;
+  @Input() customClass: string;
 
-  public parsedImage: string;
+  parsedImage: string;
 
   private _log: LoggerHelper = new LoggerHelper(this.constructor.name);
-  private currentTheme: string;
   private assetsSubscription: Subscription;
 
-  public constructor(private _cdr: ChangeDetectorRef, private themeService: ThemeService) {}
+  constructor(private _cdr: ChangeDetectorRef, private themeService: ThemeService) {}
 
-  public ngOnChanges(): void {
+  ngOnChanges(): void {
     if(this.assetsImage) {
-      this.assetsSubscription = this.themeService.currentTheme$.subscribe(theme => {
-          this.currentTheme = theme;
-          this.parsedImage = this._findFullPath(this.image);
-        });
+      this.resolveAssetImage();
     } else {
       this.unsubscribeAssets();
-      this.parsedImage = this._findFullPath(this.image);
+      this.parsedImage = this.findFullPath(this.image);
       this._cdr.detectChanges();
     }
   }
 
-  public ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.unsubscribeAssets();
+  }
+
+  private resolveAssetImage(): void {
+    if(this.isCommonAssetImage) {
+      this.parsedImage = this.findFullPath(this.image, WidgetDisplayImageComponent.commonTheme);
+    } else {
+      this.assetsSubscription = this.themeService.currentTheme$.subscribe(theme => {
+        this.parsedImage = this.findFullPath(this.image, theme);
+      });
+    }
   }
 
   private unsubscribeAssets(): void {
@@ -60,12 +62,12 @@ export class WidgetDisplayImageComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private _findFullPath(image: string) {
+  private findFullPath(image: string, theme?: string) {
     if (this.staticImage) {
       return MEDIA_ROUTES.STATIC_IMAGES_ROOT + image;
     } else if (this.assetsImage) {
-      return `/theme/assets/${this.currentTheme}/img/${image}`;
-    } else if (this._isAbsoluteUrl(image) || this._isDynamicAbsolutePath(image)) {
+      return `/theme/assets/${theme}/img/${image}`;
+    } else if (this.isAbsoluteUrl(image) || this.isDynamicAbsolutePath(image)) {
       return image;
     } else {
       this._log.todo([
@@ -76,11 +78,11 @@ export class WidgetDisplayImageComponent implements OnChanges, OnDestroy {
     }
   }
 
-  private _isAbsoluteUrl(image: string): boolean {
+  private isAbsoluteUrl(image: string): boolean {
     return image.startsWith('https://') || image.startsWith('http://');
   }
 
-  private _isDynamicAbsolutePath(image: string): boolean {
+  private isDynamicAbsolutePath(image: string): boolean {
     return image.startsWith('/dynamic');
   }
 

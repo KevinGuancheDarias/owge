@@ -1,11 +1,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ModalComponent, UnitType, User } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import { ImprovementUtil, ObtainedUnit, Unit, UnitBuildRunningMission, UserStorage } from '@owge/universe';
+import { ImprovementUtil, ObtainedUnit, Unit, UnitBuildRunningMission, UserStorage, UnitTypeService } from '@owge/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
-import { UnitTypeService } from '../services/unit-type.service';
 import { CriticalAttackInformation } from '../types/critical-attack-information.type';
 import { BaseComponent } from './../base/base.component';
 import { UnitService } from './../service/unit.service';

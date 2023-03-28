@@ -9,10 +9,7 @@ import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
@@ -33,7 +30,6 @@ import java.util.function.Function;
 public class UnitRestService implements SyncSource {
 
     private final UserSessionService userSessionService;
-    private final UnlockedRelationBo unlockedRelationBo;
     private final MissionBo missionBo;
     private final MissionFinderBo missionFinderBo;
     private final ObtainedUnitBo obtainedUnitBo;
@@ -101,12 +97,7 @@ public class UnitRestService implements SyncSource {
     }
 
     private List<UnitDto> findUnlocked(UserStorage user) {
-        List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
-                unlockedRelationBo.findByUserIdAndObjectType(user.getId(), ObjectEnum.UNIT));
-        var ous = units.stream()
-                .map(unit -> ObtainedUnit.builder().unit(unit).user(user).build())
-                .toList();
-        return obtainedUnitFinderBo.findCompletedAsDto(user, ous).stream().map(ObtainedUnitDto::getUnit).toList();
+        return unitBo.findAllByUser(user);
     }
 
     private List<ObtainedUnitDto> findInMyPlanets(UserStorage user) {

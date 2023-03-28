@@ -25,13 +25,15 @@ public class CrossGalaxyMissionChecker {
 
     public void checkCrossGalaxy(MissionType missionType, List<ObtainedUnit> units, Planet sourcePlanet,
                                  Planet targetPlanet) {
-        UserStorage user = units.get(0).getUser();
+        var user = units.get(0).getUser();
         if (!sourcePlanet.getGalaxy().getId().equals(targetPlanet.getGalaxy().getId())) {
-            units.forEach(unit -> {
-                var speedGroup = unit.getUnit().getSpeedImpactGroup();
-                speedGroup = speedGroup == null ? unit.getUnit().getType().getSpeedImpactGroup() : speedGroup;
-                doCheckSpeedImpactIfNotNull(speedGroup, user, targetPlanet, missionType);
-            });
+            units
+                    .stream().filter(obtainedUnit -> obtainedUnit.getOwnerUnit() == null)
+                    .forEach(unit -> {
+                        var speedGroup = unit.getUnit().getSpeedImpactGroup();
+                        speedGroup = speedGroup == null ? unit.getUnit().getType().getSpeedImpactGroup() : speedGroup;
+                        doCheckSpeedImpactIfNotNull(speedGroup, user, targetPlanet, missionType);
+                    });
         }
     }
 

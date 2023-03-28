@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.dto.InterceptableSpeedGroupDto;
 import com.kevinguanchedarias.owgejava.dto.UnitDto;
 import com.kevinguanchedarias.owgejava.entity.CriticalAttack;
@@ -14,10 +16,12 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hibernate.Hibernate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.io.Serial;
 import java.util.List;
 
@@ -36,8 +40,10 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
     private final SpeedImpactGroupBo speedImpactGroupBo;
 
     private final transient CriticalAttackBo criticalAttackBo;
-
     private final ObtainedUnitRepository obtainedUnitRepository;
+    private final transient EntityManager entityManager;
+    private final transient HiddenUnitBo hiddenUnitBo;
+    private final transient SpeedImpactGroupFinderBo speedImpactGroupFinderBo;
 
     @Override
     public JpaRepository<Unit, Integer> getRepository() {
@@ -126,5 +132,26 @@ public class UnitBo implements WithNameBo<Integer, Unit, UnitDto>, WithUnlockabl
     public CriticalAttack findUsedCriticalAttack(int unitId) {
         var unit = findByIdOrDie(unitId);
         return ObjectUtils.firstNonNull(unit.getCriticalAttack(), criticalAttackBo.findUsedCriticalAttack(unit.getType()));
+    }
+
+    @Transactional
+    public List<UnitDto> findAllByUser(UserStorage user) {
+        List<Unit> units = unlockedRelationBo.unboxToTargetEntity(
+                unlockedRelationBo.findByUserIdAndObjectType(user.getId(), ObjectEnum.UNIT)
+        );
+        units.forEach(unit -> {
+            Hibernate.initialize(unit.getInterceptableSpeedGroups());
+            Hibernate.initialize(unit.getSpeedImpactGroup());
+            entityManager.detach(unit);
+            unit.setIsInvisible(hiddenUnitBo.isHiddenUnit(user, unit));
+            if (unit.getSpeedImpactGroup() == null) {
+                unit.setSpeedImpactGroup(speedImpactGroupFinderBo.findApplicable(user, unit));
+                unit.getSpeedImpactGroup().setRequirementGroups(null);
+            } else {
+                unit.getSpeedImpactGroup().setRequirementGroups(null);
+            }
+            unit.getSpeedImpactGroup().setRequirementGroups(null);
+        });
+        return toDto(units);
     }
 }

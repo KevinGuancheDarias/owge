@@ -4,7 +4,7 @@ import { AbstractModalContainerComponent, IdName, ModalComponent } from '@owge/c
 import { Observable, Subscription } from 'rxjs';
 import { AdminRuleService } from '../../services/admin-rule.service';
 import { RuleTypeDescriptor } from '../../types/rule-type-descriptor.type';
-import { Rule } from '../../types/rule.type';
+import { Rule } from '@owge/universe';
 
 @Component({
   selector: 'app-rules-modal',
