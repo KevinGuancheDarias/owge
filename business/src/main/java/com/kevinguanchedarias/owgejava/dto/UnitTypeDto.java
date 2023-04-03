@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
-public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEntity<UnitType> {
+public class UnitTypeDto extends DtoWithMissionLimitation<UnitType> implements DtoFromEntity<UnitType> {
     @EqualsAndHashCode.Include
     private Integer id;
 
@@ -33,6 +33,7 @@ public class UnitTypeDto extends DtoWithMissionLimitation implements DtoFromEnti
 
     @Override
     public void dtoFromEntity(UnitType entity) {
+        defineMissionLimitation(entity);
         copyBasicProperties(entity);
         if (entity.getImage() != null) {
             image = entity.getImage().getId();

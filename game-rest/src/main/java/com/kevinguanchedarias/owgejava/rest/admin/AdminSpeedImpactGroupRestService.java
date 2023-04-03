@@ -30,7 +30,7 @@ public class AdminSpeedImpactGroupRestService
         CrudWithRequirementGroupsRestServiceTrait<SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> {
 
     private final AutowireCapableBeanFactory beanFactory;
-    private final SpeedImpactGroupRepository SpeedImpactGroupRepository;
+    private final SpeedImpactGroupRepository speedImpactGroupRepository;
 
     @Override
     public ObjectEnum getObject() {
@@ -41,7 +41,7 @@ public class AdminSpeedImpactGroupRestService
     public RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> getRestCrudConfigBuilder() {
         RestCrudConfigBuilder<Integer, SpeedImpactGroup, SpeedImpactGroupRepository, SpeedImpactGroupDto> builder = RestCrudConfigBuilder
                 .create();
-        return builder.withBeanFactory(beanFactory).withRepository(SpeedImpactGroupRepository)
+        return builder.withBeanFactory(beanFactory).withRepository(speedImpactGroupRepository)
                 .withDtoClass(SpeedImpactGroupDto.class).withEntityClass(SpeedImpactGroup.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
     }

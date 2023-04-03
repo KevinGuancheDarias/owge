@@ -75,7 +75,7 @@ class CrossGalaxyMissionCheckerTest {
 
         assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), givenTargetPlanet()));
 
-        verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(), any());
+        verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(SpeedImpactGroup.class), any());
     }
 
     @Test
@@ -86,7 +86,7 @@ class CrossGalaxyMissionCheckerTest {
 
         assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), targetPlanet));
 
-        verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(), any());
+        verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(SpeedImpactGroup.class), any());
     }
 
     @Test

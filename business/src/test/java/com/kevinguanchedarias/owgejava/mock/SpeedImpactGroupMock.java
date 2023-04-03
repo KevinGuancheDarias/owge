@@ -11,6 +11,7 @@ public class SpeedImpactGroupMock {
         return SpeedImpactGroup.builder()
                 .id(id)
                 .isFixed(false)
+                .name("FOO_SPEED_GROUP")
                 .build();
     }
 

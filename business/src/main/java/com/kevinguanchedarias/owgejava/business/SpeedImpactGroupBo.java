@@ -1,12 +1,12 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
+import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.dto.ObjectRelationDto;
 import com.kevinguanchedarias.owgejava.dto.SpeedImpactGroupDto;
 import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationToObjectRelationRepository;
-import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
 import com.kevinguanchedarias.owgejava.repository.SpeedImpactGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
@@ -53,7 +53,7 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     private transient RequirementGroupRepository requirementGroupRepository;
 
     @Autowired
-    private ObtainedUnitRepository obtainedUnitRepository;
+    private transient ObtainedUnitFinderBo obtainedUnitFinderBo;
 
     @Override
     public JpaRepository<SpeedImpactGroup, Integer> getRepository() {
@@ -117,15 +117,9 @@ public class SpeedImpactGroupBo implements BaseBo<Integer, SpeedImpactGroup, Spe
     }
 
     public boolean canIntercept(List<InterceptableSpeedGroup> interceptableSpeedGroups, UserStorage user, ObtainedUnit obtainedUnit) {
-        var unit = determineTargetUnit(obtainedUnit);
+        var unit = obtainedUnitFinderBo.determineTargetUnit(obtainedUnit);
         var speedImpactGroup = speedImpactGroupFinderBo.findApplicable(user, unit);
         return speedImpactGroup != null && interceptableSpeedGroups.stream().anyMatch(current -> current.getSpeedImpactGroup().getId()
                 .equals(speedImpactGroup.getId()));
-    }
-
-    private Unit determineTargetUnit(ObtainedUnit obtainedUnit) {
-        return obtainedUnit.getOwnerUnit() != null && obtainedUnit.getOwnerUnit().getId() != null
-                ? obtainedUnitRepository.findUnitByOuId(obtainedUnit.getOwnerUnit().getId())
-                : obtainedUnit.getUnit();
     }
 }

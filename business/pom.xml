@@ -27,6 +27,7 @@
             **/*Request.java,
             **/*Response.java,
             **/*Configuration.java,
+            **/com/kevinguanchedarias/owgejava/dto/base/**/*
             **/com/kevinguanchedarias/owgejava/entity/**/*,
             **/com/kevinguanchedarias/owgejava/pojo/**/*,
             **/com/kevinguanchedarias/owgejava/security/**/*,
@@ -228,6 +229,7 @@
                         <exclude>**/*Response.*</exclude>
                         <exclude>**/*Configuration.*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/entity/**/*</exclude>
+                        <exclude>**/com/kevinguanchedarias/owgejava/dto/base/**/*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/pojo/**/*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/security/**/*</exclude>
                         <exclude>**/com/kevinguanchedarias/owgejava/exception/**/*</exclude>
