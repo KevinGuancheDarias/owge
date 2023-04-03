@@ -96,6 +96,12 @@ public class ObtainedUnitFinderBo implements WithToDtoTrait<ObtainedUnit, Obtain
         return retVal;
     }
 
+    public Unit determineTargetUnit(ObtainedUnit obtainedUnit) {
+        return obtainedUnit.getOwnerUnit() != null && obtainedUnit.getOwnerUnit().getId() != null
+                ? obtainedUnitRepository.findUnitByOuId(obtainedUnit.getOwnerUnit().getId())
+                : obtainedUnit.getUnit();
+    }
+
     private void loadExtraDataToDto(List<ObtainedUnit> entities, List<ObtainedUnitDto> dtoList) {
         IntStream.range(0, dtoList.size()).forEach(i -> {
             var entity = entities.get(i);

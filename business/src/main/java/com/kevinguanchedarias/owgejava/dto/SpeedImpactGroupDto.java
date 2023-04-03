@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @Setter
-public class SpeedImpactGroupDto extends DtoWithMissionLimitation implements DtoFromEntity<SpeedImpactGroup> {
+public class SpeedImpactGroupDto extends DtoWithMissionLimitation<SpeedImpactGroup> implements DtoFromEntity<SpeedImpactGroup> {
     private Integer id;
     private String name;
     private Boolean isFixed = false;
@@ -31,6 +31,7 @@ public class SpeedImpactGroupDto extends DtoWithMissionLimitation implements Dto
     @Override
     public void dtoFromEntity(SpeedImpactGroup entity) {
         initBaseData(entity);
+        defineMissionLimitation(entity);
         id = entity.getId();
         if (entity.getRequirementGroups() != null) {
             requirementsGroups = entity.getRequirementGroups().stream().map(current -> {

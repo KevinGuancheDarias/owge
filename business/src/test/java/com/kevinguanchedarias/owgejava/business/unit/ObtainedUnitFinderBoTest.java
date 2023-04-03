@@ -3,12 +3,16 @@ package com.kevinguanchedarias.owgejava.business.unit;
 
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.SpeedImpactGroupFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.loader.UnitDataLoader;
+import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.RequirementGroup;
+import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,10 +20,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.InterceptableSpeedGroupMock.givenInterceptableSpeedGroup;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.*;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
@@ -137,5 +141,38 @@ class ObtainedUnitFinderBoTest {
                 .contains(ou2)
                 .hasSize(2);
 
+    }
+
+    @ParameterizedTest
+    @MethodSource("determineTargetUnit_should_work_arguments")
+    void determineTargetUnit_should_work(
+            ObtainedUnit ou,
+            ObtainedUnit ownerOu,
+            Unit expectedUnit,
+            int timesFindUnitByOu) {
+        ou.setOwnerUnit(ownerOu);
+        if (ownerOu != null) {
+            given(obtainedUnitRepository.findUnitByOuId(ownerOu.getId())).willReturn(ownerOu.getUnit());
+        }
+
+        var unit = obtainedUnitFinderBo.determineTargetUnit(ou);
+
+        verify(obtainedUnitRepository, times(timesFindUnitByOu)).findUnitByOuId(ownerOu != null ? ownerOu.getId() : any());
+        assertThat(unit).isEqualTo(expectedUnit);
+    }
+
+    private static Stream<Arguments> determineTargetUnit_should_work_arguments() {
+        var ouWithoutOwner = givenObtainedUnit1();
+        var ownerUnit = new Unit();
+        ownerUnit.setId(192814);
+        var ownerOu = ouWithoutOwner.toBuilder()
+                .id(OBTAINED_UNIT_1_ID + 1)
+                .unit(ownerUnit)
+                .build();
+        var ouWithOwner = ouWithoutOwner.toBuilder().ownerUnit(ownerOu).build();
+        return Stream.of(
+                Arguments.of(ouWithoutOwner, null, ouWithoutOwner.getUnit(), 0),
+                Arguments.of(ouWithOwner, ownerOu, ownerUnit, 1)
+        );
     }
 }

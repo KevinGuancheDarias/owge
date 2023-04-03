@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Fix:__ [Allow/deny mission for specified speed impact group is not working #491](https://github.com/KevinGuancheDarias/owge/issues/491)  
 * __Feature:__ [As a player I want to send units stored in other units #268](https://github.com/KevinGuancheDarias/owge/issues/268)  
 * __Improvement:__ Greatly improve sync performance  
 * __Fix:__ Invisible units crashing the home screen when enemy users has incoming invisible units in a visible mission (only neon theme)
