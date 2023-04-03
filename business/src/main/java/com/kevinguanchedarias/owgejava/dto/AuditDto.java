@@ -15,6 +15,7 @@ public class AuditDto implements DtoFromEntity<Audit> {
     private AuditActionEnum action;
     private String actionDetail;
     private String ip;
+    private String ipv6;
     private String userAgent;
     private String cookie;
 
@@ -23,7 +24,8 @@ public class AuditDto implements DtoFromEntity<Audit> {
         id = entity.getId();
         action = entity.getAction();
         actionDetail = entity.getActionDetail();
-        ip = entity.getIp();
+        ip = entity.getIpv4();
+        ipv6 = entity.getIpv6();
         userAgent = entity.getUserAgent();
         cookie = entity.getCookie();
     }
