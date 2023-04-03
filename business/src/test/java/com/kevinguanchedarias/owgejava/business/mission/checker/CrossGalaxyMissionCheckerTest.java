@@ -7,7 +7,6 @@ import com.kevinguanchedarias.owgejava.entity.SpeedImpactGroup;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,19 +22,20 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.givenGalaxy;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit2;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.SPEED_IMPACT_GROUP_ID;
 import static com.kevinguanchedarias.owgejava.mock.SpeedImpactGroupMock.givenSpeedImpactGroup;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
@@ -73,7 +73,7 @@ class CrossGalaxyMissionCheckerTest {
         var ou = givenObtainedUnit1();
         ou.getUnit().setSpeedImpactGroup(givenSpeedImpactGroup());
 
-        Assertions.assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), givenTargetPlanet()));
+        assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), givenTargetPlanet()));
 
         verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(), any());
     }
@@ -84,9 +84,28 @@ class CrossGalaxyMissionCheckerTest {
         var targetPlanet = givenTargetPlanet();
         targetPlanet.setGalaxy(Galaxy.builder().id(OTHER_GALAXY_ID).build());
 
-        Assertions.assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), targetPlanet));
+        assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(MissionType.ATTACK, List.of(ou), givenSourcePlanet(), targetPlanet));
 
         verify(entityCanDoMissionChecker, never()).canDoMission(any(), any(), any(), any());
+    }
+
+    @Test
+    void checkCrossGalaxy_should_ignore_stored_units() {
+        var spi = givenSpeedImpactGroup();
+        var ou = givenObtainedUnit1();
+        var user = ou.getUser();
+        ou.getUnit().setSpeedImpactGroup(spi);
+        var storedOu = givenObtainedUnit2().toBuilder().user(user).ownerUnit(ou).build();
+        storedOu.getUnit().setSpeedImpactGroup(spi);
+        var targetPlanetWithOtherGalaxy = givenTargetPlanet().toBuilder().galaxy(givenGalaxy(4)).build();
+        given(entityCanDoMissionChecker.canDoMission(user, targetPlanetWithOtherGalaxy, spi, MissionType.EXPLORE)).willReturn(true);
+
+        assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(
+                MissionType.EXPLORE, List.of(ou, storedOu), givenSourcePlanet(), targetPlanetWithOtherGalaxy
+        ));
+
+        verify(entityCanDoMissionChecker, times(1))
+                .canDoMission(user, targetPlanetWithOtherGalaxy, spi, MissionType.EXPLORE);
     }
 
     @ParameterizedTest
@@ -130,7 +149,7 @@ class CrossGalaxyMissionCheckerTest {
         targetPlanet.setGalaxy(Galaxy.builder().id(OTHER_GALAXY_ID).build());
         given(entityCanDoMissionChecker.canDoMission(user, targetPlanet, speedImpactGroup, missionType)).willReturn(true);
 
-        Assertions.assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(missionType, ouList, sourcePlanet, targetPlanet));
+        assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(missionType, ouList, sourcePlanet, targetPlanet));
 
         verify(objectRelationBo, times(1)).findOne(ObjectEnum.SPEED_IMPACT_GROUP, SPEED_IMPACT_GROUP_ID);
         verify(unlockedRelationBo, never()).isUnlocked(any(), any());
@@ -155,7 +174,7 @@ class CrossGalaxyMissionCheckerTest {
         given(unlockedRelationBo.isUnlocked(user, or)).willReturn(isUnlocked);
 
         if (isUnlocked) {
-            Assertions.assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(missionType, ouList, sourcePlanet, targetPlanet));
+            assertDoesNotThrow(() -> crossGalaxyMissionChecker.checkCrossGalaxy(missionType, ouList, sourcePlanet, targetPlanet));
         } else {
             assertThatThrownBy(() ->
                     crossGalaxyMissionChecker.checkCrossGalaxy(missionType, ouList, sourcePlanet, targetPlanet)

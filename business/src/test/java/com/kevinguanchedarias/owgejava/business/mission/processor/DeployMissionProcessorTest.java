@@ -100,14 +100,14 @@ class DeployMissionProcessorTest {
         var alteredUnit = ou.toBuilder().id(4L).mission(deployedMission).build();
         given(missionUnitsFinderBo.findUnitsInvolved(DEPLOY_MISSION_ID)).willReturn(List.of(ou));
         given(obtainedUnitBo.moveUnit(ou, USER_ID_1, TARGET_PLANET_ID)).willReturn(alteredUnit);
-        given(hiddenUnitBo.isHiddenUnit(partnerUnit)).willReturn(isHidden);
+        given(hiddenUnitBo.isHiddenUnit(eq(user), any())).willReturn(isHidden);
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
 
         var retVal = deployMissionProcessor.process(mission, List.of(ou));
 
         assertThat(retVal).isNull();
 
-        verify(hiddenUnitBo, times(timesHiddenUnit)).isHiddenUnit(partnerUnit);
+        verify(hiddenUnitBo, times(timesHiddenUnit)).isHiddenUnit(eq(user), any());
         if (deployedMission != null) {
             assertThat(deployedMission.getInvisible()).isEqualTo(isHidden);
         }

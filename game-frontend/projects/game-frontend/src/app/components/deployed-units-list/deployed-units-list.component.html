@@ -4,28 +4,41 @@
   <button *ngIf="selectable && areAllSelected" (click)="clickUnselectAll()"
     class="btn btn-block owge-theme-base-colors">{{'APP.DEPLOYED_UNIT_LIST.BTN_UNSELECT_ALL' | translate }}</button>
   <div *ngIf="!showUsername" class="owge-card-list" [ngClass]="{'tiny-imgs': useTiny}">
-    <div class="card owge" *ngFor="let obtainedUnit of obtainedUnits, let i = index">
+    <div class="card owge" *ngFor="let currentSelection of selectionStructure, let i = index">
       <div class="card-block card-header-block">
         <div class="card-title owge-theme-background-color-alpha">
-          <span *owgeCoreIfTheme="'classic'">{{ obtainedUnit.count }}</span>
-          <ng-template owgeCoreIfTheme="neon">
-            <span *ngFor="let num of obtainedUnit.count.toString().split('')">{{ num }}</span>
+          <span *owgeCoreIfTheme="'classic'">{{ currentSelection.obtainedUnit.count }}</span>
+          <ng-template owgeCoreIfTheme="neon" *ngIf="currentSelection.obtainedUnit.count">
+            <span *ngFor="let num of currentSelection.obtainedUnit.count.toString().split('')">{{ num }}</span>
           </ng-template>
-          <owge-widgets-countdown *ngIf="obtainedUnit.temporalInformation"
-            [targetDate]="obtainedUnit.temporalInformation.expirationDate"></owge-widgets-countdown>
+          <owge-widgets-display-image 
+            *ngIf="showStoredUnits && currentSelection.obtainedUnit?.storedUnits?.length" 
+            (click)="doDisplayStoredUnits(currentSelection.obtainedUnit)"
+            image="stored_ico.png" [assetsImage]="true" [isCommonAssetImage]="true" [width]="15" [height]="15">
+          </owge-widgets-display-image>
+          <owge-widgets-countdown *ngIf="currentSelection.obtainedUnit.temporalInformation"
+            [targetDate]="currentSelection.obtainedUnit.temporalInformation.expirationDate"></owge-widgets-countdown>
         </div>
-        <img *ngIf="obtainedUnit.unit" [src]="obtainedUnit.unit.imageUrl" />
-        <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'">
+        <img *ngIf="currentSelection.obtainedUnit.unit" [src]="currentSelection.obtainedUnit.unit.imageUrl" />
+        <owge-widgets-display-image *ngIf="!currentSelection.obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'">
         </owge-widgets-display-image>
       </div>
       <div class="card-block input-count" *ngIf="selectable">
-        <input class="owge-theme-base-colors" min="0" [max]="obtainedUnit.count" type="number"
-          [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]"
-          (ngModelChange)="selectionChanged()" />
-        <span (click)="selectedCounts[i] = obtainedUnit.count; selectionChanged()"
+        <input #countInput class="owge-theme-base-colors" min="0" [max]="currentSelection.obtainedUnit.count" type="number"
+          [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [ngModel]="currentSelection.selectedCount"
+          (change)="selectionChanged(currentSelection, $event)" />
+        <span (click)="selectionChanged()"
           class="owge-theme-hover-background-color-alt">
           <i class="fa fa-globe"></i>
         </span>
+      </div>
+      <div class="card-block stored-units" *ngIf="selectable && currentSelection.obtainedUnit.unit.storageCapacity">
+        <owge-widgets-circular-percentage (clickIcon)="doShowStoredUnits(currentSelection)" [size]="40" 
+          [percentage]="(currentSelection.usedWeight * 100) / (currentSelection.selectedCount * currentSelection.obtainedUnit.unit.storageCapacity)">
+          <owge-widgets-display-image 
+            image="stored_ico.png" [assetsImage]="true" [isCommonAssetImage]="true" [width]="27" [height]="27">
+          </owge-widgets-display-image>
+        </owge-widgets-circular-percentage>
       </div>
     </div>
   </div>
@@ -45,14 +58,6 @@
           <owge-widgets-display-image *ngIf="!obtainedUnit.unit" [assetsImage]="true" [image]="'invisible_unit.png'">
           </owge-widgets-display-image>
         </div>
-        <div class="card-block input-count" *ngIf="selectable">
-          <input class="owge-theme-base-colors" min="0" [max]="obtainedUnit.count" type="number"
-            [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [(ngModel)]="selectedCounts[i]"
-            (ngModelChange)="selectionChanged()" />
-          <span (click)="selectedCounts[i] = obtainedUnit.count; selectionChanged()">
-            <i class="fa fa-globe"></i>
-          </span>
-        </div>
       </div>
     </div>
   </ng-container>
@@ -60,3 +65,48 @@
     {{ 'APP.UNITS.IN_PLANET.NO_UNITS' | translate }}
   </div>
 </owge-core-loading>
+<owge-core-modal #ableToStoreUnitModal [hasCloseButton]="true" [extraClasses]="{'stored-unit-modal': true}">
+  <div class="header">
+    {{ 'APP.DEPLOYED_UNIT_LIST.STORED_UNITS_MODAL.TITLE' | translate: {
+      selectedUnitName: currentSelectionForStoring?.obtainedUnit?.unit?.name, count: currentSelectionForStoring?.selectedCount
+    } }}
+  </div>
+  <div class="body" *ngIf="currentSelectionForStoring">
+    <p class="owge-theme-base-colors weight-info">
+      {{ 'APP.DEPLOYED_UNIT_LIST.STORED_UNITS_MODAL.WEIGHT_INFO' | translate: {
+        storageCapacity: currentSelectionForStoring.selectedCount * currentSelectionForStoring.obtainedUnit.unit.storageCapacity,
+        usedWeight: currentSelectionForStoring.usedWeight
+      } }}
+    </p>
+    <div class="card owge" *ngFor="let currentSelection of currentSelectionForStoring.storedUnitsSelection, let i = index">
+      <div class="card-block card-header-block">
+        <div class="card-title owge-theme-background-color-alpha">
+          <span *owgeCoreIfTheme="'classic'">{{ currentSelection.obtainedUnit.count }}</span>
+          <ng-template owgeCoreIfTheme="neon">
+            <span *ngFor="let num of currentSelection.obtainedUnit.count.toString().split('')">{{ num }}</span>
+          </ng-template>
+          <owge-widgets-countdown *ngIf="currentSelection.obtainedUnit.temporalInformation"
+            [targetDate]="currentSelection.obtainedUnit.temporalInformation.expirationDate"></owge-widgets-countdown>
+        </div>
+        <img *ngIf="currentSelection.obtainedUnit.unit" [src]="currentSelection.obtainedUnit.unit.imageUrl" />
+      </div>
+      <div class="card-block input-count" *ngIf="selectable">
+        <input #inputForStoringCount class="owge-theme-base-colors" min="0" [max]="currentSelection.obtainedUnit.count" type="number" [ngModel]="currentSelection.selectedCount"
+          [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" (change)="updateStoredCount(currentSelection,$event)"/>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <button (click)="clickSaveStoredUnits()" class="btn-primary">{{ 'GLOBAL.BTN_CLOSE' | translate }}</button>
+  </div>
+</owge-core-modal>
+<owge-core-modal #storedUnitDisplayModal [hasCloseButton]="true">
+  <div class="header">
+    {{ 'APP.DEPLOYED_UNIT_LIST.STORED_UNITS_MODAL.TITLE' | translate: {
+      selectedUnitName: unitToDisplayInStoredUnits?.unit?.name, count: unitToDisplayInStoredUnits?.count
+    } }}
+  </div>
+  <div class="body">
+    <app-deployed-units-list *ngIf="showStoredUnits && unitToDisplayInStoredUnits" [obtainedUnits]="unitToDisplayInStoredUnits.storedUnits"></app-deployed-units-list>
+  </div>
+</owge-core-modal>

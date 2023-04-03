@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, Input, ViewChild, ElementRef, OnChanges } from '@angular/core';
+import { Component, AfterViewInit, Input, ViewChild, ElementRef, OnChanges, Output, EventEmitter } from '@angular/core';
 
 
 /**
@@ -16,6 +16,7 @@ import { Component, AfterViewInit, Input, ViewChild, ElementRef, OnChanges } fro
 export class WidgetCircularPercentageComponent implements OnChanges, AfterViewInit {
   @Input() public percentage: number;
   @Input() public size = 150;
+  @Output() clickIcon: EventEmitter<void> = new EventEmitter;
 
   @ViewChild('progress') private _progress: ElementRef<HTMLDivElement>;
   @ViewChild('left') private _left: ElementRef<HTMLSpanElement>;

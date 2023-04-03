@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
+import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,9 +63,9 @@ class MissionRegistrationUnitManagerTest {
                 .firstDeploymentMission(firstDeploymentMission)
                 .expirationId(expirationId)
                 .build();
-        var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, expirationId), ouDb);
+        var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, expirationId), new UnitWithItsStoredUnits(ouDb, null));
         var unit = givenUnit1();
-        given(unitRepository.getById(UNIT_ID_1)).willReturn(unit);
+        given(unitRepository.getReferenceById(UNIT_ID_1)).willReturn(unit);
 
         var retVal = missionRegistrationUnitManager.manageUnitsRegistration(information, dbUnits, isEnemyPlanet, user, mission);
 

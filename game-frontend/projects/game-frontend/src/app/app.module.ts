@@ -13,7 +13,8 @@ import {
 } from '@owge/core';
 import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
-  OwgeUniverseModule, SystemMessageService, UniverseGameService, UserStorage, WebsocketService, WsEventCacheService
+  OwgeUniverseModule, SystemMessageService, UniverseGameService,
+  UserStorage, WebsocketService, WsEventCacheService
 } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { Level, Log } from 'ng2-logger/browser';
@@ -69,12 +70,10 @@ import { ServiceLocator } from './service-locator/service-locator';
 import { NavigationService } from './service/navigation.service';
 import { UnitService } from './service/unit.service';
 import { UpgradeService } from './service/upgrade.service';
-import { MissionService } from './services/mission.service';
 import { ReportService } from './services/report.service';
 import { SanitizeService } from './services/sanitize.service';
 import { TimeSpecialService } from './services/time-specials.service';
 import { TwitchService } from './services/twitch.service';
-import { UnitTypeService } from './services/unit-type.service';
 import { UpgradeTypeService } from './services/upgrade-type.service';
 import { UnitsComponent } from './units/units.component';
 import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
@@ -205,9 +204,7 @@ export const APP_ROUTES: Routes = [
     LoadingService,
     ReportService,
     SanitizeService,
-    UnitTypeService,
     UpgradeTypeService,
-    MissionService,
     TimeSpecialService,
     TwitchService,
     SystemMessageService,
@@ -249,10 +246,8 @@ export class AppModule {
       .subscribe(conf => {
         this._websocketService.addEventHandler(
           new PingWebsocketApplicationHandler(this.themeService),
-          this._injector.get(MissionService),
           this._injector.get(UpgradeService),
           this._injector.get(UnitService),
-          this._injector.get(UnitTypeService),
           this._injector.get(PlanetService),
           this._injector.get(ReportService),
           this._injector.get(TimeSpecialService),

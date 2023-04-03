@@ -3,17 +3,21 @@ import {
   AbstractWebsocketApplicationHandler, DateUtil, LoadingService, MissionSupport,
   MissionType, ProgrammingError, ResourcesEnum, TypeWithMissionLimitation, User
 } from '@owge/core';
-import {
-  AnyRunningMission, MissionStore, Planet, ResourceManagerService, RunningMission,
-  UnitRunningMission, UnitUtil, UniverseCacheManagerService, UniverseGameService, UserStorage, WsEventCacheService
-} from '@owge/universe';
+
 import { camelCase, upperFirst } from 'lodash-es';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { SelectedUnit } from '../shared/types/selected-unit.type';
-
-
-
+import { Planet } from '../pojos/planet.pojo';
+import { MissionStore } from '../storages/mission.store';
+import { UserStorage } from '../storages/user.storage';
+import { AnyRunningMission } from '../types/any-running-mission.type';
+import { RunningMission } from '../types/running-mission.type';
+import { SelectedUnit } from '../types/selected-unit.type';
+import { UnitRunningMission } from '../types/unit-running-mission.type';
+import { UnitUtil } from '../utils/unit.util';
+import { ResourceManagerService } from './resource-manager.service';
+import { UniverseGameService } from './universe-game.service';
+import { WsEventCacheService } from './ws-event-cache.service';
 
 @Injectable()
 export class MissionService extends AbstractWebsocketApplicationHandler {
@@ -25,7 +29,6 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     private _loadingService: LoadingService,
     userStore: UserStorage<User>,
     private _missionStore: MissionStore,
-    private _universeCacheManagerService: UniverseCacheManagerService,
     private _wsEventCacheService: WsEventCacheService,
     private _resourceManagerService: ResourceManagerService
   ) {
@@ -283,7 +286,8 @@ export class MissionService extends AbstractWebsocketApplicationHandler {
     return {
       id: unit.unit.id,
       count: unit.count,
-      expirationId: unit.expirationId
+      expirationId: unit.expirationId,
+      storedUnits: unit.storedUnits?.map(storedUnit => this.mapSelectedUnitToBackendExpected(storedUnit))
     };
   }
 }

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { ModalComponent } from '@owge/core';
 import { BaseComponent } from '../../base/base.component';
 import { UnitService } from '../../service/unit.service';
-import { MissionService } from '../../services/mission.service';
+import { MissionService } from '@owge/universe';
 import { PlanetPojo } from '../../shared-pojo/planet.pojo';
 import { UnitRunningMission } from '../../shared/types/unit-running-mission.type';
 import { MissionInformationStore } from '../../store/mission-information.store';

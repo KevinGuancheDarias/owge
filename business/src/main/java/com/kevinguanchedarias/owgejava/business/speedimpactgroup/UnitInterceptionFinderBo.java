@@ -34,7 +34,7 @@ public class UnitInterceptionFinderBo {
                 .toList();
         unitsWithInterception.forEach(unitWithInterception -> involvedUnits.stream().filter(
                         involved -> speedImpactGroupBo.canIntercept(
-                                unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUser(), involved.getUnit()
+                                unitWithInterception.getUnit().getInterceptableSpeedGroups(), involved.getUser(), involved
                         )
                 ).filter(involved -> !alreadyIntercepted.contains(involved) && allianceBo.areEnemies(unitWithInterception.getUser(), involved.getUser()))
                 .forEach(interceptedUnit -> {

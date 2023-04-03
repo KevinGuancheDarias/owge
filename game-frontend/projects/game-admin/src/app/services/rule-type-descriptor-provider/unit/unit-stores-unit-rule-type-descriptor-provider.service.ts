@@ -8,7 +8,7 @@ export class UnitStoresUnitRuleTypeDescriptorProviderService implements RuleType
     findRuleTypeDescriptor(): Observable<RuleTypeDescriptor> {
         return of({
             name: 'UNIT_STORES_UNIT',
-            allowedOrigins: ['UNIT'],
+            allowedOrigins: ['UNIT', 'UNIT_TYPE'],
             extraArgs: []
         });
     }

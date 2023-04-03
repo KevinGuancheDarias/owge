@@ -14,7 +14,8 @@
     "I18N_APP_UPDATE_DETECTED": "El juego se ha actualizado, refrescando pronto, o puedes refrescar tu mismo ",
     "I18N_ERR_ALLIANCE_IS_FULL": "La alianza está llena, prueba más tarde, los límites son un máximo absoluto, o en universos pequeños... un porcentaje del total de jugadores",
     "GLOBAL": {
-        "BTN_CLOSE": "Cerrar"
+        "BTN_CLOSE": "Cerrar",
+        "BTN_SAVE": "Guardar"
     },
     "APP": {
         "CONNECTED": "Conectado",
@@ -175,7 +176,13 @@
             "CHOOSE_COUNT": "Seleccionar cantidad",
             "BTN_SELECT_ALL": "Seleccionar todas",
             "BTN_UNSELECT_ALL": "Deseleccionar todas",
-            "OWNER_OF_UNITS": "Unidades del jugador {{username}}"
+            "OWNER_OF_UNITS": "Unidades del jugador {{username}}",
+            "STORED_UNITS_MODAL": {
+                "TITLE": "Almacenar unidades en {{selectedUnitName}} ({{count}})",
+                "NO_COUNT_SELECTED": "Debe seleccionarse al menos 1, para poder elegir unidades almacenadas",
+                "WEIGHT_INFO": "Capacidad usada {{usedWeight}} de {{storageCapacity}}",
+                "WOULD_OVERPASS_STORED_WEIGHT": "Se sobrepasaría el peso máximo soportado"
+            }
         },
         "NAVIGATION_CONTROLS": {
             "GALAXY": "Galaxia",

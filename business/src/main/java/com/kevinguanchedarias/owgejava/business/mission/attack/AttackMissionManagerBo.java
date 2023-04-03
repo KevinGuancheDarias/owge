@@ -70,10 +70,10 @@ public class AttackMissionManagerBo {
         return Boolean.parseBoolean(configurationBo
                 .findOrSetDefault("MISSION_" + missionType.name() + "_TRIGGER_ATTACK", "FALSE").getValue());
     }
-    
 
-    public void addUnit(AttackInformation attackInformation, ObtainedUnit unitEntity) {
-        UserStorage userEntity = unitEntity.getUser();
+
+    public void addUnit(AttackInformation attackInformation, ObtainedUnit obtainedUnitEntity) {
+        UserStorage userEntity = obtainedUnitEntity.getUser();
         AttackUserInformation user;
         var users = attackInformation.getUsers();
         if (users.containsKey(userEntity.getId())) {
@@ -82,7 +82,11 @@ public class AttackMissionManagerBo {
             user = new AttackUserInformation(userEntity, improvementBo.findUserImprovement(userEntity));
             users.put(userEntity.getId(), user);
         }
-        var unit = attackObtainedUnitBo.create(unitEntity, user);
+        var unit = attackObtainedUnitBo.create(obtainedUnitEntity, user);
+        var ownerUnit = obtainedUnitEntity.getOwnerUnit();
+        if (ownerUnit != null) {
+            attackInformation.getUnitsStoringUnits().add(ownerUnit.getId());
+        }
         user.getUnits().add(unit);
         attackInformation.getUnits().add(unit);
     }
@@ -194,12 +198,25 @@ public class AttackMissionManagerBo {
             }
             target.setAvailableHealth(0D);
             target.setAvailableShield(0D);
+            maybeUnsetHolderUnit(attackInformation, target.getObtainedUnit());
             obtainedUnitRepository.delete(target.getObtainedUnit());
             deleteMissionIfRequired(attackInformation, target.getObtainedUnit());
             attackInformation.getUsersWithChangedCounts().add(target.getUser().getUser().getId());
         }
         improvementBo.clearCacheEntriesIfRequired(target.getObtainedUnit().getUnit(), obtainedUnitImprovementCalculationService);
 
+    }
+
+    private void maybeUnsetHolderUnit(AttackInformation attackInformation, ObtainedUnit obtainedUnit) {
+        var targetObtainedUnitId = obtainedUnit.getId();
+        if (attackInformation.getUnitsStoringUnits().contains(targetObtainedUnitId)) {
+            attackInformation.getUnits().stream()
+                    .map(AttackObtainedUnit::getObtainedUnit)
+                    .filter(currentObtainedUnit ->
+                            currentObtainedUnit.getOwnerUnit() != null && targetObtainedUnitId.equals(currentObtainedUnit.getOwnerUnit().getId())
+                    )
+                    .forEach(currentObtainedUnit -> currentObtainedUnit.setOwnerUnit(null));
+        }
     }
 
     private void addPointsAndUpdateCount(

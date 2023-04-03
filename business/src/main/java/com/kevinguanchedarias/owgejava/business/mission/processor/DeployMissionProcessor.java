@@ -47,7 +47,9 @@ public class DeployMissionProcessor implements MissionProcessor {
 
         var deployedMission = alteredUnits.get(0).getMission();
         if (deployedMission != null) {
-            deployedMission.setInvisible(deployedMission.getInvolvedUnits().stream().allMatch(hiddenUnitBo::isHiddenUnit));
+            deployedMission.setInvisible(deployedMission.getInvolvedUnits().stream().allMatch(
+                    involvedUnit -> hiddenUnitBo.isHiddenUnit(user, involvedUnit.getUnit())
+            ));
         }
 
         mission.setResolved(true);

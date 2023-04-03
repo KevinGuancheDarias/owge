@@ -1,4 +1,4 @@
-<div #modalRoot (click)="onContainerClicked($event)" class="modal fade" [ngClass]="{'in': visibleAnimate}"
+<div #modalRoot (click)="onContainerClicked($event)" class="modal fade" [ngClass]="containerClasses"
     [ngStyle]="{'display': visible ? 'block' : 'none', 'opacity': visibleAnimate ? 1 : 0}">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">

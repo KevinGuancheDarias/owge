@@ -1,5 +1,5 @@
 import { Planet } from '../pojos/planet.pojo';
-import { ÇbtainedUnitTemporalInformation } from './obtained-unit-temporal-information.type';
+import { ÇbtainedUnitTemporalInformation as ObtainedUnitTemporalInformation } from './obtained-unit-temporal-information.type';
 import { Unit } from './unit.type';
 
 /**
@@ -17,5 +17,6 @@ export interface ObtainedUnit {
     sourcePlanet?: Planet;
     targetPlanet?: Planet;
     mission?: any;
-    temporalInformation?: ÇbtainedUnitTemporalInformation;
+    temporalInformation?: ObtainedUnitTemporalInformation;
+    storedUnits: ObtainedUnit[];
 }

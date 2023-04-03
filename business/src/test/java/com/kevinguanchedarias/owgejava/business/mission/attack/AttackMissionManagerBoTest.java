@@ -20,7 +20,7 @@ import com.kevinguanchedarias.owgejava.pojo.attack.AttackUserInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
-import com.kevinguanchedarias.owgejava.util.TransactionUtil;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +45,7 @@ import static com.kevinguanchedarias.owgejava.mock.UnitTypeMock.givenUnitType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
@@ -87,6 +88,7 @@ class AttackMissionManagerBoTest {
     private final AttackEventEmitter attackEventEmitter;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
+    private final TransactionUtilService transactionUtilService;
 
     @Autowired
     public AttackMissionManagerBoTest(
@@ -100,7 +102,8 @@ class AttackMissionManagerBoTest {
             AllianceBo allianceBo,
             AttackEventEmitter attackEventEmitter,
             ObtainedUnitRepository obtainedUnitRepository,
-            ObtainedUnitFinderBo obtainedUnitFinderBo
+            ObtainedUnitFinderBo obtainedUnitFinderBo,
+            TransactionUtilService transactionUtilService
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
         this.obtainedUnitBo = obtainedUnitBo;
@@ -114,20 +117,25 @@ class AttackMissionManagerBoTest {
         this.attackEventEmitter = attackEventEmitter;
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.obtainedUnitFinderBo = obtainedUnitFinderBo;
+        this.transactionUtilService = transactionUtilService;
     }
 
     @Test
     void buildAttackInformation_should_work() {
         var attackMission = givenAttackMission();
         var targetPlanet = givenTargetPlanet();
-        when(obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(givenObtainedUnit1()));
+        var holderUnit = givenObtainedUnit1().toBuilder().count(OBTAINED_UNIT_1_ID + 1).build();
+        var ou1 = givenObtainedUnit1().toBuilder().ownerUnit(holderUnit).build();
+        when(obtainedUnitFinderBo.findInvolvedInAttack(targetPlanet)).thenReturn(List.of(ou1));
         when(obtainedUnitRepository.findByMissionId(ATTACK_MISSION_ID)).thenReturn(List.of(givenObtainedUnit2()));
         when(improvementBo.findUserImprovement(givenUser1())).thenReturn(givenUserImprovement());
         when(improvementBo.findUserImprovement(givenUser2())).thenReturn(givenUserImprovement());
-        var attackOu1 = givenAttackObtainedUnit(givenObtainedUnit1());
+        var attackHolderUnit = givenAttackObtainedUnit(holderUnit);
+        var attackOu1 = givenAttackObtainedUnit(ou1);
         var attackOu2 = givenAttackObtainedUnit(givenObtainedUnit2());
-        when(attackObtainedUnitBo.create(eq(givenObtainedUnit1()), any())).thenReturn(attackOu1);
+        when(attackObtainedUnitBo.create(eq(ou1), any())).thenReturn(attackOu1);
         when(attackObtainedUnitBo.create(eq(givenObtainedUnit2()), any())).thenReturn(attackOu2);
+        when(attackObtainedUnitBo.create(eq(holderUnit), any())).thenReturn(attackHolderUnit);
 
         var information = attackMissionManagerBo.buildAttackInformation(targetPlanet, attackMission);
 
@@ -146,6 +154,9 @@ class AttackMissionManagerBoTest {
         assertThat(information.getUsers())
                 .containsEntry(USER_ID_1, attackUserInformation1.getValue())
                 .containsEntry(USER_ID_2, attackUserInformation2.getValue());
+        assertThat(information.getUnitsStoringUnits())
+                .hasSize(1)
+                .contains(holderUnit.getId());
     }
 
     @Test
@@ -258,32 +269,84 @@ class AttackMissionManagerBoTest {
         when(criticalAttackBo.findApplicableCriticalEntry(eq(givenCriticalAttack()), any(Unit.class)))
                 .thenReturn(givenCriticalAttackEntry(criticalMultiplier));
         when(obtainedUnitBo.saveWithChange(eq(survivorUnit.getObtainedUnit()), anyLong())).thenThrow(new OwgeElementSideDeletedException("foo"));
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
         doAnswer(answer -> {
             answer.getArgument(2, Supplier.class).get();
             return null;
         }).when(socketIoService).sendMessage(any(), eq(UNIT_OBTAINED_CHANGE), any());
         when(obtainedUnitRepository.findDeployedInUserOwnedPlanets(any())).thenReturn(List.of(fakedFindDeployedInUserOwnedPlanets));
         when(obtainedUnitBo.toDto(anyList())).thenReturn(List.of(fakedToDtoOfindDeployedInUserOwnedPlanets));
+        attackMissionManagerBo.startAttack(information);
 
-        try (var transactionUtilMock = mockStatic(TransactionUtil.class)) {
-            transactionUtilMock.when(() -> TransactionUtil.doAfterCommit(any())).thenAnswer(invocationOnMock -> {
-                var runnable = invocationOnMock.getArgument(0, Runnable.class);
-                runnable.run();
-                return null;
-            });
+        verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());
+        verify(obtainedUnitRepository, times(2)).delete(any(ObtainedUnit.class));
+        verify(attackEventEmitter, times(9)).emitAfterUnitKilledCalculation(any(), any(), any(), anyLong());
+        assertThat(capturedOutput.getOut()).contains("Element side deleted");
+        assertThat(user1.getAttackableUnits())
+                .hasSize(4)
+                .contains(ou2);
+        assertThat(user2.getAttackableUnits())
+                .hasSize(3)
+                .contains(ou1);
+    }
 
-            attackMissionManagerBo.startAttack(information);
+    @Test
+    void startAttack_should_unset_holder_unit() {
+        var ou1 = givenObtainedUnit1();
+        var holderUnit = givenObtainedUnit1().toBuilder().id(OBTAINED_UNIT_1_ID + 1).build();
+        ou1.setOwnerUnit(holderUnit);
+        var ou2 = givenObtainedUnit2();
+        var information = givenFullAttackInformation();
+        information.getUnits().clear();
+        var user1 = information.getUsers().get(USER_ID_1);
+        var user2 = information.getUsers().get(USER_ID_2);
+        var attackRule = givenAttackRule();
+        var attackOu1 = AttackObtainedUnit.builder()
+                .obtainedUnit(ou1)
+                .user(user1)
+                .availableHealth(Double.MAX_VALUE)
+                .totalHealth(Double.MAX_VALUE)
+                .availableShield(0D)
+                .totalShield(0D)
+                .pendingAttack(0D)
+                .initialCount(4L)
+                .finalCount(4L)
+                .build();
+        var attackHolderUnit = AttackObtainedUnit.builder()
+                .obtainedUnit(holderUnit)
+                .user(user1)
+                .availableHealth(50D)
+                .totalHealth(50D)
+                .availableShield(0D)
+                .totalShield(0D)
+                .pendingAttack(0D)
+                .initialCount(4L)
+                .finalCount(4L)
+                .build();
+        var attackOu2 = AttackObtainedUnit.builder()
+                .obtainedUnit(ou2)
+                .user(user2)
+                .availableHealth(Double.MAX_VALUE)
+                .totalHealth(Double.MAX_VALUE)
+                .availableShield(0D)
+                .totalShield(0D)
+                .pendingAttack(110D)
+                .initialCount(4L)
+                .finalCount(4L)
+                .build();
+        information.getUnits().addAll(List.of(attackOu1, attackHolderUnit, attackOu2));
+        information.getUnitsStoringUnits().add(holderUnit.getId());
+        user1.getUnits().addAll(List.of(attackOu1, attackHolderUnit));
+        user2.getUnits().add(attackOu2);
 
-            verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());
-            verify(obtainedUnitRepository, times(2)).delete(any(ObtainedUnit.class));
-            verify(attackEventEmitter, times(9)).emitAfterUnitKilledCalculation(any(), any(), any(), anyLong());
-            assertThat(capturedOutput.getOut()).contains("Element side deleted");
-            assertThat(user1.getAttackableUnits())
-                    .hasSize(4)
-                    .contains(ou2);
-            assertThat(user2.getAttackableUnits())
-                    .hasSize(3)
-                    .contains(ou1);
-        }
+        given(attackRuleBo.findAttackRule(any())).willReturn(attackRule);
+        given(attackRuleBo.canAttack(attackRule, holderUnit)).willReturn(true);
+        given(allianceBo.areEnemies(user1.getUser(), user2.getUser())).willReturn(true);
+        given(allianceBo.areEnemies(user2.getUser(), user1.getUser())).willReturn(true);
+
+        attackMissionManagerBo.startAttack(information);
+
+        verify(obtainedUnitRepository, times(1)).delete(holderUnit);
+        assertThat(ou1.getOwnerUnit()).isNull();
     }
 }

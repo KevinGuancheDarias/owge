@@ -1,11 +1,11 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { MissionService } from './mission.service';
+import { MissionService } from '../../../../owge-universe/src/lib/services/mission.service';
 import { CommonServiceTestHelper } from '../../helpers/common-service-test.helper';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestMetadataBuilder } from '../../helpers/test-metadata.builder';
 import { PlanetPojo } from '../shared-pojo/planet.pojo';
-import { SelectedUnit } from '../shared/types/selected-unit.type';
+import { SelectedUnit } from '../../../../owge-universe/src/lib/types/selected-unit.type';
 import { GameCommonTestHelper } from '../../helpers/game-common-test.helper';
 
 describe('MissionService', () => {

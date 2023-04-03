@@ -5,6 +5,8 @@ import com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecia
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.Unit;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
@@ -29,18 +31,19 @@ public class HiddenUnitBo {
     private final TaggableCacheManager taggableCacheManager;
 
     public void defineHidden(List<ObtainedUnit> data, List<ObtainedUnitDto> dtoVersion) {
-        IntStream.range(0, dtoVersion.size()).forEach(i -> dtoVersion.get(i).getUnit().setIsInvisible(isHiddenUnit(data.get(i))));
+        IntStream.range(0, dtoVersion.size())
+                .forEach(i -> dtoVersion.get(i).getUnit().setIsInvisible(isHiddenUnit(data.get(i).getUser(), data.get(i).getUnit())));
     }
 
-    public boolean isHiddenUnit(ObtainedUnit obtainedUnit) {
-        var cacheKey = getClass().getName() + "_defineHidden() " + obtainedUnit.hashCode();
+    public boolean isHiddenUnit(UserStorage user, Unit unit) {
+        var cacheKey = getClass().getName() + "_defineHidden() " + user.getId() + "_" + unit.getId();
         if (taggableCacheManager.keyExists(cacheKey)) {
-            return (boolean) taggableCacheManager.findByKey(cacheKey);
+            return taggableCacheManager.findByKey(cacheKey);
         } else {
-            var compute = isHiddenUnitInternal(obtainedUnit);
+            var compute = isHiddenUnitInternal(user, unit);
             taggableCacheManager.saveEntry(cacheKey, compute, List.of(
                     RULE_CACHE_TAG,
-                    ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":" + obtainedUnit.getUser().getId(),
+                    ActiveTimeSpecial.ACTIVE_TIME_SPECIAL_BY_USER_CACHE_TAG + ":" + user.getId(),
                     UNIT_TYPE_CACHE_TAG,
                     UNIT_CACHE_TAG
             ));
@@ -48,11 +51,10 @@ public class HiddenUnitBo {
         }
     }
 
-    private boolean isHiddenUnitInternal(ObtainedUnit obtainedUnit) {
-        if (Boolean.TRUE.equals(obtainedUnit.getUnit().getIsInvisible())) {
+    private boolean isHiddenUnitInternal(UserStorage user, Unit unit) {
+        if (Boolean.TRUE.equals(unit.getIsInvisible())) {
             return true;
         } else {
-            var user = obtainedUnit.getUser();
             var activeTimeSpecials = activeTimeSpecialRepository.findByUserIdAndState(user.getId(), TimeSpecialStateEnum.ACTIVE);
 
             return activeTimeSpecials.stream()
@@ -62,7 +64,7 @@ public class HiddenUnitBo {
                             ).stream()
                     )
                     .filter(ruleDto -> ruleBo.isWantedType(ruleDto, TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID))
-                    .anyMatch(ruleDto -> ruleBo.isWantedUnitDestination(ruleDto, obtainedUnit.getUnit()));
+                    .anyMatch(ruleDto -> ruleBo.isWantedUnitDestination(ruleDto, unit));
         }
     }
 

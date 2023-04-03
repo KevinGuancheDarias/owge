@@ -216,6 +216,7 @@ class ObtainedUnitBoTest {
         ou.setMission(givenExploreMission());
         ou.setTargetPlanet(givenTargetPlanet());
         ou.setFirstDeploymentMission(givenDeployMission());
+        ou.setOwnerUnit(givenObtainedUnit2());
         var planet = givenSourcePlanet();
         given(planetRepository.findById(SOURCE_PLANET_ID)).willReturn(Optional.of(planet));
         given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
@@ -232,6 +233,7 @@ class ObtainedUnitBoTest {
         assertThat(saved.getTargetPlanet()).isNull();
         assertThat(saved.getMission()).isNull();
         assertThat(saved.getFirstDeploymentMission()).isNull();
+        assertThat(saved.getOwnerUnit()).isNull();
     }
 
     @Test

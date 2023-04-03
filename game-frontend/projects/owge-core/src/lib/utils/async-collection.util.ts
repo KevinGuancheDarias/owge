@@ -7,9 +7,6 @@
  * @export
  */
 export class AsyncCollectionUtil {
-
-
-
     /**
      *
      *

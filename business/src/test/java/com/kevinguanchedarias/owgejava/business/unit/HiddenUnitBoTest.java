@@ -29,7 +29,10 @@ import static com.kevinguanchedarias.owgejava.entity.UnitType.UNIT_TYPE_CACHE_TA
 import static com.kevinguanchedarias.owgejava.mock.ActiveTimeSpecialMock.givenActiveTimeSpecialMock;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.givenUnit1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -106,7 +109,7 @@ class HiddenUnitBoTest {
         given(ruleBo.isWantedType(ruleDto, TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID)).willReturn(expectation);
         given(ruleBo.isWantedUnitDestination(any(), any())).willReturn(true);
 
-        assertThat(hiddenUnitBo.isHiddenUnit(obtainedUnit)).isEqualTo(expectation);
+        assertThat(hiddenUnitBo.isHiddenUnit(obtainedUnit.getUser(), obtainedUnit.getUnit())).isEqualTo(expectation);
 
         verify(activeTimeSpecialRepository, times(1)).findByUserIdAndState(USER_ID_1, TimeSpecialStateEnum.ACTIVE);
         verify(ruleBo, times(1)).findByOriginTypeAndOriginId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID);
@@ -119,11 +122,13 @@ class HiddenUnitBoTest {
     void isHiddenUnit_should_use_cached_value(boolean expectation) {
         var ou = new ObtainedUnit();
         ou.setId(192781L);
-        var expectedKey = "com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo_defineHidden() 192840";
+        ou.setUser(givenUser1());
+        ou.setUnit(givenUnit1());
+        var expectedKey = "com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo_defineHidden() " + USER_ID_1 + "_" + UNIT_ID_1;
         given(taggableCacheManager.keyExists(expectedKey)).willReturn(true);
         given(taggableCacheManager.findByKey(expectedKey)).willReturn(expectation);
 
-        assertThat(hiddenUnitBo.isHiddenUnit(ou)).isEqualTo(expectation);
+        assertThat(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).isEqualTo(expectation);
 
         verify(taggableCacheManager, times(1)).keyExists(expectedKey);
         verify(taggableCacheManager, times(1)).findByKey(expectedKey);
@@ -145,7 +150,7 @@ class HiddenUnitBoTest {
         given(ruleBo.isWantedUnitDestination(ruleDto, unitToCheck)).willReturn(expectation);
         given(ruleBo.isWantedType(ruleDto, TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID)).willReturn(true);
 
-        var result = hiddenUnitBo.isHiddenUnit(obtainedUnit);
+        var result = hiddenUnitBo.isHiddenUnit(obtainedUnit.getUser(), obtainedUnit.getUnit());
 
         assertThat(result).isEqualTo(expectation);
         verify(activeTimeSpecialRepository, times(1)).findByUserIdAndState(USER_ID_1, TimeSpecialStateEnum.ACTIVE);
@@ -160,7 +165,8 @@ class HiddenUnitBoTest {
 
     @Test
     void isHiddenUnit_should_return_false_when_no_time_special_is_active() {
-        assertThat(hiddenUnitBo.isHiddenUnit(givenObtainedUnit1())).isFalse();
+        var ou = givenObtainedUnit1();
+        assertThat(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).isFalse();
         verify(ruleBo, never()).isWantedUnitDestination(any(), any());
     }
 
@@ -169,7 +175,7 @@ class HiddenUnitBoTest {
         var ou = givenObtainedUnit1();
         ou.getUnit().setIsInvisible(true);
 
-        assertThat(hiddenUnitBo.isHiddenUnit(ou)).isTrue();
+        assertThat(hiddenUnitBo.isHiddenUnit(ou.getUser(), ou.getUnit())).isTrue();
         verify(activeTimeSpecialRepository, never()).findByUserIdAndState(any(), any());
     }
 

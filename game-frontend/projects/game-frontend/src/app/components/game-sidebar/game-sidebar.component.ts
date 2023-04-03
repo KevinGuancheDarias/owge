@@ -5,7 +5,7 @@ import { LoggerHelper, MenuRoute, ModalComponent, ROUTES, ThemeService, UnitType
 import { UserWithFaction } from '@owge/faction';
 import { PlanetService } from '@owge/galaxy';
 import {
-  AutoUpdatedResources, MissionStore,
+  AutoUpdatedResources, MissionStore, UnitTypeService,
   Planet, ResourceManagerService,
   SystemMessageService, UnitBuildRunningMission, UniverseGameService, UpgradeRunningMission
 } from '@owge/universe';
@@ -18,7 +18,6 @@ import { UnitService } from '../../service/unit.service';
 import { UpgradeService } from '../../service/upgrade.service';
 import { ReportService } from '../../services/report.service';
 import { TwitchService } from '../../services/twitch.service';
-import { UnitTypeService } from '../../services/unit-type.service';
 import { TwitchState } from '../../types/twitch-state.type';
 
 class PlanetWrapper {

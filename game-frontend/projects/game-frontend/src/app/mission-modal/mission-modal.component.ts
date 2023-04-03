@@ -1,16 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AbstractModalContainerComponent, LoggerHelper, MissionType, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { MissionStore, ObtainedUnit, Planet, SpeedImpactGroupService } from '@owge/universe';
+import { 
+  MissionStore, ObtainedUnit, Planet, SpeedImpactGroupService,
+  UnitTypeService, MissionService, SelectedUnit
+} from '@owge/universe';
 import { Observable } from 'rxjs';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
-import { MissionService } from '../services/mission.service';
-import { UnitTypeService } from '../services/unit-type.service';
-import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { MissionInformationStore } from '../store/mission-information.store';
-
-
 
 /**
  * Modal to send a mission to a planet
@@ -173,7 +171,6 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
       this.clickSelectAllBinded = this.selectAllFilter.bind(this);
     }
   }
-
 
   /**
    *

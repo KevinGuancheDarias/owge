@@ -1,6 +1,6 @@
 import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChildren, AfterViewInit, QueryList } from '@angular/core';
-import { UnitTypeService } from '../services/unit-type.service';
+import { UnitTypeService } from '@owge/universe';
 import { BaseComponent } from '../base/base.component';
 import { LocalConfigurationService, UnitType } from '@owge/core';
 

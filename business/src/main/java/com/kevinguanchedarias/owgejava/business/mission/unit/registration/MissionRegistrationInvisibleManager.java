@@ -19,7 +19,7 @@ public class MissionRegistrationInvisibleManager {
 
     public void handleDefineMissionAsInvisible(Mission mission, List<ObtainedUnit> obtainedUnits) {
         mission.setInvisible(
-                obtainedUnits.stream().allMatch(hiddenUnitBo::isHiddenUnit)
+                obtainedUnits.stream().allMatch(obtainedUnit -> hiddenUnitBo.isHiddenUnit(obtainedUnit.getUser(), obtainedUnit.getUnit()))
         );
     }
 
@@ -27,7 +27,8 @@ public class MissionRegistrationInvisibleManager {
         missions.stream()
                 .filter(current -> {
                     var oldValue = Boolean.TRUE.equals(current.getInvisible());
-                    var newValue = obtainedUnitRepository.findByMissionId(current.getId()).stream().allMatch(hiddenUnitBo::isHiddenUnit);
+                    var newValue = obtainedUnitRepository.findByMissionId(current.getId()).stream()
+                            .allMatch(obtainedUnit -> hiddenUnitBo.isHiddenUnit(obtainedUnit.getUser(), obtainedUnit.getUnit()));
                     current.setInvisible(newValue);
                     return oldValue != newValue;
                 })

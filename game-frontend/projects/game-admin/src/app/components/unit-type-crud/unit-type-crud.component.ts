@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { AttackRule, MissionSupport, SpeedImpactGroup, UnitType } from '@owge/core';
 import { take } from 'rxjs/operators';
 import { AdminSpeedImpactGroupService } from '../../services/admin-speed-impact-group.service';
 import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
+import { RulesModalComponent } from '../rules-modal/rules-modal.component';
 
 
 
@@ -22,19 +23,20 @@ import { AdminUnitTypeService } from '../../services/admin-unit-type.service';
 export class UnitTypeCrudComponent implements OnInit {
   private static readonly _DEFAULT_CAN_DO_MISSION: MissionSupport = 'ANY';
 
-  public unitTypes: UnitType[];
-  public unitTypesWithLimitedCount: UnitType[] = [];
-  public unitTypesForParentSelect: UnitType[] = [];
-  public unitType: UnitType & { attackRule: AttackRule };
-  public isUnlimitedMaxAmount: boolean;
-  public speedImpactGroups: SpeedImpactGroup[] = [];
-  public beforeAttackRuleDeleteBinded: () => Promise<void>;
-  public beforeCriticalAttackDeleteBinded: () => Promise<void>;
+  @ViewChild(RulesModalComponent) rulesModal: RulesModalComponent;
 
+  unitTypes: UnitType[];
+  unitTypesWithLimitedCount: UnitType[] = [];
+  unitTypesForParentSelect: UnitType[] = [];
+  unitType: UnitType & { attackRule: AttackRule };
+  isUnlimitedMaxAmount: boolean;
+  speedImpactGroups: SpeedImpactGroup[] = [];
+  beforeAttackRuleDeleteBinded: () => Promise<void>;
+  beforeCriticalAttackDeleteBinded: () => Promise<void>;
 
   constructor(public adminUnitTypeService: AdminUnitTypeService, private _adminSpeedImpactGroupService: AdminSpeedImpactGroupService) { }
 
-  public ngOnInit(): void {
+  ngOnInit(): void {
     this.beforeAttackRuleDeleteBinded = this.beforeAttackRuleDelete.bind(this);
     this.beforeCriticalAttackDeleteBinded = this.beforeCriticalAttackDelete.bind(this);
     this.adminUnitTypeService.findAll().subscribe(result => {
@@ -44,11 +46,11 @@ export class UnitTypeCrudComponent implements OnInit {
     this._adminSpeedImpactGroupService.findAll().subscribe(result => this.speedImpactGroups = result);
   }
 
-  public onIsUnlimitedMaxAmountChange(): void {
+  onIsUnlimitedMaxAmountChange(): void {
     this.unitType.maxCount = null;
   }
 
-  public onSelectedOrNew(el: UnitType & { attackRule: AttackRule }): void {
+  onSelectedOrNew(el: UnitType & { attackRule: AttackRule }): void {
     this.unitType = el;
     if (!el.id) {
       el.canExplore = UnitTypeCrudComponent._DEFAULT_CAN_DO_MISSION;
@@ -63,15 +65,15 @@ export class UnitTypeCrudComponent implements OnInit {
     this.isUnlimitedMaxAmount = typeof this.unitType.maxCount !== 'number';
   }
 
-  public isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
+  isSameObject(a: SpeedImpactGroup, b: SpeedImpactGroup): boolean {
     return a === b || (a && b && a.id === b.id);
   }
 
-  public async beforeAttackRuleDelete(): Promise<void> {
+  async beforeAttackRuleDelete(): Promise<void> {
     return this.adminUnitTypeService.unsetAttackRule(this.unitType).pipe(take(1)).toPromise();
   }
 
-  public async beforeCriticalAttackDelete(): Promise<void> {
+  async beforeCriticalAttackDelete(): Promise<void> {
     await this.adminUnitTypeService.unsetCriticalAttack(this.unitType).pipe(take(1)).toPromise();
     delete this.unitType.criticalAttack;
   }

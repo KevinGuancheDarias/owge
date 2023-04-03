@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
 
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.checker.MissionRegistrationCanDeployChecker;
+import com.kevinguanchedarias.owgejava.business.mission.unit.registration.checker.MissionRegistrationCanStoreUnitChecker;
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.checker.MissionRegistrationPlanetExistsChecker;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -9,6 +10,8 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
+import com.kevinguanchedarias.owgejava.pojo.storedunit.StoredUnitWithItsCount;
+import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,18 +27,17 @@ import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenDeployedMission;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
-import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.*;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.SELECTED_UNIT_COUNT;
-import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenUnitMissionInformation;
-import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.*;
+import static com.kevinguanchedarias.owgejava.mock.UnitMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = MissionRegistrationObtainedUnitLoader.class,
@@ -46,7 +48,8 @@ import static org.mockito.Mockito.verify;
         PlanetRepository.class,
         MissionRegistrationCanDeployChecker.class,
         ObtainedUnitBo.class,
-        MissionRegistrationOrphanMissionEraser.class
+        MissionRegistrationOrphanMissionEraser.class,
+        MissionRegistrationCanStoreUnitChecker.class
 })
 class MissionRegistrationObtainedUnitLoaderTest {
     private final MissionRegistrationObtainedUnitLoader missionRegistrationObtainedUnitLoader;
@@ -55,6 +58,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
     private final MissionRegistrationCanDeployChecker missionRegistrationCanDeployChecker;
     private final ObtainedUnitBo obtainedUnitBo;
     private final MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser;
+    private final MissionRegistrationCanStoreUnitChecker missionRegistrationCanStoreUnitChecker;
 
     @Autowired
     MissionRegistrationObtainedUnitLoaderTest(
@@ -63,14 +67,15 @@ class MissionRegistrationObtainedUnitLoaderTest {
             PlanetRepository planetRepository,
             MissionRegistrationCanDeployChecker missionRegistrationCanDeployChecker,
             ObtainedUnitBo obtainedUnitBo,
-            MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser
-    ) {
+            MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser,
+            MissionRegistrationCanStoreUnitChecker missionRegistrationCanStoreUnitChecker) {
         this.missionRegistrationObtainedUnitLoader = missionRegistrationObtainedUnitLoader;
         this.missionRegistrationPlanetExistsChecker = missionRegistrationPlanetExistsChecker;
         this.planetRepository = planetRepository;
         this.missionRegistrationCanDeployChecker = missionRegistrationCanDeployChecker;
         this.obtainedUnitBo = obtainedUnitBo;
         this.missionRegistrationOrphanMissionEraser = missionRegistrationOrphanMissionEraser;
+        this.missionRegistrationCanStoreUnitChecker = missionRegistrationCanStoreUnitChecker;
     }
 
     @Test
@@ -101,6 +106,49 @@ class MissionRegistrationObtainedUnitLoaderTest {
                 .hasMessageContaining("No count was specified");
     }
 
+    @Test
+    void checkAndLoadObtainedUnits_should_throw_on_repeated_unit() {
+        var selectedUnit = givenSelectedUnit(null);
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, null).toBuilder()
+                .involvedUnits(List.of(selectedUnit, selectedUnit))
+                .build();
+        var ou = givenObtainedUnit1();
+        var ouAfterSubtraction = givenObtainedUnit1().toBuilder().id(OBTAINED_UNIT_2_ID).count(4L).build();
+        ou.setMission(givenExploreMission());
+        given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, null, false))
+                .willReturn(ou);
+        given(obtainedUnitBo.saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false)).willReturn(ouAfterSubtraction);
+
+        assertThatThrownBy(() -> missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessage("I18N_ERR_REPEATED_UNIT");
+    }
+
+    @Test
+    void checkAndLoadObtainedUnits_should_throw_on_stored_unit_weight_overpassed() {
+        var storedOverweightUnit = givenSelectedUnit(null).toBuilder().id(UNIT_OVER_WEIGHT_ID).build();
+        var selectedUnit = givenSelectedUnit(null).toBuilder().storedUnits(List.of(storedOverweightUnit)).build();
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, null).toBuilder()
+                .involvedUnits(List.of(selectedUnit))
+                .build();
+        var ou = givenObtainedUnit1();
+        var overweightObtainedUnit = ou.toBuilder().unit(givenOverweightUnit()).id(923727L).build();
+        var ouAfterSubtraction = givenObtainedUnit1().toBuilder().id(OBTAINED_UNIT_2_ID).count(4L).build();
+        ou.setMission(givenExploreMission());
+        given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, null, false))
+                .willReturn(ou);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_OVER_WEIGHT_ID, SOURCE_PLANET_ID, null, false))
+                .willReturn(overweightObtainedUnit);
+        given(obtainedUnitBo.saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false)).willReturn(ouAfterSubtraction);
+        given(obtainedUnitBo.saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false)).willReturn(overweightObtainedUnit);
+
+        assertThatThrownBy(() -> missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information))
+                .isInstanceOf(SgtBackendInvalidInputException.class)
+                .hasMessage("I18N_ERR_MAX_WEIGHT_OVERPASSED");
+    }
+
     @ParameterizedTest
     @MethodSource("checkAndLoadObtainedUnits_should_work_arguments")
     void checkAndLoadObtainedUnits_should_work(
@@ -121,8 +169,34 @@ class MissionRegistrationObtainedUnitLoaderTest {
         var retVal = missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information);
 
         verify(missionRegistrationCanDeployChecker, times(1)).checkUnitCanDeploy(ou, information);
-        assertThat(retVal).containsEntry(new UnitInMap(UNIT_ID_1, expirationId), ou);
+        assertThat(retVal).containsEntry(new UnitInMap(UNIT_ID_1, expirationId), new UnitWithItsStoredUnits(ou, List.of()));
         verify(missionRegistrationOrphanMissionEraser, times(1)).doMarkAsDeletedTheOrphanMissions(expectedDeletedMission);
+        verify(missionRegistrationCanStoreUnitChecker, never()).checkCanStoreUnit(anyInt(), anyInt());
+    }
+
+    @Test
+    void checkAndLoadObtainedUnits_should_handle_stored_units() {
+        var storedSelectedUnit = givenSelectedUnit(null).toBuilder().id(UNIT_ID_2).count(5L).build();
+        var selectedUnit = givenSelectedUnit(null).toBuilder().storedUnits(List.of(storedSelectedUnit)).build();
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, null).toBuilder()
+                .involvedUnits(List.of(selectedUnit))
+                .build();
+        var ou = givenObtainedUnit1();
+        var storedOu = givenObtainedUnit2().toBuilder().user(ou.getUser()).build();
+        var ouAfterSubtraction = ou.toBuilder().id(OBTAINED_UNIT_2_ID + 4).count(4L).build();
+        given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(true);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, null, false))
+                .willReturn(ou);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_2, SOURCE_PLANET_ID, null, false))
+                .willReturn(storedOu);
+        given(obtainedUnitBo.saveWithSubtraction(ou, SELECTED_UNIT_COUNT, false)).willReturn(ouAfterSubtraction);
+
+        var retVal = missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information);
+
+        verify(missionRegistrationCanDeployChecker, times(1)).checkUnitCanDeploy(ou, information);
+        assertThat(retVal).containsEntry(new UnitInMap(UNIT_ID_1, null), new UnitWithItsStoredUnits(ou, List.of(new StoredUnitWithItsCount(storedOu, 5L))));
+        verify(obtainedUnitBo, times(1)).saveWithSubtraction(storedOu, 5L, false);
+        verify(missionRegistrationCanStoreUnitChecker, times(1)).checkCanStoreUnit(UNIT_ID_1, UNIT_ID_2);
     }
 
     private static Stream<Arguments> checkAndLoadObtainedUnits_should_work_arguments() {

@@ -27,4 +27,5 @@ export interface SelectedUnit {
     count: number;
 
     expirationId: number;
+    storedUnits?: SelectedUnit[];
 }

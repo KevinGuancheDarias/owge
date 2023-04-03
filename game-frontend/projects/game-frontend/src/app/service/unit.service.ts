@@ -7,19 +7,15 @@ import {
   ObtainedUnit,
   ObtainedUpgrade, Planet, PlanetsUnitsRepresentation, ResourceManagerService, ResourceRequirements, Unit,
   UnitBuildRunningMission, UnitStore,
-  UnitUpgradeRequirements, UnitUtil, UniverseGameService,
-
+  UnitUpgradeRequirements, UnitUtil, UniverseGameService, SelectedUnit,
   UserStorage, WsEventCacheService
 } from '@owge/universe';
-import { bind, isEqual } from 'lodash-es';
+import { isEqual } from 'lodash-es';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map, tap } from 'rxjs/operators';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
-import { SelectedUnit } from '../shared/types/selected-unit.type';
 import { CriticalAttackInformation } from '../types/critical-attack-information.type';
 import { UpgradeService } from './upgrade.service';
-
-
 
 @Injectable()
 export class UnitService extends AbstractWebsocketApplicationHandler {

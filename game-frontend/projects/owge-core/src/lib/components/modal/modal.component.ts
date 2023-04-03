@@ -1,5 +1,5 @@
-import { Component, ElementRef,  OnInit, ViewChild } from '@angular/core';
-import { ReplaySubject ,  Observable } from 'rxjs';
+import { Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import { ReplaySubject , Observable } from 'rxjs';
 
 import { AbstractModalComponent } from '../../interfaces/abstract-modal-component';
 
@@ -14,22 +14,25 @@ import { AbstractModalComponent } from '../../interfaces/abstract-modal-componen
     templateUrl: './modal.component.html',
     styleUrls: ['./modal.component.less']
 })
-export class ModalComponent extends AbstractModalComponent implements OnInit {
+export class ModalComponent extends AbstractModalComponent implements OnInit, OnChanges {
+    @Input() extraClasses: Record<string, unknown>;
 
-    public visible = false;
-    public visibleAnimate = false;
+    @ViewChild('modalRoot', { static: true }) private _modalRoot: ElementRef;
+
+    containerClasses: Record<string, unknown> = {};
+    visible = false;
+    visibleAnimate = false;
+
+    private _status: ReplaySubject<boolean> = new ReplaySubject(1);
 
     /**
      * Returns if the modal is visible or not, true for visible
      *
      * @since 0.7.0
      */
-    public get status(): Observable<boolean> {
+    get status(): Observable<boolean> {
         return this._status.asObservable();
     }
-
-    @ViewChild('modalRoot', { static: true }) private _modalRoot: ElementRef;
-    private _status: ReplaySubject<boolean> = new ReplaySubject(1);
 
     /**
      * If true will close the modal when the user clicks outside the modal <br>
@@ -39,26 +42,31 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      */
     private _closeOnContainerClicked = true;
 
-    public constructor(
+    constructor(
         private _ref: ElementRef
     ) {
         super();
     }
 
-    public ngOnInit(): void {
+    ngOnInit(): void {
+        this.addInAnimateClass();
         if (this.isOpenOnLoad) {
             this.show();
         }
     }
 
-    public show(): void {
+    ngOnChanges(): void {
+       this.containerClasses = {...this.containerClasses, ...this.extraClasses};
+    }
+
+    show(): void {
         this._moveModalToBody();
         this.visible = true;
         this._status.next(true);
         setTimeout(() => this.visibleAnimate = true, 100);
     }
 
-    public hide(): void {
+    hide(): void {
         this.visibleAnimate = false;
         this._status.next(false);
         setTimeout(() => {
@@ -67,17 +75,17 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
         }, 300);
     }
 
-    public onContainerClicked(event: MouseEvent): void {
-        if (this.closeOnOverlayClick && this._closeOnContainerClicked && (<HTMLElement>event.target).classList.contains('modal')) {
+    onContainerClicked(event: MouseEvent): void {
+        if (this.closeOnOverlayClick && this._closeOnContainerClicked && (event.target as HTMLElement).classList.contains('modal')) {
             this.hide();
         }
     }
 
-    public setCloseOnContainerClicked(value: boolean): void {
+    setCloseOnContainerClicked(value: boolean): void {
         this._closeOnContainerClicked = value;
     }
 
-    public getRef(): ElementRef {
+    getRef(): ElementRef {
         return this._ref;
     }
 
@@ -99,5 +107,9 @@ export class ModalComponent extends AbstractModalComponent implements OnInit {
      */
     private _applyHotfix(): void {
         this._modalRoot.nativeElement.style.display = 'none';
+    }
+
+    private addInAnimateClass(): void {
+        this.containerClasses.in = this.visibleAnimate;
     }
 }

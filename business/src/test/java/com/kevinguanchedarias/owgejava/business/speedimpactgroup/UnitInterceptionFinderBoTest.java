@@ -81,7 +81,7 @@ class UnitInterceptionFinderBoTest {
                 .build();
         var userThatIntercepted = interceptorUnitWithInterception.getUser();
         given(obtainedUnitFinderBo.findInvolvedInAttack(planet)).willReturn(List.of(attackerInterceptedUnit, attackerInterceptedUnit2, interceptorUnit, interceptorUnitWithInterception, interceptorUnitWithInterception));
-        given(speedImpactGroupBo.canIntercept(groupThatCanIntercept, interceptedUser, attackerInterceptedUnit.getUnit())).willReturn(true);
+        given(speedImpactGroupBo.canIntercept(groupThatCanIntercept, interceptedUser, attackerInterceptedUnit)).willReturn(true);
         given(allianceBo.areEnemies(userThatIntercepted, interceptedUser)).willReturn(areEnemies);
 
         var result = unitInterceptionFinderBo.checkInterceptsSpeedImpactGroup(mission, List.of(attackerInterceptedUnit, attackerInterceptedUnit2));

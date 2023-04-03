@@ -23,6 +23,10 @@ import { FormsModule } from '@angular/forms';
 import { PlanetOwnerPipe } from './pipes/planet-owner.pipe';
 import { SpeedImpactGroupService } from './services/speed-impact-group.service';
 import { TutorialService } from './services/tutorial.service';
+import { UnitTypeService } from './services/unit-type.service';
+import { UnitRuleFinderService } from './services/unit-rule-finder.service';
+import { RuleService } from './services/rule.service';
+import { MissionService } from './services/mission.service';
 
 /**
  *
@@ -71,7 +75,11 @@ export class OwgeUniverseModule {
         WebsocketService,
         WsEventCacheService,
         SpeedImpactGroupService,
-        TutorialService
+        TutorialService,
+        UnitTypeService,
+        RuleService,
+        UnitRuleFinderService,
+        MissionService
       ]
     };
   }
@@ -81,7 +89,10 @@ export class OwgeUniverseModule {
       _injector.get(UniverseGameService),
       _injector.get(UniverseCacheManagerService),
       _injector.get(SpeedImpactGroupService),
-      _injector.get(TutorialService)
+      _injector.get(TutorialService),
+      _injector.get(UnitTypeService),
+      _injector.get(RuleService),
+      _injector.get(MissionService)
     );
   }
 }

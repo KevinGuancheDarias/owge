@@ -10,6 +10,7 @@ import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { WsEventCacheService } from './ws-event-cache.service';
+import { UniverseGameService } from './universe-game.service';
 
 @Injectable()
 export class WebsocketService {
@@ -46,6 +47,7 @@ export class WebsocketService {
     private _toastrService: ToastrService,
     private _loadingService: LoadingService,
     private _universeCacheManager: UniverseCacheManagerService,
+    private universeGameService: UniverseGameService,
     sessionStore: SessionStore
   ) {
     this._isConnected.next(false);
@@ -285,12 +287,15 @@ export class WebsocketService {
    * @returns
    */
   private async _runWithSyncedData(): Promise<void> {
+    await this.syncOpenEvents();
     await AsyncCollectionUtil.forEach([...this._eventHandlers], async handler => {
       const eventMap = handler.getEventsMap();
       const failedHandlers: string[] = [];
       await AsyncCollectionUtil.forEach(Object.keys(eventMap), async (event: keyof WebsocketSyncResponse) => {
         // Initial run with synced data
-        if (this._wsEventCacheService.isSynchronizableEvent(event)) {
+        if (this._wsEventCacheService.isSynchronizableEvent(event)
+          || WsEventCacheService.eventsForOpen.includes(event)
+        ) {
           this._log.debug(`Running handler for event ${event}, known to be in ${handler.constructor.name}`);
           try {
             const result = await this._timeoutPromise(
@@ -301,7 +306,7 @@ export class WebsocketService {
             }
           } catch (e) {
             this._toastrService.error(`Sync failed for ${handler.constructor.name} on event ${event}`);
-            console.error(e);
+            this._log.error(e);
             failedHandlers.push(event);
           }
         }
@@ -309,4 +314,11 @@ export class WebsocketService {
       await this._wsEventCacheService.deleteEvents(...failedHandlers);
     });
   }
+
+  private async syncOpenEvents(): Promise<void> {
+    await AsyncCollectionUtil.forEach(WsEventCacheService.eventsForOpen, async event => {
+        const content = await this.universeGameService.getToUniverse(`open/websocket-sync/${event}`).toPromise();
+        await this._wsEventCacheService.updateOfflineStore(event, content);
+    });
+}
 }

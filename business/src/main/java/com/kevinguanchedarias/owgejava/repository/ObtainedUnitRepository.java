@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.repository;
 
 import com.kevinguanchedarias.owgejava.entity.*;
-import com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,8 +15,8 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
 
     boolean existsByMission(Mission mission);
 
-    @Query("SELECT new com.kevinguanchedarias.owgejava.entity.projection.ObtainedUnitBasicInfoProjection(ou.id, ou.count, ou.unit.name, ou.unit.image) FROM ObtainedUnit ou WHERE ou.id = ?1")
-    ObtainedUnitBasicInfoProjection findBaseInfo(Long id);
+    @Query("SELECT ou.unit FROM ObtainedUnit ou WHERE ou.id = ?1")
+    Unit findUnitByOuId(Long ouId);
 
     /**
      * Finds all user units that are not of a specified mission type
@@ -156,4 +155,6 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(Integer userId, Integer unitId, Long planetId, Long expirationId, String name);
 
     ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(Integer userId, Integer unitId, Long planetId, Long expirationId);
+
+    List<ObtainedUnit> findByOwnerUnitId(Long id);
 }

@@ -1,4 +1,4 @@
-import { SelectedUnit } from './selected-unit.type';
+import { SelectedUnit } from '@owge/universe';
 
 /**
  * Represents the JSON commonly used to send unit missions (explore, gather... deploy . . . . ....)
