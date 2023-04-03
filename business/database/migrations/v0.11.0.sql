@@ -58,3 +58,15 @@ CREATE TABLE `stored_units`
     `target_obtained_unit_id` INT UNSIGNED NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
+
+ALTER TABLE `audit`
+    ADD `ipv4` CHAR(15) NULL AFTER `creation_date`,
+    ADD `ipv6` CHAR(39) NULL AFTER `ipv4`,
+    ADD INDEX (`ipv4`),
+    ADD INDEX (`ipv6`);
+
+UPDATE `audit`
+SET ipv4 = ip;
+
+ALTER TABLE audit
+    DROP COLUMN ip;

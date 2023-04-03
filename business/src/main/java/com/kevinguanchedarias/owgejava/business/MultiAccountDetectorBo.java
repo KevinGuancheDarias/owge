@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Log4j2
 public class MultiAccountDetectorBo {
     private final UserStorageBo userStorageBo;
-    private  final AuditBo auditBo;
+    private final AuditBo auditBo;
     private final ConfigurationBo configurationBo;
     private final SocketIoService socketIoService;
 
@@ -33,16 +33,16 @@ public class MultiAccountDetectorBo {
         userStorageBo.findByLastMultiAccountCheckNewerThan(checkOffset).forEach(user -> {
             Map<String, AtomicInteger> ips = new HashMap<>();
             Map<String, AtomicInteger> userAgents = new HashMap<>();
-            Map<String, AtomicInteger>  cookies = new HashMap<>();
+            Map<String, AtomicInteger> cookies = new HashMap<>();
             handleMyData(auditBo.findDistinctData(user.getId()), ips, userAgents, cookies);
             var relatedAudits = auditBo.findRelated(user);
             var score = new AtomicInteger();
             var torScore = configurationBo.findIntOrSetDefault("MTAS_TOR_SCORE", "10000");
             relatedAudits.forEach(related -> {
-                var ip = related.getIp();
+                var ip = related.findIp();
                 var userAgent = related.getUserAgent();
                 var cookie = related.getCookie();
-                if(related.isTor()) {
+                if (related.isTor()) {
                     score.setPlain(score.getPlain() + torScore);
                 }
                 addIfExisting(ips, ip);
@@ -53,7 +53,7 @@ public class MultiAccountDetectorBo {
             var uaScore = configurationBo.findIntOrSetDefault("MTAS_UA_SCORE", "1");
             var cookieScore = configurationBo.findIntOrSetDefault("MTAS_COOKIE_SCORE", "10000");
             ips.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * ipsScore));
-            userAgents.forEach((key, value) -> score.setPlain(score.getPlain () + value.getPlain() * uaScore));
+            userAgents.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * uaScore));
             cookies.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * cookieScore));
             user.setMultiAccountScore((float) score.getPlain());
             user.setLastMultiAccountCheck(LocalDateTime.now());
@@ -71,13 +71,13 @@ public class MultiAccountDetectorBo {
     }
 
     private void addIfExisting(Map<String, AtomicInteger> targetMap, String key) {
-        if(key != null && targetMap.containsKey(key)) {
+        if (key != null && targetMap.containsKey(key)) {
             targetMap.get(key).incrementAndGet();
         }
     }
 
     private void handleMap(Map<String, AtomicInteger> map, String key) {
-        if(key != null) {
+        if (key != null) {
             if (map.containsKey(key)) {
                 map.get(key).incrementAndGet();
             } else {
@@ -90,11 +90,11 @@ public class MultiAccountDetectorBo {
         var warnScore = configurationBo.findIntOrSetDefault("MTAS_WARN_SCORE", "100000");
         var banScore = configurationBo.findIntOrSetDefault("MTAS_BAN_SCORE", "200000");
         var userScore = user.getMultiAccountScore();
-        if(userScore > banScore) {
+        if (userScore > banScore) {
             user.setBanned(true);
         } else {
             user.setBanned(false);
-            if(userScore > warnScore) {
+            if (userScore > warnScore) {
                 socketIoService.sendWarning(user, "I18N_WARN_MULTI_ACCOUNT");
             }
         }

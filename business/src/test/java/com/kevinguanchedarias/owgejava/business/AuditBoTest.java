@@ -8,10 +8,12 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +24,9 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
@@ -52,18 +57,24 @@ class AuditBoTest {
     private final AuditRepository repository;
     private final UserSessionService userSessionService;
     private final UserStorageRepository userStorageRepository;
+    private final AsyncRunnerBo asyncRunnerBo;
+    private final AuditRepository auditRepository;
 
     @Autowired
     AuditBoTest(
             AuditBo auditBo,
             AuditRepository repository,
             UserSessionService userSessionService,
-            UserStorageRepository userStorageRepository
+            UserStorageRepository userStorageRepository,
+            AsyncRunnerBo asyncRunnerBo,
+            AuditRepository auditRepository
     ) {
         this.auditBo = auditBo;
         this.repository = repository;
         this.userSessionService = userSessionService;
         this.userStorageRepository = userStorageRepository;
+        this.asyncRunnerBo = asyncRunnerBo;
+        this.auditRepository = auditRepository;
     }
 
     @Test
@@ -82,7 +93,7 @@ class AuditBoTest {
         var saved = captor.getValue();
         assertThat(saved.getAction()).isEqualTo(AuditActionEnum.REGISTER_MISSION);
         assertThat(saved.getActionDetail()).isEqualTo(actionDetail);
-        assertThat(saved.getIp()).isEqualTo(AUDIT_IP);
+        assertThat(saved.getIpv4()).isEqualTo(AUDIT_IP);
         assertThat(saved.getUserAgent()).isEqualTo(AUDIT_USER_AGENT);
         assertThat(saved.getCookie()).isEqualTo(AUDIT_COOKIE);
         assertThat(saved.getUser()).isSameAs(user);
@@ -99,7 +110,8 @@ class AuditBoTest {
         var captor = ArgumentCaptor.forClass(Audit.class);
         verify(repository, times(1)).save(captor.capture());
         var saved = captor.getValue();
-        assertThat(saved.getIp()).isNull();
+        assertThat(saved.getIpv4()).isNull();
+        assertThat(saved.getIpv6()).isNull();
         assertThat(saved.getUserAgent()).isNull();
         assertThat(saved.getCookie()).isNull();
         assertThat(saved.getRelatedUser()).isNull();
@@ -129,7 +141,14 @@ class AuditBoTest {
 
     @ParameterizedTest
     @MethodSource("doAudit_should_work_arguments")
-    void doAudit_should_work(Integer relatedUser, UserStorage expectedRelatedUser, int timesGetReference) {
+    void doAudit_should_work(
+            Integer relatedUser,
+            UserStorage expectedRelatedUser,
+            InetAddress inetAddressMock,
+            String expectedSavedIpv4,
+            String expectedSavedIpv6,
+            int timesGetReference
+    ) {
         var requestAttributes = mock(ServletRequestAttributes.class);
         var request = mock(HttpServletRequest.class);
         var cookie = mock(Cookie.class);
@@ -143,13 +162,19 @@ class AuditBoTest {
         given(request.getHeader("X-OWGE-RMT-IP")).willReturn(AUDIT_IP);
         given(userSessionService.findLoggedInWithReference()).willReturn(user);
         given(userStorageRepository.getReferenceById(relatedUser)).willReturn(expectedRelatedUser);
+        given(auditRepository.save(any())).willAnswer(AdditionalAnswers.returnsFirstArg());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any(), anyLong());
 
         try (
                 var requestContextHolderMockedStatic = mockStatic(RequestContextHolder.class);
-                var webUtilsMockedStatic = mockStatic(WebUtils.class)
+                var webUtilsMockedStatic = mockStatic(WebUtils.class);
+                var inetAddressMockedStatic = mockStatic(InetAddress.class)
         ) {
+            given(inetAddressMock.getHostName()).willReturn("fake-host.com");
+            given(inetAddressMock.isSiteLocalAddress()).willReturn(true);
             requestContextHolderMockedStatic.when(RequestContextHolder::getRequestAttributes).thenReturn(requestAttributes);
             webUtilsMockedStatic.when(() -> WebUtils.getCookie(request, AuditBo.CONTROL_COOKIE_NAME)).thenReturn(cookie);
+            inetAddressMockedStatic.when(() -> InetAddress.getByName(any())).thenReturn(inetAddressMock);
 
             auditBo.doAudit(AuditActionEnum.REGISTER_MISSION, null, relatedUser);
 
@@ -158,20 +183,25 @@ class AuditBoTest {
             var saved = captor.getValue();
             assertThat(saved.getAction()).isEqualTo(AuditActionEnum.REGISTER_MISSION);
             assertThat(saved.getActionDetail()).isNull();
-            assertThat(saved.getIp()).isEqualTo(AUDIT_IP);
+            assertThat(saved.getIpv4()).isEqualTo(expectedSavedIpv4);
+            assertThat(saved.getIpv6()).isEqualTo(expectedSavedIpv6);
             assertThat(saved.getUserAgent()).isEqualTo(AUDIT_USER_AGENT);
             assertThat(saved.getCookie()).isEqualTo(cookieValue);
             assertThat(saved.getUser()).isSameAs(user);
             assertThat(saved.getRelatedUser()).isEqualTo(expectedRelatedUser);
             assertThat(saved.getCreationDate()).isBetween(LocalDateTime.now().minusMinutes(10), LocalDateTime.now().plusMinutes(10));
+            verify(inetAddressMock, times(1)).getHostName();
             verify(userStorageRepository, times(timesGetReference)).getReferenceById(relatedUser);
         }
     }
 
     private static Stream<Arguments> doAudit_should_work_arguments() {
+        var ipv4Address = mock(Inet4Address.class);
+        var ipv6Address = mock(Inet6Address.class);
         return Stream.of(
-                Arguments.of(null, null, 0),
-                Arguments.of(USER_ID_2, givenUser2(), 1)
+                Arguments.of(null, null, ipv4Address, AUDIT_IP, null, 0),
+                Arguments.of(null, null, ipv6Address, null, AUDIT_IP, 0),
+                Arguments.of(USER_ID_2, givenUser2(), mock(Inet4Address.class), AUDIT_IP, null, 1)
         );
     }
 }

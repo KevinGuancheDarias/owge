@@ -15,7 +15,7 @@ public class AuditMock {
     public static Audit givenAudit() {
         return Audit.builder()
                 .id(AUDIT_ID)
-                .ip(AUDIT_IP)
+                .ipv4(AUDIT_IP)
                 .action(AUDIT_ACTION)
                 .userAgent(AUDIT_USER_AGENT)
                 .cookie(AUDIT_COOKIE)

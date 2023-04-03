@@ -1,22 +1,9 @@
 package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Audit implements  EntityWithId<Long>{
+public class Audit implements EntityWithId<Long> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,7 +32,9 @@ public class Audit implements  EntityWithId<Long>{
     @JoinColumn(name = "related_user_id")
     private UserStorage relatedUser;
 
-    private String ip;
+    private String ipv4;
+    private String ipv6;
+
     private String userAgent;
     private String cookie;
     private boolean isTor;
@@ -53,4 +42,7 @@ public class Audit implements  EntityWithId<Long>{
     @Column(nullable = false)
     private LocalDateTime creationDate;
 
+    public String findIp() {
+        return ipv4 == null ? ipv6 : ipv4;
+    }
 }

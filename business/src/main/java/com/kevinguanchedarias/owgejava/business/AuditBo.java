@@ -27,6 +27,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.Serial;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
@@ -104,19 +105,22 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     public void nonRequestAudit(AuditActionEnum action, String actionDetails, UserStorage user, Integer relatedUser) {
         var now = LocalDateTime.now();
         var nearest = findNearest(now, user.getId());
-        String ip = null;
+        String ipv4 = null;
+        String ipv6 = null;
         String ua = null;
         String cookie = null;
         if (nearest.isPresent()) {
             var nearestAudit = nearest.get();
-            ip = nearestAudit.getIp();
+            ipv4 = nearestAudit.getIpv4();
+            ipv6 = nearestAudit.getIpv6();
             ua = nearestAudit.getUserAgent();
             cookie = nearestAudit.getCookie();
         }
         repository.save(Audit.builder()
                 .action(action)
                 .actionDetail(actionDetails)
-                .ip(ip)
+                .ipv4(ipv4)
+                .ipv6(ipv6)
                 .userAgent(ua)
                 .cookie(cookie)
                 .user(user)
@@ -145,13 +149,12 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
             if (cookie == null) {
                 throw new SgtBackendInvalidInputException("No dear hacker, you will never be able to defeat the strong security of this open security-by-obscurity");
             }
-            detectTorBrowser(
+            detectTorBrowser(request,
                     repository.save(Audit.builder()
                             .action(action)
                             .actionDetail(actionDetails)
                             .user(userSessionService.findLoggedInWithReference())
                             .relatedUser(relatedUserId == null ? null : userStorageRepository.getReferenceById(relatedUserId))
-                            .ip(resolveIp(request))
                             .userAgent(request.getHeader("User-Agent"))
                             .cookie(cookie.getValue())
                             .creationDate(LocalDateTime.now())
@@ -175,6 +178,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         }
     }
 
+
     private boolean isTrustedProxyIp(String ip) {
         return Stream.of(proxyTrustedNetworks.split(",")).anyMatch(trusted ->
                 (trusted.equals(TRUSTED_PRIVATE_NET_KEYWORD) && isPrivate(ip))
@@ -182,9 +186,9 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         );
     }
 
-    private void detectTorBrowser(Audit audit) {
+    private void detectTorBrowser(HttpServletRequest request, Audit audit) {
+        var ip = resolveIp(request);
         asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
-            var ip = audit.getIp();
             try {
                 var inetAddress = InetAddress.getByName(ip);
                 var host = inetAddress.getHostName();
@@ -192,10 +196,19 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                     audit.setTor(true);
                     socketIoService.sendWarning(audit.getUser(), "I18N_WARN_TOR");
                 }
+                maybeSetIpv4OrIpv6(audit, inetAddress, ip);
             } catch (UnknownHostException e) {
                 log.warn("Can't resolve name for ip {}", ip);
             }
         }, 3000);
+    }
+
+    private void maybeSetIpv4OrIpv6(Audit audit, InetAddress inetAddress, String ip) {
+        if (inetAddress instanceof Inet4Address) {
+            audit.setIpv4(ip);
+        } else {
+            audit.setIpv6(ip);
+        }
     }
 
     private boolean isPrivate(String ip) {
