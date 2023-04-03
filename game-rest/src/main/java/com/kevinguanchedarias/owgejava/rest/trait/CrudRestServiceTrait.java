@@ -59,9 +59,13 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
             throw new SgtBackendInvalidInputException(
                     "New entities can't have an id, use PUT instead if you wish to update an entity");
         }
-        var savedEntity = getRepository().save(parsedEntity);
+        var savedEntity = doSave(parsedEntity);
         var finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
         return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
+    }
+
+    default E doSave(E parsedEntity) {
+        return getRepository().save(parsedEntity);
     }
 
     /**
@@ -76,7 +80,7 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
      */
     @PutMapping("{id}")
     @Transactional
-    public default D saveExisting(@PathVariable() N id, @RequestBody D entityDto) {
+    default D saveExisting(@PathVariable() N id, @RequestBody D entityDto) {
         if (!findSupportedOperations().canUpdateAny()) {
             throw AccessDeniedException.fromUnsupportedOperation();
         }
@@ -86,7 +90,7 @@ public interface CrudRestServiceTrait<N extends Number, E extends EntityWithId<N
         if (!hasId(parsedEntity) || !id.equals(parsedEntity.getId())) {
             throw new SgtBackendInvalidInputException("Id not specified, or path id doesn't match body id");
         }
-        var savedEntity = getRepository().save(parsedEntity);
+        var savedEntity = doSave(parsedEntity);
         var finalDto = getDtoUtilService().dtoFromEntity(getDtoClass(), afterSave(savedEntity).orElse(savedEntity));
         return beforeRequestEnd(finalDto, savedEntity).orElse(finalDto);
     }

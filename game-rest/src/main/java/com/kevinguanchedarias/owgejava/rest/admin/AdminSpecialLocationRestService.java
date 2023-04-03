@@ -4,6 +4,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.SpecialLocationBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.SpecialLocationDto;
 import com.kevinguanchedarias.owgejava.entity.Galaxy;
@@ -11,7 +12,7 @@ import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.repository.SpecialLocationRepository;
 import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServiceTrait;
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,22 +21,19 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import java.util.Optional;
 
 /**
- *
- * @since 0.9.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.9.0
  */
 @RestController
 @ApplicationScope
 @RequestMapping("admin/special-location")
+@AllArgsConstructor
 public class AdminSpecialLocationRestService implements
         CrudWithImprovementsRestServiceTrait<Integer, SpecialLocation, SpecialLocationRepository, SpecialLocationDto>,
         WithImageRestServiceTrait<Integer, SpecialLocation, SpecialLocationDto, SpecialLocationRepository> {
-
-    @Autowired
-    private SpecialLocationRepository specialLocationRepository;
-
-    @Autowired
-    private AutowireCapableBeanFactory beanFactory;
+    private final SpecialLocationRepository specialLocationRepository;
+    private final AutowireCapableBeanFactory beanFactory;
+    private final SpecialLocationBo specialLocationBo;
 
     /*
      * (non-Javadoc)
@@ -50,6 +48,11 @@ public class AdminSpecialLocationRestService implements
         return builder.withBeanFactory(beanFactory).withRepository(specialLocationRepository)
                 .withDtoClass(SpecialLocationDto.class).withEntityClass(SpecialLocation.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
+    }
+
+    @Override
+    public SpecialLocation doSave(SpecialLocation parsedEntity) {
+        return specialLocationBo.save(parsedEntity);
     }
 
     @Override
