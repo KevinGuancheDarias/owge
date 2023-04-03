@@ -23,9 +23,8 @@ import org.springframework.web.context.annotation.ApplicationScope;
 import java.util.Optional;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 @RestController
 @ApplicationScope
@@ -57,6 +56,20 @@ public class AdminUpgradeRestService implements CrudWithFullRestService<Integer,
         return builder.withBeanFactory(beanFactory).withRepository(upgradeBo).withDtoClass(UpgradeDto.class)
                 .withEntityClass(Upgrade.class)
                 .withSupportedOperationsBuilder(SupportedOperationsBuilder.create().withFullPrivilege());
+    }
+
+    @Override
+    public Optional<UpgradeDto> beforeConversion(UpgradeDto dto) {
+        if (dto.getClonedImprovements() == null) {
+            dto.setClonedImprovements(false);
+        }
+        if (dto.getLevelEffect() == null) {
+            dto.setLevelEffect(0.5F);
+        }
+        if (dto.getTime() == null || dto.getTime() < 5L) {
+            dto.setTime(60L);
+        }
+        return CrudWithFullRestService.super.beforeConversion(dto);
     }
 
     @Override

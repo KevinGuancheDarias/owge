@@ -17,7 +17,7 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
     private String typeName;
     private Float levelEffect;
     private ImprovementDto improvement;
-    private Boolean clonedImprovements;
+    private Boolean clonedImprovements = false;
     private List<RequirementInformationDto> requirements;
 
     @Override
