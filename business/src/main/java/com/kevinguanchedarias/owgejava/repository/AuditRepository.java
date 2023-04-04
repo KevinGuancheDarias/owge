@@ -14,10 +14,8 @@ public interface AuditRepository extends JpaRepository<Audit, Long> {
 
     List<Audit> findByRelatedUser(UserStorage relatedUser);
 
-    List<Audit> findByUser(UserStorage user);
-
     @Query("SELECT a FROM Audit a WHERE a.creationDate < ?1 AND a.user.id = ?2 AND (a.ipv4 IS NOT NULL OR a.ipv6 IS NOT NULL) ORDER BY a.creationDate DESC")
-    List<Audit> findNearesRequestAction(LocalDateTime now, Integer user, Pageable pageable);
+    List<Audit> findNearestRequestAction(LocalDateTime now, Integer user, Pageable pageable);
 
     List<AuditDataProjection> findDistinctByUserIdAndCreationDateBetween(Integer userId, LocalDateTime from, LocalDateTime to, Pageable pageable);
 }

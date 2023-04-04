@@ -49,6 +49,7 @@ public class MissionSchedulerService {
                     .forJob(jobDetail).startAt(Timestamp.valueOf(mission.getTerminationDate())).forJob(jobKey).build();
             try {
                 scheduler.addJob(jobDetail, true, true);
+                LOG.debug("Registering " + mission.getId() + " : " + trigger.getStartTime());
                 scheduler.scheduleJob(trigger);
             } catch (SchedulerException e) {
                 LOG.error(e);

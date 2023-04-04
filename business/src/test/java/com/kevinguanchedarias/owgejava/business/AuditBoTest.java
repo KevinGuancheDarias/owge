@@ -80,7 +80,7 @@ class AuditBoTest {
     @Test
     void nonRequestAudit_should_work_with_nearest_info_if_present() {
         var nearestAudit = givenAudit();
-        given(repository.findNearesRequestAction(any(), eq(USER_ID_1), any())).willReturn(List.of(nearestAudit));
+        given(repository.findNearestRequestAction(any(), eq(USER_ID_1), any())).willReturn(List.of(nearestAudit));
         var user = givenUser1();
         var relatedUser = givenUser2();
         var actionDetail = "foo";

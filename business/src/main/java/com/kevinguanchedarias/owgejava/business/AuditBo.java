@@ -94,7 +94,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     }
 
     public List<Audit> findNearestPage(LocalDateTime date, Integer userId, int count) {
-        return repository.findNearesRequestAction(date, userId, PageRequest.of(0, count));
+        return repository.findNearestRequestAction(date, userId, PageRequest.of(0, count));
     }
 
     public List<AuditDataProjection> findDistinctData(Integer userId) {

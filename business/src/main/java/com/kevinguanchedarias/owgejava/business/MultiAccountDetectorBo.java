@@ -64,7 +64,7 @@ public class MultiAccountDetectorBo {
 
     private void handleMyData(List<AuditDataProjection> data, Map<String, AtomicInteger> ips, Map<String, AtomicInteger> uas, Map<String, AtomicInteger> cookies) {
         data.forEach(current -> {
-            handleMap(ips, current.getIp());
+            handleMap(ips, current.getIpv4() != null ? current.getIpv4() : current.getIpv6());
             handleMap(uas, current.getUserAgent());
             handleMap(cookies, current.getCookie());
         });

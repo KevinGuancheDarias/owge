@@ -30,10 +30,16 @@ public class HandleUnitCaptureListener
 
     @Override
     public void onAfterUnitKilledCalculation(AttackInformation information, AttackObtainedUnit attacker, AttackObtainedUnit victim, long killed) {
+        var victimUnit = victim.getObtainedUnit().getUnit();
         unitRuleFinderService.findRule(
                         UnitCaptureRuleTypeProviderBo.PROVIDER_ID,
                         attacker.getObtainedUnit().getUnit(),
-                        victim.getObtainedUnit().getUnit()
+                        victimUnit
+                )
+                .or(() ->
+                        unitRuleFinderService.findRuleByActiveTimeSpecialsAndTargetUnit(
+                                UnitCaptureRuleTypeProviderBo.PROVIDER_ID, attacker.getUser().getUser(), victimUnit
+                        )
                 )
                 .filter(rule -> ruleBo.hasExtraArg(rule, 0) && ruleBo.hasExtraArg(rule, 1))
                 .map(ruleBo::findExtraArgs)

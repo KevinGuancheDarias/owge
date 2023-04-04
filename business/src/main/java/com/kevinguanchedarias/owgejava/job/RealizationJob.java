@@ -49,7 +49,7 @@ public class RealizationJob extends QuartzJobBean {
             var missionType = MissionType.valueOf(mission.getType().getCode());
             try {
                 LOG.debug("Executing mission id " + mission.getId() + " of type "
-                        + MissionType.valueOf(mission.getType().getCode()));
+                        + MissionType.valueOf(mission.getType().getCode()) + "scheduled for " + context.getScheduledFireTime());
                 if (missionType == MissionType.BUILD_UNIT || missionType == MissionType.LEVEL_UP) {
                     missionBo.runMission(missionId, missionType);
                 } else {

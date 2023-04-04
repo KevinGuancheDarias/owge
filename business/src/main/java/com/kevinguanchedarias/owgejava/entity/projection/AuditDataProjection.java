@@ -4,7 +4,12 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 
 public interface AuditDataProjection {
     UserStorage getUser();
-    String getIp();
+
+    String getIpv4();
+
+    String getIpv6();
+
     String getUserAgent();
+
     String getCookie();
 }

@@ -101,6 +101,7 @@ class HandleUnitCaptureListenerTest {
                 eq(TARGET_PLANET_ID)
         );
         verify(ruleBo, times(2)).hasExtraArg(any(Rule.class), anyInt());
+        verify(unitRuleFinderService, never()).findRuleByActiveTimeSpecialsAndTargetUnit(any(), any(), any());
         var capturedUnit = captor.getValue();
         assertThat(capturedUnit.getSourcePlanet()).isEqualTo(givenSourcePlanet());
         assertThat(capturedUnit.getTargetPlanet()).isEqualTo(givenTargetPlanet());
@@ -114,6 +115,7 @@ class HandleUnitCaptureListenerTest {
         handleUnitCaptureListener.onAfterUnitKilledCalculation(givenAttackInformation(), attacker, attacker, killed);
 
         verify(ruleBo, never()).findExtraArg(any(Rule.class), anyInt());
+        verify(unitRuleFinderService, times(1)).findRuleByActiveTimeSpecialsAndTargetUnit(any(), any(), any());
     }
 
     @Test
