@@ -12,6 +12,7 @@ public class ActiveTimeSpecialMock {
         return ActiveTimeSpecial.builder()
                 .timeSpecial(givenTimeSpecial())
                 .state(timeSpecialStateEnum)
+                .user(UserMock.givenUser1())
                 .build();
     }
 }

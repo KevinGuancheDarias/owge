@@ -1,21 +1,14 @@
 package com.kevinguanchedarias.owgejava.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
+import lombok.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serial;
 
 /**
@@ -24,12 +17,16 @@ import java.io.Serial;
  */
 @Entity
 @Table(name = "time_specials")
+@EntityListeners(EntityWithTaggableCacheListener.class)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements EntityWithImprovements<Integer> {
+public class TimeSpecial extends CommonEntityWithImageStore<Integer>
+        implements EntityWithImprovements<Integer>, EntityWithTaggableCache<Integer> {
+    public static final String TIME_SPECIAL_CACHE_TAG = "time_special";
+
     @Serial
     private static final long serialVersionUID = -4022925345261224355L;
 
@@ -46,4 +43,9 @@ public class TimeSpecial extends CommonEntityWithImageStore<Integer> implements 
 
     @Column(name = "cloned_improvements")
     private Boolean clonedImprovements = false;
+
+    @Override
+    public String getCacheTag() {
+        return TIME_SPECIAL_CACHE_TAG;
+    }
 }
