@@ -42,7 +42,7 @@ public class MissionBaseService {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
     @Transactional
-    public void retryMissionIfPossible(Long missionId, MissionType missionType, String group) {
+    public void retryMissionIfPossible(Long missionId, MissionType missionType) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         if (mission.getAttemps() >= MAX_ATTEMPTS) {
             if (missionType.isUnitMission()) {
@@ -60,7 +60,7 @@ public class MissionBaseService {
             mission.setAttemps(mission.getAttemps() + 1);
             mission.setTerminationDate(missionTimeManagerBo.computeTerminationDate(mission.getRequiredTime()));
             missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
-            missionSchedulerService.scheduleMission(group, mission);
+            missionSchedulerService.scheduleMission(mission);
             missionRepository.save(mission);
         }
     }

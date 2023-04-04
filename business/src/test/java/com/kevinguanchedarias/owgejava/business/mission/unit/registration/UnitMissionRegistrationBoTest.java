@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
 
 import com.kevinguanchedarias.owgejava.business.MissionSchedulerService;
-import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
@@ -165,7 +164,7 @@ class UnitMissionRegistrationBoTest {
         verify(missionTimeManagerBo, times(1)).handleCustomDuration(mission, expectedWantedTime);
         verify(missionRegistrationInvisibleManager, times(1)).handleDefineMissionAsInvisible(mission, managedOuList);
         verify(missionRepository, times(1)).save(mission);
-        verify(missionSchedulerService, times(1)).scheduleMission(UnitMissionBo.JOB_GROUP_NAME, mission);
+        verify(missionSchedulerService, times(1)).scheduleMission(mission);
         verify(missionEventEmitterBo, times(1)).emitLocalMissionChangeAfterCommit(mission);
         verify(obtainedUnitEventEmitter, times(timesEmitObtainedUnitsAfterCommit)).emitObtainedUnitsAfterCommit(user);
         verify(missionRegistrationInvisibleManager, times(timesWhenEnemy)).maybeUpdateMissionsVisibility(alteredVisibilityMissions);

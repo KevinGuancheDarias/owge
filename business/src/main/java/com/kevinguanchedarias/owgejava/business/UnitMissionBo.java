@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class UnitMissionBo {
-    public static final String JOB_GROUP_NAME = "UnitMissions";
-
     private final PlanetLockUtilService planetLockUtilService;
     private final UnitMissionRegistrationBo unitMissionRegistrationBo;
     private final ReturnMissionRegistrationBo returnMissionRegistrationBo;

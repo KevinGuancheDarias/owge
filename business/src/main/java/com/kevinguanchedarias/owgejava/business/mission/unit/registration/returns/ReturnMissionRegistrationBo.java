@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns;
 
 import com.kevinguanchedarias.owgejava.business.MissionSchedulerService;
-import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
@@ -56,7 +55,7 @@ public class ReturnMissionRegistrationBo {
         missionRepository.saveAndFlush(returnMission);
         obtainedUnits.forEach(current -> current.setMission(returnMission));
         obtainedUnitRepository.saveAll(obtainedUnits);
-        missionSchedulerService.scheduleMission(UnitMissionBo.JOB_GROUP_NAME, returnMission);
+        missionSchedulerService.scheduleMission(returnMission);
         missionEventEmitterBo.emitLocalMissionChangeAfterCommit(returnMission);
     }
 }
