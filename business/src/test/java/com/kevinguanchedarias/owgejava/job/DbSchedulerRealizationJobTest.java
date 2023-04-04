@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.job;
 
+import com.github.kagkarlsson.scheduler.Scheduler;
 import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionBaseService;
@@ -10,19 +11,20 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.pojo.MysqlEngineInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.quartz.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.context.ApplicationContext;
 import org.springframework.dao.PessimisticLockingFailureException;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -37,55 +39,58 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(OutputCaptureExtension.class)
-class RealizationJobTest {
+@SpringBootTest(
+        classes = DbSchedulerRealizationJob.class,
+        webEnvironment = SpringBootTest.WebEnvironment.NONE
+)
+@MockBean({
+        MissionRepository.class,
+        MissionBo.class,
+        UnitMissionBo.class,
+        MissionBaseService.class,
+        MissionEventEmitterBo.class,
+        MysqlInformationRepository.class,
+        DataSource.class,
+        Scheduler.class
+})
+class DbSchedulerRealizationJobTest {
     private static final long MISSION_ID = 192;
 
-    private RealizationJob realizationJob;
-    private JobExecutionContext jobExecutionContextMock;
-    private MissionBo missionBoMock;
-    private MissionBaseService missionBaseServiceMock;
-    private MissionRepository missionRepositoryMock;
-    private UnitMissionBo unitMissionBoMock;
-    private MissionEventEmitterBo missionEventEmitterBoMock;
-    private MysqlInformationRepository mysqlInformationRepository;
+    private final DbSchedulerRealizationJob dbSchedulerRealizationJob;
+    private final MissionRepository missionRepository;
+    private final MissionBo missionBo;
+    private final UnitMissionBo unitMissionBo;
+    private final MissionBaseService missionBaseService;
+    private final MissionEventEmitterBo missionEventEmitterBo;
+    private final MysqlInformationRepository mysqlInformationRepository;
 
-    @BeforeEach
-    public void setup() throws SchedulerException {
-        jobExecutionContextMock = mock(JobExecutionContext.class);
-
-        missionBoMock = mock(MissionBo.class);
-        unitMissionBoMock = mock(UnitMissionBo.class);
-        realizationJob = new RealizationJob();
-        realizationJob.setMissionId(MISSION_ID);
-        missionBaseServiceMock = mock(MissionBaseService.class);
-        missionRepositoryMock = mock(MissionRepository.class);
-        missionEventEmitterBoMock = mock(MissionEventEmitterBo.class);
-        mysqlInformationRepository = mock(MysqlInformationRepository.class);
-
-        var schedulerMock = mock(Scheduler.class);
-        var schedulerContextMock = mock(SchedulerContext.class);
-        var applicationContextMock = mock(ApplicationContext.class);
-
-        given(jobExecutionContextMock.getScheduler()).willReturn(schedulerMock);
-        given(schedulerMock.getContext()).willReturn(schedulerContextMock);
-        given(schedulerContextMock.get("applicationContext")).willReturn(applicationContextMock);
-        given(applicationContextMock.getBean(MissionBo.class)).willReturn(missionBoMock);
-        given(applicationContextMock.getBean(UnitMissionBo.class)).willReturn(unitMissionBoMock);
-        given(applicationContextMock.getBean(MissionBaseService.class)).willReturn(missionBaseServiceMock);
-        given(applicationContextMock.getBean(MissionRepository.class)).willReturn(missionRepositoryMock);
-        given(applicationContextMock.getBean(MissionEventEmitterBo.class)).willReturn(missionEventEmitterBoMock);
-        given(applicationContextMock.getBean(MysqlInformationRepository.class)).willReturn(mysqlInformationRepository);
+    @Autowired
+    DbSchedulerRealizationJobTest(
+            DbSchedulerRealizationJob dbSchedulerRealizationJob,
+            MissionRepository missionRepository,
+            MissionBo missionBo,
+            UnitMissionBo unitMissionBo,
+            MissionBaseService missionBaseService,
+            MissionEventEmitterBo missionEventEmitterBo,
+            MysqlInformationRepository mysqlInformationRepository
+    ) {
+        this.dbSchedulerRealizationJob = dbSchedulerRealizationJob;
+        this.missionRepository = missionRepository;
+        this.missionBo = missionBo;
+        this.unitMissionBo = unitMissionBo;
+        this.missionBaseService = missionBaseService;
+        this.missionEventEmitterBo = missionEventEmitterBo;
+        this.mysqlInformationRepository = mysqlInformationRepository;
     }
 
     @Test
-    void executeInternal_should_execute_unit_mission(CapturedOutput capturedOutput) throws JobExecutionException {
+    void executeInternal_should_execute_unit_mission(CapturedOutput capturedOutput) {
         var unitMission = givenExploreMission();
-        realizationJob.setMissionId(EXPLORE_MISSION_ID);
-        given(missionRepositoryMock.findById(EXPLORE_MISSION_ID)).willReturn(Optional.of(unitMission));
+        given(missionRepository.findById(EXPLORE_MISSION_ID)).willReturn(Optional.of(unitMission));
 
-        realizationJob.execute(jobExecutionContextMock);
+        dbSchedulerRealizationJob.execute(EXPLORE_MISSION_ID);
 
-        verify(unitMissionBoMock, times(1)).runUnitMission(EXPLORE_MISSION_ID, MissionType.EXPLORE);
+        verify(unitMissionBo, times(1)).runUnitMission(EXPLORE_MISSION_ID, MissionType.EXPLORE);
         assertThat(capturedOutput.getOut()).contains("Executing mission id " + EXPLORE_MISSION_ID);
     }
 
@@ -94,15 +99,15 @@ class RealizationJobTest {
             "LEVEL_UP",
             "BUILD_UNIT"
     })
-    void executeInternal_should_execute_non_unit_mission(MissionType missionType) throws JobExecutionException {
+    void executeInternal_should_execute_non_unit_mission(MissionType missionType) {
         var mission = givenBuildMission();
         mission.setId(MISSION_ID);
         mission.setType(givenMissinType(missionType));
-        given(missionRepositoryMock.findById(MISSION_ID)).willReturn(Optional.of(mission));
+        given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
 
-        realizationJob.execute(jobExecutionContextMock);
+        dbSchedulerRealizationJob.execute(MISSION_ID);
 
-        verify(missionBoMock, times(1)).runMission(MISSION_ID, missionType);
+        verify(missionBo, times(1)).runMission(MISSION_ID, missionType);
     }
 
     @ParameterizedTest
@@ -114,40 +119,40 @@ class RealizationJobTest {
             int timesEmitRunningUpgrade,
             int timesEmitUnitBuildChange,
             CapturedOutput capturedOutput
-    ) throws JobExecutionException {
+    ) {
         var mission = givenBuildMission();
         var user = givenUser1();
         mission.setUser(user);
         mission.setId(MISSION_ID);
         mission.setType(givenMissinType(missionType));
-        given(missionRepositoryMock.findById(MISSION_ID)).willReturn(Optional.of(mission));
-        doThrow(e).when(missionBoMock).runMission(MISSION_ID, missionType);
+        given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
+        doThrow(e).when(missionBo).runMission(MISSION_ID, missionType);
         given(mysqlInformationRepository.findInnoDbStatus()).willReturn(mock(MysqlEngineInformation.class));
         given(mysqlInformationRepository.findFullProcessInformation()).willReturn(List.of());
 
-        realizationJob.execute(jobExecutionContextMock);
+        dbSchedulerRealizationJob.execute(MISSION_ID);
 
         assertThat(capturedOutput.getOut()).contains("fatal exception when ");
-        verify(missionBaseServiceMock, times(1)).retryMissionIfPossible(MISSION_ID, missionType, MissionBo.JOB_GROUP_NAME);
-        verify(missionBoMock, times(timesEmitRunningUpgrade)).emitRunningUpgrade(user);
-        verify(missionEventEmitterBoMock, times(timesEmitUnitBuildChange)).emitUnitBuildChange(USER_ID_1);
+        verify(missionBaseService, times(1)).retryMissionIfPossible(MISSION_ID, missionType);
+        verify(missionBo, times(timesEmitRunningUpgrade)).emitRunningUpgrade(user);
+        verify(missionEventEmitterBo, times(timesEmitUnitBuildChange)).emitUnitBuildChange(USER_ID_1);
         verify(mysqlInformationRepository, times(timesLogSqlInformation)).findInnoDbStatus();
         verify(mysqlInformationRepository, times(timesLogSqlInformation)).findFullProcessInformation();
     }
 
     @Test
-    void executeInternal_should_handle_exception_when_unit_mission() throws JobExecutionException {
+    void executeInternal_should_handle_exception_when_unit_mission() {
         var mission = givenExploreMission();
         var user = givenUser1();
         mission.setId(MISSION_ID);
         mission.setUser(user);
-        given(missionRepositoryMock.findById(MISSION_ID)).willReturn(Optional.of(mission));
-        doThrow(new CommonException("OOPS")).when(unitMissionBoMock).runUnitMission(MISSION_ID, MissionType.EXPLORE);
+        given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
+        doThrow(new CommonException("OOPS")).when(unitMissionBo).runUnitMission(MISSION_ID, MissionType.EXPLORE);
 
-        realizationJob.execute(jobExecutionContextMock);
+        dbSchedulerRealizationJob.execute(MISSION_ID);
 
-        verify(missionEventEmitterBoMock, times(1)).emitUnitMissions(USER_ID_1);
-        verify(missionEventEmitterBoMock, times(1)).emitEnemyMissionsChange(mission);
+        verify(missionEventEmitterBo, times(1)).emitUnitMissions(USER_ID_1);
+        verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(mission);
     }
 
     @Test
@@ -155,22 +160,21 @@ class RealizationJobTest {
         var mission = givenExploreMission();
         mission.setResolved(true);
         mission.setId(MISSION_ID);
-        given(missionRepositoryMock.findById(MISSION_ID)).willReturn(Optional.of(mission)).willReturn(Optional.empty());
+        given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission)).willReturn(Optional.empty());
 
-        realizationJob.executeInternal(jobExecutionContextMock);
-        realizationJob.executeInternal(jobExecutionContextMock);
+        dbSchedulerRealizationJob.execute(MISSION_ID);
 
-        verifyNoInteractions(missionBoMock, unitMissionBoMock, missionBaseServiceMock, missionEventEmitterBoMock);
+        verifyNoInteractions(missionBo, unitMissionBo, missionBaseService, missionEventEmitterBo);
     }
 
     @Test
     void executeInternal_should_fail_to_handle_exception_on_surprising_condition() {
         var mission = givenDeployedMission();
         mission.setId(MISSION_ID);
-        given(missionRepositoryMock.findById(MISSION_ID)).willReturn(Optional.of(mission));
-        doThrow(new CommonException("OOPS")).when(unitMissionBoMock).runUnitMission(MISSION_ID, MissionType.DEPLOYED);
+        given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
+        doThrow(new CommonException("OOPS")).when(unitMissionBo).runUnitMission(MISSION_ID, MissionType.DEPLOYED);
 
-        assertThatThrownBy(() -> realizationJob.executeInternal(jobExecutionContextMock))
+        assertThatThrownBy(() -> dbSchedulerRealizationJob.execute(MISSION_ID))
                 .isInstanceOf(ProgrammingException.class);
     }
 
@@ -187,4 +191,5 @@ class RealizationJobTest {
                 Arguments.of(MissionType.BUILD_UNIT, commonException, 0, 0, 1)
         );
     }
+
 }

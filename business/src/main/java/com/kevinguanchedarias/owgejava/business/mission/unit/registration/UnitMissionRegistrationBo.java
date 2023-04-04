@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
 import com.kevinguanchedarias.owgejava.business.MissionSchedulerService;
-import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.checker.CrossGalaxyMissionChecker;
@@ -63,7 +62,7 @@ public class UnitMissionRegistrationBo {
         missionTimeManagerBo.handleCustomDuration(mission, missionInformation.getWantedTime());
         missionRegistrationInvisibleManager.handleDefineMissionAsInvisible(mission, unitManagementResult.getUnits());
         missionRepository.save(mission);
-        missionSchedulerService.scheduleMission(UnitMissionBo.JOB_GROUP_NAME, mission);
+        missionSchedulerService.scheduleMission(mission);
         missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
         if (user.equals(mission.getSourcePlanet().getOwner())) {
             obtainedUnitEventEmitter.emitObtainedUnitsAfterCommit(user);

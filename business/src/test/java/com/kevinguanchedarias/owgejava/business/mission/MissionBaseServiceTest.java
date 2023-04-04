@@ -54,10 +54,8 @@ import static org.mockito.Mockito.*;
         MissionSchedulerService.class
 })
 class MissionBaseServiceTest {
-    private static final String GROUP = "FOO";
     private final MissionBaseService missionBaseService;
     private final MissionRepository missionRepository;
-    private final UserStorageRepository userStorageRepository;
     private final ReturnMissionRegistrationBo returnMissionRegistrationBo;
     private final ObtainedUnitModificationBo obtainedUnitModificationBo;
     private final MissionTimeManagerBo missionTimeManagerBo;
@@ -71,7 +69,6 @@ class MissionBaseServiceTest {
     MissionBaseServiceTest(
             MissionBaseService missionBaseService,
             MissionRepository missionRepository,
-            UserStorageRepository userStorageRepository,
             ReturnMissionRegistrationBo returnMissionRegistrationBo,
             ObtainedUnitModificationBo obtainedUnitModificationBo,
             MissionTimeManagerBo missionTimeManagerBo,
@@ -84,7 +81,6 @@ class MissionBaseServiceTest {
     ) {
         this.missionBaseService = missionBaseService;
         this.missionRepository = missionRepository;
-        this.userStorageRepository = userStorageRepository;
         this.returnMissionRegistrationBo = returnMissionRegistrationBo;
         this.obtainedUnitModificationBo = obtainedUnitModificationBo;
         this.missionTimeManagerBo = missionTimeManagerBo;
@@ -101,7 +97,7 @@ class MissionBaseServiceTest {
         mission.setAttemps(5);
         given(missionRepository.findById(DEPLOYED_MISSION_ID)).willReturn(Optional.of(mission));
 
-        assertThatThrownBy(() -> missionBaseService.retryMissionIfPossible(DEPLOYED_MISSION_ID, MissionType.DEPLOYED, GROUP))
+        assertThatThrownBy(() -> missionBaseService.retryMissionIfPossible(DEPLOYED_MISSION_ID, MissionType.DEPLOYED))
                 .isInstanceOf(ProgrammingException.class);
     }
 
@@ -125,7 +121,7 @@ class MissionBaseServiceTest {
         mission.setAttemps(5);
         given(missionRepository.findById(missionId)).willReturn(Optional.of(mission));
 
-        missionBaseService.retryMissionIfPossible(missionId, missionType, GROUP);
+        missionBaseService.retryMissionIfPossible(missionId, missionType);
 
         verify(returnMissionRegistrationBo, times(timesRegisterReturnMission)).registerReturnMission(mission, null);
         verify(obtainedUnitModificationBo, times(timesDeletedByMissionId)).deleteByMissionId(missionId);
@@ -163,14 +159,14 @@ class MissionBaseServiceTest {
             mockedStatic.when(UnitMissionReportBuilder::create)
                     .thenReturn(reportBuilderMock);
 
-            missionBaseService.retryMissionIfPossible(missionId, missionType, GROUP);
+            missionBaseService.retryMissionIfPossible(missionId, missionType);
 
             assertThat(mission.getAttemps()).isEqualTo(3);
             assertThat(mission.getTerminationDate()).isSameAs(terminationDate);
             verify(reportBuilderMock, times(timesIfUnitMission)).withInvolvedUnits(involvedUnits);
             verify(reportBuilderMock, times(1)).withErrorInformation(contains("please contact an admin"));
             verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportBuilderMock);
-            verify(missionSchedulerService, times(1)).scheduleMission(GROUP, mission);
+            verify(missionSchedulerService, times(1)).scheduleMission(mission);
             verify(missionRepository, times(1)).save(mission);
         }
     }

@@ -45,7 +45,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.kevinguanchedarias.owgejava.business.MissionBo.JOB_GROUP_NAME;
 import static com.kevinguanchedarias.owgejava.business.MissionBo.RUNNING_UPGRADE_CHANGE;
 import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
@@ -326,7 +325,7 @@ class MissionBoTest {
         assertThat(user.getSecondaryResource()).isEqualTo(80D);
         verify(userStorageRepository, times(1)).save(user);
         verify(missionRepository, times(1)).save(saved);
-        verify(missionSchedulerService, times(1)).scheduleMission(any(), eq(saved));
+        verify(missionSchedulerService, times(1)).scheduleMission(eq(saved));
         verify(entityManager, times(1)).refresh(saved);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), any());
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
@@ -423,7 +422,7 @@ class MissionBoTest {
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
         verify(obtainedUnitRepository, times(1)).save(captor.capture());
         var savedOu = captor.getValue();
-        verify(missionSchedulerService, times(1)).scheduleMission(eq(JOB_GROUP_NAME), any());
+        verify(missionSchedulerService, times(1)).scheduleMission(any());
         verify(entityManager, times(1)).refresh(savedOu);
         verify(entityManager, times(1)).refresh(any(Mission.class));
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
@@ -613,7 +612,7 @@ class MissionBoTest {
 
         verify(missionCancelBuildService, times(1)).cancel(mission);
         verify(missionRepository, times(1)).delete(mission);
-        verify(missionSchedulerService, times(1)).abortMissionJob(JOB_GROUP_NAME, mission);
+        verify(missionSchedulerService, times(1)).abortMissionJob(mission);
     }
 
     private GroupedImprovement givenMaxMissionsCount(UserStorage user) {

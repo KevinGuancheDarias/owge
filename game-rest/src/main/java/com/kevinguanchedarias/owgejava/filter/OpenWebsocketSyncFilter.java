@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -41,8 +43,11 @@ public class OpenWebsocketSyncFilter implements Filter {
 
     private final TaggableCacheManager taggableCacheManager;
     private final ObjectMapper objectMapper;
-    private final RequestMappingHandlerMapping handlerMapping;
     private final RequestMappingHandlerAdapter handlerAdapter;
+
+    @Autowired
+    @Qualifier("requestMappingHandlerMapping")
+    private RequestMappingHandlerMapping handlerMapping;
 
     private record CacheInfo(LocalDateTime lastModified, String body) {
     }

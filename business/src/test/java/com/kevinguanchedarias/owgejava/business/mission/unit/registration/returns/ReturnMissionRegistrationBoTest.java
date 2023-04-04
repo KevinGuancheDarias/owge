@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns;
 
 import com.kevinguanchedarias.owgejava.business.MissionSchedulerService;
-import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTimeManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionTypeBo;
@@ -113,7 +112,7 @@ class ReturnMissionRegistrationBoTest {
         assertThat(savedReturnMission.getInvisible()).isEqualTo(isInvisible);
         assertThat(ou.getMission()).isEqualTo(savedReturnMission);
         verify(obtainedUnitRepository, times(1)).saveAll(List.of(ou));
-        verify(missionSchedulerService, times(1)).scheduleMission(UnitMissionBo.JOB_GROUP_NAME, savedReturnMission);
+        verify(missionSchedulerService, times(1)).scheduleMission(savedReturnMission);
         verify(missionEventEmitterBo, times(1)).emitLocalMissionChangeAfterCommit(savedReturnMission);
     }
 }

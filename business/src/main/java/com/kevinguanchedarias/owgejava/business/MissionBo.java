@@ -45,8 +45,6 @@ public class MissionBo {
     public static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
 
     private static final Logger LOG = Logger.getLogger(MissionBo.class);
-    public static final String JOB_GROUP_NAME = "Missions";
-
     private static final int DAYS = 60;
 
     private final EntityManager entityManager;
@@ -143,7 +141,7 @@ public class MissionBo {
 
         userStorageRepository.save(user);
         missionRepository.save(mission);
-        missionSchedulerService.scheduleMission(JOB_GROUP_NAME, mission);
+        missionSchedulerService.scheduleMission(mission);
         transactionUtilService.doAfterCommit(() -> {
             entityManager.refresh(mission);
             emitRunningUpgrade(user);
@@ -244,7 +242,7 @@ public class MissionBo {
         obtainedUnit.setUser(user);
         obtainedUnitRepository.save(obtainedUnit);
 
-        missionSchedulerService.scheduleMission(JOB_GROUP_NAME, mission);
+        missionSchedulerService.scheduleMission(mission);
 
         transactionUtilService.doAfterCommit(() -> {
             entityManager.refresh(obtainedUnit);
@@ -465,6 +463,6 @@ public class MissionBo {
      * @since 0.9.0
      */
     private void abortMissionJob(Mission mission) {
-        missionSchedulerService.abortMissionJob(JOB_GROUP_NAME, mission);
+        missionSchedulerService.abortMissionJob(mission);
     }
 }

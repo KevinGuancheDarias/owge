@@ -1,17 +1,15 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.github.kagkarlsson.scheduler.Scheduler;
 import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
-import com.kevinguanchedarias.owgejava.job.RealizationJob;
-import org.apache.log4j.Logger;
-import org.quartz.*;
+import com.kevinguanchedarias.owgejava.job.DbSchedulerRealizationJob;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * <b>NOTICE:</b> Due to changes in the way Spring Boot handles Quartz jobs, the
@@ -22,11 +20,10 @@ import java.sql.Timestamp;
  */
 @Service
 public class MissionSchedulerService {
-
-    private static final Logger LOG = Logger.getLogger(MissionSchedulerService.class);
-
-    @Autowired(required = false)
-    protected SchedulerFactoryBean schedulerFactory;
+    private static final long DELAY_HANDLE = 2;
+    @Autowired
+    @Lazy
+    private Scheduler scheduler;
 
     /**
      * Schedules a mission <br>
@@ -35,26 +32,11 @@ public class MissionSchedulerService {
      * @since 0.9.0
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void scheduleMission(String groupName, Mission mission) {
-        if (schedulerFactory != null) {
-            String jobName = mission.getId().toString();
-            Scheduler scheduler = schedulerFactory.getScheduler();
-            JobKey jobKey = new JobKey(jobName, groupName);
-            TriggerKey triggerKey = genTriggerKey(groupName, mission);
-            JobDataMap jobData = new JobDataMap();
-            jobData.put("missionId", mission.getId().toString());
-            JobDetail jobDetail = JobBuilder.newJob(RealizationJob.class).withIdentity(jobKey).setJobData(jobData)
-                    .build();
-            SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger().withIdentity(triggerKey)
-                    .forJob(jobDetail).startAt(Timestamp.valueOf(mission.getTerminationDate())).forJob(jobKey).build();
-            try {
-                scheduler.addJob(jobDetail, true, true);
-                scheduler.scheduleJob(trigger);
-            } catch (SchedulerException e) {
-                LOG.error(e);
-                throw new SgtBackendSchedulerException("Couldn't store job: " + jobName, e);
-            }
-        }
+    public void scheduleMission(Mission mission) {
+        scheduler.schedule(
+                DbSchedulerRealizationJob.BASIC_ONE_TIME_TASK.instance(mission.getId().toString()),
+                Instant.now().plusSeconds(mission.getRequiredTime().longValue() - DELAY_HANDLE)
+        );
     }
 
     /**
@@ -64,18 +46,7 @@ public class MissionSchedulerService {
      * @since 0.9.0
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void abortMissionJob(String groupName, Mission mission) {
-        if (schedulerFactory != null) {
-            try {
-                schedulerFactory.getScheduler().unscheduleJob(genTriggerKey(groupName, mission));
-            } catch (SchedulerException e) {
-                LOG.error("Couldn't remove job", e);
-                throw new SgtBackendSchedulerException("Couldn't remove job", e);
-            }
-        }
-    }
-
-    protected TriggerKey genTriggerKey(String groupName, Mission mission) {
-        return new TriggerKey("trigger_" + mission.getId() + "_" + mission.getAttemps(), groupName);
+    public void abortMissionJob(Mission mission) {
+        scheduler.cancel(DbSchedulerRealizationJob.BASIC_ONE_TIME_TASK.instance(mission.getId().toString()));
     }
 }
