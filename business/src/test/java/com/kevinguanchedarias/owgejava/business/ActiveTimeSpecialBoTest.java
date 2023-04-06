@@ -29,10 +29,11 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
@@ -135,7 +136,7 @@ class ActiveTimeSpecialBoTest {
         verify(requirementBo, never()).triggerTimeSpecialStateChange(any(), any());
         verify(socketIoService, never()).sendMessage(any(), any(), any());
         assertThat(capturedOutput.getOut())
-                .contains("ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
+                .contains("ActiveTimeSpecial was deleted outside");
     }
 
     @ParameterizedTest
@@ -320,4 +321,52 @@ class ActiveTimeSpecialBoTest {
         verify(obtainedUnitEventEmitter, never()).emitObtainedUnits(any());
     }
 
+    @Test
+    void relationLost_should_do_nothing_if_not_a_time_special() {
+        var ur = givenUnlockedRelation();
+
+        activeTimeSpecialBo.relationLost(ur);
+
+        verifyNoInteractions(activeTimeSpecialRepository, improvementBo, scheduledTasksManagerService);
+    }
+
+    @Test
+    void relationLost_should_do_nothing_if_not_active() {
+        var ur = givenUnlockedRelation();
+        var or = ur.getRelation();
+        or.setReferenceId(TIME_SPECIAL_ID);
+        or.setObject(givenObjectEntity(ObjectEnum.TIME_SPECIAL));
+        var ats = givenActiveTimeSpecial();
+        ats.setState(TimeSpecialStateEnum.RECHARGE);
+        given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1)).willReturn(Optional.of(ats));
+
+        activeTimeSpecialBo.relationLost(ur);
+
+        verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1);
+        verifyNoInteractions(improvementBo, scheduledTasksManagerService);
+    }
+
+    @Test
+    void relationLost_should_work() {
+        var ur = givenUnlockedRelation();
+        var user = ur.getUser();
+        var or = ur.getRelation();
+        or.setReferenceId(TIME_SPECIAL_ID);
+        or.setObject(givenObjectEntity(ObjectEnum.TIME_SPECIAL));
+        var ats = givenActiveTimeSpecial();
+        var ts = ats.getTimeSpecial();
+        ats.setUser(user);
+        ats.setExpiringDate(new Date());
+        ats.setState(TimeSpecialStateEnum.ACTIVE);
+        given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1)).willReturn(Optional.of(ats));
+        given(activeTimeSpecialRepository.findById(ACTIVE_TIME_SPECICAL_ID)).willReturn(Optional.of(ats));
+
+        activeTimeSpecialBo.relationLost(ur);
+
+        var captor = ArgumentCaptor.forClass(ActiveTimeSpecial.class);
+        verify(activeTimeSpecialRepository, times(1)).save(captor.capture());
+        var saved = captor.getValue();
+        assertThat(saved.getState()).isEqualTo(TimeSpecialStateEnum.RECHARGE);
+        verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, ts);
+    }
 }

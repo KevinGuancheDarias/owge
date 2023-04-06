@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.requirement.RequirementInternalEventEmitterService;
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
@@ -87,7 +88,8 @@ import static org.mockito.Mockito.*;
         PlanetRepository.class,
         UnlockableUnitService.class,
         UnlockableTimeSpecialService.class,
-        UnlockedSpeedImpactGroupService.class
+        UnlockedSpeedImpactGroupService.class,
+        RequirementInternalEventEmitterService.class
 })
 class RequirementBoTest {
     private final NonPostConstructRequirementBo requirementBo;
@@ -103,6 +105,7 @@ class RequirementBoTest {
     private final DtoUtilService dtoUtilService;
     private final RequirementInformationRepository requirementInformationRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
+    private final RequirementInternalEventEmitterService requirementInternalEventEmitterService;
 
     @Autowired
     RequirementBoTest(
@@ -118,7 +121,8 @@ class RequirementBoTest {
             UserStorageRepository userStorageRepository,
             DtoUtilService dtoUtilService,
             RequirementInformationRepository requirementInformationRepository,
-            UnlockedRelationRepository unlockedRelationRepository
+            UnlockedRelationRepository unlockedRelationRepository,
+            RequirementInternalEventEmitterService requirementInternalEventEmitterService
     ) {
         this.requirementBo = requirementBo;
         this.requirementSource = requirementSource;
@@ -133,6 +137,7 @@ class RequirementBoTest {
         this.dtoUtilService = dtoUtilService;
         this.requirementInformationRepository = requirementInformationRepository;
         this.unlockedRelationRepository = unlockedRelationRepository;
+        this.requirementInternalEventEmitterService = requirementInternalEventEmitterService;
     }
 
     @Test
@@ -203,6 +208,7 @@ class RequirementBoTest {
         var captor = ArgumentCaptor.forClass(UnlockedRelation.class);
         verify(unlockedRelationRepository, times(1)).save(captor.capture());
         var savedUnlocked = captor.getValue();
+        verify(requirementInternalEventEmitterService, times(1)).doNotifyObtainedRelation(savedUnlocked);
         assertThat(savedUnlocked.getRelation()).isEqualTo(or);
         assertThat(savedUnlocked.getUser()).isEqualTo(user);
         checkRegisterObtainedUpgrade(or, upgrade, user);
@@ -248,6 +254,7 @@ class RequirementBoTest {
         verify(obtainedUpgradeRepository, times(isUpgrade ? 1 : 0)).existsByUserIdAndUpgradeId(USER_ID_1, REFERENCE_ID);
         var captor = ArgumentCaptor.forClass(ObtainedUpgrade.class);
         verify(obtainedUpgradeRepository, times(isUpgrade && lostUpgradeRelationExists ? 1 : 0)).save(captor.capture());
+        verify(requirementInternalEventEmitterService, times(1)).doNotifyLostRelation(ur);
         if (lostUpgradeRelationExists && isUpgrade) {
             var savedLostUpgrade = captor.getValue();
             assertThat(savedLostUpgrade).isSameAs(obtainedUpgrade);

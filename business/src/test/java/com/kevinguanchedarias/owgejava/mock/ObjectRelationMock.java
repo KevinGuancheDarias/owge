@@ -5,6 +5,8 @@ import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import lombok.experimental.UtilityClass;
 
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+
 @UtilityClass
 public class ObjectRelationMock {
     public static final int OBJECT_RELATION_ID = 41823;
@@ -42,6 +44,10 @@ public class ObjectRelationMock {
         return ObjectEntity.builder()
                 .code(code)
                 .build();
+    }
+
+    public static UnlockedRelation givenUnlockedRelation() {
+        return givenUnlockedRelation(givenUser1());
     }
 
     public static UnlockedRelation givenUnlockedRelation(UserStorage user) {

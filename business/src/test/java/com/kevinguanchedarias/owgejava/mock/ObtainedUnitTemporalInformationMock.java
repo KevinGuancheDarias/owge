@@ -13,11 +13,17 @@ public class ObtainedUnitTemporalInformationMock {
     public static final long DURATION = 180;
     public static final Instant EXPIRATION = LocalDateTime.parse("1993-03-12T11:12:14").toInstant(ZoneOffset.UTC);
 
-    public static ObtainedUnitTemporalInformation givenObtainedUnitTemporalInformation() {
+    public static ObtainedUnitTemporalInformation givenObtainedUnitTemporalInformation(Integer objectRelationId) {
         return ObtainedUnitTemporalInformation.builder()
                 .id(OBTAINED_UNIT_TEMPORAL_INFORMATION_ID)
                 .duration(DURATION)
                 .expiration(EXPIRATION)
+                .relationId(objectRelationId)
                 .build();
     }
+
+    public static ObtainedUnitTemporalInformation givenObtainedUnitTemporalInformation() {
+        return givenObtainedUnitTemporalInformation(null);
+    }
+
 }

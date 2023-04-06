@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.requirement.RequirementInternalEventEmitterService;
 import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
@@ -43,6 +44,7 @@ import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQU
 @Component
 @Transactional
 @AllArgsConstructor
+
 public class RequirementBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -7069590234333605969L;
@@ -70,6 +72,7 @@ public class RequirementBo implements Serializable {
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final UserStorageRepository userStorageRepository;
+    private final transient RequirementInternalEventEmitterService requirementInternalEventEmitterService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -416,6 +419,7 @@ public class RequirementBo implements Serializable {
                     emitUnlockedSpeedImpactGroups(user);
                     break;
             }
+            requirementInternalEventEmitterService.doNotifyObtainedRelation(unlockedRelation);
         }
     }
 
@@ -439,6 +443,7 @@ public class RequirementBo implements Serializable {
         } else if (unlockedRelation != null) {
             emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unlockableUnitService : unlockableTimeSpecialService);
         }
+        requirementInternalEventEmitterService.doNotifyLostRelation(unlockedRelation);
     }
 
     private void registerObtainedUpgrade(UserStorage user, Integer upgradeId) {

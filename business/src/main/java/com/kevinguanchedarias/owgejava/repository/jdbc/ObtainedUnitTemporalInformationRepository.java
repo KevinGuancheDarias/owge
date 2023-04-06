@@ -4,7 +4,9 @@ import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformati
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ObtainedUnitTemporalInformationRepository extends CrudRepository<ObtainedUnitTemporalInformation, Long> {
-    long countById(long id);
+    List<ObtainedUnitTemporalInformation> findByRelationId(Integer relationId);
 }
