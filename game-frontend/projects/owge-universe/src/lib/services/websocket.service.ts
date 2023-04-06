@@ -56,7 +56,7 @@ export class WebsocketService {
 
   public addEventHandler(...handlers: AbstractWebsocketApplicationHandler[]) {
     handlers.forEach(handler => {
-      handler.onCachePanic(() => this._isCachePanic.next(true));
+      this.onCachePanic(handler);
       this._eventHandlers.add(handler);
     });
   }
@@ -69,7 +69,7 @@ export class WebsocketService {
    * @param handler
    */
   public preprendEventHandler(handler: AbstractWebsocketApplicationHandler): void {
-    handler.onCachePanic(() => this._isCachePanic.next(true));
+    this.onCachePanic(handler);
     this._eventHandlers = new Set([handler, ...this._eventHandlers]);
   }
 
@@ -274,10 +274,11 @@ export class WebsocketService {
         this._isCachePanic.next(false);
       });
     } catch (e) {
+      this._log.error('Cache panic on sync', e);
+      this._toastrService.error(`Cache panic ${e.message}`);
       this._isCachePanic.next(true);
     }
   }
-
 
   /**
    *
@@ -320,5 +321,12 @@ export class WebsocketService {
         const content = await this.universeGameService.getToUniverse(`open/websocket-sync/${event}`).toPromise();
         await this._wsEventCacheService.updateOfflineStore(event, content);
     });
-}
+  }
+
+  private onCachePanic(handler: AbstractWebsocketApplicationHandler): void {
+    handler.onCachePanic(() => {
+      this._isCachePanic.next(true);
+      this._log.error(`Handler marked the connection as panic ${handler.constructor.name}`);
+    });
+  }
 }

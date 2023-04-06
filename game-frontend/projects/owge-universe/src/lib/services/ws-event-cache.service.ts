@@ -246,10 +246,18 @@ export class WsEventCacheService {
      */
     public async clearCaches(): Promise<void> {
         this._eventsInformation = {};
-        await AsyncCollectionUtil.forEach(Object.keys(this._eventsOfflineStore), async event => {
-            await this._eventsOfflineStore[event].delete();
-        });
+        await AsyncCollectionUtil.forEach(
+            Object.keys(this._eventsOfflineStore),
+            event => this.clearSingleEntry(event)
+        );
         await AsyncCollectionUtil.forEach(this._cacheListeners, listener => listener.afterCacheClear());
+    }
+
+    public async clearSingleEntry(event: string): Promise<void> {
+        await this._eventsOfflineStore[event].delete();
+        if(this._eventsInformation[event]) {
+            delete this._eventsInformation[event];
+        }
     }
 
     /**
