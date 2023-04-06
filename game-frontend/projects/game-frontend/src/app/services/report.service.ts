@@ -24,7 +24,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
 
   public constructor(
     private _universeGameService: UniverseGameService,
-    private _wsEventCacheService: WsEventCacheService,
+    private wsEventCacheService: WsEventCacheService,
     private _universeCacheManagerService: UniverseCacheManagerService
   ) {
     super();
@@ -142,7 +142,7 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     }
   }
 
-  protected _onNew(content: MissionReport, emit = true): void {
+  protected async _onNew(content: MissionReport, emit = true): Promise<void> {
     if (content?.parsedJson?.unitCaptureInformation) {
       content.parsedJson.frontedParsedUnitCapturedInformation = content.parsedJson.unitCaptureInformation.map(
         captureInfo => ({
@@ -156,13 +156,17 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     this._currentReports = this._currentReports.sort((a, b) => a.id > b.id ? -1 : 1);
     this._alreadyDownloadedReports.add(content.id);
     content.missionDate = new Date(content.missionDate);
+    await this.wsEventCacheService.clearSingleEntry('mission_report_change');
     if (emit) {
       if (this._doSplit && this._currentReports.length > ReportService._MAX_ALLOWED_LOCAL_NEW_STORE) {
         this._currentReports.splice(-1, this._currentReports.length - ReportService._MAX_ALLOWED_LOCAL_NEW_STORE);
         this._alreadyDownloadedReports = new Set;
         this._currentReports.forEach(report => this._alreadyDownloadedReports.add(report.id));
       }
-      this._saveOffline().then(() => this._emit());
+      await this._saveOffline();
+      this._emit();
+    } else {
+      this._saveOffline();
     }
   }
 
