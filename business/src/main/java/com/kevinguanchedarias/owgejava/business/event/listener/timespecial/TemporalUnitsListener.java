@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
@@ -41,6 +42,7 @@ public class TemporalUnitsListener {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final UnitImprovementUtilService unitImprovementUtilService;
     private final PlanetRepository planetRepository;
+    private final ObjectRelationsRepository objectRelationsRepository;
 
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -49,10 +51,11 @@ public class TemporalUnitsListener {
                 ObjectEnum.TIME_SPECIAL.name(),
                 activeTimeSpecial.getTimeSpecial().getId(),
                 TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID
-        ), activeTimeSpecial.getUser());
+        ), activeTimeSpecial);
     }
 
-    private void handleRules(List<RuleDto> rules, UserStorage user) {
+    private void handleRules(List<RuleDto> rules, ActiveTimeSpecial activeTimeSpecial) {
+        var user = activeTimeSpecial.getUser();
         var map = new HashMap<Long, Set<ObtainedUnit>>();
         rules.stream()
                 .filter(ruleDto -> ruleDto.getExtraArgs().size() == 2 && ObjectEnum.UNIT.name().equals(ruleDto.getDestinationType()))
@@ -72,6 +75,9 @@ public class TemporalUnitsListener {
                     ObtainedUnitTemporalInformation.builder()
                             .duration(key)
                             .expiration(Instant.now().plusSeconds(key))
+                            .relationId(objectRelationsRepository.findOneByObjectCodeAndReferenceId(
+                                    ObjectEnum.TIME_SPECIAL.name(), activeTimeSpecial.getTimeSpecial().getId()).getId()
+                            )
                             .build()
             );
 

@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformati
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
@@ -41,6 +42,8 @@ import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveTemporalUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID;
 import static com.kevinguanchedarias.owgejava.mock.ActiveTimeSpecialMock.givenActiveTimeSpecialMock;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.OBJECT_RELATION_ID;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.DESTINATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleDto;
@@ -66,7 +69,8 @@ import static org.mockito.Mockito.*;
         ObtainedUnitRepository.class,
         ObtainedUnitEventEmitter.class,
         UnitImprovementUtilService.class,
-        PlanetRepository.class
+        PlanetRepository.class,
+        ObjectRelationsRepository.class
 })
 class TemporalUnitListenerTest {
     private final TemporalUnitsListener temporalUnitsListener;
@@ -78,6 +82,7 @@ class TemporalUnitListenerTest {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final UnitImprovementUtilService unitImprovementUtilService;
     private final PlanetRepository planetRepository;
+    private final ObjectRelationsRepository objectRelationsRepository;
 
     @Autowired
     public TemporalUnitListenerTest(
@@ -89,7 +94,8 @@ class TemporalUnitListenerTest {
             ObtainedUnitRepository obtainedUnitRepository,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
             UnitImprovementUtilService unitImprovementUtilService,
-            PlanetRepository planetRepository
+            PlanetRepository planetRepository,
+            ObjectRelationsRepository objectRelationsRepository
     ) {
         this.temporalUnitsListener = temporalUnitsListener;
         this.ruleBo = ruleBo;
@@ -100,6 +106,7 @@ class TemporalUnitListenerTest {
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.unitImprovementUtilService = unitImprovementUtilService;
         this.planetRepository = planetRepository;
+        this.objectRelationsRepository = objectRelationsRepository;
     }
 
     @Test
@@ -122,6 +129,8 @@ class TemporalUnitListenerTest {
             Planet expectedPlanet,
             CapturedOutput capturedOutput
     ) {
+        var or = givenObjectRelation();
+        or.setReferenceId(TIME_SPECIAL_ID);
         var ats = givenActiveTimeSpecialMock(TimeSpecialStateEnum.ACTIVE);
         var user = givenUser1();
         var homePlanet = givenSourcePlanet();
@@ -141,6 +150,8 @@ class TemporalUnitListenerTest {
         )).willReturn(List.of(ruleDto, ruleDto));
         given(unitRepository.findById((int) DESTINATION_ID)).willReturn(Optional.ofNullable(unit));
         given(planetRepository.getReferenceById(TARGET_PLANET_ID)).willReturn(givenTargetPlanet());
+        given(objectRelationsRepository.findOneByObjectCodeAndReferenceId(ObjectEnum.TIME_SPECIAL.name(), TIME_SPECIAL_ID))
+                .willReturn(or);
         doAnswer(invocationOnMock -> {
             var entity = invocationOnMock.getArgument(0, ObtainedUnitTemporalInformation.class);
             entity.setId(idGenerator.incrementAndGet());
@@ -162,6 +173,7 @@ class TemporalUnitListenerTest {
                 assertThat(saved.getExpiration())
                         .isAfter(Instant.now())
                         .isBefore(Instant.now().plusSeconds(saved.getDuration() + 1));
+                assertThat(saved.getRelationId()).isEqualTo(OBJECT_RELATION_ID);
                 ArgumentCaptor<List<ObtainedUnit>> savedUnits = ArgumentCaptor.forClass(List.class);
                 verify(obtainedUnitRepository, times(1)).saveAll(savedUnits.capture());
                 verify(obtainedUnitEventEmitter, times(1)).emitObtainedUnits(user);

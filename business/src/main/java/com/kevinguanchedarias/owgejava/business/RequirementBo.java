@@ -24,9 +24,11 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +45,7 @@ import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQU
 
 @Component
 @Transactional
-@AllArgsConstructor
-
+@RequiredArgsConstructor
 public class RequirementBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -7069590234333605969L;
@@ -72,7 +73,10 @@ public class RequirementBo implements Serializable {
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final UserStorageRepository userStorageRepository;
-    private final transient RequirementInternalEventEmitterService requirementInternalEventEmitterService;
+
+    @Autowired
+    @Lazy
+    private transient RequirementInternalEventEmitterService requirementInternalEventEmitterService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -443,7 +447,9 @@ public class RequirementBo implements Serializable {
         } else if (unlockedRelation != null) {
             emitUnlockedChange(unlockedRelation, object, ObjectEnum.UNIT.equals(object) ? unlockableUnitService : unlockableTimeSpecialService);
         }
-        requirementInternalEventEmitterService.doNotifyLostRelation(unlockedRelation);
+        if (unlockedRelation != null) {
+            requirementInternalEventEmitterService.doNotifyLostRelation(unlockedRelation);
+        }
     }
 
     private void registerObtainedUpgrade(UserStorage user, Integer upgradeId) {
@@ -462,15 +468,15 @@ public class RequirementBo implements Serializable {
 
     private UnitWithRequirementInformation createUnitUpgradeRequirements(Unit unit,
                                                                          List<RequirementInformation> requirementInformations) {
-        UnitWithRequirementInformation retVal = new UnitWithRequirementInformation();
+        var retVal = new UnitWithRequirementInformation();
         retVal.setUnit(new UnitDto());
         retVal.getUnit().dtoFromEntity(unit);
         retVal.setRequirements(requirementInformations.stream()
                 .filter(current -> current.getRequirement().getCode().equals(RequirementTypeEnum.UPGRADE_LEVEL.name()))
                 .map(current -> {
-                    UnitUpgradeRequirements unitUpgradeRequirements = new UnitUpgradeRequirements();
+                    var unitUpgradeRequirements = new UnitUpgradeRequirements();
                     unitUpgradeRequirements.setLevel(current.getThirdValue().intValue());
-                    UpgradeDto upgradeDto = new UpgradeDto();
+                    var upgradeDto = new UpgradeDto();
                     upgradeDto.dtoFromEntity(upgradeBo.findById(current.getSecondValue().intValue()));
                     unitUpgradeRequirements.setUpgrade(upgradeDto);
                     return unitUpgradeRequirements;
@@ -480,8 +486,8 @@ public class RequirementBo implements Serializable {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void emitUnlockedChange(UnlockedRelation unlockedRelation, ObjectEnum object, WithUnlockableBo bo) {
-        Integer userId = unlockedRelation.getUser().getId();
-        String eventPrefix = object.name().toLowerCase();
+        var userId = unlockedRelation.getUser().getId();
+        var eventPrefix = object.name().toLowerCase();
         transactionUtilService.doAfterCommit(() -> {
             if (entityManager.contains(unlockedRelation)) {
                 entityManager.refresh(unlockedRelation);

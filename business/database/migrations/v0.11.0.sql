@@ -87,4 +87,8 @@ CREATE TABLE scheduled_tasks
     PRIMARY KEY (task_name, task_instance),
     INDEX execution_time_idx (execution_time),
     INDEX last_heartbeat_idx (last_heartbeat)
-)
+);
+
+ALTER TABLE `obtained_unit_temporal_information`
+    ADD `relation_id` SMALLINT UNSIGNED NOT NULL AFTER `expiration`,
+    ADD INDEX (`relation_id`);
