@@ -8,6 +8,8 @@ import { PlanetListService } from './services/planet-list.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { OwgeSelectedPlanetHttpInterceptor } from './http-interceptors/owge-selected-planet.http-interceptor';
 
 @NgModule({
   declarations: [
@@ -23,7 +25,8 @@ import { FormsModule } from '@angular/forms';
   ],
   providers: [
     PlanetService,
-    PlanetListService
+    PlanetListService,
+    { provide: HTTP_INTERCEPTORS, useClass: OwgeSelectedPlanetHttpInterceptor, multi: true },
   ],
   exports: [
     PlanetImagePipe,

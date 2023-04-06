@@ -2,6 +2,8 @@
 
 v0.11.0 (latest)
 =================
+* __Improvement:__  [If you activate temporary special units on any planet, they appear on the home planet. #470](https://github.com/KevinGuancheDarias/owge/issues/470)  
+* [class=Admin] __Feature:__ [As an admin I want to use requirement to capture Units, as a time activated special (Rule). #472  ](https://github.com/KevinGuancheDarias/owge/issues/472)  
 * __Fix:__ [Ipv6 users not able to use the game #490](https://github.com/KevinGuancheDarias/owge/issues/490)  
 * __Fix:__ [Allow/deny mission for specified speed impact group is not working #491](https://github.com/KevinGuancheDarias/owge/issues/491)  
 * __Feature:__ [As a player I want to send units stored in other units #268](https://github.com/KevinGuancheDarias/owge/issues/268)  

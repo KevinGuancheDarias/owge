@@ -9,8 +9,11 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 
 public interface PlanetRepository extends WithNameRepository<Planet, Long>, Serializable {
+
+
     Planet findOneByGalaxyIdAndOwnerNotNullOrderByGalaxyId(Integer galaxyId);
 
     long countByGalaxyIdAndOwnerIsNullAndSpecialLocationIsNull(Integer galaxyId);
@@ -21,7 +24,9 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
     List<Planet> findByOwnerIsNullAndSpecialLocationIsNull(Pageable pageable);
 
-    Planet findOneByIdAndOwnerId(Long planetId, Integer ownerId);
+    Optional<Planet> findOneByIdAndOwnerId(Long planetId, Integer ownerId);
+
+    Planet findOneByOwnerIdAndHomeTrue(Integer ownerId);
 
     @Query("SELECT case when count(p)> 0 then true else false end FROM Planet p WHERE p.id = ?2 AND p.owner.id = ?1 ")
     boolean isOfUserProperty(Integer ownerId, Long planetId);
