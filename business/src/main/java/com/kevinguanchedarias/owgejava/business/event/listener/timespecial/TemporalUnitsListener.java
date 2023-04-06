@@ -5,15 +5,14 @@ import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
+import com.kevinguanchedarias.owgejava.context.OwgeContextHolder;
 import com.kevinguanchedarias.owgejava.dto.rule.RuleDto;
-import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Unit;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.entity.jdbc.ObtainedUnitTemporalInformation;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
+import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
 import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import lombok.AllArgsConstructor;
@@ -41,6 +40,7 @@ public class TemporalUnitsListener {
     private final ScheduledTasksManagerService scheduledTasksManagerService;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final UnitImprovementUtilService unitImprovementUtilService;
+    private final PlanetRepository planetRepository;
 
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -54,7 +54,6 @@ public class TemporalUnitsListener {
 
     private void handleRules(List<RuleDto> rules, UserStorage user) {
         var map = new HashMap<Long, Set<ObtainedUnit>>();
-
         rules.stream()
                 .filter(ruleDto -> ruleDto.getExtraArgs().size() == 2 && ObjectEnum.UNIT.name().equals(ruleDto.getDestinationType()))
                 .map(ruleDto -> {
@@ -99,7 +98,7 @@ public class TemporalUnitsListener {
         var ou = ObtainedUnit.builder()
                 .unit(unit)
                 .user(user)
-                .sourcePlanet(user.getHomePlanet())
+                .sourcePlanet(resolvePlanet(user))
                 .count(count)
                 .build();
         if (mutableMap.containsKey(duration)) {
@@ -107,6 +106,13 @@ public class TemporalUnitsListener {
         } else {
             mutableMap.put(duration, new HashSet<>(List.of(ou)));
         }
+    }
+
+    private Planet resolvePlanet(UserStorage user) {
+        return OwgeContextHolder.get()
+                .map(OwgeContextHolder.OwgeContext::selectedPlanetId)
+                .map(planetRepository::getReferenceById)
+                .orElse(user.getHomePlanet());
     }
 
 }
