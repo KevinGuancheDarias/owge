@@ -92,3 +92,6 @@ CREATE TABLE scheduled_tasks
 ALTER TABLE `obtained_unit_temporal_information`
     ADD `relation_id` SMALLINT UNSIGNED NOT NULL AFTER `expiration`,
     ADD INDEX (`relation_id`);
+
+ALTER TABLE `tor_ip_data`
+    CHANGE `ip` `ip` VARCHAR(39) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
