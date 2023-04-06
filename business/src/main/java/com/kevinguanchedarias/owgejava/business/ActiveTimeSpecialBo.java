@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.requirement.listener.RequirementComplianceListener;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
@@ -7,6 +8,7 @@ import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.TimeSpecial;
+import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
@@ -35,7 +37,7 @@ import java.util.List;
  * @since 0.8.0
  */
 @Service
-public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource {
+public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource, RequirementComplianceListener {
 
     @Serial
     private static final long serialVersionUID = -3981337002238422272L;
@@ -84,24 +86,7 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
         improvementBo.addImprovementSource(this);
         scheduledTasksManagerService.addHandler("TIME_SPECIAL_EFFECT_END", task -> {
             Long id = resolveTaskId(task);
-            LOG.debug("Time special effect end" + id);
-            ActiveTimeSpecial activeTimeSpecial = findById(id);
-            if (activeTimeSpecial != null) {
-                activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
-                Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
-                activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
-                repository.save(activeTimeSpecial);
-                UserStorage user = activeTimeSpecial.getUser();
-                improvementBo.clearSourceCache(user, this);
-                task.setType("TIME_SPECIAL_IS_READY");
-                scheduledTasksManagerService.registerEvent(task, rechargeTime);
-                requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
-                emitTimeSpecialChange(user);
-                emitIfActivationAffectingUnits(activeTimeSpecial);
-            } else {
-                LOG.debug(
-                        "ActiveTimeSpecial was deleted outside... most probable reason, is admin removed the TimeSpecial");
-            }
+            deactivate(id);
         });
         scheduledTasksManagerService.addHandler("TIME_SPECIAL_IS_READY", task -> {
             Long id = resolveTaskId(task);
@@ -198,6 +183,18 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
         }
     }
 
+    @Override
+    @Transactional
+    public void relationLost(UnlockedRelation unlockedRelation) {
+        if (ObjectEnum.TIME_SPECIAL.isObject(unlockedRelation.getRelation().getObject())) {
+            var timeSpecialId = unlockedRelation.getRelation().getReferenceId();
+            repository.findOneByTimeSpecialIdAndUserId(timeSpecialId, unlockedRelation.getUser().getId())
+                    .filter(ats -> TimeSpecialStateEnum.ACTIVE.equals(ats.getState()))
+                    .map(ActiveTimeSpecial::getId)
+                    .ifPresent(this::deactivate);
+        }
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -248,6 +245,26 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      */
     public void emitTimeSpecialChange(UserStorage user) {
         socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
+    }
+
+    private void deactivate(Long id) {
+        LOG.debug("Time special effect end" + id);
+        var activeTimeSpecial = findById(id);
+        if (activeTimeSpecial != null) {
+            var task = new ScheduledTask("TIME_SPECIAL_IS_READY", id);
+            activeTimeSpecial.setState(TimeSpecialStateEnum.RECHARGE);
+            Long rechargeTime = activeTimeSpecial.getTimeSpecial().getRechargeTime();
+            activeTimeSpecial.setReadyDate(computeExpiringDate(rechargeTime));
+            repository.save(activeTimeSpecial);
+            var user = activeTimeSpecial.getUser();
+            improvementBo.clearSourceCache(user, this);
+            scheduledTasksManagerService.registerEvent(task, rechargeTime);
+            requirementBo.triggerTimeSpecialStateChange(user, activeTimeSpecial.getTimeSpecial());
+            emitTimeSpecialChange(user);
+            emitIfActivationAffectingUnits(activeTimeSpecial);
+        } else {
+            LOG.debug("ActiveTimeSpecial was deleted outside");
+        }
     }
 
     private void emitIfActivationAffectingUnits(ActiveTimeSpecial activeTimeSpecial) {

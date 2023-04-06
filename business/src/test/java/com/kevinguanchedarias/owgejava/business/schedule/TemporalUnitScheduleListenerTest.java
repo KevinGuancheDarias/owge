@@ -3,17 +3,23 @@ package com.kevinguanchedarias.owgejava.business.schedule;
 import com.kevinguanchedarias.owgejava.business.ScheduledTasksManagerService;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.business.util.UnitImprovementUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
 import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
+import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.jdbc.ObtainedUnitTemporalInformationRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeConsumerLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +27,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveTemporalUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID;
 import static com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener.TASK_NAME;
+import static com.kevinguanchedarias.owgejava.mock.ActiveTimeSpecialMock.givenActiveTimeSpecialMock;
 import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
+import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
-import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitTemporalInformationMock.OBTAINED_UNIT_TEMPORAL_INFORMATION_ID;
+import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitTemporalInformationMock.givenObtainedUnitTemporalInformation;
+import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleDto;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
+import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -48,7 +62,10 @@ import static org.mockito.Mockito.*;
         ObtainedUnitEventEmitter.class,
         MissionEventEmitterBo.class,
         TaggableCacheManager.class,
-        UnitImprovementUtilService.class
+        UnitImprovementUtilService.class,
+        ActiveTimeSpecialRepository.class,
+        RuleBo.class,
+        ObjectRelationsRepository.class
 })
 class TemporalUnitScheduleListenerTest {
     private final TemporalUnitScheduleListener temporalUnitScheduleListener;
@@ -62,6 +79,9 @@ class TemporalUnitScheduleListenerTest {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final TaggableCacheManager taggableCacheManager;
     private final UnitImprovementUtilService unitImprovementUtilService;
+    private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
+    private final RuleBo ruleBo;
+    private final ObjectRelationsRepository objectRelationsRepository;
 
     @Autowired
     public TemporalUnitScheduleListenerTest(
@@ -75,7 +95,10 @@ class TemporalUnitScheduleListenerTest {
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
             MissionEventEmitterBo missionEventEmitterBo,
             TaggableCacheManager taggableCacheManager,
-            UnitImprovementUtilService unitImprovementUtilService
+            UnitImprovementUtilService unitImprovementUtilService,
+            ActiveTimeSpecialRepository activeTimeSpecialRepository,
+            RuleBo ruleBo,
+            ObjectRelationsRepository objectRelationsRepository
     ) {
         this.temporalUnitScheduleListener = temporalUnitScheduleListener;
         this.obtainedUnitRepository = obtainedUnitRepository;
@@ -88,6 +111,9 @@ class TemporalUnitScheduleListenerTest {
         this.missionEventEmitterBo = missionEventEmitterBo;
         this.taggableCacheManager = taggableCacheManager;
         this.unitImprovementUtilService = unitImprovementUtilService;
+        this.activeTimeSpecialRepository = activeTimeSpecialRepository;
+        this.ruleBo = ruleBo;
+        this.objectRelationsRepository = objectRelationsRepository;
     }
 
     @ParameterizedTest
@@ -136,6 +162,7 @@ class TemporalUnitScheduleListenerTest {
         if (planetOwnerIsUser) {
             affectedMission.getTargetPlanet().setOwner(user);
         }
+        given(obtainedUnitTemporalInformationRepository.existsById(expirationId)).willReturn(true);
         given(obtainedUnitRepository.findByExpirationId(expirationId)).willReturn(isEmptyList ? List.of() : List.of(ou));
 
         var task = ScheduledTask.builder().content((double) expirationId).build();
@@ -156,5 +183,72 @@ class TemporalUnitScheduleListenerTest {
         verify(missionEventEmitterBo, times(!isEmptyList && hasAffectedMissions && affectedMissionHasOwner && !planetOwnerIsUser ? 1 : 0))
                 .emitEnemyMissionsChange(user2);
         verify(taggableCacheManager, times(!isEmptyList && hasAffectedMissions ? 1 : 0)).evictByCacheTag(Mission.MISSION_BY_USER_CACHE_TAG, USER_ID_1);
+    }
+
+    @Test
+    void handler_should_do_nothing_if_expiration_does_not_exists() {
+        var expirationId = 123678;
+        var invokeHandlerAnswer = new InvokeConsumerLambdaAnswer<ScheduledTask>(1);
+        doAnswer(invokeHandlerAnswer).when(scheduledTasksManagerService).addHandler(eq(TASK_NAME), any());
+        var task = ScheduledTask.builder().content((double) expirationId).build();
+
+        temporalUnitScheduleListener.init();
+        invokeHandlerAnswer.getPassedLambda().accept(task);
+
+        verifyNoInteractions(planetLockUtilService, obtainedUnitRepository);
+    }
+
+    @Test
+    void relationLost_should_do_nothing_if_is_not_a_time_special() {
+        var ur = givenUnlockedRelation();
+
+        temporalUnitScheduleListener.relationObtained(ur);
+
+        verifyNoInteractions(activeTimeSpecialRepository);
+    }
+
+
+    @Test
+    void relationLost_should_do_nothing_if_special_is_not_active() {
+        var user = givenUser1();
+        var ur = givenUnlockedRelation(user);
+        ur.getRelation().setObject(givenObjectEntity(ObjectEnum.TIME_SPECIAL));
+        ur.getRelation().setReferenceId(TIME_SPECIAL_ID);
+        var ts = givenTimeSpecial();
+        var ats = givenActiveTimeSpecialMock(TimeSpecialStateEnum.RECHARGE);
+        given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1)).willReturn(Optional.of(ats));
+
+        temporalUnitScheduleListener.relationLost(ur);
+
+        verify(activeTimeSpecialRepository, times(1)).findOneByTimeSpecialIdAndUserId(ts.getId(), USER_ID_1);
+        verifyNoInteractions(ruleBo, objectRelationsRepository, obtainedUnitRepository, obtainedUnitTemporalInformationRepository);
+    }
+
+    @Test
+    void relationLost_should_delete_units_affected_by_time_special_lost() {
+        var user = givenUser1();
+        var ur = givenUnlockedRelation(user);
+        var or = ur.getRelation();
+        ObjectEnum timeSpecialObject = ObjectEnum.TIME_SPECIAL;
+        or.setObject(givenObjectEntity(timeSpecialObject));
+        or.setReferenceId(TIME_SPECIAL_ID);
+        var ats = givenActiveTimeSpecialMock(TimeSpecialStateEnum.ACTIVE);
+        given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1)).willReturn(Optional.of(ats));
+        var ruleDto = givenRuleDto().toBuilder().destinationType(ObjectEnum.UNIT.name()).build();
+        given(ruleBo.findByOriginTypeAndOriginIdAndType(timeSpecialObject.name(), TIME_SPECIAL_ID, TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID))
+                .willReturn(List.of(ruleDto));
+        given(objectRelationsRepository.findOneByObjectCodeAndReferenceId(timeSpecialObject.name(), TIME_SPECIAL_ID))
+                .willReturn(or);
+        var temporalUnit = givenObtainedUnitTemporalInformation(OBJECT_RELATION_ID);
+        given(obtainedUnitTemporalInformationRepository.findByRelationId(OBJECT_RELATION_ID)).willReturn(List.of(temporalUnit));
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
+        var ou = givenObtainedUnit1();
+        ou.setExpirationId(OBTAINED_UNIT_TEMPORAL_INFORMATION_ID);
+        given(obtainedUnitRepository.findByExpirationId(OBTAINED_UNIT_TEMPORAL_INFORMATION_ID)).willReturn(List.of(ou));
+
+        temporalUnitScheduleListener.relationLost(ur);
+
+        verify(obtainedUnitRepository, times(1)).deleteAll(List.of(ou));
+
     }
 }

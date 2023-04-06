@@ -22,6 +22,7 @@ public class ObtainedUnitTemporalInformation {
 
     private Long duration;
     private Instant expiration;
+    private Integer relationId;
 
     @Transient
     private Long pendingMillis;
