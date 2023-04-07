@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.business.mission.processor;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
-import com.kevinguanchedarias.owgejava.business.AuditBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
+import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.attack.AttackMissionManagerBo;
 import com.kevinguanchedarias.owgejava.business.mission.report.MissionReportManagerBo;

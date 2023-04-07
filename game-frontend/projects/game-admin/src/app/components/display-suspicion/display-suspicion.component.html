@@ -1,0 +1,7 @@
+<ul class="owge-theme-base-colors">
+    <li *ngFor="let current of suspicions">
+        {{ (current.createdAt * 1000)|date: 'Y-MM-dd H:m:s' }} => user 
+        <b *ngIf="displaySuspicionUser">{{ current.user.username }} and </b><b>{{ current.audit.user.username }}</b> 
+        by {{ current.source }} action <b>{{ current.audit.action }}</b>
+    </li>
+</ul>

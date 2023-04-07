@@ -17,6 +17,8 @@ import { SpecialLocationCrudComponent } from './components/special-location-crud
 import { AdminUsersComponent } from './components/admin-users/admin-users.component';
 import { SpeedImpactGroupCrudComponent } from './components/speed-impact-group-crud/speed-impact-group-crud.component';
 import { TutorialComponent } from './components/tutorial/tutorial.component';
+import { UserListComponent } from './components/user-list/user-list.component';
+import { SuspicionListComponent } from './components/suspicion-list/suspicion-list.component';
 
 const routes: Routes = [
   {
@@ -60,6 +62,12 @@ const routes: Routes = [
   },
   {
     path: 'tutorial', component: TutorialComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'users', component: UserListComponent, canActivate: [SessionService]
+  },
+  {
+    path: 'suspicions', component: SuspicionListComponent, canActivate: [SessionService]
   },
   {
     path: '**', component: PageNotFoundComponent

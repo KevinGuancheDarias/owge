@@ -246,7 +246,7 @@ class SocketIoServiceTest {
         given(validClientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
         given(websocketEventsInformationBo.save(any(WebsocketEventsInformation.class))).will(returnsFirstArg());
         socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContext(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
 
         socketIoService.sendMessage(user, eventName, () -> content);
 
@@ -273,7 +273,7 @@ class SocketIoServiceTest {
         given(clientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
         given(userStorageRepository.findAll()).willReturn(List.of(user));
         socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContext(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
 
         socketIoService.sendMessage(0, eventName, () -> content);
 
@@ -300,7 +300,7 @@ class SocketIoServiceTest {
         given(clientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
         given(userStorageRepository.findAll()).willReturn(List.of(user));
         socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContext(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
 
         try (var mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
             mockedStatic.when(TransactionSynchronizationManager::isActualTransactionActive).thenReturn(true);

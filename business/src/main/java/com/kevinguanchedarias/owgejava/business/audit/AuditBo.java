@@ -1,5 +1,9 @@
-package com.kevinguanchedarias.owgejava.business;
+package com.kevinguanchedarias.owgejava.business.audit;
 
+import com.kevinguanchedarias.owgejava.business.AsyncRunnerBo;
+import com.kevinguanchedarias.owgejava.business.BaseBo;
+import com.kevinguanchedarias.owgejava.business.SocketIoService;
+import com.kevinguanchedarias.owgejava.business.TorClientBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.AuditDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
@@ -11,6 +15,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +36,6 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -54,6 +58,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     private final transient AsyncRunnerBo asyncRunnerBo;
     private final transient SocketIoService socketIoService;
     private final UserStorageRepository userStorageRepository;
+    private final transient AuditMultiAccountSuspicionsService auditMultiAccountSuspicionsService;
 
     @Value("${OWGE_PROXY_TRUSTED_NETWORKS:PRIVATE}")
     private String proxyTrustedNetworks;
@@ -99,7 +104,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
 
     public List<AuditDataProjection> findDistinctData(Integer userId) {
         var now = LocalDateTime.now();
-        return repository.findDistinctByUserIdAndCreationDateBetween(userId, now.minus(15, ChronoUnit.DAYS), now, PageRequest.of(0, 100));
+        return repository.findDistinctByUserIdAndCreationDateBetween(userId, now.minusDays(15), now, PageRequest.of(0, 100));
     }
 
     public void nonRequestAudit(AuditActionEnum action, String actionDetails, UserStorage user, Integer relatedUser) {
@@ -116,7 +121,7 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
             ua = nearestAudit.getUserAgent();
             cookie = nearestAudit.getCookie();
         }
-        repository.save(Audit.builder()
+        var saved = repository.save(Audit.builder()
                 .action(action)
                 .actionDetail(actionDetails)
                 .ipv4(ipv4)
@@ -128,6 +133,9 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
                 .creationDate(now)
                 .build()
         );
+        if (nearest.isPresent()) {
+            auditMultiAccountSuspicionsService.handle(saved);
+        }
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -149,18 +157,20 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
             if (cookie == null) {
                 throw new SgtBackendInvalidInputException("No dear hacker, you will never be able to defeat the strong security of this open security-by-obscurity");
             }
-            detectTorBrowser(request,
-                    repository.save(Audit.builder()
-                            .action(action)
-                            .actionDetail(actionDetails)
-                            .user(userSessionService.findLoggedInWithReference())
-                            .relatedUser(relatedUserId == null ? null : userStorageRepository.getReferenceById(relatedUserId))
-                            .userAgent(request.getHeader("User-Agent"))
-                            .cookie(cookie.getValue())
-                            .creationDate(LocalDateTime.now())
-                            .build()
-                    )
-            );
+            var transientEntity = Audit.builder()
+                    .action(action)
+                    .actionDetail(actionDetails)
+                    .user(userSessionService.findLoggedInWithReference())
+                    .relatedUser(relatedUserId == null ? null : userStorageRepository.getReferenceById(relatedUserId))
+                    .userAgent(request.getHeader("User-Agent"))
+                    .cookie(cookie.getValue())
+                    .creationDate(LocalDateTime.now())
+                    .build();
+            var ip = resolveIp(request);
+            maybeSetIpv4OrIpv6(transientEntity, findAddressByIp(ip), ip);
+            var saved = repository.save(transientEntity);
+            detectTorBrowser(request, saved);
+            auditMultiAccountSuspicionsService.handle(saved);
         }
     }
 
@@ -178,6 +188,11 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         }
     }
 
+    @SneakyThrows
+    private InetAddress findAddressByIp(String ip) {
+        return InetAddress.getByName(ip);
+    }
+
 
     private boolean isTrustedProxyIp(String ip) {
         return Stream.of(proxyTrustedNetworks.split(",")).anyMatch(trusted ->
@@ -186,17 +201,16 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         );
     }
 
-    private void detectTorBrowser(HttpServletRequest request, Audit audit) {
+    private void detectTorBrowser(HttpServletRequest request, Audit detachedAudit) {
         var ip = resolveIp(request);
-        asyncRunnerBo.runAssyncWithoutContextDelayed(() -> {
+        asyncRunnerBo.runAsyncWithoutContextDelayed(() -> {
             try {
                 var inetAddress = InetAddress.getByName(ip);
                 var host = inetAddress.getHostName();
                 if (!isPrivate(inetAddress) && (host.contains("tor-exit") || isInTorList(ip))) {
-                    audit.setTor(true);
-                    socketIoService.sendWarning(audit.getUser(), "I18N_WARN_TOR");
+                    repository.updateIsTor(detachedAudit, true);
+                    socketIoService.sendWarning(detachedAudit.getUser(), "I18N_WARN_TOR");
                 }
-                maybeSetIpv4OrIpv6(audit, inetAddress, ip);
             } catch (UnknownHostException e) {
                 log.warn("Can't resolve name for ip {}", ip);
             }

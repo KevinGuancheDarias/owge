@@ -43,9 +43,9 @@ public class ObtainedUnitEventEmitter {
             var userId = user.getId();
 
             if (isOneUnitHavingEnergy(obtainedUnits)) {
-                asyncRunnerBo.runAssyncWithoutContextDelayed(() -> userEventEmitterBo.emitUserData(user));
+                asyncRunnerBo.runAsyncWithoutContextDelayed(() -> userEventEmitterBo.emitUserData(user));
             }
-            asyncRunnerBo.runAssyncWithoutContextDelayed(() ->
+            asyncRunnerBo.runAsyncWithoutContextDelayed(() ->
                     socketIoService.sendMessage(userId, UNIT_TYPE_CHANGE, () -> unitTypeBo.findUnitTypesWithUserInfo(userId))
             );
             emitObtainedUnits(user);

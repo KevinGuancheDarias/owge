@@ -312,7 +312,7 @@ public class MissionBo {
                             missionEventEmitterBo.emitUnitBuildChange(userId);
                             emitMissionCountChange(userId);
                         });
-                        asyncRunnerBo.runAssyncWithoutContextDelayed(
+                        asyncRunnerBo.runAsyncWithoutContextDelayed(
                                 () -> obtainedUnitEventEmitter.emitObtainedUnits(user)
                                 , 500
                         );

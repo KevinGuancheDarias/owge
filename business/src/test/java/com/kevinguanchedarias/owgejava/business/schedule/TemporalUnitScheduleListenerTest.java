@@ -21,7 +21,9 @@ import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveTemporalUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID;
 import static com.kevinguanchedarias.owgejava.business.schedule.TemporalUnitScheduleListener.TASK_NAME;
@@ -39,6 +42,7 @@ import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitMock.givenObtainedUnit1;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitTemporalInformationMock.OBTAINED_UNIT_TEMPORAL_INFORMATION_ID;
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUnitTemporalInformationMock.givenObtainedUnitTemporalInformation;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
 import static com.kevinguanchedarias.owgejava.mock.RuleMock.givenRuleDto;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.TIME_SPECIAL_ID;
 import static com.kevinguanchedarias.owgejava.mock.TimeSpecialMock.givenTimeSpecial;
@@ -224,8 +228,9 @@ class TemporalUnitScheduleListenerTest {
         verifyNoInteractions(ruleBo, objectRelationsRepository, obtainedUnitRepository, obtainedUnitTemporalInformationRepository);
     }
 
-    @Test
-    void relationLost_should_delete_units_affected_by_time_special_lost() {
+    @ParameterizedTest
+    @MethodSource("relationLost_should_delete_units_affected_by_time_special_lost_arguments")
+    void relationLost_should_delete_units_affected_by_time_special_lost(Set<Long> planetIds, int timesInteraction) {
         var user = givenUser1();
         var ur = givenUnlockedRelation(user);
         var or = ur.getRelation();
@@ -234,6 +239,7 @@ class TemporalUnitScheduleListenerTest {
         or.setReferenceId(TIME_SPECIAL_ID);
         var ats = givenActiveTimeSpecialMock(TimeSpecialStateEnum.ACTIVE);
         given(activeTimeSpecialRepository.findOneByTimeSpecialIdAndUserId(TIME_SPECIAL_ID, USER_ID_1)).willReturn(Optional.of(ats));
+        given(obtainedUnitRepository.findPlanetIdsByExpirationId(OBTAINED_UNIT_TEMPORAL_INFORMATION_ID)).willReturn(planetIds);
         var ruleDto = givenRuleDto().toBuilder().destinationType(ObjectEnum.UNIT.name()).build();
         given(ruleBo.findByOriginTypeAndOriginIdAndType(timeSpecialObject.name(), TIME_SPECIAL_ID, TIME_SPECIAL_IS_ACTIVE_TEMPORAL_UNITS_ID))
                 .willReturn(List.of(ruleDto));
@@ -248,7 +254,14 @@ class TemporalUnitScheduleListenerTest {
 
         temporalUnitScheduleListener.relationLost(ur);
 
-        verify(obtainedUnitRepository, times(1)).deleteAll(List.of(ou));
+        verify(obtainedUnitRepository, times(timesInteraction)).deleteAll(List.of(ou));
 
+    }
+
+    private static Stream<Arguments> relationLost_should_delete_units_affected_by_time_special_lost_arguments() {
+        return Stream.of(
+                Arguments.of(Set.of(SOURCE_PLANET_ID), 1),
+                Arguments.of(Set.of(), 0)
+        );
     }
 }

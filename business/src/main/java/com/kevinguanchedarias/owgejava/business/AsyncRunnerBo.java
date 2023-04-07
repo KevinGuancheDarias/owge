@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import org.apache.log4j.Logger;
+import com.kevinguanchedarias.owgejava.util.ThreadUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -12,15 +13,15 @@ import java.util.function.Function;
  * @since 0.9.6
  */
 @Service
+@Slf4j
 public class AsyncRunnerBo {
-    private static final Logger LOG = Logger.getLogger(AsyncRunnerBo.class);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.6
      */
     @Async("contextAwareTaskExecutor")
-    public <T, R> CompletableFuture<R> runAssync(T param, Function<T, R> supplier) {
+    public <T, R> CompletableFuture<R> runAsync(T param, Function<T, R> supplier) {
         return CompletableFuture.completedFuture(supplier.apply(param));
     }
 
@@ -28,7 +29,7 @@ public class AsyncRunnerBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.10
      */
-    public void runAssyncWithoutContext(Runnable supplier) {
+    public void runAsyncWithoutContext(Runnable supplier) {
         new Thread(supplier).start();
     }
 
@@ -36,21 +37,26 @@ public class AsyncRunnerBo {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.10
      */
-    public void runAssyncWithoutContextDelayed(Runnable task, long delay) {
+    public void runAsyncWithoutContextDelayed(Runnable task, long delay, int priority) {
         Thread thread = new Thread(() -> {
             try {
-                Thread.sleep(delay);
+                ThreadUtil.sleep(delay);
             } catch (InterruptedException e) {
-                LOG.error("dA FUCK?", e);
-                Thread.currentThread().interrupt();
+                log.error("Da fuck?", e);
+                ThreadUtil.currentThread().interrupt();
             }
             task.run();
         });
+        thread.setPriority(priority);
         thread.start();
     }
 
-    public void runAssyncWithoutContextDelayed(Runnable task) {
-        runAssyncWithoutContextDelayed(task, 200);
+    public void runAsyncWithoutContextDelayed(Runnable task, long delay) {
+        runAsyncWithoutContextDelayed(task, delay, Thread.NORM_PRIORITY - 1);
+    }
+
+    public void runAsyncWithoutContextDelayed(Runnable task) {
+        runAsyncWithoutContextDelayed(task, 200);
     }
 
 }

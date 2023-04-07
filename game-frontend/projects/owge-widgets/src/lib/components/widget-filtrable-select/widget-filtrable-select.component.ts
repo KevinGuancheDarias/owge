@@ -44,20 +44,22 @@ export class WidgetFiltrableSelectComponent implements OnChanges {
   }
 
   public async triggerFilter(): Promise<void> {
-    let filtered: any[];
-    if (this.filters) {
-      filtered = await AsyncCollectionUtil.filter(this.collection, async (current) =>
-        await AsyncCollectionUtil.every(
-          this.filters,
-          async filter => !filter.isEnabled || !filter.selected || await filter.filterAction(current, filter.selected)
-        )
-      );
-      this.isFiltered = this.filters.some(filter => filter.isEnabled && filter.selected);
-    } else {
-      filtered = this.collection;
-      this.isFiltered = false;
+    if(this.collection && this.collection.length) {
+      let filtered: any[];
+      if (this.filters) {
+        filtered = await AsyncCollectionUtil.filter(this.collection, async (current) =>
+          await AsyncCollectionUtil.every(
+            this.filters,
+            async filter => !filter.isEnabled || !filter.selected || await filter.filterAction(current, filter.selected)
+          )
+        );
+        this.isFiltered = this.filters.some(filter => filter.isEnabled && filter.selected);
+      } else {
+        filtered = this.collection;
+        this.isFiltered = false;
+      }
+      this.filteredcollection.emit(filtered);
     }
-    this.filteredcollection.emit(filtered);
   }
 
   private _compareById(a: any, b: any) {

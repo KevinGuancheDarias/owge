@@ -1,0 +1,29 @@
+<div class="card owge" *ngIf="userWithSuspicion">
+    <div class="card-block">
+        <div class="card-title">
+            <span>{{ userWithSuspicion.user.username }}</span>
+        </div>
+        
+        <div>SC = {{ userWithSuspicion.suspicionsCount }}</div>
+
+        <div class="card-block">
+            {{ userWithSuspicion.user.email }}
+        </div>
+
+        <div class="card-block" *ngIf="userWithSuspicion.suspicionsCount">
+            <button (click)="viewUserSuspicions(userWithSuspicion.user.id)" class="btn btn-primary">{{ 'USER.SUSPICIOUS_COUNT_DISPLAY_BTN' | translate }}</button>
+        </div>
+
+    </div>
+</div>
+<owge-core-modal *ngIf="userWithSuspicion">
+    <div class="header">
+        See suspisions for user {{ userWithSuspicion.user.username }}
+    </div>
+    <div *ngIf="userSuspisions && userSuspisions.length" class="body">
+        <app-display-suspicion [suspicions]="userSuspisions"></app-display-suspicion>
+    </div>
+    <div class="footer">
+        <button (click)="suspicionsDetailModal.hide()" class="btn btn-primary">{{ 'CRUD.BTN_CLOSE' | translate }}</button>
+    </div>
+</owge-core-modal>

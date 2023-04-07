@@ -126,6 +126,10 @@ public class ConfigurationBo implements Serializable {
         return Integer.parseInt(findOrSetDefault(name, defaultValue).getValue());
     }
 
+    public boolean findBoolOrSetDefault(String name, boolean defaultValue) {
+        return "TRUE".equalsIgnoreCase(findOrSetDefault(name, String.valueOf(defaultValue)).getValue());
+    }
+
     /**
      * Finds the current value for DEPLOYMENT_CONFIG
      *

@@ -95,3 +95,14 @@ ALTER TABLE `obtained_unit_temporal_information`
 
 ALTER TABLE `tor_ip_data`
     CHANGE `ip` `ip` VARCHAR(39) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
+
+CREATE TABLE `suspicions`
+(
+    `id`         BIGINT UNSIGNED AUTO_INCREMENT         NOT NULL,
+    `source`     ENUM ('BROWSER','IP','BROWSER_AND_IP') NOT NULL,
+    `user_id`    INT UNSIGNED                           NOT NULL,
+    `audit_id`   BIGINT UNSIGNED                        NOT NULL,
+    `created_at` DATETIME                               NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX (`user_id`, `audit_id`)
+) ENGINE = InnoDB;

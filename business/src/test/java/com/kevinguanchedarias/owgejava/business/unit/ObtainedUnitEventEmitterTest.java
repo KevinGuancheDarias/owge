@@ -92,7 +92,7 @@ class ObtainedUnitEventEmitterTest {
     void emitSideChanges_should_work(Unit unit, int timesEmitUserData) {
         var ou = givenObtainedUnit1();
         ou.setUnit(unit);
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContextDelayed(any());
         var socketMessageAnswer = new InvokeSupplierLambdaAnswer<List<UnitTypeResponse>>(2);
         doAnswer(socketMessageAnswer).when(socketIoService).sendMessage(eq(USER_ID_1), eq(UNIT_TYPE_CHANGE), any());
         var user = givenUser1();

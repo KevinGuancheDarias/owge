@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
-import com.kevinguanchedarias.owgejava.business.AuditBo;
+import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitFinderBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
