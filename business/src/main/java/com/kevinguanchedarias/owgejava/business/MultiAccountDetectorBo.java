@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.projection.AuditDataProjection;
 import lombok.AllArgsConstructor;
@@ -28,41 +29,46 @@ public class MultiAccountDetectorBo {
     @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = " 0 0 */2 * * ?")
     public void doControlMultiAccounts() {
-        log.debug("Scanning multi accounts");
-        var checkOffset = LocalDateTime.now().minus(1, ChronoUnit.DAYS);
-        userStorageBo.findByLastMultiAccountCheckNewerThan(checkOffset).forEach(user -> {
-            Map<String, AtomicInteger> ips = new HashMap<>();
-            Map<String, AtomicInteger> userAgents = new HashMap<>();
-            Map<String, AtomicInteger> cookies = new HashMap<>();
-            handleMyData(auditBo.findDistinctData(user.getId()), ips, userAgents, cookies);
-            var relatedAudits = auditBo.findRelated(user);
-            var score = new AtomicInteger();
-            var torScore = configurationBo.findIntOrSetDefault("MTAS_TOR_SCORE", "10000");
-            relatedAudits.forEach(related -> {
-                var ip = related.findIp();
-                var userAgent = related.getUserAgent();
-                var cookie = related.getCookie();
-                if (related.isTor()) {
-                    score.setPlain(score.getPlain() + torScore);
-                }
-                addIfExisting(ips, ip);
-                addIfExisting(userAgents, userAgent);
-                addIfExisting(cookies, cookie);
+        if (configurationBo.findBoolOrSetDefault("MULTI_ACCOUNT_DETECTOR", false)) {
+            log.debug("Scanning multi accounts");
+            var checkOffset = LocalDateTime.now().minus(1, ChronoUnit.DAYS);
+            userStorageBo.findByLastMultiAccountCheckNewerThan(checkOffset).forEach(user -> {
+                Map<String, AtomicInteger> ips = new HashMap<>();
+                Map<String, AtomicInteger> userAgents = new HashMap<>();
+                Map<String, AtomicInteger> cookies = new HashMap<>();
+                handleMyData(auditBo.findDistinctData(user.getId()), ips, userAgents, cookies);
+                var relatedAudits = auditBo.findRelated(user);
+                var score = new AtomicInteger();
+                var torScore = configurationBo.findIntOrSetDefault("MTAS_TOR_SCORE", "10000");
+                relatedAudits.forEach(related -> {
+                    var ip = related.findIp();
+                    var userAgent = related.getUserAgent();
+                    var cookie = related.getCookie();
+                    if (related.isTor()) {
+                        score.setPlain(score.getPlain() + torScore);
+                    }
+                    addIfExisting(ips, ip);
+                    addIfExisting(userAgents, userAgent);
+                    addIfExisting(cookies, cookie);
+                });
+                var ipsScore = configurationBo.findIntOrSetDefault("MTAS_IP_SCORE", "5000");
+                var uaScore = configurationBo.findIntOrSetDefault("MTAS_UA_SCORE", "1");
+                var cookieScore = configurationBo.findIntOrSetDefault("MTAS_COOKIE_SCORE", "10000");
+                ips.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * ipsScore));
+                userAgents.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * uaScore));
+                cookies.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * cookieScore));
+                user.setMultiAccountScore((float) score.getPlain());
+                user.setLastMultiAccountCheck(LocalDateTime.now());
+                checkShouldBan(user);
+                userStorageBo.save(user);
             });
-            var ipsScore = configurationBo.findIntOrSetDefault("MTAS_IP_SCORE", "5000");
-            var uaScore = configurationBo.findIntOrSetDefault("MTAS_UA_SCORE", "1");
-            var cookieScore = configurationBo.findIntOrSetDefault("MTAS_COOKIE_SCORE", "10000");
-            ips.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * ipsScore));
-            userAgents.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * uaScore));
-            cookies.forEach((key, value) -> score.setPlain(score.getPlain() + value.getPlain() * cookieScore));
-            user.setMultiAccountScore((float) score.getPlain());
-            user.setLastMultiAccountCheck(LocalDateTime.now());
-            checkShouldBan(user);
-            userStorageBo.save(user);
-        });
+        } else {
+            log.debug("Multi account detector disabled");
+        }
     }
 
-    private void handleMyData(List<AuditDataProjection> data, Map<String, AtomicInteger> ips, Map<String, AtomicInteger> uas, Map<String, AtomicInteger> cookies) {
+    private void handleMyData
+            (List<AuditDataProjection> data, Map<String, AtomicInteger> ips, Map<String, AtomicInteger> uas, Map<String, AtomicInteger> cookies) {
         data.forEach(current -> {
             handleMap(ips, current.getIpv4() != null ? current.getIpv4() : current.getIpv6());
             handleMap(uas, current.getUserAgent());

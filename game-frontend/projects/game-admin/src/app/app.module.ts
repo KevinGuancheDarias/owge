@@ -81,6 +81,12 @@ import {
 import {
   UnitStoresUnitRuleTypeDescriptorProviderService
 } from './services/rule-type-descriptor-provider/unit/unit-stores-unit-rule-type-descriptor-provider.service';
+import { UserListComponent } from './components/user-list/user-list.component';
+import { UserDisplayComponent } from './components/user-display/user-display.component';
+import { AdminGameUserService } from './services/admin-game-user.service';
+import { SuspicionListComponent } from './components/suspicion-list/suspicion-list.component';
+import { DisplaySuspicionComponent } from './components/display-suspicion/display-suspicion.component';
+import { AdminSuspicionsService } from './services/admin-suspicions.service';
 
 @NgModule({
   declarations: [
@@ -112,7 +118,11 @@ import {
     TutorialComponent,
     TranslatableComponent,
     CriticalAttackCrudComponent,
-    RulesModalComponent
+    RulesModalComponent,
+    UserListComponent,
+    UserDisplayComponent,
+    SuspicionListComponent,
+    DisplaySuspicionComponent,
   ],
   imports: [
     BrowserModule,
@@ -163,6 +173,8 @@ import {
     AdminSystemMessageService,
     AdminRuleService,
     LoadingService,
+    AdminGameUserService,
+    AdminSuspicionsService,
     { provide: 'APPLICATION_CONTEXT', useValue: 'admin' },
     { provide: ruleDestinationProviderServiceToken, useClass: UnitRuleDestinationProviderService, multi: true },
     { provide: ruleDestinationProviderServiceToken, useClass: UnitTypeRuleDestinationProviderService, multi: true },

@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
 import com.kevinguanchedarias.owgejava.builder.SyncHandlerBuilder;
-import com.kevinguanchedarias.owgejava.business.AuditBo;
 import com.kevinguanchedarias.owgejava.business.UserStorageBo;
+import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.dto.UserStorageDto;

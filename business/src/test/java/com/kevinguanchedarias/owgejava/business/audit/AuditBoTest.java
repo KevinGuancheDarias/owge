@@ -1,8 +1,13 @@
-package com.kevinguanchedarias.owgejava.business;
+package com.kevinguanchedarias.owgejava.business.audit;
 
+import com.kevinguanchedarias.owgejava.business.AsyncRunnerBo;
+import com.kevinguanchedarias.owgejava.business.SocketIoService;
+import com.kevinguanchedarias.owgejava.business.TorClientBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.dto.AuditDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.projection.AuditDataProjection;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -13,28 +18,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.AdditionalAnswers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.AuditMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -50,7 +57,8 @@ import static org.mockito.Mockito.*;
         TorClientBo.class,
         AsyncRunnerBo.class,
         SocketIoService.class,
-        UserStorageRepository.class
+        UserStorageRepository.class,
+        AuditMultiAccountSuspicionsService.class
 })
 class AuditBoTest {
     private final AuditBo auditBo;
@@ -58,7 +66,7 @@ class AuditBoTest {
     private final UserSessionService userSessionService;
     private final UserStorageRepository userStorageRepository;
     private final AsyncRunnerBo asyncRunnerBo;
-    private final AuditRepository auditRepository;
+    private final AuditMultiAccountSuspicionsService auditMultiAccountSuspicionsService;
 
     @Autowired
     AuditBoTest(
@@ -67,14 +75,83 @@ class AuditBoTest {
             UserSessionService userSessionService,
             UserStorageRepository userStorageRepository,
             AsyncRunnerBo asyncRunnerBo,
-            AuditRepository auditRepository
+            AuditMultiAccountSuspicionsService auditMultiAccountSuspicionsService
     ) {
         this.auditBo = auditBo;
         this.repository = repository;
         this.userSessionService = userSessionService;
         this.userStorageRepository = userStorageRepository;
         this.asyncRunnerBo = asyncRunnerBo;
-        this.auditRepository = auditRepository;
+        this.auditMultiAccountSuspicionsService = auditMultiAccountSuspicionsService;
+    }
+
+    @Test
+    void getRepository_should_work() {
+        assertThat(auditBo.getRepository()).isSameAs(repository);
+    }
+
+    @Test
+    void getDtoClass_should_work() {
+        assertThat(auditBo.getDtoClass()).isEqualTo(AuditDto.class);
+    }
+
+    @Test
+    void creteCookieIfMissing_should_work() {
+        var requestMock = mock(HttpServletRequest.class);
+        var responseMock = mock(HttpServletResponse.class);
+
+        auditBo.creteCookieIfMissing(requestMock, responseMock);
+
+        var captor = ArgumentCaptor.forClass(Cookie.class);
+        verify(responseMock, times(1)).addCookie(captor.capture());
+        var sentCookie = captor.getValue();
+        assertThat(sentCookie.getName()).isEqualTo(AuditBo.CONTROL_COOKIE_NAME);
+        assertThat(sentCookie.getValue()).isNotBlank();
+        assertThat(sentCookie.getMaxAge()).isGreaterThan(86400 * 365);
+        assertThat(sentCookie.getPath()).isEqualTo("/game_api");
+    }
+
+    @Test
+    void creteCookieIfMissing_should_do_nothing_if_already_present() {
+        var requestMock = mock(HttpServletRequest.class);
+        var responseMock = mock(HttpServletResponse.class);
+
+        try (var mockedStatic = mockStatic(WebUtils.class)) {
+            mockedStatic.when(() -> WebUtils.getCookie(requestMock, AuditBo.CONTROL_COOKIE_NAME))
+                    .thenReturn(new Cookie(AuditBo.CONTROL_COOKIE_NAME, "FOO"));
+
+            auditBo.creteCookieIfMissing(requestMock, responseMock);
+
+            verifyNoInteractions(responseMock);
+        }
+    }
+
+    @Test
+    void findDistinctData_should_work() {
+        var expectedRangeEnd = LocalDateTime.now();
+        var expectedRangeStart = expectedRangeEnd.minusDays(15);
+        var responseMock = mock(AuditDataProjection.class);
+        given(repository.findDistinctByUserIdAndCreationDateBetween(eq(USER_ID_1), any(), any(), any()))
+                .willReturn(List.of(responseMock));
+        var pageMock = mock(PageRequest.class);
+        try (var mockedStatic = mockStatic(PageRequest.class)) {
+            mockedStatic.when(() -> PageRequest.of(0, 100)).thenReturn(pageMock);
+
+            var result = auditBo.findDistinctData(USER_ID_1);
+
+            assertThat(result)
+                    .hasSize(1)
+                    .contains(responseMock);
+            var rangeStartCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+            var rangeEndCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+            verify(repository, times(1)).findDistinctByUserIdAndCreationDateBetween(
+                    eq(USER_ID_1), rangeStartCaptor.capture(), rangeEndCaptor.capture(), eq(pageMock)
+            );
+            var rangeStart = rangeStartCaptor.getValue();
+            var rangeEnd = rangeEndCaptor.getValue();
+            assertThat(rangeStart).isCloseTo(expectedRangeStart, within(1, ChronoUnit.MINUTES));
+            assertThat(rangeEnd).isCloseTo(expectedRangeEnd, within(1, ChronoUnit.MINUTES));
+        }
     }
 
     @Test
@@ -85,6 +162,7 @@ class AuditBoTest {
         var relatedUser = givenUser2();
         var actionDetail = "foo";
         given(userStorageRepository.getReferenceById(USER_ID_2)).willReturn(relatedUser);
+        given(repository.save(any())).willAnswer(returnsFirstArg());
 
         auditBo.nonRequestAudit(AuditActionEnum.REGISTER_MISSION, actionDetail, user, USER_ID_2);
 
@@ -99,6 +177,7 @@ class AuditBoTest {
         assertThat(saved.getUser()).isSameAs(user);
         assertThat(saved.getRelatedUser()).isSameAs(relatedUser);
         assertThat(saved.getCreationDate()).isBetween(LocalDateTime.now().minusMinutes(10), LocalDateTime.now().plusMinutes(10));
+        verify(auditMultiAccountSuspicionsService, times(1)).handle(saved);
     }
 
     @Test
@@ -116,6 +195,7 @@ class AuditBoTest {
         assertThat(saved.getCookie()).isNull();
         assertThat(saved.getRelatedUser()).isNull();
         verify(userStorageRepository, never()).getReferenceById(any());
+        verify(auditMultiAccountSuspicionsService, never()).handle(any());
     }
 
     @Test
@@ -162,8 +242,8 @@ class AuditBoTest {
         given(request.getHeader("X-OWGE-RMT-IP")).willReturn(AUDIT_IP);
         given(userSessionService.findLoggedInWithReference()).willReturn(user);
         given(userStorageRepository.getReferenceById(relatedUser)).willReturn(expectedRelatedUser);
-        given(auditRepository.save(any())).willAnswer(AdditionalAnswers.returnsFirstArg());
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any(), anyLong());
+        given(repository.save(any())).willAnswer(returnsFirstArg());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContextDelayed(any(), anyLong());
 
         try (
                 var requestContextHolderMockedStatic = mockStatic(RequestContextHolder.class);
@@ -192,6 +272,7 @@ class AuditBoTest {
             assertThat(saved.getCreationDate()).isBetween(LocalDateTime.now().minusMinutes(10), LocalDateTime.now().plusMinutes(10));
             verify(inetAddressMock, times(1)).getHostName();
             verify(userStorageRepository, times(timesGetReference)).getReferenceById(relatedUser);
+            verify(auditMultiAccountSuspicionsService, times(1)).handle(saved);
         }
     }
 

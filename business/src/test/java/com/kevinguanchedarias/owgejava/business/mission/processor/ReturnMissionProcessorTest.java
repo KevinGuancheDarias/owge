@@ -82,7 +82,7 @@ class ReturnMissionProcessorTest {
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
                 .doInsideLock(eq(List.of(mission.getSourcePlanet(), mission.getTargetPlanet())), any());
         given(obtainedUnitRepository.findByMissionId(RETURN_MISSION_ID)).willReturn(List.of(ou));
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAssyncWithoutContextDelayed(any(), eq(500L));
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContextDelayed(any(), eq(500L));
 
         assertThat(returnMissionProcessor.process(mission, null)).isNull();
 

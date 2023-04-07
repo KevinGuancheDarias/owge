@@ -108,14 +108,16 @@ public class TemporalUnitScheduleListener implements RequirementComplianceListen
 
     private void aggressiveLockAcquire(long expirationId, Runnable runnable) {
         var planetIds = obtainedUnitRepository.findPlanetIdsByExpirationId(expirationId);
-        planetLockUtilService.doInsideLockById(planetIds.stream().toList(), () -> {
-            var innerPlanetIds = obtainedUnitRepository.findPlanetIdsByExpirationId(expirationId);
-            if (innerPlanetIds.equals(planetIds)) {
-                runnable.run();
-            } else {
-                aggressiveLockAcquire(expirationId, runnable);
-            }
-        });
+        if (!planetIds.isEmpty()) {
+            planetLockUtilService.doInsideLockById(planetIds.stream().toList(), () -> {
+                var innerPlanetIds = obtainedUnitRepository.findPlanetIdsByExpirationId(expirationId);
+                if (innerPlanetIds.equals(planetIds)) {
+                    runnable.run();
+                } else {
+                    aggressiveLockAcquire(expirationId, runnable);
+                }
+            });
+        }
     }
 
     private void handleAffectedMissions(Set<Mission> missions) {

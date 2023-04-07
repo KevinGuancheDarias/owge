@@ -1,7 +1,7 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
-import com.kevinguanchedarias.owgejava.business.AuditBo;
 import com.kevinguanchedarias.owgejava.business.WebsocketSyncService;
+import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import lombok.AllArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,28 +15,26 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
- * @since 0.9.6
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
- *
+ * @since 0.9.6
  */
 @RestController
 @RequestMapping("game/websocket-sync")
 @ApplicationScope
 @AllArgsConstructor
 public class WebsocketSyncRestService {
-	private final WebsocketSyncService websocketSyncService;
-	private final AuditBo auditBo;
+    private final WebsocketSyncService websocketSyncService;
+    private final AuditBo auditBo;
 
-	/**
-	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-	 * @since 0.9.6
-	 */
-	@GetMapping
-	@Transactional
-	public Map<String, Object> sync(@RequestParam List<String> keys) {
-		auditBo.doAudit(AuditActionEnum.LOGIN);
-		return websocketSyncService.findWantedData(keys);
-	}
+    /**
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.9.6
+     */
+    @GetMapping
+    @Transactional
+    public Map<String, Object> sync(@RequestParam List<String> keys) {
+        auditBo.doAudit(AuditActionEnum.LOGIN);
+        return websocketSyncService.findWantedData(keys);
+    }
 
 }

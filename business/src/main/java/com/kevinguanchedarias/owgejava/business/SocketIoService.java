@@ -114,7 +114,7 @@ public class SocketIoService {
         }
         if (!userSockets.isEmpty()) {
             T sendValue = messageContent.get();
-            asyncRunnerBo.runAssyncWithoutContext(() -> userSockets.forEach(client -> {
+            asyncRunnerBo.runAsyncWithoutContext(() -> userSockets.forEach(client -> {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
                     LOCAL_LOGGER.warn("Should never happened, if everything is nice!!!");
                 }

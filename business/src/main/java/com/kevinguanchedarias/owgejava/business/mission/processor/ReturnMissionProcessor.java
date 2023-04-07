@@ -42,7 +42,7 @@ public class ReturnMissionProcessor implements MissionProcessor {
             mission.setResolved(true);
             missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
             asyncRunnerBo
-                    .runAssyncWithoutContextDelayed(
+                    .runAsyncWithoutContextDelayed(
                             () -> obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser()),
                             500);
         });

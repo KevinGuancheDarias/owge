@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.dto;
 
+import com.kevinguanchedarias.owgejava.dto.user.SimpleUserDataDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class AuditDto implements DtoFromEntity<Audit> {
     private String ipv6;
     private String userAgent;
     private String cookie;
+    private SimpleUserDataDto user;
 
     @Override
     public void dtoFromEntity(Audit entity) {
@@ -28,5 +30,6 @@ public class AuditDto implements DtoFromEntity<Audit> {
         ipv6 = entity.getIpv6();
         userAgent = entity.getUserAgent();
         cookie = entity.getCookie();
+        user = SimpleUserDataDto.of(entity.getUser());
     }
 }
