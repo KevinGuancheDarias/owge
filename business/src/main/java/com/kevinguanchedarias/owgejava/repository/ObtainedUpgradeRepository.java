@@ -18,7 +18,7 @@ public interface ObtainedUpgradeRepository extends JpaRepository<ObtainedUpgrade
     void deleteByUpgrade(Upgrade upgrade);
 
     boolean existsByUserIdAndUpgradeId(Integer userId, Integer upgradeId);
-    
+
     ObtainedUpgrade findOneByUserIdAndUpgradeId(Integer userId, Integer upgradeId);
 
     List<ObtainedUpgrade> findByUserId(Integer userId);
@@ -32,4 +32,5 @@ public interface ObtainedUpgradeRepository extends JpaRepository<ObtainedUpgrade
     @Query("SELECT SUM(utg.value * ou.level) FROM ObtainedUpgrade ou INNER JOIN ou.upgrade.improvement.unitTypesUpgrades utg WHERE ou.user.id = ?1 AND utg.type = ?2")
     Long sumByUserAndImprovementUnitTypeImprovementType(UserStorage user, String improvementType);
 
+    void deleteByUser(UserStorage user);
 }

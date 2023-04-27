@@ -157,4 +157,6 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdAndMissionIsNull(Integer userId, Integer unitId, Long planetId, Long expirationId);
 
     List<ObtainedUnit> findByOwnerUnitId(Long id);
+
+    void deleteByUser(UserStorage user);
 }

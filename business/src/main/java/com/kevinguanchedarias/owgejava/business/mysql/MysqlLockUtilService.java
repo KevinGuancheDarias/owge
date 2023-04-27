@@ -2,9 +2,11 @@ package com.kevinguanchedarias.owgejava.business.mysql;
 
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,29 +16,37 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class MysqlLockUtilService {
     public static final int TIMEOUT_SECONDS = 10;
     private final JdbcTemplate jdbcTemplate;
 
     public void doInsideLock(Set<String> keys, Runnable runnable) {
-        var keysAsList = keys.stream().toList();
-        var commandLambda = (PreparedStatementCallback<Object>) ps -> {
-            generateBindParams(keysAsList, ps);
-            return null;
-        };
-        var releaseLockLambda = (PreparedStatementCallback<Object>) ps -> {
-            generateBindParamsWithoutTimeout(keysAsList, ps);
-            return null;
-        };
-
-        try {
-            jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), commandLambda);
+        if (keys.isEmpty()) {
             runnable.run();
-        } finally {
-            jdbcTemplate.execute(
-                    generateSql("RELEASE_LOCK(?)", keysAsList),
-                    releaseLockLambda
-            );
+        } else {
+            var keysAsList = keys.stream().toList();
+            var commandLambda = (PreparedStatementCallback<Object>) ps -> {
+                generateBindParams(keysAsList, ps);
+                return null;
+            };
+            var releaseLockLambda = (PreparedStatementCallback<Object>) ps -> {
+                generateBindParamsWithoutTimeout(keysAsList, ps);
+                return null;
+            };
+
+            try {
+                jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), commandLambda);
+                runnable.run();
+            } finally {
+                if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                    log.warn("Mysql lock was invoked with an active transaction");
+                }
+                jdbcTemplate.execute(
+                        generateSql("RELEASE_LOCK(?)", keysAsList),
+                        releaseLockLambda
+                );
+            }
         }
     }
 

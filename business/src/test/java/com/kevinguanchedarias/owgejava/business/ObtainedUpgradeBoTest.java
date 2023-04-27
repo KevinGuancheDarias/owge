@@ -15,6 +15,7 @@ import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovem
 import static com.kevinguanchedarias.owgejava.mock.ObtainedUpgradeMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeTypeMock.givenUpgradeType;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -88,4 +89,18 @@ class ObtainedUpgradeBoTest {
 
     }
 
+
+    @Test
+    void order_should_return_zero() {
+        assertThat(obtainedUpgradeBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        obtainedUpgradeBo.doDeleteUser(user);
+
+        verify(obtainedUpgradeRepository, times(1)).deleteByUser(user);
+    }
 }

@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.entity;
 
+import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
+import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -15,8 +17,11 @@ import java.util.List;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@EntityListeners(EntityWithTaggableCacheListener.class)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class UserStorage implements EntityWithId<Integer> {
+public class UserStorage implements EntityWithId<Integer>, EntityWithTaggableCache<Integer> {
+    public static final String USER_CACHE_TAG = "user";
+
     @Serial
     private static final long serialVersionUID = 3718075595543259580L;
 
@@ -81,5 +86,10 @@ public class UserStorage implements EntityWithId<Integer> {
 
     public void addToSecondary(Double value) {
         secondaryResource += value;
+    }
+
+    @Override
+    public String getCacheTag() {
+        return USER_CACHE_TAG;
     }
 }

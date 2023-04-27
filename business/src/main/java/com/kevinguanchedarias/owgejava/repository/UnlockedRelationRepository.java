@@ -25,4 +25,6 @@ public interface UnlockedRelationRepository extends JpaRepository<UnlockedRelati
      * @since 0.9.0
      */
     boolean existsByUserAndRelation(UserStorage user, ObjectRelation relation);
+
+    void deleteByUser(UserStorage user);
 }

@@ -302,5 +302,8 @@
     "TUTORIAL": {
         "CLICK_TARGET": "Clicka/Toca el botón resaltado para continuar",
         "CLICK_OR_KEY": "Clicka en cualquier sitio, o toca cualquier tecla para continuar"
+    },
+    "USER": {
+        "ACCOUNT_DELETED": "Tu cuenta ha sido eliminada"
     }
 }

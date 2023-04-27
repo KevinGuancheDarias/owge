@@ -303,5 +303,8 @@
     "TUTORIAL": {
         "CLICK_TARGET": "Click/Tap the highlighted button to continue",
         "CLICK_OR_KEY": "Click anywhere, or press any key"
+    },
+    "USER": {
+        "ACCOUNT_DELETED": "Your account was deleted"
     }
 }

@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.AllianceDto;
 import com.kevinguanchedarias.owgejava.entity.Alliance;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
@@ -25,7 +26,9 @@ import java.io.Serial;
  */
 @AllArgsConstructor
 @Service
-public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
+public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto>, UserDeleteListener {
+    public static final int ALLIANCE_DELETE_USER_ORDER = 2;
+
     @Serial
     private static final long serialVersionUID = 2632768998010477053L;
 
@@ -240,7 +243,21 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto> {
      * @since 0.7.0
      */
     public boolean isOwnerOfAnAlliance(Number userId) {
-        return repository.findOneByOwnerId(userId) != null;
+        return repository.findOneByOwnerId(userId).isPresent();
+    }
+
+    @Override
+    public int order() {
+        return ALLIANCE_DELETE_USER_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.findOneByOwnerId(user.getId()).ifPresent(alliance -> {
+            userStorageRepository.defineAllianceByAllianceId(alliance, null);
+            allianceJoinRequestRepository.deleteByAlliance(alliance);
+            repository.delete(alliance);
+        });
     }
 
     private void checkIsLimitReached(AllianceJoinRequest request) {

@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.business.MissionBo.UNIT_BUILD_MISSION_CHANGE;
 
@@ -45,6 +46,10 @@ public class MissionEventEmitterBo {
         if (targetPlanetOwner != null && !targetPlanetOwner.getId().equals(mission.getUser().getId())) {
             emitEnemyMissionsChange(targetPlanetOwner);
         }
+    }
+
+    public void emitEnemyMissionsChange(List<Mission> missions) {
+        missions.forEach(this::emitEnemyMissionsChange);
     }
 
     public void emitEnemyMissionsChange(UserStorage user) {

@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
 import com.kevinguanchedarias.owgejava.entity.UnlockedRelation;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFromEntity<UnlockedRelation>> {
+public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFromEntity<UnlockedRelation>>, UserDeleteListener {
     public static final String UNLOCKED_RELATION_CACHE_TAG = "unlocked_relation";
 
     @Serial
@@ -80,6 +81,16 @@ public class UnlockedRelationBo implements BaseBo<Long, UnlockedRelation, DtoFro
     @Override
     public Class<DtoFromEntity<UnlockedRelation>> getDtoClass() {
         throw new SgtBackendNotImplementedException("UnlockedRelation doesn't have a dto ... for now =/");
+    }
+
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByUser(user);
     }
 
     /**

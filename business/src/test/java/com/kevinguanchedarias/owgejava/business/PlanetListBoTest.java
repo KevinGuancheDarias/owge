@@ -140,6 +140,20 @@ class PlanetListBoTest {
         verifySocketMessage();
     }
 
+    @Test
+    void order_should_return_zero() {
+        assertThat(planetListBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        planetListBo.doDeleteUser(user);
+
+        verify(repository, times(1)).deleteByPlanetUserUser(user);
+    }
+
     private void verifySocketMessage() {
         assertThat(socketAnswer.getResult()).hasSize(1).containsExactly(planetListDtoMock);
     }

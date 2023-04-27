@@ -147,4 +147,19 @@ class MissionReportBoTest {
         assertThat(emittedCounts.getEnemyUnread()).isEqualTo(enemyUnread);
         assertThat(emittedCounts.getUserUnread()).isEqualTo(userUnread);
     }
+
+    @Test
+    void order_should_work() {
+        assertThat(missionReportBo.order()).isLessThan(MissionBo.MISSION_USER_DELETE_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        missionReportBo.doDeleteUser(user);
+
+        verify(missionRepository, times(1)).updateReportId(null);
+        verify(missionReportRepository, times(1)).deleteByUser(user);
+    }
 }

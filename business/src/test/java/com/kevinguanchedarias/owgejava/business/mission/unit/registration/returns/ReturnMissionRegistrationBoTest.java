@@ -94,7 +94,8 @@ class ReturnMissionRegistrationBoTest {
         given(missionTypeBo.find(MissionType.RETURN_MISSION)).willReturn(missionTypeEntity);
         given(missionTimeManagerBo.computeTerminationDate(expectedRequiredTime)).willReturn(terminationDate);
         given(obtainedUnitRepository.findByMissionId(EXPLORE_MISSION_ID)).willReturn(List.of(ou));
-        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLock(eq(List.of(sourcePlanet, targetPlanet)), any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
+                .doInsideLock(eq(List.of(sourcePlanet, targetPlanet)), any());
 
         returnMissionRegistrationBo.registerReturnMission(originalMission, customRequiredTime);
 

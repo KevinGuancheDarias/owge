@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.PlanetDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
@@ -13,6 +14,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
+import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
@@ -30,8 +32,9 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
+public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto>, UserDeleteListener {
     public static final String PLANET_OWNED_CHANGE = "planet_owned_change";
+    public static final int USER_DELETE_ORDER = ObtainedUnitBo.OBTAINED_UNIT_USER_DELETE_ORDER + 1;
 
     @Serial
     private static final long serialVersionUID = 3000986169771610777L;
@@ -50,6 +53,7 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
     private final transient ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final transient MissionFinderBo missionFinderBo;
     private final DtoUtilService dtoUtilService;
+    private final ExploredPlanetRepository exploredPlanetRepository;
 
     @Override
     public JpaRepository<Planet, Long> getRepository() {
@@ -203,5 +207,19 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto> {
         if (planet.getSpecialLocation() != null) {
             requirementBo.triggerSpecialLocation(user, planet.getSpecialLocation());
         }
+    }
+
+    @Override
+    public int order() {
+        return USER_DELETE_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        var homePlanet = user.getHomePlanet();
+        homePlanet.setHome(false);
+        planetRepository.save(homePlanet);
+        planetRepository.nullifyGivenOwner(user);
+        exploredPlanetRepository.deleteByUser(user);
     }
 }

@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
@@ -39,7 +40,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @AllArgsConstructor
-public class MissionBo {
+public class MissionBo implements UserDeleteListener {
+    public static final int MISSION_USER_DELETE_ORDER = 3;
     public static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
     public static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
     public static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
@@ -290,6 +292,7 @@ public class MissionBo {
             planetLockUtilService.doInsideLockById(
                     List.of(missionBeforeLock.getMissionInformation().getValue().longValue()),
                     () -> {
+                        LOG.debug("Process build mission " + missionId);
                         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
                         Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
                         var sourcePlanet = planetBo.findById(sourcePlanetId);
@@ -316,6 +319,7 @@ public class MissionBo {
                                 () -> obtainedUnitEventEmitter.emitObtainedUnits(user)
                                 , 500
                         );
+                        LOG.debug("End build mission " + mission);
                     }
             );
         } else {
@@ -339,6 +343,16 @@ public class MissionBo {
             case LEVEL_UP -> processLevelUpAnUpgrade(missionId);
             default -> LOG.warn("Not a upgrade level mission nor unit build");
         }
+    }
+
+    @Override
+    public int order() {
+        return MISSION_USER_DELETE_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        missionRepository.deleteByUserAndTypeCodeIn(user, List.of(MissionType.LEVEL_UP.name(), MissionType.BUILD_UNIT.name()));
     }
 
     /**

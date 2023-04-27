@@ -20,4 +20,8 @@ export class AdminGameUserService {
     public findUserSuspicions(userId: number): Observable<Suspicion[]> {
         return this.universeGameService.requestWithAutorizationToContext('admin', 'get', `users/${userId}/suspicions`);
     }
+
+    public deleteById(id: number): Observable<void> {
+        return this.universeGameService.requestWithAutorizationToContext('admin', 'delete', `users/${id}`);
+    }
 }

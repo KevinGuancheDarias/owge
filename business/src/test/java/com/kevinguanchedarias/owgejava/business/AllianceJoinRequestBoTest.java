@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import static com.kevinguanchedarias.owgejava.mock.AllianceMock.givenAlliance;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -62,5 +65,43 @@ class AllianceJoinRequestBoTest {
 
         assertThat(retVal.getRequestDate()).isNotNull();
         assertThat(retVal).isSameAs(request);
+    }
+
+    @Test
+    void order_should_work() {
+        assertThat(allianceJoinRequestBo.order())
+                .isEqualTo(AllianceJoinRequestBo.ALLIANCE_JOIN_REQUEST_DELETE_USER_ORDER)
+                .isLessThan(AllianceBo.ALLIANCE_DELETE_USER_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_delete_request_if_user_has_not_alliance() {
+        var user = givenUser1();
+
+        allianceJoinRequestBo.doDeleteUser(user);
+
+        verify(repository, times(1)).deleteByUser(user);
+    }
+
+    @Test
+    void doDeleteUser_should_delete_request_if_user_is_not_owner_of_alliance() {
+        var user = givenUser1();
+        user.setAlliance(givenAlliance());
+        user.getAlliance().setOwner(givenUser2());
+
+        allianceJoinRequestBo.doDeleteUser(user);
+
+        verify(repository, times(1)).deleteByUser(user);
+    }
+
+    @Test
+    void doDeleteUser_should_do_nothing_if_user_is_owner_of_alliance() {
+        var user = givenUser1();
+        user.setAlliance(givenAlliance());
+        user.getAlliance().setOwner(user);
+
+        allianceJoinRequestBo.doDeleteUser(user);
+
+        verifyNoInteractions(repository);
     }
 }

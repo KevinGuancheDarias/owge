@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUpgrade;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
@@ -17,7 +18,7 @@ import java.io.Serial;
 import java.util.List;
 
 @Component
-public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto>, ImprovementSource {
+public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, ObtainedUpgradeDto>, ImprovementSource, UserDeleteListener {
     public static final String OBTAINED_UPGRADES_CHANGE = "obtained_upgrades_change";
 
     @Serial
@@ -31,7 +32,7 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
 
     @Autowired
     private transient SocketIoService socketIoService;
-    
+
     @PostConstruct
     public void init() {
         improvementBo.addImprovementSource(this);
@@ -89,5 +90,15 @@ public class ObtainedUpgradeBo implements BaseBo<Long, ObtainedUpgrade, Obtained
         return new GroupedImprovement().add(obtainedUpgradeRepository.findByUserId(user.getId()).stream()
                 .map(current -> improvementBo.multiplyValues(current.getUpgrade().getImprovement(), current.getLevel()))
                 .toList());
+    }
+
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        obtainedUpgradeRepository.deleteByUser(user);
     }
 }

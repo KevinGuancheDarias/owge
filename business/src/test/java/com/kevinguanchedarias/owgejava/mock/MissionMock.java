@@ -81,7 +81,12 @@ public class MissionMock {
     }
 
     public static Mission givenRawMission(Planet sourcePlanet, Planet targetPlanet) {
+        return givenRawMission(sourcePlanet, targetPlanet, null);
+    }
+
+    public static Mission givenRawMission(Planet sourcePlanet, Planet targetPlanet, Long id) {
         var mission = new Mission();
+        mission.setId(id);
         mission.setSourcePlanet(sourcePlanet);
         mission.setTargetPlanet(targetPlanet);
         return mission;

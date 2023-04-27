@@ -30,4 +30,6 @@ public interface AuditRepository extends JpaRepository<Audit, Long> {
     @Query("UPDATE Audit a SET a.isTor = ?2 WHERE a = ?1")
     @Modifying
     void updateIsTor(Audit audit, boolean isTor);
+
+    void deleteByUserOrRelatedUser(UserStorage user, UserStorage user1);
 }

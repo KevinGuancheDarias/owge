@@ -57,8 +57,8 @@ public class TemporalUnitScheduleListener implements RequirementComplianceListen
             log.debug("Deleting expired unit: {}", task.getContent());
             var expirationId = ((Double) task.getContent()).longValue();
             if (obtainedUnitTemporalInformationRepository.existsById(expirationId)) {
-                aggressiveLockAcquire(expirationId, () ->
-                        transactionUtilService.runWithRequired(() -> doDeleteExpiredOrOrDemand(expirationId))
+                transactionUtilService.runWithRequired(() ->
+                        aggressiveLockAcquire(expirationId, () -> doDeleteExpiredOrOrDemand(expirationId))
                 );
             }
         });

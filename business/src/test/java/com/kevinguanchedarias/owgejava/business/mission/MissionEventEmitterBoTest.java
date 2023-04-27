@@ -118,7 +118,7 @@ class MissionEventEmitterBoTest {
         mission.getTargetPlanet().setOwner(planetOwner);
         doAnswer(new InvokeSupplierLambdaAnswer<>(2)).when(socketIoService).sendMessage(eq(planetOwner), eq(ENEMY_MISSION_CHANGE), any());
 
-        missionEventEmitterBo.emitEnemyMissionsChange(mission);
+        missionEventEmitterBo.emitEnemyMissionsChange(List.of(mission));
 
         verify(socketIoService, times(times)).sendMessage(eq(planetOwner), eq(ENEMY_MISSION_CHANGE), any());
         verify(runningMissionFinderBo, times(times)).findEnemyRunningMissions(planetOwner);

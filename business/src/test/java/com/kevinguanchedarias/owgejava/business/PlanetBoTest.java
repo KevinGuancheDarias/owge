@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendUniverseIsFull;
+import com.kevinguanchedarias.owgejava.repository.ExploredPlanetRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
@@ -27,6 +28,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,7 +71,8 @@ import static org.mockito.Mockito.*;
         MissionEventEmitterBo.class,
         ObtainedUnitEventEmitter.class,
         MissionFinderBo.class,
-        DtoUtilService.class
+        DtoUtilService.class,
+        ExploredPlanetRepository.class
 })
 class PlanetBoTest {
     private final PlanetBo planetBo;
@@ -88,6 +91,7 @@ class PlanetBoTest {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionFinderBo missionFinderBo;
     private final DtoUtilService dtoUtilService;
+    private final ExploredPlanetRepository exploredPlanetRepository;
 
     @Autowired
     PlanetBoTest(
@@ -105,8 +109,8 @@ class PlanetBoTest {
             MissionEventEmitterBo missionEventEmitterBo,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
             MissionFinderBo missionFinderBo,
-            DtoUtilService dtoUtilService
-    ) {
+            DtoUtilService dtoUtilService,
+            ExploredPlanetRepository exploredPlanetRepository) {
         this.planetBo = planetBo;
         this.planetRepository = planetRepository;
         this.userSessionService = userSessionService;
@@ -122,6 +126,7 @@ class PlanetBoTest {
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.missionFinderBo = missionFinderBo;
         this.dtoUtilService = dtoUtilService;
+        this.exploredPlanetRepository = exploredPlanetRepository;
     }
 
     @Test
@@ -261,6 +266,31 @@ class PlanetBoTest {
         assertThat(planetOwnedChangedSocketAnswer.getResult()).isNotEmpty();
         verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(user);
         obtainedUnitEventEmitter.emitObtainedUnits(user);
+    }
+
+    @Test
+    void order_should_work() {
+        assertThat(planetBo.order())
+                .isGreaterThan(ObtainedUnitBo.OBTAINED_UNIT_USER_DELETE_ORDER)
+                .isEqualTo(PlanetBo.USER_DELETE_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var homePlanet = givenSourcePlanet();
+        homePlanet.setHome(true);
+        var user = givenUser1();
+        user.setHomePlanet(homePlanet);
+
+        planetBo.doDeleteUser(user);
+
+        var captor = ArgumentCaptor.forClass(Planet.class);
+        verify(planetRepository, times(1)).save(captor.capture());
+        var savedPlanet = captor.getValue();
+        assertThat(savedPlanet).isSameAs(homePlanet);
+        assertThat(savedPlanet.getHome()).isFalse();
+        verify(planetRepository, times(1)).nullifyGivenOwner(user);
+        verify(exploredPlanetRepository, times(1)).deleteByUser(user);
     }
 
     private static Stream<Arguments> doLeavePlanet_should_throw_because_cant_leave_arguments() {

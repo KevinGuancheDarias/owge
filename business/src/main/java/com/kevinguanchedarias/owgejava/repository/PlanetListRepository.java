@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.repository;
 
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.PlanetList;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.embeddedid.PlanetUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,5 @@ public interface PlanetListRepository extends JpaRepository<PlanetList, PlanetUs
     @Query("SELECT pl.planetUser.user.id FROM PlanetList pl WHERE pl.planetUser.planet = ?1")
     List<Integer> findUserIdByPlanetListPlanet(Planet planetU);
 
+    void deleteByPlanetUserUser(UserStorage user);
 }

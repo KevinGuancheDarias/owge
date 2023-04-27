@@ -14,6 +14,7 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnitInterceptionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -23,10 +24,12 @@ import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructUnitMissionBo;
+import com.kevinguanchedarias.owgejava.mock.MissionTypeMock;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.owgejava.test.matcher.ListContainsMatcher;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,11 +55,9 @@ import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.MissionInterceptionInformationMock.INTERCEPTION_INFORMATION_INVOLVED;
 import static com.kevinguanchedarias.owgejava.mock.MissionInterceptionInformationMock.givenMissionInterceptionInformation;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.EXPLORE_MISSION_ID;
-import static com.kevinguanchedarias.owgejava.mock.MissionMock.givenExploreMission;
+import static com.kevinguanchedarias.owgejava.mock.MissionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.MissionTypeMock.givenMissinType;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UnitMissionMock.givenUnitMissionInformation;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,7 +97,8 @@ import static org.mockito.Mockito.*;
         PlanetBo.class,
         PlanetExplorationService.class,
         MissionBaseService.class,
-        MissionProcessor.class
+        MissionProcessor.class,
+        TransactionUtilService.class
 })
 class UnitMissionBoTest {
     private final NonPostConstructUnitMissionBo unitMissionBo;
@@ -114,6 +116,7 @@ class UnitMissionBoTest {
     private final PlanetRepository planetRepository;
     private final ExceptionUtilService exceptionUtilService;
     private final MissionProcessor missionProcessor;
+    private final TransactionUtilService transactionUtilService;
 
     @Autowired
     public UnitMissionBoTest(
@@ -130,7 +133,8 @@ class UnitMissionBoTest {
             UnitMissionRegistrationBo unitMissionRegistrationBo,
             PlanetRepository planetRepository,
             ExceptionUtilService exceptionUtilService,
-            MissionProcessor missionProcessor
+            MissionProcessor missionProcessor,
+            TransactionUtilService transactionUtilService
     ) {
         this.unitMissionBo = unitMissionBo;
         this.userSessionService = userSessionService;
@@ -146,6 +150,7 @@ class UnitMissionBoTest {
         this.planetRepository = planetRepository;
         this.exceptionUtilService = exceptionUtilService;
         this.missionProcessor = missionProcessor;
+        this.transactionUtilService = transactionUtilService;
     }
 
     @BeforeEach
@@ -333,6 +338,47 @@ class UnitMissionBoTest {
         assertThatThrownBy(() -> unitMissionBo.adminRegisterDeploy(information))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
                 .hasMessageContaining("planet is not explored");
+    }
+
+    @Test
+    void order_should_work() {
+        assertThat(unitMissionBo.order())
+                .isGreaterThan(MissionBo.MISSION_USER_DELETE_ORDER)
+                .isEqualTo(UnitMissionBo.UNIT_MISSION_USER_DELETE_ORDER);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+        var missionWithInvalidType = givenExploreMission();
+        missionWithInvalidType.getType().setCode("INVALID_CODE");
+        var nonUnitMissionPlanet = givenPlanet(44L);
+        var nonUnitMission = givenRawMission(nonUnitMissionPlanet, nonUnitMissionPlanet);
+        nonUnitMission.setType(MissionTypeMock.givenMissinType(MissionType.LEVEL_UP));
+        var validMission = givenExploreMission();
+        var sourcePlanet = validMission.getSourcePlanet();
+        var targetPlanet = validMission.getTargetPlanet();
+        var otherValidPlanet = givenPlanet(99L);
+        var otherValidMissionWithDifferentPlanet = givenGatherMission();
+        otherValidMissionWithDifferentPlanet.setTargetPlanet(otherValidPlanet);
+        given(missionRepository.findByUser(user))
+                .willReturn(List.of(
+                        missionWithInvalidType, nonUnitMission, validMission, otherValidMissionWithDifferentPlanet
+                ));
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService)
+                .doInsideLock(argThat(new ListContainsMatcher<>(List.of(sourcePlanet, otherValidPlanet, targetPlanet))), any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+
+        unitMissionBo.doDeleteUser(user);
+
+        ArgumentCaptor<List<Mission>> captor = ArgumentCaptor.forClass(List.class);
+        verify(missionRepository, times(1)).deleteAll(captor.capture());
+        var deletedMissions = captor.getValue();
+        assertThat(deletedMissions)
+                .hasSize(2)
+                .containsExactly(validMission, otherValidMissionWithDifferentPlanet);
+        verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(List.of(validMission, otherValidMissionWithDifferentPlanet));
     }
 
     private static Stream<Arguments> myCancelMission_should_throw_arguments() {

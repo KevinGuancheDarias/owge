@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.business.audit;
 
 import com.kevinguanchedarias.owgejava.business.AsyncRunnerBo;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.SuspicionDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
 import com.kevinguanchedarias.owgejava.entity.Suspicion;
@@ -20,7 +21,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class AuditMultiAccountSuspicionsService {
+public class AuditMultiAccountSuspicionsService implements UserDeleteListener {
     public static final long WANTED_MS_DELAY = 1000;
     private static final long MAX_BACK_LOOKUP_SECONDS = 86400L * 7L;
     private final AsyncRunnerBo asyncRunnerBo;
@@ -39,9 +40,19 @@ public class AuditMultiAccountSuspicionsService {
         ).stream().map(SuspicionDto::of).toList();
     }
 
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        suspicionRepository.deleteByRelatedUser(user);
+    }
+
     private void doHandle(Audit audit) {
         var user = audit.getUser();
-        log.debug("Handling suspicious for user {}", user);
+        log.debug("Handling suspicious for user {}({})", user.getUsername(), user.getId());
         var maxBackLookupDate = LocalDateTime.now().minusSeconds(MAX_BACK_LOOKUP_SECONDS);
         auditRepository.findSuspicions(
                         maxBackLookupDate, user, audit.getCookie(), audit.getIpv4(), audit.getIpv6()

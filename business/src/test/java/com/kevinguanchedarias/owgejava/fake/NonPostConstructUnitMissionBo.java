@@ -12,6 +12,8 @@ import com.kevinguanchedarias.owgejava.business.mission.unit.registration.return
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
+import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
@@ -19,6 +21,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Primary
@@ -30,9 +33,10 @@ public class NonPostConstructUnitMissionBo extends UnitMissionBo {
             MissionEventEmitterBo missionEventEmitterBo, MissionInterceptionManagerBo missionInterceptionManagerBo,
             List<MissionProcessor> missionProcessors, PlanetBo planetBo, PlanetExplorationService planetExplorationService,
             MissionRepository missionRepository, UserSessionService userSessionService, ExceptionUtilService exceptionUtilService,
-            MissionReportManagerBo missionReportManagerBo, MissionBaseService missionBaseService
+            MissionReportManagerBo missionReportManagerBo, MissionBaseService missionBaseService, TransactionUtilService transactionUtilService,
+            Map<MissionType, MissionProcessor> missionProcessorMap
     ) {
-        super(planetLockUtilService, unitMissionRegistrationBo, returnMissionRegistrationBo, planetRepository, missionEventEmitterBo, missionInterceptionManagerBo, missionProcessors, planetBo, planetExplorationService, missionRepository, userSessionService, exceptionUtilService, missionReportManagerBo, missionBaseService, null);
+        super(planetLockUtilService, unitMissionRegistrationBo, returnMissionRegistrationBo, planetRepository, missionEventEmitterBo, missionInterceptionManagerBo, missionProcessors, planetBo, planetExplorationService, missionRepository, userSessionService, exceptionUtilService, missionReportManagerBo, missionBaseService, transactionUtilService, null);
     }
 
     @Override

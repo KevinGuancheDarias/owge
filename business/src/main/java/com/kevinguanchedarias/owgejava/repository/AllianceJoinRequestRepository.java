@@ -27,10 +27,10 @@ public interface AllianceJoinRequestRepository extends JpaRepository<AllianceJoi
     void deleteByUser(UserStorage user);
 
     /**
-     * @param id
-     * @return
      * @author Kevin Guanche Darias
      * @since 0.8.1
      */
     List<AllianceJoinRequest> findByUserId(Integer id);
+
+    void deleteByAlliance(Alliance alliance);
 }

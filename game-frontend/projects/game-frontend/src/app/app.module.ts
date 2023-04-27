@@ -9,7 +9,8 @@ import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AllianceModule, ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from '@owge/alliance';
 import {
-  CoreModule, LoadingService, OwgeUserModule, RouterRootComponent, ThemeService, User, WarningWebsocketApplicationHandlerService
+  CoreModule, LoadingService, OwgeUserModule, RouterRootComponent,
+  SessionService, ThemeService, User, WarningWebsocketApplicationHandlerService
 } from '@owge/core';
 import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
@@ -255,7 +256,8 @@ export class AppModule {
           this._injector.get(PlanetListService),
           this._injector.get(TwitchService),
           this._injector.get(SystemMessageService),
-          this._injector.get(WarningWebsocketApplicationHandlerService)
+          this._injector.get(WarningWebsocketApplicationHandlerService),
+          this._injector.get(SessionService)
         );
         this._universeGameService.isInGame().subscribe(async isInGame => {
           const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();

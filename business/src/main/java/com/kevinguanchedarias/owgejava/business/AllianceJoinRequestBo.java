@@ -1,7 +1,9 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.AllianceJoinRequestDto;
 import com.kevinguanchedarias.owgejava.entity.AllianceJoinRequest;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,10 @@ import java.util.List;
  */
 @Service
 @AllArgsConstructor
-public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinRequest, AllianceJoinRequestDto> {
+public class AllianceJoinRequestBo
+        implements BaseBo<Integer, AllianceJoinRequest, AllianceJoinRequestDto>, UserDeleteListener {
+    public static final int ALLIANCE_JOIN_REQUEST_DELETE_USER_ORDER = AllianceBo.ALLIANCE_DELETE_USER_ORDER - 1;
+
     @Serial
     private static final long serialVersionUID = -596625245649965948L;
 
@@ -73,5 +78,17 @@ public class AllianceJoinRequestBo implements BaseBo<Integer, AllianceJoinReques
      */
     public List<AllianceJoinRequest> findByUserId(Integer id) {
         return repository.findByUserId(id);
+    }
+
+    @Override
+    public int order() {
+        return ALLIANCE_JOIN_REQUEST_DELETE_USER_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        if (user.getAlliance() == null || !user.getAlliance().getOwner().equals(user)) {
+            repository.deleteByUser(user);
+        }
     }
 }

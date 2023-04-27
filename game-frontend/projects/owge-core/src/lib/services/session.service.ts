@@ -9,6 +9,8 @@ import { OwgeCoreConfig } from '../pojos/owge-core-config';
 import { ProgrammingError } from '../errors/programming.error';
 import { JwtTokenUtil } from '../utils/jwt-token.util';
 import { SessionStore } from '../store/session.store';
+import { AbstractWebsocketApplicationHandler } from '../interfaces/abstract-websocket-application-handler';
+import { ToastrService } from './toastr.service';
 
 /**
  * Modern implementation of session control (replacement for good old' SessionService)
@@ -18,10 +20,9 @@ import { SessionStore } from '../store/session.store';
  * @export
  */
 @Injectable({ providedIn: OwgeUserModule })
-export class SessionService implements CanActivate {
+export class SessionService extends AbstractWebsocketApplicationHandler implements CanActivate {
   public static readonly LOGIN_ROUTE = '/login';
   public static readonly LOCAL_STORAGE_TOKEN_PARAM = 'owge_authentication';
-
 
   /**
    *
@@ -35,8 +36,17 @@ export class SessionService implements CanActivate {
 
   private _logoutEmitter: EventEmitter<void> = new EventEmitter();
 
-  public constructor(private _router: Router, private _accountConfig: OwgeCoreConfig, private _sessionStore: SessionStore) {
-
+  public constructor(
+    private _router: Router,
+    private _accountConfig: OwgeCoreConfig,
+    private _sessionStore: SessionStore,
+    private toastrService: ToastrService
+  ) {
+    super();
+    this._eventsMap = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      account_deleted: 'onAccountDelete'
+    };
   }
 
   /**
@@ -106,12 +116,17 @@ export class SessionService implements CanActivate {
   }
 
   /**
- * @param  token - RAW encoded token
- * @return the encoded token
- */
+   * @param  token - RAW encoded token
+   * @return the encoded token
+   */
   public setTokenPojo(token): void {
     this._sessionStore.next('currentToken', token);
     sessionStorage.setItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM, token);
+  }
+
+  protected onAccountDelete(): void {
+    this.toastrService.warn('USER.ACCOUNT_DELETED');
+    window.setTimeout(() => this.logout(), 3000);
   }
 
   private _redirectTo(route: string): void {
