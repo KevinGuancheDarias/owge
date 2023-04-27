@@ -1,6 +1,8 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.WebsocketEventsInformationDto;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.entity.embeddedid.EventNameUserId;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
@@ -21,7 +23,7 @@ import java.util.Optional;
  */
 @Service
 public class WebsocketEventsInformationBo
-        implements WithToDtoTrait<WebsocketEventsInformation, WebsocketEventsInformationDto> {
+        implements WithToDtoTrait<WebsocketEventsInformation, WebsocketEventsInformationDto>, UserDeleteListener {
     @Autowired
     private WebsocketEventsInformationRepository repository;
 
@@ -84,5 +86,15 @@ public class WebsocketEventsInformationBo
             eventsInformation.setLastSent(lastSent);
             save(eventsInformation);
         }
+    }
+
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByEventNameUserIdUserId(user.getId());
     }
 }

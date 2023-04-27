@@ -10,6 +10,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -47,5 +49,20 @@ class WebsocketEventsInformationBoTest {
         websocketEventsInformationBo.clear();
 
         verify(repository, times(1)).updateLastSent(eq(USER_ID_1), any());
+    }
+
+
+    @Test
+    void order_should_return_zero() {
+        assertThat(websocketEventsInformationBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        websocketEventsInformationBo.doDeleteUser(user);
+
+        verify(repository, times(1)).deleteByEventNameUserIdUserId(USER_ID_1);
     }
 }

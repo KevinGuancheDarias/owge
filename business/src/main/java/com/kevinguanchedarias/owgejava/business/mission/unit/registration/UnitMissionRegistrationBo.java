@@ -16,6 +16,8 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -37,6 +39,7 @@ public class UnitMissionRegistrationBo {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public void doCommonMissionRegister(
             UnitMissionInformation missionInformation,
             UnitMissionInformation targetMissionInformation,

@@ -16,15 +16,8 @@ import java.util.Set;
 
 import static com.kevinguanchedarias.owgejava.business.mysql.MysqlLockUtilService.TIMEOUT_SECONDS;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
 @SpringBootTest(
@@ -59,6 +52,14 @@ class MysqlLockUtilServiceTest {
     @BeforeEach
     public void setup() {
         runnableMock = mock(Runnable.class);
+    }
+
+    @Test
+    void doInsideLock_should_lock_nothing_if_empty_keys() {
+        mysqlLockUtilService.doInsideLock(Set.of(), runnableMock);
+
+        verify(runnableMock, times(1)).run();
+        verifyNoInteractions(jdbcTemplate);
     }
 
     @Test

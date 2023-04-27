@@ -63,4 +63,8 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
     @Query("UPDATE Planet SET specialLocation = ?2 WHERE id = ?1")
     @Modifying
     void updateSpecialLocation(long planetId, SpecialLocation specialLocation);
+
+    @Query("UPDATE Planet  SET owner = NULL WHERE owner = ?1")
+    @Modifying
+    void nullifyGivenOwner(UserStorage user);
 }

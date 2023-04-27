@@ -1,13 +1,13 @@
 package com.kevinguanchedarias.owgejava.context;
 
-import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
+import org.springframework.transaction.TransactionStatus;
 
 import java.util.Optional;
 
 public class OwgeContextHolder {
     private static final ThreadLocal<Optional<OwgeContext>> OWGE_CONTEXT = ThreadLocal.withInitial(Optional::empty);
 
-    public record OwgeContext(Long selectedPlanetId) {
+    public record OwgeContext(Long selectedPlanetId, TransactionStatus transactionStatus) {
     }
 
     public static Optional<OwgeContext> get() {
@@ -15,9 +15,6 @@ public class OwgeContextHolder {
     }
 
     public static void set(OwgeContext owgeContext) {
-        if (get().isPresent()) {
-            throw new ProgrammingException("You should never manually invoke the get");
-        }
         OWGE_CONTEXT.set(Optional.ofNullable(owgeContext));
     }
 

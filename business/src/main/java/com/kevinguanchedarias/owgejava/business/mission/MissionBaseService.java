@@ -15,7 +15,6 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
-import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
@@ -28,7 +27,6 @@ public class MissionBaseService {
     private static final Integer MAX_ATTEMPTS = 3;
 
     private final MissionRepository missionRepository;
-    private final UserStorageRepository userStorageRepository;
     private final ReturnMissionRegistrationBo returnMissionRegistrationBo;
     private final ObtainedUnitModificationBo obtainedUnitModificationBo;
     private final MissionTimeManagerBo missionTimeManagerBo;

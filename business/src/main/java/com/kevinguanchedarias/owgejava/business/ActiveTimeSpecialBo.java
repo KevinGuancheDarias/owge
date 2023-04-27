@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.requirement.listener.Requirement
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
@@ -37,8 +38,8 @@ import java.util.List;
  * @since 0.8.0
  */
 @Service
-public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource, RequirementComplianceListener {
-
+public class ActiveTimeSpecialBo implements
+        BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource, RequirementComplianceListener, UserDeleteListener {
     @Serial
     private static final long serialVersionUID = -3981337002238422272L;
 
@@ -245,6 +246,16 @@ public class ActiveTimeSpecialBo implements BaseBo<Long, ActiveTimeSpecial, Acti
      */
     public void emitTimeSpecialChange(UserStorage user) {
         socketIoService.sendMessage(user, "time_special_change", () -> findByUserWithCurrentStatus(user));
+    }
+
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByUser(user);
     }
 
     private void deactivate(Long id) {

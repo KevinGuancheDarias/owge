@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.MissionReportDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -33,9 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class MissionReportBo implements BaseBo<Long, MissionReport, MissionReportDto> {
-    public static final String MISSION_REPORT_CACHE_TAG = "mission_report";
-
+public class MissionReportBo implements BaseBo<Long, MissionReport, MissionReportDto>, UserDeleteListener {
     @Serial
     private static final long serialVersionUID = -3125120788150047385L;
 
@@ -211,6 +210,17 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     @Override
     public MissionReportDto toDto(MissionReport entity) {
         return parseJsonBody(BaseBo.super.toDto(entity));
+    }
+
+    @Override
+    public int order() {
+        return MissionBo.MISSION_USER_DELETE_ORDER - 1;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        missionRepository.updateReportId(null);
+        missionReportRepository.deleteByUser(user);
     }
 
     private void emitCountChange(Integer userId) {

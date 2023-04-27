@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OwgeContextHolderTest {
 
-    private final OwgeContextHolder.OwgeContext expectedValue = new OwgeContextHolder.OwgeContext(SOURCE_PLANET_ID);
+    private final OwgeContextHolder.OwgeContext expectedValue = new OwgeContextHolder.OwgeContext(SOURCE_PLANET_ID, null);
 
     @BeforeEach
     void clearContextHolder() {
@@ -24,14 +24,6 @@ class OwgeContextHolderTest {
         OwgeContextHolder.set(expectedValue);
 
         assertThat(OwgeContextHolder.get()).contains(expectedValue);
-    }
-
-    @Test
-    void set_should_throw_if_double_invoked() {
-        OwgeContextHolder.set(expectedValue);
-
-        assertThatThrownBy(() -> OwgeContextHolder.set(expectedValue))
-                .isInstanceOf(ProgrammingException.class);
     }
 
     @Test

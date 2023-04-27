@@ -21,6 +21,8 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.PostConstruct;
@@ -96,10 +98,7 @@ public class SocketIoService {
      */
     public <T> void sendMessage(int targetUserId, String eventName, Supplier<T> messageContent,
                                 Runnable notConnectedAction) {
-        var userSockets = server.getAllClients().stream()
-                .filter(client -> client.get(USER_TOKEN_KEY) != null
-                        && (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
-                .toList();
+        var userSockets = findClientSockets(targetUserId);
         Map<Integer, WebsocketEventsInformation> savedInformation = new HashMap<>();
         if (targetUserId == 0) {
             userStorageRepository.findAll().forEach(user -> {
@@ -112,20 +111,7 @@ public class SocketIoService {
                     .save(new WebsocketEventsInformation(eventName, targetUserId));
             savedInformation.put(targetUserId, saved);
         }
-        if (!userSockets.isEmpty()) {
-            T sendValue = messageContent.get();
-            asyncRunnerBo.runAsyncWithoutContext(() -> userSockets.forEach(client -> {
-                if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    LOCAL_LOGGER.warn("Should never happened, if everything is nice!!!");
-                }
-                TokenUser user = client.get(USER_TOKEN_KEY);
-                log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
-                client.sendEvent("deliver_message",
-                        new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue));
-            }));
-        } else if (notConnectedAction != null) {
-            notConnectedAction.run();
-        }
+        handleSendMessage(userSockets, eventName, messageContent, notConnectedAction, savedInformation);
     }
 
     /**
@@ -173,6 +159,52 @@ public class SocketIoService {
     public void clearCache() {
         websocketEventsInformationBo.clear();
         server.getAllClients().forEach(client -> client.sendEvent("cache_clear", "null"));
+    }
+
+    /**
+     * Sends the message one time only without saving to the db the event information
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public <T> void sendOneTimeMessage(
+            int targetUserId,
+            String eventName,
+            Supplier<T> messageContent,
+            Runnable notConnectedAction
+    ) {
+        var userSockets = findClientSockets(targetUserId);
+        handleSendMessage(userSockets, eventName, messageContent, notConnectedAction, null);
+    }
+
+    private <T> void handleSendMessage(
+            List<SocketIOClient> userSockets,
+            String eventName,
+            Supplier<T> messageContent,
+            Runnable notConnectedAction,
+            Map<Integer, WebsocketEventsInformation> savedInformation
+    ) {
+        if (!userSockets.isEmpty()) {
+            T sendValue = messageContent.get();
+            asyncRunnerBo.runAsyncWithoutContext(() -> userSockets.forEach(client -> {
+                if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                    LOCAL_LOGGER.warn("Should never happened, if everything is nice!!!");
+                }
+                TokenUser user = client.get(USER_TOKEN_KEY);
+                log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
+                var message = savedInformation != null
+                        ? new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue)
+                        : new WebsocketMessage<>(eventName, sendValue);
+                client.sendEvent("deliver_message", message);
+            }));
+        } else if (notConnectedAction != null) {
+            notConnectedAction.run();
+        }
+    }
+
+    private List<SocketIOClient> findClientSockets(int targetUserId) {
+        return server.getAllClients().stream()
+                .filter(client -> client.get(USER_TOKEN_KEY) != null
+                        && (targetUserId == 0 || ((TokenUser) client.get(USER_TOKEN_KEY)).getId().equals(targetUserId)))
+                .toList();
     }
 
     private void registerUnauthenticatedEvents() {

@@ -13,4 +13,6 @@ public interface SuspicionRepository extends JpaRepository<Suspicion, Long> {
     List<Suspicion> findByRelatedUser(UserStorage user);
 
     long countByRelatedUser(UserStorage user);
+
+    void deleteByRelatedUser(UserStorage user);
 }

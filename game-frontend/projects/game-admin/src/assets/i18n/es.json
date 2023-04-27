@@ -13,6 +13,11 @@
         "MENU_UPGRADE_TYPES": "Tipos de mejora",
         "MENU_UNIT_TYPES": "tipos de unidad"
     },
+    "USER": {
+        "SUSPICIOUS_COUNT_DISPLAY_BTN": "Ver info de sospechas",
+        "BTN_DELETE_USER": "Borrar",
+        "CONFIRM_DELETE": "¿ Seguro de que quieres eliminar la cuenta {{username}} ?"
+    },
     "CRUD": {
         "EDIT": "Editar",
         "DELETE": "Eliminar",

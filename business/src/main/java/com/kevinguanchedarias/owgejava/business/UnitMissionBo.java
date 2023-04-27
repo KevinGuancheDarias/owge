@@ -10,7 +10,10 @@ import com.kevinguanchedarias.owgejava.business.mission.unit.registration.return
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -21,6 +24,7 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
@@ -31,14 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class UnitMissionBo {
+public class UnitMissionBo implements UserDeleteListener {
+    public static final int UNIT_MISSION_USER_DELETE_ORDER = MissionBo.MISSION_USER_DELETE_ORDER + 1;
+
     private final PlanetLockUtilService planetLockUtilService;
     private final UnitMissionRegistrationBo unitMissionRegistrationBo;
     private final ReturnMissionRegistrationBo returnMissionRegistrationBo;
@@ -53,6 +57,7 @@ public class UnitMissionBo {
     private final ExceptionUtilService exceptionUtilService;
     private final MissionReportManagerBo missionReportManagerBo;
     private final MissionBaseService missionBaseService;
+    private final TransactionUtilService transactionUtilService;
 
     protected Map<MissionType, MissionProcessor> missionProcessorMap;
 
@@ -213,6 +218,32 @@ public class UnitMissionBo {
                 List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
                 () -> doRunUnitMission(mission, missionType)
         );
+    }
+
+    @Override
+    public int order() {
+        return UNIT_MISSION_USER_DELETE_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        var missions = missionRepository.findByUser(user).stream()
+                .filter(mission -> EnumUtils.isValidEnum(MissionType.class, mission.getType().getCode()))
+                .filter(mission -> MissionType.valueOf(mission.getType().getCode()).isUnitMission())
+                .toList();
+        var affectedPlanets = missions.stream()
+                .map(mission -> List.of(mission.getSourcePlanet(), mission.getTargetPlanet()))
+                .flatMap(Collection::stream)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableSet())
+                .stream()
+                .toList();
+        planetLockUtilService.doInsideLock(affectedPlanets, () -> {
+            missionRepository.deleteAll(missions);
+            transactionUtilService.doAfterCommit(
+                    () -> missionEventEmitterBo.emitEnemyMissionsChange(missions)
+            );
+        });
     }
 
     private void doRunUnitMission(Mission mission, MissionType missionType) {

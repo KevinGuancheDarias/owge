@@ -14,7 +14,10 @@ import java.util.List;
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenUnlockedRelation;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest(
         classes = UnlockedRelationBo.class,
@@ -47,5 +50,20 @@ class UnlockedRelationBoTest {
         var result = unlockedRelationBo.findByUserIdAndObjectType(USER_ID_1, ObjectEnum.UNIT);
 
         Assertions.assertThat(result).hasSize(1).contains(ur);
+    }
+
+
+    @Test
+    void order_should_return_zero() {
+        assertThat(unlockedRelationBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        unlockedRelationBo.doDeleteUser(user);
+
+        verify(unlockedRelationRepository, times(1)).deleteByUser(user);
     }
 }

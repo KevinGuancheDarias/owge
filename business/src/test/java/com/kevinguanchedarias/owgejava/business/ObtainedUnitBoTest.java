@@ -39,6 +39,7 @@ import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.USER_ID_1;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -382,6 +383,22 @@ class ObtainedUnitBoTest {
         assertThat(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, null, false))
                 .isEqualTo(ou);
 
+    }
+
+    @Test
+    void order_should_work() {
+        assertThat(obtainedUnitBo.order())
+                .isEqualTo(ObtainedUnitBo.OBTAINED_UNIT_USER_DELETE_ORDER)
+                .isLessThan(UnitMissionBo.UNIT_MISSION_USER_DELETE_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        obtainedUnitBo.doDeleteUser(user);
+
+        verify(obtainedUnitRepository, times(1)).deleteByUser(user);
     }
 
     private static Stream<Arguments> saveWithAdding_should_work_parameters() {

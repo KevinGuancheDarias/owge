@@ -32,7 +32,7 @@ public class OwgeContextFilter implements Filter {
     private void loadContext(HttpServletRequest request) {
         Optional.ofNullable(request.getHeader("X-OWGE-Selected-Planet"))
                 .map(Long::parseLong)
-                .ifPresent(planetId -> OwgeContextHolder.set(new OwgeContextHolder.OwgeContext(maybeSetPlanet(planetId))));
+                .ifPresent(planetId -> OwgeContextHolder.set(new OwgeContextHolder.OwgeContext(maybeSetPlanet(planetId), null)));
     }
 
     private Long maybeSetPlanet(Long wantedPlanetId) {

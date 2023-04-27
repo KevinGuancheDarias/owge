@@ -276,6 +276,20 @@ class AuditBoTest {
         }
     }
 
+    @Test
+    void order_should_return_zero() {
+        assertThat(auditBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        auditBo.doDeleteUser(user);
+
+        verify(repository, times(1)).deleteByUserOrRelatedUser(user, user);
+    }
+
     private static Stream<Arguments> doAudit_should_work_arguments() {
         var ipv4Address = mock(Inet4Address.class);
         var ipv6Address = mock(Inet6Address.class);

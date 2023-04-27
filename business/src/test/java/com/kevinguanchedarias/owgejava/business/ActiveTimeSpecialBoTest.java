@@ -3,6 +3,7 @@ package com.kevinguanchedarias.owgejava.business;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.dto.ActiveTimeSpecialDto;
 import com.kevinguanchedarias.owgejava.dto.TimeSpecialDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -106,6 +107,11 @@ class ActiveTimeSpecialBoTest {
         this.ruleRepository = ruleRepository;
         this.applicationEventPublisher = applicationEventPublisher;
         this.unlockableTimeSpecialService = unlockableTimeSpecialService;
+    }
+
+    @Test
+    void getDtoClass_should_work() {
+        assertThat(activeTimeSpecialBo.getDtoClass()).isEqualTo(ActiveTimeSpecialDto.class);
     }
 
     @Test
@@ -368,5 +374,19 @@ class ActiveTimeSpecialBoTest {
         var saved = captor.getValue();
         assertThat(saved.getState()).isEqualTo(TimeSpecialStateEnum.RECHARGE);
         verify(requirementBo, times(1)).triggerTimeSpecialStateChange(user, ts);
+    }
+
+    @Test
+    void order_should_return_zero() {
+        assertThat(activeTimeSpecialBo.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        activeTimeSpecialBo.doDeleteUser(user);
+
+        verify(activeTimeSpecialRepository, times(1)).deleteByUser(user);
     }
 }

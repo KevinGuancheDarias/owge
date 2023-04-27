@@ -24,6 +24,7 @@ import java.util.List;
 import static com.kevinguanchedarias.owgejava.mock.AuditMock.*;
 import static com.kevinguanchedarias.owgejava.mock.SuspicionMock.SUSPICION_ID;
 import static com.kevinguanchedarias.owgejava.mock.SuspicionMock.givenSuspicion;
+import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser1;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.givenUser2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -133,6 +134,20 @@ class AuditMultiAccountSuspicionsServiceTest {
             var entry = retVal.get(0);
             assertThat(entry.id()).isEqualTo(SUSPICION_ID);
         }
+    }
+
+    @Test
+    void order_should_return_zero() {
+        assertThat(auditMultiAccountSuspicionsService.order()).isZero();
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        auditMultiAccountSuspicionsService.doDeleteUser(user);
+
+        verify(suspicionRepository, times(1)).deleteByRelatedUser(user);
     }
 
     private void doAssertSaved(Suspicion target, SuspicionSourceEnum source, UserStorage user, Audit audit) {

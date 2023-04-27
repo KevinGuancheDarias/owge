@@ -1,18 +1,17 @@
 package com.kevinguanchedarias.owgejava.business.unit.obtained;
 
-import com.kevinguanchedarias.owgejava.business.BaseBo;
-import com.kevinguanchedarias.owgejava.business.ImprovementBo;
-import com.kevinguanchedarias.owgejava.business.RequirementBo;
-import com.kevinguanchedarias.owgejava.business.UnitTypeBo;
+import com.kevinguanchedarias.owgejava.business.*;
 import com.kevinguanchedarias.owgejava.business.mission.MissionFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Planet;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
@@ -35,7 +34,8 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto> {
+public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDto>, UserDeleteListener {
+    public static final int OBTAINED_UNIT_USER_DELETE_ORDER = UnitMissionBo.UNIT_MISSION_USER_DELETE_ORDER - 1;
 
     @Serial
     private static final long serialVersionUID = -2056602917496640872L;
@@ -237,5 +237,15 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
                     + planetId + ", nice try, dirty hacker!");
         }
         return retVal;
+    }
+
+    @Override
+    public int order() {
+        return OBTAINED_UNIT_USER_DELETE_ORDER;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByUser(user);
     }
 }

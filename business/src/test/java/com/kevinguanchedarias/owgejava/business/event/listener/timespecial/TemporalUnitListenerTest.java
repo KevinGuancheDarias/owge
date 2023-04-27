@@ -203,7 +203,7 @@ class TemporalUnitListenerTest {
 
     private static Stream<Arguments> onTimeSpecialActivated_parameters() {
         var args = List.of("60", "8");
-        var withPlanetContext = new OwgeContextHolder.OwgeContext(TARGET_PLANET_ID);
+        var withPlanetContext = new OwgeContextHolder.OwgeContext(TARGET_PLANET_ID, null);
         var knownHomePlanet = givenSourcePlanet();
         return Stream.of(
                 Arguments.of(args, ObjectEnum.UNIT.name(), null, null, knownHomePlanet),

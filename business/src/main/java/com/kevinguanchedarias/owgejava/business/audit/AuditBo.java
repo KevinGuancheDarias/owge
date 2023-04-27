@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.BaseBo;
 import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.business.TorClientBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.AuditDto;
 import com.kevinguanchedarias.owgejava.entity.Audit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
@@ -43,7 +44,7 @@ import java.util.stream.Stream;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
+public class AuditBo implements BaseBo<Long, Audit, AuditDto>, UserDeleteListener {
     @Serial
     private static final long serialVersionUID = -890947636309038855L;
 
@@ -179,6 +180,16 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
         return repository.findByRelatedUser(user);
     }
 
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByUserOrRelatedUser(user, user);
+    }
+
     private String resolveIp(HttpServletRequest request) {
         var ip = request.getRemoteAddr();
         if (proxyTrustedHeader.isEmpty() || !isTrustedProxyIp(ip)) {
@@ -232,7 +243,6 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
             log.warn("Passed argument is not an IP, passed: {} ", ip);
             return false;
         }
-
     }
 
     private boolean isPrivate(InetAddress inetAddress) {
@@ -242,5 +252,4 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto> {
     private boolean isInTorList(String ip) {
         return torClientBo.isTor(ip);
     }
-
 }

@@ -615,6 +615,20 @@ class MissionBoTest {
         verify(missionSchedulerService, times(1)).abortMissionJob(mission);
     }
 
+    @Test
+    void order_should_work() {
+        assertThat(missionBo.order()).isEqualTo(MissionBo.MISSION_USER_DELETE_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+
+        missionBo.doDeleteUser(user);
+
+        verify(missionRepository, times(1)).deleteByUserAndTypeCodeIn(user, List.of(MissionType.LEVEL_UP.name(), MissionType.BUILD_UNIT.name()));
+    }
+
     private GroupedImprovement givenMaxMissionsCount(UserStorage user) {
         var groupedImprovementMock = mock(GroupedImprovement.class);
         given(groupedImprovementMock.getMoreMissions()).willReturn(20F);

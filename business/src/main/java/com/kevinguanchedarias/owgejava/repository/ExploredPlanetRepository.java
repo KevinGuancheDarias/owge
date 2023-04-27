@@ -1,11 +1,13 @@
 package com.kevinguanchedarias.owgejava.repository;
 
-import java.io.Serializable;
-
+import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.kevinguanchedarias.owgejava.entity.ExploredPlanet;
+import java.io.Serializable;
 
 public interface ExploredPlanetRepository extends Serializable, JpaRepository<ExploredPlanet, Number> {
-	public ExploredPlanet findOneByUserIdAndPlanetId(Integer userId, Long planetId);
+    ExploredPlanet findOneByUserIdAndPlanetId(Integer userId, Long planetId);
+
+    void deleteByUser(UserStorage user);
 }

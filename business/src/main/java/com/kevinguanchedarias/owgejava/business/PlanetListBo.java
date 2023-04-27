@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.business.planet.PlanetCleanerService;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
+import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.dto.PlanetListDto;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.PlanetList;
@@ -18,8 +19,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
-
+public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto>, UserDeleteListener {
     public static final String PLANET_USER_LIST_CHANGE = "planet_user_list_change";
 
     private final PlanetRepository planetRepository;
@@ -28,7 +28,6 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
     private final UserSessionService userSessionService;
     private final PlanetCleanerService planetCleanerService;
     private final DtoUtilService dtoUtilService;
-
 
     @Override
     public Class<PlanetListDto> getDtoClass() {
@@ -82,6 +81,16 @@ public class PlanetListBo implements WithToDtoTrait<PlanetList, PlanetListDto> {
      */
     public void emitByChangedPlanet(Planet planet) {
         repository.findUserIdByPlanetListPlanet(planet).forEach(this::emitChangeToUser);
+    }
+
+    @Override
+    public int order() {
+        return 0;
+    }
+
+    @Override
+    public void doDeleteUser(UserStorage user) {
+        repository.deleteByPlanetUserUser(user);
     }
 
     private void emitChangeToUser(UserStorage user) {

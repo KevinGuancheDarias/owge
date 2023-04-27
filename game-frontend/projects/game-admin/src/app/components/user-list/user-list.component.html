@@ -2,5 +2,5 @@
     [collection]="users$|async" [filters]="filters" (filteredcollection)="filteredUsers = $event"
 ></owge-widgets-filtrable-select>
 <div class="owge-card-list">
-    <app-user-display *ngFor="let userWithsuspicion of filteredUsers" [userWithSuspicion]="userWithsuspicion"></app-user-display>
+    <app-user-display *ngFor="let userWithsuspicion of filteredUsers" [userWithSuspicion]="userWithsuspicion" (userDelete)="onUserDelete()"></app-user-display>
 </div>

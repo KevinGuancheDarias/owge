@@ -18,4 +18,8 @@ export class UserListComponent {
   ];
 
   constructor(private adminGameUserService: AdminGameUserService) { }
+
+  onUserDelete(): void {
+    this.users$ = this.adminGameUserService.findUsersWithSuspicions();
+  }
 }

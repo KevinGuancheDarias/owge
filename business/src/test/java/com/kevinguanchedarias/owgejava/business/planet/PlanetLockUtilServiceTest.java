@@ -10,13 +10,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.List;
 import java.util.Set;
 
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.SOURCE_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.TARGET_PLANET_ID;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenSourcePlanet;
-import static com.kevinguanchedarias.owgejava.mock.PlanetMock.givenTargetPlanet;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static com.kevinguanchedarias.owgejava.mock.PlanetMock.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = PlanetLockUtilService.class,

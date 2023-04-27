@@ -356,7 +356,7 @@ class AllianceBoTest {
         var alliance = givenAlliance();
         user.setAlliance(alliance);
         given(userStorageRepository.getReferenceById(USER_ID_1)).willReturn(user);
-        given(allianceRepository.findOneByOwnerId(USER_ID_1)).willReturn(alliance);
+        given(allianceRepository.findOneByOwnerId(USER_ID_1)).willReturn(Optional.of(alliance));
 
         assertThatThrownBy(() -> allianceBo.leave(USER_ID_1))
                 .isInstanceOf(SgtBackendInvalidInputException.class)
@@ -400,6 +400,35 @@ class AllianceBoTest {
 
         verify(userStorageRepository, times(1)).defineAllianceByAllianceId(alliance, null);
         verify(allianceRepository, times(1)).delete(alliance);
+    }
+
+    @Test
+    void order_should_work() {
+        assertThat(allianceBo.order()).isEqualTo(AllianceBo.ALLIANCE_DELETE_USER_ORDER);
+    }
+
+    @Test
+    void doDeleteUser_should_work() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+        given(allianceRepository.findOneByOwnerId(USER_ID_1)).willReturn(Optional.of(alliance));
+
+        allianceBo.doDeleteUser(user);
+
+        verify(userStorageRepository, times(1)).defineAllianceByAllianceId(alliance, null);
+        verify(allianceJoinRequestRepository, times(1)).deleteByAlliance(alliance);
+        verify(allianceRepository, times(1)).delete(alliance);
+    }
+
+    @Test
+    void doDeleteUser_should_do_nothing_if_not_owner() {
+        var user = givenUser1();
+        var alliance = givenAlliance();
+
+        allianceBo.doDeleteUser(user);
+
+        verifyNoInteractions(userStorageRepository, allianceJoinRequestRepository);
+        verify(allianceRepository, never()).delete(alliance);
     }
 
     private void testThrowsOwnerInvalid(Runnable action) {

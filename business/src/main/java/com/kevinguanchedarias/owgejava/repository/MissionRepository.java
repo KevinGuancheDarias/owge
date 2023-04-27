@@ -2,9 +2,11 @@ package com.kevinguanchedarias.owgejava.repository;
 
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Mission.MissionIdAndTerminationDateProjection;
+import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.io.Serializable;
@@ -65,4 +67,12 @@ public interface MissionRepository extends JpaRepository<Mission, Long>, Seriali
     List<Mission> findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot(List<Planet> myPlanets, UserStorage user);
 
     Optional<Mission> findOneByResolvedFalseAndTypeCodeAndMissionInformationValue(String typeCode, Double planetId);
+
+    void deleteByUserAndTypeCodeIn(UserStorage user, List<String> missionTypes);
+
+    @Query("UPDATE Mission m SET m.report = ?1 ")
+    @Modifying
+    void updateReportId(MissionReport report);
+
+    List<Mission> findByUser(UserStorage user);
 }

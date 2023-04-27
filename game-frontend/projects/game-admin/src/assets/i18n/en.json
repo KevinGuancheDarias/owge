@@ -23,7 +23,9 @@
         }
     },
     "USER": {
-        "SUSPICIOUS_COUNT_DISPLAY_BTN": "View SC info"
+        "SUSPICIOUS_COUNT_DISPLAY_BTN": "View SC info",
+        "BTN_DELETE_USER": "Delete",
+        "CONFIRM_DELETE": "Are you sure, you want to delete {{username}} ?"
     },
     "CRUD": {
         "EDIT": "Edit",

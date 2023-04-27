@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ReturnMissionProcessor implements MissionProcessor {
     private final PlanetLockUtilService planetLockUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
@@ -36,6 +38,7 @@ public class ReturnMissionProcessor implements MissionProcessor {
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
         planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
+            log.debug("Processing return mission {}", mission.getId());
             var userId = mission.getUser().getId();
             var obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
             obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
@@ -45,6 +48,7 @@ public class ReturnMissionProcessor implements MissionProcessor {
                     .runAsyncWithoutContextDelayed(
                             () -> obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser()),
                             500);
+            log.debug("Done processing return mission {}", mission.getId());
         });
         return null;
     }

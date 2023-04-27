@@ -13,7 +13,11 @@
         <div class="card-block" *ngIf="userWithSuspicion.suspicionsCount">
             <button (click)="viewUserSuspicions(userWithSuspicion.user.id)" class="btn btn-primary">{{ 'USER.SUSPICIOUS_COUNT_DISPLAY_BTN' | translate }}</button>
         </div>
-
+        <div class="card-block">
+            <button (click)="clickDeleteUser(userWithSuspicion.user)" class="btn btn-primary">
+                {{ 'USER.BTN_DELETE_USER' | translate }}
+            </button>
+        </div>
     </div>
 </div>
 <owge-core-modal *ngIf="userWithSuspicion">
