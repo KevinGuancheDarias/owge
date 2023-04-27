@@ -30,6 +30,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
@@ -285,7 +286,7 @@ public class MissionBo implements UserDeleteListener {
         socketIoService.sendMessage(userId, RUNNING_UPGRADE_CHANGE, () -> null);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void processBuildUnit(Long missionId) {
         var missionBeforeLock = missionRepository.findById(missionId).orElse(null);
         if (missionBeforeLock != null) {
@@ -336,7 +337,7 @@ public class MissionBo implements UserDeleteListener {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void runMission(Long missionId, MissionType missionType) {
         switch (missionType) {
             case BUILD_UNIT -> processBuildUnit(missionId);

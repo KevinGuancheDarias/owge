@@ -1,13 +1,18 @@
 package com.kevinguanchedarias.owgejava.business.mysql;
 
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -24,7 +29,10 @@ import static org.mockito.Mockito.*;
         classes = MysqlLockUtilService.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
-@MockBean(JdbcTemplate.class)
+@MockBean({
+        JdbcTemplate.class,
+        TransactionUtilService.class
+})
 class MysqlLockUtilServiceTest {
     private static final String KEY_1 = "foo_key";
     private static final String KEY_2 = "bar_key";
@@ -40,13 +48,19 @@ class MysqlLockUtilServiceTest {
 
     private final MysqlLockUtilService mysqlLockUtilService;
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionUtilService transactionUtilService;
 
     private Runnable runnableMock;
 
     @Autowired
-    public MysqlLockUtilServiceTest(MysqlLockUtilService mysqlLockUtilService, JdbcTemplate jdbcTemplate) {
+    public MysqlLockUtilServiceTest(
+            MysqlLockUtilService mysqlLockUtilService,
+            JdbcTemplate jdbcTemplate,
+            TransactionUtilService transactionUtilService
+    ) {
         this.mysqlLockUtilService = mysqlLockUtilService;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionUtilService = transactionUtilService;
     }
 
     @BeforeEach
@@ -79,19 +93,31 @@ class MysqlLockUtilServiceTest {
         verify(preparedStatementMockForReleaseLock, times(1)).setString(2, KEY_2);
     }
 
-    @Test
-    void doInsideLock_should_release_lock_even_if_lambda_throws() {
+    @CsvSource({
+            "true,1",
+            "false,0"
+    })
+    @ParameterizedTest
+    void doInsideLock_should_release_lock_even_if_lambda_throws(
+            boolean isActualTransaction,
+            int timesDoAfterCommit
+    ) {
         var exception = new RuntimeException("foo");
         doThrow(exception).when(runnableMock).run();
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        try (var mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
+            mockedStatic.when(TransactionSynchronizationManager::isActualTransactionActive).thenReturn(isActualTransaction);
 
-        assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(Set.of(KEY_1), runnableMock))
-                .isEqualTo(exception);
+            assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(Set.of(KEY_1), runnableMock))
+                    .isEqualTo(exception);
 
-        verify(jdbcTemplate, times(1))
-                .execute(eq("SELECT GET_LOCK(?,?);"), any(PreparedStatementCallback.class));
-        verify(runnableMock, times(1)).run();
-        verify(jdbcTemplate, times(1))
-                .execute(eq("SELECT RELEASE_LOCK(?);"), any(PreparedStatementCallback.class));
+            verify(jdbcTemplate, times(1))
+                    .execute(eq("SELECT GET_LOCK(?,?);"), any(PreparedStatementCallback.class));
+            verify(runnableMock, times(1)).run();
+            verify(transactionUtilService, times(timesDoAfterCommit)).doAfterCommit(any());
+            verify(jdbcTemplate, times(1))
+                    .execute(eq("SELECT RELEASE_LOCK(?);"), any(PreparedStatementCallback.class));
+        }
     }
 
     @Test

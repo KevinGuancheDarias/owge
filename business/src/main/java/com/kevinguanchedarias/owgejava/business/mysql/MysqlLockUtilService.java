@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mysql;
 
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MysqlLockUtilService {
     public static final int TIMEOUT_SECONDS = 10;
     private final JdbcTemplate jdbcTemplate;
+    private final TransactionUtilService transactionUtilService;
 
     public void doInsideLock(Set<String> keys, Runnable runnable) {
         if (keys.isEmpty()) {
@@ -40,12 +42,11 @@ public class MysqlLockUtilService {
                 runnable.run();
             } finally {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    log.warn("Mysql lock was invoked with an active transaction");
+                    log.debug("Mysql lock was invoked with an active transaction");
+                    transactionUtilService.doAfterCommit(() -> doReleaseLock(keysAsList, releaseLockLambda));
+                } else {
+                    doReleaseLock(keysAsList, releaseLockLambda);
                 }
-                jdbcTemplate.execute(
-                        generateSql("RELEASE_LOCK(?)", keysAsList),
-                        releaseLockLambda
-                );
             }
         }
     }
@@ -54,6 +55,13 @@ public class MysqlLockUtilService {
         var lastKey = keys.get(keys.size() - 1);
         return keys.stream()
                 .reduce("", (buffer, result) -> buffer + "SELECT " + part + (result.equals(lastKey) ? ";" : " UNION "));
+    }
+
+    private void doReleaseLock(List<String> keysAsList, PreparedStatementCallback<Object> releaseLockLambda) {
+        jdbcTemplate.execute(
+                generateSql("RELEASE_LOCK(?)", keysAsList),
+                releaseLockLambda
+        );
     }
 
     private void generateBindParams(List<String> keys, PreparedStatement preparedStatement) {

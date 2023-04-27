@@ -30,6 +30,7 @@ import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -94,51 +95,51 @@ public class UnitMissionBo implements UserDeleteListener {
      * @throws PlanetNotFoundException         When the planet doesn't exists
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterExploreMission(UnitMissionInformation missionInformation) {
         commonMissionRegister(missionInformation, MissionType.EXPLORE);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterGatherMission(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterGatherMission(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterGatherMission(UnitMissionInformation missionInformation) {
         commonMissionRegister(missionInformation, MissionType.GATHER);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterEstablishBaseMission(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterEstablishBase(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterEstablishBase(UnitMissionInformation missionInformation) {
         commonMissionRegister(missionInformation, MissionType.ESTABLISH_BASE);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterAttackMission(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterAttackMission(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterAttackMission(UnitMissionInformation missionInformation) {
         commonMissionRegister(missionInformation, MissionType.ATTACK);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterCounterattackMission(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterCounterattackMission(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterCounterattackMission(UnitMissionInformation missionInformation) {
         if (!planetRepository.isOfUserProperty(missionInformation.getUserId(), missionInformation.getTargetPlanetId())) {
             throw new SgtBackendInvalidInputException(
@@ -147,13 +148,13 @@ public class UnitMissionBo implements UserDeleteListener {
         commonMissionRegister(missionInformation, MissionType.COUNTERATTACK);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterConquestMission(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterConquestMission(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterConquestMission(UnitMissionInformation missionInformation) {
         if (planetBo.myIsOfUserProperty(missionInformation.getTargetPlanetId())) {
             throw new SgtBackendInvalidInputException(
@@ -166,13 +167,13 @@ public class UnitMissionBo implements UserDeleteListener {
         commonMissionRegister(missionInformation, MissionType.CONQUEST);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myRegisterDeploy(UnitMissionInformation missionInformation) {
         myRegister(missionInformation);
         adminRegisterDeploy(missionInformation);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void adminRegisterDeploy(UnitMissionInformation missionInformation) {
         if (missionInformation.getSourcePlanetId().equals(missionInformation.getTargetPlanetId())) {
             throw exceptionUtilService
@@ -182,7 +183,7 @@ public class UnitMissionBo implements UserDeleteListener {
         commonMissionRegister(missionInformation, MissionType.DEPLOY);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void myCancelMission(Long missionId) {
         var mission = missionRepository.findById(missionId).orElse(null);
         if (mission == null) {
@@ -210,7 +211,7 @@ public class UnitMissionBo implements UserDeleteListener {
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.9
      */
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     @Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
     public void runUnitMission(Long missionId, MissionType missionType) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);

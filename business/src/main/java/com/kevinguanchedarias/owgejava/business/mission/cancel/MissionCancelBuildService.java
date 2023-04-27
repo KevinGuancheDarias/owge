@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -24,7 +25,7 @@ public class MissionCancelBuildService {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MissionFinderBo missionFinderBo;
 
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void cancel(Mission mission) {
         var missionUser = mission.getUser();
         obtainedUnitModificationBo.deleteByMissionId(mission.getId());
