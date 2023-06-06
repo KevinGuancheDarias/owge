@@ -16,12 +16,24 @@
     "module": "es2020",
     "baseUrl": "./",
     "paths": {
-      "@owge/core": ["dist/owge-core"],
-      "@owge/universe": ["dist/owge-universe"],
-      "@owge/alliance": ["dist/owge-alliance"],
-      "@owge/widgets": ["dist/owge-widgets"],
-      "@owge/galaxy": ["dist/owge-galaxy"],
-      "@owge/faction": ["dist/owge-faction"]
+      "@owge/core": [
+        "modules/owge-core/src/public-api"
+      ],
+      "@owge/universe": [
+        "modules/owge-universe/src/public-api"
+      ],
+      "@owge/alliance": [
+        "modules/owge-alliance/src/public-api"
+      ],
+      "@owge/widgets": [
+        "modules/owge-widgets/src/public-api"
+      ],
+      "@owge/galaxy": [
+        "modules/owge-galaxy/src/public-api"
+      ],
+      "@owge/faction": [
+        "modules/owge-faction/src/public-api"
+      ]
     }
   }
 }

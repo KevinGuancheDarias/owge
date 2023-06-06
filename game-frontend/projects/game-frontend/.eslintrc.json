@@ -10,9 +10,7 @@
       ],
       "parserOptions": {
         "project": [
-          "projects/game-frontend/tsconfig.app.json",
-          "projects/game-frontend/tsconfig.spec.json",
-          "projects/game-frontend/e2e/tsconfig.json"
+          "tsconfig.json"
         ],
         "createDefaultProgram": true
       },

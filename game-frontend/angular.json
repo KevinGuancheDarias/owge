@@ -19,7 +19,7 @@
             "index": "projects/game-admin/src/index.html",
             "main": "projects/game-admin/src/main.ts",
             "polyfills": "projects/game-admin/src/polyfills.ts",
-            "tsConfig": "projects/game-admin/tsconfig.with-libs.json",
+            "tsConfig": "projects/game-admin/tsconfig.json",
             "aot": true,
             "assets": [
               "projects/game-admin/src/favicon.ico",
@@ -63,7 +63,7 @@
               ]
             },
             "production": {
-              "tsConfig": "projects/game-admin/tsconfig.app.json",
+              "tsConfig": "projects/game-admin/tsconfig.json",
               "fileReplacements": [
                 {
                   "replace": "projects/game-admin/src/environments/environment.ts",
@@ -120,7 +120,6 @@
           "options": {
             "main": "projects/game-admin/src/test.ts",
             "polyfills": "projects/game-admin/src/polyfills.ts",
-            "tsConfig": "projects/game-admin/tsconfig.spec.json",
             "karmaConfig": "projects/game-admin/karma.conf.js",
             "assets": [
               "projects/game-admin/src/favicon.ico",
@@ -155,154 +154,6 @@
         }
       }
     },
-    "owge-core": {
-      "projectType": "library",
-      "root": "projects/owge-core",
-      "sourceRoot": "projects/owge-core/src",
-      "prefix": "owge-core",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-core/tsconfig.lib.json",
-            "project": "projects/owge-core/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-core/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-core/src/test.ts",
-            "tsConfig": "projects/owge-core/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-core/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-core/**/*.ts",
-              "projects/owge-core/**/*.html"
-            ]
-          }
-        }
-      }
-    },
-    "owge-universe": {
-      "projectType": "library",
-      "root": "projects/owge-universe",
-      "sourceRoot": "projects/owge-universe/src",
-      "prefix": "owge-universe",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-universe/tsconfig.lib.json",
-            "project": "projects/owge-universe/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-universe/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-universe/src/test.ts",
-            "tsConfig": "projects/owge-universe/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-universe/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-universe/**/*.ts",
-              "projects/owge-universe/**/*.html"
-            ]
-          }
-        }
-      }
-    },
-    "owge-alliance": {
-      "projectType": "library",
-      "root": "projects/owge-alliance",
-      "sourceRoot": "projects/owge-alliance/src",
-      "prefix": "owge-alliance",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-alliance/tsconfig.lib.json",
-            "project": "projects/owge-alliance/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-alliance/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-alliance/src/test.ts",
-            "tsConfig": "projects/owge-alliance/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-alliance/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-alliance/**/*.ts",
-              "projects/owge-alliance/**/*.html"
-            ]
-          }
-        }
-      }
-    },
-    "owge-widgets": {
-      "projectType": "library",
-      "root": "projects/owge-widgets",
-      "sourceRoot": "projects/owge-widgets/src",
-      "prefix": "owge-widgets",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-widgets/tsconfig.lib.json",
-            "project": "projects/owge-widgets/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-widgets/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-widgets/src/test.ts",
-            "tsConfig": "projects/owge-widgets/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-widgets/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-widgets/**/*.ts",
-              "projects/owge-widgets/**/*.html"
-            ]
-          }
-        }
-      }
-    },
     "game-frontend": {
       "projectType": "application",
       "schematics": {},
@@ -317,7 +168,7 @@
             "index": "projects/game-frontend/src/index.html",
             "main": "projects/game-frontend/src/main.ts",
             "polyfills": "projects/game-frontend/src/polyfills.ts",
-            "tsConfig": "projects/game-frontend/tsconfig.with-libs.json",
+            "tsConfig": "projects/game-frontend/tsconfig.json",
             "aot": true,
             "assets": [
               "projects/game-frontend/src/favicon.ico",
@@ -395,7 +246,7 @@
               ]
             },
             "production": {
-              "tsConfig": "projects/game-frontend/tsconfig.app.json",
+              "tsConfig": "projects/game-frontend/tsconfig.json",
               "fileReplacements": [
                 {
                   "replace": "projects/game-frontend/src/environments/environment.ts",
@@ -456,7 +307,6 @@
           "options": {
             "main": "projects/game-frontend/src/test.ts",
             "polyfills": "projects/game-frontend/src/polyfills.ts",
-            "tsConfig": "projects/game-frontend/tsconfig.spec.json",
             "karmaConfig": "projects/game-frontend/karma.conf.js",
             "assets": [
               "projects/game-frontend/src/favicon.ico",
@@ -488,80 +338,6 @@
             "production": {
               "devServerTarget": "game-frontend:serve:production"
             }
-          }
-        }
-      }
-    },
-    "owge-galaxy": {
-      "projectType": "library",
-      "root": "projects/owge-galaxy",
-      "sourceRoot": "projects/owge-galaxy/src",
-      "prefix": "owge-galaxy",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-galaxy/tsconfig.lib.json",
-            "project": "projects/owge-galaxy/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-galaxy/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-galaxy/src/test.ts",
-            "tsConfig": "projects/owge-galaxy/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-galaxy/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-galaxy/**/*.ts",
-              "projects/owge-galaxy/**/*.html"
-            ]
-          }
-        }
-      }
-    },
-    "owge-faction": {
-      "projectType": "library",
-      "root": "projects/owge-faction",
-      "sourceRoot": "projects/owge-faction/src",
-      "prefix": "owge-faction",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "tsConfig": "projects/owge-faction/tsconfig.lib.json",
-            "project": "projects/owge-faction/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/owge-faction/tsconfig.lib.prod.json"
-            }
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "projects/owge-faction/src/test.ts",
-            "tsConfig": "projects/owge-faction/tsconfig.spec.json",
-            "karmaConfig": "projects/owge-faction/karma.conf.js"
-          }
-        },
-        "lint": {
-          "builder": "@angular-eslint/builder:lint",
-          "options": {
-            "lintFilePatterns": [
-              "projects/owge-faction/**/*.ts",
-              "projects/owge-faction/**/*.html"
-            ]
           }
         }
       }

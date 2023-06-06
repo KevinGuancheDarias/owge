@@ -4,23 +4,19 @@
   "license": "MIT",
   "angular-cli": {},
   "scripts": {
-    "postinstall": "npm run createVersionFile && ngcc",
+    "postinstall": "npm run createVersionFile",
     "ng": "ng",
     "start": "npm run createVersionFile && npm run compileChangelog && ng serve",
     "startAdmin": "ng serve game-admin",
-    "buildLibs": "ng build owge-core && ng build owge-widgets && ng build owge-faction && ng build owge-universe && ng build owge-alliance && ng build owge-galaxy",
     "ngServeDocker": "npm run createVersionFile && npm run compileChangelog && ng serve --host 0.0.0.0 --disable-host-check",
     "ngServeDockerAdmin": "ng serve game-admin --host 0.0.0.0 --disable-host-check",
-    "build": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build --prod",
-    "buildDevLike": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build",
-    "buildAdmin": "npm run buildLibs && npm run createVersionFile && npm run compileChangelog && ng build game-admin --prod",
+    "build": "npm run createVersionFile && npm run compileChangelog && ng build --prod",
+    "buildDevLike": "npm run createVersionFile && npm run compileChangelog && ng build",
+    "buildAdmin": "npm run createVersionFile && npm run compileChangelog && ng build game-admin --prod",
     "lint": "tslint \"src/**/*.ts\"",
-    "test": "ng test",
     "createVersionFile": "node scripts/create-version-file.js",
     "compileChangelog": "node scripts/compile-changelog.js",
-    "setVersion": "node scripts/set-project-version.js",
-    "pree2e": "webdriver-manager update",
-    "e2e": "protractor"
+    "setVersion": "node scripts/set-project-version.js"
   },
   "owge": {
     "versionDate": "now"

@@ -1,0 +1,7 @@
+{
+    "extends": "../../tsconfig.json",
+    "exclude": [
+        "projects/game-admin",
+        "projects/game-frontend/src/environments"
+    ]
+}
