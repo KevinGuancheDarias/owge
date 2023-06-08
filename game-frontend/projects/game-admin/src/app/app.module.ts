@@ -87,6 +87,9 @@ import { AdminGameUserService } from './services/admin-game-user.service';
 import { SuspicionListComponent } from './components/suspicion-list/suspicion-list.component';
 import { DisplaySuspicionComponent } from './components/display-suspicion/display-suspicion.component';
 import { AdminSuspicionsService } from './services/admin-suspicions.service';
+import {
+  TimeSpecialIsActiveBypassShieldRuleTypeDescriptorProviderService
+} from "./services/rule-type-descriptor-provider/time-special/time-special-is-active-bypass-shield-rule-type-descriptor-provider.service";
 
 @NgModule({
   declarations: [
@@ -180,6 +183,7 @@ import { AdminSuspicionsService } from './services/admin-suspicions.service';
     { provide: ruleDestinationProviderServiceToken, useClass: UnitTypeRuleDestinationProviderService, multi: true },
     { provide: ruleTypeDescriptorProviderToken, useClass: UnitCaptureRuleTypeDescriptorProviderService, multi: true },
     { provide: ruleTypeDescriptorProviderToken, useClass: TimeSpecialIsEnabledRuleTypeDescriptorProviderService, multi: true },
+    { provide: ruleTypeDescriptorProviderToken, useClass: TimeSpecialIsActiveBypassShieldRuleTypeDescriptorProviderService, multi: true },
     {
       provide: ruleTypeDescriptorProviderToken,
       useClass: TimeSpecialIsActiveCustomSpeedImpactGroupRuleTypeDescriptorProviderService,

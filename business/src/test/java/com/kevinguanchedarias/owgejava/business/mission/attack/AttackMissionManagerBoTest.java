@@ -74,7 +74,8 @@ import static org.mockito.Mockito.*;
         TransactionUtilService.class,
         ObtainedUnitImprovementCalculationService.class,
         ObtainedUnitFinderBo.class,
-        ConfigurationBo.class
+        ConfigurationBo.class,
+        AttackBypassShieldService.class
 })
 class AttackMissionManagerBoTest {
     private final AttackMissionManagerBo attackMissionManagerBo;
@@ -89,6 +90,7 @@ class AttackMissionManagerBoTest {
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final TransactionUtilService transactionUtilService;
+    private final AttackBypassShieldService attackBypassShieldService;
 
     @Autowired
     public AttackMissionManagerBoTest(
@@ -103,7 +105,8 @@ class AttackMissionManagerBoTest {
             AttackEventEmitter attackEventEmitter,
             ObtainedUnitRepository obtainedUnitRepository,
             ObtainedUnitFinderBo obtainedUnitFinderBo,
-            TransactionUtilService transactionUtilService
+            TransactionUtilService transactionUtilService,
+            AttackBypassShieldService attackBypassShieldService
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
         this.obtainedUnitBo = obtainedUnitBo;
@@ -118,6 +121,7 @@ class AttackMissionManagerBoTest {
         this.obtainedUnitRepository = obtainedUnitRepository;
         this.obtainedUnitFinderBo = obtainedUnitFinderBo;
         this.transactionUtilService = transactionUtilService;
+        this.attackBypassShieldService = attackBypassShieldService;
     }
 
     @Test
@@ -276,6 +280,8 @@ class AttackMissionManagerBoTest {
         }).when(socketIoService).sendMessage(any(), eq(UNIT_OBTAINED_CHANGE), any());
         when(obtainedUnitRepository.findDeployedInUserOwnedPlanets(any())).thenReturn(List.of(fakedFindDeployedInUserOwnedPlanets));
         when(obtainedUnitBo.toDto(anyList())).thenReturn(List.of(fakedToDtoOfindDeployedInUserOwnedPlanets));
+        when(attackBypassShieldService.bypassShields(eq(withBypassShields.getObtainedUnit()), any())).thenReturn(true);
+
         attackMissionManagerBo.startAttack(information);
 
         verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());

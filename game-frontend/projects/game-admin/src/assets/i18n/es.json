@@ -239,6 +239,7 @@
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Especial de tiempo activado, camuflar unidades",
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Especial de tiempo activado, cambiar grupo de velocidad",
                         "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Especial de tiempo activado, proporcionar unidad temporal",
+                        "TIME_SPECIAL_IS_ENABLED_BYPASS_SHIELD": "Especial de tiempo activado, atravesar escudos",
                         "UNIT_STORES_UNIT": "Unidad que almacena unidades"
                     },
                     "DESTINATION_TYPES": {

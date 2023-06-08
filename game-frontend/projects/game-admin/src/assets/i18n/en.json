@@ -248,6 +248,7 @@
                         "TIME_SPECIAL_IS_ENABLED_DO_HIDE": "Time special is enabled, hide units",
                         "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP": "Time special is enabled, swap speed group",
                         "TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS": "Time special is enabled, provide temporal unit",
+                        "TIME_SPECIAL_IS_ENABLED_BYPASS_SHIELD": "Time special is enabled, bypass shield",
                         "UNIT_STORES_UNIT": "Unit that stores units"
                     },
                     "DESTINATION_TYPES": {
