@@ -54,6 +54,7 @@ public class AttackMissionManagerBo {
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
     private final ConfigurationBo configurationBo;
+    private final AttackBypassShieldService attackBypassShieldService;
 
     public AttackInformation buildAttackInformation(Planet targetPlanet, Mission attackMission) {
         AttackInformation retVal = new AttackInformation(attackMission, targetPlanet);
@@ -146,7 +147,7 @@ public class AttackMissionManagerBo {
 
     private void doAttack(AttackInformation attackInformation) {
         attackInformation.getUnits().forEach(attackerUnit -> {
-            List<AttackObtainedUnitWithScore> attackableByUnit = attackerUnit.getUser().getAttackableUnits().stream()
+            var attackableByUnit = attackerUnit.getUser().getAttackableUnits().stream()
                     .filter(target -> {
                         var unitEntity = attackerUnit.getObtainedUnit().getUnit();
                         var attackRule = ObjectUtils.firstNonNull(unitEntity.getAttackRule(),
@@ -170,7 +171,9 @@ public class AttackMissionManagerBo {
     private void attackTarget(AttackInformation attackInformation, AttackObtainedUnit source, AttackObtainedUnitWithScore targetWithScore) {
         var originalAttackValue = source.getPendingAttack();
         var myAttack = source.getPendingAttack() * targetWithScore.getScore();
-        boolean bypassShield = source.getObtainedUnit().getUnit().getBypassShield();
+        boolean bypassShield = attackBypassShieldService.bypassShields(
+                source.getObtainedUnit(), targetWithScore.getAttackObtainedUnit().getObtainedUnit()
+        );
         var target = targetWithScore.getAttackObtainedUnit();
         var victimHealth = bypassShield ? target.getAvailableHealth()
                 : target.getAvailableHealth() + target.getAvailableShield();

@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Feature:__ [As a player I want to be able to bypass the shields, when I have certain time special activated #404](https://github.com/KevinGuancheDarias/owge/issues/404)  
 * [class=Admin] __Feature:__ [As an admin I would like to see the player list and the suspection of multiaccount #502](https://github.com/KevinGuancheDarias/owge/issues/502)  
 * __Improvement:__ [When a time special containing rules becomes unusable due requirements, ensure rules are handled as if the time special changed to recharge state #454](https://github.com/KevinGuancheDarias/owge/issues/454)  
 * __Improvement:__  [If you activate temporary special units on any planet, they appear on the home planet. #470](https://github.com/KevinGuancheDarias/owge/issues/470)  

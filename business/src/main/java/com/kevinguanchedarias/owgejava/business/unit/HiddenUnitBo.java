@@ -1,15 +1,12 @@
 package com.kevinguanchedarias.owgejava.business.unit;
 
-import com.kevinguanchedarias.owgejava.business.rule.RuleBo;
+import com.kevinguanchedarias.owgejava.business.rule.timespecial.ActiveTimeSpecialRuleFinderService;
 import com.kevinguanchedarias.owgejava.business.rule.type.timespecial.TimeSpecialIsActiveHideUnitsTypeProviderBo;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.ActiveTimeSpecial;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
-import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
-import com.kevinguanchedarias.owgejava.enumerations.TimeSpecialStateEnum;
-import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +23,8 @@ import static com.kevinguanchedarias.owgejava.entity.UnitType.UNIT_TYPE_CACHE_TA
 @AllArgsConstructor
 @Slf4j
 public class HiddenUnitBo {
-    private final ActiveTimeSpecialRepository activeTimeSpecialRepository;
-    private final RuleBo ruleBo;
     private final TaggableCacheManager taggableCacheManager;
+    private final ActiveTimeSpecialRuleFinderService activeTimeSpecialRuleFinderService;
 
     public void defineHidden(List<ObtainedUnit> data, List<ObtainedUnitDto> dtoVersion) {
         IntStream.range(0, dtoVersion.size())
@@ -52,21 +48,6 @@ public class HiddenUnitBo {
     }
 
     private boolean isHiddenUnitInternal(UserStorage user, Unit unit) {
-        if (Boolean.TRUE.equals(unit.getIsInvisible())) {
-            return true;
-        } else {
-            var activeTimeSpecials = activeTimeSpecialRepository.findByUserIdAndState(user.getId(), TimeSpecialStateEnum.ACTIVE);
-
-            return activeTimeSpecials.stream()
-                    .flatMap(activeTimeSpecial ->
-                            ruleBo.findByOriginTypeAndOriginId(
-                                    ObjectEnum.TIME_SPECIAL.name(), activeTimeSpecial.getTimeSpecial().getId().longValue()
-                            ).stream()
-                    )
-                    .filter(ruleDto -> ruleBo.isWantedType(ruleDto, TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID))
-                    .anyMatch(ruleDto -> ruleBo.isWantedUnitDestination(ruleDto, unit));
-        }
+        return Boolean.TRUE.equals(unit.getIsInvisible()) || activeTimeSpecialRuleFinderService.existsRuleMatchingUnitDestination(user, unit, TimeSpecialIsActiveHideUnitsTypeProviderBo.TIME_SPECIAL_IS_ACTIVE_HIDE_UNITS_ID);
     }
-
-
 }
