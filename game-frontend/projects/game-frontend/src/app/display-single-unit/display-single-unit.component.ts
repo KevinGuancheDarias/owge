@@ -6,8 +6,8 @@ import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { CriticalAttackInformation } from '../types/critical-attack-information.type';
-import { BaseComponent } from './../base/base.component';
-import { UnitService } from './../service/unit.service';
+import { BaseComponent } from '../base/base.component';
+import { UnitService } from '../service/unit.service';
 
 
 
@@ -74,7 +74,6 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
 
   public selectedView: ValidViews;
   public numberToDelete: number;
-  public isDescriptionDisplayed = false;
   public moreAttack: number;
   public moreShield: number;
   public moreHealth: number;

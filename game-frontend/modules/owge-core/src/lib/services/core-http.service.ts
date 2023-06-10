@@ -302,7 +302,7 @@ export class CoreHttpService {
         storeKey: 'currentToken'
       };
     } else {
-      throw new ProgrammingError('This condition should never ever happend');
+      throw new ProgrammingError('This condition should never ever happen');
     }
   }
 

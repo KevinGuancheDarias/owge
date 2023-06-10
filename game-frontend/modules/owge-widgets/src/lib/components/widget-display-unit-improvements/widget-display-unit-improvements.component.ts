@@ -53,8 +53,10 @@ export class WidgetDisplayUnitImprovementsComponent implements OnChanges {
         return 'hearth.png';
       case 'SHIELD':
         return 'shield.png';
+      case 'SPEED':
+        return 'speed.png';
       default:
-        throw new ProgrammingError('Should never happend, at least in a happy perfect world');
+        throw new ProgrammingError('Should never happen, at least in a happy perfect world');
     }
   }
 }

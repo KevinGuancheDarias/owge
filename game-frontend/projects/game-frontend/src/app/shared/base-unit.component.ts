@@ -46,7 +46,7 @@ export class BaseUnitComponent extends BaseComponent {
      * Checks if the <i>current</i> is a child of <i>wanted</i> <br>
      *
      * NOTICE: If the admin panel doesn't check for circular reference (A has B as parent and B has C, and C has A)
-     * Incredible surprise would happend
+     * Incredible surprise would happen
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @private
