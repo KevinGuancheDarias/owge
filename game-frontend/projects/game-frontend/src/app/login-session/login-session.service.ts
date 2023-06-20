@@ -163,34 +163,12 @@ export class LoginSessionService implements CanActivate {
     return JSON.parse(sessionStorage.getItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE));
   }
 
-
-  /**
-   *
-   * @deprecated As of 0.8.0 it's better to use OwgeUniverse/UniverseService.setSelectedUniverse
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param universe
-   * @memberof LoginSessionService
-   */
-  public setSelectedUniverse(universe: Universe) {
-    this._lgsLog.warnDeprecated('setSelectedUniverse()', '0.8.0', 'OwgeUniverse/UniverseService.setSelectedUniverse');
-    this._universeStorage.currentUniverse.next(universe);
-    sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_UNIVERSE, JSON.stringify(universe));
-  }
-
   public getSelectedFaction(): Faction {
     return JSON.parse(sessionStorage.getItem(LoginSessionService.LOCAL_STORAGE_SELECTED_FACTION));
   }
 
   public setSelectedFaction(faction: Faction) {
     sessionStorage.setItem(LoginSessionService.LOCAL_STORAGE_SELECTED_FACTION, JSON.stringify(faction));
-  }
-
-  public getSelectedPlanet(): PlanetPojo {
-    return this._findSelectedPlanet.value;
-  }
-
-  public defineSelectedPlanet(planet: PlanetPojo): void {
-    this._findSelectedPlanet.next(planet);
   }
 
   public logout(): any {

@@ -11,6 +11,6 @@ export class FactionService {
   constructor(private _universeGameService: UniverseGameService) { }
 
   public findVisible(): Observable<Faction[]> {
-    return this._universeGameService.getWithAuthorizationToUniverse('faction/findVisible');
+    return this._universeGameService.requestWithAutorizationToContext('game','get','faction/findVisible');
   }
 }

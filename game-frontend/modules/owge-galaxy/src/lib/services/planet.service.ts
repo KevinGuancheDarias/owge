@@ -2,12 +2,17 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
-import { User, AbstractWebsocketApplicationHandler, SessionStore, StorageOfflineHelper } from '@owge/core';
-import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService, UserStorage } from '@owge/universe';
+import {
+  User,
+  AbstractWebsocketApplicationHandler,
+  SessionStore,
+  StorageOfflineHelper,
+  SessionService, LoginService
+} from '@owge/core';
+import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService, UserStorage, Planet } from '@owge/universe';
 
-import { Planet } from '@owge/universe';
 import { PlanetStore } from '../stores/planet.store';
-import { distinctUntilChanged } from 'rxjs/operators';
+import {distinctUntilChanged, filter, take} from 'rxjs/operators';
 
 @Injectable()
 export class PlanetService extends AbstractWebsocketApplicationHandler {
@@ -21,7 +26,9 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
     private _userStorage: UserStorage<User>,
     private _wsEventCacheService: WsEventCacheService,
     private _universeCacheManagerService: UniverseCacheManagerService,
-    sessionStore: SessionStore
+    private sessionStore: SessionStore,
+    private sessionService: SessionService,
+    private loginService: LoginService
   ) {
     super();
     this._eventsMap = {
@@ -30,6 +37,8 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
     };
     this._planeStore = new PlanetStore(sessionStore);
     this._userStorage.currentUser.subscribe(user => this._user = user);
+    this.loginService.onLogin.subscribe(() => this.handleLogin());
+    this.sessionService.onLogout.subscribe(() => this.handleLogout());
   }
 
   public async createStores(): Promise<void> {
@@ -65,17 +74,6 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   }
 
   /**
-   *
-   * @deprecated As of 0.9.0 it's better to use an observable as we want reactive supper powers! :)
-   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns
-   */
-  public async findSelectedPlanet(): Promise<Planet> {
-    this._log.warnDeprecated('findSelectedPlanet', '0.9.0', 'findCurrentPlanet');
-    return this._currentPlanet;
-  }
-
-  /**
    * Finds the current planet as an observable
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -83,7 +81,10 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    * @returns
    */
   public findCurrentPlanet(): Observable<Planet> {
-    return this._planeStore.selectedPlanet.asObservable().pipe(distinctUntilChanged((a, b) => a.id === b.id));
+    return this._planeStore.selectedPlanet.asObservable().pipe(
+        filter(planet => planet !== null),
+        distinctUntilChanged((a, b) => a.id === b.id)
+    );
   }
 
   /**
@@ -121,5 +122,18 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
 
   protected _onPlanetExploredEvent(content: Planet): void {
     this._planeStore.exploredEvent.next(content);
+  }
+
+  private handleLogin(): void {
+    console.log('pene');
+    this.loginService.onLogin.subscribe(() =>
+      this.findMyPlanets().pipe(take(1)).subscribe(planets =>
+        this.defineSelectedPlanet(planets.find(planet => planet.home))
+      )
+    );
+  }
+
+  private handleLogout(): void {
+    this._planeStore.selectedPlanet.next(null);
   }
 }
