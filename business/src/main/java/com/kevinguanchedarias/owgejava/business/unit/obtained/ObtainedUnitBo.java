@@ -20,6 +20,7 @@ import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -52,6 +53,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
     private final transient UserEventEmitterBo userEventEmitterBo;
     private final UnitTypeBo unitTypeBo;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
@@ -176,9 +178,15 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         obtainedUnitEventEmitter.emitObtainedUnits(unitBeforeDeletion.getUser());
     }
 
+    /**
+     * Updates the count,
+     * <b>Notice:</b> due to spring jpa repository Modifying not triggering the {@link com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener}
+     * Will have to manually drop cache tag
+     */
     public ObtainedUnit saveWithChange(ObtainedUnit obtainedUnit, long sumValue) {
         repository.updateCount(obtainedUnit, sumValue);
         entityManager.refresh(obtainedUnit);
+        taggableCacheManager.evictByCacheTag(obtainedUnit.getByUserCacheTag(), obtainedUnit.getUser().getId());
         return obtainedUnit;
     }
 

@@ -44,7 +44,7 @@ public class AttackMissionProcessor implements MissionProcessor {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
-        return processAttack(mission, true).getReportBuilder();
+        return processAttack(mission, true, false).getReportBuilder();
     }
 
     /**
@@ -55,13 +55,13 @@ public class AttackMissionProcessor implements MissionProcessor {
         boolean continueMission = true;
         if (attackMissionManagerBo.isAttackTriggerEnabledForMission(MissionType.valueOf(mission.getType().getCode()))
                 && obtainedUnitRepository.areUnitsInvolved(user.getId(), user.getAlliance(), targetPlanet.getId())) {
-            var result = processAttack(mission, false);
+            var result = processAttack(mission, false, true);
             continueMission = !result.isRemoved();
         }
         return continueMission;
     }
 
-    public AttackInformation processAttack(Mission mission, boolean survivorsDoReturn) {
+    public AttackInformation processAttack(Mission mission, boolean survivorsDoReturn, boolean isTriggeredByEvent) {
         var targetPlanet = mission.getTargetPlanet();
         AttackInformation attackInformation = attackMissionManagerBo.buildAttackInformation(targetPlanet, mission);
         attackMissionManagerBo.startAttack(attackInformation);
@@ -69,13 +69,16 @@ public class AttackMissionProcessor implements MissionProcessor {
             returnMissionRegistrationBo.registerReturnMission(mission, null);
         }
         mission.setResolved(true);
-        UnitMissionReportBuilder builder = UnitMissionReportBuilder
+        var builder = UnitMissionReportBuilder
                 .create(mission.getUser(), mission.getSourcePlanet(), targetPlanet, List.of())
                 .withAttackInformation(attackInformation);
-        UserStorage invoker = mission.getUser();
+        var invoker = mission.getUser();
         missionReportManagerBo.handleMissionReportSave(mission, builder, true,
                 attackInformation.getUsers().values().stream().map(AttackUserInformation::getUser)
                         .filter(user -> !user.getId().equals(invoker.getId())).toList());
+        if (isTriggeredByEvent) {
+            missionReportManagerBo.handleMissionReportSave(mission, builder, true, invoker);
+        }
         attackInformation.getUsers().values().stream()
                 .map(AttackUserInformation::getUser)
                 .filter(user -> !mission.getUser().getId().equals(user.getId()))
