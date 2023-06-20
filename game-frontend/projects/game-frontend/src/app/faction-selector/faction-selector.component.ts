@@ -35,6 +35,7 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log('Oli');
     this.findVisible();
   }
 
@@ -51,6 +52,7 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
 
   /**
    * Run When the universe selection fires
+   *
    * @author Kevin Guanche Darias
    */
   public onFormSubmit() {
@@ -85,6 +87,7 @@ export class FactionSelectorComponent extends BaseComponent implements OnInit {
 
   /**
    * Fetchs the visible factions from selected universe
+   *
    * @author Kevin Guanche Darias
    */
   private findVisible(): void {

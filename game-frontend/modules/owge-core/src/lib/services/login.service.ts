@@ -2,7 +2,7 @@
 import { map } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 
 import { SessionService } from './session.service';
 import { OwgeCoreConfig } from '../pojos/owge-core-config';
@@ -19,6 +19,12 @@ import { ToastrService } from './toastr.service';
  */
 @Injectable({ providedIn: OwgeUserModule })
 export class LoginService {
+    get onLogin(): Observable<void> {
+        return this.onLoginEmitter.asObservable();
+    }
+
+    private onLoginEmitter: Subject<void> = new Subject();
+
   constructor(
     private _coreHttpService: CoreHttpService,
     private _sessionService: SessionService,
@@ -52,8 +58,8 @@ export class LoginService {
     return this._coreHttpService.post(`${this._accountConfig.url}/${this._accountConfig.loginEndpoint}`, params, { errorHandler }).pipe(
       map(res => {
         this._sessionService.setTokenPojo(res.token);
+        this.onLoginEmitter.next();
         return this._sessionService.getRawToken();
       }));
   }
-
 }
