@@ -27,8 +27,6 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
   /**
    *
    * @since 0.9.6
-   * @readonly
-   * @type
    */
   public get onLogout(): Observable<void> {
     return this._logoutEmitter.asObservable();
@@ -39,8 +37,8 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
   public constructor(
     private _router: Router,
     private _accountConfig: OwgeCoreConfig,
-    private _sessionStore: SessionStore,
-    private toastrService: ToastrService
+    private sessionStore: SessionStore,
+    private toastrService: ToastrService,
   ) {
     super();
     this._eventsMap = {
@@ -59,7 +57,7 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
   public initStore(): void {
     const token = this._findTokenIfNotExpired();
     if (token) {
-      this._sessionStore.next('currentToken', this.getRawToken());
+      this.sessionStore.next('currentToken', this.getRawToken());
     }
   }
 
@@ -101,10 +99,6 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
     return !!this._findTokenIfNotExpired();
   }
 
-  public getParsedToken(): TokenPojo {
-    return JwtTokenUtil.parseToken(this.getRawToken());
-  }
-
   public getRawToken() {
     return sessionStorage.getItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
   }
@@ -120,7 +114,7 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
    * @return the encoded token
    */
   public setTokenPojo(token): void {
-    this._sessionStore.next('currentToken', token);
+    this.sessionStore.next('currentToken', token);
     sessionStorage.setItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM, token);
   }
 
@@ -157,7 +151,7 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
 
   private _clearSessionData() {
     sessionStorage.removeItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
-    this._sessionStore.next('currentToken', null);
+    this.sessionStore.next('currentToken', null);
   }
 
   private _isLoginRoute(route: string): boolean {

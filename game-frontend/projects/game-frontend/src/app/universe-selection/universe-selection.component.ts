@@ -2,9 +2,9 @@ import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 
 import { ROUTES, ModalComponent } from '@owge/core';
-import { Universe, UniverseService, UniverseGameService } from '@owge/universe';
+import { Universe, UniverseService } from '@owge/universe';
 
-import { UserService } from './../service/user.service';
+import { UserService } from '../service/user.service';
 import { BaseComponent } from '../base/base.component';
 import { UniverseService as UniverseServiceOld } from '../universe/universe.service';
 import { Credentials } from '../shared/types/credentials.type';
@@ -36,7 +36,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
     private _universeServiceOld: UniverseServiceOld,
     private _router: Router,
     private _sanitizeService: SanitizeService,
-    private _universeService: UniverseService,
+    private universeService: UniverseService,
   ) {
     super();
   }
@@ -56,10 +56,11 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
 
   /**
    * Run When the universe selection fires
+   *
    * @author Kevin Guanche Darias
    */
   public onFormSubmit() {
-    this.loginSessionService.setSelectedUniverse(this.selectedUniverse);
+    this.universeService.setSelectedUniverse(this.selectedUniverse);
     this._universeServiceOld.userExists().subscribe(
       result => this._checkUniverseUserExists(result),
       error => this.displayError(error)
@@ -73,7 +74,8 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
 
   /**
    * Check if the user exists in the selected universe
-   * @param {boolean} isUserSubscribed The server response, is a simple boolean
+   *
+   * @param isUserSubscribed The server response, is a simple boolean
    * @author Kevin Guanche Darias
    */
   private async _checkUniverseUserExists(isUserSubscribed: boolean) {
@@ -87,11 +89,12 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
   }
 
   /**
-   * Will set this.universes to the official universes available
+   * Will set universes prop to the official universes available
+   *
    * @author Kevin Guanche Darias
    */
   private _findOfficials() {
-    this._universeServiceOld.findOfficials().subscribe(
+    this.universeService.findOfficials().subscribe(
       universes => this.universes = universes,
       error => this.displayError(error)
     );
@@ -99,7 +102,7 @@ export class UniverseSelectionComponent extends BaseComponent implements OnInit 
 
   private async _redirectToGameIndex(): Promise<void> {
     if (!this.selectedUniverse.frontendUrl) {
-      this._universeService.setSelectedUniverse(this.selectedUniverse);
+      this.universeService.setSelectedUniverse(this.selectedUniverse);
       this._universeGameService.setOutsideUniverse(false);
       if (this._modal) {
         this._modal.hide();

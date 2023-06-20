@@ -92,6 +92,8 @@ class AttackMissionManagerBoTest {
     private final TransactionUtilService transactionUtilService;
     private final AttackBypassShieldService attackBypassShieldService;
 
+    private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
+
     @Autowired
     public AttackMissionManagerBoTest(
             AttackMissionManagerBo attackMissionManagerBo,
@@ -106,7 +108,8 @@ class AttackMissionManagerBoTest {
             ObtainedUnitRepository obtainedUnitRepository,
             ObtainedUnitFinderBo obtainedUnitFinderBo,
             TransactionUtilService transactionUtilService,
-            AttackBypassShieldService attackBypassShieldService
+            AttackBypassShieldService attackBypassShieldService,
+            ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
         this.obtainedUnitBo = obtainedUnitBo;
@@ -122,6 +125,7 @@ class AttackMissionManagerBoTest {
         this.obtainedUnitFinderBo = obtainedUnitFinderBo;
         this.transactionUtilService = transactionUtilService;
         this.attackBypassShieldService = attackBypassShieldService;
+        this.obtainedUnitImprovementCalculationService = obtainedUnitImprovementCalculationService;
     }
 
     @Test
@@ -287,6 +291,7 @@ class AttackMissionManagerBoTest {
         verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());
         verify(obtainedUnitRepository, times(2)).delete(any(ObtainedUnit.class));
         verify(attackEventEmitter, times(9)).emitAfterUnitKilledCalculation(any(), any(), any(), anyLong());
+        verify(improvementBo, times(1)).clearSourceCache(user1.getUser(), obtainedUnitImprovementCalculationService);
         assertThat(capturedOutput.getOut()).contains("Element side deleted");
         assertThat(user1.getAttackableUnits())
                 .hasSize(4)

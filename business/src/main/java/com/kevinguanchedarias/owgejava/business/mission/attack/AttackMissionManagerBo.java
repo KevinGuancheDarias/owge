@@ -103,6 +103,7 @@ public class AttackMissionManagerBo {
         updatePoints(attackInformation);
         attackInformation.getUsersWithDeletedMissions().forEach(userId -> {
             missionEventEmitterBo.emitUnitMissions(userId);
+            improvementBo.clearSourceCache(users.get(userId).getUser(), obtainedUnitImprovementCalculationService);
             userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
             attackInformation.getUsersWithChangedCounts().remove(userId);
         });
@@ -115,6 +116,7 @@ public class AttackMissionManagerBo {
                     missionEventEmitterBo.emitEnemyMissionsChange(targetPlanet.getOwner());
                 }
             }
+            improvementBo.clearSourceCache(users.get(userId).getUser(), obtainedUnitImprovementCalculationService);
             missionEventEmitterBo.emitUnitMissions(userId);
             userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
         });
@@ -206,7 +208,6 @@ public class AttackMissionManagerBo {
             deleteMissionIfRequired(attackInformation, target.getObtainedUnit());
             attackInformation.getUsersWithChangedCounts().add(target.getUser().getUser().getId());
         }
-        improvementBo.clearCacheEntriesIfRequired(target.getObtainedUnit().getUnit(), obtainedUnitImprovementCalculationService);
 
     }
 

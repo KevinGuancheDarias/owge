@@ -24,7 +24,9 @@ export class OwgeSelectedPlanetHttpInterceptor implements HttpInterceptor {
 
     private isValidUrl(url: string): boolean {
         return !url.startsWith('./assets') && !url.includes('/websocket-sync')
+            && !url.includes('/faction/findVisible')
             && !url.includes('/user/exists')
+            && !url.includes('/user/subscribe')
             && url.includes('/game/');
     }
 
