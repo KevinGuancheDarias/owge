@@ -113,7 +113,7 @@ class ConquestMissionProcessorTest {
             var retVal = conquestMissionProcessor.process(mission, involvedUnits);
 
             verify(planetBo, times(1)).hasMaxPlanets(ATTACKER_USER);
-            verify(attackMissionProcessor, times(1)).processAttack(mission, false);
+            verify(attackMissionProcessor, times(1)).processAttack(mission, false, false);
             verify(planetBo, times(1)).definePlanetAsOwnedBy(ATTACKER_USER, involvedUnits, targetPlanet);
             verify(requirementBo, never()).triggerSpecialLocation(any(), any());
             verify(planetBo, never()).emitPlanetOwnedChange(any(UserStorage.class));
@@ -143,7 +143,7 @@ class ConquestMissionProcessorTest {
         var involvedUnits = List.of(givenObtainedUnit1());
         mission.setUser(ATTACKER_USER);
         var reportBuilderMock = mock(UnitMissionReportBuilder.class);
-        given(attackMissionProcessor.processAttack(mission, false)).willReturn(attackInformation);
+        given(attackMissionProcessor.processAttack(mission, false, false)).willReturn(attackInformation);
         given(planetBo.isHomePlanet(targetPlanet)).willReturn(isHomePlanet);
         given(planetBo.hasMaxPlanets(ATTACKER_USER)).willReturn(hasMaxPlanets);
         try (var mockedStatic = mockStatic(UnitMissionReportBuilder.class)) {
@@ -175,7 +175,7 @@ class ConquestMissionProcessorTest {
         defeatedOwnerAttackInformation.getUsers().get(USER_ID_2).getUnits().get(0).setFinalCount(0L);
         var reportBuilderMock = mock(UnitMissionReportBuilder.class);
         var reportForOwnerMock = mock(UnitMissionReportBuilder.class);
-        given(attackMissionProcessor.processAttack(mission, false)).willReturn(defeatedOwnerAttackInformation);
+        given(attackMissionProcessor.processAttack(mission, false, false)).willReturn(defeatedOwnerAttackInformation);
         given(reportForOwnerMock.withConquestInformation(any(), any())).willReturn(reportForOwnerMock);
         given(missionRepository.findOneByResolvedFalseAndTypeCodeAndMissionInformationValue(
                 MissionType.BUILD_UNIT.name(), (double) TARGET_PLANET_ID

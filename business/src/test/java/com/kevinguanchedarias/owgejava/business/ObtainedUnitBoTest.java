@@ -16,6 +16,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -67,7 +68,8 @@ import static org.mockito.Mockito.*;
         PlanetRepository.class,
         TransactionUtilService.class,
         ObtainedUnitImprovementCalculationService.class,
-        UserEventEmitterBo.class
+        UserEventEmitterBo.class,
+        TaggableCacheManager.class
 })
 class ObtainedUnitBoTest {
     private final ObtainedUnitBo obtainedUnitBo;
@@ -83,6 +85,7 @@ class ObtainedUnitBoTest {
     private final RequirementBo requirementBo;
     private final UserEventEmitterBo userEventEmitterBo;
     private final UnitTypeBo unitTypeBo;
+    private final TaggableCacheManager taggableCacheManager;
 
     @Autowired
     ObtainedUnitBoTest(
@@ -98,7 +101,8 @@ class ObtainedUnitBoTest {
             ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService,
             RequirementBo requirementBo,
             UserEventEmitterBo userEventEmitterBo,
-            UnitTypeBo unitTypeBo
+            UnitTypeBo unitTypeBo,
+            TaggableCacheManager taggableCacheManager
     ) {
         // Some methods have not all branches covered, only touched lines
         this.obtainedUnitBo = obtainedUnitBo;
@@ -114,6 +118,7 @@ class ObtainedUnitBoTest {
         this.requirementBo = requirementBo;
         this.userEventEmitterBo = userEventEmitterBo;
         this.unitTypeBo = unitTypeBo;
+        this.taggableCacheManager = taggableCacheManager;
     }
 
     @Test
@@ -162,6 +167,7 @@ class ObtainedUnitBoTest {
         verify(requirementBo, times(1)).triggerUnitBuildCompletedOrKilled(user, ou.getUnit());
         verify(obtainedUnitRepository, times(1)).updateCount(ou, -count);
         verify(entityManager, times(1)).refresh(ou);
+        verify(taggableCacheManager, times(1)).evictByCacheTag(ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER, USER_ID_1);
     }
 
     @Test

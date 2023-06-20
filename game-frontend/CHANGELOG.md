@@ -2,6 +2,7 @@
 
 v0.11.0 (latest)
 =================
+* __Fix:__ [As a player I want to be able to see attack message received during pickupAttack message received while collecting (currently only appears to the attacker collecting). #469](https://github.com/KevinGuancheDarias/owge/issues/469)  
 * __Fix:__ [As admin, I need the ships speed icon to appear in the time specials. #483](https://github.com/KevinGuancheDarias/owge/issues/483)  
 * __Feature:__ [As a player I want to be able to bypass the shields, when I have certain time special activated #404](https://github.com/KevinGuancheDarias/owge/issues/404)  
 * [class=Admin] __Feature:__ [As an admin I would like to see the player list and the suspection of multiaccount #502](https://github.com/KevinGuancheDarias/owge/issues/502)  

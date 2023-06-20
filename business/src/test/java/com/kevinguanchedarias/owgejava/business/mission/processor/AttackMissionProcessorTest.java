@@ -102,19 +102,20 @@ class AttackMissionProcessorTest {
     ) {
         var mission = givenAttackMission();
         var targetPlanet = mission.getTargetPlanet();
-        var user = givenUser1();
+        var invoker = mission.getUser();
         var userAlliance = givenAlliance();
         var attackInformationMock = mock(AttackInformation.class);
-        user.setAlliance(userAlliance);
+        invoker.setAlliance(userAlliance);
         given(attackMissionManagerBo.isAttackTriggerEnabledForMission(MissionType.ATTACK)).willReturn(isAttackTriggerEnabled);
         given(obtainedUnitRepository.areUnitsInvolved(USER_ID_1, userAlliance, TARGET_PLANET_ID)).willReturn(areUnitsInvolved);
         given(attackMissionManagerBo.buildAttackInformation(targetPlanet, mission)).willReturn(attackInformationMock);
         given(attackInformationMock.isRemoved()).willReturn(missionIsRemoved);
 
-        var retVal = attackMissionProcessor.triggerAttackIfRequired(mission, user, targetPlanet);
+        var retVal = attackMissionProcessor.triggerAttackIfRequired(mission, invoker, targetPlanet);
 
         assertThat(retVal).isEqualTo(expectedContinue);
         verify(attackMissionManagerBo, times(timesHandleAttack)).startAttack(attackInformationMock);
+        verify(missionReportManagerBo, times(timesHandleAttack)).handleMissionReportSave(eq(mission), any(), eq(true), eq(invoker));
     }
 
     @ParameterizedTest
@@ -130,7 +131,7 @@ class AttackMissionProcessorTest {
         var mission = givenAttackMission();
         var targetPlanet = mission.getTargetPlanet();
         targetPlanet.setOwner(planetOwner);
-        var user = givenUser1();
+        var invoker = mission.getUser();
         var enemyUser = givenUser2();
         var attackInformationSpy = spy(givenFullAttackInformation());
         var reportBuilderMock = mock(UnitMissionReportBuilder.class);
@@ -140,17 +141,19 @@ class AttackMissionProcessorTest {
         given(reportBuilderMock.withAttackInformation(attackInformationSpy)).willReturn(reportBuilderMock);
 
         try (var mockedStatic = mockStatic(UnitMissionReportBuilder.class)) {
-            mockedStatic.when(() -> UnitMissionReportBuilder.create(user, mission.getSourcePlanet(), targetPlanet, List.of()))
+            mockedStatic.when(() -> UnitMissionReportBuilder.create(invoker, mission.getSourcePlanet(), targetPlanet, List.of()))
                     .thenReturn(reportBuilderMock);
-            var retVal = attackMissionProcessor.processAttack(mission, survivorsDoReturn);
+            var retVal = attackMissionProcessor.processAttack(mission, survivorsDoReturn, false);
 
             assertThat(retVal.getReportBuilder()).isEqualTo(reportBuilderMock);
             assertThat(mission.getResolved()).isTrue();
             verify(attackMissionManagerBo, times(1)).startAttack(attackInformationSpy);
             verify(returnMissionRegistrationBo, times(timesReturnMission)).registerReturnMission(mission, null);
             verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportBuilderMock, true, List.of(enemyUser));
-            verify(auditBo, times(1)).nonRequestAudit(AuditActionEnum.ATTACK_INTERACTION, null, user, USER_ID_2);
+            verify(auditBo, times(1)).nonRequestAudit(AuditActionEnum.ATTACK_INTERACTION, null, invoker, USER_ID_2);
             verify(missionEventEmitterBo, times(timesEmitLocal)).emitLocalMissionChangeAfterCommit(mission);
+            // Never enemy report for non triggered attacks
+            verify(missionReportManagerBo, never()).handleMissionReportSave(eq(mission), any(), eq(true), eq(invoker));
         }
     }
 

@@ -62,7 +62,7 @@ public class RunningMissionFinderBo {
      */
     @TaggableCacheable(tags = {
             Mission.MISSION_BY_USER_CACHE_TAG + ":#userId",
-            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + "#:userId"
+            ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER + ":#userId"
     }, keySuffix = "#userId")
     public List<UnitRunningMissionDto> findUserRunningMissions(Integer userId) {
         var user = userStorageRepository.getReferenceById(userId);

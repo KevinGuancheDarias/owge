@@ -50,7 +50,7 @@ public class ConquestMissionProcessor implements MissionProcessor {
                 targetPlanet, involvedUnits);
         boolean maxPlanets = planetBo.hasMaxPlanets(user);
         boolean areUnitsHavingToReturn = false;
-        var attackInformation = attackMissionProcessor.processAttack(mission, false);
+        var attackInformation = attackMissionProcessor.processAttack(mission, false, false);
         var oldOwner = targetPlanet.getOwner();
         boolean isOldOwnerDefeated;
         boolean isAllianceDefeated;
