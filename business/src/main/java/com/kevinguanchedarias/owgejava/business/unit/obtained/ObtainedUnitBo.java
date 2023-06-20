@@ -53,7 +53,7 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
     private final transient ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
     private final transient UserEventEmitterBo userEventEmitterBo;
     private final UnitTypeBo unitTypeBo;
-    private final TaggableCacheManager taggableCacheManager;
+    private final transient TaggableCacheManager taggableCacheManager;
 
     @Override
     public JpaRepository<ObtainedUnit, Long> getRepository() {
