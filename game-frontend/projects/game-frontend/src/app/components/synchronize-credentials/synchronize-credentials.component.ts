@@ -5,6 +5,7 @@ import { ROUTES } from '@owge/core';
 
 import { Credentials } from '../../shared/types/credentials.type';
 import { LoginSessionService } from '../../login-session/login-session.service';
+import {UniverseService} from "@owge/universe";
 
 @Component({
   selector: 'app-synchronize-credentials',
@@ -13,7 +14,11 @@ import { LoginSessionService } from '../../login-session/login-session.service';
 })
 export class SynchronizeCredentialsComponent implements OnInit {
 
-  constructor(private _loginSessionService: LoginSessionService, private _router: Router) { }
+  constructor(
+      private _loginSessionService: LoginSessionService,
+      private _router: Router,
+      private universeService: UniverseService
+  ) { }
 
   public ngOnInit() {
     if (this._isIframe()) {
@@ -28,7 +33,7 @@ export class SynchronizeCredentialsComponent implements OnInit {
             const credentialsDetails: Credentials = JSON.parse(e.data);
             if (credentialsDetails.rawToken && credentialsDetails.selectedUniverse) {
               this._loginSessionService.setTokenPojo(credentialsDetails.rawToken);
-              this._loginSessionService.setSelectedUniverse(credentialsDetails.selectedUniverse);
+              this.universeService.setSelectedUniverse(credentialsDetails.selectedUniverse);
               window.parent.postMessage('OK', '*');
             }
           }
