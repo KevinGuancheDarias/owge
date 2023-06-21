@@ -140,12 +140,17 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
         }
       }));
       if (selectionChanged) {
-        this.selectionChanged();
+        await this.selectionChanged();
       }
       this.areAllSelected = true;
     } else {
       this.toastrService.error(this.selectAllNotAvailableText);
     }
+  }
+
+  clickSelectAllOfUnit(selection: UnitSelection): Promise<void> {
+    selection.selectedCount = selection.obtainedUnit.count;
+    return this.selectionChanged();
   }
 
   clickUnselectAll(): void {

@@ -27,7 +27,7 @@
         <input #countInput class="owge-theme-base-colors" min="0" [max]="currentSelection.obtainedUnit.count" type="number"
           [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" [ngModel]="currentSelection.selectedCount"
           (change)="selectionChanged(currentSelection, $event)" />
-        <span (click)="selectionChanged()"
+        <span (click)="clickSelectAllOfUnit(currentSelection)"
           class="owge-theme-hover-background-color-alt">
           <i class="fa fa-globe"></i>
         </span>
@@ -91,6 +91,10 @@
         <img *ngIf="currentSelection.obtainedUnit.unit" [src]="currentSelection.obtainedUnit.unit.imageUrl" />
       </div>
       <div class="card-block input-count" *ngIf="selectable">
+        <span (click)="clickSelectAllOfUnit(currentSelection)"
+              class="owge-theme-hover-background-color-alt">
+          <i class="fa fa-globe"></i>
+        </span>
         <input #inputForStoringCount class="owge-theme-base-colors" min="0" [max]="currentSelection.obtainedUnit.count" type="number" [ngModel]="currentSelection.selectedCount"
           [placeholder]="'APP.DEPLOYED_UNIT_LIST.CHOOSE_COUNT' | translate" (change)="updateStoredCount(currentSelection,$event)"/>
       </div>
