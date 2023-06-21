@@ -2,7 +2,7 @@
     *ngIf="planet" (click)="clickPlanet()">
     <ng-content></ng-content>
     <p>
-        <i *ngIf="planet.home" class="fa fa-home"></i><span class="planet-name">{{ planet | planetDisplayName }}</span>
+        <i *ngIf="planet.home" class="fa fa-home"></i><a [routerLink]="'/navigate'" [queryParams]="navigationToPlanet"><span class="planet-name">{{ planet | planetDisplayName }}</span></a>
 
     </p>
 

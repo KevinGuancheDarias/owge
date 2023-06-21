@@ -1,5 +1,4 @@
-import { Router } from '@angular/router';
-import { ROUTES, ModalComponent } from '@owge/core';
+import { ModalComponent } from '@owge/core';
 import { Component, OnInit, ViewChild, Output, EventEmitter } from '@angular/core';
 
 import { FactionService } from '../faction/faction.service';

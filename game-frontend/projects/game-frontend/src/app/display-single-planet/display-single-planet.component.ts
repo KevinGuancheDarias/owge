@@ -1,5 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { PlanetPojo } from './../shared-pojo/planet.pojo';
+import {Planet} from '@owge/universe';
+import {NavigationConfig} from '../shared/types/navigation-config.type';
+import {PlanetUtil} from '../shared/util/planet.util';
 
 @Component({
   selector: 'app-display-single-planet',
@@ -10,22 +12,23 @@ export class DisplaySinglePlanetComponent {
 
   @Output() clicked: EventEmitter<void> = new EventEmitter;
 
-  private _planet: PlanetPojo;
+  navigationToPlanet: NavigationConfig;
+
+  private _planet: Planet;
 
   @Input()
-  set planet(planet: PlanetPojo) {
+  set planet(planet: Planet) {
     if (planet) {
       this._planet = planet;
+      this.navigationToPlanet = PlanetUtil.planetToNavigationConfig(planet);
     }
   }
 
-  get planet(): PlanetPojo {
+  get planet(): Planet {
     return this._planet;
   }
 
   public clickPlanet(): void {
     this.clicked.emit();
   }
-
-
 }

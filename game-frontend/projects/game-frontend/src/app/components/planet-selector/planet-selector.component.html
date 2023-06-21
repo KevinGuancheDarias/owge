@@ -1,5 +1,7 @@
 <ng-container *ngIf="navigationData">
-  <div class="card owge-planet-card owge-theme-base-colors" *ngFor="let planet of navigationData.planets">
+  <div class="card owge-planet-card owge-theme-base-colors" *ngFor="let planet of navigationData.planets"
+       [class.owge-has-focus]="focusPlanetId === planet.id"
+  >
     <div class="card-block">
       <h5 class="card-title">
         <i *ngIf="planet.home" class="fa fa-home"></i>

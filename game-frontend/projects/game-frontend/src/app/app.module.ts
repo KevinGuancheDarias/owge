@@ -79,6 +79,7 @@ import { UpgradeTypeService } from './services/upgrade-type.service';
 import { UnitsComponent } from './units/units.component';
 import { UniverseSelectionComponent } from './universe-selection/universe-selection.component';
 import { UpgradesComponent } from './upgrades/upgrades.component';
+import {PlanetToNavigationPipe} from './pipes/planet-to-navigation.pipe';
 
 export const APP_ROUTES: Routes = [
   { path: 'login', component: LoginComponent },
@@ -163,7 +164,8 @@ export const APP_ROUTES: Routes = [
     TutorialOverlayComponent,
     FastExplorationButtonComponent,
     SystemMessagesComponent,
-    SponsorsComponent
+    SponsorsComponent,
+    PlanetToNavigationPipe
   ],
   imports: [
     BrowserModule,

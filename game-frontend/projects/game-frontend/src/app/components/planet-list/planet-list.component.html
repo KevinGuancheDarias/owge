@@ -22,6 +22,9 @@
                 <app-fast-exploration-button [planet]="item.planet"></app-fast-exploration-button>
             </div>
         </ng-template>
+        <ng-template owgeCoreContent select="extra-header">
+            <a routerLink="/navigate" [queryParams]="item.planet | planetToNavigation">{{ item.planet | planetDisplayName }}</a>
+        </ng-template>
 
         <ng-template owgeCoreContent select="extra-description">
             <div *ngIf="item.planet.ownerName">

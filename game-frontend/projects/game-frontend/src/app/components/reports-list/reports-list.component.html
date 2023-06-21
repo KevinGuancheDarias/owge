@@ -18,6 +18,7 @@
       <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)"
         [image]="report.parsedJson?.targetPlanet | planetImage" [hideDesktopSections]="[0,0,1]">
         <ng-template owgeCoreContent [select]="'extra-header'">
+          <a *ngIf="report.parsedJson.targetPlanet" [routerLink]="'/navigate'" [queryParams]="report.parsedJson?.targetPlanet | planetToNavigation"> {{ report.parsedJson?.targetPlanet | planetDisplayName }}</a>
           <h6 class="text-muted">{{ report?.normalizedDate | date: commonDateFormat }}</h6>
         </ng-template>
         <ng-template owgeCoreContent [select]="'extra-section'">
@@ -25,6 +26,7 @@
             <owge-widgets-collapsable-item [title]="'APP.REPORTS.SOURCE_PLANET' | translate"
               [maxWidth]="isDesktop && 130">
               <owge-widgets-display-simple-item [itemName]="report.parsedJson?.sourcePlanet | planetDisplayName"
+                                                [url]="'/navigate'" [queryParams]="report.parsedJson?.sourcePlanet | planetToNavigation"
                 [itemImage]="report.parsedJson?.sourcePlanet | planetImage"></owge-widgets-display-simple-item>
             </owge-widgets-collapsable-item>
 

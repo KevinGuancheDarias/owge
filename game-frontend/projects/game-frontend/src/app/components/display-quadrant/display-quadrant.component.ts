@@ -19,16 +19,17 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
 
   @Input() public isFullWidth = false;
 
-  public navigationData: NavigationData;
-  public navigationConfig: NavigationConfig;
-  public addingOrEditing: PlanetListItem;
-  public planetList: { [key: number]: PlanetListItem } = {};
-
   @ViewChild('missionModal', { static: true })
   private _missionModal: MissionModalComponent;
 
   @ViewChild('addEditModal')
   private _addEditModal: PlanetListAddEditModalComponent;
+
+  public navigationData: NavigationData;
+  public navigationConfig: NavigationConfig;
+  public addingOrEditing: PlanetListItem;
+  public planetList: { [key: number]: PlanetListItem } = {};
+
 
   constructor(
     private _navigationService: NavigationService,
@@ -42,7 +43,7 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
 
   public async ngOnInit() {
     this.navigationConfig = await this._navigationService.findCurrentNavigationConfig();
-    this.navigationData = await this._navigationService.navigate(this.navigationConfig);
+    await this._navigationService.updateQueryParams(this.navigationConfig);
     this._subscriptions.add(this._planetService.onPlanetExplored().subscribe(async explored => {
       if (explored) {
         const planetIndex: number = this.navigationData.planets
@@ -54,25 +55,27 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
         this.navigationData = await this._doWithLoading(this._navigationService.navigate(this.navigationConfig));
       }
     }));
-    this._subscriptions.add(this._planetListService.findAll()
-      .subscribe(list => {
-        this.planetList = {};
-        list.forEach(current => this.planetList[current.planet.id] = current);
-      })
+    this._subscriptions.add(
+        this._planetListService.findAll().subscribe(list => {
+          this.planetList = {};
+          list.forEach(current => this.planetList[current.planet.id] = current);
+        }),
+        this._navigationService.findNavigationConfigFromUrl().subscribe(async navigationConfig => {
+          this.navigationConfig = navigationConfig;
+          this.navigationData = await this._navigationService.navigate(navigationConfig);
+        })
     );
-    this._tutorialService.triggerTutorialAfterRender();
+    await this._tutorialService.triggerTutorialAfterRender();
   }
 
   public async changePosition(newPosition: NavigationConfig): Promise<void> {
-    this.navigationConfig = newPosition;
-    this.navigationData = await this._navigationService.navigate(newPosition);
+    await this._navigationService.updateQueryParams(newPosition);
   }
 
   /**
    * Returns the name of the selected galaxy
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @returns {string}
    * @memberof NavigationComponent
    */
   public findSelectedGalaxyName(): string {
@@ -84,11 +87,10 @@ export class DisplayQuadrantComponent extends BaseComponent implements OnInit, O
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.0
-   * @param [selected]
    */
   public addEdit(planet: Planet): void {
     const selected: PlanetListItem = this.planetList[planet.id];
-    this.addingOrEditing = selected ? { ...selected } : <any>{ planet };
+    this.addingOrEditing = selected ? { ...selected } : { planet } as any;
     this._addEditModal.show();
   }
 

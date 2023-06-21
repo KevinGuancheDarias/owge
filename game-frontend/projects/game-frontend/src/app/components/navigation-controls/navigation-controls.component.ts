@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, ViewEncapsulation, Output } from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import { NavigationData } from '../../shared/types/navigation-data.type';
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { Galaxy } from '../../shared/pojos/galaxy.pojo';
@@ -9,7 +9,7 @@ import { ProgrammingError } from '@owge/core';
   templateUrl: './navigation-controls.component.html',
   styleUrls: ['./navigation-controls.component.less'],
 })
-export class NavigationControlsComponent implements OnInit {
+export class NavigationControlsComponent implements OnInit, OnChanges {
 
   @Input()
   public navigationData: NavigationData;
@@ -26,7 +26,6 @@ export class NavigationControlsComponent implements OnInit {
   @Output()
   public onNavigation: EventEmitter<NavigationConfig> = new EventEmitter();
 
-  public selectedNavigationCoordinates: NavigationConfig;
   public selectedGalaxy: Galaxy;
   public selectedSector: number;
   public selectedQuadrant: number;
@@ -38,6 +37,9 @@ export class NavigationControlsComponent implements OnInit {
     if (!this.navigationData) {
       throw new ProgrammingError('Param navigationData is mandatory');
     }
+  }
+
+  ngOnChanges() {
     if (this.navigationConfig) {
       this._genSelectedProperties(this.navigationConfig);
     }

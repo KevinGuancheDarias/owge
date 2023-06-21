@@ -1,5 +1,6 @@
 import { Component, Input, ContentChildren, QueryList, AfterContentInit, TemplateRef } from '@angular/core';
 import { OwgeContentDirective, ContentTransclusionUtil } from '@owge/core';
+import {Params} from '@angular/router';
 
 /**
  * Displays a simple item with a name, an image, and action buttons
@@ -15,17 +16,19 @@ import { OwgeContentDirective, ContentTransclusionUtil } from '@owge/core';
 })
 export class WidgetDisplaySimpleItemComponent implements AfterContentInit {
 
-  @Input() public itemName: string;
-  @Input() public itemImage: string;
-  @Input() public width = '150px';
-
-  public actionButtonsTempate: TemplateRef<any>;
-  public imageContainerPrependTemplate: TemplateRef<any>;
+  @Input() itemName: string;
+  @Input() itemImage: string;
+  @Input() width = '150px';
+  @Input() url = '';
+  @Input() queryParams: Params = {};
 
   @ContentChildren(OwgeContentDirective) private _templatesList: QueryList<OwgeContentDirective>;
 
+  public actionButtonsTemplate: TemplateRef<any>;
+  public imageContainerPrependTemplate: TemplateRef<any>;
+
   public ngAfterContentInit(): void {
-    this.actionButtonsTempate = ContentTransclusionUtil.findInList(this._templatesList, 'action-buttons');
+    this.actionButtonsTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'action-buttons');
     this.imageContainerPrependTemplate = ContentTransclusionUtil.findInList(this._templatesList, 'image-container-prepend');
   }
 

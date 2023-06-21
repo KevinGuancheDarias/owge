@@ -30,11 +30,16 @@
             <ng-template owgeCoreIfTheme="classic">
               <div class="owge-theme-border-solid">
                 <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
-                <a data-html="true" placement="bottom">{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
+                <a routerLink="/navigate" [queryParams]="runningUnitMission?.sourcePlanet | planetToNavigation"
+                   data-html="true" placement="bottom"
+                >{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
               </div>
               <div class="owge-theme-border-solid">
                 <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
-                <a data-html="true" placement="bottom">{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
+                <a
+                        routerLink="/navigate" [queryParams]="runningUnitMission?.targetPlanet | planetToNavigation"
+                        data-html="true" placement="bottom"
+                >{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
               </div>
             </ng-template>
             <ng-template owgeCoreIfTheme="neon">
