@@ -43,6 +43,20 @@
         </ng-container>
       </tbody>
     </table>
+    <h3 *ngIf="rulesForCapturingUnits?.length" class="owge-theme-base-colors">
+      {{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.UNIT_CAPTURE.TITLE_PASSIVE' | translate }}
+    </h3>
+    <owge-widgets-display-rule-table *ngIf="rulesForCapturingUnits?.length" [rules]="rulesForCapturingUnits"
+                                     [tableTranslations]="['DESTINATION','CAPTURE_PROBABILITY','CAPTURE_MAX_QUANTITY']"
+                                     [extraArgs]="[0,1]" [extraArgsTransformations]="['%','%']"
+    ></owge-widgets-display-rule-table>
+    <h3 *ngIf="!rulesForCapturingUnits?.length && rulesForCapturingUnitsTimeSpecial?.length" class="owge-theme-base-colors">
+      {{ 'APP.UNITS.DISPLAY_SINGLE.EXTRA_INFO.MODAL.UNIT_CAPTURE.TITLE_TIME_SPECIAL' | translate }}
+    </h3>
+    <owge-widgets-display-rule-table *ngIf="!rulesForCapturingUnits?.length  &&rulesForCapturingUnitsTimeSpecial?.length" [rules]="rulesForCapturingUnitsTimeSpecial"
+                                     [tableTranslations]="['DESTINATION','CAPTURE_PROBABILITY','CAPTURE_MAX_QUANTITY']"
+                                     [extraArgs]="[0,1]" [extraArgsTransformations]="['%','%']"
+    ></owge-widgets-display-rule-table>
   </div>
   <div class="footer">
     <button class="btn" (click)="modal.hide()">{{ 'GLOBAL.BTN_CLOSE' | translate}}</button>
@@ -88,10 +102,13 @@
                                                  [assetsImage]="true" [image]="'speed.png'" [improvementPercentage]="moreSpeed">
         </owge-widgets-display-improved-attribute>
         <div class="extra-attributes">
-          <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" [image]="'bypass-shield.png'"
+          <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" image="bypass-shield.png"
             [customClass]="'resourceImage'"></owge-widgets-display-image>
-          <owge-widgets-display-image *ngIf="unit.isInvisible" [assetsImage]="true" [image]="'invisible.png'"
+          <owge-widgets-display-image *ngIf="unit.isInvisible" [assetsImage]="true" image="invisible.png"
             [customClass]="'resourceImage'"></owge-widgets-display-image>
+          <owge-widgets-display-image *ngIf="rulesForCapturingUnits?.length ||rulesForCapturingUnitsTimeSpecial?.length"
+                                      [assetsImage]="true" image="unit_capture.png"  customClass="resourceImage" [isCommonAssetImage]="true"
+          ></owge-widgets-display-image>
           <div class="resourceImage intercepted-image-container"
             *ngFor="let interceptable of unit.interceptableSpeedGroups">
             <owge-widgets-display-image [image]="interceptable.speedImpactGroup.imageUrl"></owge-widgets-display-image>

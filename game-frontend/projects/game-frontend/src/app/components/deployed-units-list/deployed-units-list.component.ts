@@ -198,7 +198,7 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
   private filterOutNotStorableUnits(obtainedUnits: ObtainedUnit[]): Promise<ObtainedUnit[]> {
     const from: Unit = this.currentSelectionForStoring.obtainedUnit.unit;
     return AsyncCollectionUtil.filter(obtainedUnits, async obtainedUnit =>
-      (await this.unitRuleFinderService.findUnitRule(
+      (await this.unitRuleFinderService.findUnitRuleFromTo(
         'UNIT_STORES_UNIT', from, obtainedUnit.unit
         ).pipe(take(1)).toPromise()
       ) !== null

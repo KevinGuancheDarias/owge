@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AbstractWebsocketApplicationHandler, LoggerHelper, DateUtil, StorageOfflineHelper } from '@owge/core';
-import {
-    TimeSpecial, UniverseGameService,
-    ActiveTimeSpecialType,
-    TimeSpecialStore,
-    UniverseCacheManagerService,
-    WsEventCacheService
-} from '@owge/universe';
+import { AbstractWebsocketApplicationHandler, LoggerHelper, DateUtil } from '@owge/core';
+import {TimeSpecialStore} from '../storages/time-special.store';
+import { UniverseGameService } from './universe-game.service';
+import { ActiveTimeSpecial } from '../types/active-time.special';
+import { TimeSpecial } from '../types/time-special.type';
+import { UniverseCacheManagerService } from './universe-cache-manager.service';
+import { WsEventCacheService } from './ws-event-cache.service';
 
 /**
  * Service to handle time special operations
@@ -42,7 +41,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @returns {Observable<TimeSpecial[]>}
      */
     public findUnlocked(): Observable<TimeSpecial[]> {
         return this._timeSpecialStore.unlocked.asObservable();
@@ -55,10 +53,8 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
      *  and TimeSpecials should register a listener for time_special status change
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.0
-     * @param {number} timeSpecialId
-     * @returns {Observable<ActiveTimeSpecialType>}
      */
-    public activate(timeSpecialId: number): Observable<ActiveTimeSpecialType> {
+    public activate(timeSpecialId: number): Observable<ActiveTimeSpecial> {
         return this._universeGameService.requestWithAutorizationToContext(
             'game',
             'post',
@@ -79,6 +75,6 @@ export class TimeSpecialService extends AbstractWebsocketApplicationHandler {
             }
         });
         this._timeSpecialStore.unlocked.next(contentOrEmpty);
-        this._wsEventCacheService.updateWithFrontendComputedData('time_special_change', content);
+        await this._wsEventCacheService.updateWithFrontendComputedData('time_special_change', content);
     }
 }

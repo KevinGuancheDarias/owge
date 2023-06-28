@@ -27,6 +27,9 @@ import { UnitTypeService } from './services/unit-type.service';
 import { UnitRuleFinderService } from './services/unit-rule-finder.service';
 import { RuleService } from './services/rule.service';
 import { MissionService } from './services/mission.service';
+import {TimeSpecialService} from './services/time-specials.service';
+import {ActiveTimeSpecialService} from './services/active-time-special.service';
+import {ActiveTimeSpecialRuleFinderService} from './services/active-time-special-rule-finder.service';
 
 /**
  *
@@ -79,12 +82,15 @@ export class OwgeUniverseModule {
         UnitTypeService,
         RuleService,
         UnitRuleFinderService,
-        MissionService
+        MissionService,
+        TimeSpecialService,
+        ActiveTimeSpecialService,
+        ActiveTimeSpecialRuleFinderService
       ]
     };
   }
 
-  public constructor(_injector: Injector, private _websocketService: WebsocketService) {
+  constructor(_injector: Injector, private _websocketService: WebsocketService) {
     _websocketService.addEventHandler(
       _injector.get(UniverseGameService),
       _injector.get(UniverseCacheManagerService),

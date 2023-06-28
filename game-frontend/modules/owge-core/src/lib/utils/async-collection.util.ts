@@ -7,6 +7,10 @@
  * @export
  */
 export class AsyncCollectionUtil {
+    private constructor() {
+        // Util class doesn't have a constructor
+    }
+
     /**
      *
      *
@@ -63,7 +67,11 @@ export class AsyncCollectionUtil {
         return true;
     }
 
-    private constructor() {
-        // Util class doesn't have a constructor
+    static async map<T,R>(collection: T[], action: (entry: T) => Promise<R>): Promise<R[]> {
+        const retVal: R[] = [];
+        for(const entry of collection) {
+            retVal.push(await action(entry));
+        }
+        return retVal;
     }
 }

@@ -14,17 +14,62 @@ export class UnitRuleFinderService {
 
     constructor(private ruleService: RuleService, private unitTypeService: UnitTypeService) {}
 
-    findUnitRule(ruleType: string, from: Unit, to: Unit): Observable<Rule> {
-        return combineLatest([
-            this.ruleService.findAll(),
-            this.unitTypeService.getUnitTypes()
-        ]).pipe(
-            map(rules => this.doFindRule(rules[0].filter(rule => rule.type === ruleType), rules[1], from, to)),
+    findUnitRuleFromTo(ruleType: string, from: Unit, to: Unit): Observable<Rule> {
+        return this.doCombine().pipe(
+            map(combination => this.handleCombination(
+                combination,
+                ruleType,
+                from,
+                to,
+                this.doFindRuleFromTo.bind(this))
+            )
         );
     }
 
-    private doFindRule(rules: Rule[], unitTypes: UnitType[], from: Unit, to: Unit): Rule {
-        console.log('Finding!!!', rules, unitTypes);
+    findRulesForUnit(ruleType: string, from: Unit): Observable<Rule[]> {
+        return this.doCombine().pipe(
+            map(combination => this.handleCombination(combination, ruleType, from, null, this.doFindRulesForUnit.bind(this)))
+        );
+    }
+
+    private doCombine(): Observable<[Rule[], UnitType[]]> {
+        return combineLatest([
+            this.ruleService.findAll(),
+            this.unitTypeService.getUnitTypes()
+        ]);
+    }
+
+    private handleCombination<T>(
+        combination: [Rule[],UnitType[]],
+        ruleType: string,
+        from: Unit,
+        to: Unit|null,
+        resolver: (rulesOfType: Rule[], unitTypes: UnitType[], from: Unit, to?: Unit) => T
+    ): T {
+        const rulesOfType = combination[0].filter(rule => rule.type === ruleType);
+        return resolver(rulesOfType, combination[1], from, to);
+    }
+
+    private doFindRulesForUnit(rulesOfType: Rule[], unitTypes: UnitType[], from: Unit): Rule[] {
+        const fromUnitType: UnitType = this.findUnitTypeForUnit(unitTypes, from);
+        return rulesOfType
+            .filter(
+                rule => rule.originType === UnitRuleFinderService.originUnit && rule.originId === from.id
+                    || this.ruleAffectsSelfOrParentUnitType(rule, fromUnitType)
+            );
+    }
+
+    private ruleAffectsSelfOrParentUnitType(rule: Rule, unitType: UnitType): boolean {
+        if(rule.originType === UnitRuleFinderService.originUnitType && rule.originId === unitType.id) {
+            return true;
+        } else if(unitType.parent) {
+            return this.ruleAffectsSelfOrParentUnitType(rule, unitType.parent);
+        } else {
+            return false;
+        }
+    }
+
+    private doFindRuleFromTo(rules: Rule[], unitTypes: UnitType[], from: Unit, to: Unit): Rule {
         const fromUnitType: UnitType = this.findUnitTypeForUnit(unitTypes, from);
         const toUnitType: UnitType = this.findUnitTypeForUnit(unitTypes, to);
         return this.unitVsUnitFind(rules, from, to)

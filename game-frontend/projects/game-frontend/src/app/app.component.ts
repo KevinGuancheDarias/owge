@@ -132,7 +132,7 @@ export class AppComponent implements OnInit {
     this.twitchPlayer.addEventListener(Twitch.Player.OFFLINE, () => console.log('Channel is offline'));
   }
   private _removePlayer(): void {
-    this.twitchPlayer.pause();
+    this.twitchPlayer?.pause();
     delete this.twitchPlayer;
     document.getElementById(AppComponent._TWITCH_DIV).innerHTML = '';
   }

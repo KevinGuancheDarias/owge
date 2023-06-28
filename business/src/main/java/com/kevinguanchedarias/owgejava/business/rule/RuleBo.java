@@ -26,6 +26,7 @@ import java.util.Optional;
 @Slf4j
 public class RuleBo {
     public static final String ARGS_DELIMITER = "#";
+    public static final String UNIT_RULE = "UNIT";
 
     private final RuleRepository ruleRepository;
     private final ConversionService conversionService;

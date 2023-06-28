@@ -14,7 +14,7 @@ import {
 } from '@owge/core';
 import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
-  OwgeUniverseModule, SystemMessageService, UniverseGameService,
+  OwgeUniverseModule, SystemMessageService, TimeSpecialService, UniverseGameService,
   UserStorage, WebsocketService, WsEventCacheService
 } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
@@ -73,7 +73,6 @@ import { UnitService } from './service/unit.service';
 import { UpgradeService } from './service/upgrade.service';
 import { ReportService } from './services/report.service';
 import { SanitizeService } from './services/sanitize.service';
-import { TimeSpecialService } from './services/time-specials.service';
 import { TwitchService } from './services/twitch.service';
 import { UpgradeTypeService } from './services/upgrade-type.service';
 import { UnitsComponent } from './units/units.component';
@@ -208,7 +207,6 @@ export const APP_ROUTES: Routes = [
     ReportService,
     SanitizeService,
     UpgradeTypeService,
-    TimeSpecialService,
     TwitchService,
     SystemMessageService,
     ThemeService

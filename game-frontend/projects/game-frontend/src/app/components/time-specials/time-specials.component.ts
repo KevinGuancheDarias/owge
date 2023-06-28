@@ -1,11 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DateRepresentation, DateUtil, LoggerHelper } from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import { TimeSpecial } from '@owge/universe';
+import {TimeSpecial, TimeSpecialService} from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
-import { TimeSpecialService } from '../../services/time-specials.service';
-
-
 
 /**
  * Component to display and handle the time specials

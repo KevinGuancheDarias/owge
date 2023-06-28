@@ -1,0 +1,17 @@
+<table class="owge-table">
+    <thead>
+    <tr>
+        <th *ngFor="let currentTranslation of tableTranslations">
+            {{ ('RULES.TABLE.HEADER.' + currentTranslation) | translate }}
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let rule of rules">
+        <td>{{ rule.unitEntity.name }}</td>
+        <td *ngFor="let arg of extraArgs">
+            {{ rule.extraArgs[arg] }}{{ extraArgsTransformations[arg] }}
+        </td>
+    </tr>
+    </tbody>
+</table>

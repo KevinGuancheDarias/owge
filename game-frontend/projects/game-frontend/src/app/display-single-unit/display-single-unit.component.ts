@@ -1,15 +1,31 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { ModalComponent, UnitType, User } from '@owge/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
+import {AsyncCollectionUtil, CommonEntity, ModalComponent, UnitType, User} from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import { ImprovementUtil, ObtainedUnit, Unit, UnitBuildRunningMission, UserStorage, UnitTypeService } from '@owge/universe';
+import {
+  ImprovementUtil,
+  ObtainedUnit,
+  Unit,
+  UnitBuildRunningMission,
+  UserStorage,
+  UnitTypeService,
+  Rule, UnitRuleFinderService, ActiveTimeSpecialRuleFinderService, RuleWithUnitEntity
+} from '@owge/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
 import { CriticalAttackInformation } from '../types/critical-attack-information.type';
 import { BaseComponent } from '../base/base.component';
 import { UnitService } from '../service/unit.service';
-
-
+import {RuleService} from '../../../../../modules/owge-universe/src/lib/services/rule.service';
 
 export type ValidViews = 'requirements' | 'attributes' | 'improvements';
 
@@ -23,7 +39,7 @@ export interface AttackableUnitType extends UnitType {
   styleUrls: ['./display-single-unit.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
+export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> implements OnInit, OnChanges, OnDestroy {
 
   @Input()
   public unit: Unit;
@@ -72,24 +88,26 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   @ViewChild(WidgetConfirmationDialogComponent) public confirmDialog: WidgetConfirmationDialogComponent;
   @ViewChild(ModalComponent) public modal: ModalComponent;
 
-  public selectedView: ValidViews;
-  public numberToDelete: number;
-  public moreAttack: number;
-  public moreShield: number;
-  public moreHealth: number;
-  public moreCharge: number;
-  public moreSpeed: number;
-  public unitTypes: UnitType[];
-  public unitType: UnitType;
-  public attackableUnitTypes: AttackableUnitType[];
-  public criticalAttackInformations: CriticalAttackInformation[];
-  public isDefaultCriticalDisplayed = false;
+  selectedView: ValidViews;
+  numberToDelete: number;
+  moreAttack: number;
+  moreShield: number;
+  moreHealth: number;
+  moreCharge: number;
+  moreSpeed: number;
+  unitTypes: UnitType[];
+  unitType: UnitType;
+  attackableUnitTypes: AttackableUnitType[];
+  criticalAttackInformations: CriticalAttackInformation[];
+  isDefaultCriticalDisplayed = false;
+  rulesForCapturingUnits: RuleWithUnitEntity[];
+  rulesForCapturingUnitsTimeSpecial: RuleWithUnitEntity[];
 
-  public get count(): any {
+  get count(): any {
     return this._count.value;
   }
 
-  public set count(value: any) {
+  set count(value: any) {
     let targetValue;
     if (isNaN(parseInt(value, 10))) {
       targetValue = '';
@@ -105,16 +123,21 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   private _count: BehaviorSubject<number> = new BehaviorSubject(1);
 
   private _improvementsSubscription: Subscription;
+  private loadAffectingRulesSubscription: Subscription;
+  private loadAffectingActiveTimeSpecialRulesSubscription: Subscription;
 
   constructor(
     private _unitService: UnitService,
     private _unitTypeService: UnitTypeService,
-    private _userStore: UserStorage<User>
+    private _userStore: UserStorage<User>,
+    private unitRuleFinderService: UnitRuleFinderService,
+    private ruleService: RuleService,
+    private activeTimeSpecialRuleFinderService: ActiveTimeSpecialRuleFinderService
   ) {
     super();
   }
 
-  public ngOnInit() {
+  ngOnInit() {
     this.requireUser(() => {
       if (this._improvementsSubscription) {
         this._improvementsSubscription.unsubscribe();
@@ -137,12 +160,32 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
         }
       });
     });
+    if(this.unit) {
+      this.handleObtainedUnitLoad(this.unit);
+    }
     this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);
     this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
     this.selectedView = this.defaultView;
   }
 
-  public otherUnitAlreadyRunning(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    const change = changes.unit;
+    if(change) {
+      const previous: Unit = change.previousValue;
+      const currentValue: Unit = change.currentValue;
+      if (previous?.id && previous?.id !== currentValue?.id) {
+        this.handleObtainedUnitLoad(currentValue);
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.loadAffectingActiveTimeSpecialRulesSubscription?.unsubscribe();
+    this.loadAffectingRulesSubscription?.unsubscribe();
+  }
+
+  otherUnitAlreadyRunning(): void {
     this.displayError('Ya hay otras unidades en construcción');
   }
 
@@ -152,7 +195,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.9.20
    */
-  public clickOpenUnitInfo(): void {
+  clickOpenUnitInfo(): void {
     const unitUnitType: UnitType = this.unitTypes.find(current => current.id === this.unit.typeId);
     this.attackableUnitTypes = this.unitTypes.filter(unitType => unitType.used);
     this.attackableUnitTypes.forEach(
@@ -167,31 +210,31 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
     ).then(result => this.criticalAttackInformations = result);
   }
 
-  public cancelBuild(confirm: boolean): void {
+  cancelBuild(confirm: boolean): void {
     if (confirm) {
       this._unitService.cancel(this.building).pipe(take(1)).subscribe();
     }
   }
 
-  public async deleteUnits(): Promise<void> {
+  async deleteUnits(): Promise<void> {
     if (await this.displayConfirm('Are you sure you want to delete the unit?')) {
       await this._doWithLoading(this._unitService.deleteObtainedUnit(this.obtainedUnit, this.numberToDelete));
     }
   }
 
-  public buildSelectedUnit(): void {
+  buildSelectedUnit(): void {
     this._unitService.registerUnitBuild(this.unit, this.count);
   }
 
-  public noResources(): void {
+  noResources(): void {
     this.displayError('No se poseen los recursos necesarios');
   }
 
-  public isValidDeletion(): boolean {
+  isValidDeletion(): boolean {
     return this.numberToDelete && this.numberToDelete <= this.inPlanetCount;
   }
 
-  public canBuild(): boolean {
+  canBuild(): boolean {
     return this.unit.requirements.runnable && this._unitTypeService.hasAvailable(this.unit.typeId, this.count);
   }
 
@@ -202,8 +245,25 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
    * @returns
    * @memberof DisplaySingleUnitComponent
    */
-  public isValidCount(): boolean {
+  isValidCount(): boolean {
     return (this.unit.isUnique && this.count === 1) || !this.unit.isUnique;
   }
 
+  private handleObtainedUnitLoad(currentValue: Unit) {
+    this.loadAffectingRulesSubscription?.unsubscribe();
+    delete this.rulesForCapturingUnits;
+    this.loadAffectingActiveTimeSpecialRulesSubscription?.unsubscribe();
+    delete this.loadAffectingActiveTimeSpecialRulesSubscription;
+    this.loadAffectingRulesSubscription = this.unitRuleFinderService.findRulesForUnit('UNIT_CAPTURE', currentValue)
+        .subscribe(async rules => this.rulesForCapturingUnits = await this.mapRules(rules));
+    this.loadAffectingActiveTimeSpecialRulesSubscription = this.activeTimeSpecialRuleFinderService.findActiveRules('UNIT_CAPTURE')
+        .subscribe(async rules => this.rulesForCapturingUnitsTimeSpecial = await this.mapRules(rules));
+  }
+
+  private async mapRules(rules: Rule[]): Promise<Array<Rule & {unitEntity: CommonEntity}>> {
+    console.warn('triggered! ', rules);
+    return await AsyncCollectionUtil.map(
+        rules, async rule => ({...rule,unitEntity: await this.ruleService.findRelatedUnit(rule.destinationId)})
+    );
+  }
 }

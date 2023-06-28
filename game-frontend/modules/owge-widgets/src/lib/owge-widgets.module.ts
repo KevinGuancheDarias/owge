@@ -34,6 +34,7 @@ import {
 import { WidgetWarnMessageComponent } from './components/widget-warn-message/widget-warn-message.component';
 import { UiIconPipe } from './pipes/ui-icon.pipe';
 import { DisplayService } from './services/display.service';
+import { WidgetDisplayRuleTableComponent } from './components/widget-display-rule-table/widget-display-rule-table.component';
 
 
 
@@ -76,6 +77,7 @@ import { DisplayService } from './services/display.service';
     WidgetWarnMessageComponent,
     WidgetTimeSelectionComponent,
     WidgetTouchableNumberSelectorComponent,
+    WidgetDisplayRuleTableComponent,
   ],
   providers: [
     DisplayService
@@ -102,7 +104,8 @@ import { DisplayService } from './services/display.service';
     WidgetSortListComponent,
     WidgetWarnMessageComponent,
     WidgetTimeSelectionComponent,
-    WidgetTouchableNumberSelectorComponent
+    WidgetTouchableNumberSelectorComponent,
+    WidgetDisplayRuleTableComponent
   ]
 })
 export class OwgeWidgetsModule {

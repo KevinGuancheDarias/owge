@@ -157,6 +157,10 @@
                                     }
                                 }
                             }
+                        },
+                        "UNIT_CAPTURE": {
+                            "TITLE_PASSIVE": "Unit capture (passive)",
+                            "TITLE_TIME_SPECIAL": "Unit capture (time special)"
                         }
                     }
                 }
@@ -306,5 +310,14 @@
     },
     "USER": {
         "ACCOUNT_DELETED": "Your account was deleted"
+    },
+    "RULES": {
+        "TABLE": {
+            "HEADER": {
+                "DESTINATION": "Destination",
+                "CAPTURE_PROBABILITY": "Capture probability",
+                "CAPTURE_MAX_QUANTITY": "Capture max quantity"
+            }
+        }
     }
 }

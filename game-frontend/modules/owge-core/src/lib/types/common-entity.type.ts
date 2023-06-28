@@ -7,6 +7,6 @@ import { IdName } from './id-name.type';
  * @since 0.8.0
  * @export
  */
-export interface CommonEntity<K> extends IdName<K> {
+export interface CommonEntity<K = number> extends IdName<K> {
     description?: string;
 }

@@ -1,6 +1,6 @@
 import { CommonEntity, EntityWithImage, Improvement } from '@owge/core';
 
-import { ActiveTimeSpecialType } from './active-time-special.type';
+import { ActiveTimeSpecial } from './active-time.special';
 
 /**
  * Represents a Time special
@@ -13,5 +13,5 @@ export interface TimeSpecial extends CommonEntity<number>, EntityWithImage {
     duration: number;
     rechargeTime: number;
     improvement: Improvement;
-    activeTimeSpecialDto?: ActiveTimeSpecialType;
+    activeTimeSpecialDto?: ActiveTimeSpecial;
 }

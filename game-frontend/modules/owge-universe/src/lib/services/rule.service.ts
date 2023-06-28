@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import {AbstractWebsocketApplicationHandler, CommonEntity} from '@owge/core';
 import { Observable } from 'rxjs';
 import { RuleStore } from '../storages/rule.store';
 import { Rule } from '../types/rule.type';
+import {RuleWithRelatedUnits} from '../types/rule-with-related-units.type';
+import {map, take} from 'rxjs/operators';
 
 @Injectable()
 export class RuleService extends AbstractWebsocketApplicationHandler{
@@ -20,7 +22,31 @@ export class RuleService extends AbstractWebsocketApplicationHandler{
         return this.ruleStore.rules.asObservable();
     }
 
-    _onRuleChange(content: Rule[]): void {
-        this.ruleStore.rules.next(content);
+    findRelatedUnits(): Observable<{[key: string]: CommonEntity}> {
+        return this.ruleStore.relatedUnits.asObservable();
+    }
+
+    findByOriginTypeAndOriginId(originType: 'TIME_SPECIAL' | 'UNIT', originId: number): Observable<Rule[]> {
+        return this.findAll()
+            .pipe(
+                map(rules => rules.filter(rule => rule.originType === originType && rule.originId === originId ))
+            );
+    }
+
+    isWantedType(rule: Rule, type: string): boolean {
+        console.warn('bar',rule, type);
+        return type === rule.type;
+    }
+
+    findRelatedUnit(id: number): Promise<CommonEntity>|Promise<null> {
+        return this.findRelatedUnits().pipe(
+            map(units => units[id]),
+            take(1)
+        ).toPromise();
+    }
+
+    _onRuleChange(content: RuleWithRelatedUnits): void {
+        this.ruleStore.rules.next(content.rules);
+        this.ruleStore.relatedUnits.next(content.relatedUnits);
     }
 }
