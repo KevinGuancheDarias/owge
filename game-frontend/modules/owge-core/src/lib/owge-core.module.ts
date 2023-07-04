@@ -23,6 +23,7 @@ import { ScreenDimensionsService } from './services/screen-dimensions.service';
 import { ThemeService } from './services/theme.service';
 import { ToastrService } from './services/toastr.service';
 import { WarningWebsocketApplicationHandlerService } from './services/warning-websocket-application-handler.service';
+import {TypeofPipe} from './pipes/typeof.pipe';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -48,7 +49,8 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     DynamicImagePipe,
     FormatNumberPipe,
     FormatDateRepresentation,
-    OwgeCoreIfThemeDirective
+    OwgeCoreIfThemeDirective,
+    TypeofPipe
   ],
   providers: [
     ScreenDimensionsService,
@@ -65,7 +67,8 @@ import { WarningWebsocketApplicationHandlerService } from './services/warning-we
     DynamicImagePipe,
     FormatNumberPipe,
     FormatDateRepresentation,
-    OwgeCoreIfThemeDirective
+    OwgeCoreIfThemeDirective,
+    TypeofPipe
   ],
 })
 export class CoreModule {

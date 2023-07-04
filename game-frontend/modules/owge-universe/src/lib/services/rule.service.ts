@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
-import {AbstractWebsocketApplicationHandler, CommonEntity} from '@owge/core';
+import {AbstractWebsocketApplicationHandler, AsyncCollectionUtil, CommonEntity} from '@owge/core';
 import { Observable } from 'rxjs';
 import { RuleStore } from '../storages/rule.store';
 import { Rule } from '../types/rule.type';
 import {RuleWithRelatedUnits} from '../types/rule-with-related-units.type';
 import {map, take} from 'rxjs/operators';
+import {UnitTypeService} from './unit-type.service';
+import {RuleWithUnitEntity} from '../types/rule-with-unit-entity.type';
 
 @Injectable()
 export class RuleService extends AbstractWebsocketApplicationHandler{
     private ruleStore: RuleStore = new RuleStore;
 
-    constructor() {
+    constructor(private unitTypeService: UnitTypeService) {
         super();
         this._eventsMap = {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -26,6 +28,13 @@ export class RuleService extends AbstractWebsocketApplicationHandler{
         return this.ruleStore.relatedUnits.asObservable();
     }
 
+    findByOrigin(originType: 'TIME_SPECIAL' | 'UNIT'): Observable<Rule[]> {
+        return this.findAll()
+            .pipe(
+                map(rules => rules.filter(rule => rule.originType === originType))
+            );
+    }
+
     findByOriginTypeAndOriginId(originType: 'TIME_SPECIAL' | 'UNIT', originId: number): Observable<Rule[]> {
         return this.findAll()
             .pipe(
@@ -34,15 +43,24 @@ export class RuleService extends AbstractWebsocketApplicationHandler{
     }
 
     isWantedType(rule: Rule, type: string): boolean {
-        console.warn('bar',rule, type);
         return type === rule.type;
     }
 
-    findRelatedUnit(id: number): Promise<CommonEntity>|Promise<null> {
-        return this.findRelatedUnits().pipe(
-            map(units => units[id]),
-            take(1)
-        ).toPromise();
+    findRelatedUnit(rule: Rule): Promise<CommonEntity>|Promise<null> {
+        if(rule.destinationType === 'UNIT') {
+            return this.findRelatedUnits().pipe(
+                map(units => units[rule.destinationId]),
+                take(1)
+            ).toPromise();
+        } else if(rule.destinationType === 'UNIT_TYPE') {
+            return this.unitTypeService.idToUnitType(rule.destinationId);
+        }
+    }
+
+    async addRelatedUnits(rules: Rule[]): Promise<RuleWithUnitEntity[]> {
+        return await AsyncCollectionUtil.map(
+            rules, async rule => ({...rule,unitEntity: await this.findRelatedUnit(rule)})
+        );
     }
 
     _onRuleChange(content: RuleWithRelatedUnits): void {

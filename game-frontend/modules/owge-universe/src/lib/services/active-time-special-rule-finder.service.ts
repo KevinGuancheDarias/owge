@@ -12,7 +12,7 @@ export class ActiveTimeSpecialRuleFinderService {
         private ruleService: RuleService
     ) {}
 
-    findActiveRules(wantedType: string): Observable<Rule[]> {
+    findActiveRules(wantedType: string, additionalFilter: (rule: Rule) => boolean = () => true): Observable<Rule[]> {
         return this.activeTimeSpecialService.findByStatus('ACTIVE')
             .pipe(
                 mergeMap(activeTimeSpecials => activeTimeSpecials.length
@@ -22,7 +22,7 @@ export class ActiveTimeSpecialRuleFinderService {
                     : [of([])]
                 ),
                 mergeAll(),
-                map(rules => rules.filter(rule => this.ruleService.isWantedType(rule, wantedType)))
+                map(rules => rules.filter(rule => this.ruleService.isWantedType(rule, wantedType) && additionalFilter(rule)))
             );
     }
 }

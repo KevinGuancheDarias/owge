@@ -1,21 +1,22 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {
+  Component, ContentChild,
+  Input,
+  TemplateRef
+} from '@angular/core';
 import {RuleWithUnitEntity} from '@owge/universe';
 
 @Component({
   selector: 'owge-widgets-display-rule-table',
   templateUrl: './widget-display-rule-table.component.html',
-  styleUrls: ['./widget-display-rule-table.component.scss']
+  styleUrls: ['./widget-display-rule-table.component.scss'],
 })
-export class WidgetDisplayRuleTableComponent implements OnInit {
+export class WidgetDisplayRuleTableComponent {
 
   @Input() rules: RuleWithUnitEntity[];
   @Input() tableTranslations: string[];
   @Input() extraArgs: number[];
   @Input() extraArgsTransformations: string[];
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+  @Input() useArrayArgTransformations = true;
+  @ContentChild('transformationBody', {static: false}) transformationBodyRef: TemplateRef<any>;
 
 }

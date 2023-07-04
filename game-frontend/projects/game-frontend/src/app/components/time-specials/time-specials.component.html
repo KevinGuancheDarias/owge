@@ -1,5 +1,40 @@
+<owge-core-modal [hasCloseButton]="true">
+    <div class="header" [innerHTML]="'TIME_SPECIAL.EXTRA_INFO.MODAL.CAPTION_TITLE' | translate: {name: selectedElement?.name }">
+    </div>
+    <div class="body">
+        <h3 *ngIf="rulesForCapturingUnits?.length" class="owge-theme-base-colors">{{ 'TIME_SPECIAL.EXTRA_INFO.MODAL.TITLE.UNIT_CAPTURE' | translate }}</h3>
+        <owge-widgets-display-rule-table *ngIf="rulesForCapturingUnits?.length" [rules]="rulesForCapturingUnits"
+                                         [tableTranslations]="['DESTINATION','CAPTURE_PROBABILITY','CAPTURE_MAX_QUANTITY']"
+                                         [extraArgs]="[0,1]" [extraArgsTransformations]="['%','%']"
+        ></owge-widgets-display-rule-table>
+        <h3 *ngIf="rulesForTemporalUnits?.length">{{ 'TIME_SPECIAL.EXTRA_INFO.MODAL.TITLE.TEMPORAL_UNITS' | translate }}</h3>
+        <owge-widgets-display-rule-table *ngIf="rulesForTemporalUnits?.length" [rules]="rulesForTemporalUnits"
+                                         [tableTranslations]="['DESTINATION','DURATION_IN_SECONDS','QUANTITY']"
+                                         [extraArgs]="[0,1]" [extraArgsTransformations]="['s']"
+        ></owge-widgets-display-rule-table>
+        <h3 *ngIf="rulesForHiddenUnits?.length">{{ 'TIME_SPECIAL.EXTRA_INFO.MODAL.TITLE.HIDDEN_UNITS' | translate }}</h3>
+        <owge-widgets-display-rule-table *ngIf="rulesForHiddenUnits?.length" [rules]="rulesForHiddenUnits"
+                                         [tableTranslations]="['DESTINATION']"
+        ></owge-widgets-display-rule-table>
+        <h3 *ngIf="rulesThatAlterSpeedGroup?.length">{{ 'TIME_SPECIAL.EXTRA_INFO.MODAL.TITLE.ALTER_SPEED_GROUP' | translate }}</h3>
+        <owge-widgets-display-rule-table *ngIf="rulesThatAlterSpeedGroup?.length" [rules]="rulesThatAlterSpeedGroup"
+                                         [tableTranslations]="['DESTINATION','SPEED_GROUP']" [useArrayArgTransformations]="false"
+                                         [extraArgs]="[0]"
+        >
+            <ng-template let-rule #transformationBody>
+                {{ rule.targetName }}
+            </ng-template>
+        </owge-widgets-display-rule-table>
+        <h3 *ngIf="rulesForBypassShield?.length">{{ 'TIME_SPECIAL.EXTRA_INFO.MODAL.TITLE.BYPASS_SHIELD' | translate }}</h3>
+        <owge-widgets-display-rule-table *ngIf="rulesForBypassShield?.length" [rules]="rulesForBypassShield"
+                                         [tableTranslations]="['DESTINATION']"></owge-widgets-display-rule-table>
+    </div>
+    <div class="footer">
+        <button class="btn" (click)="modal.hide()">{{ 'GLOBAL.BTN_CLOSE' | translate}}</button>
+    </div>
+</owge-core-modal>
 <div class="owge-card-list" *ngIf="userData">
-    <owge-widgets-display-list-item *ngFor="let element of elements" [itemName]="element.name"
+    <owge-widgets-display-list-item *ngFor="let element of elements; let i = index" [itemName]="element.name"
         [itemDescription]="element.description" [image]="element.imageUrl"
         [hasToDisplayCountdown]="element.activeTimeSpecialDto?.state === 'ACTIVE' || element.activeTimeSpecialDto?.state === 'RECHARGE'"
         [countdownDate]="element.activeTimeSpecialDto?.browserComputedTerminationDate">
@@ -10,6 +45,12 @@
                 <span class="recharge" *ngIf="element.activeTimeSpecialDto?.state === 'RECHARGE'">{{
                     'TIME_SPECIAL.IS_IN_RECHARGE' | translate}}</span>
             </div>
+        </ng-template>
+
+        <ng-template owgeCoreContent select="image-container-prepend" *ngIf="rulesForTimeSpecial[i]?.length">
+            <span class="item-info-icon" (click)="showInfo(i)">
+            <i class="fas fa-info-circle owge-theme-color-alt"></i>
+            </span>
         </ng-template>
 
         <ng-template owgeCoreContent select="action-buttons">

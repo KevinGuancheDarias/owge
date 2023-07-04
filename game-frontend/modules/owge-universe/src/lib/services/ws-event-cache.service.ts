@@ -31,7 +31,8 @@ interface WebsocketEventInformation {
 @Injectable()
 export class WsEventCacheService {
     public static readonly eventsForOpen = [
-        'rule_change'
+        'rule_change',
+        'speed_group_change'
     ];
 
     private static readonly _ALLOWED_EVENTS: Array<keyof WebsocketSyncResponse> = [

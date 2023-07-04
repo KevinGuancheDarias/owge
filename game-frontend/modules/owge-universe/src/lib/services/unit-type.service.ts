@@ -12,6 +12,7 @@ import { MissionService } from './mission.service';
 import { UnitTypeStore } from '../storages/unit-type.store';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { Planet } from '../pojos/planet.pojo';
+import {map, take} from 'rxjs/operators';
 
 @Injectable()
 export class UnitTypeService extends AbstractWebsocketApplicationHandler {
@@ -95,11 +96,17 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
    * @memberof UnitTypeService
    */
   public idsToUnitTypes(...ids: number[]): Promise<UnitType[]> {
-    return new Promise(resolve => {
-      this.getUnitTypes().subscribe(result => {
-        resolve(ids.map(currentId => result.find(currentUnitType => currentUnitType.id === currentId)));
-      });
-    });
+    return this.getUnitTypes().pipe(
+        take(1),
+        map(result => ids.map(currentId => result.find(currentUnitType => currentUnitType.id === currentId)))
+      ).toPromise();
+  }
+
+  public idToUnitType(id: number): Promise<UnitType> {
+    return this.getUnitTypes().pipe(
+        take(1),
+        map(unitTypes => unitTypes.find(unitType => unitType.id === id))
+    ).toPromise();
   }
 
   /**
@@ -116,6 +123,16 @@ export class UnitTypeService extends AbstractWebsocketApplicationHandler {
         .find(entry => entry.target === 'UNIT_TYPE' && this._findUnitTypeMatchingRule(entry, target));
 
       return appliedRule ? appliedRule.canAttack : true;
+    }
+  }
+
+  public isSameUnitTypeOrChild(wantedId: number, unitType: UnitType, unitTypeList: UnitType[] ): boolean {
+    if(wantedId === unitType.id) {
+      return true;
+    } else if(unitType.parent){
+      return this.isSameUnitTypeOrChild(wantedId, unitType.parent, unitTypeList);
+    } else {
+      return false;
     }
   }
 

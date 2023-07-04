@@ -21,6 +21,7 @@ export * from './lib/services/active-time-special-rule-finder.service';
 export * from './lib/services/image-store.service';
 export * from './lib/services/mission.service';
 export * from './lib/services/resource-manager.service';
+export * from './lib/services/rule.service';
 export * from './lib/services/speed-impact-group.service';
 export * from './lib/services/system-message.service';
 export * from './lib/services/time-specials.service';

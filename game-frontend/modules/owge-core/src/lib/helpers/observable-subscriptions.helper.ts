@@ -30,5 +30,6 @@ export class ObservableSubscriptionsHelper {
      */
     public unsubscribeAll(): void {
         this._subscriptions.forEach(current => current.closed || current.unsubscribe());
+        this._subscriptions = [];
     }
 }

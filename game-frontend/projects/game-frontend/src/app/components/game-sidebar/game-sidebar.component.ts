@@ -289,11 +289,11 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this.themeService.currentTheme$.subscribe(theme => {
       if(theme === 'neon') {
         const sidebar: HTMLElement = this._el.nativeElement.querySelector('.owge-side-bar-root');
-        this.neonThemeSubscription = combineLatest(
+        this.neonThemeSubscription = combineLatest([
           fromEvent(window, 'resize').pipe(startWith(null)),
           fromEvent(document, 'scroll').pipe(startWith(null)),
           this._planetService.findMyPlanets().pipe(startWith(null))
-        ).pipe(delay(300))
+        ]).pipe(delay(300))
         .subscribe(() => {
           const classList: DOMTokenList = document.body.classList;
           if(classList.contains('owge-screen-desktop')) {

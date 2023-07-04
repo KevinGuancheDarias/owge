@@ -1,4 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
+import {CommonEntity} from '@owge/core';
 
 
 /**
@@ -10,4 +11,5 @@ import { Subject, ReplaySubject } from 'rxjs';
  */
 export class SpeedImpactGroupStore {
     public readonly unlockedIds: Subject<number[]> = new ReplaySubject(1);
+    public readonly content: Subject<CommonEntity[]> = new ReplaySubject(1);
 }

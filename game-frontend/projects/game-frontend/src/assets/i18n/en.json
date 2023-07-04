@@ -293,7 +293,19 @@
         "BTN_ACTIVATE": "Activate",
         "IS_ACTIVE": "Active",
         "IS_IN_RECHARGE": "Recharging",
-        "NONE_UNLOCKED": "You have not unlocked any time special"
+        "NONE_UNLOCKED": "You have not unlocked any time special",
+        "EXTRA_INFO": {
+            "MODAL": {
+                "CAPTION_TITLE": "Effects for time special {{name}}",
+                "TITLE": {
+                    "UNIT_CAPTURE": "Unit capture",
+                    "TEMPORAL_UNITS": "Temporal units",
+                    "HIDDEN_UNITS": "Hidden units",
+                    "ALTER_SPEED_GROUP": "Speed group alterations",
+                    "BYPASS_SHIELD": "Bypass shield"
+                }
+            }
+        }
     },
     "RANKING": {
         "POSITION": "Position",
@@ -316,7 +328,10 @@
             "HEADER": {
                 "DESTINATION": "Destination",
                 "CAPTURE_PROBABILITY": "Capture probability",
-                "CAPTURE_MAX_QUANTITY": "Capture max quantity"
+                "CAPTURE_MAX_QUANTITY": "Capture max quantity",
+                "DURATION_IN_SECONDS": "Duration (in seconds)",
+                "QUANTITY": "Quantity",
+                "SPEED_GROUP": "Speed group"
             }
         }
     }

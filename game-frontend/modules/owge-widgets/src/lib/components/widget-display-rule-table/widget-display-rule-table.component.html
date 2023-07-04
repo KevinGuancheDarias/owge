@@ -10,7 +10,14 @@
     <tr *ngFor="let rule of rules">
         <td>{{ rule.unitEntity.name }}</td>
         <td *ngFor="let arg of extraArgs">
-            {{ rule.extraArgs[arg] }}{{ extraArgsTransformations[arg] }}
+            <ng-container *ngIf="useArrayArgTransformations">
+                {{ rule.extraArgs[arg] }}{{ extraArgsTransformations[arg] }}
+            </ng-container>
+            <ng-container *ngIf="!useArrayArgTransformations">
+                <ng-container *ngIf="transformationBodyRef" [ngTemplateOutlet]="transformationBodyRef"
+                              [ngTemplateOutletContext]="{$implicit: rule}"
+                ></ng-container>
+            </ng-container>
         </td>
     </tr>
     </tbody>

@@ -104,7 +104,7 @@
         <div class="extra-attributes">
           <owge-widgets-display-image *ngIf="unit.bypassShield" [assetsImage]="true" image="bypass-shield.png"
             [customClass]="'resourceImage'"></owge-widgets-display-image>
-          <owge-widgets-display-image *ngIf="unit.isInvisible" [assetsImage]="true" image="invisible.png"
+          <owge-widgets-display-image *ngIf="unit.isInvisible || rulesForInvisibleUnitsTimeSpecial?.length" [assetsImage]="true" image="invisible.png"
             [customClass]="'resourceImage'"></owge-widgets-display-image>
           <owge-widgets-display-image *ngIf="rulesForCapturingUnits?.length ||rulesForCapturingUnitsTimeSpecial?.length"
                                       [assetsImage]="true" image="unit_capture.png"  customClass="resourceImage" [isCommonAssetImage]="true"

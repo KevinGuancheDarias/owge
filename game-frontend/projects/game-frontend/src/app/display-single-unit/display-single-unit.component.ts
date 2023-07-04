@@ -102,6 +102,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   isDefaultCriticalDisplayed = false;
   rulesForCapturingUnits: RuleWithUnitEntity[];
   rulesForCapturingUnitsTimeSpecial: RuleWithUnitEntity[];
+  rulesForInvisibleUnitsTimeSpecial: RuleWithUnitEntity[];
 
   get count(): any {
     return this._count.value;
@@ -125,6 +126,8 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   private _improvementsSubscription: Subscription;
   private loadAffectingRulesSubscription: Subscription;
   private loadAffectingActiveTimeSpecialRulesSubscription: Subscription;
+  private loadAffectingActiveTimeSpecialHiddenUnitSubscription: Subscription;
+  private unitTypeOfUnit: UnitType;
 
   constructor(
     private _unitService: UnitService,
@@ -145,36 +148,34 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
       }
       this._improvementsSubscription = this._userStore.currentUserImprovements.subscribe(async improvement => {
         this.moreCharge = improvement.moreChargeCapacity;
-        const unitTypes: UnitType[] = await this._unitTypeService.getUnitTypes().pipe(
-          filter(result => !!result),
-          take(1)
-        ).toPromise();
-        const unitTypeOfUnit = unitTypes.find(unitType => unitType.id === this.unit.typeId);
-        if (unitTypeOfUnit) {
-          this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', unitTypeOfUnit);
-          this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', unitTypeOfUnit);
-          this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', unitTypeOfUnit);
-          this.moreSpeed = ImprovementUtil.findUnitTypeImprovement(improvement, 'SPEED', unitTypeOfUnit);
+        await this.loadUnitTypeOfUnit();
+        if (this.unitTypeOfUnit) {
+          this.moreAttack = ImprovementUtil.findUnitTypeImprovement(improvement, 'ATTACK', this.unitTypeOfUnit);
+          this.moreShield = ImprovementUtil.findUnitTypeImprovement(improvement, 'SHIELD', this.unitTypeOfUnit);
+          this.moreHealth = ImprovementUtil.findUnitTypeImprovement(improvement, 'DEFENSE', this.unitTypeOfUnit);
+          this.moreSpeed = ImprovementUtil.findUnitTypeImprovement(improvement, 'SPEED', this.unitTypeOfUnit);
         } else {
           console.warn(`Unit with id ${this.unit.id} doesn't have a unitType`);
         }
+        if(this.unit) {
+          this.handleUnitLoad(this.unit);
+        }
+        this._subscriptions.add(this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val));
+        this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
       });
     });
-    if(this.unit) {
-      this.handleObtainedUnitLoad(this.unit);
-    }
-    this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val);
-    this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
     this.selectedView = this.defaultView;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
+  async ngOnChanges(changes: SimpleChanges): Promise<void> {
     const change = changes.unit;
     if(change) {
       const previous: Unit = change.previousValue;
       const currentValue: Unit = change.currentValue;
       if (previous?.id && previous?.id !== currentValue?.id) {
-        this.handleObtainedUnitLoad(currentValue);
+        this.unit = currentValue;
+        await this.loadUnitTypeOfUnit();
+        this.handleUnitLoad(currentValue);
       }
     }
   }
@@ -183,6 +184,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
     super.ngOnDestroy();
     this.loadAffectingActiveTimeSpecialRulesSubscription?.unsubscribe();
     this.loadAffectingRulesSubscription?.unsubscribe();
+    this.loadAffectingActiveTimeSpecialHiddenUnitSubscription?.unsubscribe();
   }
 
   otherUnitAlreadyRunning(): void {
@@ -249,21 +251,32 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
     return (this.unit.isUnique && this.count === 1) || !this.unit.isUnique;
   }
 
-  private handleObtainedUnitLoad(currentValue: Unit) {
+  private handleUnitLoad(currentValue: Unit) {
     this.loadAffectingRulesSubscription?.unsubscribe();
-    delete this.rulesForCapturingUnits;
     this.loadAffectingActiveTimeSpecialRulesSubscription?.unsubscribe();
-    delete this.loadAffectingActiveTimeSpecialRulesSubscription;
+    this.loadAffectingActiveTimeSpecialHiddenUnitSubscription?.unsubscribe();
     this.loadAffectingRulesSubscription = this.unitRuleFinderService.findRulesForUnit('UNIT_CAPTURE', currentValue)
-        .subscribe(async rules => this.rulesForCapturingUnits = await this.mapRules(rules));
-    this.loadAffectingActiveTimeSpecialRulesSubscription = this.activeTimeSpecialRuleFinderService.findActiveRules('UNIT_CAPTURE')
-        .subscribe(async rules => this.rulesForCapturingUnitsTimeSpecial = await this.mapRules(rules));
+        .subscribe(async rules => this.rulesForCapturingUnits = await this.ruleService.addRelatedUnits(rules));
+    this.loadAffectingActiveTimeSpecialRulesSubscription = this.activeTimeSpecialRuleFinderService
+        .findActiveRules('UNIT_CAPTURE')
+        .subscribe(async rules => this.rulesForCapturingUnitsTimeSpecial = await this.ruleService.addRelatedUnits(rules));
+    this.loadAffectingActiveTimeSpecialHiddenUnitSubscription = this.activeTimeSpecialRuleFinderService
+        .findActiveRules('TIME_SPECIAL_IS_ENABLED_DO_HIDE', rule => this.isForUnit(rule, currentValue))
+        .subscribe(async rules => this.rulesForInvisibleUnitsTimeSpecial = await this.ruleService.addRelatedUnits(rules));
   }
 
-  private async mapRules(rules: Rule[]): Promise<Array<Rule & {unitEntity: CommonEntity}>> {
-    console.warn('triggered! ', rules);
-    return await AsyncCollectionUtil.map(
-        rules, async rule => ({...rule,unitEntity: await this.ruleService.findRelatedUnit(rule.destinationId)})
-    );
+  private isForUnit(rule: Rule, unit: Unit): boolean {
+    return (rule.destinationType === 'UNIT' && rule.destinationId === unit.id)
+      || (rule.destinationType === 'UNIT_TYPE'
+            && this._unitTypeService.isSameUnitTypeOrChild(rule.destinationId, this.unitTypeOfUnit, this.unitTypes)
+        );
+  }
+
+  private async loadUnitTypeOfUnit() {
+    const unitTypes: UnitType[] = await this._unitTypeService.getUnitTypes().pipe(
+        filter(result => !!result),
+        take(1)
+    ).toPromise();
+    this.unitTypeOfUnit = unitTypes.find(unitType => unitType.id === this.unit.typeId);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnInit, ViewChild} from '@angular/core';
 import { ReplaySubject , Observable } from 'rxjs';
 
 import { AbstractModalComponent } from '../../interfaces/abstract-modal-component';
@@ -43,7 +43,8 @@ export class ModalComponent extends AbstractModalComponent implements OnInit, On
     private _closeOnContainerClicked = true;
 
     constructor(
-        private _ref: ElementRef
+        private _ref: ElementRef,
+        private cdr: ChangeDetectorRef
     ) {
         super();
     }
@@ -63,7 +64,10 @@ export class ModalComponent extends AbstractModalComponent implements OnInit, On
         this._moveModalToBody();
         this.visible = true;
         this._status.next(true);
-        setTimeout(() => this.visibleAnimate = true, 100);
+        setTimeout(() => {
+            this.visibleAnimate = true;
+            this.cdr.detectChanges();
+        }, 100);
     }
 
     hide(): void {
@@ -72,6 +76,7 @@ export class ModalComponent extends AbstractModalComponent implements OnInit, On
         setTimeout(() => {
             this.visible = false;
             this._applyHotfix();
+            this.cdr.detectChanges();
         }, 300);
     }
 

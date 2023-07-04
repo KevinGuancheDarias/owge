@@ -1,8 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { DateRepresentation, DateUtil, LoggerHelper } from '@owge/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {DateRepresentation, DateUtil, ModalComponent, ObservableSubscriptionsHelper} from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
-import {TimeSpecial, TimeSpecialService} from '@owge/universe';
+import {
+  TimeSpecial,
+  TimeSpecialService,
+  RuleService,
+  RuleWithUnitEntity,
+  SpeedImpactGroupService, Rule
+} from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
+import {combineLatest} from 'rxjs';
 
 /**
  * Component to display and handle the time specials
@@ -17,13 +24,24 @@ import { BaseComponent } from '../../base/base.component';
   styleUrls: ['./time-specials.component.less'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implements OnInit {
-  public elements: TimeSpecial[];
+export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implements OnInit, OnDestroy {
+  @ViewChild(ModalComponent) modal: ModalComponent;
 
-  private _log: LoggerHelper = new LoggerHelper(TimeSpecialsComponent.name);
+  elements: TimeSpecial[];
+  selectedElement: TimeSpecial;
+  rulesForTimeSpecial: RuleWithUnitEntity[][] = [];
+  rulesForCapturingUnits: RuleWithUnitEntity[];
+  rulesForBypassShield: RuleWithUnitEntity[];
+  rulesForTemporalUnits: RuleWithUnitEntity[];
+  rulesForHiddenUnits: RuleWithUnitEntity[];
+  rulesThatAlterSpeedGroup: RuleWithUnitEntity[];
+
+  private additionalObservableSubscriptions: ObservableSubscriptionsHelper = new ObservableSubscriptionsHelper();
 
   constructor(
     private _timeSpecialService: TimeSpecialService,
+    private ruleService: RuleService,
+    private speedImpactGroupService: SpeedImpactGroupService,
     private _cdr: ChangeDetectorRef
   ) {
     super();
@@ -31,10 +49,36 @@ export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implem
 
   ngOnInit() {
     this.requireUser();
-    this._subscriptions.add(this._timeSpecialService.findUnlocked().subscribe(elements => {
-      this.elements = elements;
-      this._cdr.detectChanges();
-    }));
+    this._subscriptions.add(
+        combineLatest([this._timeSpecialService.findUnlocked(), this.ruleService.findByOrigin('TIME_SPECIAL')])
+            .subscribe(async elements => {
+              const rules = await this.ruleService.addRelatedUnits(elements[1]);
+              this.elements = elements[0];
+              this.elements.forEach((element, index) =>
+                  this.rulesForTimeSpecial[index] = rules.filter(rule => rule.originId === element.id)
+              );
+              this._cdr.detectChanges();
+            })
+    );
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.additionalObservableSubscriptions.unsubscribeAll();
+  }
+
+  showInfo(i: number) {
+    this.additionalObservableSubscriptions.unsubscribeAll();
+    this.selectedElement = this.elements[i];
+    const timeSpecialRules = this.rulesForTimeSpecial[i];
+    this.rulesForCapturingUnits = timeSpecialRules.filter(rule => rule.type === 'UNIT_CAPTURE');
+    this.rulesForTemporalUnits = timeSpecialRules.filter(rule => rule.type === 'TIME_SPECIAL_IS_ENABLED_TEMPORAL_UNITS');
+    this.rulesForHiddenUnits = timeSpecialRules.filter(rule => rule.type === 'TIME_SPECIAL_IS_ENABLED_DO_HIDE');
+    this.rulesThatAlterSpeedGroup = timeSpecialRules.filter(rule => rule.type === 'TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP');
+    this.rulesThatAlterSpeedGroup.forEach(rule => this.solveSpeedImpactGroup(rule));
+    this.rulesForBypassShield = timeSpecialRules.filter(rule => rule.type === 'TIME_SPECIAL_IS_ENABLED_BYPASS_SHIELD');
+    this._cdr.detectChanges();
+    this.modal.show();
   }
 
   /**
@@ -44,15 +88,20 @@ export class TimeSpecialsComponent extends BaseComponent<UserWithFaction> implem
    * @since 0.8.0
    * @param timeSpecialId
    */
-  public clickActivate(timeSpecialId: number): void {
+  clickActivate(timeSpecialId: number): void {
     this._doWithLoading(this._timeSpecialService.activate(timeSpecialId).toPromise());
   }
 
-  public parsedRequiredTime(timeInSeconds: number): DateRepresentation {
+  parsedRequiredTime(timeInSeconds: number): DateRepresentation {
     return DateUtil.milisToDaysHoursMinutesSeconds(timeInSeconds * 1000);
   }
 
-  private _findById(id: number): TimeSpecial {
-    return this.elements.find(current => current.id === id);
+  solveSpeedImpactGroup(rule: Rule): void {
+    const magicRule = rule as any;
+    this.additionalObservableSubscriptions.add(
+      this.speedImpactGroupService.findById(Number(rule.extraArgs[0])).subscribe(entity => {
+        magicRule.targetName = entity.name;
+      })
+    );
   }
 }

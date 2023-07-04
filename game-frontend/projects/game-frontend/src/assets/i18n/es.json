@@ -292,7 +292,19 @@
         "BTN_ACTIVATE": "Activar",
         "IS_ACTIVE": "Activo",
         "IS_IN_RECHARGE": "Recargando",
-        "NONE_UNLOCKED": "no has desbloqueado ningún especial de tiempo"
+        "NONE_UNLOCKED": "no has desbloqueado ningún especial de tiempo",
+        "EXTRA_INFO": {
+            "MODAL": {
+                "CAPTION_TITLE": "Efectos {{name}}",
+                "TITLE": {
+                    "UNIT_CAPTURE": "Captura de unidades",
+                    "TEMPORAL_UNITS": "Unidades temporales",
+                    "HIDDEN_UNITS": "Unidades ocultas",
+                    "ALTER_SPEED_GROUP": "Alteraciones en grupo de velocidad",
+                    "BYPASS_SHIELD": "Atravesar escudos"
+                }
+            }
+        }
     },
     "RANKING": {
         "POSITION": "Posición",
@@ -315,7 +327,10 @@
             "HEADER": {
                 "DESTINATION": "Destino",
                 "CAPTURE_PROBABILITY": "Probabilidad de capturar",
-                "CAPTURE_MAX_QUANTITY": "Cantidad máxima a capturar"
+                "CAPTURE_MAX_QUANTITY": "Cantidad máxima a capturar",
+                "DURATION_IN_SECONDS": "Duración (en segundos)",
+                "QUANTITY": "Cantidad",
+                "SPEED_GROUP": "Grupo velocidad"
             }
         }
     }
