@@ -15,7 +15,7 @@ RUN mvn install -DskipTests
 # Tomcat base
 FROM eclipse-temurin:17-jdk-focal as spring-base
 RUN apt update && apt install -y  mysql-client
-RUN addgroup spring && adduser -S spring -G spring
+RUN addgroup spring && adduser --system spring && adduser spring spring
 RUN mkdir /app
 RUN chown spring:spring /app
 USER spring:spring
