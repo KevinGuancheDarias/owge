@@ -13,8 +13,8 @@ COPY game-rest/src /build/rest/src
 RUN mvn install -DskipTests
 
 # Tomcat base
-FROM openjdk:17-jdk-alpine as spring-base
-RUN apk add  mysql-client
+FROM eclipse-temurin:17-jdk-focal as spring-base
+RUN apt install -y  mysql-client
 RUN addgroup spring && adduser -S spring -G spring
 RUN mkdir /app
 RUN chown spring:spring /app

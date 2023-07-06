@@ -234,6 +234,12 @@ function _doLaunch() {
         _owgeMockAccountDatabaseDir="$_profileRoot/account_db";
         log debug "Database directory \e[36m$_owgeDatabaseDir\e[39m";
         log debug "Account database directory \e[36m$_owgeMockAccountDatabaseDir\e[39m";
+        if [ `uname -m ` == 'aarch64' ]; then
+            log warn "Support for arm64 is experimental"
+            phpmyadmin_arch='arm64v8/phpmyadmin:fpm-alpine';
+        else 
+            phpmyadmin_arch='phpmyadmin/phpmyadmin'
+        fi
         _availableWorlds="`ls ./test_worlds | xargs -I€ echo -e "\e[32m  * \e[36m€\e[39m"`";
         echo "$_availableWorlds" | cat;
         promptWithDefault "Select testworld from above list" "spanish_politics" "test -d ./test_worlds/€" "The specified test_world profile doesn't exists, insert one of the following: \n$_availableWorlds";
@@ -252,6 +258,8 @@ function _doLaunch() {
             export OWGE_PHPMYADMIN_SERVERS="Mock Account Database:db_mock_account:3306:root:1234";
             export OWGE_NGINX_PHPMYADMIN_SERVER="phpmyadmin:80";
             export OWGE_ADMIN_FRONTEND_SERVER="admin_frontend:4200";
+            export OWGE_PHPMYADMIN_ARCH_IMAGE="$phpmyadmin_arch";
+            log debug "Using  $OWGE_PHPMYADMIN_ARCH_IMAGE as phpmyadmin image";
 
             # Launch profiles
             for profile in $@; do
