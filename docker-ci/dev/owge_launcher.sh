@@ -237,8 +237,10 @@ function _doLaunch() {
         if [ `uname -m ` == 'aarch64' ]; then
             log warn "Support for arm64 is experimental"
             phpmyadmin_arch='arm64v8/phpmyadmin:fpm-alpine';
+            phpmyadmin_port=9000
         else 
             phpmyadmin_arch='phpmyadmin/phpmyadmin'
+            phpmyadmin_port=80
         fi
         _availableWorlds="`ls ./test_worlds | xargs -I€ echo -e "\e[32m  * \e[36m€\e[39m"`";
         echo "$_availableWorlds" | cat;
@@ -256,7 +258,7 @@ function _doLaunch() {
             export OWGE_ACCOUNT_SERVER="mock_account:8080";
             export OWGE_FRONTEND_ROOT="${BASH_SOURCE%/*}/../../../game-frontend";
             export OWGE_PHPMYADMIN_SERVERS="Mock Account Database:db_mock_account:3306:root:1234";
-            export OWGE_NGINX_PHPMYADMIN_SERVER="phpmyadmin:80";
+            export OWGE_NGINX_PHPMYADMIN_SERVER="phpmyadmin:$phpmyadmin_port";
             export OWGE_ADMIN_FRONTEND_SERVER="admin_frontend:4200";
             export OWGE_PHPMYADMIN_ARCH_IMAGE="$phpmyadmin_arch";
             log debug "Using  $OWGE_PHPMYADMIN_ARCH_IMAGE as phpmyadmin image";
