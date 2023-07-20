@@ -9,6 +9,8 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implements DtoWithImprovements {
+
+    private Integer order;
     private Integer points;
     private Long time;
     private Integer primaryResource;
@@ -38,6 +40,7 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
     }
 
     private void loadData(Upgrade entity) {
+        order = entity.getOrder();
         points = entity.getPoints();
         time = entity.getTime();
         primaryResource = entity.getPrimaryResource();

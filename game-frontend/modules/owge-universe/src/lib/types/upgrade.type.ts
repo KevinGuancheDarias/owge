@@ -11,6 +11,7 @@ export interface Upgrade {
     clonedImprovements: boolean;
     description: string;
     id: number;
+    order: number;
     image: number;
     imageUrl: string;
     improvement: any;

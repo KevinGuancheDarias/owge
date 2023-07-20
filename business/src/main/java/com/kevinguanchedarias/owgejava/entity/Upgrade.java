@@ -33,6 +33,9 @@ public class Upgrade extends CommonEntityWithImageStore<Integer> implements Enti
     @Serial
     private static final long serialVersionUID = 905268542123876248L;
 
+    @Column(name = "order_number")
+    private Integer order;
+
     @Builder.Default
     private Integer points = 0;
 

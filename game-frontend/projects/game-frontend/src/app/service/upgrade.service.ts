@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { DateUtil, Improvement } from '@owge/core';
+import {DateUtil, Improvement, OrderUtil} from '@owge/core';
 import {
   UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
   AutoUpdatedResources, ResourceManagerService, ResourceRequirements, WsEventCacheService
@@ -53,9 +53,9 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   /**
    * Computes required resources by the next upgrade level
    *
-   * @param {ObtainedUpgrade} ObtainedUpgrade
+   * @param ObtainedUpgrade
    *          - Notice: this function alters this object
-   * @param {boolean} subscribeToResources true if want to recompute the runnable field of RequirementPojo,
+   * @param subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
    * @param [userImprovement] The improvement to apply, for example to calculate the time
    * @returns obtainedUpgrade with filled values
@@ -124,7 +124,9 @@ export class UpgradeService extends AbstractWebsocketApplicationHandler {
   }
 
   protected async _onObtainedChange(content: ObtainedUpgrade[]): Promise<void> {
-    this._upgradeStore.obtained.next(content);
+    this._upgradeStore.obtained.next(
+        content.sort((a,b) => OrderUtil.compareForSort(a.upgrade, b.upgrade))
+    );
   }
 
   protected async _onRunningChange(content: UpgradeRunningMission): Promise<void> {

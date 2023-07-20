@@ -106,3 +106,6 @@ CREATE TABLE `suspicions`
     PRIMARY KEY (`id`),
     INDEX (`user_id`, `audit_id`)
 ) ENGINE = InnoDB;
+
+ALTER TABLE upgrades
+    ADD `order_number` smallint unsigned DEFAULT NULL COMMENT 'The upgrade order' AFTER id;

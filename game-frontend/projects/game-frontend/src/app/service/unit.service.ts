@@ -1,6 +1,14 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { AbstractWebsocketApplicationHandler, DateUtil, Improvement, LoggerHelper, ProgrammingError, User } from '@owge/core';
+import {
+  AbstractWebsocketApplicationHandler,
+  DateUtil,
+  Improvement,
+  LoggerHelper,
+  OrderUtil,
+  ProgrammingError,
+  User
+} from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
 import {
   AutoUpdatedResources,
@@ -219,7 +227,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
       unitUpgradeRequirements.forEach(current => this._computeRequirementsReached(current, upgrades));
       this._unitStore.upgradeRequirements.next(unitUpgradeRequirements);
     });
-    const sorted = this._sortUnits(content);
+    const sorted = OrderUtil.doOrder(content);
     this._unitStore.unlocked.next(sorted);
   }
 
@@ -262,7 +270,7 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
   ): PlanetsUnitsRepresentation<ObtainedUnit[]> {
 
     const unitsMap: Map<string, ObtainedUnit[]> = new Map();
-    units.sort((a, b) => this._compareUnitForSort(a.unit, b.unit)).forEach(unit => {
+    units.sort((a, b) => OrderUtil.compareForSort(a.unit, b.unit)).forEach(unit => {
       UnitUtil.createTerminationDate(unit);
       const planetId: string = keyGetter(unit);
       const collection: ObtainedUnit[] = unitsMap.get(planetId);
@@ -283,17 +291,5 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
         upgrade => upgrade.upgrade.id === currentRequirement.upgrade.id && upgrade.level >= currentRequirement.level
       );
     });
-  }
-
-  private _sortUnits(units: Unit[]): Unit[] {
-    return units.sort((a, b) => this._compareUnitForSort(a,b) );
-  }
-
-  private _compareUnitForSort(a: Unit, b:Unit): number {
-    return this._getIdOrderOrId(a) > this._getIdOrderOrId(b) ? 1 : -1;
-  }
-
-  private _getIdOrderOrId(unit: Unit): number {
-    return unit.order ?? unit.id;
   }
 }
