@@ -70,7 +70,7 @@ function mavenRun () {
 	_targetDirectory="$1";
 	shift;
 	 docker run -it --rm --volume "$_targetDirectory"://usr/src/app \
-        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-jdk-11-openj9 mvn $@
+        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-openjdk-17-slim mvn $@
 }
 
 function nodeRun() {

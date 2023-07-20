@@ -1,5 +1,5 @@
 #FROM adoptopenjdk/openjdk11-openj9:alpine
-FROM openjdk:17-jdk-alpine
+FROM eclipse-temurin:17-jdk-focal
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 EXPOSE 8080
@@ -18,4 +18,4 @@ RUN mkdir /app
 RUN mv /tmp/war_location_folder/$OWGE_REST_WAR_FILENAME /app/rest.jar
 
 # Add "-Xlog:gc" to see the GC info
-CMD ["java","-Xmx220m", "-Xms100m", "-jar", "-Dspring.profiles.active=rsaKeys", "/app/rest.jar"]
+CMD ["java", "-XX:+UseShenandoahGC","-Xmx220m", "-Xms100m", "-jar", "-Dspring.profiles.active=rsaKeys", "/app/rest.jar"]

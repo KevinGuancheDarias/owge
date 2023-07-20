@@ -123,6 +123,7 @@ public class OpenWebsocketSyncFilter implements Filter {
     private void addCacheHeaders(HttpServletResponse response, CacheInfo cacheInfo) {
         response.addHeader("Cache-Control", "must-revalidate");
         response.addHeader("Last-Modified", cacheInfo.lastModified.toString());
+        response.addHeader("Content-Type", "application/json;charset=utf-8");
     }
 
     private String buildCacheKey(HandlerMethod handlerMethod, Object[] params) {

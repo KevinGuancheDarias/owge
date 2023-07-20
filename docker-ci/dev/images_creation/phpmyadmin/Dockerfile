@@ -1,4 +1,5 @@
-FROM phpmyadmin/phpmyadmin
+ARG OWGE_PHPMYADMIN_ARCH_IMAGE
+FROM ${OWGE_PHPMYADMIN_ARCH_IMAGE}
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 COPY scripts/owge-docker-entrypoint.sh  /

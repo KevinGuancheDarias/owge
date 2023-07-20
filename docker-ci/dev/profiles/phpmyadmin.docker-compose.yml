@@ -4,5 +4,7 @@ services:
   phpmyadmin:
     build:
       context: ../images_creation/phpmyadmin
+      args:
+        OWGE_PHPMYADMIN_ARCH_IMAGE: ${OWGE_PHPMYADMIN_ARCH_IMAGE}
     environment:
       - DATABASE_SERVERS=${OWGE_PHPMYADMIN_SERVERS}

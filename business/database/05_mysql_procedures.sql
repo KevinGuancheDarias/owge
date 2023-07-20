@@ -1,3 +1,35 @@
+CREATE VIEW see_objects_without_relations AS
+SELECT 'UNIT', u.id, name, ort.id AS relation_id
+FROM units u
+         LEFT JOIN object_relations ort ON ort.object_description = 'UNIT' AND ort.reference_id = u.id
+UNION
+SELECT 'TIME_SPECIAL', ts.id, name, ort.id AS relation_id
+FROM time_specials ts
+         LEFT JOIN object_relations ort ON ort.object_description = 'TIME_SPECIAL' AND ort.reference_id = ts.id
+UNION
+SELECT 'UPGRADE', up.id, name, ort.id AS relation_id
+FROM upgrades up
+         LEFT JOIN object_relations ort ON ort.object_description = 'UPGRADE' AND ort.reference_id = up.id;
+
+CREATE VIEW see_orphan_relations AS
+SELECT object_description, ort.id AS relation_id, ort.reference_id
+FROM object_relations ort
+         LEFT JOIN units u ON u.id = ort.reference_id
+WHERE object_description = 'UNIT'
+  AND u.id IS NULL
+UNION
+SELECT object_description, ort.id AS relation_id, ort.reference_id
+FROM object_relations ort
+         LEFT JOIN upgrades up ON up.id = ort.reference_id
+WHERE object_description = 'UPGRADE'
+  AND up.id IS NULL
+UNION
+SELECT object_description, ort.id AS relation_id, ort.reference_id
+FROM object_relations ort
+         LEFT JOIN time_specials ts ON ts.id = ort.reference_id
+WHERE object_description = 'TIME_SPECIAL'
+  AND ts.id IS NULL;
+
 DELIMITER $$
 CREATE
     DEFINER = `root`@`%` PROCEDURE `DELETE_RELATION`(IN `i_relation_id` INT UNSIGNED)
@@ -78,59 +110,7 @@ BEGIN
     UPDATE planets set home = NULL, owner = NULL WHERE user_id = v_user_id;
     DELETE FROM mission_reports WHERE user_id = v_user_id; DELETE FROM user_storage WHERE id = v_user_id; COMMIT;
 END
-DELIMITER;
-
-
-CREATE VIEW see_objects_without_relations AS
-SELECT 'UNIT', u.id, name, ort.id AS relation_id
-FROM units u
-         LEFT JOIN object_relations ort ON ort.object_description = 'UNIT' AND ort.reference_id = u.id
-UNION
-SELECT 'TIME_SPECIAL', ts.id, name, ort.id AS relation_id
-FROM time_specials ts
-         LEFT JOIN object_relations ort ON ort.object_description = 'TIME_SPECIAL' AND ort.reference_id = ts.id
-UNION
-SELECT 'UPGRADE', up.id, name, ort.id AS relation_id
-FROM upgrades up
-         LEFT JOIN object_relations ort ON ort.object_description = 'UPGRADE' AND ort.reference_id = up.id
-
-CREATE VIEW see_orphan_relations AS
-SELECT object_description, ort.id
-FROM object_relations ort
-         LEFT JOIN units u ON u.id = ort.reference_id
-WHERE object_description = 'UNIT'
-  AND u.id IS NULL
-UNION
-SELECT object_description, ort.id
-FROM object_relations ort
-         LEFT JOIN upgrades up ON up.id = ort.reference_id
-WHERE object_description = 'UPGRADE'
-  AND up.id IS NULL
-UNION
-SELECT object_description, ort.id
-FROM object_relations ort
-         LEFT JOIN time_specials ts ON ts.id = ort.reference_id
-WHERE object_description = 'TIME_SPECIAL'
-  AND ts.id IS NULL;
-
-CREATE VIEW see_orphan_relations AS
-SELECT object_description, ort.id AS relation_id, ort.reference_id
-FROM object_relations ort
-         LEFT JOIN units u ON u.id = ort.reference_id
-WHERE object_description = 'UNIT'
-  AND u.id IS NULL
-UNION
-SELECT object_description, ort.id AS relation_id, ort.reference_id
-FROM object_relations ort
-         LEFT JOIN upgrades up ON up.id = ort.reference_id
-WHERE object_description = 'UPGRADE'
-  AND up.id IS NULL
-UNION
-SELECT object_description, ort.id AS relation_id, ort.reference_id
-FROM object_relations ort
-         LEFT JOIN time_specials ts ON ts.id = ort.reference_id
-WHERE object_description = 'TIME_SPECIAL'
-  AND ts.id IS NULL;
+DELIMITER ;
 
 DELIMITER $$
 CREATE
