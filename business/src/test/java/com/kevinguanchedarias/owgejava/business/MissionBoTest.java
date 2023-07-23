@@ -10,6 +10,7 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
@@ -113,7 +114,8 @@ import static org.mockito.Mockito.*;
         UserStorageRepository.class,
         MissionEventEmitterBo.class,
         MissionCancelBuildService.class,
-        MissionBaseService.class
+        MissionBaseService.class,
+        UserEventEmitterBo.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -147,6 +149,7 @@ class MissionBoTest {
     private final MissionCancelBuildService missionCancelBuildService;
     private final AsyncRunnerBo asyncRunnerBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
+    private final UserEventEmitterBo userEventEmitterBo;
 
     @Autowired
     public MissionBoTest(
@@ -179,7 +182,8 @@ class MissionBoTest {
             MissionBaseService missionBaseService,
             MissionCancelBuildService missionCancelBuildService,
             AsyncRunnerBo asyncRunnerBo,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter
+            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
+            UserEventEmitterBo userEventEmitterBo
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -212,6 +216,7 @@ class MissionBoTest {
         this.missionCancelBuildService = missionCancelBuildService;
         this.asyncRunnerBo = asyncRunnerBo;
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
+        this.userEventEmitterBo = userEventEmitterBo;
     }
 
     @Test
@@ -329,6 +334,7 @@ class MissionBoTest {
         verify(entityManager, times(1)).refresh(saved);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), any());
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
+        verify(userEventEmitterBo, times(1)).emitUserData(user);
     }
 
     @Test
@@ -428,6 +434,7 @@ class MissionBoTest {
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);
         verify(missionEventEmitterBo, times(1)).emitUnitBuildChange(USER_ID_1);
         verify(unitTypeBo, times(1)).emitUserChange(USER_ID_1);
+        verify(userEventEmitterBo, times(1)).emitUserData(user);
     }
 
     @ParameterizedTest

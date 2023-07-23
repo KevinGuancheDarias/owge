@@ -8,6 +8,7 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
+import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
@@ -81,6 +82,7 @@ public class MissionBo implements UserDeleteListener {
     private final ImprovementBo improvementBo;
     private final MissionSchedulerService missionSchedulerService;
     private final MissionBaseService missionBaseService;
+    private final UserEventEmitterBo userEventEmitterBo;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -149,6 +151,7 @@ public class MissionBo implements UserDeleteListener {
             entityManager.refresh(mission);
             emitRunningUpgrade(user);
             emitMissionCountChange(userId);
+            userEventEmitterBo.emitUserData(user);
         });
     }
 
@@ -253,6 +256,7 @@ public class MissionBo implements UserDeleteListener {
             emitMissionCountChange(userId);
             missionEventEmitterBo.emitUnitBuildChange(userId);
             unitTypeBo.emitUserChange(userId);
+            userEventEmitterBo.emitUserData(user);
         });
 
         return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);

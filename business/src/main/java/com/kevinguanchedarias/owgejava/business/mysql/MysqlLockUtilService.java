@@ -27,7 +27,7 @@ public class MysqlLockUtilService {
         if (keys.isEmpty()) {
             runnable.run();
         } else {
-            var keysAsList = keys.stream().toList();
+            var keysAsList = keys.stream().sorted().toList();
             var commandLambda = (PreparedStatementCallback<Object>) ps -> {
                 generateBindParams(keysAsList, ps);
                 return null;

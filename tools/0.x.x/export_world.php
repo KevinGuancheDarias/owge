@@ -8,6 +8,7 @@ const TABLES_TO_EXPORT = [
     'critical_attack',
     'critical_attack_entries',
     'factions',
+    'factions_unit_types',
     'faction_spawn_location',
     'galaxies',
     'images_store',

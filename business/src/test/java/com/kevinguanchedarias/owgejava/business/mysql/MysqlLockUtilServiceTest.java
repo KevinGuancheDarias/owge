@@ -85,12 +85,12 @@ class MysqlLockUtilServiceTest {
 
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_RELEASE_LOCK), any(PreparedStatementCallback.class));
-        verify(preparedStatementMockForLock, times(1)).setString(1, KEY_1);
+        verify(preparedStatementMockForLock, times(1)).setString(1, KEY_2);
         verify(preparedStatementMockForLock, times(1)).setInt(2, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForLock, times(1)).setString(3, KEY_2);
+        verify(preparedStatementMockForLock, times(1)).setString(3, KEY_1);
         verify(preparedStatementMockForLock, times(1)).setInt(4, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(1, KEY_1);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(2, KEY_2);
+        verify(preparedStatementMockForReleaseLock, times(1)).setString(1, KEY_2);
+        verify(preparedStatementMockForReleaseLock, times(1)).setString(2, KEY_1);
     }
 
     @CsvSource({
