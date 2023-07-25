@@ -44,7 +44,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
   /**
    * Displays an error message
    *
-   * @param {string} message Message to display
+   * @param message Message to display
    * @author Kevin Guanche Darias
    */
   public async displayError(message: string): Promise<void> {
@@ -62,12 +62,12 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
   }
 
   /**
-     * Returns true if the unit is of the same type, of it's null
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @param {{ typeId: number}} unit
-     * @memberof BaseUnitComponent
-     */
+   * Returns true if the unit is of the same type, of it's null
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @param unit
+   * @memberof BaseUnitComponent
+   */
   public isOfTypeOrNullFilter(type: { typeId: number }, property: keyof this): boolean {
     return !this[property] || this[property]['id'] === type.typeId;
   }
@@ -93,7 +93,7 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    * Executes a promise or promises displaying the loading icon globally, until the promise is resolved
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {...Promise<any>[]} promises
+   * @param promises
    * @returns If one single promise is executed, will return its value
    * @memberof BaseComponent
    */
@@ -105,14 +105,13 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
     }
   }
 
-
   /**
    * Does the same than <i>doWithLoading()</i> but executing a function that returns a promise instead
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @template T
-   * @param {() => Promise<T>} action
-   * @returns {Promise<T>}
+   * @param action
+   * @returns
    * @memberof BaseComponent
    */
   protected async _runWithLoading<T = any>(action: () => Promise<T>): Promise<T> {
@@ -125,12 +124,12 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    * @author Kevin Guanche Darias
    */
   protected requireUser(onloadOrReload?: () => void): void {
-    this._universeGameService.findLoggedInUserData<U>().subscribe(user => {
+    this._subscriptions.add(this._universeGameService.findLoggedInUserData<U>().subscribe(user => {
       this._userData = user;
       if (typeof onloadOrReload === 'function') {
         onloadOrReload();
       }
-    });
+    }));
   }
 
   /**
@@ -151,9 +150,9 @@ export class BaseComponent<U extends User = User> implements OnDestroy {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @protected
-   * @param {QueryList<ElementRef>} components
-   * @param {string} [titleTarget='.card-title span']
-   * @param {(currentel: HTMLElement) => HTMLElement} findParentFormula
+   * @param components
+   * @param [titleTarget='.card-title span']
+   * @param findParentFormula
    * @memberof BaseComponent
    */
   protected autoSpanCard(

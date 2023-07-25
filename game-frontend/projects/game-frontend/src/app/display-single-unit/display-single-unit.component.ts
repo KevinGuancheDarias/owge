@@ -8,7 +8,7 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import {AsyncCollectionUtil, CommonEntity, ModalComponent, UnitType, User} from '@owge/core';
+import {ModalComponent, UnitType, User} from '@owge/core';
 import { UserWithFaction } from '@owge/faction';
 import {
   ImprovementUtil,
@@ -128,6 +128,7 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
   private loadAffectingActiveTimeSpecialRulesSubscription: Subscription;
   private loadAffectingActiveTimeSpecialHiddenUnitSubscription: Subscription;
   private unitTypeOfUnit: UnitType;
+  private resourcesSubscription: Subscription;
 
   constructor(
     private _unitService: UnitService,
@@ -161,7 +162,17 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
           this.handleUnitLoad(this.unit);
         }
         this._subscriptions.add(this._unitTypeService.getUnitTypes().subscribe(val => this.unitTypes = val));
-        this.unit = this._unitService.computeRequiredResources(this.unit, true, this._count);
+        this.unit = this._unitService.computeRequiredResources(
+            this.unit,
+            true,
+            this._count,
+            (resourcesSubscription, improvementSubscription) => {
+              this.resourcesSubscription = resourcesSubscription;
+              if(improvementSubscription) {
+                this._subscriptions.add(improvementSubscription);
+              }
+            }
+        );
       });
     });
     this.selectedView = this.defaultView;
@@ -185,6 +196,8 @@ export class DisplaySingleUnitComponent extends BaseComponent<UserWithFaction> i
     this.loadAffectingActiveTimeSpecialRulesSubscription?.unsubscribe();
     this.loadAffectingRulesSubscription?.unsubscribe();
     this.loadAffectingActiveTimeSpecialHiddenUnitSubscription?.unsubscribe();
+    this.resourcesSubscription?.unsubscribe();
+    this._improvementsSubscription?.unsubscribe();
   }
 
   otherUnitAlreadyRunning(): void {

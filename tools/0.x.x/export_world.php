@@ -14,6 +14,7 @@ const TABLES_TO_EXPORT = [
     'images_store',
     'improvements',
     'improvements_unit_types',
+    'interceptable_speed_group',
     'object_relations',
     'object_relation__object_relation',
     'planets',

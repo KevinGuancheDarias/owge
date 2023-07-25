@@ -66,12 +66,18 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
    * @param subscribeToResources true if want to recompute the runnable field of RequirementPojo,
    *          on each change to the resources (expensive!)
    * @param countBehabiorSubject - Specify it to automatically update resource requirements on changes to count
+   * @param defineSubscription Used to allow external unsubscription
    * @returns Unit with filled values
    * @author Kevin Guanche Darias
    */
-  public computeRequiredResources(unit: Unit, subscribeToResources: boolean, countBehaviorSubject: Subject<number>): Unit {
+  public computeRequiredResources(
+      unit: Unit,
+      subscribeToResources: boolean,
+      countBehaviorSubject: Subject<number>,
+      defineSubscription: (subscription: Subscription, improvementSubscription: Subscription) => void
+  ): Unit {
     let improvementSuscription: Subscription;
-    countBehaviorSubject.pipe(distinctUntilChanged((a, b) => a === b)).subscribe(newCount => {
+    const subscription = countBehaviorSubject.pipe(distinctUntilChanged((a, b) => a === b)).subscribe(newCount => {
       if (improvementSuscription) {
         improvementSuscription.unsubscribe();
       }
@@ -92,7 +98,9 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
         unit.requirements.requiredEnergy = (unit.energy || 0) * newCount;
         this._doCheckResourcesSubscriptionForRequirements(unit.requirements, subscribeToResources);
       });
+      defineSubscription(null, improvementSuscription);
     });
+    defineSubscription(subscription, null);
     return unit;
   }
 
@@ -241,19 +249,6 @@ export class UnitService extends AbstractWebsocketApplicationHandler {
     content.forEach(current => DateUtil.computeBrowserTerminationDate(current));
     this._unitStore.runningBuildMissions.next(content);
     await this._wsEventCacheService.updateWithFrontendComputedData('unit_build_mission_change', content);
-  }
-
-  private _doComputeRequiredResources(unit: Unit, subscribeToResources: boolean, count = 1): Unit {
-    const requirements: ResourceRequirements = new ResourceRequirements();
-    requirements.requiredPrimary = unit.primaryResource * count;
-    requirements.requiredSecondary = unit.secondaryResource * count;
-    requirements.requiredTime = unit.time * count;
-    requirements.requiredTime += requirements.handleSustractionPercentage(requirements.requiredTime, this._improvement.moreUnitBuildSpeed);
-    requirements.requiredEnergy = (unit.energy || 0) * count;
-
-    this._doCheckResourcesSubscriptionForRequirements(requirements, subscribeToResources);
-    unit.requirements = requirements;
-    return unit;
   }
 
   private _doCheckResourcesSubscriptionForRequirements(requirements: ResourceRequirements, subscribeToResources: boolean) {
