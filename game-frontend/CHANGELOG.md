@@ -1,6 +1,7 @@
+
 # OWGE changelog
 
-v0.11.0 (latest)
+v0.11.0 (2023-08-13 20:38)
 =================
 * __Improvement:__ Show time special effects  
 * __Improvement:__ Add icon to show that a unit can capture units  
