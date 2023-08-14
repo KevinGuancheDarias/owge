@@ -3,6 +3,7 @@
 
 v0.11.1 (latest)
 =================
+* __Improvement:__ [Show faction name of the user in the ranking #528](https://github.com/KevinGuancheDarias/owge/issues/528)  
 * __Fix:__ [System messages not working #522](https://github.com/KevinGuancheDarias/owge/issues/522)  
 * [class=Advanced] __Improvement:__ Add another potential fix for random bug 
 

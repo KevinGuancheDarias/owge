@@ -311,6 +311,7 @@
         "POSITION": "Position",
         "POINTS": "Points",
         "USER": "User",
+        "FACTION": "Faction",
         "ALLIANCE": "Alliance"
     },
     "SETTINGS": {

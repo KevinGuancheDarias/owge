@@ -8,10 +8,14 @@ import com.kevinguanchedarias.owgejava.pojo.UnitTypesOverride;
 import lombok.experimental.UtilityClass;
 
 import static com.kevinguanchedarias.owgejava.mock.GalaxyMock.GALAXY_ID;
+import static com.kevinguanchedarias.owgejava.mock.ImageStoreMock.givenImageStore;
+import static com.kevinguanchedarias.owgejava.mock.ImprovementMock.givenImprovement;
 
 @UtilityClass
 public class FactionMock {
     public static final int FACTION_ID = 1;
+    public static final String FACTION_NAME = "Paco";
+    public static final String FACTION_DESCRIPTION = "The Good Faction!";
     public static final long SECTOR_RANGE_START = 12L;
     public static final long SECTOR_RANGE_END = 18L;
     public static final long QUADRANT_RANGE_START = 10L;
@@ -26,13 +30,17 @@ public class FactionMock {
     public static final int FACTION_INITIAL_ENERGY = 100;
 
     public static Faction givenFaction() {
-        return Faction.builder()
+        var faction = Faction.builder()
                 .id(FACTION_ID)
                 .initialPrimaryResource(FACTION_INITIAL_PR)
                 .initialSecondaryResource(FACTION_INITIAL_SR)
                 .initialEnergy(FACTION_INITIAL_ENERGY)
-                .improvement(ImprovementMock.givenImprovement())
+                .improvement(givenImprovement())
                 .build();
+        faction.setName(FACTION_NAME);
+        faction.setDescription(FACTION_DESCRIPTION);
+        faction.setImage(givenImageStore());
+        return faction;
     }
 
     public static UnitTypesOverride givenOverride() {

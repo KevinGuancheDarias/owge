@@ -3,6 +3,8 @@
  */
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.dto.CommonDtoWithImageStore;
+import com.kevinguanchedarias.owgejava.entity.Faction;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.pojo.RankingEntry;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
@@ -22,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RankingBo {
     private final UserStorageRepository userStorageRepository;
 
-
     /**
      * Find all the ranking entries <br>
      * <b>NOTICE:</b> NOT using pagination
@@ -38,13 +39,21 @@ public class RankingBo {
         return userStorageRepository.findAllByOrderByPointsDesc().stream().map(current -> {
             var alliance = current.getAlliance();
             var hasAlliance = alliance != null;
+            var userFaction = current.getFaction();
+            CommonDtoWithImageStore<Integer, Faction> faction = new CommonDtoWithImageStore<>();
+            faction.setName(userFaction.getName());
+            faction.setDescription(userFaction.getDescription());
+            faction.setImage(userFaction.getImage().getId());
+            faction.setImageUrl(userFaction.getImage().getUrl());
+
             var retVal = new RankingEntry(
                     position.get(),
                     current.getPoints(),
                     current.getId(),
                     current.getUsername(),
                     hasAlliance ? alliance.getId() : null,
-                    hasAlliance ? alliance.getName() : null
+                    hasAlliance ? alliance.getName() : null,
+                    faction
             );
             position.incrementAndGet();
             return retVal;

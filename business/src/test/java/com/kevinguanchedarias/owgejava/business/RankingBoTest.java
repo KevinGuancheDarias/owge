@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.mock.AllianceMock.*;
+import static com.kevinguanchedarias.owgejava.mock.FactionMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UserMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -34,10 +35,13 @@ class RankingBoTest {
     @Test
     void findRanking_should_work() {
         var user1 = givenUser1();
+        var userFaction = givenFaction();
         user1.setPoints(USER_1_POINTS);
         user1.setAlliance(givenAlliance());
+        user1.setFaction(userFaction);
         var user2 = givenUser2();
         user2.setPoints(USER_2_POINTS);
+        user2.setFaction(userFaction);
         given(userStorageRepository.findAllByOrderByPointsDesc()).willReturn(List.of(user2, user1));
 
         var retVal = rankingBo.findRanking();
@@ -46,6 +50,9 @@ class RankingBoTest {
         var firstPosition = retVal.get(0);
         var secondPosition = retVal.get(1);
         testPosition(firstPosition, 1, USER_2_POINTS, USER_ID_2, USER_2_NAME, null, null);
+        assertThat(firstPosition.faction().getName()).isEqualTo(FACTION_NAME);
+        assertThat(firstPosition.faction().getDescription()).isEqualTo(FACTION_DESCRIPTION);
+        assertThat(firstPosition.faction().getImageUrl()).isNotEmpty();
         testPosition(secondPosition, 2, USER_1_POINTS, USER_ID_1, USER_1_NAME, ALLIANCE_ID, ALLIANCE_NAME);
     }
 
