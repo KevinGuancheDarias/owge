@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kevinguanchedarias.owgejava.entity.SystemMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class SystemMessageDto implements DtoFromEntity<SystemMessage> {
     private Integer id;
     private String content;
 
+    @JsonFormat()
     @Builder.Default
     private LocalDateTime creationDate = LocalDateTime.now(ZoneOffset.UTC);
 

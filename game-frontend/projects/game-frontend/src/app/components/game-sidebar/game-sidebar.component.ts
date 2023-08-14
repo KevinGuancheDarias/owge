@@ -159,7 +159,7 @@ export class GameSidebarComponent extends AbstractSidebarComponent implements On
     this._missionStore.maxMissions.subscribe(maxCount => this.maxMissions = maxCount);
     this._reportService.findUserUnreadCount().subscribe(result => this.userUnreadReports = result);
     this._systemMessageService.findAll().pipe(
-      map(result => result.filter(message => !message.isRead).length)
+      map(result => result.filter(message => !message.read).length)
     ).subscribe(systemUnread => this.unreadSystemMessages = systemUnread);
     this._reportService.findEnemyUnreadCount().subscribe(result => this.enemyUnreadReports = result);
     window.addEventListener('storage', e => {

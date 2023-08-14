@@ -30,7 +30,7 @@ export class SystemMessagesComponent extends BaseComponent implements OnInit {
   }
 
   private _markAsRead(): void {
-    const unreadMessages = this.messages.filter(message => !message.isRead);
+    const unreadMessages = this.messages.filter(message => !message.read);
     if (unreadMessages.length) {
       this._loadingService.addPromise(this._service.markAsRead(unreadMessages).toPromise());
     }

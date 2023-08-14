@@ -3,6 +3,7 @@
 
 v0.11.1 (latest)
 =================
+* __Fix:__ [System messages not working #522](https://github.com/KevinGuancheDarias/owge/issues/522)  
 * [class=Advanced] __Improvement:__ Add another potential fix for random bug 
 
 v0.11.0 (2023-08-13 20:38)

@@ -10,5 +10,5 @@ export interface SystemMessage {
     id: number;
     content: string;
     creationDate?: number;
-    isRead?: boolean;
+    read?: boolean;
 }
