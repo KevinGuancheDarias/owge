@@ -2,14 +2,19 @@ package com.kevinguanchedarias.owgejava.business.mysql;
 
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
+import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -20,18 +25,21 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static com.kevinguanchedarias.owgejava.business.mysql.MysqlLockUtilService.TIMEOUT_SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
+@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(
         classes = MysqlLockUtilService.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE
 )
 @MockBean({
         JdbcTemplate.class,
-        TransactionUtilService.class
+        TransactionUtilService.class,
+        MysqlInformationRepository.class
 })
 class MysqlLockUtilServiceTest {
     private static final String KEY_1 = "foo_key";
@@ -49,6 +57,7 @@ class MysqlLockUtilServiceTest {
     private final MysqlLockUtilService mysqlLockUtilService;
     private final JdbcTemplate jdbcTemplate;
     private final TransactionUtilService transactionUtilService;
+    private final MysqlInformationRepository mysqlInformationRepository;
 
     private Runnable runnableMock;
 
@@ -56,11 +65,13 @@ class MysqlLockUtilServiceTest {
     public MysqlLockUtilServiceTest(
             MysqlLockUtilService mysqlLockUtilService,
             JdbcTemplate jdbcTemplate,
-            TransactionUtilService transactionUtilService
+            TransactionUtilService transactionUtilService,
+            MysqlInformationRepository mysqlInformationRepository
     ) {
         this.mysqlLockUtilService = mysqlLockUtilService;
         this.jdbcTemplate = jdbcTemplate;
         this.transactionUtilService = transactionUtilService;
+        this.mysqlInformationRepository = mysqlInformationRepository;
     }
 
     @BeforeEach
@@ -129,6 +140,38 @@ class MysqlLockUtilServiceTest {
         assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasCause(exception);
+    }
+
+    @Test
+    void doInsideLock_should_retry_if_deadlock(CapturedOutput capturedOutput) throws SQLException {
+        var preparedStatementMock = handlePreparedStatementForLock();
+        var exception = new SQLException("Deadlock foo user-lock bar");
+        doThrow(exception).doReturn(true).when(preparedStatementMock).execute();
+
+        try (var unused = mockStatic(ThreadUtil.class)) {
+            mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
+        }
+
+        assertThat(capturedOutput.getOut()).contains("Deadlock, retrying lock of");
+        verify(mysqlInformationRepository, times(1)).findInnoDbStatus();
+        verify(mysqlInformationRepository, times(1)).findFullProcessInformation();
+        verify(preparedStatementMock, times(2)).execute();
+    }
+
+    @Test
+    void doInsideLock_should_surrender_if_too_many_deadlocks(CapturedOutput capturedOutput) throws SQLException {
+        var preparedStatementMock = handlePreparedStatementForLock();
+        var exception = new SQLException("Deadlock foo user-lock bar");
+        doThrow(exception).when(preparedStatementMock).execute();
+
+        try (var unused = mockStatic(ThreadUtil.class)) {
+            assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock)).hasMessageContaining("Unhandled deadlock");
+        }
+
+        assertThat(capturedOutput.getOut()).contains("Couldn't solve deadlock");
+        verify(mysqlInformationRepository, times(5)).findInnoDbStatus();
+        verify(mysqlInformationRepository, times(5)).findFullProcessInformation();
+        verify(preparedStatementMock, times(6)).execute();
     }
 
     @Test

@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.1 (latest)
+=================
+* [class=Advanced] __Improvement:__ Add another potential fix for random bug 
+
 v0.11.0 (2023-08-13 20:38)
 =================
 * __Improvement:__ Show time special effects  

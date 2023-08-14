@@ -2,8 +2,12 @@ package com.kevinguanchedarias.owgejava.business.mysql;
 
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
+import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
+import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,7 @@ public class MysqlLockUtilService {
     public static final int TIMEOUT_SECONDS = 10;
     private final JdbcTemplate jdbcTemplate;
     private final TransactionUtilService transactionUtilService;
+    private final MysqlInformationRepository mysqlInformationRepository;
 
     public void doInsideLock(Set<String> keys, Runnable runnable) {
         if (keys.isEmpty()) {
@@ -74,11 +79,7 @@ public class MysqlLockUtilService {
                 throw new IllegalArgumentException("Invalid param for db query", e);
             }
         });
-        try {
-            preparedStatement.execute();
-        } catch (SQLException e) {
-            throw new CommonException("Unexpected db error", e);
-        }
+        tryAndRetryIfDeadlock(keys, preparedStatement, 0);
     }
 
     private void generateBindParamsWithoutTimeout(List<String> keys, PreparedStatement preparedStatement) {
@@ -90,10 +91,31 @@ public class MysqlLockUtilService {
                 throw new IllegalArgumentException("Invalid param for db query", e);
             }
         });
+        tryAndRetryIfDeadlock(keys, preparedStatement, 0);
+    }
+
+    @SneakyThrows
+    private void tryAndRetryIfDeadlock(List<String> keys, PreparedStatement preparedStatement, int tries) {
         try {
             preparedStatement.execute();
         } catch (SQLException e) {
-            throw new CommonException("Unexpected db error", e);
+            if (e.getMessage().contains("Deadlock")) {
+                if (tries > 4) {
+                    log.error("Couldn't solve deadlock for keys {}", keys, e);
+                    throw new CommonException("Unhandled deadlock", e);
+                } else {
+                    log.warn(
+                            "Deadlock, retrying lock of ids {}, info: {}, process: {}",
+                            keys,
+                            mysqlInformationRepository.findInnoDbStatus(),
+                            mysqlInformationRepository.findFullProcessInformation()
+                    );
+                    ThreadUtil.sleep(RandomUtils.nextInt(100, 300));
+                    tryAndRetryIfDeadlock(keys, preparedStatement, tries + 1);
+                }
+            } else {
+                throw new CommonException("Unexpected db error", e);
+            }
         }
     }
 }
