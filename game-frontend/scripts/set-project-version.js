@@ -6,13 +6,7 @@ const pomFiles = [
     '../game-rest/pom.xml'
 ];
 const packageJsonFiles = [
-    './package.json',
-    './projects/owge-alliance/package.json',
-    './projects/owge-core/package.json',
-    './projects/owge-faction/package.json',
-    './projects/owge-galaxy/package.json',
-    './projects/owge-universe/package.json',
-    './projects/owge-widgets/package.json'
+    './package.json'
 ];
 if (process.argv.length >= 3) {
     const targetVersion = process.argv[2];
