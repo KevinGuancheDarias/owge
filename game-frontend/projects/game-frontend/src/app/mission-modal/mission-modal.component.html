@@ -40,7 +40,7 @@
         </div>
       </div>
       <div class="unit-selection">
-        <app-deployed-units-list [filterForAll]="clickSelectAllBinded"
+        <app-deployed-units-list [filterForAll]="clickSelectAllBinded" #deployedUnitsListComponent
           [selectAllNotAvailableText]="'APP.MISSION_MODAL.MUST_SELECT_MISSION_TYPE'" [obtainedUnits]="obtainedUnits"
           [selectable]="true" (selection)="onUnitSelection($event)"
           (unitTypesOfSelection)="onSelectedUnitTypes($event)"></app-deployed-units-list>

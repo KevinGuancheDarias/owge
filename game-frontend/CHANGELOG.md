@@ -3,6 +3,7 @@
 
 v0.11.2 (latest)
 ==================
+* __Fix:__ [Fix mission dialog not updating correctly when mission returns, the unit is added to the modal, duplicating itself, and creating "ghost" units #517](https://github.com/KevinGuancheDarias/owge/issues/517)  
 * [class=Advanced] __Improvement:__ Add extra info to obtain random bug data
 * __Fix:__ [Unit requirements not displaying correctly in Neon #525](https://github.com/KevinGuancheDarias/owge/issues/525)    
 

@@ -195,6 +195,28 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     this.ableToStoreUnitModal.hide();
   }
 
+  public rebuildInstance(): void {
+    this.selectionStructure = [];
+  }
+
+  private rebuildSelection(obtainedUnits: ObtainedUnit[], selectionStructure: UnitSelection[]) {
+    obtainedUnits.forEach(current => {
+      const selectionCurrentValue = selectionStructure.find(selection => selection.obtainedUnit.id === current.id);
+      if(selectionCurrentValue) {
+        selectionCurrentValue.obtainedUnit = current;
+        if(selectionCurrentValue.selectedCount && selectionCurrentValue.selectedCount > current.count) {
+          selectionCurrentValue.selectedCount = current.count;
+        }
+      } else {
+        selectionStructure.push({
+          obtainedUnit: current,
+          storedUnitsSelection: [],
+          usedWeight: 0
+        });
+      }
+    });
+  }
+
   private filterOutNotStorableUnits(obtainedUnits: ObtainedUnit[]): Promise<ObtainedUnit[]> {
     const from: Unit = this.currentSelectionForStoring.obtainedUnit.unit;
     return AsyncCollectionUtil.filter(obtainedUnits, async obtainedUnit =>
@@ -226,24 +248,6 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
       .filter(currentStored => currentStored.selectedCount)
       .map(currentStored => currentStored.selectedCount * currentStored.obtainedUnit.unit.storedWeight)
       .reduce((sum,current) => sum + current, 0);
-  }
-
-  private rebuildSelection(obtainedUnits: ObtainedUnit[], selectionStructure: UnitSelection[]) {
-    obtainedUnits.forEach(current => {
-      const selectionCurrentValue = selectionStructure.find(selection => selection.obtainedUnit.id === current.id);
-      if(selectionCurrentValue) {
-        selectionCurrentValue.obtainedUnit = current;
-        if(selectionCurrentValue.selectedCount && selectionCurrentValue.selectedCount > current.count) {
-          selectionCurrentValue.selectedCount = current.count;
-        }
-      } else {
-        selectionStructure.push({
-          obtainedUnit: current,
-          storedUnitsSelection: [],
-          usedWeight: 0
-        });
-      }
-    });
   }
 
   private findSelectionWithCount(): UnitSelection[] {

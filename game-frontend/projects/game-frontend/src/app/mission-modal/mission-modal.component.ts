@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import { AbstractModalContainerComponent, LoggerHelper, MissionType, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
 import { PlanetService } from '@owge/galaxy';
-import { 
+import {
   MissionStore, ObtainedUnit, Planet, SpeedImpactGroupService,
   UnitTypeService, MissionService, SelectedUnit
 } from '@owge/universe';
@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';
 import { MissionInformationStore } from '../store/mission-information.store';
+import {DeployedUnitsListComponent} from '../components/deployed-units-list/deployed-units-list.component';
 
 /**
  * Modal to send a mission to a planet
@@ -25,6 +26,8 @@ import { MissionInformationStore } from '../store/mission-information.store';
   styleUrls: ['./mission-modal.component.scss']
 })
 export class MissionModalComponent extends AbstractModalContainerComponent implements OnInit, OnDestroy {
+
+  @ViewChild('deployedUnitsListComponent') private deployedUnitsListComponent: DeployedUnitsListComponent;
 
   /**
    * Planet to which mission is going to be send
@@ -75,7 +78,10 @@ export class MissionModalComponent extends AbstractModalContainerComponent imple
   public ngOnInit(): void {
     this._configurationService.observeDeploymentConfiguration().subscribe(val => this.deploymentConfig = val);
     this._missionStore.maxMissions.subscribe(val => this.maxMissions = val);
-    this._triggerChange(this._missioninformationStore.originPlanet, sourcePlanet => this.sourcePlanet = sourcePlanet);
+    this._triggerChange(this._missioninformationStore.originPlanet, sourcePlanet => {
+      this.deployedUnitsListComponent?.rebuildInstance();
+      this.sourcePlanet = sourcePlanet;
+    });
     this._triggerChange(this._missioninformationStore.targetPlanet, targetPlanet => this.targetPlanet = targetPlanet);
     this._triggerChange(this._missioninformationStore.availableUnits, availableUnits => this.obtainedUnits = availableUnits);
     this._triggerChange(this._speedImpactGroupService.findunlockedIds(), result => this.unlockedSpeedImpactGroups = result);

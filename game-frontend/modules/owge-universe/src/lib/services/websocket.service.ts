@@ -163,7 +163,7 @@ export class WebsocketService {
               this._log.warn('Universe changed, even if the origin is the same');
               universeIdStore.save(universeId);
               // TODO: Remove the workaround with window reload, as the Dexie databases don't want to recreate after deletion
-              window.location.reload();
+              // window.location.reload();
             }
             await this._setupSync(response);
             this._isAuthenticated = true;

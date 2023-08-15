@@ -106,7 +106,7 @@ export class AppComponent implements OnInit {
   }
 
   public clickReload() {
-    window.location.reload();
+    // window.location.reload();
   }
 
   public onDisplayTwitch(val: TwitchState): void {
