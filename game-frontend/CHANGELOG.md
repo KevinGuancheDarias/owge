@@ -4,6 +4,7 @@
 v0.11.2 (latest)
 ==================
 * [class=Advanced] __Improvement:__ Add extra info to obtain random bug data
+* __Fix:__ [Unit requirements not displaying correctly in Neon #525](https://github.com/KevinGuancheDarias/owge/issues/525)    
 
 v0.11.1 (2023-08-14 18:49)
 =================
