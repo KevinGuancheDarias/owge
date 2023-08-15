@@ -1,7 +1,7 @@
 
 # OWGE changelog
 
-v0.11.3 (latest)
+v0.11.3 (2023-08-15 21:22)
 ==================
 * [class=Advanced] __Fix:__ On F5 it's requesting all websocket keys
 * __Fix:__ [When you do f5 the time of the missions get faked #529](https://github.com/KevinGuancheDarias/owge/issues/529)  
