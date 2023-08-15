@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.pojo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,8 @@ import java.time.LocalDateTime;
 public class SystemMessageUser {
     private Integer id;
     private String content;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime creationDate;
     private boolean isRead;
 }

@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
+import com.kevinguanchedarias.owgejava.util.filter.MissionRestUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -68,8 +69,9 @@ public class MissionRestService implements SyncSource {
         return SyncHandlerBuilder.create().withHandler("missions_count_change", this::findCount)
                 .withHandler("unit_mission_change",
                         user -> new MissionWebsocketMessage(findCount(user),
-                                runningMissionFinderBo.findUserRunningMissions(user.getId())))
-                .withHandler("enemy_mission_change", runningMissionFinderBo::findEnemyRunningMissions).build();
+                                MissionRestUtil.mutateRecalculatePendingMillis(runningMissionFinderBo.findUserRunningMissions(user.getId()))))
+                .withHandler("enemy_mission_change",
+                        user -> MissionRestUtil.mutateRecalculatePendingMillis(runningMissionFinderBo.findEnemyRunningMissions(user))).build();
     }
 
     private Integer findCount(UserStorage user) {

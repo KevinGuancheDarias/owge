@@ -115,20 +115,6 @@ export class WsEventCacheService {
         this._eventInformationStore.save(this._eventsInformation);
     }
 
-
-    /**
-     * Returns true if the entry has changed, known because it exists, and has the change prop defined
-     *
-     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-     * @since 0.9.0
-     * @param eventName
-     * @returns
-     */
-    public hasChanged(eventName: string): boolean {
-        const entry = this._eventsInformation[eventName];
-        return entry && entry.changed;
-    }
-
     public async createOfflineStores(): Promise<void> {
         await this._universeCacheManagerService.beforeWorkaroundSync();
         [...WsEventCacheService._ALLOWED_EVENTS, ...WsEventCacheService.eventsForOpen].forEach(event => {

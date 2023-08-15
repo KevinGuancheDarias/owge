@@ -22,7 +22,7 @@ public class SystemMessageDto implements DtoFromEntity<SystemMessage> {
     private Integer id;
     private String content;
 
-    @JsonFormat()
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM-dd-yyyy")
     @Builder.Default
     private LocalDateTime creationDate = LocalDateTime.now(ZoneOffset.UTC);
 

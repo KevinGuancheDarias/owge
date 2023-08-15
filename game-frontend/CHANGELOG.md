@@ -3,6 +3,8 @@
 
 v0.11.3 (latest)
 ==================
+* [class=Advanced] __Fix:__ On F5 it's requesting all websocket keys
+* __Fix:__ [When you do f5 the time of the missions get faked #529](https://github.com/KevinGuancheDarias/owge/issues/529)  
 * __Fix:__ [HAVE_UNIT requirement is removing the unlocked unit when you send all the units that are "required" to some mission, it should unlock it back when units come from that mission #516](https://github.com/KevinGuancheDarias/owge/issues/516)  
 
 v0.11.2 (2023-08-15 13:32)

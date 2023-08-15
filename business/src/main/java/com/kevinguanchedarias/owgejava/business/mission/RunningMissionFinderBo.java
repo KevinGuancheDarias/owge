@@ -78,6 +78,4 @@ public class RunningMissionFinderBo {
                     return current;
                 }).map(UnitRunningMissionDto::nullifyInvolvedUnitsPlanets).toList();
     }
-
-
 }
