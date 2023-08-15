@@ -1,7 +1,11 @@
 
 # OWGE changelog
 
-v0.11.2 (latest)
+v0.11.3 (latest)
+==================
+* __Fix:__ [HAVE_UNIT requirement is removing the unlocked unit when you send all the units that are "required" to some mission, it should unlock it back when units come from that mission #516](https://github.com/KevinGuancheDarias/owge/issues/516)  
+
+v0.11.2 (2023-08-15 13:32)
 ==================
 * __Fix:__ [Fix mission dialog not updating correctly when mission returns, the unit is added to the modal, duplicating itself, and creating "ghost" units #517](https://github.com/KevinGuancheDarias/owge/issues/517)  
 * [class=Advanced] __Improvement:__ Add extra info to obtain random bug data

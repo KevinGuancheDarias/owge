@@ -2,6 +2,7 @@ package com.kevinguanchedarias.owgejava.business.mission.processor;
 
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.AsyncRunnerBo;
+import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -28,6 +30,7 @@ public class ReturnMissionProcessor implements MissionProcessor {
     private final AsyncRunnerBo asyncRunnerBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
+    private final RequirementBo requirementBo;
 
     @Override
     public boolean supports(MissionType missionType) {
@@ -39,14 +42,25 @@ public class ReturnMissionProcessor implements MissionProcessor {
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
         planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
             log.debug("Processing return mission {}", mission.getId());
-            var userId = mission.getUser().getId();
+            var user = mission.getUser();
+            var userId = user.getId();
+            var planetOwnerOpt = Optional.ofNullable(mission.getSourcePlanet().getOwner());
             var obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
             obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
             mission.setResolved(true);
             missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
             asyncRunnerBo
                     .runAsyncWithoutContextDelayed(
-                            () -> obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser()),
+                            () -> {
+                                if (planetOwnerOpt.isPresent() && planetOwnerOpt.get().getId().equals(userId)) {
+                                    obtainedUnits.stream().map(ObtainedUnit::getUnit)
+                                            .forEach(current -> {
+                                                requirementBo.triggerUnitBuildCompletedOrKilled(user, current);
+                                                requirementBo.triggerUnitAmountChanged(user, current);
+                                            });
+                                }
+                                obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser());
+                            },
                             500);
             log.debug("Done processing return mission {}", mission.getId());
         });
