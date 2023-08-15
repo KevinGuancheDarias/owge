@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.2 (latest)
+==================
+* [class=Advanced] __Improvement:__ Add extra info to obtain random bug data
+
 v0.11.1 (2023-08-14 18:49)
 =================
 * __Improvement:__ [Show faction name of the user in the ranking #528](https://github.com/KevinGuancheDarias/owge/issues/528)  
