@@ -8,21 +8,23 @@
       [navigationConfig]="navigationConfig" (onNavigation)="changePosition($event)"></app-navigation-controls>
   </div>
   <h4 class="display-quadrant owge-theme-base-colors">{{ 'APP.DISPLAY_QUADRANT.CURRENT_COORDINATES' | translate}}</h4>
-  <div class="owge-theme-base-colors display-quadrant navigation-status row" *ngIf="navigationConfig && navigationData">
+  <ng-container *ngIf="navigationConfig && navigationData">
+    <div [owgeCoreSecureItem] class="owge-theme-base-colors display-quadrant navigation-status row">
 
-    <div class="col-xs-4">
-      <div>{{ 'APP.DISPLAY_QUADRANT.GALAXY' | translate}}:</div>
-      <div class="value">{{ findSelectedGalaxyName() }}</div>
+      <div class="col-xs-4">
+        <div>{{ 'APP.DISPLAY_QUADRANT.GALAXY' | translate}}:</div>
+        <div class="value">{{ findSelectedGalaxyName() }}</div>
+      </div>
+      <div class="col-xs-4">
+        <div>{{ 'APP.DISPLAY_QUADRANT.SECTOR' | translate}}:</div>
+        <div class="value">{{ navigationConfig.sector }}</div>
+      </div>
+      <div class="col-xs-4">
+        <div>{{ 'APP.DISPLAY_QUADRANT.QUADRANT' | translate}}:</div>
+        <div class="value">{{ navigationConfig.quadrant }}</div>
+      </div>
     </div>
-    <div class="col-xs-4">
-      <div>{{ 'APP.DISPLAY_QUADRANT.SECTOR' | translate}}:</div>
-      <div class="value">{{ navigationConfig.sector }}</div>
-    </div>
-    <div class="col-xs-4">
-      <div>{{ 'APP.DISPLAY_QUADRANT.QUADRANT' | translate}}:</div>
-      <div class="value">{{ navigationConfig.quadrant }}</div>
-    </div>
-  </div>
+  </ng-container>
   <div *ngIf="navigationData">
     <app-planet-selector [navigationData]="navigationData" [class]="isFullWidth ? 'full-width' : 'in-content'">
       <ng-template let-planet="planet">

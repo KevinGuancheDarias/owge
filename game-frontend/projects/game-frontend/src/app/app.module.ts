@@ -66,7 +66,6 @@ import { PageNotFoundComponent } from './page-not-found/page-not-found.component
 import { DisplayMissionTypePipe } from './pipes/display-mission-type.pipe';
 import { DisplayUsernamePipe } from './pipes/display-username.pipe';
 import { MilisToDatePipe } from './pipes/milis-to-date/milis-to-date.pipe';
-import { PlanetDisplayNamePipe } from './pipes/planet-display-name/planet-display-name.pipe';
 import { ServiceLocator } from './service-locator/service-locator';
 import { NavigationService } from './service/navigation.service';
 import { UnitService } from './service/unit.service';
@@ -142,7 +141,6 @@ export const APP_ROUTES: Routes = [
     NavigationComponent,
     NavigationControlsComponent,
     DisplayQuadrantComponent,
-    PlanetDisplayNamePipe,
     DeployedUnitsListComponent,
     ReportsListComponent,
     UnitsAliveDeathListComponent,

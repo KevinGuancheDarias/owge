@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { Planet } from '@owge/universe';
+import {Observable} from 'rxjs';
 
 /**
  * This pipe displays the planet name or not explored, if the planet is not explored

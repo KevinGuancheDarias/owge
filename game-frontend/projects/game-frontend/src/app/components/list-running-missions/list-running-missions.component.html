@@ -32,33 +32,32 @@
                 <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
                 <a routerLink="/navigate" [queryParams]="runningUnitMission?.sourcePlanet | planetToNavigation"
                    data-html="true" placement="bottom"
-                >{{ runningUnitMission?.sourcePlanet | planetDisplayName }}</a>
+                >{{ runningUnitMission?.sourcePlanet | securePlanetEntryPipe }}</a>
               </div>
               <div class="owge-theme-border-solid">
                 <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
                 <a
                         routerLink="/navigate" [queryParams]="runningUnitMission?.targetPlanet | planetToNavigation"
                         data-html="true" placement="bottom"
-                >{{ runningUnitMission?.targetPlanet | planetDisplayName }}</a>
+                >{{ runningUnitMission?.targetPlanet | securePlanetEntryPipe }}</a>
               </div>
             </ng-template>
             <ng-template owgeCoreIfTheme="neon">
               <div *ngIf="runningUnitMission.sourcePlanet">
                 <h4>{{ 'APP.MISSION_LIST.ORIGIN' | translate }}</h4>
                 <img class="owge-theme-planet-image" [src]="runningUnitMission.sourcePlanet | planetImage" />
-                <span>{{ runningUnitMission.sourcePlanet | planetDisplayName }}</span>
+                <span>{{ runningUnitMission.sourcePlanet | securePlanetEntryPipe }}</span>
               </div>
               <div *ngIf="runningUnitMission.targetPlanet">
                 <h4>{{ 'APP.MISSION_LIST.TARGET' | translate }}</h4>
                 <img class="owge-theme-planet-image" [src]="runningUnitMission.targetPlanet | planetImage" />
-                <span>{{ runningUnitMission.targetPlanet | planetDisplayName }}</span>
+                <span>{{ runningUnitMission.targetPlanet | securePlanetEntryPipe }}</span>
               </div>
             </ng-template>
           </div>
         </div>
       </div>
       <div class="card-block">
-        <h5>Involved units</h5>
         <app-deployed-units-list [obtainedUnits]="runningUnitMission.involvedUnits" [useTiny]="true" [showStoredUnits]="true">
         </app-deployed-units-list>
       </div>

@@ -24,6 +24,10 @@ import { ThemeService } from './services/theme.service';
 import { ToastrService } from './services/toastr.service';
 import { WarningWebsocketApplicationHandlerService } from './services/warning-websocket-application-handler.service';
 import {TypeofPipe} from './pipes/typeof.pipe';
+import {ObsService} from './services/obs.service';
+import {SecurePlanetEntryPipePipe} from './pipes/secure-entry.pipe';
+import {PlanetDisplayNamePipe} from './pipes/planet-display-name.pipe';
+import {SecureItemDirective} from './directives/secure-item.directive';
 
 /**
  * Has the shared features between modules, such as loading image
@@ -50,7 +54,10 @@ import {TypeofPipe} from './pipes/typeof.pipe';
     FormatNumberPipe,
     FormatDateRepresentation,
     OwgeCoreIfThemeDirective,
-    TypeofPipe
+    TypeofPipe,
+    PlanetDisplayNamePipe,
+    SecurePlanetEntryPipePipe,
+    SecureItemDirective
   ],
   providers: [
     ScreenDimensionsService,
@@ -68,7 +75,10 @@ import {TypeofPipe} from './pipes/typeof.pipe';
     FormatNumberPipe,
     FormatDateRepresentation,
     OwgeCoreIfThemeDirective,
-    TypeofPipe
+    TypeofPipe,
+    SecurePlanetEntryPipePipe,
+    PlanetDisplayNamePipe,
+    SecureItemDirective
   ],
 })
 export class CoreModule {
@@ -102,7 +112,8 @@ export class CoreModule {
         LocalConfigurationService,
         ToastrService,
         WarningWebsocketApplicationHandlerService,
-        ThemeService
+        ThemeService,
+        ObsService
       ]
     };
   }

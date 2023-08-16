@@ -1,6 +1,11 @@
 
 # OWGE changelog
 
+v0.11.4 (latest)
+==================
+* [class=Advanced] __Improvement:__ Allow to configure OBS (initial impl, much work required)
+* __Improvement:__ Remove ugly unused plain non translated literal
+
 v0.11.3 (2023-08-15 21:22)
 ==================
 * [class=Advanced] __Fix:__ On F5 it's requesting all websocket keys

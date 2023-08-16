@@ -4,6 +4,7 @@ import { User } from '@owge/core';
 import { ObtainedUpgrade, TutorialService, UnitRunningMission, UpgradeRunningMission, UserStorage, MissionService } from '@owge/universe';
 import { BaseComponent } from '../base/base.component';
 import { UpgradeService } from '../service/upgrade.service';
+import OBSWebSocket from 'obs-websocket-js';
 
 @Component({
   selector: 'app-game-index',
