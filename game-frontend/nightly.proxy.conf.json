@@ -1,0 +1,27 @@
+{
+  "/game_api": {
+    "target": "https://nightly.owge.net",
+    "changeOrigin": true,
+    "secure": true
+  },
+  "/account": {
+    "target": "https://nightly.owge.net",
+    "changeOrigin": true,
+    "secure": true
+  },
+  "/websocket": {
+    "target": "https://nightly.owge.net",
+    "changeOrigin": true,
+    "secure": true
+  },
+  "/static": {
+    "target": "https://nightly.owge.net",
+    "changeOrigin": true,
+    "secure": true
+  },
+  "/dynamic": {
+    "target": "https://nightly.owge.net",
+    "changeOrigin": true,
+    "secure": true
+  }
+}

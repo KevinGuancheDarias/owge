@@ -6,6 +6,7 @@
   "scripts": {
     "postinstall": "npm run createVersionFile",
     "ng": "ng",
+    "startWithNightlyBackend": "npm run createVersionFile && ng serve --proxy-config nightly.proxy.conf.json",
     "start": "npm run createVersionFile && npm run compileChangelog && ng serve",
     "startAdmin": "ng serve game-admin",
     "ngServeDocker": "npm run createVersionFile && npm run compileChangelog && ng serve --host 0.0.0.0 --disable-host-check",

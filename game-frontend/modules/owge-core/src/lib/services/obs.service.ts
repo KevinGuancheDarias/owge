@@ -25,6 +25,10 @@ export class ObsService {
         }
     }
 
+    /**
+     *
+     * @see https://github.com/obs-websocket-community-projects/obs-websocket-js/discussions/336
+     */
     private async doConnectObs(password: string): Promise<void> {
         let invocationTimes = 0;
         if(this.websocket) {
