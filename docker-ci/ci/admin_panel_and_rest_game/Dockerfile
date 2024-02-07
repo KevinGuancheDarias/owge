@@ -18,4 +18,4 @@ RUN mkdir /app
 RUN mv /tmp/war_location_folder/$OWGE_REST_WAR_FILENAME /app/rest.jar
 
 # Add "-Xlog:gc" to see the GC info
-CMD ["java", "-XX:+UseShenandoahGC","-Xmx220m", "-Xms100m", "-jar", "-Dspring.profiles.active=rsaKeys", "/app/rest.jar"]
+CMD ["java", "-XX:+UseShenandoahGC","-Xmx2200m", "-Xms150m", "-jar", "-Dspring.profiles.active=rsaKeys", "/app/rest.jar"]

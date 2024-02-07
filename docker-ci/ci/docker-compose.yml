@@ -20,7 +20,7 @@ services:
       image: admin_panel_and_rest_game:${OWGE_CI_VERSION}
       environment:
         - OWGE_REST_WAR_FILENAME
-        - CATALINA_OPTS=-Xmx200m -Xms50m -XX:MaxPermSize=64m
+        - CATALINA_OPTS=-Xmx2000m -Xms100m -XX:MaxPermSize=96m
         - OWGE_DB_URL
         - OWGE_DB_USER
         - OWGE_DB_PASS
