@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.AuthenticationBo;
 import com.kevinguanchedarias.owgejava.context.OwgeContextHolder;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import io.opentelemetry.api.trace.Span;
 import lombok.AllArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,12 @@ public class OwgeContextFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (request instanceof HttpServletRequest httpServletRequest) {
-            loadContext(httpServletRequest);
+            var token = authenticationBo.findTokenUser();
+            if (token != null) {
+                Span.current().setAttribute("kw.user_id", (Integer) token.getId());
+                Span.current().setAttribute("kw.username", token.getUsername());
+                loadContext(httpServletRequest);
+            }
         }
         chain.doFilter(request, response);
         OwgeContextHolder.clear();

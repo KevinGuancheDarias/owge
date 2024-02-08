@@ -39,12 +39,7 @@ public class AsyncRunnerBo {
      */
     public void runAsyncWithoutContextDelayed(Runnable task, long delay, int priority) {
         Thread thread = new Thread(() -> {
-            try {
-                ThreadUtil.sleep(delay);
-            } catch (InterruptedException e) {
-                log.error("Da fuck?", e);
-                ThreadUtil.currentThread().interrupt();
-            }
+            ThreadUtil.sleep(delay);
             task.run();
         });
         thread.setPriority(priority);

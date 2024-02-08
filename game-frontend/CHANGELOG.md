@@ -3,6 +3,7 @@
 
 v0.11.4 (latest)
 ==================
+* __Fix:__ Fix the random bug forever! :)
 * [class=Advanced] __Improvement:__ Allow to configure OBS (initial impl, much work required)
 * __Improvement:__ Remove ugly unused plain non translated literal
 

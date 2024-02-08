@@ -32,4 +32,13 @@ public class TransactionUtilService {
             }
         });
     }
+
+    public void doAfterCompletion(Runnable action) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                action.run();
+            }
+        });
+    }
 }

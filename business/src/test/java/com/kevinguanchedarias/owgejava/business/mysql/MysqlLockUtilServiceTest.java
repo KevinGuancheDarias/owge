@@ -1,7 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mysql;
 
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.util.ThreadUtil;
@@ -20,6 +19,7 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,6 +28,7 @@ import static com.kevinguanchedarias.owgejava.business.mysql.MysqlLockUtilServic
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
@@ -51,8 +52,8 @@ class MysqlLockUtilServiceTest {
         KEY_LIST.add(KEY_2);
     }
 
-    private static final String EXPECTED_SQL_FOR_LOCK = "SELECT GET_LOCK(?,?) UNION SELECT GET_LOCK(?,?);";
-    private static final String EXPECTED_SQL_FOR_RELEASE_LOCK = "SELECT RELEASE_LOCK(?) UNION SELECT RELEASE_LOCK(?);";
+    private static final String EXPECTED_SQL_FOR_LOCK = "SELECT CONCAT(GET_LOCK(?,?),',',GET_LOCK(?,?));";
+    private static final String EXPECTED_SQL_FOR_RELEASE_LOCK = "SELECT CONCAT(RELEASE_LOCK(?),',',RELEASE_LOCK(?));";
 
     private final MysqlLockUtilService mysqlLockUtilService;
     private final JdbcTemplate jdbcTemplate;
@@ -90,7 +91,10 @@ class MysqlLockUtilServiceTest {
     @Test
     void doInsideLock_should_work() throws SQLException {
         var preparedStatementMockForLock = handlePreparedStatementForLock();
+        var resultSetMock = mock(ResultSet.class);
         var preparedStatementMockForReleaseLock = handlePreparedStatementForReleaseLock();
+        given(preparedStatementMockForLock.executeQuery()).willReturn(resultSetMock);
+        given(preparedStatementMockForReleaseLock.executeQuery()).willReturn(resultSetMock);
 
         mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
 
@@ -114,8 +118,9 @@ class MysqlLockUtilServiceTest {
             int timesDoAfterCommit
     ) {
         var exception = new RuntimeException("foo");
+        given(jdbcTemplate.execute(anyString(), any(PreparedStatementCallback.class))).willReturn("1");
         doThrow(exception).when(runnableMock).run();
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCompletion(any());
         try (var mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
             mockedStatic.when(TransactionSynchronizationManager::isActualTransactionActive).thenReturn(isActualTransaction);
 
@@ -123,11 +128,11 @@ class MysqlLockUtilServiceTest {
                     .isEqualTo(exception);
 
             verify(jdbcTemplate, times(1))
-                    .execute(eq("SELECT GET_LOCK(?,?);"), any(PreparedStatementCallback.class));
+                    .execute(eq("SELECT CONCAT(GET_LOCK(?,?));"), any(PreparedStatementCallback.class));
             verify(runnableMock, times(1)).run();
-            verify(transactionUtilService, times(timesDoAfterCommit)).doAfterCommit(any());
+            verify(transactionUtilService, times(timesDoAfterCommit)).doAfterCompletion(any());
             verify(jdbcTemplate, times(1))
-                    .execute(eq("SELECT RELEASE_LOCK(?);"), any(PreparedStatementCallback.class));
+                    .execute(eq("SELECT CONCAT(RELEASE_LOCK(?));"), any(PreparedStatementCallback.class));
         }
     }
 
@@ -144,34 +149,32 @@ class MysqlLockUtilServiceTest {
 
     @Test
     void doInsideLock_should_retry_if_deadlock(CapturedOutput capturedOutput) throws SQLException {
-        var preparedStatementMock = handlePreparedStatementForLock();
-        var exception = new SQLException("Deadlock foo user-lock bar");
-        doThrow(exception).doReturn(true).when(preparedStatementMock).execute();
+        given(jdbcTemplate.execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class)))
+                .willReturn("1,0")
+                .willReturn("1,1");
 
         try (var unused = mockStatic(ThreadUtil.class)) {
             mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
         }
 
-        assertThat(capturedOutput.getOut()).contains("Deadlock, retrying lock of");
-        verify(mysqlInformationRepository, times(1)).findInnoDbStatus();
-        verify(mysqlInformationRepository, times(1)).findFullProcessInformation();
-        verify(preparedStatementMock, times(2)).execute();
+        assertThat(capturedOutput.getOut()).contains("Not able to obtain all required locks");
+        verify(jdbcTemplate, times(2)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
+        verify(runnableMock, times(1)).run();
     }
 
     @Test
-    void doInsideLock_should_surrender_if_too_many_deadlocks(CapturedOutput capturedOutput) throws SQLException {
-        var preparedStatementMock = handlePreparedStatementForLock();
-        var exception = new SQLException("Deadlock foo user-lock bar");
-        doThrow(exception).when(preparedStatementMock).execute();
+    void doInsideLock_should_surrender_if_too_many_deadlocks() {
+        given(jdbcTemplate.execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class)))
+                .willReturn("1,0");
 
         try (var unused = mockStatic(ThreadUtil.class)) {
-            assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock)).hasMessageContaining("Unhandled deadlock");
+            mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
         }
 
-        assertThat(capturedOutput.getOut()).contains("Couldn't solve deadlock");
-        verify(mysqlInformationRepository, times(5)).findInnoDbStatus();
-        verify(mysqlInformationRepository, times(5)).findFullProcessInformation();
-        verify(preparedStatementMock, times(6)).execute();
+        verify(mysqlInformationRepository, times(1)).findInnoDbStatus();
+        verify(mysqlInformationRepository, times(1)).findFullProcessInformation();
+        verify(jdbcTemplate, times(5)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
+        verify(runnableMock, never()).run();
     }
 
     @Test
@@ -185,34 +188,12 @@ class MysqlLockUtilServiceTest {
                 .hasCause(exception);
     }
 
-    @Test
-    void doInsideLock_should_properly_handle_db_error_on_lock() throws SQLException {
-        var preparedStatementMock = handlePreparedStatementForLock();
-        var exception = new SQLException("FOO", "BAR");
-        doThrow(exception).when(preparedStatementMock).execute();
-
-        assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock))
-                .isInstanceOf(CommonException.class)
-                .hasCause(exception);
-    }
-
-    @Test
-    void doInsideLock_should_properly_handle_db_error_on_release_lock() throws SQLException {
-        var preparedStatementMock = handlePreparedStatementForReleaseLock();
-        var exception = new SQLException("FOO", "BAR");
-        doThrow(exception).when(preparedStatementMock).execute();
-
-        assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock))
-                .isInstanceOf(CommonException.class)
-                .hasCause(exception);
-    }
-
     private PreparedStatement handlePreparedStatementForLock() {
         var preparedStatementMockForLock = mock(PreparedStatement.class);
         doAnswer(invocationOnMock -> {
             invocationOnMock.getArgument(1, PreparedStatementCallback.class)
                     .doInPreparedStatement(preparedStatementMockForLock);
-            return null;
+            return "1,1";
         }).when(jdbcTemplate).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
         return preparedStatementMockForLock;
     }

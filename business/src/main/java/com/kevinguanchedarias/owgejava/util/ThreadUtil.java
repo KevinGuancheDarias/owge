@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.util;
 
+import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -7,7 +8,9 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class ThreadUtil {
-    public static void sleep(long millis) throws InterruptedException {
+
+    @SneakyThrows
+    public static void sleep(long millis) {
         Thread.sleep(millis);
     }
 

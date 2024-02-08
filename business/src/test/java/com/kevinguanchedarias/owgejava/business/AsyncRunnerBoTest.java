@@ -4,7 +4,6 @@ import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.util.concurrent.CompletableFuture;
@@ -83,30 +82,6 @@ class AsyncRunnerBoTest {
 
             verify(runnableMock, times(1)).run();
             mockedStatic.verify(() -> ThreadUtil.sleep(200), times(1));
-        }
-    }
-
-    @Test
-    void runAsyncWithoutContextDelayed_should_handle_interrupt_exception(CapturedOutput capturedOutput) {
-        var atomicReference = new AtomicReference<Runnable>();
-        var runnableMock = mock(Runnable.class);
-        try (
-                var unused = mockConstruction(Thread.class,
-                        (mock, context) -> atomicReference.set((Runnable) context.arguments().get(0)));
-                var mockedStatic = mockStatic(ThreadUtil.class)
-        ) {
-            var currentThreadMock = mock(Thread.class);
-            mockedStatic.when(() -> ThreadUtil.sleep(200)).thenThrow(new InterruptedException());
-            mockedStatic.when(ThreadUtil::currentThread).thenReturn(currentThreadMock);
-
-            asyncRunnerBo.runAsyncWithoutContextDelayed(runnableMock);
-
-            var threadBody = atomicReference.get();
-
-            // Run actual body
-            threadBody.run();
-            assertThat(capturedOutput.getOut()).contains("Da fuck");
-            verify(currentThreadMock, times(1)).interrupt();
         }
     }
 }

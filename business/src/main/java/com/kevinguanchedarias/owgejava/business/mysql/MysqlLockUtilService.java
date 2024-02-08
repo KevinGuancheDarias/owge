@@ -1,14 +1,10 @@
 package com.kevinguanchedarias.owgejava.business.mysql;
 
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
 import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Service;
@@ -16,11 +12,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -31,57 +25,83 @@ public class MysqlLockUtilService {
     private final JdbcTemplate jdbcTemplate;
     private final TransactionUtilService transactionUtilService;
     private final MysqlInformationRepository mysqlInformationRepository;
-    private final Map<String, List<Pair<Integer, List<String>>>> locksInformation = new ConcurrentHashMap<>();
 
     public void doInsideLock(Set<String> keys, Runnable runnable) {
         if (keys.isEmpty()) {
             runnable.run();
         } else {
-            locksInformation.putIfAbsent(Thread.currentThread().getName(), new ArrayList<>());
-            var entry = locksInformation.get(Thread.currentThread().getName());
             var keysAsList = keys.stream().sorted().toList();
-            var tries = new AtomicInteger();
-            var index = entry.size();
-            var commandLambda = (PreparedStatementCallback<Object>) ps -> {
-                var numTries = generateBindParams(keysAsList, ps);
-                entry.add(Pair.of(numTries, keys.stream().toList()));
-                tries.set(numTries);
-                return null;
-            };
-            var releaseLockLambda = (PreparedStatementCallback<Object>) ps -> {
-                generateBindParamsForReleaseLock(keysAsList, ps, tries.get());
-                entry.remove(index);
-                return null;
+            var commandLambda = (PreparedStatementCallback<String>) ps -> {
+                generateBindParams(keysAsList, ps);
+                var rs = ps.executeQuery();
+                rs.next();
+                return rs.getString(1);
             };
 
             try {
-                jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), commandLambda);
-                runnable.run();
+                tryGainLock(keysAsList, commandLambda, runnable, 1);
             } finally {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
                     log.debug("Mysql lock was invoked with an active transaction");
-                    transactionUtilService.doAfterCommit(() -> doReleaseLock(keysAsList, releaseLockLambda));
+                    transactionUtilService.doAfterCompletion(() -> doReleaseLock(keysAsList));
                 } else {
-                    doReleaseLock(keysAsList, releaseLockLambda);
+                    doReleaseLock(keysAsList);
                 }
             }
         }
     }
 
+    private void tryGainLock(
+            List<String> keysAsList, PreparedStatementCallback<String> preparedStatementCallback, Runnable action, int times
+    ) {
+        String result = jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), preparedStatementCallback);
+        if (result == null) {
+            throw new IllegalStateException("result can't be null");
+        } else {
+            int acquiredLocks = Arrays.stream(result.split(",")).mapToInt(Integer::valueOf).reduce(0, Integer::sum);
+            if (acquiredLocks == keysAsList.size()) {
+                action.run();
+            } else if (times < 5) {
+                ThreadUtil.sleep(200);
+                log.warn("Not able to obtain all required locks keys = {}, GET_LOCK results = {}", keysAsList, result);
+                doReleaseLock(keysAsList);
+                tryGainLock(keysAsList, preparedStatementCallback, action, times + 1);
+            } else {
+                log.error(
+                        "Not able to obtain locks, surrender, wanted keys = {}, last result = {}, info: {}, process: {}",
+                        keysAsList,
+                        result,
+                        mysqlInformationRepository.findInnoDbStatus(),
+                        mysqlInformationRepository.findFullProcessInformation()
+                );
+                doReleaseLock(keysAsList);
+            }
+        }
+    }
+
+    private PreparedStatementCallback<String> releaseLockLambda(List<String> keysAsList) {
+        return ps -> {
+            generateBindParamsForReleaseLock(keysAsList, ps);
+            var rs = ps.executeQuery();
+            rs.next();
+            return rs.getString(1);
+        };
+    }
+
     private String generateSql(String part, List<String> keys) {
         var lastKey = keys.get(keys.size() - 1);
         return keys.stream()
-                .reduce("", (buffer, result) -> buffer + "SELECT " + part + (result.equals(lastKey) ? ";" : " UNION "));
+                .reduce("SELECT CONCAT(", (buffer, currentKey) -> buffer + part + (currentKey.equals(lastKey) ? ");" : ",',',"));
     }
 
-    private void doReleaseLock(List<String> keysAsList, PreparedStatementCallback<Object> releaseLockLambda) {
+    private void doReleaseLock(List<String> keysAsList) {
         jdbcTemplate.execute(
                 generateSql("RELEASE_LOCK(?)", keysAsList),
-                releaseLockLambda
+                releaseLockLambda(keysAsList)
         );
     }
 
-    private int generateBindParams(List<String> keys, PreparedStatement preparedStatement) {
+    private void generateBindParams(List<String> keys, PreparedStatement preparedStatement) {
         var i = new AtomicInteger(1);
         keys.forEach(key -> {
             try {
@@ -91,10 +111,9 @@ public class MysqlLockUtilService {
                 throw new IllegalArgumentException("Invalid param for db query", e);
             }
         });
-        return tryAndRetryIfDeadlock(keys, preparedStatement, 0);
     }
 
-    private void generateBindParamsForReleaseLock(List<String> keys, PreparedStatement preparedStatement, int times) {
+    private void generateBindParamsForReleaseLock(List<String> keys, PreparedStatement preparedStatement) {
         var i = new AtomicInteger(1);
         keys.forEach(key -> {
             try {
@@ -103,35 +122,6 @@ public class MysqlLockUtilService {
                 throw new IllegalArgumentException("Invalid param for db query", e);
             }
         });
-        for (int j = 0; j < (times + 2); j++) {
-            tryAndRetryIfDeadlock(keys, preparedStatement, 0);
-        }
     }
 
-    @SneakyThrows
-    private int tryAndRetryIfDeadlock(List<String> keys, PreparedStatement preparedStatement, int tries) {
-        try {
-            preparedStatement.execute();
-            return tries;
-        } catch (SQLException e) {
-            if (e.getMessage().contains("Deadlock")) {
-                if (tries > 4) {
-                    log.error("Couldn't solve deadlock for keys {}, sql: {}", keys, preparedStatement);
-                    throw new CommonException("Unhandled deadlock", e);
-                } else {
-                    log.warn(
-                            "Deadlock, retrying lock of ids {}, info: {}, process: {}, lock map: {}",
-                            keys,
-                            mysqlInformationRepository.findInnoDbStatus(),
-                            mysqlInformationRepository.findFullProcessInformation(),
-                            locksInformation
-                    );
-                    ThreadUtil.sleep(RandomUtils.nextInt(100, 300));
-                    return tryAndRetryIfDeadlock(keys, preparedStatement, tries + 1);
-                }
-            } else {
-                throw new CommonException("Unexpected db error", e);
-            }
-        }
-    }
 }

@@ -1,28 +1,31 @@
 package com.kevinguanchedarias.owgejava.rest.game;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kevinguanchedarias.owgejava.business.SocketIoService;
+import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import lombok.AllArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import com.kevinguanchedarias.owgejava.business.SocketIoService;
-import com.kevinguanchedarias.owgejava.entity.UserStorage;
-
 @RestController
-@RequestMapping("game/deliverBackdoor")
+@RequestMapping("game/deliver-backdoor")
 @ApplicationScope
+@AllArgsConstructor
 public class DeliverBackdoorRestService {
 
-	@Autowired
-	private SocketIoService socketIoService;
+    private final SocketIoService socketIoService;
+    private final PlanetLockUtilService planetLockUtilService;
 
-	@RequestMapping(value = "pingUser", method = RequestMethod.GET)
-	public boolean pingUser(@RequestParam("targetUser") Integer targetUserId) {
-		UserStorage targetUser = new UserStorage();
-		targetUser.setId(targetUserId);
-		socketIoService.sendMessage(targetUser, "ping", () -> "Hello World");
-		return true;
-	}
+    @GetMapping("ping-user")
+    @Transactional
+    public boolean pingUser(@RequestParam("targetUser") Integer targetUserId) {
+        var targetUser = new UserStorage();
+        targetUser.setId(targetUserId);
+        socketIoService.sendMessage(targetUser, "ping", () -> "Hello World");
+        return true;
+    }
 }

@@ -57,7 +57,7 @@ function applyFilters(string $table, array $row, string $column) {
 }
 
 list($_, $host, $user, $password, $sourceDb) = $argv;
-$connetion = new mysqli($host, $user, $password, $sourceDb);
+$connetion = new mysqli($host, $user, $password, $sourceDb, getenv('MYSQL_PORT') ?: 3306);
 $connetion->set_charset('utf8');
 
 $output = <<<SQL_MARKER
