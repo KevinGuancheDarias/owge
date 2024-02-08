@@ -1,7 +1,7 @@
 
 # OWGE changelog
 
-v0.11.4 (latest)
+v0.11.4 (2024-02-08 05:39)
 ==================
 * __Fix:__ Fix the random bug forever! :)
 * __Fix:__ Reports failing in Neon, when there are invisible units
