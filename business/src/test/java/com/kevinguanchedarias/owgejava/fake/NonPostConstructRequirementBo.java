@@ -13,8 +13,10 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
+import jakarta.annotation.PostConstruct;
+
+import jakarta.persistence.EntityManager;
+
 import java.io.Serial;
 import java.util.List;
 

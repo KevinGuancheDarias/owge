@@ -15,7 +15,8 @@ import lombok.AllArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;

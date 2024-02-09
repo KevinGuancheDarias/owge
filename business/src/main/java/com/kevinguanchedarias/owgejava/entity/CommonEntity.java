@@ -3,7 +3,8 @@ package com.kevinguanchedarias.owgejava.entity;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.io.Serializable;
 

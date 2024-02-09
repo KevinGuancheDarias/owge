@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.PostLoad;
-import javax.persistence.PostPersist;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PreRemove;
 
 /**
  * Handles the fetching, saving, and deleting of entities that supports

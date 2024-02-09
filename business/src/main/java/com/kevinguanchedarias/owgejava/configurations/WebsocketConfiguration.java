@@ -3,10 +3,10 @@ package com.kevinguanchedarias.owgejava.configurations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 
 @Component
 public class WebsocketConfiguration extends Configuration {

@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.Date;
 

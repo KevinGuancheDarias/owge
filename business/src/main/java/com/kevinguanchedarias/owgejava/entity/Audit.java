@@ -3,7 +3,8 @@ package com.kevinguanchedarias.owgejava.entity;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity

@@ -3,10 +3,11 @@ package com.kevinguanchedarias.owgejava.entity;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+
 import java.io.Serial;
 import java.io.Serializable;
 

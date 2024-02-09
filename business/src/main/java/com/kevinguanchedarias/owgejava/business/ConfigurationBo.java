@@ -10,7 +10,8 @@ import lombok.AllArgsConstructor;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;

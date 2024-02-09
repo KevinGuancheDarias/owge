@@ -14,6 +14,9 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.repository.AuditRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -27,9 +30,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.WebUtils;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;

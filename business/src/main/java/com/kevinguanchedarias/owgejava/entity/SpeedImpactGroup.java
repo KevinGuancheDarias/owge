@@ -8,7 +8,8 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.List;
 

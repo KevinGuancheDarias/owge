@@ -2,9 +2,10 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithRelationListener;
 
-import javax.persistence.EntityListeners;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Transient;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
+
 import java.io.Serial;
 
 /**

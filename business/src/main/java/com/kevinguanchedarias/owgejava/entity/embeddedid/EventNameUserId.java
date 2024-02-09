@@ -2,8 +2,9 @@ package com.kevinguanchedarias.owgejava.entity.embeddedid;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
 import java.io.Serial;
 import java.io.Serializable;
 

@@ -4,7 +4,8 @@ import com.kevinguanchedarias.owgejava.enumerations.SuspicionSourceEnum;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity

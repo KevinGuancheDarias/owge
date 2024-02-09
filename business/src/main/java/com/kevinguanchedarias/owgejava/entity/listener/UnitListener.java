@@ -11,9 +11,10 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PostUpdate;
+import jakarta.persistence.PreRemove;
+
 import java.util.HashSet;
 import java.util.Set;
 

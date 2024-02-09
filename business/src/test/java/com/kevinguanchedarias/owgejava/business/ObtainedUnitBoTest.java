@@ -29,7 +29,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;

@@ -12,11 +12,11 @@ import com.kevinguanchedarias.owgejava.repository.AllianceJoinRequestRepository;
 import com.kevinguanchedarias.owgejava.repository.AllianceRepository;
 import com.kevinguanchedarias.owgejava.rest.trait.BaseRestServiceTrait;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 

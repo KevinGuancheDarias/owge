@@ -5,7 +5,8 @@ import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.SpecialLocation;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+
 import java.io.Serializable;
 import java.util.Optional;
 

@@ -2,10 +2,10 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithTaggableCacheListener;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
 import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.Date;

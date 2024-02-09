@@ -12,7 +12,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;

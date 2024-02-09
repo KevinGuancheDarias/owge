@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import javax.persistence.PostLoad;
-import javax.persistence.PostPersist;
-import javax.persistence.PreRemove;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PreRemove;
 
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.givenObjectRelation;
 import static com.kevinguanchedarias.owgejava.mock.UnitMock.UNIT_ID_1;

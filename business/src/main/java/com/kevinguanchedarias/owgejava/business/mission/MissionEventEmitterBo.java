@@ -9,7 +9,8 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+
 import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.business.MissionBo.UNIT_BUILD_MISSION_CHANGE;

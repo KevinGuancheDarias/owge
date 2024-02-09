@@ -1,5 +1,8 @@
 
 # OWGE changelog
+v0.11.5 (latest)
+====================
+* [class=Developer] __Improvement:__ Migrate to Spring Boot 3.0
 
 v0.11.4 (2024-02-08 05:39)
 ==================

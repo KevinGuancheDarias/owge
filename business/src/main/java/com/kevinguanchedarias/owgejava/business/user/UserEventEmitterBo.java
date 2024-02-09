@@ -14,7 +14,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 @Service
 @AllArgsConstructor

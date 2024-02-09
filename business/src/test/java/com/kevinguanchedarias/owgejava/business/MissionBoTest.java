@@ -39,7 +39,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

@@ -9,7 +9,8 @@ import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.security.AdminTokenConfigLoader;
 import com.kevinguanchedarias.owgejava.security.DevelopmentSgtTokenConfigLoader;
 import com.kevinguanchedarias.owgejava.security.SgtTokenConfigLoader;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -17,8 +18,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -27,11 +29,12 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import java.util.Arrays;
 
 @Configuration
+@RequiredArgsConstructor
 @Order(101)
-class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
+@Getter
+class SecurityBeansConfiguration {
 
-    @Autowired
-    private Environment environment;
+    private final Environment environment;
 
     private final AuthenticationEntryPoint authenticationEntryPoint = new RestAuthenticationEntryPoint();
     private final BootJwtAuthenticationFilter adminBootJwtAuthenticationFilter = new BootJwtAuthenticationFilter("/admin/**");
@@ -81,8 +84,8 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
     public BootJwtAuthenticationFilter gameBootJwtAuthenticationFilter(
             AuthenticationSuccessHandler authenticationSuccessHandler,
             @Qualifier("gameOwgeTokenConfigLoader") TokenConfigLoader tokenConfigLoader,
-            FilterEventHandler filterEventHandler) throws Exception {
-        gameBootJwtAuthenticationFilter.setAuthenticationManager(authenticationManager());
+            FilterEventHandler filterEventHandler, AuthenticationManager authenticationManager) {
+        gameBootJwtAuthenticationFilter.setAuthenticationManager(authenticationManager);
         gameBootJwtAuthenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
         gameBootJwtAuthenticationFilter.setTokenConfigLoader(tokenConfigLoader);
         gameBootJwtAuthenticationFilter.setConvertExceptionToJson(true);
@@ -95,8 +98,8 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public BootJwtAuthenticationFilter adminBootJwtAuthenticationFilter(
             AuthenticationSuccessHandler authenticationSuccessHandler,
-            @Qualifier("adminOwgeTokenConfigLoader") TokenConfigLoader tokenConfigLoader) throws Exception {
-        adminBootJwtAuthenticationFilter.setAuthenticationManager(authenticationManager());
+            @Qualifier("adminOwgeTokenConfigLoader") TokenConfigLoader tokenConfigLoader, AuthenticationManager authenticationManager) {
+        adminBootJwtAuthenticationFilter.setAuthenticationManager(authenticationManager);
         adminBootJwtAuthenticationFilter.setAuthenticationSuccessHandler(authenticationSuccessHandler);
         adminBootJwtAuthenticationFilter.setTokenConfigLoader(tokenConfigLoader);
         adminBootJwtAuthenticationFilter.setConvertExceptionToJson(true);
@@ -114,24 +117,10 @@ class SecurityBeansConfiguration extends WebSecurityConfigurerAdapter {
         return filterRegistrationBean;
     }
 
-    public AuthenticationEntryPoint getAuthenticationEntryPoint() {
-        return authenticationEntryPoint;
-    }
-
-    public BootJwtAuthenticationFilter getAdminBootJwtAuthenticationFilter() {
-        return adminBootJwtAuthenticationFilter;
-    }
-
-    public BootJwtAuthenticationFilter getGameBootJwtAuthenticationFilter() {
-        return gameBootJwtAuthenticationFilter;
-    }
-
-    public JwtAuthenticationProvider getJwtAuthenticationProvider() {
-        return jwtAuthenticationProvider;
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity httpSecurity) throws Exception {
+        var auth = httpSecurity.getSharedObject(AuthenticationManagerBuilder.class);
         auth.authenticationProvider(jwtAuthenticationProvider);
+        return auth.build();
     }
 }

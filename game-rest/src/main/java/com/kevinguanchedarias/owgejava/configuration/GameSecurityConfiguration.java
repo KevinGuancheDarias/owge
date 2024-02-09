@@ -1,38 +1,38 @@
 package com.kevinguanchedarias.owgejava.configuration;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
+import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
-import com.kevinguanchedarias.kevinsuite.commons.rest.security.JwtAuthenticationProvider;
 
 @Configuration
 @Order(104)
-class GameSecurityConfiguration extends WebSecurityConfigurerAdapter {
-	@Autowired
-	private SecurityBeansConfiguration securityBeansConfiguration;
+@AllArgsConstructor
+class GameSecurityConfiguration {
+    private final SecurityBeansConfiguration securityBeansConfiguration;
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(new JwtAuthenticationProvider());
-	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable();
-		http.antMatcher("/**");
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    @Bean
+    public SecurityFilterChain gameSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable();
+        http.authorizeHttpRequests(authz -> {
+            authz.requestMatchers("/**");
+            try {
+                authz.requestMatchers("/game/**").authenticated().and().cors().disable();
+            } catch (Exception e) {
+                throw new CommonException("Not able to disable cors", e);
+            }
+        });
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-		http.addFilterBefore(securityBeansConfiguration.getGameBootJwtAuthenticationFilter(),
-				BasicAuthenticationFilter.class).exceptionHandling()
-				.authenticationEntryPoint(securityBeansConfiguration.getAuthenticationEntryPoint());
-		http.antMatcher("/game/**").authorizeRequests().anyRequest().authenticated()
-		.and().cors().disable();
-
-	}
+        http.addFilterBefore(securityBeansConfiguration.getGameBootJwtAuthenticationFilter(),
+                        BasicAuthenticationFilter.class).exceptionHandling()
+                .authenticationEntryPoint(securityBeansConfiguration.getAuthenticationEntryPoint());
+        return http.build();
+    }
 }

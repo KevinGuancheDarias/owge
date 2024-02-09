@@ -2,8 +2,8 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.EqualsAndHashCode;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 /**
  * Represents a CommonEntity that also has an image

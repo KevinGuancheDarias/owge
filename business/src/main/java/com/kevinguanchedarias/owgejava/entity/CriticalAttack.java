@@ -3,7 +3,8 @@ package com.kevinguanchedarias.owgejava.entity;
 import lombok.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.List;
 

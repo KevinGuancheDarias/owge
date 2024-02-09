@@ -6,7 +6,7 @@ import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.PostLoad;
+import jakarta.persistence.PostLoad;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

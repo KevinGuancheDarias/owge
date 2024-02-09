@@ -12,6 +12,8 @@ import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -25,8 +27,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

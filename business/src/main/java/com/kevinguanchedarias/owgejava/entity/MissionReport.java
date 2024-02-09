@@ -2,7 +2,8 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.Date;
 

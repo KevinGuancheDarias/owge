@@ -1,8 +1,8 @@
 package com.kevinguanchedarias.owgejava.entity.listener;
 
-import javax.persistence.PostLoad;
-import javax.persistence.PostPersist;
-import javax.persistence.PostUpdate;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PostUpdate;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -15,22 +15,21 @@ import com.kevinguanchedarias.owgejava.entity.ImageStore;
  *
  * @author Kevin Guanche Darias
  * @since 0.9.0
- *
  */
 @Component
 @Lazy
 public class ImageStoreListener {
-	private ImageStoreBo imageStoreBo;
+    private ImageStoreBo imageStoreBo;
 
-	public ImageStoreListener(ImageStoreBo imageStoreBo) {
-		this.imageStoreBo = imageStoreBo;
-	}
+    public ImageStoreListener(ImageStoreBo imageStoreBo) {
+        this.imageStoreBo = imageStoreBo;
+    }
 
-	@PostLoad
-	@PostPersist
-	@PostUpdate
-	public void postLoad(ImageStore imageStore) {
-		imageStoreBo.computeImageUrl(imageStore);
+    @PostLoad
+    @PostPersist
+    @PostUpdate
+    public void postLoad(ImageStore imageStore) {
+        imageStoreBo.computeImageUrl(imageStore);
 
-	}
+    }
 }

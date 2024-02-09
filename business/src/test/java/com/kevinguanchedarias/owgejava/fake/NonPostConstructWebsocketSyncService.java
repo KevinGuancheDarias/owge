@@ -7,7 +7,8 @@ import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+
 import java.util.List;
 
 @Service

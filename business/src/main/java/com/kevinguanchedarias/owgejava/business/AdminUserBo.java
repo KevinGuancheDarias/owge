@@ -8,13 +8,13 @@ import com.kevinguanchedarias.owgejava.exception.AccessDeniedException;
 import com.kevinguanchedarias.owgejava.pojo.TokenPojo;
 import com.kevinguanchedarias.owgejava.repository.AdminUserRepository;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.Serial;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,7 +29,7 @@ import java.util.Map;
 public class AdminUserBo implements BaseBo<Integer, AdminUser, AdminUserDto> {
     @Serial
     private static final long serialVersionUID = -5545554818842439920L;
-    
+
     public static final String ADMIN_USER_CACHE_TAG = "admin_user";
     public static final String JWT_SECRET_DB_CODE = "ADMIN_JWT_SECRET";
     public static final String JWT_HASHING_ALGO = "ADMIN_JWT_ALGO";

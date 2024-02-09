@@ -4,7 +4,8 @@ import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUse
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.List;
 

@@ -3,7 +3,8 @@ package com.kevinguanchedarias.owgejava.entity;
 import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCache;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.util.List;
 

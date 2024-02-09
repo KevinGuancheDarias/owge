@@ -4,7 +4,8 @@ import com.kevinguanchedarias.owgejava.business.ActiveTimeSpecialBo;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+
 import java.io.Serial;
 
 @Service
@@ -18,7 +19,7 @@ public class NonPostConstructActiveTimeSpecialBo extends ActiveTimeSpecialBo {
     public void init() {
         // Does nothing
     }
-    
+
     public void realInit() {
         super.init();
     }
