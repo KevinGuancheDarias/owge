@@ -27,7 +27,7 @@ public interface MissionReportRepository extends JpaRepository<MissionReport, Lo
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
-    @Query("UPDATE MissionReport rp SET rp.userReadDate = CURRENT_DATE WHERE  rp.user.id = :userId AND rp.id IN :reportsIds")
+    @Query("UPDATE MissionReport rp SET rp.userReadDate = CURRENT_TIMESTAMP WHERE  rp.user.id = :userId AND rp.id IN :reportsIds")
     @Modifying
     void markAsReadIfUserIsOwner(List<Long> reportsIds, Integer userId);
 

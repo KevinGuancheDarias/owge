@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.13</version>
+        <version>3.2.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.kevinguanchedarias.owge</groupId>
@@ -212,6 +212,14 @@
                     <groupId>org.hibernate.jakarta.persistence</groupId>
                     <artifactId>hibernate-jpa-2.1-api</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hibernate</groupId>
+                    <artifactId>hibernate-core</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -267,6 +275,7 @@
             <artifactId>mockito-inline</artifactId>
             <groupId>org.mockito</groupId>
             <scope>test</scope>
+            <version>5.2.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -277,8 +286,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <release>21</release>
                 </configuration>
             </plugin>
 
