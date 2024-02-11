@@ -16,15 +16,13 @@ import com.kevinguanchedarias.owgejava.repository.RequirementGroupRepository;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.apache.log4j.Logger;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 
@@ -68,7 +66,6 @@ public interface CrudWithRequirementGroupsRestServiceTrait<
     @PostConstruct
     @Autowired
     default void init() {
-        Logger.getLogger(getClass()).debug("Initializing crud with requirements");
         getBeanFactory().getBean(ObjectEntityBo.class).existsByDescriptionOrDie(getObject());
     }
 

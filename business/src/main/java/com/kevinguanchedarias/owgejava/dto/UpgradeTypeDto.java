@@ -1,32 +1,20 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.convert.EntityPojoConverterUtil;
+import com.kevinguanchedarias.owgejava.business.util.EntityPojoConverterUtil;
 import com.kevinguanchedarias.owgejava.entity.UpgradeType;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class UpgradeTypeDto implements DtoFromEntity<UpgradeType> {
 
-	private Integer id;
-	private String name;
+    private Integer id;
+    private String name;
 
-	@Override
-	public void dtoFromEntity(UpgradeType entity) {
-		EntityPojoConverterUtil.convertFromTo(this, entity);
-	}
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
+    @Override
+    public void dtoFromEntity(UpgradeType entity) {
+        EntityPojoConverterUtil.convertFromTo(this, entity);
+    }
 
 }

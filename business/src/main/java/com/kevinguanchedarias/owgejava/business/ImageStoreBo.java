@@ -3,18 +3,18 @@
  */
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.dto.ImageStoreDto;
 import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ImageStoreRepository;
 import com.kevinguanchedarias.owgejava.trait.WithDisabledSave;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeType;
@@ -45,13 +45,13 @@ import java.util.UUID;
  * @since 0.8.0
  */
 @Service
+@Slf4j
 public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, WithDisabledSave<ImageStore> {
     public static final String IMAGE_STORE_CACHE_TAG = "image_store";
 
     @Serial
     private static final long serialVersionUID = -4752052563582076943L;
 
-    private static final Logger LOG = org.apache.log4j.Logger.getLogger(ImageStoreBo.class);
 
     @Value("${OWGE_DYNAMIC_FILES_PATH:/var/owge_data/dynamic}")
     private String directoryPath;
@@ -71,7 +71,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
 
     @Autowired
     private transient ExceptionUtilService exceptionUtilService;
-    
+
     /*
      * (non-Javadoc)
      *
@@ -197,7 +197,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
             storedImageStore = computeImageUrl(storedImageStore);
             return dtoUtilService.dtoFromEntity(ImageStoreDto.class, storedImageStore);
         } catch (Exception e) {
-            LOG.error("Couldn't save the image to the database", e);
+            log.error("Couldn't save the image to the database", e);
             unlinkFile(fileName);
             throw new CommonException("Not able to save the entity", e);
         }
@@ -243,7 +243,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
                 MimeType mimeType = config.getMimeRepository().forName(mediaType);
                 return mimeType.getExtension();
             } catch (MimeTypeException e) {
-                LOG.error("Could not properly handle media type", e);
+                log.error("Could not properly handle media type", e);
                 throw new CommonException("Media type handling exception", e);
             }
         } else {
@@ -259,7 +259,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
             try (FileOutputStream stream = new FileOutputStream(fileAbsolutePath.toString())) {
                 stream.write(binaryData);
             } catch (IOException e) {
-                LOG.error("Couldn't save the file to disk", e);
+                log.error("Couldn't save the file to disk", e);
                 throw new CommonException("File save failed", e);
             }
         }
@@ -272,7 +272,7 @@ public class ImageStoreBo implements BaseBo<Long, ImageStore, ImageStoreDto>, Wi
                 Files.delete(fileAbsolute);
             } catch (IOException e) {
                 String errString = "Couldn't remove file " + fileName;
-                LOG.warn(errString, e);
+                log.warn(errString, e);
                 throw new CommonException(errString, e);
             }
         }

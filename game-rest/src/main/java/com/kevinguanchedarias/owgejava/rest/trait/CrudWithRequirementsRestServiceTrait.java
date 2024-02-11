@@ -15,7 +15,6 @@ import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -35,7 +34,6 @@ import java.util.stream.IntStream;
  *
  * @param <N> Numeric key of the target entity
  * @param <E> Target entity
- * @param <S> Business object to handle the entity
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
@@ -69,7 +67,6 @@ public interface CrudWithRequirementsRestServiceTrait<
     @PostConstruct
     @Autowired
     default void init() {
-        Logger.getLogger(getClass()).debug("Initializing crud with requirements");
         getBeanFactory().getBean(ObjectEntityBo.class).existsByDescriptionOrDie(getObject());
     }
 

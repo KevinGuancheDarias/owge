@@ -6,7 +6,7 @@ package com.kevinguanchedarias.owgejava.util;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.repository.GameJpaRepository;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,8 +15,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.8.0
  */
+@Slf4j
 public class SpringRepositoryUtil {
-    private static final Logger LOG = Logger.getLogger(SpringRepositoryUtil.class);
     private static final String COMMON_MISSING_AUTOWIRED_STRING = "please note that JpaRepositories injected with @Autowire are proxies";
 
     @SuppressWarnings("unchecked")
@@ -33,11 +33,11 @@ public class SpringRepositoryUtil {
                 GameJpaRepository<Object, Number> castedRepository = (GameJpaRepository<Object, Number>) target;
                 return castedRepository.findEntityClass();
             } catch (Exception e) {
-                LOG.warn("Unable to resolve the proxy target", e);
+                log.warn("Unable to resolve the proxy target", e);
                 return null;
             }
         } else if (repository.getClass().getName().contains("$MockitoMock")) {
-            LOG.debug("Inside mockito");
+            log.debug("Inside mockito");
             return null;
         } else {
             throw new ProgrammingException(

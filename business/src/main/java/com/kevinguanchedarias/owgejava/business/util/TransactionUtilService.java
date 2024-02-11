@@ -1,10 +1,9 @@
 package com.kevinguanchedarias.owgejava.business.util;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import javax.transaction.Transactional;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

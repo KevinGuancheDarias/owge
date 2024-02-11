@@ -2,12 +2,11 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 
 import com.kevinguanchedarias.owgejava.business.RequirementGroupBo;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRequirementGroups;
+import jakarta.persistence.PostLoad;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.PostLoad;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

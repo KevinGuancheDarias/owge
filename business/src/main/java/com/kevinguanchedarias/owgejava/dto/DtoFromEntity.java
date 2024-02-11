@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.dto;
 
-import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
 
 import java.util.ArrayList;
 import java.util.List;

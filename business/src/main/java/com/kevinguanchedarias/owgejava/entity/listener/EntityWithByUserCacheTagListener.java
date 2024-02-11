@@ -3,13 +3,12 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 
 import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUser;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
-
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostRemove;
 import jakarta.persistence.PostUpdate;
+import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 @Component
 @Lazy

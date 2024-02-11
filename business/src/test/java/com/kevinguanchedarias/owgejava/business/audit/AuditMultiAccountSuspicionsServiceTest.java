@@ -13,13 +13,15 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.mock.AuditMock.*;
 import static com.kevinguanchedarias.owgejava.mock.SuspicionMock.SUSPICION_ID;
@@ -113,6 +115,7 @@ class AuditMultiAccountSuspicionsServiceTest {
         verify(suspicionRepository, never()).save(any(Suspicion.class));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void findLast100_should_work() {
         try (
@@ -126,12 +129,14 @@ class AuditMultiAccountSuspicionsServiceTest {
             sortMockedStatic.when(() -> Sort.by(Sort.Direction.DESC, "createdAt"))
                     .thenReturn(sortMock);
             var suspicion = givenSuspicion();
-            given(suspicionRepository.findAll(pageRequestMock)).willReturn(new PageImpl<>(List.of(suspicion)));
+            var pageMock = mock(Page.class);
+            given(pageMock.stream()).willReturn(Stream.of(suspicion));
+            given(suspicionRepository.findAll(any(Pageable.class))).willReturn(pageMock);
 
             var retVal = auditMultiAccountSuspicionsService.findLast100();
 
             assertThat(retVal).hasSize(1);
-            var entry = retVal.get(0);
+            var entry = retVal.getFirst();
             assertThat(entry.id()).isEqualTo(SUSPICION_ID);
         }
     }

@@ -4,14 +4,13 @@ import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRelation;
 import com.kevinguanchedarias.owgejava.entity.EntityWithRelationImp;
 import com.kevinguanchedarias.owgejava.entity.ObjectRelation;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.PreRemove;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.PostLoad;
-import jakarta.persistence.PostPersist;
-import jakarta.persistence.PreRemove;
 
 /**
  * Handles the fetching, saving, and deleting of entities that supports

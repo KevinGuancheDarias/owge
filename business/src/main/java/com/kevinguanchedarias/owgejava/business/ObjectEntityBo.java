@@ -1,6 +1,5 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.entity.EntityWithId;
 import com.kevinguanchedarias.owgejava.entity.ObjectEntity;
@@ -9,7 +8,7 @@ import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendRequirementException;
 import com.kevinguanchedarias.owgejava.repository.ObjectEntityRepository;
 import com.kevinguanchedarias.owgejava.util.ProxyUtil;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,10 +18,9 @@ import java.io.Serializable;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ObjectEntityBo implements Serializable {
     private static final long serialVersionUID = -8249042125676687286L;
-
-    private static final Logger LOGGER = Logger.getLogger(RequirementInformationDao.class);
 
     @Autowired
     private ObjectEntityRepository objectEntityRepository;
@@ -45,7 +43,7 @@ public class ObjectEntityBo implements Serializable {
             entityRepositoryClass = Class.forName(object.getRepository());
             repository = (JpaRepository) beanFactory.getBean(entityRepositoryClass);
         } catch (ClassNotFoundException e) {
-            LOGGER.fatal(e);
+            log.error("No repository", e);
             throw new SgtBackendRequirementException("No existe el repositorio " + object.getRepository());
         }
         return repository;

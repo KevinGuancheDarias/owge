@@ -4,13 +4,12 @@ import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.annotation.PostConstruct;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -26,8 +25,8 @@ import java.util.function.Function;
 @Service
 @RequiredArgsConstructor
 @Lazy
+@Slf4j
 public class WebsocketSyncService {
-    private static final Logger LOG = Logger.getLogger(WebsocketSyncService.class);
 
     private final List<SyncSource> syncSources;
     private final UserSessionService userSessionService;
@@ -46,7 +45,7 @@ public class WebsocketSyncService {
                 }
             }));
         } else {
-            LOG.warn("No sync sources has been specified");
+            log.warn("No sync sources has been specified");
         }
     }
 

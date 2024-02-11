@@ -19,7 +19,8 @@ import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import com.kevinguanchedarias.owgejava.repository.ActiveTimeSpecialRepository;
 import com.kevinguanchedarias.owgejava.repository.RuleRepository;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
-import org.apache.log4j.Logger;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
@@ -27,8 +28,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.annotation.PostConstruct;
 
 import java.io.Serial;
 import java.util.Date;
@@ -39,12 +38,12 @@ import java.util.List;
  * @since 0.8.0
  */
 @Service
+@Slf4j
 public class ActiveTimeSpecialBo implements
         BaseBo<Long, ActiveTimeSpecial, ActiveTimeSpecialDto>, ImprovementSource, RequirementComplianceListener, UserDeleteListener {
     @Serial
     private static final long serialVersionUID = -3981337002238422272L;
 
-    private static final Logger LOG = Logger.getLogger(ActiveTimeSpecialBo.class);
 
     @Autowired
     private transient ActiveTimeSpecialRepository repository;
@@ -92,7 +91,7 @@ public class ActiveTimeSpecialBo implements
         });
         scheduledTasksManagerService.addHandler("TIME_SPECIAL_IS_READY", task -> {
             Long id = resolveTaskId(task);
-            LOG.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
+            log.debug("Time special becomes ready, deleting from ActiveTimeSpecial entry with id " + id);
             ActiveTimeSpecial forDelete = findById(id);
             if (forDelete != null) {
                 repository.delete(forDelete);
@@ -180,7 +179,7 @@ public class ActiveTimeSpecialBo implements
             applicationEventPublisher.publishEvent(newActive);
             return newActive;
         } else {
-            LOG.warn("The specified time special, is already active, doing nothing");
+            log.warn("The specified time special, is already active, doing nothing");
             return currentlyActive;
         }
     }
@@ -260,7 +259,7 @@ public class ActiveTimeSpecialBo implements
     }
 
     private void deactivate(Long id) {
-        LOG.debug("Time special effect end" + id);
+        log.debug("Time special effect end" + id);
         var activeTimeSpecial = findById(id);
         if (activeTimeSpecial != null) {
             var task = new ScheduledTask("TIME_SPECIAL_IS_READY", id);
@@ -275,7 +274,7 @@ public class ActiveTimeSpecialBo implements
             emitTimeSpecialChange(user);
             emitIfActivationAffectingUnits(activeTimeSpecial);
         } else {
-            LOG.debug("ActiveTimeSpecial was deleted outside");
+            log.debug("ActiveTimeSpecial was deleted outside");
         }
     }
 

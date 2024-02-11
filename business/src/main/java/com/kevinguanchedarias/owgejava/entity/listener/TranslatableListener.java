@@ -3,26 +3,23 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 import com.kevinguanchedarias.owgejava.business.TranslationBo;
 import com.kevinguanchedarias.owgejava.entity.Translatable;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
+import jakarta.persistence.PostLoad;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
-import jakarta.persistence.PostLoad;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @param translatableTranslationRepository
- * @param httpServletRequest
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
  * @since 0.9.0
  */
 @Component
+@Slf4j
 public class TranslatableListener {
-    private static final Logger LOG = Logger.getLogger(TranslatableListener.class);
     private static final List<String> SUPPORTED_LANGUAGES = new ArrayList<>();
 
     static {
@@ -40,7 +37,6 @@ public class TranslatableListener {
     }
 
     /**
-     * @param translatable
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
      */
@@ -54,7 +50,7 @@ public class TranslatableListener {
                 doTranslate(translatable, headerValue);
             }
         } else {
-            LOG.warn(
+            log.warn(
                     "Unable to handle translation, as translatable has been invoked outside of a request. Most likely from a Quartz job");
         }
     }

@@ -1,14 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity.listener;
 
+import com.kevinguanchedarias.owgejava.entity.AttackRule;
+import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 import jakarta.persistence.PostLoad;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.kevinguanchedarias.owgejava.entity.AttackRule;
-import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
 
 /**
  * Does a workaround loading rule entries, as doesn't work for unknown reasons
@@ -17,10 +15,9 @@ import com.kevinguanchedarias.owgejava.repository.AttackRuleEntryRepository;
  * @since 0.9.0
  */
 @Component
-
 public class AttackRuleEntityListener {
 
-    private AttackRuleEntryRepository attackRuleEntryRepository;
+    private final AttackRuleEntryRepository attackRuleEntryRepository;
 
     @Lazy
     public AttackRuleEntityListener(AttackRuleEntryRepository attackRuleEntryRepository) {

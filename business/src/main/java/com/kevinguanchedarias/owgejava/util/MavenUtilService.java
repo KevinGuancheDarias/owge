@@ -3,35 +3,33 @@
  */
 package com.kevinguanchedarias.owgejava.util;
 
-import java.io.InputStream;
-import java.util.Properties;
-
 import jakarta.annotation.PostConstruct;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Has methods for interacting with the maven available properties
  *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 @Service
+@Slf4j
 public class MavenUtilService {
-    private static final Logger LOG = LogManager.getLogger(MavenUtilService.class);
 
     private String version;
 
     /**
      * Find the project version in time
      *
-     * @see <a href="https://stackoverflow.com/a/12571330/1922558">Related
-     *      StackOverflow answer</a>
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @see <a href="https://stackoverflow.com/a/12571330/1922558">Related
+     * StackOverflow answer</a>
+     * @since 0.8.0
      */
     @PostConstruct
     public void init() {
@@ -58,15 +56,15 @@ public class MavenUtilService {
             }
         }
         version = normalizeVersion(version);
-        LOG.debug("Project maven version is: " + version);
+        log.debug("Project maven version is: " + version);
     }
 
     /**
      * Finds the project maven version, if not possible will fallback to "master"
      *
      * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public String findVersion() {
         return findVersion("master");
@@ -78,12 +76,12 @@ public class MavenUtilService {
      *
      * @param fallbackValue Value to use when not able to resolve the version
      * @return
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     public String findVersion(String fallbackValue) {
         if (StringUtils.isEmpty(version)) {
-            LOG.info("Not able to resolve project version, defaulting to: " + fallbackValue);
+            log.info("Not able to resolve project version, defaulting to: " + fallbackValue);
             return fallbackValue;
         } else {
             return version;

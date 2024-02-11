@@ -2,7 +2,6 @@ package com.kevinguanchedarias.owgejava.business;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kevinguanchedarias.kevinsuite.commons.exception.CommonException;
 import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
@@ -10,6 +9,7 @@ import com.kevinguanchedarias.owgejava.dto.MissionReportDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionReport;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.repository.MissionReportRepository;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.MissionReportResponse;

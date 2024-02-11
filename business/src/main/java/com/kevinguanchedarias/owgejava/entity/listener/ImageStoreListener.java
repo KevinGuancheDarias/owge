@@ -1,14 +1,12 @@
 package com.kevinguanchedarias.owgejava.entity.listener;
 
+import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
+import com.kevinguanchedarias.owgejava.entity.ImageStore;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostUpdate;
-
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
-import com.kevinguanchedarias.owgejava.business.ImageStoreBo;
-import com.kevinguanchedarias.owgejava.entity.ImageStore;
 
 /**
  * Fills the transient properties of ImageStore
@@ -19,7 +17,7 @@ import com.kevinguanchedarias.owgejava.entity.ImageStore;
 @Component
 @Lazy
 public class ImageStoreListener {
-    private ImageStoreBo imageStoreBo;
+    private final ImageStoreBo imageStoreBo;
 
     public ImageStoreListener(ImageStoreBo imageStoreBo) {
         this.imageStoreBo = imageStoreBo;

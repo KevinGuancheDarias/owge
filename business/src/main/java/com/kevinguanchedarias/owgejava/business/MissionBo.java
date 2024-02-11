@@ -24,8 +24,9 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUpgradeRepository;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -34,8 +35,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -43,13 +42,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class MissionBo implements UserDeleteListener {
     public static final int MISSION_USER_DELETE_ORDER = 3;
     public static final String UNIT_BUILD_MISSION_CHANGE = "unit_build_mission_change";
     public static final String MISSION_NOT_FOUND = "Mission doesn't exists, maybe it was cancelled";
     public static final String RUNNING_UPGRADE_CHANGE = "running_upgrade_change";
 
-    private static final Logger LOG = Logger.getLogger(MissionBo.class);
     private static final int DAYS = 60;
 
     private final EntityManager entityManager;
@@ -192,7 +191,7 @@ public class MissionBo implements UserDeleteListener {
                 emitMissionCountChange(userId);
             });
         } else {
-            LOG.debug(MISSION_NOT_FOUND);
+            log.debug(MISSION_NOT_FOUND);
         }
     }
 
@@ -298,7 +297,7 @@ public class MissionBo implements UserDeleteListener {
             planetLockUtilService.doInsideLockById(
                     List.of(missionBeforeLock.getMissionInformation().getValue().longValue()),
                     () -> {
-                        LOG.debug("Process build mission " + missionId);
+                        log.debug("Process build mission " + missionId);
                         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
                         Long sourcePlanetId = mission.getMissionInformation().getValue().longValue();
                         var sourcePlanet = planetBo.findById(sourcePlanetId);
@@ -325,11 +324,11 @@ public class MissionBo implements UserDeleteListener {
                                 () -> obtainedUnitEventEmitter.emitObtainedUnits(user)
                                 , 500
                         );
-                        LOG.debug("End build mission " + mission);
+                        log.debug("End build mission " + mission);
                     }
             );
         } else {
-            LOG.debug(MISSION_NOT_FOUND);
+            log.debug(MISSION_NOT_FOUND);
         }
     }
 
@@ -347,7 +346,7 @@ public class MissionBo implements UserDeleteListener {
         switch (missionType) {
             case BUILD_UNIT -> processBuildUnit(missionId);
             case LEVEL_UP -> processLevelUpAnUpgrade(missionId);
-            default -> LOG.warn("Not a upgrade level mission nor unit build");
+            default -> log.warn("Not a upgrade level mission nor unit build");
         }
     }
 

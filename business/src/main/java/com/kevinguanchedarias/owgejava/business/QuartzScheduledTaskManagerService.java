@@ -1,23 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
-import java.util.Date;
-import java.util.UUID;
-
+import com.google.gson.Gson;
+import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
+import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
 import jakarta.annotation.PostConstruct;
-
-import org.apache.log4j.Logger;
-import org.quartz.JobBuilder;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerContext;
-import org.quartz.SchedulerException;
-import org.quartz.SimpleTrigger;
-import org.quartz.TriggerBuilder;
-import org.quartz.TriggerKey;
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -26,9 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.gson.Gson;
-import com.kevinguanchedarias.owgejava.exception.SgtBackendSchedulerException;
-import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Quartz based task scheduling
@@ -37,9 +24,9 @@ import com.kevinguanchedarias.owgejava.pojo.ScheduledTask;
  * @since 0.8.1
  */
 @Service
+@Slf4j
 public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksManagerService {
 
-    private static final Logger LOG = Logger.getLogger(QuartzScheduledTaskManagerService.class);
 
     private Gson gson;
 
@@ -108,7 +95,7 @@ public class QuartzScheduledTaskManagerService extends AbstractScheduledTasksMan
             task.setId(jobName);
             jobData.put("eventUuid", jobName);
             jobData.put("task", gson.toJson(task));
-            LOG.debug("Scheduling event with id " + jobName + " and of type " + task.getType());
+            log.debug("Scheduling event with id " + jobName + " and of type " + task.getType());
             JobDetail jobDetail = JobBuilder.newJob(JobHandler.class).withIdentity(jobKey).setJobData(jobData).build();
             Date startAt = new Date(new Date().getTime() + (deliverAfterSeconds * 1000));
             SimpleTrigger trigger = (SimpleTrigger) TriggerBuilder.newTrigger().withIdentity(triggerKey)

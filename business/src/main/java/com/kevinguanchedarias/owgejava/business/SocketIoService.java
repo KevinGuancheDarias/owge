@@ -16,7 +16,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.DependsOn;
@@ -41,7 +40,6 @@ public class SocketIoService {
     public static final String USER_TOKEN_KEY = "user_token";
 
     private static final String EVENT_WARN_MESSAGE = "warn_message";
-    private static final Logger LOCAL_LOGGER = Logger.getLogger(SocketIoService.class);
 
     @Autowired
     private WebsocketConfiguration websocketConfiguration;
@@ -77,14 +75,14 @@ public class SocketIoService {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onContextReady() {
-        LOCAL_LOGGER.info("Starting websocket at ws://" + websocketConfiguration.getHostname() + ":"
+        log.info("Starting websocket at ws://" + websocketConfiguration.getHostname() + ":"
                 + websocketConfiguration.getPort());
         server.start();
     }
 
     @PreDestroy
     public void destroy() {
-        LOCAL_LOGGER.debug("Closing websocket connection");
+        log.debug("Closing websocket connection");
         server.stop();
     }
 
@@ -186,7 +184,7 @@ public class SocketIoService {
             T sendValue = messageContent.get();
             asyncRunnerBo.runAsyncWithoutContext(() -> userSockets.forEach(client -> {
                 if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    LOCAL_LOGGER.warn("Should never happened, if everything is nice!!!");
+                    log.warn("Should never happened, if everything is nice!!!");
                 }
                 TokenUser user = client.get(USER_TOKEN_KEY);
                 log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
@@ -209,14 +207,14 @@ public class SocketIoService {
 
     private void registerUnauthenticatedEvents() {
         server.addConnectListener(
-                client -> LOCAL_LOGGER.debug("Client connected from " + client.getRemoteAddress().toString()));
+                client -> log.debug("Client connected from " + client.getRemoteAddress().toString()));
         server.addEventListener(AUTHENTICATION, String.class, (client, data, ack) -> {
             var token = mapper.readValue(data, new TypeReference<Map<String, String>>() {
             }).get("value");
             if (StringUtils.isEmpty(token)) {
                 sendError(client, AUTHENTICATION, "invalid token sent from client");
             } else {
-                LOCAL_LOGGER.trace("Authenticating using token " + token);
+                log.trace("Authenticating using token " + token);
                 var authenticatedToken = authenticationFilters.stream()
                         .map(current -> current.findUserFromToken(token)).filter(Objects::nonNull).findFirst();
                 if (authenticatedToken.isPresent()) {
@@ -237,7 +235,7 @@ public class SocketIoService {
     }
 
     private void sendError(SocketIOClient client, String event, String text) {
-        LOCAL_LOGGER.warn(text);
+        log.warn(text);
         client.sendEvent(event, new WebsocketMessage<>(event, text, "error"));
         client.disconnect();
     }

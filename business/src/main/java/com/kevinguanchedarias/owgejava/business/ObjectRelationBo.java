@@ -14,7 +14,7 @@ import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
 import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -28,13 +28,13 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectRelationDto> {
     public static final String OBJECT_RELATION_CACHE_TAG = "object_relation";
 
     @Serial
     private static final long serialVersionUID = -8660185836978327225L;
 
-    private static final Logger LOG = Logger.getLogger(ObjectRelationBo.class);
 
     private final ObjectEntityBo objectEntityBo;
 
@@ -121,7 +121,7 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
         if (objectRelation != null) {
             return objectRelation;
         } else {
-            LOG.debug("No object relation of type " + target.name() + " with refId " + referenceId
+            log.debug("No object relation of type " + target.name() + " with refId " + referenceId
                     + " exists in the target db, will create one");
             return create(target, referenceId);
         }

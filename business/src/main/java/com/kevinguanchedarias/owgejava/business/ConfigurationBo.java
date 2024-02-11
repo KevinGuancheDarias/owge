@@ -6,11 +6,10 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendConfigurationNotFound
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ConfigurationRepository;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
-import lombok.AllArgsConstructor;
-import org.apache.log4j.Logger;
-import org.springframework.stereotype.Service;
-
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,11 +17,11 @@ import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ConfigurationBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -9297616911916053L;
 
-    private static final Logger LOCAL_LOGGER = Logger.getLogger(ConfigurationBo.class);
 
     public static final String WEBSOCKET_ENDPOINT_KEY = "WEBSOCKET_ENDPOINT";
 
@@ -35,7 +34,7 @@ public class ConfigurationBo implements Serializable {
     @PostConstruct
     public void init() {
         if (findOne("UNIVERSE_ID").isEmpty()) {
-            LOCAL_LOGGER.info("Adding UNIVERSE_ID as it's missing");
+            log.info("Adding UNIVERSE_ID as it's missing");
             Configuration configuration = new Configuration();
             configuration.setName("UNIVERSE_ID");
             configuration.setValue(UUID.randomUUID().toString());
@@ -117,7 +116,7 @@ public class ConfigurationBo implements Serializable {
         try {
             return findConfigurationParam(name);
         } catch (SgtBackendConfigurationNotFoundException | NoSuchElementException e) {
-            LOCAL_LOGGER.warn("Warning, configuration not found, using default " + defaultValue
+            log.warn("Warning, configuration not found, using default " + defaultValue
                     + ", nested message is: " + e.getMessage());
             return new Configuration(name, defaultValue);
         }
@@ -143,7 +142,7 @@ public class ConfigurationBo implements Serializable {
             value = DeployMissionConfigurationEnum.valueOf(
                     findOrSetDefault("DEPLOYMENT_CONFIG", DeployMissionConfigurationEnum.FREEDOM.name()).getValue());
         } catch (Exception e) {
-            LOCAL_LOGGER.warn(
+            log.warn(
                     "Invalid value for DEPLOYMENT_CONFIG, please check DeployMissionConfigurationEnum for valid values, Defaulting to FREEDOM");
             value = DeployMissionConfigurationEnum.FREEDOM;
         }

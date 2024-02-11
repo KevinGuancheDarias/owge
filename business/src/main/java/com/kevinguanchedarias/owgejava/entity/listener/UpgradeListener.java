@@ -3,12 +3,11 @@ package com.kevinguanchedarias.owgejava.entity.listener;
 import com.kevinguanchedarias.owgejava.business.RequirementInformationBo;
 import com.kevinguanchedarias.owgejava.entity.Upgrade;
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import jakarta.persistence.PostLoad;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.PostLoad;
 
 /**
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

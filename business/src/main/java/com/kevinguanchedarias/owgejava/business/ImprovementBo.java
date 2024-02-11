@@ -15,7 +15,7 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
@@ -38,13 +38,13 @@ import java.util.function.BiConsumer;
  */
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDto> {
     public static final String IMPROVEMENT_CACHE_TAG_BY_USER = "improvement";
 
     @Serial
     private static final long serialVersionUID = 174646136669035809L;
 
-    private static final Logger LOG = Logger.getLogger(ImprovementBo.class);
     private static final Double DEFAULT_STEP = 10D;
     private static final String CACHE_KEY = "improvements_user";
 
@@ -118,7 +118,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      */
     @Cacheable(cacheNames = CACHE_KEY, key = "#user.id")
     public GroupedImprovement findUserImprovement(UserStorage user) {
-        LOG.debug("Computing improvements for user " + user.getId());
+        log.debug("Computing improvements for user " + user.getId());
         GroupedImprovement groupedImprovement = improvementSources.stream()
                 .map(current -> findFromCacheOrBo(user, current))
                 .reduce(new GroupedImprovement(), GroupedImprovement::add);
@@ -137,7 +137,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
     public void clearSourceCache(UserStorage user, ImprovementSource source) {
         String sourceCacheName = findSourceCacheName(user, source);
         Runnable action = () -> {
-            LOG.debug("Clearing cache for " + sourceCacheName);
+            log.debug("Clearing cache for " + sourceCacheName);
             cacheManager.getCache(CACHE_KEY).evictIfPresent(user.getId());
             cacheManager.getCache(CACHE_KEY).evictIfPresent(sourceCacheName);
         };
@@ -209,9 +209,9 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
                             cache.evict(key);
                             count.incrementAndGet();
                         });
-                LOG.debug("Cleared " + count + " cache entries from " + findSourceServiceName(source));
+                log.debug("Cleared " + count + " cache entries from " + findSourceServiceName(source));
             } else {
-                LOG.warn("Used cache backend, not supported for selective cache clearing, will clear ALL");
+                log.warn("Used cache backend, not supported for selective cache clearing, will clear ALL");
                 cache.clear();
             }
         }
@@ -300,7 +300,7 @@ public class ImprovementBo implements BaseBo<Integer, Improvement, ImprovementDt
      */
     public double computePlusPercertage(Float base, Float percentage) {
         if (percentage == null) {
-            LOG.debug("Percentage is null for base " + base);
+            log.debug("Percentage is null for base " + base);
             return base;
         } else {
             return base + (base * (percentage / 100));

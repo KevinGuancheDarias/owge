@@ -24,18 +24,16 @@ import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.annotation.PostConstruct;
-
-import jakarta.persistence.EntityManager;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -48,11 +46,11 @@ import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQU
 @Component
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class RequirementBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -7069590234333605969L;
 
-    private static final Logger LOG = Logger.getLogger(RequirementBo.class);
     private final RequirementRepository requirementRepository;
     private final UnlockedRelationBo unlockedRelationBo;
     private final UpgradeBo upgradeBo;
@@ -275,7 +273,7 @@ public class RequirementBo implements Serializable {
                 if (relationWithMaster != null) {
                     affectedMasters.add(relationWithMaster.getMaster());
                 } else {
-                    LOG.warn("Orphan group with id " + currentRelation.getId());
+                    log.warn("Orphan group with id " + currentRelation.getId());
                 }
                 isSlaveOrHasNotSlaves = true;
             } else {
@@ -371,7 +369,7 @@ public class RequirementBo implements Serializable {
     private boolean checkSpecialLocationRequirement(RequirementInformation currentRequirement, UserStorage user) {
         var planet = planetRepository.findOneBySpecialLocationId(currentRequirement.getSecondValue().intValue());
         if (planet == null) {
-            LOG.warn("Special location " + currentRequirement.getSecondValue() + " is not assigned to any planet");
+            log.warn("Special location " + currentRequirement.getSecondValue() + " is not assigned to any planet");
             return false;
         } else if (planet.getOwner() == null) {
             return false;

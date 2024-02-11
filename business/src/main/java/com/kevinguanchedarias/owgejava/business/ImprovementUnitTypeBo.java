@@ -13,9 +13,8 @@ import com.kevinguanchedarias.owgejava.pojo.AffectedItem;
 import com.kevinguanchedarias.owgejava.repository.ImprovementUnitTypeRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -26,11 +25,10 @@ import java.util.Iterator;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ImprovementUnitTypeBo implements Serializable {
     @Serial
     private static final long serialVersionUID = -3323254005323573001L;
-
-    private static final Logger LOGGER = Logger.getLogger(ImprovementUnitTypeBo.class);
 
     private static final Double DEFAULT_STEP = 10D;
 
@@ -172,7 +170,7 @@ public class ImprovementUnitTypeBo implements Serializable {
         try {
             improvementUnitTypeRepository.deleteById(improvementUnitTypeId);
         } catch (EmptyResultDataAccessException e) {
-            LOGGER.log(Level.INFO, e);
+            log.info("Not able to remove improvement unit type {}", improvementUnitTypeId, e);
         }
     }
 

@@ -13,7 +13,7 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,11 +27,11 @@ import static com.kevinguanchedarias.owgejava.entity.RequirementGroup.REQUIREMEN
 import static com.kevinguanchedarias.owgejava.entity.RequirementInformation.REQUIREMENT_INFORMATION_CACHE_TAG;
 
 @Repository
+@Slf4j
 public class RequirementInformationDao implements Serializable {
     @Serial
     private static final long serialVersionUID = -4922698439719271164L;
 
-    private static final Logger LOG = Logger.getLogger(RequirementInformationDao.class);
 
     @Autowired
     private RequirementInformationRepository requirementInformationRepository;
@@ -82,7 +82,7 @@ public class RequirementInformationDao implements Serializable {
             requirementInformation = requirementInformationRepository.save(requirementInformation);
         } catch (Exception e) {
             if (ExceptionUtilService.isSqlDuplicatedKey(e)) {
-                LOG.debug("Duplicated entry", e);
+                log.debug("Duplicated entry", e);
                 throw exceptionUtilService
                         .createExceptionBuilder(SgtBackendInvalidInputException.class,
                                 "I18N_ERR_DUPLICATED_REQUIREMENT")
