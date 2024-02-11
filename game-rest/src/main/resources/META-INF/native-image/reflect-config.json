@@ -1,0 +1,395 @@
+[
+  {
+    "name": "com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictAspect",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "close",
+        "parameterTypes": []
+      },
+      {
+        "name": "evictByTags",
+        "parameterTypes": [
+          "org.aspectj.lang.JoinPoint"
+        ]
+      },
+      {
+        "name": "shutdown",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByKey"
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag",
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable",
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.aspect.TaggableCacheableAspect",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "close",
+        "parameterTypes": []
+      },
+      {
+        "name": "handleTaggableCacheAnnotation",
+        "parameterTypes": [
+          "org.aspectj.lang.ProceedingJoinPoint"
+        ]
+      },
+      {
+        "name": "shutdown",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.configuration.TaggableCacheDefaultConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredClasses": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllDeclaredConstructors": true,
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      },
+      {
+        "name": "placeholderResolver",
+        "parameterTypes": []
+      },
+      {
+        "name": "setBeanFactory",
+        "parameterTypes": [
+          "org.springframework.beans.factory.BeanFactory"
+        ]
+      },
+      {
+        "name": "taggableCacheEvictAspect",
+        "parameterTypes": [
+          "com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager",
+          "com.kevinguanchedarias.taggablecache.placeholderresolver.PlaceholderResolver"
+        ]
+      },
+      {
+        "name": "taggableCacheManager",
+        "parameterTypes": [
+          "com.kevinguanchedarias.taggablecache.configuration.properties.ConcurrentHashMapTaggableProperties"
+        ]
+      },
+      {
+        "name": "taggableCacheableAspect",
+        "parameterTypes": [
+          "com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager",
+          "com.kevinguanchedarias.taggablecache.placeholderresolver.PlaceholderResolver"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.configuration.TaggableCacheDefaultConfiguration$$SpringCGLIB$$0",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllDeclaredConstructors": true,
+    "fields": [
+      {
+        "name": "CGLIB$FACTORY_DATA"
+      }
+    ],
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      },
+      {
+        "name": "CGLIB$SET_STATIC_CALLBACKS",
+        "parameterTypes": [
+          "org.springframework.cglib.proxy.Callback[]"
+        ]
+      },
+      {
+        "name": "CGLIB$SET_THREAD_CALLBACKS",
+        "parameterTypes": [
+          "org.springframework.cglib.proxy.Callback[]"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.configuration.TaggableCacheDefaultConfiguration$$SpringCGLIB$$FastClass$$0",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.Class"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.configuration.TaggableCacheDefaultConfiguration$$SpringCGLIB$$FastClass$$1",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.Class"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.configuration.properties.ConcurrentHashMapTaggableProperties",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllDeclaredConstructors": true,
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.Long",
+          "java.util.concurrent.TimeUnit"
+        ]
+      },
+      {
+        "name": "equals",
+        "parameterTypes": [
+          "java.lang.Object"
+        ]
+      },
+      {
+        "name": "hashCode",
+        "parameterTypes": []
+      },
+      {
+        "name": "toString",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.internal.model.ParsedKeyAndTagsModel"
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.manager.AbstractTaggableCacheManager",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "computeIfAbsent",
+        "parameterTypes": [
+          "java.lang.String",
+          "java.util.List",
+          "java.util.function.Supplier"
+        ]
+      },
+      {
+        "name": "evictByCacheTag",
+        "parameterTypes": [
+          "java.lang.String",
+          "java.lang.Object"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.manager.ConcurrentHashMapTaggableCacheManager",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "clear",
+        "parameterTypes": []
+      },
+      {
+        "name": "close",
+        "parameterTypes": []
+      },
+      {
+        "name": "evictByCacheTag",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      },
+      {
+        "name": "evictByKey",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      },
+      {
+        "name": "findByKey",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      },
+      {
+        "name": "keyExists",
+        "parameterTypes": [
+          "java.lang.String"
+        ]
+      },
+      {
+        "name": "saveEntry",
+        "parameterTypes": [
+          "java.lang.String",
+          "java.lang.Object",
+          "java.util.Collection"
+        ]
+      },
+      {
+        "name": "shutdown",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager",
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.placeholderresolver.DefaultPlaceholderResolver",
+    "allDeclaredFields": true,
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "close",
+        "parameterTypes": []
+      },
+      {
+        "name": "resolveExpressions",
+        "parameterTypes": [
+          "org.aspectj.lang.JoinPoint",
+          "java.lang.String",
+          "java.util.List"
+        ]
+      },
+      {
+        "name": "shutdown",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.kevinguanchedarias.taggablecache.placeholderresolver.PlaceholderResolver",
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "org.aspectj.lang.JoinPoint"
+  },
+  {
+    "name": "org.aspectj.lang.annotation.Around",
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "argNames",
+        "parameterTypes": []
+      },
+      {
+        "name": "pointcut",
+        "parameterTypes": []
+      },
+      {
+        "name": "value",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.lang.annotation.Aspect",
+    "queryAllDeclaredMethods": true
+  },
+  {
+    "name": "org.aspectj.lang.annotation.Before",
+    "queryAllDeclaredMethods": true,
+    "methods": [
+      {
+        "name": "argNames",
+        "parameterTypes": []
+      },
+      {
+        "name": "pointcut",
+        "parameterTypes": []
+      },
+      {
+        "name": "value",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.Advice"
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.Java15AnnotationFinder",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.Java15GenericSignatureInformationProvider",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "org.aspectj.weaver.World"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.Java15ReflectionBasedReferenceTypeDelegate",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.ReflectionBasedReferenceTypeDelegate",
+    "fields": [
+      {
+        "name": "myClass"
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.ReflectionVar",
+    "fields": [
+      {
+        "name": "varType"
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.reflect.ShadowMatchImpl",
+    "fields": [
+      {
+        "name": "residualTest"
+      }
+    ]
+  },
+  {
+    "name": "org.aspectj.weaver.tools.Jdk14TraceFactory",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

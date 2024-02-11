@@ -1,0 +1,36 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\QMETA-INF/MANIFEST.MF\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/aspect/TaggableCacheEvictByKey.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/aspect/TaggableCacheEvictByTag.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/aspect/TaggableCacheable.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/configuration/TaggableCacheDefaultConfiguration$$SpringCGLIB$$0.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/configuration/TaggableCacheDefaultConfiguration.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/configuration/properties/ConcurrentHashMapTaggableProperties.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/manager/AbstractTaggableCacheManager.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/manager/ConcurrentHashMapTaggableCacheManager.class\\E"
+      },
+      {
+        "pattern": "\\Qcom/kevinguanchedarias/taggablecache/placeholderresolver/DefaultPlaceholderResolver.class\\E"
+      }
+    ]
+  }
+}
