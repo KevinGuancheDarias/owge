@@ -2,13 +2,6 @@ kevinsuiteRoot="/public/kevinsuite-java";
 kevinsuiteCommonBackend="$kevinsuiteRoot/common-backend";
 kevinsuiteRestBackend="$kevinsuiteRoot/backend-rest-commons";
 
-function mavenRun () {
-        _targetDirectory="$1";
-        shift;
-         docker run -it --rm --volume "$_targetDirectory"://usr/src/app \
-        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-jdk-8-alpine mvn $@
-}
-
 function nodeRun() {
         _targetDirectory="$1";
         if [ ! -d "$_targetDirectory" ]; then
@@ -45,79 +38,6 @@ function envInfoCheck() {
                 echo "Optional $1 not specified, $3";
 		exit 1;
         fi
-}
-
-##
-# Compiles the specified maven project
-#
-# @param $1 string Target maven project directory
-# @param [$2] string directory to copy the generated war
-# @env [OPTIONAL] boolean If specified, will only compile if compile file doesn't exists
-# @env [SKIP_TESTS] If should skip test, if not specified, will run all the tests (as we should always do)
-#
-# @author Kevin Guanche Darias
-##
-function compileMavenProject () {
-        _project=`mavenRun "$1" -q -Dexec.executable="echo" -Dexec.args='${project.artifactId}:${project.version}:${project.packaging}' --non-recursive exec:exec | head -n 1`;
-        _project=`echo "$_project" | tr -cd '[[:alnum:]].:_-'`;
-        _projectName=`echo "$_project" | cut -d ':' -f 1`;
-        _projectVersion=`echo "$_project" | cut -d ':' -f 2`;
-        _projectPackaging=`echo "$_project" | cut -d ':' -f 3`;
-        _projectFile="$_projectName-$_projectVersion.$_projectPackaging"
-        _doCompile="1";
-        if [ ! -z "$OPTIONAL" ]; then
-                _compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
-                if [ ! -z "$_compiledFilePath" ]; then
-                        _doCompile="0";
-                fi
-        fi
-	_skipTests=""
-	if [ ! -z "$SKIP_TESTS" ]; then
-		_skipTests="-DskipTests";
-	fi
-        if [ $_doCompile -eq 1 ]; then
-                echo "Compiling $_projectName:$_projectVersion";
-                mavenRun "$1" clean install "$_skipTests"  &> /dev/null;
-                _compiledFilePath=`find ~/.m2/repository -name "$_projectFile"`;
-                if [ -z "$_compiledFilePath" ]; then
-                        echo "FATAL, compilation, when trying to compile $_project , aborting script execution";
-                        exit 1;
-                fi
-        fi
-        globalMavenFilename="$_projectFile";
-        if [ ! -z "$2" ] && [ -d "$2" ]; then
-                globalCompiledMavenFile="$2/$_projectFile";
-                echo "Copying file $_projectFile  to $2";
-                cp -p "$_compiledFilePath" "$2/";
-        else
-                globalCompiledMavenFile="$_compiledFilePath";
-        fi
-
-}
-
-##
-# Returns the HTTP port for the specified OWGE version
-# Notice: It ensures only a free port is returned
-#
-# @deprecated It's better to determine the port by giving universeId, use getPortByUniverseId instead
-# @param $1 string Version, should look like x.x.x
-# @author Kevin Guanche Darias
-# @returns stdout<int> Port number
-##
-function getPort () {
-	echo -e "\[33mWarning: getPort function is deprecated\e[39m";
-	if ! echo "$1" | grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]$" &> /dev/null; then
-		echo "FATAL, malformed version passed to getPort(), exit()ing script";
-		return 1;
-	fi
-	major=`echo $1 | cut -d . -f 1`;
-	minor=`echo $1 | cut -d . -f 2`;
-	path=`echo $1 | cut -d . -f 3`;
-	port=$(( 8080 + ( $major * 100 )  + ( $minor * 10 ) + $path));
-	while nc -z 127.0.0.1 $port ; do
-		port=$(( $port + 1 ));
-	done
-	echo "$port";
 }
 
 ##
@@ -382,7 +302,7 @@ function log () {
         if [ -n "$DEBUG_LEVELS" ]; then
                 _log_levels="$DEBUG_LEVELS";
         else
-                _log_levels="error";
+                _log_levels="error,warning";
         fi
         if echo "$_log_levels" | grep "$1" &> /dev/null; then
                 if [ "$1" == "warning" ]; then

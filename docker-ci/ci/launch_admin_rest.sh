@@ -70,7 +70,7 @@ function mavenRun () {
 	_targetDirectory="$1";
 	shift;
 	 docker run -it --rm --volume "$_targetDirectory"://usr/src/app \
-        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-openjdk-17-slim mvn $@
+        --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:eclipse-temurin-21-alpine mvn $@
 }
 
 function nodeRun() {
@@ -80,7 +80,7 @@ function nodeRun() {
 		rollback;
 	fi
 	shift;
-	docker run -it --rm --env NG_CLI_ANALYTICS=ci --volume "$_targetDirectory"://home/node -w=/home/node node:10 $@
+	docker run -it --rm --env NG_CLI_ANALYTICS=ci --volume "$_targetDirectory"://home/node -w=/home/node node:14 $@
 }
 
 ##

@@ -38,19 +38,21 @@ log info "Info level is enabled";
 log warning "Warning level is enabled";
 log error "Error level if enabled";
 
-if [ -n "$DOCKER_HOST" ] &&  [ `docker-machine ssh default 'mount | grep /c/Users | grep vboxsf | wc -l'` -eq  0 ]; then
-    log warning "The vbox users folder is not mounted, trying to mount";
-    docker-machine.exe ssh default 'sudo mkdir -p //c/Users';
-    # -o -o umask=0022,gid=50,uid=1000
-    if  ! docker-machine.exe ssh default 'sudo mount -t vboxsf  Users //c/Users' &> /dev/null; then
-        >&2 echo -e "\e[31mAborting, /c/Users is not mounted in the vbox vm, and can't mount it, maybe because shared folder doesn't exists in virtual machine config";
-        exit 1;
-    fi
+if [ -n "$DOCKER_HOST" ] && which docker-machine &> /dev/null; then
+    log error "Docker using Virtualbox is no longer supported"
+    exit 1;
+fi
+if uname | grep -i mingw &> /dev/null && docker --version | grep 'failed to get console mode for stdout' &> /dev/null ; then
+    log warning "applying hotfix for known docker bug, more info docker/for-win#13891"
+    function docker () {
+        com.docker.cli $@;
+    }
 fi
 
 function _menu () {
     function __findRunningComposerProject() {
         if [ `docker ps --filter "label=com.docker.compose.project" -q | wc -l ` -ge 1 ] && docker ps --filter "label=com.docker.compose.project" -q | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}'| uniq | grep "$1" &> /dev/null; then
+            return 0;
             if [ `docker ps --filter "label=com.docker.compose.project" -q | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}' | grep "$1" | wc -l` -eq "$2" ]; then
                 echo -e "\e[32m(UP)\e[39m";
             else 

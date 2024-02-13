@@ -1,5 +1,5 @@
 # Step Compile business, rest & admin
-FROM maven:3-openjdk-17-slim as game-war-files
+FROM maven:3-eclipse-temurin-21-alpine as game-war-files
 WORKDIR /build/business
 COPY business/pom.xml .
 RUN mvn dependency:go-offline
@@ -13,7 +13,7 @@ COPY game-rest/src /build/rest/src
 RUN mvn install -DskipTests
 
 # Tomcat base
-FROM eclipse-temurin:17-jdk-focal as spring-base
+FROM eclipse-temurin:21-jdk-jammy as spring-base
 RUN apt update && apt install -y  mysql-client
 RUN addgroup spring && adduser --system spring && adduser spring spring
 RUN mkdir /app

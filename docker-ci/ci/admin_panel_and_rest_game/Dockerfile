@@ -1,5 +1,5 @@
 #FROM adoptopenjdk/openjdk11-openj9:alpine
-FROM eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:21-jdk-jammy
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 EXPOSE 8080
