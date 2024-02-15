@@ -41,7 +41,7 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
     this._identifier = _screenDimensionsService.generateIdentifier(this);
   }
 
-  public async ngOnInit() {
+  async ngOnInit() {
     this.requireUser();
     this._reportService.setDoSplit(false);
     this._screenDimensionsService.hasMinWidth(767, this._identifier).subscribe(val => this.isDesktop = val);
@@ -75,9 +75,8 @@ export class ReportsListComponent extends BaseComponent<UserWithFaction> impleme
     this._reportService.setDoSplit(true);
   }
 
-  public showReportDetails(report: MissionReport): void {
-    this.selectedReport = report;
-    this._modal.show();
+  public markAllAsRead(): void {
+    this._loadingService.addPromise(this._reportService.markAllAsRead());
   }
 
   public downloadNextPage(): void {

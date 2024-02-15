@@ -61,11 +61,11 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.integralblue/log4jdbc-spring-boot-starter -->
+        <!-- https://mvnrepository.com/artifact/ru.vasiand/spring-boot-starter-log4jdbc -->
         <dependency>
-            <groupId>com.integralblue</groupId>
-            <artifactId>log4jdbc-spring-boot-starter</artifactId>
-            <version>2.0.0</version>
+            <groupId>ru.vasiand</groupId>
+            <artifactId>spring-boot-starter-log4jdbc</artifactId>
+            <version>1.1.0</version>
         </dependency>
 
         <dependency>

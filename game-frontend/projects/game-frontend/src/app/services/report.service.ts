@@ -98,6 +98,13 @@ export class ReportService extends AbstractWebsocketApplicationHandler {
     await this._saveOffline();
   }
 
+  public async markAllAsRead() {
+    const date = new Date(new Date().getTime() + (86400_000));
+    await this._universeGameService.requestWithAutorizationToContext(
+        'game','post',`report/mark-as-read-before-date/${date.getTime()}`, {}
+    ).toPromise();
+  }
+
   /**
    *
    *

@@ -31,6 +31,10 @@ public interface MissionReportRepository extends JpaRepository<MissionReport, Lo
     @Modifying
     void markAsReadIfUserIsOwner(List<Long> reportsIds, Integer userId);
 
+    @Query("UPDATE MissionReport  rp SET rp.userReadDate = CURRENT_TIMESTAMP WHERE rp.user.id = :userId AND rp.userReadDate is NULL AND rp.reportDate < :date")
+    @Modifying
+    void markAsReadBeforeDate(Integer userId, Date date);
+
     List<MissionReport> findByReportDateLessThan(Date date, Pageable pageable);
 
     void deleteByUser(UserStorage user);

@@ -14,6 +14,7 @@
   </ng-container>
 
   <ng-template #reportContent>
+      <button (click)="markAllAsRead()" class="btn btn-block">{{ 'APP.REPORTS.MARK_ALL_AS_READ' | translate }}</button>
     <div class="card owge report-card" *ngFor="let report of reports">
       <owge-widgets-display-list-item [itemName]="'Mission to ' + (report.parsedJson?.targetPlanet | planetDisplayName)"
         [image]="report.parsedJson?.targetPlanet | planetImage" [hideDesktopSections]="[0,0,1]">

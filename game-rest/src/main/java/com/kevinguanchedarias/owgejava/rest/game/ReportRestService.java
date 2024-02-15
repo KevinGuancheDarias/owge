@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -35,6 +36,11 @@ public class ReportRestService implements SyncSource {
     @PostMapping("mark-as-read")
     public void markAsRead(@RequestBody List<Long> reportsIds) {
         missionReportBo.markAsRead(userSessionService.findLoggedIn().getId(), reportsIds);
+    }
+
+    @PostMapping("mark-as-read-before-date/{date}")
+    public void markAsReadBeforeDate(@PathVariable Instant date) {
+        missionReportBo.markAsReadBeforeDate(userSessionService.findLoggedIn().getId(), date);
     }
 
     @Override

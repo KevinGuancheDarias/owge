@@ -197,6 +197,7 @@
         },
         "REPORTS": {
             "NO_REPORTS": "No mission reports are available for now",
+            "MARK_ALL_AS_READ": "Mark all messages as read",
             "SHOW_MORE": "Download older reports",
             "SOURCE_PLANET": "Source planet",
             "SENT_UNITS": "Sent units",

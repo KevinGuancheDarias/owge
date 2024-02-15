@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -207,6 +208,12 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
         emitCountChange(userId);
     }
 
+    @Transactional
+    public void markAsReadBeforeDate(Integer userId, Instant date) {
+        missionReportRepository.markAsReadBeforeDate(userId, Date.from(date));
+        emitCountChange(userId);
+    }
+
     @Override
     public MissionReportDto toDto(MissionReport entity) {
         return parseJsonBody(BaseBo.super.toDto(entity));
@@ -226,5 +233,4 @@ public class MissionReportBo implements BaseBo<Long, MissionReport, MissionRepor
     private void emitCountChange(Integer userId) {
         socketIoService.sendMessage(userId, EMIT_COUNT_CHANGE, () -> findUnreadCount(userId, null));
     }
-
 }
