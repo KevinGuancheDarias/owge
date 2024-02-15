@@ -48,7 +48,6 @@
     "lodash-es": "^4.17.15",
     "ng2-logger": "^3.0.11",
     "ngx-toastr": "^12.1.0",
-    "obs-websocket-js": "^5.0.2",
     "rxjs": "^6.5.2",
     "socket.io-client": "^2.4.0",
     "ts-helpers": "^1.1.1",
