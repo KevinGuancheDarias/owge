@@ -6,10 +6,12 @@ import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
+import com.kevinguanchedarias.owgejava.business.user.UserPlanetLockService;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,8 +45,10 @@ import static org.mockito.Mockito.*;
         AsyncRunnerBo.class,
         ObtainedUnitEventEmitter.class,
         MissionEventEmitterBo.class,
-        RequirementBo.class
+        RequirementBo.class,
+        UserPlanetLockService.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class ReturnMissionProcessorTest {
     private final ReturnMissionProcessor returnMissionProcessor;
     private final PlanetLockUtilService planetLockUtilService;
@@ -54,27 +58,6 @@ class ReturnMissionProcessorTest {
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final RequirementBo requirementBo;
-
-    @Autowired
-    ReturnMissionProcessorTest(
-            ReturnMissionProcessor returnMissionProcessor,
-            PlanetLockUtilService planetLockUtilService,
-            ObtainedUnitRepository obtainedUnitRepository,
-            ObtainedUnitBo obtainedUnitBo,
-            AsyncRunnerBo asyncRunnerBo,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
-            MissionEventEmitterBo missionEventEmitterBo,
-            RequirementBo requirementBo
-    ) {
-        this.returnMissionProcessor = returnMissionProcessor;
-        this.planetLockUtilService = planetLockUtilService;
-        this.obtainedUnitRepository = obtainedUnitRepository;
-        this.obtainedUnitBo = obtainedUnitBo;
-        this.asyncRunnerBo = asyncRunnerBo;
-        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
-        this.missionEventEmitterBo = missionEventEmitterBo;
-        this.requirementBo = requirementBo;
-    }
 
     @Test
     void supports_should_work() {

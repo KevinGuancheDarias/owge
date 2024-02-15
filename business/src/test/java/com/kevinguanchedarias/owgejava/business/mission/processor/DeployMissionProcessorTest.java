@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.mission.processor;
 
+import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionUnitsFinderBo;
 import com.kevinguanchedarias.owgejava.business.unit.HiddenUnitBo;
@@ -7,10 +8,11 @@ import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
-import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.util.EntityRefreshUtilService;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,8 +20,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -43,9 +43,11 @@ import static org.mockito.Mockito.*;
         TransactionUtilService.class,
         ObtainedUnitEventEmitter.class,
         MissionEventEmitterBo.class,
-        EntityManager.class,
-        HiddenUnitBo.class
+        HiddenUnitBo.class,
+        RequirementBo.class,
+        EntityRefreshUtilService.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class DeployMissionProcessorTest {
     private final DeployMissionProcessor deployMissionProcessor;
     private final MissionUnitsFinderBo missionUnitsFinderBo;
@@ -53,29 +55,9 @@ class DeployMissionProcessorTest {
     private final TransactionUtilService transactionUtilService;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final MissionEventEmitterBo missionEventEmitterBo;
-    private final EntityManager entityManager;
     private final HiddenUnitBo hiddenUnitBo;
-
-    @Autowired
-    DeployMissionProcessorTest(
-            DeployMissionProcessor deployMissionProcessor,
-            MissionUnitsFinderBo missionUnitsFinderBo,
-            ObtainedUnitBo obtainedUnitBo,
-            TransactionUtilService transactionUtilService,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
-            MissionEventEmitterBo missionEventEmitterBo,
-            EntityManager entityManager,
-            HiddenUnitBo hiddenUnitBo
-    ) {
-        this.deployMissionProcessor = deployMissionProcessor;
-        this.missionUnitsFinderBo = missionUnitsFinderBo;
-        this.obtainedUnitBo = obtainedUnitBo;
-        this.transactionUtilService = transactionUtilService;
-        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
-        this.missionEventEmitterBo = missionEventEmitterBo;
-        this.entityManager = entityManager;
-        this.hiddenUnitBo = hiddenUnitBo;
-    }
+    private final RequirementBo requirementBo;
+    private final EntityRefreshUtilService entityRefreshUtilService;
 
     @Test
     void supports_should_work() {
@@ -86,7 +68,6 @@ class DeployMissionProcessorTest {
     @ParameterizedTest
     @MethodSource("process_should_work_arguments")
     void process_should_work(
-            ObtainedUnit partnerUnit,
             Mission deployedMission,
             int timesHiddenUnit,
             boolean isHidden,
@@ -102,7 +83,9 @@ class DeployMissionProcessorTest {
         given(missionUnitsFinderBo.findUnitsInvolved(DEPLOY_MISSION_ID)).willReturn(List.of(ou));
         given(obtainedUnitBo.moveUnit(ou, USER_ID_1, TARGET_PLANET_ID)).willReturn(alteredUnit);
         given(hiddenUnitBo.isHiddenUnit(eq(user), any())).willReturn(isHidden);
+        given(entityRefreshUtilService.refresh(alteredUnit)).willReturn(alteredUnit);
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).runWithRequiresNew(any());
 
         var retVal = deployMissionProcessor.process(mission, List.of(ou));
 
@@ -113,8 +96,9 @@ class DeployMissionProcessorTest {
             assertThat(deployedMission.getInvisible()).isEqualTo(isHidden);
         }
         assertThat(mission.getResolved()).isTrue();
-        verify(entityManager, times(1)).refresh(alteredUnit);
+        verify(entityRefreshUtilService, times(1)).refresh(alteredUnit);
         verify(obtainedUnitEventEmitter, times(timesEmitObtainedUnitToOwnerIfSameUser)).emitObtainedUnits(user);
+        verify(requirementBo, times(timesEmitObtainedUnitToOwnerIfSameUser)).triggerUnitBuildCompletedOrKilled(user, List.of(ou.getUnit()));
         verify(missionEventEmitterBo, times(1)).emitLocalMissionChange(mission, USER_ID_1);
     }
 
@@ -124,11 +108,11 @@ class DeployMissionProcessorTest {
         deployedMission.setInvolvedUnits(List.of(alteredUnitPartnerInMission));
         var planetOwner = givenUser2();
         return Stream.of(
-                Arguments.of(alteredUnitPartnerInMission, deployedMission, 1, true, planetOwner, 0),
-                Arguments.of(alteredUnitPartnerInMission, deployedMission, 1, false, planetOwner, 0),
-                Arguments.of(alteredUnitPartnerInMission, deployedMission, 1, false, null, 0),
-                Arguments.of(alteredUnitPartnerInMission, deployedMission, 1, false, givenUser1(), 1),
-                Arguments.of(null, null, 0, false, givenUser1(), 1)
+                Arguments.of(deployedMission, 1, true, planetOwner, 0),
+                Arguments.of(deployedMission, 1, false, planetOwner, 0),
+                Arguments.of(deployedMission, 1, false, null, 0),
+                Arguments.of(deployedMission, 1, false, givenUser1(), 1),
+                Arguments.of(null, 0, false, givenUser1(), 1)
         );
     }
 }

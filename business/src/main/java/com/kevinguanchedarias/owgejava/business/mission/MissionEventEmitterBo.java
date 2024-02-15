@@ -4,12 +4,11 @@ import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.util.EntityRefreshUtilService;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class MissionEventEmitterBo {
     public static final String MISSIONS_COUNT_CHANGE = "missions_count_change";
 
     private final TransactionUtilService transactionUtilService;
-    private final EntityManager entityManager;
+    private final EntityRefreshUtilService entityRefreshUtilService;
     private final SocketIoService socketIoService;
     private final RunningMissionFinderBo runningMissionFinderBo;
     private final MissionRepository missionRepository;
@@ -71,7 +70,7 @@ public class MissionEventEmitterBo {
     }
 
     public void emitLocalMissionChange(Mission mission, Integer userId) {
-        entityManager.refresh(mission);
+        mission = entityRefreshUtilService.refresh(mission);
         if (Boolean.FALSE.equals(mission.getInvisible())) {
             emitEnemyMissionsChange(mission);
         }

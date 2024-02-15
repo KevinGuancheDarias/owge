@@ -25,6 +25,7 @@ import com.kevinguanchedarias.owgejava.repository.*;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import jakarta.persistence.EntityManager;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,8 +39,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-
-import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -331,7 +330,7 @@ class MissionBoTest {
         assertThat(user.getSecondaryResource()).isEqualTo(80D);
         verify(userStorageRepository, times(1)).save(user);
         verify(missionRepository, times(1)).save(saved);
-        verify(missionSchedulerService, times(1)).scheduleMission(eq(saved));
+        verify(missionSchedulerService, times(1)).scheduleMission(saved);
         verify(entityManager, times(1)).refresh(saved);
         verify(socketIoService, times(1)).sendMessage(eq(user), eq(MissionBo.RUNNING_UPGRADE_CHANGE), any());
         verify(missionEventEmitterBo, times(1)).emitMissionCountChange(USER_ID_1);

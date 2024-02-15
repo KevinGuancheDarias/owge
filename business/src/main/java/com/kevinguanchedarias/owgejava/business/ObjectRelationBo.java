@@ -145,6 +145,11 @@ public class ObjectRelationBo implements BaseBo<Integer, ObjectRelation, ObjectR
                 secondValue);
     }
 
+    public List<ObjectRelation> findByRequirementTypeAndSecondValueIn(RequirementTypeEnum type, List<Long> secondValues) {
+        return objectRelationsRepository.findByRequirementsRequirementCodeAndRequirementsSecondValueIn(type.name(),
+                secondValues);
+    }
+
     /**
      * Finds by type, secondValue, and where thirdValue is greater or equal to x<br>
      * Example resultant SQL: WHERE type = '$type' AND secondValue = '$secondValue'

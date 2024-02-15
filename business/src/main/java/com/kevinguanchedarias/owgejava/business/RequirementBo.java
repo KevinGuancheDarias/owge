@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.UnlockableUnitService;
+import com.kevinguanchedarias.owgejava.business.user.UserPlanetLockService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.DtoFromEntity;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
@@ -28,7 +29,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -73,10 +73,9 @@ public class RequirementBo implements Serializable {
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final UserStorageRepository userStorageRepository;
-
-    @Autowired
+    private final transient UserPlanetLockService userPlanetLockService;
     @Lazy
-    private transient RequirementInternalEventEmitterService requirementInternalEventEmitterService;
+    private final transient RequirementInternalEventEmitterService requirementInternalEventEmitterService;
 
     /**
      * Checks that the {@link RequirementTypeEnum} enum matches the database values
@@ -186,18 +185,34 @@ public class RequirementBo implements Serializable {
      *
      * @author Kevin Guanche Darias
      */
-    @Transactional
     public void triggerUnitBuildCompletedOrKilled(UserStorage user, Unit unit) {
-        processRelationList(objectRelationBo.findByRequirementTypeAndSecondValue(RequirementTypeEnum.HAVE_UNIT,
-                unit.getId().longValue()), user);
-        triggerUnitAmountChanged(user, unit);
+        triggerUnitBuildCompletedOrKilled(user, List.of(unit));
     }
 
-    @Transactional
+    public void triggerUnitBuildCompletedOrKilled(UserStorage user, List<Unit> units) {
+        userPlanetLockService.runLockedForUser(user, () -> {
+            processRelationList(objectRelationBo.findByRequirementTypeAndSecondValueIn(
+                    RequirementTypeEnum.HAVE_UNIT,
+                    units.stream().map(unit -> unit.getId().longValue()).toList()
+            ), user);
+            triggerUnitAmountChanged(user, units);
+        });
+    }
+
     public void triggerUnitAmountChanged(UserStorage user, Unit unit) {
-        long count = obtainedUnitRepository.countByUserAndUnit(user, unit);
-        processRelationList(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
-                RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), count), user);
+        userPlanetLockService.runLockedForUser(user, () -> {
+            long count = obtainedUnitRepository.countByUserAndUnit(user, unit);
+            processRelationList(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
+                    RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), count), user);
+        });
+    }
+
+    public void triggerUnitAmountChanged(UserStorage user, List<Unit> units) {
+        userPlanetLockService.runLockedForUser(user, () -> units.forEach(unit -> {
+            long count = obtainedUnitRepository.countByUserAndUnit(user, unit);
+            processRelationList(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(
+                    RequirementTypeEnum.UNIT_AMOUNT, unit.getId().longValue(), count), user);
+        }));
     }
 
     /**
@@ -489,9 +504,6 @@ public class RequirementBo implements Serializable {
         var userId = unlockedRelation.getUser().getId();
         var eventPrefix = object.name().toLowerCase();
         transactionUtilService.doAfterCommit(() -> {
-            if (entityManager.contains(unlockedRelation)) {
-                entityManager.refresh(unlockedRelation);
-            }
             socketIoService.sendMessage(userId, eventPrefix + "_unlocked_change",
                     () -> dtoUtilService.convertEntireArray(bo.getDtoClass(), bo.findUnlocked(userId)));
         });

@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -26,10 +27,14 @@ public class MysqlLockUtilService {
     private final TransactionUtilService transactionUtilService;
     private final MysqlInformationRepository mysqlInformationRepository;
 
-    public void doInsideLock(Set<String> keys, Runnable runnable) {
+    public void doInsideLock(Set<String> wantedKeys, Runnable runnable) {
+        var alreadyLockedSet = MysqlLockState.get();
+        var keys = wantedKeys.stream().filter(wantedKey -> !alreadyLockedSet.contains(wantedKey)).collect(Collectors.toSet());
         if (keys.isEmpty()) {
+            log.debug("Not locking as already locked, wanted to lock = {}, already thread-locked = {}", wantedKeys, alreadyLockedSet);
             runnable.run();
         } else {
+            log.trace("Applying the following locks {} of wanted = {}", keys, wantedKeys);
             var keysAsList = keys.stream().sorted().toList();
             var commandLambda = (PreparedStatementCallback<String>) ps -> {
                 generateBindParams(keysAsList, ps);
@@ -60,6 +65,7 @@ public class MysqlLockUtilService {
         } else {
             int acquiredLocks = Arrays.stream(result.split(",")).mapToInt(Integer::valueOf).reduce(0, Integer::sum);
             if (acquiredLocks == keysAsList.size()) {
+                MysqlLockState.addAll(keysAsList);
                 action.run();
             } else if (times < 5) {
                 ThreadUtil.sleep(200);
@@ -89,7 +95,7 @@ public class MysqlLockUtilService {
     }
 
     private String generateSql(String part, List<String> keys) {
-        var lastKey = keys.get(keys.size() - 1);
+        var lastKey = keys.getLast();
         return keys.stream()
                 .reduce("SELECT CONCAT(", (buffer, currentKey) -> buffer + part + (currentKey.equals(lastKey) ? ");" : ",',',"));
     }
@@ -99,6 +105,12 @@ public class MysqlLockUtilService {
                 generateSql("RELEASE_LOCK(?)", keysAsList),
                 releaseLockLambda(keysAsList)
         );
+        MysqlLockState.removeAll(keysAsList);
+        var stillLockedKeys = MysqlLockState.get();
+        log.trace("Released locks {}", keysAsList);
+        if (!stillLockedKeys.isEmpty()) {
+            log.debug("While keys {} has been deleted, the thread still contains {}", keysAsList, stillLockedKeys);
+        }
     }
 
     private void generateBindParams(List<String> keys, PreparedStatement preparedStatement) {

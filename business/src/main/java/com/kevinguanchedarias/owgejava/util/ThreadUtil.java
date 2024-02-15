@@ -17,4 +17,8 @@ public class ThreadUtil {
     public static Thread currentThread() {
         return Thread.currentThread();
     }
+
+    public static Thread ofVirtualUnStarted(Runnable runnable) {
+        return Thread.ofVirtual().unstarted(runnable);
+    }
 }

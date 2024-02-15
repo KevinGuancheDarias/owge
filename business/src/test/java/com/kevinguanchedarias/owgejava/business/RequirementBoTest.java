@@ -5,6 +5,7 @@ import com.kevinguanchedarias.owgejava.business.requirement.RequirementSource;
 import com.kevinguanchedarias.owgejava.business.speedimpactgroup.UnlockedSpeedImpactGroupService;
 import com.kevinguanchedarias.owgejava.business.timespecial.UnlockableTimeSpecialService;
 import com.kevinguanchedarias.owgejava.business.unit.UnlockableUnitService;
+import com.kevinguanchedarias.owgejava.business.user.UserPlanetLockService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RequirementInformationDto;
 import com.kevinguanchedarias.owgejava.entity.*;
@@ -16,9 +17,12 @@ import com.kevinguanchedarias.owgejava.exception.SgtCorruptDatabaseException;
 import com.kevinguanchedarias.owgejava.fake.NonPostConstructRequirementBo;
 import com.kevinguanchedarias.owgejava.mock.ObjectRelationMock;
 import com.kevinguanchedarias.owgejava.repository.*;
+import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.util.ValidationUtilTestHelper;
 import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import com.kevinguanchedarias.owgejava.util.ValidationUtil;
+import jakarta.persistence.EntityManager;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,8 +32,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -90,8 +92,10 @@ import static org.mockito.Mockito.*;
         UnlockableUnitService.class,
         UnlockableTimeSpecialService.class,
         UnlockedSpeedImpactGroupService.class,
-        RequirementInternalEventEmitterService.class
+        RequirementInternalEventEmitterService.class,
+        UserPlanetLockService.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class RequirementBoTest {
     private final NonPostConstructRequirementBo requirementBo;
     private final RequirementSource requirementSource;
@@ -107,39 +111,7 @@ class RequirementBoTest {
     private final RequirementInformationRepository requirementInformationRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final RequirementInternalEventEmitterService requirementInternalEventEmitterService;
-
-    @Autowired
-    RequirementBoTest(
-            NonPostConstructRequirementBo requirementBo,
-            RequirementSource requirementSource,
-            ObjectRelationBo objectRelationBo,
-            UnlockedRelationBo unlockedRelationBo,
-            UpgradeBo upgradeBo,
-            ObtainedUpgradeRepository obtainedUpgradeRepository,
-            RequirementRepository requirementRepository,
-            UnitRepository unitRepository,
-            ObtainedUnitRepository obtainedUnitRepository,
-            UserStorageRepository userStorageRepository,
-            DtoUtilService dtoUtilService,
-            RequirementInformationRepository requirementInformationRepository,
-            UnlockedRelationRepository unlockedRelationRepository,
-            RequirementInternalEventEmitterService requirementInternalEventEmitterService
-    ) {
-        this.requirementBo = requirementBo;
-        this.requirementSource = requirementSource;
-        this.objectRelationBo = objectRelationBo;
-        this.unlockedRelationBo = unlockedRelationBo;
-        this.upgradeBo = upgradeBo;
-        this.obtainedUpgradeRepository = obtainedUpgradeRepository;
-        this.requirementRepository = requirementRepository;
-        this.unitRepository = unitRepository;
-        this.obtainedUnitRepository = obtainedUnitRepository;
-        this.userStorageRepository = userStorageRepository;
-        this.dtoUtilService = dtoUtilService;
-        this.requirementInformationRepository = requirementInformationRepository;
-        this.unlockedRelationRepository = unlockedRelationRepository;
-        this.requirementInternalEventEmitterService = requirementInternalEventEmitterService;
-    }
+    private final UserPlanetLockService userPlanetLockService;
 
     @Test
     void init_should_work() {
@@ -416,18 +388,20 @@ class RequirementBoTest {
         var orHaveAmount = givenObjectRelation();
         orHaveAmount.setReferenceId(UPGRADE_ID + 2);
         orHaveAmount.setRequirements(List.of(givenRequirementInformation(UNIT_ID_1, requiredAmount, UNIT_AMOUNT)));
-        given(objectRelationBo.findByRequirementTypeAndSecondValue(HAVE_UNIT, UNIT_ID_1))
+        given(objectRelationBo.findByRequirementTypeAndSecondValueIn(HAVE_UNIT, List.of((long) UNIT_ID_1)))
                 .willReturn(List.of(orHaveUnit));
         given(obtainedUnitRepository.countByUserAndUnit(user, unit)).willReturn(unitCount);
         given(objectRelationBo.findByRequirementTypeAndSecondValueAndThirdValueGreaterThanEqual(UNIT_AMOUNT, UNIT_ID_1, unitCount))
                 .willReturn(List.of(orHaveAmount));
         given(unitRepository.getReferenceById(UNIT_ID_1)).willReturn(unit);
         given(obtainedUnitRepository.isBuiltUnit(user, unit)).willReturn(isUnitBuilt);
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userPlanetLockService).runLockedForUser(eq(user), any());
         requirementBo.triggerUnitBuildCompletedOrKilled(user, unit);
 
         verify(obtainedUnitRepository, times(1)).isBuiltUnit(user, unit);
         verify(obtainedUnitRepository, times(2)).countByUserAndUnit(user, unit);
         verify(unlockedRelationRepository, times(unlockedTimes)).save(any(UnlockedRelation.class));
+        verify(userPlanetLockService, times(2)).runLockedForUser(eq(user), any());
 
     }
 

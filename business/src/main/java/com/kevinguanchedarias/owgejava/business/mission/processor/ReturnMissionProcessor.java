@@ -53,11 +53,10 @@ public class ReturnMissionProcessor implements MissionProcessor {
                     .runAsyncWithoutContextDelayed(
                             () -> {
                                 if (planetOwnerOpt.isPresent() && planetOwnerOpt.get().getId().equals(userId)) {
-                                    obtainedUnits.stream().map(ObtainedUnit::getUnit)
-                                            .forEach(current -> {
-                                                requirementBo.triggerUnitBuildCompletedOrKilled(user, current);
-                                                requirementBo.triggerUnitAmountChanged(user, current);
-                                            });
+                                    obtainedUnits.stream().map(ObtainedUnit::getUnit).forEach(current -> {
+                                        requirementBo.triggerUnitBuildCompletedOrKilled(user, current);
+                                        requirementBo.triggerUnitAmountChanged(user, current);
+                                    });
                                 }
                                 obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser());
                             },

@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.util.concurrent.CompletableFuture;
@@ -61,21 +62,22 @@ class AsyncRunnerBoTest {
     @Test
     void runAsyncWithoutContextDelayed_should_work() {
         var runnableMock = mock(Runnable.class);
-        var atomicReference = new AtomicReference<Runnable>();
         try (
-                var mockedConstruction = mockConstruction(Thread.class,
-                        (mock, context) -> atomicReference.set((Runnable) context.arguments().get(0)));
                 var mockedStatic = mockStatic(ThreadUtil.class)
         ) {
+            var threadMock = mock(Thread.class);
+            mockedStatic.when(() -> ThreadUtil.ofVirtualUnStarted(any())).thenReturn(threadMock);
 
             asyncRunnerBo.runAsyncWithoutContextDelayed(runnableMock);
 
-            var threadInstance = mockedConstruction.constructed().get(0);
-            var threadBody = atomicReference.get();
+            var runnableCaptor = ArgumentCaptor.forClass(Runnable.class);
+            mockedStatic.verify(() -> ThreadUtil.ofVirtualUnStarted(runnableCaptor.capture()), times(1));
+
+            var threadBody = runnableCaptor.getValue();
             verify(runnableMock, never()).run();
             mockedStatic.verify(() -> ThreadUtil.sleep(200), never());
-            verify(threadInstance, times(1)).setPriority(Thread.NORM_PRIORITY - 1);
-            verify(threadInstance, times(1)).start();
+            verify(threadMock, times(1)).setPriority(Thread.NORM_PRIORITY - 1);
+            verify(threadMock, times(1)).start();
 
             // Run actual body
             threadBody.run();

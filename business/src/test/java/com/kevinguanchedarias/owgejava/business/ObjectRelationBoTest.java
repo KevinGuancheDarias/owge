@@ -1,14 +1,18 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.kevinguanchedarias.owgejava.enumerations.ObjectEnum;
+import com.kevinguanchedarias.owgejava.enumerations.RequirementTypeEnum;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendTargetNotUnlocked;
 import com.kevinguanchedarias.owgejava.repository.ObjectRelationsRepository;
 import com.kevinguanchedarias.owgejava.repository.RequirementInformationRepository;
 import com.kevinguanchedarias.owgejava.repository.UnlockedRelationRepository;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.util.List;
 
 import static com.kevinguanchedarias.owgejava.mock.ObjectRelationMock.*;
 import static com.kevinguanchedarias.owgejava.mock.UpgradeMock.UPGRADE_ID;
@@ -29,24 +33,12 @@ import static org.mockito.Mockito.verify;
         ObjectRelationsRepository.class,
         RequirementInformationRepository.class,
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class ObjectRelationBoTest {
     private final ObjectRelationBo objectRelationBo;
     private final ObjectRelationsRepository objectRelationsRepository;
     private final UnlockedRelationRepository unlockedRelationRepository;
     private final RequirementInformationRepository requirementInformationRepository;
-
-    @Autowired
-    ObjectRelationBoTest(
-            ObjectRelationBo objectRelationBo,
-            ObjectRelationsRepository objectRelationsRepository,
-            UnlockedRelationRepository unlockedRelationRepository,
-            RequirementInformationRepository requirementInformationRepository
-    ) {
-        this.objectRelationBo = objectRelationBo;
-        this.objectRelationsRepository = objectRelationsRepository;
-        this.unlockedRelationRepository = unlockedRelationRepository;
-        this.requirementInformationRepository = requirementInformationRepository;
-    }
 
     @Test
     void findOne_should_work() {
@@ -95,5 +87,16 @@ class ObjectRelationBoTest {
         verify(requirementInformationRepository, times(1)).deleteByRelation(or);
         verify(unlockedRelationRepository, times(1)).deleteByRelation(or);
         verify(objectRelationsRepository, times(1)).delete(or);
+    }
+
+    @Test
+    void findByRequirementTypeAndSecondValueIn_should_work() {
+        var or = givenObjectRelation();
+        var secondValues = List.of(4L);
+        given(objectRelationsRepository
+                .findByRequirementsRequirementCodeAndRequirementsSecondValueIn(RequirementTypeEnum.BEEN_RACE.name(), secondValues)
+        ).willReturn(List.of(or));
+
+        assertThat(objectRelationBo.findByRequirementTypeAndSecondValueIn(RequirementTypeEnum.BEEN_RACE, secondValues)).containsExactly(or);
     }
 }

@@ -38,7 +38,7 @@ public class AsyncRunnerBo {
      * @since 0.9.10
      */
     public void runAsyncWithoutContextDelayed(Runnable task, long delay, int priority) {
-        Thread thread = new Thread(() -> {
+        var thread = ThreadUtil.ofVirtualUnStarted(() -> {
             ThreadUtil.sleep(delay);
             task.run();
         });

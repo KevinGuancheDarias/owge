@@ -5,10 +5,12 @@ import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.UnitRunningMissionDto;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
+import com.kevinguanchedarias.owgejava.entity.util.EntityRefreshUtilService;
 import com.kevinguanchedarias.owgejava.pojo.websocket.MissionWebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeSupplierLambdaAnswer;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -18,8 +20,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -41,39 +41,21 @@ import static org.mockito.Mockito.*;
 )
 @MockBean({
         TransactionUtilService.class,
-        EntityManager.class,
+        EntityRefreshUtilService.class,
         SocketIoService.class,
         RunningMissionFinderBo.class,
         MissionRepository.class,
         MissionFinderBo.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class MissionEventEmitterBoTest {
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final TransactionUtilService transactionUtilService;
-    private final EntityManager entityManager;
     private final SocketIoService socketIoService;
     private final RunningMissionFinderBo runningMissionFinderBo;
     private final MissionRepository missionRepository;
     private final MissionFinderBo missionFinderBo;
-
-    @Autowired
-    public MissionEventEmitterBoTest(
-            MissionEventEmitterBo missionEventEmitterBo,
-            TransactionUtilService transactionUtilService,
-            EntityManager entityManager,
-            SocketIoService socketIoService,
-            RunningMissionFinderBo runningMissionFinderBo,
-            MissionRepository missionRepository,
-            MissionFinderBo missionFinderBo
-    ) {
-        this.missionEventEmitterBo = missionEventEmitterBo;
-        this.transactionUtilService = transactionUtilService;
-        this.entityManager = entityManager;
-        this.socketIoService = socketIoService;
-        this.runningMissionFinderBo = runningMissionFinderBo;
-        this.missionRepository = missionRepository;
-        this.missionFinderBo = missionFinderBo;
-    }
+    private final EntityRefreshUtilService entityRefreshUtilService;
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
@@ -101,10 +83,11 @@ class MissionEventEmitterBoTest {
         given(runningMissionFinderBo.findEnemyRunningMissions(planetOwner)).willReturn(enemyMissions);
         given(runningMissionFinderBo.findUserRunningMissions(USER_ID_1)).willReturn(userMissions);
         given(runningMissionFinderBo.countUserRunningMissions(USER_ID_1)).willReturn(count);
+        given(entityRefreshUtilService.refresh(mission)).willReturn(mission);
 
         missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
 
-        verify(entityManager, times(1)).refresh(mission);
+        verify(entityRefreshUtilService, times(1)).refresh(mission);
         assertThat(ownerMissionsAnswer.getResult()).isEqualTo(isInvisible ? null : enemyMissions);
         assertThat(userMissionsAnswer.getResult()).isEqualTo(expectedUserMissionsObject);
     }
