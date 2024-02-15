@@ -6,7 +6,7 @@
 
     .owge-list-running-missions
         color: silver
-        margin: 0px 5px
+        margin: 0 5px
         min-width: 155px
         &:hover
             &::before
@@ -24,12 +24,20 @@
             margin-top: -10px
             margin-left: -10px
             margin-right: -10px
+            > span
+                padding-left: 28px
+            .resourceImage
+                width: 32px
+                height: 32px
+                position: absolute
+                top: 0
+                left: 0
+                opacity: 0.4
 
         > div.card-block
             .btn-move-units
-                margin-top: 0px
-                margin-bottom: 0px
-
+                margin-top: 0
+                margin-bottom: 0
             > .card-title
                 text-align: center
                 margin-top: 11px

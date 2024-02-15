@@ -11,6 +11,7 @@ import { RunningMission } from './running-mission.type';
  */
 export interface UnitRunningMission<U extends User = User> extends RunningMission {
     involvedUnits: ObtainedUnit[];
+    invisible: boolean;
     sourcePlanet?: Planet;
     targetPlanet?: Planet;
     user?: U;

@@ -10,10 +10,17 @@
   <ng-container *ngFor="let runningUnitMission of runningUnitMissions">
     <div #missionRoot class="card owge auto-expand owge-list-running-missions"
       *ngIf="runningUnitMission.involvedUnits && runningUnitMission.involvedUnits.length">
-      <h3 *ngIf="displayUser" class="card-header">{{ 'APP.MISSION_LIST.HEADER_MISSION_TYPE_FROM_USER' |
-        translate:{missionType: runningUnitMission.type | displayMissionType | async, userName: runningUnitMission.user
-        | displayUsername} }} </h3>
-      <h3 *ngIf="!displayUser" class="card-header">{{ runningUnitMission.type | displayMissionType | async }}</h3>
+      <h3 *ngIf="displayUser" class="card-header">
+          <owge-widgets-display-image *ngIf="runningUnitMission.invisible || true" [assetsImage]="true" image="invisible.png"
+                                      [customClass]="'resourceImage'"></owge-widgets-display-image>
+          <span>
+              {{ 'APP.MISSION_LIST.HEADER_MISSION_TYPE_FROM_USER' | translate:{missionType: runningUnitMission.type | displayMissionType | async, userName: runningUnitMission.user| displayUsername} }}
+          </span>
+      </h3>
+      <h3 *ngIf="!displayUser" class="card-header">
+          <owge-widgets-display-image *ngIf="runningUnitMission.invisible || true" [assetsImage]="true" [customClass]="'resourceImage'" image="invisible.png"></owge-widgets-display-image>
+          <span>{{ runningUnitMission.type | displayMissionType | async }}</span>
+      </h3>
       <i *ngIf="isCancellable && runningUnitMission.type !== 'RETURN_MISSION'"
         (click)="cancelMission(runningUnitMission)" class="fas fa-times"></i>
       <span class="display-time">

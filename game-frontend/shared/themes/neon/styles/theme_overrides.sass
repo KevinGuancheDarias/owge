@@ -40,6 +40,9 @@ body.owge-theme-neon
     .disabled-for-offline,a.disabled-btn
         cursor: not-allowed
 
+    .resourceImage
+        width: 25px
+        height: 25px
     .owge-theme-color
         color: $bgColor
     .owge-theme-color-alt
@@ -175,7 +178,7 @@ body.owge-theme-neon
                 z-index: -1
                 opacity: 1
                 filter: grayscale(90%) blur(2px)
-            img
+            img:not(.resourceImage)
                 width: 130px
                 height: 110px
                 filter: drop-shadow(2px 0px 4px $neonShadow01)

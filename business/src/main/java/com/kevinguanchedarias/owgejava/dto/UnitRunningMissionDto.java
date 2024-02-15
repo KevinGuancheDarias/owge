@@ -27,6 +27,7 @@ public class UnitRunningMissionDto extends AbstractRunningMissionDto {
         if (involvedUnits != null) {
             this.involvedUnits = findDtoService().convertEntireArray(ObtainedUnitDto.class, involvedUnits);
         }
+        invisible = mission.getInvisible();
         sourcePlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getSourcePlanet());
         targetPlanet = findDtoService().dtoFromEntity(PlanetDto.class, mission.getTargetPlanet());
         var userEntity = mission.getUser();
