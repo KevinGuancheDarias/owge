@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -70,8 +72,19 @@ public class TimeSpecialRestService implements
     @Override
     public Map<String, Function<UserStorage, Object>> findSyncHandlers() {
         return SyncHandlerBuilder.create()
-                .withHandler("time_special_change", activeTimeSpecialBo::findByUserWithCurrentStatus)
+                .withHandler("time_special_change", user -> {
+                    var retVal = activeTimeSpecialBo.findByUserWithCurrentStatus(user);
+                    recomputeDates(retVal);
+                    return retVal;
+                })
                 .build();
+    }
+
+    private void recomputeDates(List<TimeSpecialDto> timeSpecialDtoList) {
+        timeSpecialDtoList.stream()
+                .map(TimeSpecialDto::getActiveTimeSpecialDto)
+                .filter(Objects::nonNull)
+                .forEach(ActiveTimeSpecialDto::calculatePendingMillis);
     }
 
 }

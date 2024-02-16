@@ -165,7 +165,6 @@ public class ActiveTimeSpecialBo implements
             newActive.setActivationDate(new Date());
             newActive.setExpiringDate(computeExpiringDate(timeSpecial.getDuration()));
             newActive.setState(TimeSpecialStateEnum.ACTIVE);
-            definePendingTime(newActive);
             newActive.setTimeSpecial(timeSpecial);
             var user = userSessionService.findLoggedInWithDetails();
             newActive.setUser(user);
@@ -218,7 +217,6 @@ public class ActiveTimeSpecialBo implements
 
     @Override
     public ActiveTimeSpecial onFind(ActiveTimeSpecial activeTimeSpecial) {
-        definePendingTime(activeTimeSpecial);
         return activeTimeSpecial;
     }
 
@@ -291,16 +289,6 @@ public class ActiveTimeSpecialBo implements
     private Date computeExpiringDate(Long time) {
         long difference = new Date().getTime() + time * 1000;
         return new Date(difference);
-    }
-
-    private void definePendingTime(ActiveTimeSpecial activeTimeSpecial) {
-        if (activeTimeSpecial != null) {
-            if (activeTimeSpecial.getState() == TimeSpecialStateEnum.ACTIVE) {
-                activeTimeSpecial.setPendingTime(activeTimeSpecial.getExpiringDate().getTime() - new Date().getTime());
-            } else {
-                activeTimeSpecial.setPendingTime(activeTimeSpecial.getReadyDate().getTime() - new Date().getTime());
-            }
-        }
     }
 
     private Long resolveTaskId(ScheduledTask task) {

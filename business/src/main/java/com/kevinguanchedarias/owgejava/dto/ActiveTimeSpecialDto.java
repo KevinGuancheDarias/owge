@@ -24,7 +24,7 @@ public class ActiveTimeSpecialDto implements DtoFromEntity<ActiveTimeSpecial> {
     private TimeSpecialStateEnum state;
     private Date activationDate;
     private Date expiringDate;
-    private Long pendingTime;
+    private Long pendingMillis;
     private Date readyDate;
 
     @Override
@@ -33,8 +33,20 @@ public class ActiveTimeSpecialDto implements DtoFromEntity<ActiveTimeSpecial> {
         state = entity.getState();
         activationDate = entity.getActivationDate();
         expiringDate = entity.getExpiringDate();
-        pendingTime = entity.getPendingTime();
         readyDate = entity.getReadyDate();
+        calculatePendingMillis();
         timeSpecial = entity.getTimeSpecial().getId();
+    }
+
+    /**
+     * Calculates the pending millis, is a public method because maybe it has to be recalculated
+     * on cache results by @{@link com.kevinguanchedarias.taggablecache.aspect.TaggableCacheable}
+     */
+    public void calculatePendingMillis() {
+        if (state == TimeSpecialStateEnum.ACTIVE) {
+            pendingMillis = (expiringDate.getTime() - new Date().getTime());
+        } else {
+            pendingMillis = (readyDate.getTime() - new Date().getTime());
+        }
     }
 }
