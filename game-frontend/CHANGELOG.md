@@ -7,6 +7,7 @@ v0.11.5 (latest)
 * __Improvememnt:__ [Allow to know that a mission is invisible to the mission sender user #532](https://github.com/KevinGuancheDarias/owge/issues/532)  
 * __Fix:__ [In Neon the gather reports don't show properly the resources, they have free width and height #523](https://github.com/KevinGuancheDarias/owge/issues/523)  
 * __Improvememnt:__ [Add button to mark all messages as read #514](https://github.com/KevinGuancheDarias/owge/issues/514)  
+* __Fix:__ [Deployment to non owned planet, and then EB mission to other planet, and them from that planet deploy to other non owned planet, would bug the deploy mission #541](https://github.com/KevinGuancheDarias/owge/issues/541)    
 
 v0.11.4 (2024-02-08 05:39)
 ==================

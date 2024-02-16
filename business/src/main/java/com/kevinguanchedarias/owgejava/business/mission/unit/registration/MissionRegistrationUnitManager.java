@@ -63,14 +63,11 @@ public class MissionRegistrationUnitManager {
     ) {
         var retVal = new ObtainedUnit();
         retVal.setMission(mission);
-        var firstDeploymentMission = dbUnit.getFirstDeploymentMission();
-        retVal.setFirstDeploymentMission(firstDeploymentMission);
         retVal.setCount(count);
         retVal.setUser(user);
         retVal.setUnit(unitRepository.getReferenceById(dbUnit.getUnit().getId()));
         retVal.setExpirationId(dbUnit.getExpirationId());
-        retVal.setSourcePlanet(firstDeploymentMission == null ? mission.getSourcePlanet()
-                : firstDeploymentMission.getSourcePlanet());
+        retVal.setSourcePlanet(mission.getSourcePlanet());
         retVal.setTargetPlanet(mission.getTargetPlanet());
         retVal.setOwnerUnit(ownerUnit);
         return retVal;

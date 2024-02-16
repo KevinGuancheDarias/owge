@@ -17,6 +17,7 @@ import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -28,8 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-
-import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -223,7 +222,6 @@ class ObtainedUnitBoTest {
         ou.setSourcePlanet(null);
         ou.setMission(givenExploreMission());
         ou.setTargetPlanet(givenTargetPlanet());
-        ou.setFirstDeploymentMission(givenDeployMission());
         ou.setOwnerUnit(givenObtainedUnit2());
         var planet = givenSourcePlanet();
         given(planetRepository.findById(SOURCE_PLANET_ID)).willReturn(Optional.of(planet));
@@ -240,7 +238,6 @@ class ObtainedUnitBoTest {
         assertThat(saved.getSourcePlanet()).isEqualTo(planet);
         assertThat(saved.getTargetPlanet()).isNull();
         assertThat(saved.getMission()).isNull();
-        assertThat(saved.getFirstDeploymentMission()).isNull();
         assertThat(saved.getOwnerUnit()).isNull();
     }
 

@@ -44,7 +44,6 @@ public class MissionFinderBo {
         if (existingMissionOpt.isPresent()) {
             var existingMission = existingMissionOpt.get();
             existingMission.getInvolvedUnits().add(unit);
-            unit.setFirstDeploymentMission(null);
             unit.setMission(existingMission);
             obtainedUnitRepository.save(unit);
             return existingMission;
@@ -54,21 +53,11 @@ public class MissionFinderBo {
             deployedMission.setUser(user);
             deployedMission.setInvolvedUnits(new ArrayList<>());
             deployedMission.getInvolvedUnits().add(unit);
-            if (unit.getFirstDeploymentMission() == null) {
-                deployedMission.setSourcePlanet(origin);
-                deployedMission.setTargetPlanet(target);
-                var savedDeployedMission = missionRepository.save(deployedMission);
-                unit.setFirstDeploymentMission(deployedMission);
-                obtainedUnitRepository.save(unit);
-                return savedDeployedMission;
-            } else {
-                missionRepository.findById(unit.getFirstDeploymentMission().getId())
-                        .ifPresent(firstDeploymentMission -> {
-                            deployedMission.setSourcePlanet(firstDeploymentMission.getSourcePlanet());
-                            deployedMission.setTargetPlanet(firstDeploymentMission.getTargetPlanet());
-                        });
-                return missionRepository.save(deployedMission);
-            }
+            deployedMission.setSourcePlanet(origin);
+            deployedMission.setTargetPlanet(target);
+            var savedDeployedMission = missionRepository.save(deployedMission);
+            obtainedUnitRepository.save(unit);
+            return savedDeployedMission;
         }
     }
 

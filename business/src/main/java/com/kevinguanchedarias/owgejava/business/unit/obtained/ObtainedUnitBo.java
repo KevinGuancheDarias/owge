@@ -21,14 +21,13 @@ import com.kevinguanchedarias.owgejava.util.ObtainedUnitUtil;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import com.kevinguanchedarias.taggablecache.aspect.TaggableCacheEvictByTag;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
+import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.persistence.EntityManager;
 
 import java.io.Serial;
 import java.util.List;
@@ -201,7 +200,6 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
             savedUnit = saveWithAdding(userId, unit, planetId);
             unit.setMission(null);
             unit.setTargetPlanet(null);
-            unit.setFirstDeploymentMission(null);
             unit.setOwnerUnit(null);
         } else if (unit.getMission() != null && MissionType.valueOf(unit.getMission().getType().getCode()) == MissionType.DEPLOYED) {
             savedUnit = repository.save(unit);

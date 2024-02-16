@@ -4,7 +4,6 @@ import com.kevinguanchedarias.owgejava.business.ObjectRelationBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.MissionInformation;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
-import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.mock.MissionMock;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
@@ -80,7 +79,6 @@ class MissionFinderBoTest {
     @Test
     void findDeployedMissionOrCreate_should_merge_new_deployment_with_existing_old_for_unit_group() {
         var ou = givenObtainedUnit1();
-        ou.setFirstDeploymentMission(new Mission());
         var existingMission = MissionMock.givenDeployedMission();
         existingMission.setInvolvedUnits(new ArrayList<>());
         when(missionRepository.findByUserIdAndTypeCodeAndTargetPlanetIdAndResolvedFalse(
@@ -96,7 +94,6 @@ class MissionFinderBoTest {
         verify(this.obtainedUnitRepository, times(1)).save(captor.capture());
         var saved = captor.getValue();
         assertThat(saved).isEqualTo(ou);
-        assertThat(saved.getFirstDeploymentMission()).isNull();
         assertThat(saved.getMission()).isEqualTo(existingMission);
         verify(missionTypeBo, never()).find(any());
         verify(missionRepository, never()).save(any());
@@ -126,35 +123,6 @@ class MissionFinderBoTest {
         assertThat(savedMission.getTargetPlanet()).isEqualTo(ou.getTargetPlanet());
         var unitCaptor = ArgumentCaptor.forClass(ObtainedUnit.class);
         verify(obtainedUnitRepository, times(1)).save(unitCaptor.capture());
-        var savedUnit = unitCaptor.getValue();
-        assertThat(savedUnit.getFirstDeploymentMission()).isEqualTo(savedMission);
-        assertThat(result).isEqualTo(savedMission);
-    }
-
-    @Test
-    void findDeployedMissionOrCreate_should_create_new_mission_and_use_first_deployment_coordinates() {
-        var ou = givenObtainedUnit1();
-        var firstDeploymentSourcePlanet = new Planet();
-        var firstDeploymentTargetPlanet = new Planet();
-        var firstDeploymentMission = givenRawMission(firstDeploymentSourcePlanet, firstDeploymentTargetPlanet);
-        var missionType = givenMissionType(MissionType.DEPLOYED);
-        ou.setFirstDeploymentMission(firstDeploymentMission);
-
-        when(missionTypeBo.find(MissionType.DEPLOYED)).thenReturn(missionType);
-        when(missionRepository.save(any())).thenAnswer(returnsFirstArg());
-        when(obtainedUnitRepository.save(any())).thenAnswer(returnsFirstArg());
-        when(missionRepository.findById(any())).thenReturn(Optional.of(firstDeploymentMission));
-
-        var result = missionFinderBo.findDeployedMissionOrCreate(ou);
-
-        var captor = ArgumentCaptor.forClass(Mission.class);
-        verify(missionRepository, times(1)).save(captor.capture());
-        var savedMission = captor.getValue();
-        assertThat(savedMission.getType()).isEqualTo(missionType);
-        assertThat(savedMission.getUser()).isEqualTo(ou.getUser());
-        assertThat(savedMission.getSourcePlanet()).isEqualTo(firstDeploymentSourcePlanet);
-        assertThat(savedMission.getTargetPlanet()).isEqualTo(firstDeploymentTargetPlanet);
-        verify(obtainedUnitRepository, never()).save(any());
         assertThat(result).isEqualTo(savedMission);
     }
 
@@ -208,7 +176,7 @@ class MissionFinderBoTest {
         var retVal = this.missionFinderBo.findBuildMissions(USER_ID_1);
 
         assertThat(retVal).hasSize(1);
-        var entry = retVal.get(0);
+        var entry = retVal.getFirst();
         assertThat(entry.getUnit().getId()).isEqualTo(UNIT_ID_1);
         assertThat(entry.getMissionId()).isEqualTo(BUILD_MISSION_ID);
         assertThat(entry.getSourcePlanet().getId()).isEqualTo(SOURCE_PLANET_ID);

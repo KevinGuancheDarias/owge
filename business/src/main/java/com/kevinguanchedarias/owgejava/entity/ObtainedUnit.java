@@ -2,9 +2,8 @@ package com.kevinguanchedarias.owgejava.entity;
 
 import com.kevinguanchedarias.owgejava.entity.cache.EntityWithTaggableCacheByUser;
 import com.kevinguanchedarias.owgejava.entity.listener.EntityWithByUserCacheTagListener;
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.io.Serial;
 import java.util.List;
@@ -49,10 +48,6 @@ public class ObtainedUnit implements EntityWithTaggableCacheByUser<Long> {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id")
     private Mission mission;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "first_deployment_mission")
-    private Mission firstDeploymentMission;
 
     private boolean isFromCapture = false;
 

@@ -1,14 +1,12 @@
 package com.kevinguanchedarias.owgejava.business.mission.unit.registration;
 
-import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
 import com.kevinguanchedarias.owgejava.repository.UnitRepository;
-import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -47,20 +45,16 @@ class MissionRegistrationUnitManagerTest {
         this.unitRepository = unitRepository;
     }
 
-    @ParameterizedTest
-    @MethodSource("manageUnitsRegistration_should_work_arguments")
-    void manageUnitsRegistration_should_work(
-            boolean isEnemyPlanet,
-            int expectedSizeAlteredMissions,
-            Mission firstDeploymentMission,
-            Planet expectedSourcePlanet
-    ) {
+    @Test
+    void manageUnitsRegistration_should_work() {
+        boolean isEnemyPlanet = false;
+        int expectedSizeAlteredMissions = 0;
+        Planet expectedSourcePlanet = givenSourcePlanet();
         var expirationId = 99282441L;
         var information = givenUnitMissionInformation(MissionType.EXPLORE, expirationId);
         var mission = givenGatherMission();
         var user = givenUser1();
         var ouDb = givenObtainedUnit1().toBuilder()
-                .firstDeploymentMission(firstDeploymentMission)
                 .expirationId(expirationId)
                 .build();
         var dbUnits = Map.of(new UnitInMap(UNIT_ID_1, expirationId), new UnitWithItsStoredUnits(ouDb, null));
@@ -72,7 +66,6 @@ class MissionRegistrationUnitManagerTest {
         assertThat(retVal.getAlteredVisibilityMissions()).hasSize(expectedSizeAlteredMissions);
         assertThat(retVal.getUnits()).isNotEmpty();
         var savedUnit = retVal.getUnits().get(0);
-        assertThat(savedUnit.getFirstDeploymentMission()).isEqualTo(firstDeploymentMission);
         assertThat(savedUnit.getCount()).isEqualTo(SELECTED_UNIT_COUNT);
         assertThat(savedUnit.getUser()).isEqualTo(user);
         assertThat(savedUnit.getUnit()).isEqualTo(unit);
