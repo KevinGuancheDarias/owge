@@ -3,13 +3,13 @@ FROM maven:3-eclipse-temurin-21-alpine as game-war-files
 WORKDIR /build/business
 COPY business/pom.xml .
 RUN mvn dependency:go-offline
-COPY business/src /build/business/src
+COPY business /build/business
 RUN mvn install -DskipTests
 
 WORKDIR /build/rest
 COPY game-rest/pom.xml .
 RUN mvn dependency:go-offline
-COPY game-rest/src /build/rest/src
+COPY game-rest /build/rest
 RUN mvn install -DskipTests
 
 # Tomcat base

@@ -1,4 +1,4 @@
-FROM node:10 as owge-frontends
+FROM node:14 as owge-frontends
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 ENV APP_ROOT /app
