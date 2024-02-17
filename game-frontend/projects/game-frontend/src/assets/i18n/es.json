@@ -22,6 +22,7 @@
         "NOT_CONNECTED": "Desconectado, puedes seguir viendo cosas, pero no se ejecutarán acciones",
         "SYNC_ERROR": "Error de sincronización, quizá tu Internet es débil, o tu cuenta esté rota, si tu Internet funciona, contacta con un administrador",
         "NOT_CONNECTED_CLICK_ERROR": "No tienes Internet, o el servidor está caído, no puedes ejecutar esta acción",
+        "BTN_CLEAR_DATA": "Limpiar datos del juego (cerrará sesión)",
         "BTN_RELOAD": "Recargar la página del juego",
         "LOGIN": {
             "PLACEHOLDER_EMAIL": "Email o usuario",

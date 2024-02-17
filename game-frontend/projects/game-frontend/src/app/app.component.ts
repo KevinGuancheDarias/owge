@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import { LoadingService, ToastrService } from '@owge/core';
+import {LoadingService, SessionService, ToastrService} from '@owge/core';
 
 import { state, style, trigger, transition, animate } from '@angular/animations';
 import { WebsocketService, UniverseGameService } from '@owge/universe';
@@ -62,9 +62,10 @@ export class AppComponent implements OnInit {
   public constructor(
     private _universeGameService: UniverseGameService,
     private _loadingService: LoadingService,
+    private websocketService: WebsocketService,
+    private sessionService: SessionService,
     swUpdate: SwUpdate,
     toastrService: ToastrService,
-    websocketService: WebsocketService,
     twitchService: TwitchService
   ) {
     websocketService.isConnected.subscribe(val => {
@@ -106,7 +107,7 @@ export class AppComponent implements OnInit {
   }
 
   public clickReload() {
-    // window.location.reload();
+    window.location.reload();
   }
 
   public onDisplayTwitch(val: TwitchState): void {
@@ -116,6 +117,18 @@ export class AppComponent implements OnInit {
     } else {
       this._removePlayer();
     }
+  }
+
+  async clearData() {
+    this.websocketService.close();
+    // TODO: When updating to typescript 5.4 this should be supported so no need to ts-ignore:
+    //  https://github.com/microsoft/TypeScript/commit/9ebe11c2d375bfb1c8fad10d705ffae09583c522
+    // @ts-ignore
+    const dbs: any[] = await window.indexedDB.databases();
+    dbs.forEach(db => window.indexedDB.deleteDatabase(db.name));
+    sessionStorage.clear();
+    this.sessionService.logout();
+    setTimeout(() => window.location.reload(), 1000);
   }
 
   private _loadPlayer(val: TwitchState) {

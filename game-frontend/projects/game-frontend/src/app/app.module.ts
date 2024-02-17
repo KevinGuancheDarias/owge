@@ -14,7 +14,7 @@ import {
 } from '@owge/core';
 import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
-  OwgeUniverseModule, SystemMessageService, TimeSpecialService, UniverseGameService,
+  ErrorLoggingService, OwgeUniverseModule, SystemMessageService, TimeSpecialService, UniverseGameService,
   UserStorage, WebsocketService, WsEventCacheService
 } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
@@ -220,7 +220,8 @@ export class AppModule {
     private _userStorage: UserStorage<User>,
     private _universeGameService: UniverseGameService,
     private _wsEventCacheService: WsEventCacheService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private errorLoggingService: ErrorLoggingService
   ) {
     ServiceLocator.injector = this._injector;
     themeService.useUserDefinedOrDefault();

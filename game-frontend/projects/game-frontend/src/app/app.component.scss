@@ -33,7 +33,12 @@
     button {
         width: 90vw;
         margin: 0 auto;
-        margin-top: calc(50vh - 10px);
+    }
+    button.btn-clear-data {
+        margin-top: calc(50vh - 60px);
+    }
+    button.btn-reload {
+        margin-top: 30px;
     }
 }
 

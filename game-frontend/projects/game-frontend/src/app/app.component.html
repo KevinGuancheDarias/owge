@@ -7,7 +7,8 @@
         <!-- Forces an scroll to be available on mobile devices-->
     </div>
     <div *ngIf="isPanic" class="panic-wrapper">
-        <button class="btn btn-block" (click)="clickReload()">{{ 'APP.BTN_RELOAD' | translate }}</button>
+        <button class="btn btn-block btn-clear-data" (click)="clearData()">{{ 'APP.BTN_CLEAR_DATA' | translate }}</button>
+        <button class="btn btn-block btn-reload" (click)="clickReload()">{{ 'APP.BTN_RELOAD' | translate }}</button>
     </div>
 </div>
 <div *ngIf="isInGame" class="is-connected" [ngClass]="panicClass || connectedClass"

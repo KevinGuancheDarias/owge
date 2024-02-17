@@ -122,7 +122,6 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   }
 
   private handleLogin(): void {
-    console.log('pene');
     this.loginService.onLogin.subscribe(() =>
       this.findMyPlanets().pipe(take(1)).subscribe(planets =>
         this.defineSelectedPlanet(planets.find(planet => planet.home))

@@ -109,3 +109,12 @@ CREATE TABLE `suspicions`
 
 ALTER TABLE upgrades
     ADD `order_number` smallint unsigned DEFAULT NULL COMMENT 'The upgrade order' AFTER id;
+
+CREATE TABLE track_browser
+(
+    id           BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
+    method       VARCHAR(8)                     NOT NULL,
+    json_content TEXT                           NOT NULL,
+    created_at   DATETIME                       NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE = InnoDB

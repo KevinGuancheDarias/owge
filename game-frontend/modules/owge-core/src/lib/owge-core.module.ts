@@ -28,6 +28,7 @@ import {ObsService} from './services/obs.service';
 import {SecurePlanetEntryPipePipe} from './pipes/secure-entry.pipe';
 import {PlanetDisplayNamePipe} from './pipes/planet-display-name.pipe';
 import {SecureItemDirective} from './directives/secure-item.directive';
+import {ErrorLoggingService} from '../../../owge-universe/src/lib/services/error-logging.service';
 
 /**
  * Has the shared features between modules, such as loading image

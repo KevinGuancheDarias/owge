@@ -23,6 +23,7 @@
         "NOT_CONNECTED": "Not connected, you can continue browsing, but can't run actions",
         "SYNC_ERROR": "Sync error, please check your Internet is stable, maybe your game account is broken, contact admin",
         "NOT_CONNECTED_CLICK_ERROR": "You don't have Internet, or server is down, you can't run this action",
+        "BTN_CLEAR_DATA": "Clear the game data",
         "BTN_RELOAD": "Reload the game page",
         "LOGIN": {
             "PLACEHOLDER_EMAIL": "Email or username",

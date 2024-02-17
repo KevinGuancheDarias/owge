@@ -18,6 +18,7 @@ export * from './lib/pojos/resource-requirements.pojo';
 export * from './lib/services/abstract-crud.service';
 export * from './lib/services/active-time-special.service';
 export * from './lib/services/active-time-special-rule-finder.service';
+export * from './lib/services/error-logging.service';
 export * from './lib/services/image-store.service';
 export * from './lib/services/mission.service';
 export * from './lib/services/resource-manager.service';

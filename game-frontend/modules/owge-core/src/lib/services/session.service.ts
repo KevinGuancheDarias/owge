@@ -103,7 +103,7 @@ export class SessionService extends AbstractWebsocketApplicationHandler implemen
     return sessionStorage.getItem(SessionService.LOCAL_STORAGE_TOKEN_PARAM);
   }
 
-  public logout(): any {
+  public logout(): void {
     this._clearSessionData();
     this._redirectIfNotLoggedIn();
     this._logoutEmitter.emit();
