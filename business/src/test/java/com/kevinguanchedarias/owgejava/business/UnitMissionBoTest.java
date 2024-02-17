@@ -265,6 +265,7 @@ class UnitMissionBoTest {
 
         unitMissionBo.runUnitMission(EXPLORE_MISSION_ID, missionType);
 
+        verify(transactionUtilService, times(1)).clearStatus();
         verify(missionInterceptionManagerBo, times(timesAppend)).maybeAppendDataToMissionReport(mission, unitMissionReportBuilder, interceptionInformation);
         verify(missionReportManagerBo, times(timesHandleReport)).handleMissionReportSave(mission, unitMissionReportBuilder);
         verify(missionInterceptionManagerBo, times(timesHandleInterceptionAndEmitLocal)).handleMissionInterception(mission, interceptionInformation);

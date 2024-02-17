@@ -60,11 +60,23 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
                                                                                                 Long planetId);
 
     /**
+     * Hotfix method to workaround the problem of units been duplicated (not returning one row)
+     */
+    List<ObtainedUnit> findByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(Integer userId, Integer unitId,
+                                                                                                   Long planetId);
+
+    /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.8.1
      */
     ObtainedUnit findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(Integer userId, Integer unitId,
                                                                                                   Long planetId, String missionCode);
+
+    /**
+     * Hotfix method to workaround the problem of units been duplicated (not returning one row)
+     */
+    List<ObtainedUnit> findByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(Integer userId, Integer unitId,
+                                                                                                     Long planetId, String missionCode);
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>

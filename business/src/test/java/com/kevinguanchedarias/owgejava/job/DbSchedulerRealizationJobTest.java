@@ -5,12 +5,14 @@ import com.kevinguanchedarias.owgejava.business.MissionBo;
 import com.kevinguanchedarias.owgejava.business.UnitMissionBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionBaseService;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.CommonException;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 import com.kevinguanchedarias.owgejava.pojo.MysqlEngineInformation;
 import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.MysqlInformationRepository;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,8 +53,10 @@ import static org.mockito.Mockito.*;
         MissionEventEmitterBo.class,
         MysqlInformationRepository.class,
         DataSource.class,
-        Scheduler.class
+        Scheduler.class,
+        TransactionUtilService.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class DbSchedulerRealizationJobTest {
     private static final long MISSION_ID = 192;
 
@@ -63,25 +67,7 @@ class DbSchedulerRealizationJobTest {
     private final MissionBaseService missionBaseService;
     private final MissionEventEmitterBo missionEventEmitterBo;
     private final MysqlInformationRepository mysqlInformationRepository;
-
-    @Autowired
-    DbSchedulerRealizationJobTest(
-            DbSchedulerRealizationJob dbSchedulerRealizationJob,
-            MissionRepository missionRepository,
-            MissionBo missionBo,
-            UnitMissionBo unitMissionBo,
-            MissionBaseService missionBaseService,
-            MissionEventEmitterBo missionEventEmitterBo,
-            MysqlInformationRepository mysqlInformationRepository
-    ) {
-        this.dbSchedulerRealizationJob = dbSchedulerRealizationJob;
-        this.missionRepository = missionRepository;
-        this.missionBo = missionBo;
-        this.unitMissionBo = unitMissionBo;
-        this.missionBaseService = missionBaseService;
-        this.missionEventEmitterBo = missionEventEmitterBo;
-        this.mysqlInformationRepository = mysqlInformationRepository;
-    }
+    private final TransactionUtilService transactionUtilService;
 
     @Test
     void executeInternal_should_execute_unit_mission(CapturedOutput capturedOutput) {
@@ -90,6 +76,7 @@ class DbSchedulerRealizationJobTest {
 
         dbSchedulerRealizationJob.execute(EXPLORE_MISSION_ID);
 
+        verify(transactionUtilService, times(1)).clearStatus();
         verify(unitMissionBo, times(1)).runUnitMission(EXPLORE_MISSION_ID, MissionType.EXPLORE);
         assertThat(capturedOutput.getOut()).contains("Executing mission id " + EXPLORE_MISSION_ID);
     }
@@ -107,6 +94,7 @@ class DbSchedulerRealizationJobTest {
 
         dbSchedulerRealizationJob.execute(MISSION_ID);
 
+        verify(transactionUtilService, times(1)).clearStatus();
         verify(missionBo, times(1)).runMission(MISSION_ID, missionType);
     }
 

@@ -23,6 +23,7 @@ import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.BeanUtils;
@@ -32,8 +33,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.annotation.PostConstruct;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -213,8 +212,9 @@ public class UnitMissionBo implements UserDeleteListener {
      * @since 0.9.9
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
-    @Retryable(value = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
+    @Retryable(retryFor = CannotAcquireLockException.class, backoff = @Backoff(delay = 500, random = true, maxDelay = 750, multiplier = 2))
     public void runUnitMission(Long missionId, MissionType missionType) {
+        transactionUtilService.clearStatus();
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         planetLockUtilService.doInsideLock(
                 List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),

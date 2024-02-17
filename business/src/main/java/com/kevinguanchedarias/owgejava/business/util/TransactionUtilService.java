@@ -1,5 +1,6 @@
 package com.kevinguanchedarias.owgejava.business.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @since 0.9.16
  */
 @Service
+@Slf4j
 public class TransactionUtilService {
     private static final String ALREADY_COMMITTING_KEY = "owge_already_committing";
 
@@ -49,7 +51,12 @@ public class TransactionUtilService {
             });
         }
     }
-    
+
+    public void clearStatus() {
+        log.trace("Clearing status current {} for thread {}", TransactionSynchronizationManager.getResourceMap(), Thread.currentThread().getName());
+        TransactionSynchronizationManager.unbindResourceIfPossible(ALREADY_COMMITTING_KEY);
+    }
+
     public void doAfterCompletion(Runnable action) {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

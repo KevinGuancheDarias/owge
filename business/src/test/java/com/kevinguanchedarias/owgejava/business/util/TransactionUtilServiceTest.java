@@ -90,4 +90,13 @@ class TransactionUtilServiceTest {
         }
         verify(actionMock, times(1)).run();
     }
+
+    @Test
+    void clearStatus() {
+        try (var mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
+            transactionUtilService.clearStatus();
+
+            mockedStatic.verify(() -> TransactionSynchronizationManager.unbindResourceIfPossible(anyString()), times(1));
+        }
+    }
 }

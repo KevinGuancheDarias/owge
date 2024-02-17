@@ -10,14 +10,16 @@ import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
+import com.kevinguanchedarias.owgejava.entity.util.EntityRefreshUtilService;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
 import com.kevinguanchedarias.owgejava.exception.NotFoundException;
 import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException;
 import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
+import com.kevinguanchedarias.owgejava.repository.hotfix.ObtainedUnitHotFixRepository;
 import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
-import jakarta.persistence.EntityManager;
+import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -60,7 +62,7 @@ import static org.mockito.Mockito.*;
         ImprovementBo.class,
         SocketIoService.class,
         AsyncRunnerBo.class,
-        EntityManager.class,
+        EntityRefreshUtilService.class,
         RequirementBo.class,
         MissionFinderBo.class,
         HiddenUnitBo.class,
@@ -69,11 +71,13 @@ import static org.mockito.Mockito.*;
         TransactionUtilService.class,
         ObtainedUnitImprovementCalculationService.class,
         UserEventEmitterBo.class,
-        TaggableCacheManager.class
+        TaggableCacheManager.class,
+        ObtainedUnitHotFixRepository.class
 })
+@AllArgsConstructor(onConstructor_ = @Autowired)
 class ObtainedUnitBoTest {
     private final ObtainedUnitBo obtainedUnitBo;
-    private final EntityManager entityManager;
+    private final EntityRefreshUtilService entityRefreshUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final MissionFinderBo missionFinderBo;
     private final HiddenUnitBo hiddenUnitBo;
@@ -86,40 +90,7 @@ class ObtainedUnitBoTest {
     private final UserEventEmitterBo userEventEmitterBo;
     private final UnitTypeBo unitTypeBo;
     private final TaggableCacheManager taggableCacheManager;
-
-    @Autowired
-    ObtainedUnitBoTest(
-            ObtainedUnitBo obtainedUnitBo,
-            EntityManager entityManager,
-            ObtainedUnitRepository obtainedUnitRepository,
-            MissionFinderBo missionFinderBo,
-            HiddenUnitBo hiddenUnitBo,
-            PlanetRepository planetRepository,
-            ObtainedUnitEventEmitter obtainedUnitEventEmitter,
-            TransactionUtilService transactionUtilService,
-            ImprovementBo improvementBo,
-            ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService,
-            RequirementBo requirementBo,
-            UserEventEmitterBo userEventEmitterBo,
-            UnitTypeBo unitTypeBo,
-            TaggableCacheManager taggableCacheManager
-    ) {
-        // Some methods have not all branches covered, only touched lines
-        this.obtainedUnitBo = obtainedUnitBo;
-        this.entityManager = entityManager;
-        this.obtainedUnitRepository = obtainedUnitRepository;
-        this.missionFinderBo = missionFinderBo;
-        this.hiddenUnitBo = hiddenUnitBo;
-        this.planetRepository = planetRepository;
-        this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
-        this.transactionUtilService = transactionUtilService;
-        this.improvementBo = improvementBo;
-        this.obtainedUnitImprovementCalculationService = obtainedUnitImprovementCalculationService;
-        this.requirementBo = requirementBo;
-        this.userEventEmitterBo = userEventEmitterBo;
-        this.unitTypeBo = unitTypeBo;
-        this.taggableCacheManager = taggableCacheManager;
-    }
+    private final ObtainedUnitHotFixRepository obtainedUnitHotFixRepository;
 
     @Test
     void getRepository_should_work() {
@@ -160,13 +131,14 @@ class ObtainedUnitBoTest {
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
         var user = ou.getUser();
         long count = 2;
+        given(entityRefreshUtilService.refresh(ou)).willReturn(ou);
 
         obtainedUnitBo.saveWithSubtraction(ou, count, handleImprovements);
 
         verify(improvementBo, times(times)).clearSourceCache(user, obtainedUnitImprovementCalculationService);
         verify(requirementBo, times(1)).triggerUnitBuildCompletedOrKilled(user, ou.getUnit());
         verify(obtainedUnitRepository, times(1)).updateCount(ou, -count);
-        verify(entityManager, times(1)).refresh(ou);
+        verify(entityRefreshUtilService, times(1)).refresh(ou);
         verify(taggableCacheManager, times(1)).evictByCacheTag(ObtainedUnit.OBTAINED_UNIT_CACHE_TAG_BY_USER, USER_ID_1);
     }
 
@@ -196,6 +168,7 @@ class ObtainedUnitBoTest {
         ouDto.setCount(4L);
         ouDto.setUserId(USER_ID_1);
         given(obtainedUnitRepository.findById(OBTAINED_UNIT_1_ID)).willReturn(Optional.of(ou));
+        given(entityRefreshUtilService.refresh(ou)).willReturn(ou);
 
         obtainedUnitBo.saveWithSubtraction(ouDto, false);
 
@@ -209,11 +182,12 @@ class ObtainedUnitBoTest {
     void saveWithChange_should_work() {
         var ou = givenObtainedUnit1();
         var sumValue = 14L;
+        given(entityRefreshUtilService.refresh(ou)).willReturn(ou);
 
         assertThat(obtainedUnitBo.saveWithChange(ou, sumValue)).isEqualTo(ou);
 
         verify(obtainedUnitRepository, times(1)).updateCount(ou, sumValue);
-        verify(entityManager, times(1)).refresh(ou);
+        verify(entityRefreshUtilService, times(1)).refresh(ou);
     }
 
     @Test
@@ -309,9 +283,9 @@ class ObtainedUnitBoTest {
         ou.setExpirationId(expirationId);
         given(planetRepository.isOfUserProperty(USER_ID_1, TARGET_PLANET_ID)).willReturn(isOfUserProperty);
         if (existingOne) {
-            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID))
+            given(obtainedUnitHotFixRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID))
                     .willReturn(ou);
-            given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
+            given(obtainedUnitHotFixRepository.findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
                     USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name())
             ).willReturn(ou);
             given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(
@@ -321,13 +295,14 @@ class ObtainedUnitBoTest {
                     USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name(), expirationId)
             ).willReturn(ou);
         }
+        given(entityRefreshUtilService.refresh(ou)).willReturn(ou);
 
         obtainedUnitBo.saveWithAdding(USER_ID_1, ou, TARGET_PLANET_ID);
 
-        verify(obtainedUnitRepository, times(isOfUserProperty && !hasExpirationId ? 1 : 0))
+        verify(obtainedUnitHotFixRepository, times(isOfUserProperty && !hasExpirationId ? 1 : 0))
                 .findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID);
 
-        verify(obtainedUnitRepository, times(!isOfUserProperty && !hasExpirationId ? 1 : 0))
+        verify(obtainedUnitHotFixRepository, times(!isOfUserProperty && !hasExpirationId ? 1 : 0))
                 .findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, MissionType.DEPLOYED.name());
         verify(obtainedUnitRepository, times(isOfUserProperty && hasExpirationId ? 1 : 0)).findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, expirationId
@@ -337,7 +312,7 @@ class ObtainedUnitBoTest {
         );
         verify(obtainedUnitRepository, times(!existingOne ? 1 : 0)).save(ou);
         verify(obtainedUnitRepository, times(existingOne ? 1 : 0)).updateCount(ou, OBTAINED_UNIT_1_COUNT);
-        verify(entityManager, times(existingOne ? 1 : 0)).refresh(ou);
+        verify(entityRefreshUtilService, times(existingOne ? 1 : 0)).refresh(ou);
         verify(obtainedUnitRepository, times(ouId != null ? 1 : 0)).delete(ou);
     }
 
@@ -362,10 +337,10 @@ class ObtainedUnitBoTest {
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, expirationId, isDeployedMission
         )).isInstanceOf(NotFoundException.class).hasMessageContaining("dirty hacker");
 
-        verify(obtainedUnitRepository, times(timesDeployed)).findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
+        verify(obtainedUnitHotFixRepository, times(timesDeployed)).findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, deployed
         );
-        verify(obtainedUnitRepository, times(timesMissionNull)).findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(
+        verify(obtainedUnitHotFixRepository, times(timesMissionNull)).findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID
         );
         verify(obtainedUnitRepository, times(timesDeployedExpirationId)).findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdAndMissionTypeCode(
@@ -380,7 +355,7 @@ class ObtainedUnitBoTest {
     @Test
     void findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission_should_return_val() {
         var ou = givenObtainedUnit1();
-        given(obtainedUnitRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(
+        given(obtainedUnitHotFixRepository.findOneByUserIdAndUnitIdAndSourcePlanetIdAndExpirationIdIsNullAndMissionIsNull(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID
         )).willReturn(ou);
 

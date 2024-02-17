@@ -4,7 +4,6 @@ import com.kevinguanchedarias.owgejava.builder.UnitMissionReportBuilder;
 import com.kevinguanchedarias.owgejava.business.AsyncRunnerBo;
 import com.kevinguanchedarias.owgejava.business.RequirementBo;
 import com.kevinguanchedarias.owgejava.business.mission.MissionEventEmitterBo;
-import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.entity.Mission;
@@ -24,7 +23,6 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class ReturnMissionProcessor implements MissionProcessor {
-    private final PlanetLockUtilService planetLockUtilService;
     private final ObtainedUnitRepository obtainedUnitRepository;
     private final ObtainedUnitBo obtainedUnitBo;
     private final AsyncRunnerBo asyncRunnerBo;
@@ -40,29 +38,27 @@ public class ReturnMissionProcessor implements MissionProcessor {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public UnitMissionReportBuilder process(Mission mission, List<ObtainedUnit> involvedUnits) {
-        planetLockUtilService.doInsideLock(List.of(mission.getSourcePlanet(), mission.getTargetPlanet()), () -> {
-            log.debug("Processing return mission {}", mission.getId());
-            var user = mission.getUser();
-            var userId = user.getId();
-            var planetOwnerOpt = Optional.ofNullable(mission.getSourcePlanet().getOwner());
-            var obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
-            obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
-            mission.setResolved(true);
-            missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
-            asyncRunnerBo
-                    .runAsyncWithoutContextDelayed(
-                            () -> {
-                                if (planetOwnerOpt.isPresent() && planetOwnerOpt.get().getId().equals(userId)) {
-                                    obtainedUnits.stream().map(ObtainedUnit::getUnit).forEach(current -> {
-                                        requirementBo.triggerUnitBuildCompletedOrKilled(user, current);
-                                        requirementBo.triggerUnitAmountChanged(user, current);
-                                    });
-                                }
-                                obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser());
-                            },
-                            500);
-            log.debug("Done processing return mission {}", mission.getId());
-        });
+        log.debug("Processing return mission {}", mission.getId());
+        var user = mission.getUser();
+        var userId = user.getId();
+        var planetOwnerOpt = Optional.ofNullable(mission.getSourcePlanet().getOwner());
+        var obtainedUnits = obtainedUnitRepository.findByMissionId(mission.getId());
+        obtainedUnits.forEach(current -> obtainedUnitBo.moveUnit(current, userId, mission.getSourcePlanet().getId()));
+        mission.setResolved(true);
+        missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission);
+        asyncRunnerBo
+                .runAsyncWithoutContextDelayed(
+                        () -> {
+                            if (planetOwnerOpt.isPresent() && planetOwnerOpt.get().getId().equals(userId)) {
+                                obtainedUnits.stream().map(ObtainedUnit::getUnit).forEach(current -> {
+                                    requirementBo.triggerUnitBuildCompletedOrKilled(user, current);
+                                    requirementBo.triggerUnitAmountChanged(user, current);
+                                });
+                            }
+                            obtainedUnitEventEmitter.emitObtainedUnits(mission.getUser());
+                        },
+                        500);
+        log.debug("Done processing return mission {}", mission.getId());
         return null;
     }
 }
