@@ -93,7 +93,7 @@
         <img *ngIf="currentSelection.obtainedUnit.unit" [src]="currentSelection.obtainedUnit.unit.imageUrl" />
       </div>
       <div class="card-block input-count" *ngIf="selectable">
-        <span (click)="clickSelectAllOfUnit(currentSelection)"
+        <span (click)="clickSelectedAllMaxCapacity(currentSelection)"
               class="owge-theme-hover-background-color-alt">
           <i class="fa fa-globe"></i>
         </span>

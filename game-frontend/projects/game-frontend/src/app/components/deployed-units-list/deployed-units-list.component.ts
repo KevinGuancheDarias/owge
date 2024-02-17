@@ -153,6 +153,18 @@ export class DeployedUnitsListComponent implements OnInit, OnChanges {
     return this.selectionChanged();
   }
 
+  clickSelectedAllMaxCapacity(selection: UnitSelection): Promise<void> {
+    selection.selectedCount = 0;
+    this.recomputeUsedWeight();
+    // TODO as this math to compute storageCapacity is also used in the view, in the future change with an angular signal
+    const storageCapacity: number =
+        this.currentSelectionForStoring.selectedCount * this.currentSelectionForStoring.obtainedUnit.unit.storageCapacity;
+    const freeWeight: number = storageCapacity - this.currentSelectionForStoring.usedWeight;
+    const maxAllowedCount = freeWeight / selection.obtainedUnit.unit.storedWeight;
+    selection.selectedCount = maxAllowedCount > selection.obtainedUnit.count ? selection.obtainedUnit.count : maxAllowedCount;
+    return this.selectionChanged();
+  }
+
   clickUnselectAll(): void {
     this.selectionStructure.forEach(currentSelection => {
       delete currentSelection.selectedCount;
