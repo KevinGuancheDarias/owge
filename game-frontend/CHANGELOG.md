@@ -11,6 +11,7 @@ v0.11.5 (latest)
 * __Fix:__ [When you force sync the time special's countdown gets weird #530](https://github.com/KevinGuancheDarias/owge/issues/530)   
 * __Fix:__ [In the unit info dialog, the attackable types is not working in Neon theme #526](https://github.com/KevinGuancheDarias/owge/issues/526)
 * __Fix:__ Potential fix to error caused by fixing #541, also stabilize handling of duplicated units
+* __Fix:__ [Selected planet is not preserved after f5 #542](https://github.com/KevinGuancheDarias/owge/issues/542)  
  
 v0.11.4 (2024-02-08 05:39)
 ==================

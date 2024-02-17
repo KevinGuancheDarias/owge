@@ -9,7 +9,7 @@ import {
   StorageOfflineHelper,
   SessionService, LoginService
 } from '@owge/core';
-import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService, UserStorage, Planet } from '@owge/universe';
+import { UniverseGameService, UniverseCacheManagerService, UserStorage, Planet } from '@owge/universe';
 
 import { PlanetStore } from '../stores/planet.store';
 import {distinctUntilChanged, filter, take} from 'rxjs/operators';
@@ -24,11 +24,10 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   constructor(
     private _universeGameService: UniverseGameService,
     private _userStorage: UserStorage<User>,
-    private _wsEventCacheService: WsEventCacheService,
     private _universeCacheManagerService: UniverseCacheManagerService,
-    private sessionStore: SessionStore,
     private sessionService: SessionService,
-    private loginService: LoginService
+    private loginService: LoginService,
+    sessionStore: SessionStore
   ) {
     super();
     this._eventsMap = {
@@ -63,6 +62,7 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
   public defineSelectedPlanet(planet: Planet) {
     this._currentPlanet = planet;
     this._planeStore.selectedPlanet.next(planet);
+    this.saveSelectedPlanetToTabStore(planet);
   }
 
   public isMine(planet: Planet): boolean {
@@ -108,10 +108,7 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
    */
   protected _onPlanetOwnedChange(content: Planet[]): void {
     if (!this._isCachePanic(content)) {
-      if (!this._currentPlanet) {
-        this._currentPlanet = content.find(current => current.home);
-        this.defineSelectedPlanet(this._currentPlanet);
-      }
+      this.defineCurrentPlanet(content);
       if (!content.some(current => current.id === this._currentPlanet.id)) {
         const home: Planet = content.find(current => current.home);
         this.defineSelectedPlanet(home);
@@ -135,5 +132,23 @@ export class PlanetService extends AbstractWebsocketApplicationHandler {
 
   private handleLogout(): void {
     this._planeStore.selectedPlanet.next(null);
+  }
+
+  private defineCurrentPlanet(content: Planet[]): void {
+    if (!this._currentPlanet && window.sessionStorage.selected_planet) {
+      const planetIdFromStore: number = parseInt(window.sessionStorage.selected_planet,10);
+      this._currentPlanet = content.find(current => current.id === planetIdFromStore);
+    }
+    if(!this._currentPlanet) {
+      this._currentPlanet = content.find(current => current.home);
+    }
+    if(this._currentPlanet) {
+      this.defineSelectedPlanet(this._currentPlanet);
+    }
+    this.saveSelectedPlanetToTabStore(this._currentPlanet);
+  }
+
+  private saveSelectedPlanetToTabStore(planet: Planet) {
+    window.sessionStorage.selected_planet = planet.id;
   }
 }
