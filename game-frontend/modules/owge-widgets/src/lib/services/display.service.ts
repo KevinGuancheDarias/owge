@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { BackendError } from '@owge/core';
+import { BackendError } from '@owge/types/core';
 import { take } from 'rxjs/operators';
 
 /**

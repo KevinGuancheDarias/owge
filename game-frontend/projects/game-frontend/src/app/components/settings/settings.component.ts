@@ -1,5 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ThemeService, User } from '@owge/core';
+import { ThemeService } from '@owge/core';
+import { User } from '@owge/types/core';
 import { UserStorage, WebsocketService } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
 import { TwitchService } from '../../services/twitch.service';

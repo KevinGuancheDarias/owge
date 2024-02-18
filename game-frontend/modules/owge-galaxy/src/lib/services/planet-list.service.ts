@@ -3,7 +3,7 @@ import { StorageOfflineHelper, AbstractWebsocketApplicationHandler } from '@owge
 import { Observable, Subscription } from 'rxjs';
 import { UniverseGameService, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
 import { PlanetListStore } from '../stores/planet-list.store';
-import { PlanetListItem } from '../types/planet-list-item.type';
+import { PlanetListItem } from '@owge/types/galaxy';
 import { PlanetService } from './planet.service';
 
 /**
@@ -65,8 +65,8 @@ export class PlanetListService extends AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @param {number} planetId
-     * @returns {Observable<void>}
+     * @param planetId
+     * @returns
      */
     public delete(planetId: number): Observable<void> {
         return this._universeGameService.requestWithAutorizationToContext('game', 'delete', `planet-list/${planetId}`);

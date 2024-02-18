@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 
-import { Alliance } from '../types/alliance.type';
-import { AllianceJoinRequest } from '../types/alliance-join-request.type';
+import { Alliance, AllianceJoinRequest } from '@owge/types/alliance';
 
 /**
  * Contains storages associated with the Alliance

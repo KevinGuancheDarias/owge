@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
-import { User, SessionStore, OwgeUserModule, Improvement } from '@owge/core';
+import { SessionStore, OwgeUserModule } from '@owge/core';
+import { User, Improvement } from '@owge/types/core';
 
 /**
  * Stores logged in user information

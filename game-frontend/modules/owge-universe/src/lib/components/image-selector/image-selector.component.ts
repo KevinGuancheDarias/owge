@@ -5,7 +5,7 @@ import { DisplayService } from '@owge/widgets';
 import { ModalComponent } from '@owge/core';
 
 import { ImageStoreService } from '../../services/image-store.service';
-import { ImageStore } from '../../types/image-store.type';
+import { ImageStore } from '@owge/types/universe';
 
 /**
  * Allows selecting an image, or uploading a new one

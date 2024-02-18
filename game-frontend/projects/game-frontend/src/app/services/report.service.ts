@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
-import {
-  MissionReport, MissionReportResponse, ReportStore,
-  UniverseCacheManagerService, UniverseGameService, WsEventCacheService
-} from '@owge/universe';
+import { ReportStore, UniverseCacheManagerService, UniverseGameService, WsEventCacheService} from '@owge/universe';
+import { MissionReport, MissionReportResponse } from '@owge/types/universe';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 

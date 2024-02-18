@@ -1,4 +1,4 @@
-import { MenuRoute } from './menu-route.type';
+import { MenuRoute } from './menu.route.type';
 
 /**
  * Represents the data sent to the <i>RouterRootComponent</i>

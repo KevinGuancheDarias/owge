@@ -4,7 +4,7 @@ import { BaseComponent } from './../base/base.component';
 import { UpgradeService } from './../service/upgrade.service';
 import { UpgradeTypeService } from '../services/upgrade-type.service';
 import { UpgradeType } from '../shared/types/upgrade-type.type';
-import { ObtainedUpgrade, UpgradeRunningMission } from '@owge/universe';
+import { ObtainedUpgrade, UpgradeRunningMission } from '@owge/types/universe';
 
 @Component({
   selector: 'app-upgrades',

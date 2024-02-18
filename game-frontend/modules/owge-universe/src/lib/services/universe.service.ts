@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { CoreHttpService, Config } from '@owge/core';
 
 import { UniverseStorage } from '../storages/universe.storage';
-import { Universe } from '../types/universe.type';
+import { Universe } from '@owge/types/universe';
 import { Title } from '@angular/platform-browser';
 
 /**

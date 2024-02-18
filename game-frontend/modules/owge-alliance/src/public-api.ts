@@ -8,8 +8,5 @@ export * from './lib/components/alliance-of-user/alliance-of-user.component';
 export * from './lib/components/list-join-request/list-join-request.component';
 export * from './lib/services/alliance.service';
 export * from './lib/storages/alliance.storage';
-export * from './lib/types/alliance-join-request.type';
-export * from './lib/types/alliance.type';
-export * from './lib/types/user-with-alliance.type';
 export * from './lib/owge-alliance.module';
 export * from './lib/owge-alliance.routes';

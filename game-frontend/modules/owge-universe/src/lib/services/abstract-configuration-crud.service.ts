@@ -1,6 +1,6 @@
 import { validContext, ProgrammingError, LoggerHelper } from '@owge/core';
 
-import { CrudServiceAuthControl } from '../types/crud-service-auth-control.type';
+import { CrudServiceAuthControl } from '@owge/types/universe';
 import { Subject } from 'rxjs';
 
 /**

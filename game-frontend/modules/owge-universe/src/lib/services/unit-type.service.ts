@@ -2,12 +2,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import {
-  ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper,
-  UnitType, AttackRule, AttackRuleEntry
-} from '@owge/core';
+import {ProgrammingError, AbstractWebsocketApplicationHandler, StorageOfflineHelper} from '@owge/core';
+import { UnitType, AttackRule, AttackRuleEntry, MissionType } from '@owge/types/core';
 
-import { MissionType } from '@owge/core';
 import { MissionService } from './mission.service';
 import { UnitTypeStore } from '../storages/unit-type.store';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';

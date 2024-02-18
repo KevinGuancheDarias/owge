@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {TimeSpecialService} from './time-specials.service';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {ActiveTimeSpecial} from '@owge/universe';
+import {ActiveTimeSpecial} from '@owge/types/universe';
 
 @Injectable()
 export class ActiveTimeSpecialService {

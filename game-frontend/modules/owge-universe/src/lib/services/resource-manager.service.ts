@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { skip, filter } from 'rxjs/operators';
 
-import { Improvement, LoggerHelper, ResourcesEnum } from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
+import { LoggerHelper, ResourcesEnum } from '@owge/core';
+import { Improvement } from '@owge/types/core';
+import { UserWithFaction } from '@owge/types/faction';
 import { UserStorage } from '../storages/user.storage';
-import { UserWithImprovements } from '../types/user-with-improvements.type';
+import { UserWithImprovements } from '@owge/types/universe';
 
 /**
  * Thi service contains the logged in user resources <br />
@@ -217,16 +218,16 @@ export class ResourceManagerService {
     }
 
     /**
-       * Computes the resource per second that one faction resource has according to
-       * the current user improvement <br>
+     * Computes the resource per second that one faction resource has according to
+     * the current user improvement <br>
      * As of 0.8.0 calculate resource production in the frontend too
-       *
-       * @param factionResource     The faction resource production
-       * @param resourceImprovement The improvement resource production
-       * @return the computed resource per second
-       * @author Kevin Guanche Darias
+     *
+     * @param factionResource     The faction resource production
+     * @param resourceImprovement The improvement resource production
+     * @return the computed resource per second
+     * @author Kevin Guanche Darias
      * @since 0.8.0
-       */
+     */
     private _computeUserResourcePerSecond(factionResource: number, resourceImprovement: number): number {
         const nanSafeImprovement: number = isNaN(resourceImprovement) ? 0 : resourceImprovement;
         return factionResource + (factionResource * (nanSafeImprovement / 100));

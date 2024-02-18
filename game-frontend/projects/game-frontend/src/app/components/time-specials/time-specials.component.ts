@@ -1,13 +1,9 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {DateRepresentation, DateUtil, ModalComponent, ObservableSubscriptionsHelper} from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
-import {
-  TimeSpecial,
-  TimeSpecialService,
-  RuleService,
-  RuleWithUnitEntity,
-  SpeedImpactGroupService, Rule
-} from '@owge/universe';
+import {DateUtil, ModalComponent, ObservableSubscriptionsHelper} from '@owge/core';
+import { DateRepresentation } from '@owge/types/core';
+import { UserWithFaction } from '@owge/types/faction';
+import {TimeSpecialService, RuleService, SpeedImpactGroupService} from '@owge/universe';
+import { TimeSpecial, RuleWithUnitEntity, Rule } from '@owge/types/universe';
 import { BaseComponent } from '../../base/base.component';
 import {combineLatest} from 'rxjs';
 

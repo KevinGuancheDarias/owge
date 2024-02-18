@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import {
-  AbstractWebsocketApplicationHandler, DateUtil, LoadingService, MissionSupport,
-  MissionType, ProgrammingError, ResourcesEnum, TypeWithMissionLimitation, User
+  AbstractWebsocketApplicationHandler, DateUtil, LoadingService,
+  ProgrammingError, ResourcesEnum
 } from '@owge/core';
+import { MissionSupport,MissionType, TypeWithMissionLimitation, User } from '@owge/types/core';
 
 import { camelCase, upperFirst } from 'lodash-es';
 import { Observable } from 'rxjs';
@@ -10,10 +11,7 @@ import { map } from 'rxjs/operators';
 import { Planet } from '../pojos/planet.pojo';
 import { MissionStore } from '../storages/mission.store';
 import { UserStorage } from '../storages/user.storage';
-import { AnyRunningMission } from '../types/any-running-mission.type';
-import { RunningMission } from '../types/running-mission.type';
-import { SelectedUnit } from '../types/selected-unit.type';
-import { UnitRunningMission } from '../types/unit-running-mission.type';
+import { AnyRunningMission, RunningMission, SelectedUnit, UnitRunningMission } from '@owge/types/universe';
 import { UnitUtil } from '../utils/unit.util';
 import { ResourceManagerService } from './resource-manager.service';
 import { UniverseGameService } from './universe-game.service';

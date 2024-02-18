@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import {HttpClient} from '@angular/common/http';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {EnvironmentVariableService} from './services/environment-variable.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,9 @@ import {toSignal} from '@angular/core/rxjs-interop';
 })
 export class AppComponent {
   title = 'owge-wiki-ssg';
-  serverMessage = toSignal(this.httpClient.get<string>('http://localhost:8080/owgejava-game-rest/open/clock'), {initialValue: 'Not loaded'});
+
+  backendUrl = EnvironmentVariableService.getOrFail('OWGE_BACKEND_URL');
+  serverMessage = toSignal(this.httpClient.get<string>(`${this.backendUrl}/open/clock`), {initialValue: 'Not loaded'});
 
   constructor(private httpClient: HttpClient) { }
 

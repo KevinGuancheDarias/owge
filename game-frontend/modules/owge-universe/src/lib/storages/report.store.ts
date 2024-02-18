@@ -1,6 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import { MissionReport } from '../types/mission-report.type';
-
+import { MissionReport } from '@owge/types/universe';
 /**
  * Represents the report store
  *

@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { UniverseGameService } from './universe-game.service';
-import { StorageOfflineHelper, AbstractWebsocketApplicationHandler, LoadingService } from '@owge/core';
-import { TutorialSectionEntry } from '../types/tutorial-section-entry.type';
+import { AbstractWebsocketApplicationHandler, LoadingService } from '@owge/core';
+import { TutorialSectionEntry } from '@owge/types/universe';
 import { TutorialStore } from '../storages/tutorial.store';
-import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { Observable, combineLatest, Subject, ReplaySubject } from 'rxjs';
-import { WsEventCacheService } from './ws-event-cache.service';
 import { filter, take } from 'rxjs/operators';
 import { Router, NavigationEnd } from '@angular/router';
 

@@ -2,15 +2,16 @@ import { Injectable, Injector } from '@angular/core';
 import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { map } from 'rxjs/operators';
 
-import { LoggerHelper, ProgrammingError, User } from '@owge/core';
-import { UniverseStorage, Universe, UniverseGameService, UserStorage } from '@owge/universe';
+import { LoggerHelper, ProgrammingError } from '@owge/core';
+import { User } from '@owge/types/core';
+import { UniverseStorage, UniverseGameService, UserStorage } from '@owge/universe';
+import { Universe } from '@owge/types/universe';
 
 import { PlanetPojo } from './../shared-pojo/planet.pojo';
 import { TokenPojo } from './token.pojo';
 import { UserPojo } from '../shared-pojo/user.pojo';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { Faction } from '../shared-pojo/faction.pojo';
-import { HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
 /**
@@ -63,8 +64,8 @@ export class LoginSessionService implements CanActivate {
   }
 
   /**
-   * @param {string} token - RAW encoded token
-   * @return {TokenPojo} the encoded token
+   * @param token - RAW encoded token
+   * @return the encoded token
    */
   public setTokenPojo(token): void {
     this._userStorage.currentToken.next(token);
@@ -130,8 +131,8 @@ export class LoginSessionService implements CanActivate {
    * Generates the HTTP headers with the Authorization token included
    *
    * @deprecated Use genHttpClientHeaders
-   * @param {Headers} [headers] If present will append to existing, else will create new
-   * @return {Headers}
+   * @param [headers] If present will append to existing, else will create new
+   * @return
    */
   public genHttpHeaders(headers?: Headers): Headers {
     if (!headers) {
@@ -191,8 +192,8 @@ export class LoginSessionService implements CanActivate {
   /**
    * Will return the parsed Token
    *
-   * @param {string} jwtToken - The jwt token
-   * @return {TokenPojo} the encoded token
+   * @param jwtToken - The jwt token
+   * @return the encoded token
    * @author Kevin Guanche Darias
    */
   private _parseToken(jwtToken: string): TokenPojo {
@@ -210,7 +211,7 @@ export class LoginSessionService implements CanActivate {
    * Notice: removes token from sessionStorage if expired
    *
    * @private
-   * @returns {TokenPojo}
+   * @returns
    *
    * @memberOf LoginSessionService
    * @author Kevin Guanche Darias
@@ -294,7 +295,7 @@ export class LoginSessionService implements CanActivate {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @private
-   * @returns {*}
+   * @returns
    * @memberof LoginSessionService
    */
   private _workaroundUniverseStorage(): any {

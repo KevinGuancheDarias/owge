@@ -3,21 +3,20 @@ import { Injectable } from '@angular/core';
 import {
   AbstractWebsocketApplicationHandler,
   DateUtil,
-  Improvement,
   LoggerHelper,
   OrderUtil,
   ProgrammingError,
-  User
 } from '@owge/core';
+import { Improvement, User } from '@owge/types/core';
 import { PlanetService } from '@owge/galaxy';
 import {
-  AutoUpdatedResources,
-  ObtainedUnit,
-  ObtainedUpgrade, Planet, PlanetsUnitsRepresentation, ResourceManagerService, ResourceRequirements, Unit,
-  UnitBuildRunningMission, UnitStore,
-  UnitUpgradeRequirements, UnitUtil, UniverseGameService, SelectedUnit,
-  UserStorage, WsEventCacheService
+  AutoUpdatedResources, Planet, ResourceManagerService, ResourceRequirements,
+  UnitStore, UnitUtil, UniverseGameService, UserStorage, WsEventCacheService
 } from '@owge/universe';
+import {
+  ObtainedUnit, ObtainedUpgrade, PlanetsUnitsRepresentation, Unit, UnitBuildRunningMission,
+  UnitUpgradeRequirements, SelectedUnit
+} from '@owge/types/universe';
 import { isEqual } from 'lodash-es';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, map, tap } from 'rxjs/operators';

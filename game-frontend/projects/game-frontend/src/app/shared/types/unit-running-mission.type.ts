@@ -1,6 +1,6 @@
 import { AbstractRunningMissionPojo } from '../../shared-pojo/abstract-running-mission.pojo';
 import { UserPojo } from '../../shared-pojo/user.pojo';
-import { Planet, ObtainedUnit } from '@owge/universe';
+import { Planet, ObtainedUnit } from '@owge/types/universe';
 
 /**
  * Represents a running unit involved missions

@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import {DateUtil, Improvement, OrderUtil} from '@owge/core';
+import {DateUtil, OrderUtil, AbstractWebsocketApplicationHandler} from '@owge/core';
 import {
-  UniverseGameService, UpgradeStore, ObtainedUpgrade, UpgradeRunningMission,
+  UniverseGameService, UpgradeStore,
   AutoUpdatedResources, ResourceManagerService, ResourceRequirements, WsEventCacheService
 } from '@owge/universe';
+import { ObtainedUpgrade, UpgradeRunningMission } from '@owge/types/universe';
 
-import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import { Improvement } from '@owge/types/core';
 import { map } from 'rxjs/operators';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 

@@ -1,6 +1,6 @@
 import { ReplaySubject, Subject } from 'rxjs';
-import { Rule } from '../types/rule.type';
-import {CommonEntity} from '@owge/core';
+import { Rule } from '@owge/types/universe';
+import {CommonEntity} from '@owge/types/core';
 
 export class RuleStore {
     public readonly rules: Subject<Rule[]> = new ReplaySubject(1);

@@ -1,14 +1,14 @@
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { AfterViewInit, Component, ElementRef, EventEmitter, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { LoggerHelper, MenuRoute, ModalComponent, ROUTES, ThemeService, UnitType } from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
+import { MenuRoute, LoggerHelper, ModalComponent, ROUTES, ThemeService} from '@owge/core';
+import { UnitType } from '@owge/types/core';
+import { UserWithFaction } from '@owge/types/faction';
 import { PlanetService } from '@owge/galaxy';
 import {
-  AutoUpdatedResources, MissionStore, UnitTypeService,
-  Planet, ResourceManagerService,
-  SystemMessageService, UnitBuildRunningMission, UniverseGameService, UpgradeRunningMission
+  AutoUpdatedResources, MissionStore, UnitTypeService, Planet, ResourceManagerService, SystemMessageService, UniverseGameService
 } from '@owge/universe';
+import { UnitBuildRunningMission, UpgradeRunningMission } from '@owge/types/universe';
 import { AbstractSidebarComponent, DisplayService, WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { combineLatest, EMPTY, fromEvent, Observable, Subscription } from 'rxjs';
 import { delay, map, startWith, take } from 'rxjs/operators';

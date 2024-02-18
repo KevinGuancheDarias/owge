@@ -1,8 +1,9 @@
-import { ProgrammingError, LoggerHelper, RequirementInformation, RequirementGroup } from '@owge/core';
+import { ProgrammingError, LoggerHelper} from '@owge/core';
+import { RequirementInformation,RequirementGroup } from '@owge/types/core';
 
 import { UniverseGameService } from '../../services/universe-game.service';
-import { Observable, Subject, Subscription, pipe } from 'rxjs';
-import { CrudConfig } from '../../types/crud-config.type';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { CrudConfig } from '@owge/types/universe';
 import { HttpParams } from '@angular/common/http';
 import { StoreAwareService } from '../../interfaces/store-aware-service.interface';
 import { take, finalize } from 'rxjs/operators';
@@ -43,8 +44,8 @@ export class WithRequirementsCrudMixin<T = any, K = any> implements StoreAwareSe
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.0
-     * @param {K} id
-     * @returns {Observable<RequirementGroup>}
+     * @param id
+     * @returns
      */
     public findRequirementGroups(id: K): Observable<RequirementGroup> {
         return this._universeGameService.requestWithAutorizationToContext(

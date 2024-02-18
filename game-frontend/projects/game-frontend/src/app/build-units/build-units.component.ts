@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlanetService } from '@owge/galaxy';
-import { Unit, UnitBuildRunningMission } from '@owge/universe';
+import { Unit, UnitBuildRunningMission } from '@owge/types/universe';
 import { Observable, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { BaseUnitComponent } from '../shared/base-unit.component';

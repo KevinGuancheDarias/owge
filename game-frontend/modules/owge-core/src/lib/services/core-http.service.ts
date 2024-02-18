@@ -4,7 +4,7 @@ import { switchMap, first, catchError } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 
-import { HttpOptions } from '../types/http-options.type';
+import { HttpOptions } from '@owge/core';
 import { LoggerHelper } from '../helpers/logger.helper';
 import { SessionStore } from '../store/session.store';
 import { ProgrammingError } from '../errors/programming.error';
@@ -255,9 +255,7 @@ export class CoreHttpService {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
         return this[method](contextConfig.url, parsedOptions);
       }),
-      catchError((err, caught) => {
-        return this._handleObservableError(options, err, caught);
-      })
+      catchError((err, caught) => this._handleObservableError(options, err, caught))
     );
   }
 
@@ -277,9 +275,7 @@ export class CoreHttpService {
         parsedOptions.headers = parsedOptions.headers.append('Authorization', `Bearer ${token}`);
         return this[method]<T>(contextConfig.url, body, parsedOptions);
       }),
-      catchError((err, caught) => {
-        return this._handleObservableError(options, err, caught);
-      })
+      catchError((err, caught) => this._handleObservableError(options, err, caught))
     );
   }
 

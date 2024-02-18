@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 import { AllianceService } from '../../services/alliance.service';
-import { Alliance } from '../../types/alliance.type';
+import { Alliance } from '@owge/types/alliance';
 
 @Component({
   selector: 'owge-alliance-display-list',

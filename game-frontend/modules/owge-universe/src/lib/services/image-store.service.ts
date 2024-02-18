@@ -4,11 +4,9 @@ import { Mixin } from 'ts-mixer';
 
 import { LoadingService, validContext, OwgeCoreConfig } from '@owge/core';
 
-
 import { WithReadCrudMixin } from '../mixins/services/with-read-crud.mixin';
-import { ImageStore } from '../types/image-store.type';
 import { UniverseGameService } from './universe-game.service';
-import { CrudServiceAuthControl } from '../types/crud-service-auth-control.type';
+import { ImageStore, CrudServiceAuthControl } from '@owge/types/universe';
 import { WithDeleteCrudMixin } from '../mixins/services/with-delete-crud.mixin';
 
 export interface ImageStoreService extends WithReadCrudMixin<ImageStore, number>, WithDeleteCrudMixin<ImageStore, number> { }

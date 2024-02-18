@@ -1,10 +1,12 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import { AbstractModalContainerComponent, LoggerHelper, MissionType, ObservableSubscriptionsHelper, UnitType } from '@owge/core';
+import { AbstractModalContainerComponent, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
+import { MissionType, UnitType } from '@owge/types/core';
 import { PlanetService } from '@owge/galaxy';
 import {
-  MissionStore, ObtainedUnit, Planet, SpeedImpactGroupService,
-  UnitTypeService, MissionService, SelectedUnit
+  MissionStore, Planet, SpeedImpactGroupService,
+  UnitTypeService, MissionService
 } from '@owge/universe';
+import { ObtainedUnit, SelectedUnit } from '@owge/types/universe';
 import { Observable } from 'rxjs';
 import { ConfigurationService } from '../modules/configuration/services/configuration.service';
 import { validDeploymentValue } from '../modules/configuration/types/valid-deployment-value.type';

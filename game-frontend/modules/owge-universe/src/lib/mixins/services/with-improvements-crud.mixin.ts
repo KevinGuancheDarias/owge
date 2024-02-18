@@ -2,11 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, empty } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 
-import { BackendError, ProgrammingError, LoggerHelper, Improvement, ImprovementUnitType } from '@owge/core';
+import { ProgrammingError, LoggerHelper } from '@owge/core';
+import { BackendError, Improvement, ImprovementUnitType } from '@owge/types/core';
 import { DisplayService } from '@owge/widgets';
 
 import { UniverseGameService } from '../../services/universe-game.service';
-import { CrudConfig } from '../../types/crud-config.type';
+import { CrudConfig } from '@owge/types/universe';
 
 /**
  * Adds support for the improvements to the specified service <br>

@@ -6,7 +6,7 @@ import { UnitService } from '../service/unit.service';
 import { BaseUnitComponent } from '../shared/base-unit.component';
 import { Subscription } from 'rxjs';
 import { cloneDeep } from 'lodash-es';
-import { ObtainedUnit } from '@owge/universe';
+import { ObtainedUnit } from '@owge/types/universe';
 
 @Component({
   selector: 'app-deployed-units-big',

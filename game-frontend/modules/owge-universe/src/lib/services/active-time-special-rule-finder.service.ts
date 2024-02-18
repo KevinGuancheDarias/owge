@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {ActiveTimeSpecialService} from './active-time-special.service';
 import {Observable, of} from 'rxjs';
-import {Rule} from '../types/rule.type';
+import { Rule } from '@owge/types/universe';
 import {RuleService} from './rule.service';
 import {map, mergeAll, mergeMap} from 'rxjs/operators';
 

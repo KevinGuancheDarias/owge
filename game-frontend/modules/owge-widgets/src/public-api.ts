@@ -23,6 +23,5 @@ export * from './lib/components/widget-touchable-number-selector/widget-touchabl
 export * from './lib/owge-widgets.module';
 export * from './lib/pipes/ui-icon.pipe';
 export * from './lib/services/display.service';
-export * from './lib/types/widget-filter.type';
 export * from './lib/utils/widget-filter.util';
 

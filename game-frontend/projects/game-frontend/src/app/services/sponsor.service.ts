@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Sponsor } from '@owge/core';
+import { Sponsor } from '@owge/types/core';
 import { UniverseGameService } from '@owge/universe';
 import { Observable } from 'rxjs';
 

@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { MissionType } from '@owge/core';
+import { MissionType } from '@owge/types/core';
 import { Observable } from 'rxjs';
 
 

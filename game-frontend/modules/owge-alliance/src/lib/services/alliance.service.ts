@@ -5,9 +5,7 @@ import { switchMap, first, map, take, tap } from 'rxjs/operators';
 import { UniverseGameService, UserStorage } from '@owge/universe';
 
 import { AllianceStorage } from '../storages/alliance.storage';
-import { Alliance } from '../types/alliance.type';
-import { AllianceJoinRequest } from '../types/alliance-join-request.type';
-import { UserWithAlliance } from '../types/user-with-alliance.type';
+import { Alliance, AllianceJoinRequest, UserWithAlliance } from '@owge/types/alliance';
 
 /**
  *

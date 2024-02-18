@@ -1,6 +1,5 @@
 import { TokenPojo } from '../pojos/token.pojo';
-import { User } from '../types/user.type';
-
+import { User } from '@owge/types/core';
 export class JwtTokenUtil {
 
 

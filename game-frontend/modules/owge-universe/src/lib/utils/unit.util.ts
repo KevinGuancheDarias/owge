@@ -1,4 +1,4 @@
-import { ObtainedUnit } from '../types/obtained-unit.type';
+import { ObtainedUnit } from '@owge/types/universe';
 
 export class UnitUtil {
     private constructor() { }

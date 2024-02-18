@@ -1,4 +1,4 @@
-import { TimeSpecial } from '../types/time-special.type';
+import { TimeSpecial } from '@owge/types/universe';
 import { Subject, ReplaySubject } from 'rxjs';
 
 

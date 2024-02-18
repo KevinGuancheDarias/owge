@@ -10,8 +10,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AllianceModule, ALLIANCE_ROUTES, ALLIANCE_ROUTES_DATA } from '@owge/alliance';
 import {
   CoreModule, LoadingService, OwgeUserModule, RouterRootComponent,
-  SessionService, ThemeService, User, WarningWebsocketApplicationHandlerService
+  SessionService, ThemeService, WarningWebsocketApplicationHandlerService
 } from '@owge/core';
+import { User } from '@owge/types/core';
 import { OwgeGalaxyModule, PlanetListService, PlanetService } from '@owge/galaxy';
 import {
   ErrorLoggingService, OwgeUniverseModule, SystemMessageService, TimeSpecialService, UniverseGameService,

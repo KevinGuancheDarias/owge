@@ -6,8 +6,6 @@
  * @export
  * @interface RankingEntry
  */
-import {CommonEntity} from '@owge/core';
-
 export interface RankingEntry {
     position: number;
     points: number;

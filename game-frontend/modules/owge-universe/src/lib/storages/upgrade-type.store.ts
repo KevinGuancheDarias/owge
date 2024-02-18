@@ -1,5 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import { UpgradeType } from '../types/upgrade-type.type';
+import { UpgradeType } from '@owge/types/universe';
 
 /**
  *

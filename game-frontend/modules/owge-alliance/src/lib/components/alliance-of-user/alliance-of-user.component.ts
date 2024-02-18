@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 
 import { AllianceStorage } from '../../storages/alliance.storage';
-import { Alliance } from '../../types/alliance.type';
+import { Alliance } from '@owge/types/alliance';
 import { ModalComponent, LoadingService } from '@owge/core';
 import { AllianceService } from '../../services/alliance.service';
 import { Router } from '@angular/router';

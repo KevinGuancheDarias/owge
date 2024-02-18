@@ -4,13 +4,11 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { LoadingService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
+import {Alliance, AllianceJoinRequest, UserWithAlliance} from '@owge/types/alliance';
 
-import { Alliance } from '../../types/alliance.type';
-import { AllianceService } from '../../services/alliance.service';
-import { AllianceJoinRequest } from '../../types/alliance-join-request.type';
-import { UserWithAlliance } from '../../types/user-with-alliance.type';
-import { filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { UserStorage } from '@owge/universe';
+import {AllianceService} from '../../services/alliance.service';
 
 /**
  *

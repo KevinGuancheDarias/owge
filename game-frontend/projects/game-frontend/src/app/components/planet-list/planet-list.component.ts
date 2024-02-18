@@ -3,7 +3,8 @@ import { Planet } from '@owge/universe';
 import { BaseComponent } from '../../base/base.component';
 import { MissionModalComponent } from '../../mission-modal/mission-modal.component';
 import { MissionInformationStore } from '../../store/mission-information.store';
-import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent, } from '@owge/galaxy';
+import { PlanetService, PlanetListService, PlanetListAddEditModalComponent, } from '@owge/galaxy';
+import { PlanetListItem } from '@owge/types/galaxy';
 import { Subscription } from 'rxjs';
 import { UnitService } from '../../service/unit.service';
 

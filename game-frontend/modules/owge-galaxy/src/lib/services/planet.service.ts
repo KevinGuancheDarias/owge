@@ -3,12 +3,12 @@ import { Observable } from 'rxjs';
 import { isEqual } from 'lodash-es';
 
 import {
-  User,
   AbstractWebsocketApplicationHandler,
   SessionStore,
   StorageOfflineHelper,
   SessionService, LoginService
 } from '@owge/core';
+import { User } from '@owge/types/core';
 import { UniverseGameService, UniverseCacheManagerService, UserStorage, Planet } from '@owge/universe';
 
 import { PlanetStore } from '../stores/planet.store';

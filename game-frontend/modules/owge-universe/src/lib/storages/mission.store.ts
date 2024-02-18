@@ -1,5 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import { UnitRunningMission } from '../types/unit-running-mission.type';
+import { UnitRunningMission } from '@owge/types/universe';
 
 /**
  * Stores missions information

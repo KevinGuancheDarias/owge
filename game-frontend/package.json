@@ -1,6 +1,6 @@
 {
   "name": "game-frontend",
-  "version": "0.11.5",
+  "version": "0.12.0",
   "license": "MIT",
   "angular-cli": {},
   "scripts": {
@@ -40,6 +40,7 @@
     "@fortawesome/fontawesome-free": "^5.7.2",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
+    "@owge/types": "file:../frontend-ts-types",
     "@types/lodash-es": "^4.17.3",
     "bootstrap": "^4.4.1",
     "core-js": "^2.4.1",

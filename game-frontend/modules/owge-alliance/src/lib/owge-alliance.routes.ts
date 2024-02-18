@@ -7,8 +7,7 @@ import { AllianceOfUserComponent } from './components/alliance-of-user/alliance-
 import { AllianceDisplayListComponent } from './components/alliance-display-list/alliance-display-list.component';
 import { ListJoinRequestComponent } from './components/list-join-request/list-join-request.component';
 import { AllianceStorage } from './storages/alliance.storage';
-import { Alliance } from './types/alliance.type';
-import { UserWithAlliance } from './types/user-with-alliance.type';
+import { Alliance, UserWithAlliance } from '@owge/types/alliance';
 import { UserStorage } from '@owge/universe';
 
 export const ALLIANCE_ROUTES: Route[] = [

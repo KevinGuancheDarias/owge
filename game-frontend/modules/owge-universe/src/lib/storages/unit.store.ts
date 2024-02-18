@@ -1,9 +1,5 @@
-import { ObtainedUnit } from '../types/obtained-unit.type';
-import { UnitBuildRunningMission } from '../types/unit-build-running-mission.type';
 import { Subject, ReplaySubject } from 'rxjs';
-import { UnitUpgradeRequirements } from '../types/unit-upgrade-requirements.type';
-import { Unit } from '../types/unit.type';
-import { PlanetsUnitsRepresentation } from '../types/planet-units-representation.type';
+import { ObtainedUnit, UnitBuildRunningMission, UnitUpgradeRequirements, Unit, PlanetsUnitsRepresentation } from '@owge/types/universe';
 
 /**
  *

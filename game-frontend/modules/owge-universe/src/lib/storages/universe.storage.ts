@@ -1,7 +1,7 @@
 import { ReplaySubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 
-import { Universe } from '../types/universe.type';
+import { Universe } from '@owge/types/universe';
 
 /**
  * Stores universe information <b>including selected universe</b>

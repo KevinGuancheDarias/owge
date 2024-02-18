@@ -4,7 +4,7 @@ import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHe
 import { throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CacheListener } from '../interfaces/cache-listener.interface';
-import { WebsocketSyncItem, WebsocketSyncResponse } from '../types/websocket-sync-response.type';
+import { WebsocketSyncItem, WebsocketSyncResponse } from '@owge/types/universe';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UniverseGameService } from './universe-game.service';
 

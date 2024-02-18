@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { UserWithAlliance } from '@owge/alliance';
-import { User } from '@owge/core';
-import { ObtainedUpgrade, TutorialService, UnitRunningMission, UpgradeRunningMission, UserStorage, MissionService } from '@owge/universe';
+import { UserWithAlliance } from '@owge/types/alliance';
+import { User } from '@owge/types/core';
+import { TutorialService, UserStorage, MissionService } from '@owge/universe';
+import { ObtainedUpgrade, UnitRunningMission, UpgradeRunningMission } from '@owge/types/universe';
 import { BaseComponent } from '../base/base.component';
 import { UpgradeService } from '../service/upgrade.service';
 

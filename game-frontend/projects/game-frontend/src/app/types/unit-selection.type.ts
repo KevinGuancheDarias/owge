@@ -1,4 +1,4 @@
-import { ObtainedUnit } from '@owge/universe';
+import { ObtainedUnit } from '@owge/types/universe';
 
 /**
  * Represents the selection of units in the deployed-unit-list component

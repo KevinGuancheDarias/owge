@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, ViewChild } from '@angular/core';
 import { AbstractModalContainerComponent, LoadingService } from '@owge/core';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
-import { PlanetListItem } from '../../types/planet-list-item.type';
+import { PlanetListItem } from '@owge/types/galaxy';
 import { PlanetListService } from '../../services/planet-list.service';
 
 /**

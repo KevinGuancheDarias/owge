@@ -1,6 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import {CommonEntity} from '@owge/core';
-
+import {CommonEntity} from '@owge/types/core';
 
 /**
  *

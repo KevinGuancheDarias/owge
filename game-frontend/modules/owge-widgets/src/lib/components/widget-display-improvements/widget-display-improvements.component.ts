@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges } from '@angular/core';
-import { Improvement } from '@owge/core';
+import { Improvement } from '@owge/types/core';
 
 interface ImageInfo {
   path: string;

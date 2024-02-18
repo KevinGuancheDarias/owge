@@ -1,6 +1,7 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MissionUtil, ToastrService } from '@owge/core';
-import { MissionStore, ObtainedUnit, Planet, UnitRunningMission, MissionService } from '@owge/universe';
+import { MissionStore, Planet, MissionService } from '@owge/universe';
+import { ObtainedUnit, UnitRunningMission } from '@owge/types/universe';
 import { BaseComponent } from '../../base/base.component';
 import { MissionInformationStore } from '../../store/mission-information.store';
 

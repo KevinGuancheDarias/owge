@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { ScreenDimensionsService } from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
+import { UserWithFaction } from '@owge/types/faction';
 import { ResourceRequirements, UserStorage } from '@owge/universe';
 import { DateTimeUtil, MilisToDaysHoursMinutesSeconds } from '../shared/util/date-time.util';
 

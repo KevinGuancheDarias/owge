@@ -1,4 +1,4 @@
-import { Universe } from '@owge/universe';
+import { Universe } from '@owge/types/universe';
 
 /**
  * Represents the credentials (usually sent from to different frontend domains)

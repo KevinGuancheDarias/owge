@@ -1,4 +1,4 @@
-import { TutorialSectionEntry } from '../types/tutorial-section-entry.type';
+import { TutorialSectionEntry } from '@owge/types/universe';
 import { ReplaySubject, Subject } from 'rxjs';
 
 /**

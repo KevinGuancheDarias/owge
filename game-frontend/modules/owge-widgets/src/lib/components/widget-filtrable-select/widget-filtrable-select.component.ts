@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { AsyncCollectionUtil, ModalComponent, ProgrammingError } from '@owge/core';
-import { WidgetFilter } from '../../types/widget-filter.type';
+import { WidgetFilter } from '@owge/types/widgets';
 
 /**
  * Applies a filter to a collection and displays a select <br>

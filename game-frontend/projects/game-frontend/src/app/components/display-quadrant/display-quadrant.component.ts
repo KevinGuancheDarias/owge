@@ -6,7 +6,8 @@ import { MissionModalComponent } from '../../mission-modal/mission-modal.compone
 import { NavigationConfig } from '../../shared/types/navigation-config.type';
 import { NavigationService } from '../../service/navigation.service';
 import { MissionInformationStore } from '../../store/mission-information.store';
-import { PlanetService, PlanetListItem, PlanetListService, PlanetListAddEditModalComponent } from '@owge/galaxy';
+import { PlanetService, PlanetListService, PlanetListAddEditModalComponent } from '@owge/galaxy';
+import {PlanetListItem} from '@owge/types/galaxy';
 import { Planet, TutorialService } from '@owge/universe';
 
 @Component({

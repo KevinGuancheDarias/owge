@@ -1,6 +1,6 @@
 import { Component, OnInit, Injector } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
-import { RouterData } from '../../types/router-data.type';
+import { RouterData } from '@owge/core';
 import { ProgrammingError } from '../../errors/programming.error';
 import { filter } from 'rxjs/operators';
 

@@ -3,23 +3,21 @@ import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
 import { first, switchMap, take, filter } from 'rxjs/operators';
 
 import {
-  CoreHttpService,
   HttpOptions,
-  User,
+  CoreHttpService,
   validContext,
   validNonDataMethod,
   validWriteMethod,
   StorageOfflineHelper,
   SessionService,
   ToastrService,
-  Improvement
+  AbstractWebsocketApplicationHandler
 } from '@owge/core';
+import {User, Improvement } from '@owge/types/core';
 import { UniverseStorage } from '../storages/universe.storage';
-import { Universe } from '../types/universe.type';
-import { AbstractWebsocketApplicationHandler } from '@owge/core';
+import { Universe, UserWithImprovements } from '@owge/types/universe';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { UserStorage } from '../storages/user.storage';
-import { UserWithImprovements } from '../types/user-with-improvements.type';
 import { ResourceManagerService } from './resource-manager.service';
 import { Title } from '@angular/platform-browser';
 import { SwUpdate } from '@angular/service-worker';

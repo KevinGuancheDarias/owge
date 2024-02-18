@@ -1,7 +1,8 @@
 import { Input, Directive } from '@angular/core';
 
-import { UnitType } from '@owge/core';
-import { Unit, UnitTypeService } from '@owge/universe';
+import { UnitType } from '@owge/types/core';
+import { UnitTypeService } from '@owge/universe';
+import { Unit } from '@owge/types/universe';
 
 import { BaseComponent } from '../base/base.component';
 import { ServiceLocator } from '../service-locator/service-locator';
@@ -10,11 +11,11 @@ import { ServiceLocator } from '../service-locator/service-locator';
 export class BaseUnitComponent extends BaseComponent {
 
     /**
-   * Used to filter the units
-   *
-   * @type {UnitType}
-   * @memberof BuildUnitsComponent
-   */
+     * Used to filter the units
+     *
+     * @type {UnitType}
+     * @memberof BuildUnitsComponent
+     */
     @Input()
     public unitType?: UnitType;
 

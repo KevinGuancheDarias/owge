@@ -7,7 +7,7 @@ import {
   ProgrammingError, SessionService, SessionStore, StorageOfflineHelper
 } from '@owge/core';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
-import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
+import { WebsocketSyncResponse } from '@owge/types/universe';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { WsEventCacheService } from './ws-event-cache.service';
 import { UniverseGameService } from './universe-game.service';

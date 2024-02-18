@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { UnitType } from '@owge/core';
+import { UnitType } from '@owge/types/core';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Rule } from '../types/rule.type';
-import { Unit } from '../types/unit.type';
+import { Rule, Unit } from '@owge/types/universe';
 import { RuleService } from './rule.service';
 import { UnitTypeService } from './unit-type.service';
 

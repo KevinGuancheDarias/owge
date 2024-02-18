@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
-import { ImprovementUnitType, ProgrammingError, validImprovementType } from '@owge/core';
-
+import { ProgrammingError } from '@owge/core';
+import { ImprovementUnitType, validImprovementType } from '@owge/types/core';
 
 /**
  *

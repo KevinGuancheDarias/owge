@@ -1,6 +1,7 @@
 import { QueryList, ElementRef, OnDestroy, Directive } from '@angular/core';
 
-import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper, User } from '@owge/core';
+import { LoadingService, MEDIA_ROUTES, LoggerHelper, ObservableSubscriptionsHelper } from '@owge/core';
+import { User } from '@owge/types/core';
 
 import { LoginSessionService } from '../login-session/login-session.service';
 import { ServiceLocator } from '../service-locator/service-locator';

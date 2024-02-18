@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractWebsocketApplicationHandler } from '@owge/core';
 import { Observable } from 'rxjs';
 import { SystemMessageStore } from '../storages/system-message.store';
-import { SystemMessage } from '../types/system-message.type';
+import { SystemMessage } from '@owge/types/universe';
 import { UniverseGameService } from './universe-game.service';
 
 /**
@@ -28,7 +28,7 @@ export class SystemMessageService extends AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.16
-     * @returns {Observable<SystemMessage[]>}
+     * @returns
      */
     public findAll(): Observable<SystemMessage[]> {
         return this._store.messages.asObservable();
@@ -39,8 +39,8 @@ export class SystemMessageService extends AbstractWebsocketApplicationHandler {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      * @since 0.9.16
-     * @param {SystemMessage[]} messages
-     * @returns {Observable<void>}
+     * @param messages
+     * @returns
      */
     public markAsRead(messages: SystemMessage[]): Observable<void> {
         return this._universeGameService.requestWithAutorizationToContext(

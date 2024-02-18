@@ -2,7 +2,7 @@ import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 
 import { ROUTES, ModalComponent } from '@owge/core';
-import { Universe, UniverseService } from '@owge/universe';
+import { UniverseService } from '@owge/universe';
 
 import { UserService } from '../service/user.service';
 import { BaseComponent } from '../base/base.component';
@@ -11,6 +11,7 @@ import { Credentials } from '../shared/types/credentials.type';
 import { SafeUrl } from '@angular/platform-browser';
 import { SanitizeService } from '../services/sanitize.service';
 import { FactionSelectorComponent } from '../faction-selector/faction-selector.component';
+import { Universe } from '@owge/types/universe';
 
 @Component({
   selector: 'app-universe-selection',

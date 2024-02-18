@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { DateRepresentation } from '../types/date-representation.type';
+import { DateRepresentation } from '@owge/types/core';
 
 @Pipe({
     name: 'formatDateRepresentation'

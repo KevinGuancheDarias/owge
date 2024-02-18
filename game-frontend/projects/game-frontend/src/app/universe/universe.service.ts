@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Observable, from } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { Config, ProgrammingError, CoreHttpService, LoggerHelper } from '@owge/core';
-import { UniverseGameService, Universe } from '@owge/universe';
+import { UniverseGameService } from '@owge/universe';
 
 import { UniverseLocalConfig } from '../shared/types/universe-local-config.type';
 import { HttpParams } from '@angular/common/http';
 import { LoginSessionService } from '../login-session/login-session.service';
+import { Universe } from '@owge/types/universe';
 
 @Injectable()
 export class UniverseService {
@@ -24,7 +25,7 @@ export class UniverseService {
    * @deprecated As of 0.8.0 it's better to use the version in the OwgeUniverse lib
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.3.0
-   * @returns {Observable<Universe[]>}
+   * @returns
    * @memberof UniverseService
    */
   public findOfficials(): Observable<Universe[]> {
@@ -35,7 +36,7 @@ export class UniverseService {
   /**
    * Will check if the logged in user exists in that universe
    *
-   * @param {string} token - The Raw JWT token
+   * @param token - The Raw JWT token
    * @author Kevin Guanche Darias
    */
   public userExists(): Observable<boolean> {
@@ -46,7 +47,7 @@ export class UniverseService {
    * Subscribes the user to the universe <br />
    * The server returns a boolean, if false it means the user was already registered, which is completely unexpected behavior
    *
-   * @param {number} factionId The id of the faction to use for the subscription proccess
+   * @param factionId The id of the faction to use for the subscription proccess
    * @author Kevin Guanche Darias
    */
   public subscribe(factionId: number): Observable<boolean> {
@@ -71,8 +72,8 @@ export class UniverseService {
    * Returns true if the running version is more recent than the last used by the user in their last access
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
-   * @param {string} currentVersion
-   * @returns {boolean}
+   * @param currentVersion
+   * @returns
    * @memberof UniverseService
    */
   public isUpdatedVersion(currentVersion: string): boolean {
@@ -93,8 +94,8 @@ export class UniverseService {
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @private
-   * @param {string} version Input version, should look like <b>0.3.0</b>, if falsy will return 0
-   * @returns {number}
+   * @param version Input version, should look like <b>0.3.0</b>, if falsy will return 0
+   * @returns
    * @throws {ProgrammingError} When passed version string is not valid
    * @memberof UniverseService
    */

@@ -1,4 +1,4 @@
-import { DateRepresentation } from '../types/date-representation.type';
+import { DateRepresentation } from '@owge/types/core';
 
 /**
  * Has methods for handling dates
@@ -31,7 +31,7 @@ export class DateUtil {
      * @param object
      * @returns
      */
-    public static computeBrowserTerminationDate<T extends { pendingMillis: number, browserComputedTerminationDate?: Date }>(object: T): T {
+    public static computeBrowserTerminationDate<T extends { pendingMillis: number; browserComputedTerminationDate?: Date }>(object: T): T {
         if (object) {
             this.computeLocalTerminationDate(object);
         }
@@ -64,7 +64,7 @@ export class DateUtil {
      * @since 0.8.1
      * @param input Object that has pendingMillis and expects a browserComputedTerminationDate to be "mutated" from here
      */
-    public static computeLocalTerminationDate(input: { pendingMillis: number, browserComputedTerminationDate?: Date }): void {
+    public static computeLocalTerminationDate(input: { pendingMillis: number; browserComputedTerminationDate?: Date }): void {
         if (!input.browserComputedTerminationDate) {
             input.browserComputedTerminationDate = new Date(Date.now() + input.pendingMillis);
         }

@@ -3,7 +3,7 @@ import {
   Input,
   TemplateRef
 } from '@angular/core';
-import {RuleWithUnitEntity} from '@owge/universe';
+import {RuleWithUnitEntity} from '@owge/types/universe';
 
 @Component({
   selector: 'owge-widgets-display-rule-table',

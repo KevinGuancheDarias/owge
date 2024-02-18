@@ -4,8 +4,9 @@ import { ModalComponent, ScreenDimensionsService, ObservableSubscriptionsHelper 
 
 import { ReportService } from '../../services/report.service';
 import { BaseComponent } from '../../base/base.component';
-import { MissionReport, WebsocketService } from '@owge/universe';
-import { UserWithFaction } from '@owge/faction';
+import { WebsocketService } from '@owge/universe';
+import { MissionReport } from '@owge/types/universe';
+import { UserWithFaction } from '@owge/types/faction';
 import { tap, filter } from 'rxjs/operators';
 
 interface NormalizedMissionReport extends MissionReport {

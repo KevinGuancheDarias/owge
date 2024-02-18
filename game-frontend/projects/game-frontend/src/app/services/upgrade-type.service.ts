@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
-import { UniverseGameService, UpgradeTypeStore, UpgradeType, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
+import { UniverseGameService, UpgradeTypeStore, WsEventCacheService, UniverseCacheManagerService } from '@owge/universe';
+import { UpgradeType } from '@owge/types/universe';
 
 import { AbstractWebsocketApplicationHandler, StorageOfflineHelper } from '@owge/core';
 

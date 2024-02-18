@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { AsyncCollectionUtil, ModalComponent, ToastrService, UnitType } from '@owge/core';
-import { ObtainedUnit, UnitTypeService, SelectedUnit, UnitRuleFinderService, Unit } from '@owge/universe';
+import { AsyncCollectionUtil, ModalComponent, ToastrService } from '@owge/core';
+import { UnitType } from '@owge/types/core';
+import { UnitTypeService, UnitRuleFinderService } from '@owge/universe';
+import { ObtainedUnit, SelectedUnit, Unit } from '@owge/types/universe';
 import { take } from 'rxjs/operators';
 import { UnitSelection } from '../../types/unit-selection.type';
 

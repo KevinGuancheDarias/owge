@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Sponsor } from '@owge/core';
+import { Sponsor } from '@owge/types/core';
 import { BaseComponent } from '../../base/base.component';
 import { SponsorService } from '../../services/sponsor.service';
 

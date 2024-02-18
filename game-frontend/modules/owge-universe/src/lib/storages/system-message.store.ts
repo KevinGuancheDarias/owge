@@ -1,5 +1,5 @@
 import { ReplaySubject, Subject } from 'rxjs';
-import { SystemMessage } from '../types/system-message.type';
+import { SystemMessage } from '@owge/types/universe';
 
 /**
  *

@@ -1,8 +1,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { ModalComponent, ScreenDimensionsService, User } from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
-import { ObtainedUpgrade, TutorialService, Upgrade, UpgradeRunningMission, UserStorage } from '@owge/universe';
+import { ModalComponent, ScreenDimensionsService } from '@owge/core';
+import { User } from '@owge/types/core';
+import { UserWithFaction } from '@owge/types/faction';
+import { TutorialService, UserStorage } from '@owge/universe';
+import { ObtainedUpgrade, Upgrade, UpgradeRunningMission } from '@owge/types/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { BaseComponent } from './../base/base.component';

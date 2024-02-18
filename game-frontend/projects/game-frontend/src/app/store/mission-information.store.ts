@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ReplaySubject } from 'rxjs';
 
-import { Planet, ObtainedUnit } from '@owge/universe';
+import { Planet, ObtainedUnit } from '@owge/types/universe';
 
 /**
  * Stores the information to display in the <i>MissionModalComponent</i>

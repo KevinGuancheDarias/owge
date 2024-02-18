@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { UnitService } from '../../service/unit.service';
 import { BaseUnitComponent } from '../../shared/base-unit.component';
-import { ObtainedUpgrade, UnitUpgradeRequirements, Upgrade, UpgradeRunningMission } from '@owge/universe';
+import { ObtainedUpgrade, UnitUpgradeRequirements, Upgrade, UpgradeRunningMission } from '@owge/types/universe';
 import { UpgradeService } from '../../service/upgrade.service';
 import { MissionUtil, ToastrService } from '@owge/core';
 

@@ -4,8 +4,7 @@ import { Observable } from 'rxjs';
 import { AbstractWebsocketApplicationHandler, LoggerHelper, DateUtil } from '@owge/core';
 import {TimeSpecialStore} from '../storages/time-special.store';
 import { UniverseGameService } from './universe-game.service';
-import { ActiveTimeSpecial } from '../types/active-time.special';
-import { TimeSpecial } from '../types/time-special.type';
+import { TimeSpecial, ActiveTimeSpecial } from '@owge/types/universe';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { WsEventCacheService } from './ws-event-cache.service';
 

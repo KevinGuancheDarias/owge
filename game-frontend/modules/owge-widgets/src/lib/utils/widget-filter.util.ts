@@ -1,4 +1,4 @@
-import { WidgetFilter } from '../types/widget-filter.type';
+import { WidgetFilter } from '@owge/types/widgets';
 
 /**
  * Common filters

@@ -1,5 +1,5 @@
 import { MEDIA_ROUTES, Config, LoggerHelper } from '@owge/core';
-import { SpecialLocation } from '../types/special-location.type';
+import { SpecialLocation } from '@owge/types/universe';
 
 /**
  *

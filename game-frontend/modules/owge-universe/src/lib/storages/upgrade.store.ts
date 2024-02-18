@@ -1,6 +1,5 @@
 import { Subject, ReplaySubject } from 'rxjs';
-import { ObtainedUpgrade } from '../types/obtained-upgrade.type';
-import { UpgradeRunningMission } from '../types/upgrade-running-mission.type';
+import { ObtainedUpgrade, UpgradeRunningMission } from '@owge/types/universe';
 
 /**
  * Stores the current synced status of anything upgrade related

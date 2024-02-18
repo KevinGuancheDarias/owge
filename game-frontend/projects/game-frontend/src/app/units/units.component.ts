@@ -2,7 +2,8 @@ import { Router } from '@angular/router';
 import { Component, OnInit, ElementRef, ViewChildren, AfterViewInit, QueryList } from '@angular/core';
 import { UnitTypeService } from '@owge/universe';
 import { BaseComponent } from '../base/base.component';
-import { LocalConfigurationService, UnitType } from '@owge/core';
+import { LocalConfigurationService } from '@owge/core';
+import { UnitType } from '@owge/types/core';
 
 type ValidLocation = 'BUILD_URL' | 'DEPLOYED_URL' | 'REQUIREMENTS_URL';
 
@@ -58,7 +59,7 @@ export class UnitsComponent extends BaseComponent implements OnInit, AfterViewIn
    *
    * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
    * @since 0.8.1
-   * @param {boolean} val
+   * @param val
    */
   public viewChanged(val: boolean) {
     if (val && this.inputHideDescription) {

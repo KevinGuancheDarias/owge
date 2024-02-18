@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
-import {AbstractWebsocketApplicationHandler, AsyncCollectionUtil, CommonEntity} from '@owge/core';
+import {AbstractWebsocketApplicationHandler, AsyncCollectionUtil} from '@owge/core';
+import { CommonEntity } from '@owge/types/core';
 import { Observable } from 'rxjs';
 import { RuleStore } from '../storages/rule.store';
-import { Rule } from '../types/rule.type';
-import {RuleWithRelatedUnits} from '../types/rule-with-related-units.type';
 import {map, take} from 'rxjs/operators';
 import {UnitTypeService} from './unit-type.service';
-import {RuleWithUnitEntity} from '../types/rule-with-unit-entity.type';
+import { Rule, RuleWithRelatedUnits, RuleWithUnitEntity } from '@owge/types/universe';
 
 @Injectable()
 export class RuleService extends AbstractWebsocketApplicationHandler{

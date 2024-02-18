@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { LoadingService } from '@owge/core';
-import { SystemMessage, SystemMessageService } from '@owge/universe';
+import { SystemMessageService } from '@owge/universe';
+import { SystemMessage } from '@owge/types/universe';
 import { BaseComponent } from '../../base/base.component';
 
 @Component({

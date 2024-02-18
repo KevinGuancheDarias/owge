@@ -1,4 +1,4 @@
-import { MissionType } from '@owge/core';
+import { MissionType } from '@owge/types/core';
 
 /**
  *

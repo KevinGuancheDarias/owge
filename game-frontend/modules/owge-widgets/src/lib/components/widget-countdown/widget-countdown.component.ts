@@ -2,7 +2,8 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output
 } from '@angular/core';
-import { DateRepresentation, DateUtil } from '@owge/core';
+import { DateUtil } from '@owge/core';
+import { DateRepresentation } from '@owge/types/core';
 
 /**
  * Displays a countdown <br>

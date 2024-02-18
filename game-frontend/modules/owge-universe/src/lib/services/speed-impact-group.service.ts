@@ -1,4 +1,5 @@
-import {AbstractWebsocketApplicationHandler, CommonEntity, StorageOfflineHelper} from '@owge/core';
+import {AbstractWebsocketApplicationHandler, StorageOfflineHelper} from '@owge/core';
+import { CommonEntity } from '@owge/types/core';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { WsEventCacheService } from './ws-event-cache.service';
 import { UniverseGameService } from './universe-game.service';

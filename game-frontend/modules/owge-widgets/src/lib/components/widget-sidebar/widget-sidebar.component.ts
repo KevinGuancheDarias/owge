@@ -5,7 +5,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { ContentTransclusionUtil, MenuRoute, OwgeContentDirective, ScreenDimensionsService, SessionStore } from '@owge/core';
+import { ContentTransclusionUtil, OwgeContentDirective, ScreenDimensionsService, SessionStore } from '@owge/core';
+import { MenuRoute } from '@owge/core';
 import { combineLatest, fromEvent, Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 

@@ -8,17 +8,13 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import {ModalComponent, UnitType, User} from '@owge/core';
-import { UserWithFaction } from '@owge/faction';
+import {ModalComponent} from '@owge/core';
+import { UnitType, User } from '@owge/types/core';
+import { UserWithFaction } from '@owge/types/faction';
 import {
-  ImprovementUtil,
-  ObtainedUnit,
-  Unit,
-  UnitBuildRunningMission,
-  UserStorage,
-  UnitTypeService,
-  Rule, UnitRuleFinderService, ActiveTimeSpecialRuleFinderService, RuleWithUnitEntity
+  ImprovementUtil, UserStorage, UnitTypeService, UnitRuleFinderService, ActiveTimeSpecialRuleFinderService
 } from '@owge/universe';
+import { ObtainedUnit, Unit, UnitBuildRunningMission, Rule, RuleWithUnitEntity } from '@owge/types/universe';
 import { WidgetConfirmationDialogComponent } from '@owge/widgets';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { filter, take } from 'rxjs/operators';
