@@ -40,6 +40,8 @@ export class WebsocketService {
   private _hasTriggeredFirtsOffline = false;
   private _isWantedDisconnection: boolean;
   private _isCachePanic: Subject<boolean> = new BehaviorSubject(false);
+  private isConnectedInternal = false;
+  private isClearingCache = false;
 
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
@@ -52,6 +54,8 @@ export class WebsocketService {
   ) {
     this._isConnected.next(false);
     this._isConnected.subscribe(sessionStore.isConnected.next.bind(sessionStore.isConnected));
+    this._isConnected.subscribe(val => this.isConnectedInternal = val);
+    this.setupBackgroundSuspensionDetector();
   }
 
   public addEventHandler(...handlers: AbstractWebsocketApplicationHandler[]) {
@@ -207,10 +211,19 @@ export class WebsocketService {
    * @returns
    */
   public async clearCache(): Promise<void> {
-    this._log.info('Full cache clear, just wanted');
-    await this._wsEventCacheService.clearCaches();
-    await this._setupSync({ value: [] });
-    await this._runWithSyncedData();
+    if(!this.isClearingCache) {
+      this.isClearingCache = true;
+      try {
+        this._log.info('Full cache clear, just wanted');
+        await this._wsEventCacheService.clearCaches();
+        await this._setupSync({value: []});
+        await this._runWithSyncedData();
+      } finally {
+        this.isClearingCache = false;
+      }
+    } else {
+      this._log.warn('already clearing cache');
+    }
   }
 
   private _getValidHandlers(event: keyof WebsocketSyncResponse): AbstractWebsocketApplicationHandler[] {
@@ -328,5 +341,27 @@ export class WebsocketService {
       this._isCachePanic.next(true);
       this._log.error(`Handler marked the connection as panic ${handler.constructor.name}`);
     });
+  }
+
+  private setupBackgroundSuspensionDetector(): void {
+    let currentDate = new Date().getTime();
+    setInterval(async () => {
+      const now = new Date().getTime();
+      const diff = (now - currentDate) / 1000;
+      currentDate = now;
+      if(diff > 3) {
+        await this.maybeTriggerCache();
+      }
+    },1000);
+  }
+
+  private async maybeTriggerCache(): Promise<void> {
+    const intervalId = setInterval(() => {
+      if(this.isConnectedInternal) {
+        clearInterval(intervalId);
+        this.clearCache().then(() => this._log.info('Clear cache due to background'));
+      }
+    },3000);
+    await this.clearCache();
   }
 }

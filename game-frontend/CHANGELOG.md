@@ -15,7 +15,8 @@ v0.11.5 (latest)
 * __Fix:__ [Selected planet is not preserved after f5 #542](https://github.com/KevinGuancheDarias/owge/issues/542)  
 * __Improvement:__ [Add browser tracking to be able to detect frontend bugs #513](https://github.com/KevinGuancheDarias/owge/issues/513)    
 * __Improvement:__ Allow to clear all the game data when cache panic  
-* __Improvement:__ [The select all units, when selecting units to carry should select up to the max capacity #519](https://github.com/KevinGuancheDarias/owge/issues/519) 
+* __Improvement:__ [The select all units, when selecting units to carry should select up to the max capacity #519](https://github.com/KevinGuancheDarias/owge/issues/519)
+* __Fix:__ [Sync system doesn't properly handle browser disconection and reconnection, events occurring offline are not sent to the browser when online again #527](https://github.com/KevinGuancheDarias/owge/issues/527)  
 
 v0.11.4 (2024-02-08 05:39)
 ==================

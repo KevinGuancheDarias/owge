@@ -118,3 +118,6 @@ CREATE TABLE track_browser
     created_at   DATETIME                       NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB
+
+UPDATE units SET attack = 0 WHERE attack is null;
+ALTER TABLE `units` CHANGE `attack` `attack` SMALLINT UNSIGNED NOT NULL DEFAULT '0';
