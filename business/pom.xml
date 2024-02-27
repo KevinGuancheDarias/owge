@@ -9,7 +9,7 @@
     </parent>
     <groupId>com.kevinguanchedarias.owge</groupId>
     <artifactId>owgejava-backend</artifactId>
-    <version>0.11.5-SNAPSHOT</version>
+    <version>0.12.0-SNAPSHOT</version>
     <name>OWGE Business</name>
     <url>http://owgejava.kevinguanchedarias.com</url>
 
@@ -200,6 +200,36 @@
             <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-core -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-core</artifactId>
+            <version>3.3.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- NOTICE: This dep is not used by owge source code, is just to override guava lib from docker-java-core, to ensure no vulnerable version is used -->
+        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.1.3-jre</version>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.github.docker-java/docker-java-transport-httpclient5 -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-zerodep</artifactId>
+            <version>3.3.4</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

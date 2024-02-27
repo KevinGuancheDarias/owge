@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject, BehaviorSubject, combineLatest } from 'rxjs';
-import { first, switchMap, take, filter } from 'rxjs/operators';
+import { first, switchMap, filter } from 'rxjs/operators';
 
 import {
   HttpOptions,

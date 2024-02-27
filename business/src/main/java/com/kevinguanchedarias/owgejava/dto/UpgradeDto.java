@@ -39,7 +39,7 @@ public class UpgradeDto extends CommonDtoWithImageStore<Integer, Upgrade> implem
         }
     }
 
-    private void loadData(Upgrade entity) {
+    protected void loadData(Upgrade entity) {
         order = entity.getOrder();
         points = entity.getPoints();
         time = entity.getTime();

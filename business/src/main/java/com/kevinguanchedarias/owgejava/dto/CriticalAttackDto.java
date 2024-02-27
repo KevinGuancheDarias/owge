@@ -1,6 +1,7 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.CriticalAttack;
+import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.*;
 
 import java.util.List;
@@ -19,5 +20,6 @@ public class CriticalAttackDto implements DtoFromEntity<CriticalAttack> {
     public void dtoFromEntity(CriticalAttack entity) {
         id = entity.getId();
         name = entity.getName();
+        entries = DtoUtilService.staticDtosFromEntities(CriticalAttackEntryDto.class, entity.getEntries());
     }
 }

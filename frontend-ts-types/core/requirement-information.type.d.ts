@@ -10,6 +10,7 @@ import { Requirement } from './requirement.type';
 export interface RequirementInformation {
     id?: number;
     requirement: Requirement;
+    relationId: number;
     secondValue: number;
     thirdValue?: number;
 }

@@ -13,6 +13,7 @@ export * from './index';
 export * from './instant.type';
 export * from './mission-support.type';
 export * from './mission.type';
+export * from './object-relation.type';
 export * from './requirement-group.type';
 export * from './requirement-information.type';
 export * from './requirement.type';

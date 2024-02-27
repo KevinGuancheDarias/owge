@@ -85,7 +85,6 @@ public interface CrudWithRequirementsRestServiceTrait<
                         .findRequirements(getObject(), Integer.valueOf(id.toString())));
         requirements.forEach(current -> current.setRelation(null));
         return requirements;
-
     }
 
     /**

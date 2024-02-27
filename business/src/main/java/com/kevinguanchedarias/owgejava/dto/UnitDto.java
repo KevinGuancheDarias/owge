@@ -3,7 +3,6 @@ package com.kevinguanchedarias.owgejava.dto;
 import com.kevinguanchedarias.owgejava.entity.InterceptableSpeedGroup;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
-import com.kevinguanchedarias.owgejava.util.DtoUtilService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.Hibernate;
@@ -65,7 +64,6 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
         if (criticalAttackEntity != null) {
             criticalAttack = new CriticalAttackDto();
             criticalAttack.dtoFromEntity(criticalAttackEntity);
-            criticalAttack.setEntries(DtoUtilService.staticDtosFromEntities(CriticalAttackEntryDto.class, criticalAttackEntity.getEntries()));
         }
         List<InterceptableSpeedGroup> interceptableSpeedGroupsEntity = entity.getInterceptableSpeedGroups();
         if (Hibernate.isInitialized(interceptableSpeedGroupsEntity)
@@ -79,7 +77,7 @@ public class UnitDto extends CommonDtoWithImageStore<Integer, Unit> implements D
         DtoWithImprovements.super.dtoFromEntity(entity);
     }
 
-    private void loadData(Unit entity) {
+    protected void loadData(Unit entity) {
         hasToDisplayInRequirements = Boolean.TRUE.equals(entity.getHasToDisplayInRequirements());
         order = entity.getOrder();
         points = entity.getPoints();

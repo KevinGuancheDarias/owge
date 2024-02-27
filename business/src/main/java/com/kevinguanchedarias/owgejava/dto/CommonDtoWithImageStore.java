@@ -20,6 +20,10 @@ public class CommonDtoWithImageStore<K extends Number, E extends CommonEntityWit
     @Override
     public void dtoFromEntity(E entity) {
         super.dtoFromEntity(entity);
+        handleImageLoad(entity);
+    }
+
+    protected void handleImageLoad(E entity) {
         if (entity.getImage() != null) {
             image = entity.getImage().getId();
             imageUrl = entity.getImage().getUrl();

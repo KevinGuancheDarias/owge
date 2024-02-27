@@ -63,7 +63,7 @@ public class UnitTypeDto extends DtoWithMissionLimitation<UnitType> implements D
         }
     }
 
-    private void copyBasicProperties(UnitType unitType) {
+    protected void copyBasicProperties(UnitType unitType) {
         id = unitType.getId();
         name = unitType.getName();
         maxCount = unitType.getMaxCount();

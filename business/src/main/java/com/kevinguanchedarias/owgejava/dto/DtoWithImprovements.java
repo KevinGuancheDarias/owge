@@ -4,12 +4,11 @@
 package com.kevinguanchedarias.owgejava.dto;
 
 import com.kevinguanchedarias.owgejava.entity.EntityWithImprovements;
-import org.hibernate.Hibernate;
+import com.kevinguanchedarias.owgejava.util.ImprovementDtoUtil;
 
 /**
- *
- * @since 0.8.0
  * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+ * @since 0.8.0
  */
 public interface DtoWithImprovements {
     ImprovementDto getImprovement();
@@ -17,14 +16,10 @@ public interface DtoWithImprovements {
     void setImprovement(ImprovementDto improvementDto);
 
     /**
-     *
-     * @since 0.8.0
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.8.0
      */
     default <K> void dtoFromEntity(EntityWithImprovements<K> entity) {
-        if (Hibernate.isInitialized(entity.getImprovement()) && entity.getImprovement() != null) {
-            setImprovement(new ImprovementDto());
-            getImprovement().dtoFromEntity(entity.getImprovement());
-        }
+        setImprovement(ImprovementDtoUtil.dtoFromEntity(entity));
     }
 }

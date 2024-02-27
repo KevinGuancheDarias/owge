@@ -1,0 +1,9 @@
+{
+  "/open": {
+    "target": "http://localhost:8080/owgejava-game-rest",
+    "secure": false
+  },
+  "/dynamic": {
+    "target": "http://localhost"
+  }
+}

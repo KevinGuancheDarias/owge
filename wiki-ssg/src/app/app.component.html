@@ -1,1 +1,14 @@
-<p>Resultado del servidor {{ serverMessage() }}</p>
+<button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Example icon-button with a menu">
+  <mat-icon>more_vert</mat-icon>
+</button>
+<mat-menu #menu="matMenu">
+  <button mat-menu-item>
+    <mat-icon>person</mat-icon>
+    <a routerLink="factions">{{ 'MENU.FACTIONS' | translate }}</a>
+  </button>
+  <button mat-menu-item>
+    <mat-icon>language</mat-icon>
+    <span>{{ 'MENU.SPECIAL_LOCATIONS' | translate }}</span>
+  </button>
+</mat-menu>
+<router-outlet/>

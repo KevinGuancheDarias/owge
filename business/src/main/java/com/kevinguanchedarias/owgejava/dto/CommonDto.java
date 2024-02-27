@@ -23,6 +23,10 @@ public abstract class CommonDto<K extends Serializable, E extends CommonEntity<K
 
     @Override
     public void dtoFromEntity(E entity) {
+        handleCommon(entity);
+    }
+
+    protected void handleCommon(E entity) {
         id = entity.getId();
         name = entity.getName();
         description = entity.getDescription();
