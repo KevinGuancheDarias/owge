@@ -13,7 +13,6 @@ import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.interfaces.SyncSource;
 import com.kevinguanchedarias.owgejava.pojo.DeprecationRestResponse;
 import com.kevinguanchedarias.owgejava.pojo.UnitWithRequirementInformation;
-import com.kevinguanchedarias.owgejava.repository.MissionRepository;
 import com.kevinguanchedarias.owgejava.responses.CriticalAttackInformationResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +37,6 @@ public class UnitRestService implements SyncSource {
     private final UnitBo unitBo;
     private final CriticalAttackBo criticalAttackBo;
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
-    private final MissionRepository missionRepository;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -56,15 +54,10 @@ public class UnitRestService implements SyncSource {
     }
 
     @PostMapping(value = "build")
-    public Object build(@RequestParam("planetId") Long planetId, @RequestParam("unitId") Integer unitId,
-                        @RequestParam("count") Long count) {
+    public void build(@RequestParam("planetId") Long planetId, @RequestParam("unitId") Integer unitId,
+                      @RequestParam("count") Long count) {
         Integer userId = findLoggedInUser().getId();
-        RunningUnitBuildDto retVal = missionBo.registerBuildUnit(userId, planetId, unitId, count);
-        if (retVal == null) {
-            return "";
-        }
-        retVal.setMissionsCount(missionRepository.countByUserIdAndResolvedFalse(userId));
-        return retVal;
+        missionBo.registerBuildUnit(userId, planetId, unitId, count);
     }
 
     @GetMapping("cancel")

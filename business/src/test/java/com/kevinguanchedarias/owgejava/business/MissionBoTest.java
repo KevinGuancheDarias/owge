@@ -341,6 +341,7 @@ class MissionBoTest {
     void registerBuildUnit_should_throw_if_mission_already_going() {
         given(missionFinderBo.findRunningUnitBuild(USER_ID_1, (double) SOURCE_PLANET_ID))
                 .willReturn(mock(RunningUnitBuildDto.class));
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
                 .isInstanceOf(SgtBackendUnitBuildAlreadyRunningException.class);
@@ -362,6 +363,7 @@ class MissionBoTest {
         given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         givenMaxMissionsCount(user);
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
 
         given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
         given(unitBo.findByIdOrDie(UNIT_ID_1)).willReturn(unit);
@@ -413,16 +415,13 @@ class MissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.BUILD_UNIT.name()))
                 .willReturn(Optional.of(missionType));
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
         given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(givenSourcePlanet());
         given(missionTypeBo.find(MissionType.BUILD_UNIT)).willReturn(MissionTypeMock.givenMissinType(MissionType.BUILD_UNIT));
 
-        var result = missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT);
+        missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT);
 
         verify(missionBaseService, times(1)).checkMissionLimitNotReached(user);
-        assertThat(result.getRequiredTime()).isEqualTo(expectedTime);
-        assertThat(result.getRequiredPrimary()).isEqualTo(resourceRequirements.getRequiredPrimary());
-        assertThat(result.getRequiredSecondary()).isEqualTo(resourceRequirements.getRequiredSecondary());
-        assertThat(result.getType()).isEqualTo(MissionType.BUILD_UNIT);
         verify(userStorageRepository, times(1)).save(user);
         verify(missionRepository, times(1)).save(any());
         var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
@@ -455,7 +454,6 @@ class MissionBoTest {
             assertThat(retVal.getUpgrade().getId()).isEqualTo(UPGRADE_ID);
             assertThat(retVal.getMissionId()).isEqualTo(UPGRADE_MISSION_ID);
         }
-
     }
 
     @Test

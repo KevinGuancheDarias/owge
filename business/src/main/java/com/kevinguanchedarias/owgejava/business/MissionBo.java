@@ -12,7 +12,6 @@ import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
-import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
 import com.kevinguanchedarias.owgejava.dto.RunningUpgradeDto;
 import com.kevinguanchedarias.owgejava.entity.*;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -200,66 +199,66 @@ public class MissionBo implements UserDeleteListener {
      *
      * @author Kevin Guanche Darias
      */
-    @Transactional
-    public RunningUnitBuildDto registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
         planetCheckerService.myCheckIsOfUserProperty(planetId);
-        checkUnitBuildMissionDoesNotExists(userId, planetId);
-        var relation = objectRelationBo.findOne(ObjectEnum.UNIT,
-                unitId);
-        checkUnlockedUnit(userId, relation);
-        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
-        missionBaseService.checkMissionLimitNotReached(user);
-        var unit = unitBo.findByIdOrDie(unitId);
-        Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
-        unitBo.checkIsUniqueBuilt(user, unit);
-        ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
-        if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
-            throw new SgtMissionRegistrationException("No enough resources!");
-        }
-        resourceRequirements
-                .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
-                        improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
-        unitTypeBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
-        var missionInformation = new MissionInformation();
-        missionInformation.setRelation(relation);
-        missionInformation.setValue(planetId.doubleValue());
+        planetLockUtilService.doInsideLockById(List.of(planetId), () -> {
+            checkUnitBuildMissionDoesNotExists(userId, planetId);
+            var relation = objectRelationBo.findOne(ObjectEnum.UNIT,
+                    unitId);
+            checkUnlockedUnit(userId, relation);
+            var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
+            missionBaseService.checkMissionLimitNotReached(user);
+            var unit = unitBo.findByIdOrDie(unitId);
+            Long finalCount = Boolean.TRUE.equals(unit.getIsUnique()) ? 1 : count;
+            unitBo.checkIsUniqueBuilt(user, unit);
+            ResourceRequirementsPojo resourceRequirements = unitBo.calculateRequirements(unit, finalCount);
+            if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
+                throw new SgtMissionRegistrationException("No enough resources!");
+            }
+            resourceRequirements
+                    .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+                            improvementBo.findUserImprovement(user).getMoreUnitBuildSpeed(), false));
+            unitTypeBo.checkWouldReachUnitTypeLimit(user, unit.getType().getId(), finalCount);
+            var missionInformation = new MissionInformation();
+            missionInformation.setRelation(relation);
+            missionInformation.setValue(planetId.doubleValue());
 
-        var mission = new Mission();
-        mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
-        mission.setMissionInformation(missionInformation);
-        if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
-            resourceRequirements.setRequiredTime(3D);
-        }
-        attachRequirementsToMission(mission, resourceRequirements);
+            var mission = new Mission();
+            mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
+            mission.setMissionInformation(missionInformation);
+            if (configurationBo.findOrSetDefault("ZERO_BUILD_TIME", "TRUE").getValue().equals("TRUE")) {
+                resourceRequirements.setRequiredTime(3D);
+            }
+            attachRequirementsToMission(mission, resourceRequirements);
 
-        mission.setType(missionTypeBo.find(MissionType.BUILD_UNIT));
-        mission.setUser(user);
-        missionInformation.setMission(mission);
+            mission.setType(missionTypeBo.find(MissionType.BUILD_UNIT));
+            mission.setUser(user);
+            missionInformation.setMission(mission);
 
-        substractResources(user, mission);
+            substractResources(user, mission);
 
-        userStorageRepository.save(user);
-        missionRepository.save(mission);
+            userStorageRepository.save(user);
+            missionRepository.save(mission);
 
-        var obtainedUnit = new ObtainedUnit();
-        obtainedUnit.setMission(mission);
-        obtainedUnit.setCount(finalCount);
-        obtainedUnit.setUnit(unit);
-        obtainedUnit.setUser(user);
-        obtainedUnitRepository.save(obtainedUnit);
+            var obtainedUnit = new ObtainedUnit();
+            obtainedUnit.setMission(mission);
+            obtainedUnit.setCount(finalCount);
+            obtainedUnit.setUnit(unit);
+            obtainedUnit.setUser(user);
+            obtainedUnitRepository.save(obtainedUnit);
 
-        missionSchedulerService.scheduleMission(mission);
+            missionSchedulerService.scheduleMission(mission);
 
-        transactionUtilService.doAfterCommit(() -> {
-            entityManager.refresh(obtainedUnit);
-            entityManager.refresh(mission);
-            emitMissionCountChange(userId);
-            missionEventEmitterBo.emitUnitBuildChange(userId);
-            unitTypeBo.emitUserChange(userId);
-            userEventEmitterBo.emitUserData(user);
+            transactionUtilService.doAfterCommit(() -> {
+                entityManager.refresh(obtainedUnit);
+                entityManager.refresh(mission);
+                emitMissionCountChange(userId);
+                missionEventEmitterBo.emitUnitBuildChange(userId);
+                unitTypeBo.emitUserChange(userId);
+                userEventEmitterBo.emitUserData(user);
+            });
         });
-
-        return new RunningUnitBuildDto(unit, mission, planetBo.findById(planetId), finalCount);
     }
 
     /**

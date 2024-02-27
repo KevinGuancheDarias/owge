@@ -59,9 +59,10 @@ public class MysqlLockUtilService {
     private void tryGainLock(
             List<String> keysAsList, PreparedStatementCallback<String> preparedStatementCallback, Runnable action, int times
     ) {
-        String result = jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), preparedStatementCallback);
+        String result = doLock(keysAsList, preparedStatementCallback);
         if (result == null) {
-            throw new IllegalStateException("result can't be null");
+            doReleaseLock(keysAsList);
+            tryGainLock(keysAsList, preparedStatementCallback, action, times + 1);
         } else {
             int acquiredLocks = Arrays.stream(result.split(",")).mapToInt(Integer::valueOf).reduce(0, Integer::sum);
             if (acquiredLocks == keysAsList.size()) {
@@ -81,6 +82,19 @@ public class MysqlLockUtilService {
                         mysqlInformationRepository.findFullProcessInformation()
                 );
                 doReleaseLock(keysAsList);
+            }
+        }
+    }
+
+    private String doLock(List<String> keysAsList, PreparedStatementCallback<String> preparedStatementCallback) {
+        try {
+            return jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), preparedStatementCallback);
+        } catch (Exception e) {
+            if (e.getMessage().contains("Deadlock")) {
+                log.debug("Handling deadlock");
+                return null;
+            } else {
+                throw e;
             }
         }
     }

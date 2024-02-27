@@ -1,6 +1,11 @@
 
 # OWGE changelog
 
+v0.11.6 (2024-02-27 20:10)
+===========================
+* __Fix:__ Fix allowance of duplicating units
+* __Fix:__ Fix potential random bug, caused by the tolerance of the lock util to multiple invocations of lock for the same thread, if this fix doesn't work, can be good to consider rolling bck MysqlLockUtilService to v0.11.4 
+
 v0.11.5 (2024-02-27 04:39)
 ============================
 * [class=Developer] __Improvement:__ Migrate to Spring Boot 3.2
