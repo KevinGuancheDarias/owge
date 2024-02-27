@@ -1,9 +1,11 @@
 package com.kevinguanchedarias.owgejava.business;
 
 import com.github.kagkarlsson.scheduler.Scheduler;
+import com.github.kagkarlsson.scheduler.exceptions.TaskInstanceNotFoundException;
 import com.kevinguanchedarias.owgejava.entity.Mission;
 import com.kevinguanchedarias.owgejava.job.DbSchedulerRealizationJob;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,11 +21,13 @@ import java.time.Instant;
  * @since 0.9.0
  */
 @Service
+@Slf4j
+@AllArgsConstructor
 public class MissionSchedulerService {
     private static final long DELAY_HANDLE = 2;
-    @Autowired
+
     @Lazy
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
     /**
      * Schedules a mission <br>
@@ -47,6 +51,10 @@ public class MissionSchedulerService {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void abortMissionJob(Mission mission) {
-        scheduler.cancel(DbSchedulerRealizationJob.BASIC_ONE_TIME_TASK.instance(mission.getId().toString()));
+        try {
+            scheduler.cancel(DbSchedulerRealizationJob.BASIC_ONE_TIME_TASK.instance(mission.getId().toString()));
+        } catch (TaskInstanceNotFoundException e) {
+            log.warn("Not able to cancel mission id {}, because, it was already cancelled", mission.getId());
+        }
     }
 }
