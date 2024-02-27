@@ -1,8 +1,8 @@
 
 # OWGE changelog
 
-v0.11.5 (latest)
-====================
+v0.11.5 (2024-02-27 04:39)
+============================
 * [class=Developer] __Improvement:__ Migrate to Spring Boot 3.2
 * __Fix:__ [HAVE_UNIT requirement is removing the unlocked unit when you send all the units that are "required" to some mission, it should unlock it back when units come from that mission #516](https://github.com/KevinGuancheDarias/owge/issues/516) (previous fix not working on deploy missions)
 * __Improvememnt:__ [Allow to know that a mission is invisible to the mission sender user #532](https://github.com/KevinGuancheDarias/owge/issues/532)  
