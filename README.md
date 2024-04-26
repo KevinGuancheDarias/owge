@@ -1,6 +1,8 @@
 Open Web Game Engine
 ======================
 
+⚠️ **PROJECT TEMPORARY IN PAUSE, DUE TO TOXIC PLAYERBASE COMMUNITY AND ABSENCE OF GAME MODERATORS, ADMINS, AND PRODUCT OWNERS**
+
 ## Introduction
 
 Open Game Web Engine is a system for making non graphical strategy web games, actually is in a really early state, but I hope in the future will be fully capable of everything
