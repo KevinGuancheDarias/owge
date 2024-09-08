@@ -30,4 +30,12 @@ public class MysqlLockState {
         }
         return instance;
     }
+
+    /**
+     * Notice: Should only be use by thread executors to pass the context to the thread, example:
+     * {@link com.kevinguanchedarias.owgejava.configurations.TaskExecutorConfiguration.ContextAwarePoolExecutor}
+     */
+    public static void set(Set<String> keys) {
+        LOCKED_IDS_FOR_CURRENT_THREAD.set(keys);
+    }
 }

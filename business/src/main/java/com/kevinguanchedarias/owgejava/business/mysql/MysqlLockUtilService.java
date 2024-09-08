@@ -9,14 +9,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.CollectionUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -28,31 +29,45 @@ public class MysqlLockUtilService {
     private final MysqlInformationRepository mysqlInformationRepository;
 
     public void doInsideLock(Set<String> wantedKeys, Runnable runnable) {
-        var alreadyLockedSet = MysqlLockState.get();
-        var keys = wantedKeys.stream().filter(wantedKey -> !alreadyLockedSet.contains(wantedKey)).collect(Collectors.toSet());
-        if (keys.isEmpty()) {
-            log.debug("Not locking as already locked, wanted to lock = {}, already thread-locked = {}", wantedKeys, alreadyLockedSet);
-            runnable.run();
-        } else {
-            log.trace("Applying the following locks {} of wanted = {}", keys, wantedKeys);
-            var keysAsList = keys.stream().sorted().toList();
-            var commandLambda = (PreparedStatementCallback<String>) ps -> {
-                generateBindParams(keysAsList, ps);
-                var rs = ps.executeQuery();
-                rs.next();
-                return rs.getString(1);
-            };
+        maybeTriggerThreadWarning();
+        var previouslyLocked = unlockAlreadyLockedAndReturn();
+        Set<String> keys = new HashSet<>();
+        keys.addAll(wantedKeys);
+        keys.addAll(previouslyLocked);
+        log.trace("Applying the following locks {} of wanted = {}, previously had locked {}", keys, wantedKeys, previouslyLocked);
+        var keysAsList = keys.stream().sorted().toList();
+        var commandLambda = (PreparedStatementCallback<String>) ps -> {
+            generateBindParams(keysAsList, ps);
+            var rs = ps.executeQuery();
+            rs.next();
+            return rs.getString(1);
+        };
 
-            try {
-                tryGainLock(keysAsList, commandLambda, runnable, 1);
-            } finally {
-                if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    log.debug("Mysql lock was invoked with an active transaction");
-                    transactionUtilService.doAfterCompletion(() -> doReleaseLock(keysAsList));
-                } else {
-                    doReleaseLock(keysAsList);
-                }
+        try {
+            tryGainLock(keysAsList, commandLambda, runnable, 1);
+        } finally {
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                log.debug("Mysql lock was invoked with an active transaction");
+                transactionUtilService.doAfterCompletion(() -> doReleaseLock(keysAsList));
+            } else {
+                doReleaseLock(keysAsList);
             }
+        }
+    }
+
+    private Set<String> unlockAlreadyLockedAndReturn() {
+        var alreadyLockedSet = MysqlLockState.get();
+        if (!CollectionUtils.isEmpty(alreadyLockedSet)) {
+            doReleaseLock(alreadyLockedSet.stream().sorted().toList());
+        }
+
+        return alreadyLockedSet;
+    }
+
+    private void maybeTriggerThreadWarning() {
+        var threadName = Thread.currentThread().getName();
+        if(!threadName.startsWith("virtual") && !threadName.startsWith("OWGE_BACKGROUND")) {
+            log.warn("This has been invoked from outside of a trusted thread... random bug may appear, name: {}", threadName);
         }
     }
 

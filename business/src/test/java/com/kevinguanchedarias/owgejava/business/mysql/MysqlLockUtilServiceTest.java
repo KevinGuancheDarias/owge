@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -24,7 +23,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.kevinguanchedarias.owgejava.business.mysql.MysqlLockUtilService.TIMEOUT_SECONDS;
@@ -49,14 +47,13 @@ class MysqlLockUtilServiceTest {
     private static final String KEY_1 = "foo_key";
     private static final String KEY_2 = "bar_key";
     private static final Set<String> KEY_LIST = new LinkedHashSet<>();
+    private static final String EXPECTED_SQL_FOR_LOCK = "SELECT CONCAT(GET_LOCK(?,?),',',GET_LOCK(?,?));";
+    private static final String EXPECTED_SQL_FOR_RELEASE_LOCK = "SELECT CONCAT(RELEASE_LOCK(?),',',RELEASE_LOCK(?));";
 
     static {
         KEY_LIST.add(KEY_1);
         KEY_LIST.add(KEY_2);
     }
-
-    private static final String EXPECTED_SQL_FOR_LOCK = "SELECT CONCAT(GET_LOCK(?,?),',',GET_LOCK(?,?));";
-    private static final String EXPECTED_SQL_FOR_RELEASE_LOCK = "SELECT CONCAT(RELEASE_LOCK(?),',',RELEASE_LOCK(?));";
 
     private final MysqlLockUtilService mysqlLockUtilService;
     private final JdbcTemplate jdbcTemplate;
@@ -90,27 +87,6 @@ class MysqlLockUtilServiceTest {
     }
 
     @Test
-    void doInsideLock_should_lock_nothing_if_empty_keys() {
-        mysqlLockUtilService.doInsideLock(Set.of(), runnableMock);
-
-        verify(runnableMock, times(1)).run();
-        verifyNoInteractions(jdbcTemplate);
-    }
-
-    @Test
-    void doInsideLock_should_lock_nothing_if_keys_already_locked() {
-        try (var mockedStatic = mockStatic(MysqlLockState.class)) {
-            mockedStatic.when(MysqlLockState::get).thenReturn(KEY_LIST);
-            mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
-
-            mockedStatic.verify(() -> MysqlLockState.addAll(any()), never());
-        }
-
-        verify(runnableMock, times(1)).run();
-        verifyNoInteractions(jdbcTemplate);
-    }
-
-    @Test
     void doInsideLock_should_work() throws SQLException {
         var preparedStatementMockForLock = handlePreparedStatementForLock();
         var resultSetMock = mock(ResultSet.class);
@@ -119,35 +95,6 @@ class MysqlLockUtilServiceTest {
         given(preparedStatementMockForReleaseLock.executeQuery()).willReturn(resultSetMock);
 
         mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
-
-        verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
-        verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_RELEASE_LOCK), any(PreparedStatementCallback.class));
-        verify(preparedStatementMockForLock, times(1)).setString(1, KEY_2);
-        verify(preparedStatementMockForLock, times(1)).setInt(2, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForLock, times(1)).setString(3, KEY_1);
-        verify(preparedStatementMockForLock, times(1)).setInt(4, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(1, KEY_2);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(2, KEY_1);
-    }
-
-    @Test
-    void doInsideLock_should_log_thread_has_other_locks(CapturedOutput capturedOutput) throws SQLException {
-        var preparedStatementMockForLock = handlePreparedStatementForLock();
-        var resultSetMock = mock(ResultSet.class);
-        var preparedStatementMockForReleaseLock = handlePreparedStatementForReleaseLock();
-        given(preparedStatementMockForLock.executeQuery()).willReturn(resultSetMock);
-        given(preparedStatementMockForReleaseLock.executeQuery()).willReturn(resultSetMock);
-        var alreadyLockedKey = "SOME_ADDITIONAL_KEY";
-        try (var mockedStatic = mockStatic(MysqlLockState.class)) {
-            mockedStatic.when(MysqlLockState::get).thenReturn(Set.of(alreadyLockedKey));
-            mysqlLockUtilService.doInsideLock(Set.of(KEY_1, KEY_2, alreadyLockedKey), runnableMock);
-
-            assertThat(capturedOutput.getOut()).contains("While keys").contains("has been deleted, the thread");
-            var captor = ArgumentCaptor.forClass(List.class);
-            mockedStatic.verify(() -> MysqlLockState.addAll(captor.capture()), times(1));
-            var results = captor.getValue();
-            assertThat(results).containsExactlyInAnyOrder(KEY_1, KEY_2);
-        }
 
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
         verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_RELEASE_LOCK), any(PreparedStatementCallback.class));
@@ -199,7 +146,7 @@ class MysqlLockUtilServiceTest {
     }
 
     @Test
-    void doInsideLock_should_retry_if_deadlock(CapturedOutput capturedOutput) throws SQLException {
+    void doInsideLock_should_retry_if_deadlock(CapturedOutput capturedOutput) {
         given(jdbcTemplate.execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class)))
                 .willReturn("1,0")
                 .willReturn("1,1");

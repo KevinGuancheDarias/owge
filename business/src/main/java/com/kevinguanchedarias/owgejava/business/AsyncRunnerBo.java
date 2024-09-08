@@ -1,5 +1,7 @@
 package com.kevinguanchedarias.owgejava.business;
 
+import com.kevinguanchedarias.owgejava.business.mysql.MysqlLockState;
+import com.kevinguanchedarias.owgejava.context.OwgeContextHolder;
 import com.kevinguanchedarias.owgejava.util.ThreadUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -30,7 +32,7 @@ public class AsyncRunnerBo {
      * @since 0.9.10
      */
     public void runAsyncWithoutContext(Runnable supplier) {
-        new Thread(supplier).start();
+        runAsyncWithoutContextDelayed(supplier, 0);
     }
 
     /**
@@ -38,7 +40,12 @@ public class AsyncRunnerBo {
      * @since 0.9.10
      */
     public void runAsyncWithoutContextDelayed(Runnable task, long delay, int priority) {
+        var owgeContext = OwgeContextHolder.get();
+        var mysqlLockState = MysqlLockState.get();
+
         var thread = ThreadUtil.ofVirtualUnStarted(() -> {
+            owgeContext.ifPresent(OwgeContextHolder::set);
+            MysqlLockState.set(mysqlLockState);
             ThreadUtil.sleep(delay);
             task.run();
         });
