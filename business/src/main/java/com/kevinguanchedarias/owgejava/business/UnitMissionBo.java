@@ -13,6 +13,7 @@ import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.entity.Mission;
+import com.kevinguanchedarias.owgejava.entity.Planet;
 import com.kevinguanchedarias.owgejava.entity.UserStorage;
 import com.kevinguanchedarias.owgejava.enumerations.DocTypeEnum;
 import com.kevinguanchedarias.owgejava.enumerations.GameProjectsEnum;
@@ -217,9 +218,36 @@ public class UnitMissionBo implements UserDeleteListener {
         transactionUtilService.clearStatus();
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         planetLockUtilService.doInsideLock(
-                List.of(mission.getSourcePlanet(), mission.getTargetPlanet()),
+                resolvePlanetsToLock(mission),
                 () -> doRunUnitMission(mission, missionType)
         );
+    }
+
+    /**
+     * Locks the source and target planets <b>and</b> every planet owned by their owners, in one
+     * up-front acquisition. Processing a mission re-evaluates unit requirements
+     * ({@code RequirementBo -> UserPlanetLockService.runLockedForUser}), which locks all of a user's
+     * planets. By acquiring that superset here, the nested call finds its keys already held and skips
+     * a second, out-of-order {@code GET_LOCK} -- the inversion that produced user-level lock
+     * deadlocks. {@code MysqlLockUtilService} still guards any residual nested case (e.g. a third
+     * user's units killed in combat).
+     */
+    private List<Planet> resolvePlanetsToLock(Mission mission) {
+        var planets = new LinkedHashSet<Planet>();
+        addPlanetAndOwnerPlanets(planets, mission.getSourcePlanet());
+        addPlanetAndOwnerPlanets(planets, mission.getTargetPlanet());
+        return new ArrayList<>(planets);
+    }
+
+    private void addPlanetAndOwnerPlanets(Set<Planet> target, Planet planet) {
+        if (planet == null) {
+            return;
+        }
+        target.add(planet);
+        var owner = planet.getOwner();
+        if (owner != null) {
+            target.addAll(planetRepository.findByOwnerId(owner.getId()));
+        }
     }
 
     @Override

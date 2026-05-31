@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -131,32 +132,38 @@ class MysqlLockUtilServiceTest {
     }
 
     @Test
-    void doInsideLock_should_log_thread_has_other_locks(CapturedOutput capturedOutput) throws SQLException {
-        var preparedStatementMockForLock = handlePreparedStatementForLock();
-        var resultSetMock = mock(ResultSet.class);
-        var preparedStatementMockForReleaseLock = handlePreparedStatementForReleaseLock();
-        given(preparedStatementMockForLock.executeQuery()).willReturn(resultSetMock);
-        given(preparedStatementMockForReleaseLock.executeQuery()).willReturn(resultSetMock);
+    void doInsideLock_should_reacquire_full_union_when_thread_has_other_locks() throws SQLException {
         var alreadyLockedKey = "SOME_ADDITIONAL_KEY";
+        // The whole union (already held + new) is re-acquired in one sorted GET_LOCK, so the global
+        // acquisition order is always ascending regardless of what an outer frame already held.
+        // Sorted order of {SOME_ADDITIONAL_KEY, bar_key, foo_key} -> 'S' < 'b' < 'f'.
+        var expectedUnionLockSql = "SELECT CONCAT(GET_LOCK(?,?),',',GET_LOCK(?,?),',',GET_LOCK(?,?));";
+        var expectedReleaseHeldSql = "SELECT CONCAT(RELEASE_LOCK(?));";
+        var preparedStatementMockForLock = mock(PreparedStatement.class);
+        doAnswer(invocationOnMock -> {
+            invocationOnMock.getArgument(1, PreparedStatementCallback.class)
+                    .doInPreparedStatement(preparedStatementMockForLock);
+            return "1,1,1";
+        }).when(jdbcTemplate).execute(eq(expectedUnionLockSql), any(PreparedStatementCallback.class));
+        given(preparedStatementMockForLock.executeQuery()).willReturn(mock(ResultSet.class));
+
         try (var mockedStatic = mockStatic(MysqlLockState.class)) {
             mockedStatic.when(MysqlLockState::get).thenReturn(Set.of(alreadyLockedKey));
             mysqlLockUtilService.doInsideLock(Set.of(KEY_1, KEY_2, alreadyLockedKey), runnableMock);
 
-            assertThat(capturedOutput.getOut()).contains("While keys").contains("has been deleted, the thread");
             var captor = ArgumentCaptor.forClass(List.class);
             mockedStatic.verify(() -> MysqlLockState.addAll(captor.capture()), times(1));
-            var results = captor.getValue();
-            assertThat(results).containsExactlyInAnyOrder(KEY_1, KEY_2);
+            // The full union is (re)acquired, in sorted order.
+            assertThat(captor.getValue()).containsExactly(alreadyLockedKey, KEY_2, KEY_1);
         }
 
-        verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class));
-        verify(jdbcTemplate, times(1)).execute(eq(EXPECTED_SQL_FOR_RELEASE_LOCK), any(PreparedStatementCallback.class));
-        verify(preparedStatementMockForLock, times(1)).setString(1, KEY_2);
-        verify(preparedStatementMockForLock, times(1)).setInt(2, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForLock, times(1)).setString(3, KEY_1);
-        verify(preparedStatementMockForLock, times(1)).setInt(4, TIMEOUT_SECONDS);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(1, KEY_2);
-        verify(preparedStatementMockForReleaseLock, times(1)).setString(2, KEY_1);
+        // The previously held key is released first, then the full sorted union is acquired.
+        verify(jdbcTemplate, times(1)).execute(eq(expectedReleaseHeldSql), any(PreparedStatementCallback.class));
+        verify(jdbcTemplate, times(1)).execute(eq(expectedUnionLockSql), any(PreparedStatementCallback.class));
+        verify(preparedStatementMockForLock, times(1)).setString(1, alreadyLockedKey);
+        verify(preparedStatementMockForLock, times(1)).setString(3, KEY_2);
+        verify(preparedStatementMockForLock, times(1)).setString(5, KEY_1);
+        verify(runnableMock, times(1)).run();
     }
 
     @CsvSource({
@@ -214,12 +221,15 @@ class MysqlLockUtilServiceTest {
     }
 
     @Test
-    void doInsideLock_should_surrender_if_too_many_deadlocks() {
+    void doInsideLock_should_throw_if_too_many_deadlocks() {
         given(jdbcTemplate.execute(eq(EXPECTED_SQL_FOR_LOCK), any(PreparedStatementCallback.class)))
                 .willReturn("1,0");
 
         try (var unused = mockStatic(ThreadUtil.class)) {
-            mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock);
+            // Surrender must fail loudly instead of running the action unprotected, so a @Retryable
+            // entry point can retry the whole transaction (and any other caller fails visibly).
+            assertThatThrownBy(() -> mysqlLockUtilService.doInsideLock(KEY_LIST, runnableMock))
+                    .isInstanceOf(CannotAcquireLockException.class);
         }
 
         verify(mysqlInformationRepository, times(1)).findInnoDbStatus();

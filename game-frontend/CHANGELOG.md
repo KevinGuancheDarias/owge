@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.7 (2026-05-31 22:13)
+============================
+* __Fix:__ Add another attempt to fix random bug
+
 v0.11.6 (2024-02-27 20:10)
 ===========================
 * __Fix:__ Fix allowance of duplicating units
