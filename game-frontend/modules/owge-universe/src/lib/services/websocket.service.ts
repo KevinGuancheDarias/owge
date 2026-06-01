@@ -312,8 +312,27 @@ export class WebsocketService {
         ) {
           this._log.debug(`Running handler for event ${event}, known to be in ${handler.constructor.name}`);
           try {
+            let storedValue = await this._wsEventCacheService.findStoredValue(event);
+            if ((storedValue === null || storedValue === undefined)
+              && this._wsEventCacheService.isSynchronizableEvent(event)
+            ) {
+              // The event information cache claims this event is up to date, but its offline data
+              // store is empty (a desync, typically after a backend restart). Re-fetch the data
+              // from the backend before running the handler instead of feeding it empty content.
+              this._log.warn(`Desync detected for event ${event}: cached data missing, refetching from backend`);
+              storedValue = await this._wsEventCacheService.refetchEvent(event);
+            }
+            if ((storedValue === null || storedValue === undefined)
+              && this._wsEventCacheService.isSynchronizableEvent(event)
+            ) {
+              // Still no data after the refetch: drop the stale event information so it is retried
+              // on the next sync, and skip the handler to avoid poisoning its store with empty data.
+              this._log.error(`No data available for synchronizable event ${event} after refetch, skipping handler`);
+              failedHandlers.push(event);
+              return;
+            }
             const result = await this._timeoutPromise(
-              handler.execute(event, await this._wsEventCacheService.findStoredValue(event))
+              handler.execute(event, storedValue)
             );
             if (result === 'timeout') {
               this._toastrService.warning(`Sync took too much for ${handler.constructor.name} on event ${event}`);

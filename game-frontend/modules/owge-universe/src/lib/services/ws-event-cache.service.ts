@@ -1,8 +1,6 @@
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { AsyncCollectionUtil, ProgrammingError, SessionService, StorageOfflineHelper } from '@owge/core';
-import { throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { CacheListener } from '../interfaces/cache-listener.interface';
 import { WebsocketSyncItem, WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
@@ -124,55 +122,77 @@ export class WsEventCacheService {
         });
     }
 
-    public applySync(): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            if (this._eventsInformation) {
-                const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil
-                    .filter(WsEventCacheService._ALLOWED_EVENTS, async event =>
-                        this.isSynchronizableEvent(event)
-                            && (!this._eventsInformation[event] || this._eventsInformation[event].changed)
-                    );
-                if (wantedKeys.length) {
-                    this._universeGameService.requestWithAutorizationToContext<WebsocketSyncResponse>(
-                        'game',
-                        'get',
-                        'websocket-sync',
-                        null,
-                        {
-                            params: new HttpParams().append('keys', wantedKeys.join(','))
-                        }
-                    ).pipe(
-                        catchError(err => {
-                            this.deleteEvents(...wantedKeys).then(() => reject(err));
-                            return throwError(err);
-                        })
-                    ).subscribe(async events => {
-                        wantedKeys.filter(key => typeof events[key] === 'undefined').forEach(key => events[key] = null);
-                        const keys: Array<keyof WebsocketSyncResponse> = Object.keys(events) as any;
-                        await AsyncCollectionUtil.forEach(keys, async key => {
-                            await this._eventsOfflineStore[key].save(events[key].data);
-                            if(!this._eventsInformation[key]) {
-                                this._eventsInformation[key] = {
-                                    eventName: key,
-                                    changed: false,
-                                    userId: -1,
-                                    lastSent: events[key].lastSent
-                                };
-                            } else {
-                                this._eventsInformation[key].lastSent = events[key].lastSent;
-                            }
-                            this._markEventAsUnchanged(key, events[key]);
-                        });
-                        await this._eventInformationStore.save(this._eventsInformation);
-                        resolve();
-                    });
-                } else {
-                    resolve();
-                }
-            } else {
-                throw new ProgrammingError('Should never invoke this method before loading the event information');
+    public async applySync(): Promise<void> {
+        if (!this._eventsInformation) {
+            throw new ProgrammingError('Should never invoke this method before loading the event information');
+        }
+        const wantedKeys: Array<keyof WebsocketSyncResponse> = await AsyncCollectionUtil
+            .filter(WsEventCacheService._ALLOWED_EVENTS, async event =>
+                this.isSynchronizableEvent(event)
+                    && (!this._eventsInformation[event] || this._eventsInformation[event].changed)
+            );
+        if (wantedKeys.length) {
+            try {
+                await this._fetchAndStoreKeys(wantedKeys);
+            } catch (err) {
+                await this.deleteEvents(...wantedKeys);
+                throw err;
             }
+        }
+    }
+
+    /**
+     * Re-fetches a single event from the backend and stores it, returning the freshly stored value <br>
+     * Used to recover from a desync where the event information cache claims an event is up to date,
+     * but its offline data store is empty (typically after a backend restart).
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @returns The stored value after the refetch (may be null if the backend has no data for it)
+     */
+    public async refetchEvent<T = any>(event: keyof WebsocketSyncResponse): Promise<T> {
+        await this._fetchAndStoreKeys([event]);
+        return this.findStoredValue<T>(event);
+    }
+
+    /**
+     * Requests the given keys to the backend and persists both their data and information <br>
+     * The backend omits keys it has no handler for; those are persisted as null so callers can
+     * detect the absence instead of crashing on an undefined entry.
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    private async _fetchAndStoreKeys(keys: Array<keyof WebsocketSyncResponse>): Promise<void> {
+        const events: WebsocketSyncResponse = await this._universeGameService.requestWithAutorizationToContext<WebsocketSyncResponse>(
+            'game',
+            'get',
+            'websocket-sync',
+            null,
+            {
+                params: new HttpParams().append('keys', keys.join(','))
+            }
+        ).toPromise();
+        keys.filter(key => !events[key]).forEach(key => {
+            events[key] = {
+                data: null,
+                lastSent: this._eventsInformation[key] ? this._eventsInformation[key].lastSent : 0
+            };
         });
+        const presentKeys: Array<keyof WebsocketSyncResponse> = Object.keys(events) as any;
+        await AsyncCollectionUtil.forEach(presentKeys, async key => {
+            await this._eventsOfflineStore[key].save(events[key].data);
+            if (!this._eventsInformation[key]) {
+                this._eventsInformation[key] = {
+                    eventName: key,
+                    changed: false,
+                    userId: -1,
+                    lastSent: events[key].lastSent
+                };
+            } else {
+                this._eventsInformation[key].lastSent = events[key].lastSent;
+            }
+            this._markEventAsUnchanged(key, events[key]);
+        });
+        await this._eventInformationStore.save(this._eventsInformation);
     }
 
     /**
