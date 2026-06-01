@@ -2,10 +2,10 @@ FROM node:14 as owge-frontends
 LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 
 ENV APP_ROOT /app
-ADD package.json /app/
+ADD package.json package-lock.json /app/
 
 WORKDIR $APP_ROOT
-RUN npm install	
+RUN npm ci
 COPY . /app
 
 # Game Frontend
