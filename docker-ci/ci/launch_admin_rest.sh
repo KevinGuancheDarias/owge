@@ -69,7 +69,7 @@ globalMavenFilename=
 function mavenRun () {
 	_targetDirectory="$1";
 	shift;
-	 docker run -it --rm --volume "$_targetDirectory"://usr/src/app \
+	 docker run -i --rm --volume "$_targetDirectory"://usr/src/app \
         --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-eclipse-temurin-21-alpine mvn $@
 }
 
@@ -80,7 +80,7 @@ function nodeRun() {
 		rollback;
 	fi
 	shift;
-	docker run -it --rm --env NG_CLI_ANALYTICS=ci --volume "$_targetDirectory"://home/node -w=/home/node node:14 $@
+	docker run -i --rm --env NG_CLI_ANALYTICS=false --env CI=true --volume "$_targetDirectory"://home/node -w=/home/node node:14 $@
 }
 
 ##
