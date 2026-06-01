@@ -4,6 +4,7 @@
 v0.11.8 (latest)
 ============================
 * __Fix:__ Prevent duplicated LEVEL_UP missions by serializing upgrade registration with a per-user lock
+* __Fix:__ New users first login won't fail when the login audit runs before the user is registered in the universe
 
 v0.11.7 (2026-05-31 22:13)
 ============================

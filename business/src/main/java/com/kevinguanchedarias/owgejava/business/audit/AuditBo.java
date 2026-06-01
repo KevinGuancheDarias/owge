@@ -175,6 +175,19 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto>, UserDeleteListene
         }
     }
 
+    /**
+     * Records an audit on a best-effort basis: it runs in its own transaction
+     * ({@link Propagation#REQUIRES_NEW}) so that a failure rolls back only the audit, never the
+     * caller's work. The typical failure is the {@code fk_audit_related_user} constraint when the
+     * user is already authenticated but has not yet subscribed to this universe (so its
+     * {@code user_storage} row doesn't exist yet); in that case we simply skip the audit instead of
+     * breaking the request (e.g. the websocket sync). The caller is expected to ignore exceptions.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void doBestEffortAudit(AuditActionEnum action) {
+        doAudit(action);
+    }
+
 
     public List<Audit> findRelated(UserStorage user) {
         return repository.findByRelatedUser(user);

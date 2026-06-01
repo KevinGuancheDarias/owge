@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.business.WebsocketSyncService;
 import com.kevinguanchedarias.owgejava.business.audit.AuditBo;
 import com.kevinguanchedarias.owgejava.enumerations.AuditActionEnum;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ import java.util.Map;
 @RequestMapping("game/websocket-sync")
 @ApplicationScope
 @AllArgsConstructor
+@Slf4j
 public class WebsocketSyncRestService {
     private final WebsocketSyncService websocketSyncService;
     private final AuditBo auditBo;
@@ -33,7 +35,14 @@ public class WebsocketSyncRestService {
     @GetMapping
     @Transactional
     public Map<String, Object> sync(@RequestParam List<String> keys) {
-        auditBo.doAudit(AuditActionEnum.LOGIN);
+        // Best-effort: the audit runs in its own transaction, so if it fails (e.g. the user is
+        // authenticated but not yet subscribed to this universe, so the user_storage FK doesn't
+        // exist yet) we just skip it instead of breaking the whole sync.
+        try {
+            auditBo.doBestEffortAudit(AuditActionEnum.LOGIN);
+        } catch (RuntimeException e) {
+            log.warn("Skipping LOGIN audit, likely the user is not yet registered in this universe: {}", e.getMessage());
+        }
         return websocketSyncService.findWantedData(keys);
     }
 
