@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.UserLockUtilService;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.RunningUnitBuildDto;
@@ -99,6 +100,7 @@ import static org.mockito.Mockito.*;
         TransactionUtilService.class,
         TaggableCacheManager.class,
         PlanetLockUtilService.class,
+        UserLockUtilService.class,
         ObtainedUnitRepository.class,
         ObtainedUpgradeRepository.class,
         ObtainedUpgradeBo.class,
@@ -124,6 +126,7 @@ class MissionBoTest {
     private final SocketIoService socketIoService;
     private final ObtainedUnitBo obtainedUnitBo;
     private final PlanetLockUtilService planetLockUtilService;
+    private final UserLockUtilService userLockUtilService;
     private final TransactionUtilService transactionUtilService;
     private final RequirementBo requirementBo;
     private final ImprovementBo improvementBo;
@@ -159,6 +162,7 @@ class MissionBoTest {
             SocketIoService socketIoService,
             ObtainedUnitBo obtainedUnitBo,
             PlanetLockUtilService planetLockUtilService,
+            UserLockUtilService userLockUtilService,
             TransactionUtilService transactionUtilService,
             RequirementBo requirementBo,
             ImprovementBo improvementBo,
@@ -191,6 +195,7 @@ class MissionBoTest {
         this.socketIoService = socketIoService;
         this.obtainedUnitBo = obtainedUnitBo;
         this.planetLockUtilService = planetLockUtilService;
+        this.userLockUtilService = userLockUtilService;
         this.transactionUtilService = transactionUtilService;
         this.requirementBo = requirementBo;
         this.improvementBo = improvementBo;
@@ -236,6 +241,7 @@ class MissionBoTest {
 
     @Test
     void registerLevelUpAnUpgrade_should_check_if_upgrade_is_already_going() {
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         given(missionRepository.findOneByUserIdAndTypeCode(USER_ID_1, MissionType.LEVEL_UP.name()))
                 .willReturn(givenRawMission(null, null));
 
@@ -246,6 +252,7 @@ class MissionBoTest {
 
     @Test
     void registerLevelUpAnUpgrade_should_check_if_upgrade_is_available() {
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID))
                 .willReturn(givenObtainedUpgrade());
         assertThatThrownBy(() -> missionBo.registerLevelUpAnUpgrade(USER_ID_1, UPGRADE_ID))
@@ -255,6 +262,7 @@ class MissionBoTest {
 
     @Test
     void registerLevelUpAnUpgrade_should_throw_when_no_resources() {
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         var ou = givenObtainedUpgrade();
         given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID)).willReturn(ou);
         var user = ou.getUser();
@@ -277,6 +285,7 @@ class MissionBoTest {
             "FALSE,20"
     })
     void registerLevelUpAnUpgrade_should_work(String zeroTimeConfigValue, double expectedTime) {
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         var ou = givenObtainedUpgrade();
         given(obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(USER_ID_1, UPGRADE_ID)).willReturn(ou);
         var user = ou.getUser();

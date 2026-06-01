@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.8 (latest)
+============================
+* __Fix:__ Prevent duplicated LEVEL_UP missions by serializing upgrade registration with a per-user lock
+
 v0.11.7 (2026-05-31 22:13)
 ============================
 * __Fix:__ Add another attempt to fix random bug

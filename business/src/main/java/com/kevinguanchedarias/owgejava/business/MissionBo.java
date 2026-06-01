@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
+import com.kevinguanchedarias.owgejava.business.user.UserLockUtilService;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
@@ -55,6 +56,7 @@ public class MissionBo implements UserDeleteListener {
     private final AsyncRunnerBo asyncRunnerBo;
     private final TransactionUtilService transactionUtilService;
     private final PlanetLockUtilService planetLockUtilService;
+    private final UserLockUtilService userLockUtilService;
     private final ObtainedUpgradeRepository obtainedUpgradeRepository;
     private final UserEnergyServiceBo userEnergyServiceBo;
     private final MissionTypeBo missionTypeBo;
@@ -109,48 +111,54 @@ public class MissionBo implements UserDeleteListener {
      */
     @Transactional
     public void registerLevelUpAnUpgrade(Integer userId, Integer upgradeId) {
-        checkUpgradeMissionDoesNotExists(userId);
-        var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgradeId);
-        checkUpgradeIsAvailable(obtainedUpgrade);
+        // Serialize per-user so the check-then-insert below is atomic: without this lock two concurrent
+        // requests both pass checkUpgradeMissionDoesNotExists and each insert a mission, leaving the user
+        // with multiple running LEVEL_UP missions (which then breaks findRunningLevelUpMission with a
+        // NonUniqueResultException). Players were abusing the race to run several upgrades at once.
+        userLockUtilService.doInsideLockById(List.of(userId), () -> {
+            checkUpgradeMissionDoesNotExists(userId);
+            var obtainedUpgrade = obtainedUpgradeRepository.findOneByUserIdAndUpgradeId(userId, upgradeId);
+            checkUpgradeIsAvailable(obtainedUpgrade);
 
-        var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
-        missionBaseService.checkMissionLimitNotReached(user);
-        ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
-        if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
-            throw new SgtMissionRegistrationException("No enough resources!");
-        }
-        if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
-            resourceRequirements.setRequiredTime(3D);
-        } else {
-            resourceRequirements
-                    .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
-                            improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
-        }
-        var relation = objectRelationBo.findOne(ObjectEnum.UPGRADE,
-                obtainedUpgrade.getUpgrade().getId());
+            var user = SpringRepositoryUtil.findByIdOrDie(userStorageRepository, userId);
+            missionBaseService.checkMissionLimitNotReached(user);
+            ResourceRequirementsPojo resourceRequirements = upgradeBo.calculateRequirementsAreMet(obtainedUpgrade);
+            if (!resourceRequirements.canRun(user, userEnergyServiceBo)) {
+                throw new SgtMissionRegistrationException("No enough resources!");
+            }
+            if (configurationBo.findOrSetDefault("ZERO_UPGRADE_TIME", "TRUE").getValue().equals("TRUE")) {
+                resourceRequirements.setRequiredTime(3D);
+            } else {
+                resourceRequirements
+                        .setRequiredTime(improvementBo.computeImprovementValue(resourceRequirements.getRequiredTime(),
+                                improvementBo.findUserImprovement(user).getMoreUpgradeResearchSpeed(), false));
+            }
+            var relation = objectRelationBo.findOne(ObjectEnum.UPGRADE,
+                    obtainedUpgrade.getUpgrade().getId());
 
-        var missionInformation = new MissionInformation();
-        missionInformation.setRelation(relation);
-        missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
+            var missionInformation = new MissionInformation();
+            missionInformation.setRelation(relation);
+            missionInformation.setValue(obtainedUpgrade.getLevel() + 1);
 
-        var mission = new Mission();
-        mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
-        mission.setMissionInformation(missionInformation);
-        attachRequirementsToMission(mission, resourceRequirements);
-        mission.setType(missionTypeBo.find(MissionType.LEVEL_UP));
-        mission.setUser(user);
-        missionInformation.setMission(mission);
+            var mission = new Mission();
+            mission.setStartingDate(LocalDateTime.now(ZoneOffset.UTC));
+            mission.setMissionInformation(missionInformation);
+            attachRequirementsToMission(mission, resourceRequirements);
+            mission.setType(missionTypeBo.find(MissionType.LEVEL_UP));
+            mission.setUser(user);
+            missionInformation.setMission(mission);
 
-        substractResources(user, mission);
+            substractResources(user, mission);
 
-        userStorageRepository.save(user);
-        missionRepository.save(mission);
-        missionSchedulerService.scheduleMission(mission);
-        transactionUtilService.doAfterCommit(() -> {
-            entityManager.refresh(mission);
-            emitRunningUpgrade(user);
-            emitMissionCountChange(userId);
-            userEventEmitterBo.emitUserData(user);
+            userStorageRepository.save(user);
+            missionRepository.save(mission);
+            missionSchedulerService.scheduleMission(mission);
+            transactionUtilService.doAfterCommit(() -> {
+                entityManager.refresh(mission);
+                emitRunningUpgrade(user);
+                emitMissionCountChange(userId);
+                userEventEmitterBo.emitUserData(user);
+            });
         });
     }
 
