@@ -1,6 +1,11 @@
 
 # OWGE changelog
 
+v0.11.10 (2026-06-02 17:19)
+============================
+* __Fix:__ The frontend no longer hammers the websocket-sync endpoint when the connection drops: reconnections now use an exponential backoff and resyncs are throttled instead of firing on every reconnect.
+* __Improvement:__ Rate-limit the websocket-sync endpoint to 10 requests per minute per IP (returns HTTP 429 beyond that). Configurable via OWGE_WS_SYNC_RATELIMIT_PER_MINUTE.
+
 v0.11.9 (2026-06-02 16:55)
 ============================
 * __Fix:__ Disable the auditing system (login tracking + multi-account suspicion detection) by default; on large universes its per-login scan was overloading the database. Set OWGE_AUDIT_ENABLED=true to re-enable it.

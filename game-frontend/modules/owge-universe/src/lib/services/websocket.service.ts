@@ -43,6 +43,15 @@ export class WebsocketService {
   private isConnectedInternal = false;
   private isClearingCache = false;
 
+  // Reconnect backoff + resync throttle, so a flapping connection can't hammer the
+  // (heavy) websocket-sync endpoint. See _scheduleReconnect and _setupSync.
+  private static readonly _RECONNECT_BACKOFF_BASE_MS = 1000;
+  private static readonly _RECONNECT_BACKOFF_MAX_MS = 30000;
+  private static readonly _MIN_RESYNC_INTERVAL_MS = 10000;
+  private _reconnectAttempts = 0;
+  private _reconnectTimer: any = null;
+  private _lastSyncAt = 0;
+
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
     private _sessionService: SessionService,
@@ -115,6 +124,8 @@ export class WebsocketService {
           } else {
             this._log.info('Reconnected');
           }
+          this._clearReconnectTimer();
+          this._reconnectAttempts = 0;
 
           await this.authenticate();
           resolve();
@@ -130,7 +141,7 @@ export class WebsocketService {
             this._socket.removeAllListeners();
             this._socket.close();
             delete this._socket;
-            this.initSocket(targetUrl, jwtToken);
+            this._scheduleReconnect(targetUrl, jwtToken);
           }
         });
       } else if (!this._socket.connected) {
@@ -144,6 +155,35 @@ export class WebsocketService {
 
   public setAuthenticationToken(jwtToken: string): void {
     this._credentialsToken = jwtToken;
+  }
+
+  /**
+   * Schedules a reconnection with exponential backoff (capped), instead of reconnecting
+   * immediately. A server that keeps dropping connections would otherwise cause a tight
+   * reconnect loop, and every reconnect triggers a websocket-sync; the backoff keeps that
+   * under control. Concurrent disconnect events collapse into a single pending attempt.
+   */
+  private _scheduleReconnect(targetUrl: string, jwtToken: string): void {
+    if (this._reconnectTimer !== null) {
+      return;
+    }
+    const delay = Math.min(
+      WebsocketService._RECONNECT_BACKOFF_BASE_MS * Math.pow(2, this._reconnectAttempts),
+      WebsocketService._RECONNECT_BACKOFF_MAX_MS
+    );
+    this._reconnectAttempts++;
+    this._log.info(`Reconnecting in ${delay}ms (attempt ${this._reconnectAttempts})`);
+    this._reconnectTimer = window.setTimeout(() => {
+      this._reconnectTimer = null;
+      this.initSocket(targetUrl, jwtToken);
+    }, delay);
+  }
+
+  private _clearReconnectTimer(): void {
+    if (this._reconnectTimer !== null) {
+      window.clearTimeout(this._reconnectTimer);
+      this._reconnectTimer = null;
+    }
   }
 
   public async authenticate(): Promise<void> {
@@ -216,7 +256,7 @@ export class WebsocketService {
       try {
         this._log.info('Full cache clear, just wanted');
         await this._wsEventCacheService.clearCaches();
-        await this._setupSync({value: []});
+        await this._setupSync({value: []}, true);
         await this._runWithSyncedData();
       } finally {
         this.isClearingCache = false;
@@ -277,13 +317,19 @@ export class WebsocketService {
     ]);
   }
 
-  private async _setupSync(response: { value: any[] }): Promise<void> {
+  private async _setupSync(response: { value: any[] }, force = false): Promise<void> {
     try {
       await this._loadingService.runWithLoading(async () => {
         await this._wsEventCacheService.createStores();
         await this._wsEventCacheService.setEventsInformation(response.value);
         await this._wsEventCacheService.createOfflineStores();
-        await this._wsEventCacheService.applySync();
+        const now = Date.now();
+        if (force || now - this._lastSyncAt >= WebsocketService._MIN_RESYNC_INTERVAL_MS) {
+          this._lastSyncAt = now;
+          await this._wsEventCacheService.applySync();
+        } else {
+          this._log.debug('Skipping resync, throttled to avoid hammering websocket-sync');
+        }
         this._isCachePanic.next(false);
       });
     } catch (e) {
