@@ -360,4 +360,53 @@ class AttackMissionManagerBoTest {
         verify(obtainedUnitRepository, times(1)).delete(holderUnit);
         assertThat(ou1.getOwnerUnit()).isNull();
     }
+
+    @Test
+    void startAttack_should_zero_final_count_of_destroyed_unit_to_avoid_updating_a_deleted_unit() {
+        var victimOu = givenObtainedUnit1();
+        var attackerOu = givenObtainedUnit2();
+        var information = givenFullAttackInformation();
+        information.getUnits().clear();
+        var user1 = information.getUsers().get(USER_ID_1);
+        var user2 = information.getUsers().get(USER_ID_2);
+        var attackRule = givenAttackRule();
+        // Already partially damaged victim: count-based killed (floor(40 / (1000/10)) = 0) keeps finalCount > 0,
+        // but its current health (30) is below the incoming attack (40), so it is destroyed via the health branch.
+        var attackVictim = AttackObtainedUnit.builder()
+                .obtainedUnit(victimOu)
+                .user(user1)
+                .availableHealth(30D)
+                .totalHealth(1000D)
+                .availableShield(0D)
+                .totalShield(0D)
+                .pendingAttack(0D)
+                .initialCount(10L)
+                .finalCount(5L)
+                .build();
+        var attacker = AttackObtainedUnit.builder()
+                .obtainedUnit(attackerOu)
+                .user(user2)
+                .availableHealth(Double.MAX_VALUE)
+                .totalHealth(Double.MAX_VALUE)
+                .availableShield(0D)
+                .totalShield(0D)
+                .pendingAttack(40D)
+                .initialCount(4L)
+                .finalCount(4L)
+                .build();
+        information.getUnits().addAll(List.of(attackVictim, attacker));
+        user1.getUnits().add(attackVictim);
+        user2.getUnits().add(attacker);
+
+        given(attackRuleBo.findAttackRule(any())).willReturn(attackRule);
+        given(attackRuleBo.canAttack(attackRule, victimOu)).willReturn(true);
+        given(allianceBo.areEnemies(user1.getUser(), user2.getUser())).willReturn(true);
+        given(allianceBo.areEnemies(user2.getUser(), user1.getUser())).willReturn(true);
+
+        attackMissionManagerBo.startAttack(information);
+
+        verify(obtainedUnitRepository, times(1)).delete(victimOu);
+        assertThat(attackVictim.getFinalCount()).isZero();
+        verify(obtainedUnitBo, never()).saveWithChange(eq(victimOu), anyLong());
+    }
 }

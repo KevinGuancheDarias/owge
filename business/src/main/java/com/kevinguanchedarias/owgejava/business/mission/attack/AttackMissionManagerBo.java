@@ -203,6 +203,7 @@ public class AttackMissionManagerBo {
             }
             target.setAvailableHealth(0D);
             target.setAvailableShield(0D);
+            target.setFinalCount(0L);
             maybeUnsetHolderUnit(attackInformation, target.getObtainedUnit());
             obtainedUnitRepository.delete(target.getObtainedUnit());
             deleteMissionIfRequired(attackInformation, target.getObtainedUnit());
