@@ -67,6 +67,15 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto>, UserDeleteListene
     @Value("${OWGE_PROXY_TRUSTED_HEADER:X-OWGE-RMT-IP}")
     private String proxyTrustedHeader;
 
+    /**
+     * The auditing system (login tracking + multi-account suspicion detection) is disabled by
+     * default: it is no longer used for moderation and, on large universes, the per-login
+     * multi-account scan (a 7-day audit lookup plus a suspicion-existence check per match) became
+     * a heavy, self-amplifying load on the database. Set OWGE_AUDIT_ENABLED=true to turn it back on.
+     */
+    @Value("${OWGE_AUDIT_ENABLED:false}")
+    private boolean auditEnabled;
+
     @Override
     public JpaRepository<Audit, Long> getRepository() {
         return repository;
@@ -109,6 +118,9 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto>, UserDeleteListene
     }
 
     public void nonRequestAudit(AuditActionEnum action, String actionDetails, UserStorage user, Integer relatedUser) {
+        if (!auditEnabled) {
+            return;
+        }
         var now = LocalDateTime.now();
         var nearest = findNearest(now, user.getId());
         String ipv4 = null;
@@ -149,6 +161,9 @@ public class AuditBo implements BaseBo<Long, Audit, AuditDto>, UserDeleteListene
      */
     @Transactional(propagation = Propagation.MANDATORY)
     public void doAudit(AuditActionEnum action, String actionDetails, Integer relatedUserId) {
+        if (!auditEnabled) {
+            return;
+        }
         var requestAttributes = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes());
         if (requestAttributes == null) {
             throw new ProgrammingException("Using doAudit outside of request thread");

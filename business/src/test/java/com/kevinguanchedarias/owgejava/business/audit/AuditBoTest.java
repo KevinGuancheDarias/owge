@@ -49,7 +49,8 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest(
         classes = AuditBo.class,
-        webEnvironment = SpringBootTest.WebEnvironment.NONE
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = "OWGE_AUDIT_ENABLED=true"
 )
 @MockBean({
         AuditRepository.class,

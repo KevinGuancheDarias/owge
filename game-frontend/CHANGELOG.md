@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.9 (2026-06-02 16:55)
+============================
+* __Fix:__ Disable the auditing system (login tracking + multi-account suspicion detection) by default; on large universes its per-login scan was overloading the database. Set OWGE_AUDIT_ENABLED=true to re-enable it.
+
 v0.11.8 (2026-06-02 15:56)
 ============================
 * __Fix:__ Prevent duplicated LEVEL_UP missions by serializing upgrade registration with a per-user lock
