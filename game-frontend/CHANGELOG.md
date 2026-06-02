@@ -1,7 +1,7 @@
 
 # OWGE changelog
 
-v0.11.8 (latest)
+v0.11.8 (2026-06-02 15:56)
 ============================
 * __Fix:__ Prevent duplicated LEVEL_UP missions by serializing upgrade registration with a per-user lock
 * __Fix:__ New users first login won't fail when the login audit runs before the user is registered in the universe
