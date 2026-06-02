@@ -6,6 +6,8 @@ fi
 
 source '../ci/lib.sh';
 
+# Re-exec under low CPU/IO priority (Linux) so building doesn't degrade running universes
+lowerHostPriority "$@";
 
 if ! commandExists "docker"; then
     echo -e "\e[31mDocker MUST be installed\e[39m";

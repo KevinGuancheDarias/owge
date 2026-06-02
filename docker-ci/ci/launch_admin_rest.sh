@@ -42,6 +42,9 @@ if ! [ "$4" -eq "$4" ]; then
 fi
 . ./lib.sh;
 
+# Re-exec under low CPU/IO priority (Linux) so the build doesn't degrade running universes
+lowerHostPriority "$@";
+
 envFailureCheck "OWGE_DB_URL" "$OWGE_DB_URL";
 envFailureCheck "OWGE_DB_USER" "$OWGE_DB_USER";
 envFailureCheck "OWGE_DB_PASS" "$OWGE_DB_PASS";
@@ -69,7 +72,7 @@ globalMavenFilename=
 function mavenRun () {
 	_targetDirectory="$1";
 	shift;
-	 docker run -i --rm --volume "$_targetDirectory"://usr/src/app \
+	 docker run -i --rm `dockerBuildPriorityArgs` --volume "$_targetDirectory"://usr/src/app \
         --volume "$HOME"/.m2:/root/.m2 -w="/usr/src/app/" maven:3-eclipse-temurin-21-alpine mvn $@
 }
 
@@ -80,7 +83,7 @@ function nodeRun() {
 		rollback;
 	fi
 	shift;
-	docker run -i --rm --env NG_CLI_ANALYTICS=false --env CI=true --volume "$_targetDirectory"://home/node -w=/home/node node:14 $@
+	docker run -i --rm `dockerBuildPriorityArgs` --env NG_CLI_ANALYTICS=false --env CI=true --volume "$_targetDirectory"://home/node -w=/home/node node:14 $@
 }
 
 ##

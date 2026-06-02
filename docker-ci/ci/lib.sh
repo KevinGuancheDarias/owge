@@ -2,6 +2,52 @@ kevinsuiteRoot="/public/kevinsuite-java";
 kevinsuiteCommonBackend="$kevinsuiteRoot/common-backend";
 kevinsuiteRestBackend="$kevinsuiteRoot/backend-rest-commons";
 
+##
+# Low-priority helpers, so a build doesn't starve the running universes.
+#
+# The heavy compilers (mvn, ng) run INSIDE docker containers, as children of the
+# docker daemon, so they don't inherit the script's nice value. We therefore split
+# the problem in two:
+#   - lowerHostPriority: re-execs the script under nice/ionice, covering the
+#     host-side work the script does directly (cp, rm, git, docker build context).
+#   - dockerBuildPriorityArgs: cgroup weights to pass to the build `docker run`s,
+#     which DO throttle the in-container compilers (only bite under contention,
+#     full speed when the host is idle).
+#
+# Linux-only (no-ops elsewhere). Tunable via OWGE_NICE_LEVEL, OWGE_IONICE_CLASS,
+# OWGE_DOCKER_CPU_SHARES, OWGE_DOCKER_BLKIO_WEIGHT (set the latter empty to skip it
+# on kernels/storage drivers that reject --blkio-weight).
+#
+# @author Kevin Guanche Darias
+##
+function lowerHostPriority () {
+        if [ -n "$OWGE_PRIORITY_LOWERED" ] || [ "`uname -s`" != "Linux" ]; then
+                return 0;
+        fi
+        export OWGE_PRIORITY_LOWERED=1;
+        _prio="";
+        commandExists nice && _prio="nice -n ${OWGE_NICE_LEVEL-19}";
+        commandExists ionice && _prio="$_prio ionice -c ${OWGE_IONICE_CLASS-3}";
+        if [ -n "$_prio" ]; then
+                >&2 echo -e "\e[36mRunning build under low host priority ($_prio)\e[39m";
+                exec $_prio "$0" "$@";
+        fi
+}
+
+##
+# Echoes the docker cgroup weight flags for build containers (stdout only, so it
+# can be captured straight into a `docker run` line). Empty on non-Linux.
+#
+# @author Kevin Guanche Darias
+##
+function dockerBuildPriorityArgs () {
+        test "`uname -s`" = "Linux" || return 0;
+        echo -n "--cpu-shares=${OWGE_DOCKER_CPU_SHARES-256}";
+        if [ -n "${OWGE_DOCKER_BLKIO_WEIGHT-100}" ]; then
+                echo -n " --blkio-weight=${OWGE_DOCKER_BLKIO_WEIGHT-100}";
+        fi
+}
+
 function nodeRun() {
         _targetDirectory="$1";
         if [ ! -d "$_targetDirectory" ]; then
@@ -9,7 +55,7 @@ function nodeRun() {
                 exit 1;
         fi
         shift;
-        docker run -it --rm --volume "$_targetDirectory"://home/node -w=/home/node node:8-alpine $@
+        docker run -it --rm `dockerBuildPriorityArgs` --volume "$_targetDirectory"://home/node -w=/home/node node:8-alpine $@
 }
 
 ##
