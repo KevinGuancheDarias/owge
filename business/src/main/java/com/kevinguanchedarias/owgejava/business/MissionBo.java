@@ -210,7 +210,12 @@ public class MissionBo implements UserDeleteListener {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void registerBuildUnit(Integer userId, Long planetId, Integer unitId, Long count) {
         planetCheckerService.myCheckIsOfUserProperty(planetId);
-        planetLockUtilService.doInsideLockById(List.of(planetId), () -> {
+        // Serialize per-user in addition to per-planet: the unique-unit check (checkIsUniqueBuilt) is a
+        // per-user check-then-insert, so two concurrent requests building the same unique unit on two
+        // DIFFERENT planets take two different planet locks and both pass the check, letting a player own
+        // the unit twice. The outer user lock closes that cross-planet race (players were abusing it via curl).
+        userLockUtilService.doInsideLockById(List.of(userId), () ->
+                planetLockUtilService.doInsideLockById(List.of(planetId), () -> {
             checkUnitBuildMissionDoesNotExists(userId, planetId);
             var relation = objectRelationBo.findOne(ObjectEnum.UNIT,
                     unitId);
@@ -266,7 +271,7 @@ public class MissionBo implements UserDeleteListener {
                 unitTypeBo.emitUserChange(userId);
                 userEventEmitterBo.emitUserData(user);
             });
-        });
+        }));
     }
 
     /**

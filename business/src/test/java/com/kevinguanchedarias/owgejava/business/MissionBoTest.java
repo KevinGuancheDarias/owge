@@ -350,6 +350,7 @@ class MissionBoTest {
     void registerBuildUnit_should_throw_if_mission_already_going() {
         given(missionFinderBo.findRunningUnitBuild(USER_ID_1, (double) SOURCE_PLANET_ID))
                 .willReturn(mock(RunningUnitBuildDto.class));
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
 
         assertThatThrownBy(() -> missionBo.registerBuildUnit(USER_ID_1, SOURCE_PLANET_ID, UNIT_ID_1, OBTAINED_UNIT_1_COUNT))
@@ -372,6 +373,7 @@ class MissionBoTest {
         given(userStorageRepository.findById(USER_ID_1)).willReturn(Optional.of(user));
         given(missionRepository.countByUserIdAndResolvedFalse(USER_ID_1)).willReturn(runningCount);
         givenMaxMissionsCount(user);
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
 
         given(objectRelationBo.findOne(ObjectEnum.UNIT, UNIT_ID_1)).willReturn(relation);
@@ -424,6 +426,7 @@ class MissionBoTest {
         given(missionTypeRepository.findOneByCode(MissionType.BUILD_UNIT.name()))
                 .willReturn(Optional.of(missionType));
         doAnswer(new InvokeRunnableLambdaAnswer(0)).when(transactionUtilService).doAfterCommit(any());
+        doAnswer(new InvokeRunnableLambdaAnswer(1)).when(userLockUtilService).doInsideLockById(anyList(), any());
         doAnswer(new InvokeRunnableLambdaAnswer(1)).when(planetLockUtilService).doInsideLockById(anyList(), any());
         given(planetBo.findById(SOURCE_PLANET_ID)).willReturn(givenSourcePlanet());
         given(missionTypeBo.find(MissionType.BUILD_UNIT)).willReturn(MissionTypeMock.givenMissinType(MissionType.BUILD_UNIT));

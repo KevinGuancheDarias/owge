@@ -1,6 +1,10 @@
 
 # OWGE changelog
 
+v0.11.11 (latest)
+============================
+* __Fix:__ Prevent building the same unique unit twice by serializing BUILD_UNIT registration with a per-user lock (in addition to the existing per-planet lock); previously concurrent requests to build a unique unit on two different planets could both bypass the uniqueness check.
+
 v0.11.10 (2026-06-02 17:19)
 ============================
 * __Fix:__ The frontend no longer hammers the websocket-sync endpoint when the connection drops: reconnections now use an exponential backoff and resyncs are throttled instead of firing on every reconnect.
