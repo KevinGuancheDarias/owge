@@ -16,7 +16,7 @@ use std::time::Duration;
 use axum::http::{HeaderName, Method};
 use owge_business::bo::{MissionRunner, MissionSchedulerService};
 use owge_business::config::EnvConfig;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::{AllowOrigin, Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
@@ -120,17 +120,23 @@ fn build_cors(env: &EnvConfig) -> CorsLayer {
         .allow_headers([
             HeaderName::from_static("authorization"),
             HeaderName::from_static("content-type"),
+            HeaderName::from_static("x-owge-lang"),
+            HeaderName::from_static("x-owge-selected-planet"),
         ])
         .max_age(Duration::from_secs(3600));
 
+    // Credentialed requests (withCredentials: true) forbid wildcard origin.
+    // Mirror the request Origin so permissive mode stays compatible with credentials.
     if env.cors_origins.iter().any(|o| o == "*") {
-        layer.allow_origin(Any)
+        layer
+            .allow_origin(AllowOrigin::mirror_request())
+            .allow_credentials(true)
     } else {
         let origins = env
             .cors_origins
             .iter()
             .filter_map(|o| o.parse().ok())
             .collect::<Vec<_>>();
-        layer.allow_origin(origins)
+        layer.allow_origin(origins).allow_credentials(true)
     }
 }
