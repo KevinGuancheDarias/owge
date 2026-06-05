@@ -1,0 +1,30 @@
+[package]
+name = "owge-rest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "OWGE runnable web app — Rust port of the Java `game-rest` WAR (axum REST + socket.io)"
+
+[[bin]]
+name = "owge-rest"
+path = "src/main.rs"
+
+[dependencies]
+owge-business = { path = "../owge-business" }
+tokio.workspace = true
+axum.workspace = true
+tower.workspace = true
+tower-http.workspace = true
+sqlx.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+jsonwebtoken.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+async-trait.workspace = true
+# socket.io realtime server. The `v4` feature speaks the socket.io v4 protocol
+# (engine.io v3), which is what the frontend's socket.io-client@2.x uses and what
+# netty-socketio served. `state` lets the auth handler reach the AppState.
+socketioxide = { version = "0.18", features = ["v4", "state"] }

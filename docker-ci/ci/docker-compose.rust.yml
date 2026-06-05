@@ -1,0 +1,59 @@
+version: '3.4'
+services:
+  main_reverse_proxy:
+      # IDENTICAL to the Java stack's proxy service: same image, same baked-in
+      # proxy_settings.conf (no Rust-specific override). Reuse works because the
+      # Rust backend now serves under the /game_api context path (OWGE_CONTEXT_PATH),
+      # exactly like the Java app, so the unchanged config front-ends either one.
+      image: owge_main_reverse_proxy:${OWGE_CI_VERSION}
+      build: main_reverse_proxy/.
+      volumes:
+        - ${STATIC_IMAGES_DIR}:/var/owge_data/static
+        - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+      links:
+        - "admin_panel_and_rest_game:owgejava_admin_and_rest_game"
+      ports:
+        - "${OWGE_PORT}:80"
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "20m"
+          max-file: "10"
+  # The RUST backend. Kept under the service name `admin_panel_and_rest_game` so
+  # the shared proxy_settings.conf (which hard-codes that upstream host on :8080
+  # and the websocket on :7474) resolves to it unchanged. The image makes the
+  # actual backend obvious in `docker ps` (rust_rest_game:<version>).
+  admin_panel_and_rest_game:
+      image: rust_rest_game:${OWGE_CI_VERSION}
+      environment:
+        # One JDBC-style URL (composed from OWGE_DB_URL/USER/PASS by
+        # jenkins_install_rust.sh) instead of the Java split vars.
+        - OWGE_DB_JDBC_URL
+        - OWGE_PROFILES=rsaKeys
+        # Serve every route under /game_api so the shared nginx config (which
+        # keeps the prefix) works unchanged.
+        - OWGE_CONTEXT_PATH=/game_api
+        - OWGE_RSA_PUBLIC_KEY=/var/owge_data/keys/public.key
+        - OWGE_RSA_PRIVATE_KEY=/var/owge_data/keys/private.key
+        - OWGE_SERVER_HOST=0.0.0.0
+        - OWGE_SERVER_PORT=8080
+        - OWGE_WS_HOST=0.0.0.0
+        - OWGE_WS_PORT=7474
+        - OWGE_DYNAMIC_FILES_PATH=/var/owge_data/dynamic
+        - OWGE_CORS_ORIGINS=*
+      build:
+          context: rust_rest_game/.
+          args:
+            - binHolderDirectory=target
+      volumes:
+          - ${STATIC_IMAGES_DIR}:/var/owge_data/static
+          - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+          - /public/owge-data/keys:/var/owge_data/keys
+      expose:
+          - "8080"
+          - "7474"
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "200m"
+          max-file: "10"

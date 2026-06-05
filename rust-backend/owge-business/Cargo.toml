@@ -1,0 +1,25 @@
+[package]
+name = "owge-business"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "OWGE core game engine — Rust port of the Java `business` Spring Boot library"
+
+[lib]
+name = "owge_business"
+path = "src/lib.rs"
+
+[dependencies]
+tokio.workspace = true
+sqlx.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+jsonwebtoken.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+base64.workspace = true
+async-trait.workspace = true
+md5 = "0.7"
+moka = { version = "0.12", features = ["future"] }

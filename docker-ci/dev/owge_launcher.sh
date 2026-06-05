@@ -73,6 +73,7 @@ function _menu () {
     echo -e "Passed compose up options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
     echo -e "Passed compose build options:\e[32m${EXTRA_COMPOSE_BUILD_OPTIONS}. $_emptyWarning  \e[36mPass environment variable EXTRA_COMPOSE_BUILD_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_BUILD_OPTIONS=--no-cache -it ./owge_launcher.sh\e[39m"
     echo -e "     `__findRunningComposerProject owge_all_dockerized 8` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
+     `__findRunningComposerProject owge_all_dockerized_rust 8` \e[32m1r\e[39m. \e[36mLaunch all dockerized (RUST backend)\e[39m (same as 1, but the Rust port replaces the Java game-rest)
      `__findRunningComposerProject owge_frontend_developer 6` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
      `__findRunningComposerProject owge_backend_developer 7` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
      `__findRunningComposerProject owge_fullstack_developer 5` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
@@ -95,6 +96,12 @@ function _menu () {
         1)
             (
                 _doLaunch "owge_all_dockerized" _withAllDockerized;
+                _menu
+            )
+            ;;
+        1r|1R)
+            (
+                _doLaunch "owge_all_dockerized_rust" _withAllDockerizedRust;
                 _menu
             )
             ;;
@@ -288,6 +295,17 @@ function _withAllDockerized() {
     _withDatabase;
 }
 
+# As _withAllDockerized, but uses the Rust backend profile (same rest_and_admin
+# service name + ports, so nginx/frontend/database wiring is unchanged).
+function _withAllDockerizedRust() {
+    export OWGE_BACKEND_SERVER="rest_and_admin:8080";
+    export OWGE_WS_SERVER="rest_and_admin:7474";
+    export OWGE_FRONTEND_SERVER="frontend:4200";
+    _withFrontend;
+    _withBackendRust;
+    _withDatabase;
+}
+
 function _withFrontend() {
     if [ -z "$OWGE_FRONTEND_SERVER" ]; then
         dockerFindHostIp;
@@ -318,8 +336,28 @@ function _withBackend() {
         export OWGE_REST_CONTEXT_PATH="$_output";
         promptWithDefault "Admin contextpath" "owgejava-admin";
         export OWGE_ADMIN_CONTEXT_PATH="$_output";
-    else 
+    else
         export _launchLine="$_launchLine -f ./profiles/backend.docker-compose.yml";
+    fi
+    _value="";
+}
+
+# As _withBackend, but adds the Rust backend profile. The all-dockerized-rust
+# entry always presets OWGE_BACKEND_SERVER, so the else branch is what runs; the
+# manual branch is kept for symmetry (Rust serves under the game_api context).
+function _withBackendRust() {
+    if [ -z "$OWGE_BACKEND_SERVER" ]; then
+        dockerFindHostIp;
+        promptWithDefault "Backend Server" "$output:8080";
+        export OWGE_BACKEND_SERVER="$_output";
+        promptWithDefault "WS server" "`echo $OWGE_BACKEND_SERVER | cut -d ':' -f 1 `:7474";
+        export OWGE_WS_SERVER="$_output";
+        promptWithDefault "Backend contextpath" "game_api";
+        export OWGE_REST_CONTEXT_PATH="$_output";
+        promptWithDefault "Admin contextpath" "admin";
+        export OWGE_ADMIN_CONTEXT_PATH="$_output";
+    else
+        export _launchLine="$_launchLine -f ./profiles/backend_rust.docker-compose.yml";
     fi
     _value="";
 }

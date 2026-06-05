@@ -1,0 +1,34 @@
+version: '3.4'
+
+# RUST backend variant of backend.docker-compose.yml. Same service name
+# (`rest_and_admin`) so the nginx profile reaches it unchanged via
+# OWGE_BACKEND_SERVER=rest_and_admin:8080 / OWGE_WS_SERVER=rest_and_admin:7474.
+# It serves under the /game_api context path (OWGE_CONTEXT_PATH), matching the
+# dev nginx default (OWGE_REST_CONTEXT_PATH=game_api keeps the prefix).
+services:
+  rest_and_admin:
+    build:
+      context: ../../../rust-backend
+      dockerfile: ../docker-ci/dev/images_creation/backend_rest_rust/Dockerfile
+    volumes:
+      - ${STATIC_IMAGES_DIR}:/var/owge_data/static
+      - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+    expose:
+      - "8080"
+      - "7474"
+    environment:
+      # One JDBC-style URL instead of the Java split vars; points at the `db`
+      # service (root/1234) created by backend_database.docker-compose.yml.
+      - OWGE_DB_JDBC_URL=mysql://root:1234@db:3306/owge
+      - OWGE_CONTEXT_PATH=/game_api
+      - OWGE_SERVER_HOST=0.0.0.0
+      - OWGE_SERVER_PORT=8080
+      - OWGE_WS_HOST=0.0.0.0
+      - OWGE_WS_PORT=7474
+      - OWGE_DYNAMIC_FILES_PATH=/var/owge_data/dynamic
+      - OWGE_CORS_ORIGINS=*
+      # Consumed only by the image's startup DB-wait wrapper.
+      - MYSQL_HOST=db
+      - MYSQL_DB=owge
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=1234

@@ -1,0 +1,6 @@
+/target
+# Local environment with DB credentials — never commit
+.env.local
+*.env.local
+.env.dc14
+.env.dc13
