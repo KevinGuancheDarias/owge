@@ -1,8 +1,9 @@
 
 # OWGE changelog
 
-v1.0.0 (latest) Rewrite of backend in Rust lang
+v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
+* __Fix:__ `RustBackend:` factions findVisible endpoint not returning the correct data
 
 v0.11.11 (2026-06-06 11:58)
 ============================

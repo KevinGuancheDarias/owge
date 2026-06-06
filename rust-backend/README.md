@@ -82,6 +82,7 @@ cd rust-backend
 cargo build
 cargo test -p owge-business        # JWT (HMAC + RSA) compatibility tests
 ./run-local.sh                     # runs against the dc12 CLONE (see below)
+./watch-local.sh                   # runs in watch mode (requires cargo-watch)
 
 # Or run against any OWGE database directly:
 OWGE_DB_JDBC_URL='mysql://owge:owge@127.0.0.1:3306/owge_dc1' \

@@ -10,7 +10,6 @@ use crate::dto::faction::{
 };
 use crate::dto::{ImprovementDto, ImprovementUnitTypeDto};
 use crate::error::{OwgeError, OwgeResult};
-use crate::model::Faction;
 
 /// One `factions` row joined with its resource image filenames, with exact SQL
 /// column types so sqlx never panics on signedness/width.
@@ -115,15 +114,12 @@ const FACTION_SELECT: &str = "SELECT f.id, f.hidden, f.name, f.description, \
 pub struct FactionBo;
 
 impl FactionBo {
-    /// All non-hidden factions (`hidden` null or 0).
-    pub async fn find_visible(db: &Db) -> OwgeResult<Vec<Faction>> {
-        let rows = sqlx::query_as::<_, Faction>(
-            "SELECT id, hidden, name, primary_resource_name, secondary_resource_name, description \
-             FROM factions WHERE hidden IS NULL OR hidden = 0 ORDER BY id",
-        )
-        .fetch_all(db)
-        .await?;
-        Ok(rows)
+    /// All non-hidden factions (`hidden` = 0).
+    pub async fn find_visible(db: &Db) -> OwgeResult<Vec<FactionDto>> {
+        let rows = sqlx::query_as::<_, FactionRow>(&format!("{FACTION_SELECT} WHERE f.hidden = 0 ORDER BY f.id"))
+            .fetch_all(db)
+            .await?;
+        Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `CrudRestServiceTrait.findAll` — every faction as the wide admin DTO.

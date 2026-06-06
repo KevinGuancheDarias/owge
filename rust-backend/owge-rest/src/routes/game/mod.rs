@@ -15,9 +15,8 @@ use owge_business::bo::{
     SystemMessageBo, TimeSpecialBo, TrackBrowserBo, TutorialBo, UserStorageBo,
 };
 use owge_business::dto::{
-    GalaxyDto, PlanetDto, RankingEntryDto, TimeSpecialDto, TutorialSectionEntryDto,
+    FactionDto, GalaxyDto, PlanetDto, RankingEntryDto, TimeSpecialDto, TutorialSectionEntryDto,
 };
-use owge_business::model::Faction;
 use owge_business::websocket;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -73,7 +72,7 @@ async fn admin_login(
 async fn find_visible_factions(
     State(state): State<AppState>,
     _user: GameUser,
-) -> ApiResult<Json<Vec<Faction>>> {
+) -> ApiResult<Json<Vec<FactionDto>>> {
     let factions = FactionBo::find_visible(&state.db).await?;
     Ok(Json(factions))
 }

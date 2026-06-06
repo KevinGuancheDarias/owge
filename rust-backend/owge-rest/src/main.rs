@@ -16,7 +16,7 @@ use std::time::Duration;
 use axum::http::{HeaderName, Method};
 use owge_business::bo::{MissionRunner, MissionSchedulerService};
 use owge_business::config::EnvConfig;
-use tower_http::cors::{AllowOrigin, Any, CorsLayer};
+use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
