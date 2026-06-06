@@ -4,7 +4,7 @@ LABEL maintainer "Kevin Guanche Darias <kevin@kevinguanchedarias.com>"
 RUN docker-php-ext-install mysqli mbstring
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git zip
+    apt-get install -y --no-install-recommends git zip unzip
 RUN curl --silent --show-error https://getcomposer.org/installer | php
 
 RUN mv composer.phar /bin/composer

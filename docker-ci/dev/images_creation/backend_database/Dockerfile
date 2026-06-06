@@ -11,7 +11,8 @@ COPY 05_mysql_procedures.sql /tmp/
 RUN echo "[mysqld]" > /etc/mysql/conf.d/mysqld.cnf
 RUN echo "lower_case_table_names=1" >> /etc/mysql/conf.d/mysqld.cnf
 RUN echo "innodb_use_native_aio=0" >> /etc/mysql/conf.d/mysqld.cnf
-RUN echo "default-authentication-plugin=mysql_native_password" >> /etc/mysql/conf.d/mysqld.cnf
+RUN echo "mysql_native_password=ON" >> /etc/mysql/conf.d/mysqld.cnf
+RUN echo "authentication_policy=mysql_native_password" >> /etc/mysql/conf.d/mysqld.cnf
 RUN cat /tmp/*.sql > /docker-entrypoint-initdb.d/init.sql
 
 VOLUME [ "/var/lib/mysql" ]

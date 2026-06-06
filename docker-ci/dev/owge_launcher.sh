@@ -31,7 +31,7 @@ else
 fi
 
 if [ -z "$EXTRA_COMPOSE_BUILD_OPTIONS" ]; then
-    _emptyWarning="\e[33m(when empty, \"docker-compose build\" may not be invoked)\e[39m";
+    _emptyWarning="\e[33m(when empty, \"docker compose build\" may not be invoked)\e[39m";
 else
     _emptyWarning="";
 fi
@@ -279,8 +279,8 @@ function _doLaunch() {
             done
             # End launch profiles
             export _launchLine="$_launchLine -f ./profiles/nginx.docker-compose.yml -p $_profileName";
-            test -n "$EXTRA_COMPOSE_BUILD_OPTIONS" && docker-compose $_launchLine build $EXTRA_COMPOSE_BUILD_OPTIONS
-            docker-compose  $_launchLine up $EXTRA_COMPOSE_OPTIONS
+            test -n "$EXTRA_COMPOSE_BUILD_OPTIONS" && docker compose $_launchLine build $EXTRA_COMPOSE_BUILD_OPTIONS
+            docker compose $_launchLine up $EXTRA_COMPOSE_OPTIONS
             _createTestWorldIfWanted
         )
     )
@@ -377,7 +377,7 @@ function _withExportedDatabase () {
 function _createTestWorldIfWanted () {
     if [ -n "$_testWorld" ]; then
         sleep 3;
-        _container=`docker ps | grep ${_profileName}_db_1 | cut -d ' ' -f 1`;
+        _container=`docker ps | grep ${_profileName}-db-1 | cut -d ' ' -f 1`;
         if [ -n "$_container" ]; then
             attemps=300 waitFor "Waiting for universe database" "docker exec --env MYSQL_PWD=1234 -i "$_container" mysql -u root -e 'SELECT * FROM objects' owge | wc -l |  xargs -I € test "€" -gt 0";
             if [ `docker exec --env MYSQL_PWD=1234 -i "$_container" mysql -u root -e "SELECT * FROM upgrade_types" owge | wc -l` -eq 0 ]; then

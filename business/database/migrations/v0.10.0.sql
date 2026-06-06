@@ -9,7 +9,7 @@ ALTER TABLE `units` ADD `is_invisible` BOOLEAN NOT NULL AFTER `bypass_shield`;
 
 ALTER TABLE `factions` ADD `custom_primary_gather_percentage` FLOAT UNSIGNED NULL AFTER `cloned_improvements`, ADD `custom_secondary_gather_percentage` FLOAT UNSIGNED NULL AFTER `custom_primary_gather_percentage`;
 
-CREATE TABLE `factions_unit_types` (
+CREATE TABLE IF NOT EXISTS `factions_unit_types` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `faction_id` smallint(5) unsigned NOT NULL,
   `unit_type_id` smallint(6) unsigned NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE `factions_unit_types` (
   CONSTRAINT `fk_fut_unit_type_id` FOREIGN KEY (`unit_type_id`) REFERENCES `unit_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `interceptable_speed_group` ( 
+CREATE TABLE IF NOT EXISTS `interceptable_speed_group` ( 
   `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `unit_id` SMALLINT(6) UNSIGNED NOT NULL ,
   `speed_impact_group_id` SMALLINT UNSIGNED NOT NULL ,
@@ -34,7 +34,7 @@ CREATE TABLE `interceptable_speed_group` (
 
 ALTER TABLE `missions` ADD `invisible` TINYINT NOT NULL AFTER `resolved`;
 ALTER TABLE `speed_impact_groups` ADD `image_id` BIGINT UNSIGNED NULL AFTER `can_deploy`;
-CREATE TABLE `audit` ( 
+CREATE TABLE IF NOT EXISTS `audit` ( 
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
   `action` ENUM('SUBSCRIBE_TO_WORLD','LOGIN','REGISTER_MISSION','ADD_PLANET_TO_LIST','BROWSE_COORDINATES', 'USER_INTERACTION', 'JOIN_ALLIANCE', 'ACCEPT_JOIN_ALLIANCE', 'ATTACK_INTERACTION') NOT NULL , 
   `action_detail` VARCHAR(100) NULL , 
@@ -51,7 +51,7 @@ CREATE TABLE `audit` (
 ) ENGINE = InnoDB;
 ALTER TABLE `user_storage` ADD `last_multi_account_check` DATETIME NULL AFTER `can_alter_twitch_state`, ADD `multi_account_score` FLOAT NULL, `banned` tinyint NOT NULL AFTER `last_multi_account_check`;
 
-CREATE TABLE `tor_ip_data` ( 
+CREATE TABLE IF NOT EXISTS `tor_ip_data` ( 
   `ip` CHAR(15) NOT NULL , 
   `last_checked_date` DATETIME NOT NULL , 
   `is_tor` BOOLEAN NOT NULL , 
@@ -59,13 +59,13 @@ CREATE TABLE `tor_ip_data` (
 ) ENGINE = MyIsam;
 
 
-CREATE TABLE `critical_attack` ( 
+CREATE TABLE IF NOT EXISTS `critical_attack` ( 
   `id` SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT , 
   `name` VARCHAR(100) NOT NULL , 
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
-CREATE TABLE `critical_attack_entries` ( 
+CREATE TABLE IF NOT EXISTS `critical_attack_entries` ( 
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , 
   `critical_attack_id` SMALLINT UNSIGNED NOT NULL , 
   `target` ENUM('UNIT','UNIT_TYPE') NOT NULL , 

@@ -1,7 +1,7 @@
 ALTER TABLE `improvements_unit_types`
     CHANGE `type` `type` ENUM ('ATTACK','DEFENSE','SHIELD','AMOUNT','SPEED') CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
 
-CREATE TABLE `faction_spawn_location`
+CREATE TABLE IF NOT EXISTS `faction_spawn_location`
 (
     `id`                   SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
     `faction_id`           SMALLINT UNSIGNED NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE `faction_spawn_location`
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
-CREATE TABLE `rules`
+CREATE TABLE IF NOT EXISTS `rules`
 (
     `id`             SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     type             VARCHAR(50)       NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE `rules`
 ALTER TABLE `obtained_units`
     ADD `is_from_capture` TINYINT NOT NULL AFTER `first_deployment_mission`;
 
-CREATE TABLE `obtained_unit_temporal_information`
+CREATE TABLE IF NOT EXISTS `obtained_unit_temporal_information`
 (
     `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `duration`   INT UNSIGNED NOT NULL,
@@ -51,7 +51,7 @@ ALTER TABLE `obtained_units`
     ADD `owner_unit_id` BIGINT UNSIGNED NULL AFTER `expiration_id`,
     ADD INDEX (`owner_unit_id`);
 
-CREATE TABLE `stored_units`
+CREATE TABLE IF NOT EXISTS `stored_units`
 (
     `id`                      INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `owner_obtained_unit_id`  INT UNSIGNED NOT NULL,
@@ -71,7 +71,7 @@ SET ipv4 = ip;
 ALTER TABLE audit
     DROP COLUMN ip;
 
-CREATE TABLE scheduled_tasks
+CREATE TABLE IF NOT EXISTS scheduled_tasks
 (
     task_name            varchar(40)  not null,
     task_instance        varchar(40)  not null,
@@ -96,7 +96,7 @@ ALTER TABLE `obtained_unit_temporal_information`
 ALTER TABLE `tor_ip_data`
     CHANGE `ip` `ip` VARCHAR(39) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL;
 
-CREATE TABLE `suspicions`
+CREATE TABLE IF NOT EXISTS `suspicions`
 (
     `id`         BIGINT UNSIGNED AUTO_INCREMENT         NOT NULL,
     `source`     ENUM ('BROWSER','IP','BROWSER_AND_IP') NOT NULL,
@@ -110,7 +110,7 @@ CREATE TABLE `suspicions`
 ALTER TABLE upgrades
     ADD `order_number` smallint unsigned DEFAULT NULL COMMENT 'The upgrade order' AFTER id;
 
-CREATE TABLE track_browser
+CREATE TABLE IF NOT EXISTS track_browser
 (
     id           BIGINT UNSIGNED AUTO_INCREMENT NOT NULL,
     method       VARCHAR(8)                     NOT NULL,

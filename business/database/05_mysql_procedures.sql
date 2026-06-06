@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS see_objects_without_relations;
 CREATE VIEW see_objects_without_relations AS
 SELECT 'UNIT', u.id, name, ort.id AS relation_id
 FROM units u
@@ -11,6 +12,7 @@ SELECT 'UPGRADE', up.id, name, ort.id AS relation_id
 FROM upgrades up
          LEFT JOIN object_relations ort ON ort.object_description = 'UPGRADE' AND ort.reference_id = up.id;
 
+DROP VIEW IF EXISTS see_orphan_relations;
 CREATE VIEW see_orphan_relations AS
 SELECT object_description, ort.id AS relation_id, ort.reference_id
 FROM object_relations ort
@@ -30,6 +32,7 @@ FROM object_relations ort
 WHERE object_description = 'TIME_SPECIAL'
   AND ts.id IS NULL;
 
+DROP PROCEDURE IF EXISTS DELETE_RELATION;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`%` PROCEDURE `DELETE_RELATION`(IN `i_relation_id` INT UNSIGNED)
@@ -42,6 +45,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS FIND_BLOCKED_MISSIONS;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`localhost` PROCEDURE `FIND_BLOCKED_MISSIONS`()
@@ -54,6 +58,7 @@ WHERE type >= 3
 ORDER BY id DESC$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS FIND_ORPHAN_UNITS;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`localhost` PROCEDURE `FIND_ORPHAN_UNITS`()
@@ -65,6 +70,7 @@ WHERE ou.mission_id IS NOT NULL
   AND m.id IS NULL$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS DELETE_BLOCKED_MISSIONS;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`localhost` PROCEDURE `DELETE_BLOCKED_MISSIONS`()
@@ -86,6 +92,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS DELETE_ORPHAN_UNITS;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`localhost` PROCEDURE `DELETE_ORPHAN_UNITS`()
@@ -97,6 +104,7 @@ WHERE ou.mission_id IS NOT NULL
   AND m.id IS NULL$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS DELETE_PLAYER;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`localhost` PROCEDURE `DELETE_PLAYER`(IN `v_user_id` INT UNSIGNED)
@@ -112,6 +120,7 @@ BEGIN
 END
 DELIMITER ;
 
+DROP FUNCTION IF EXISTS DELETE_RELATION_FN;
 DELIMITER $$
 CREATE
     DEFINER = `root`@`%` FUNCTION `DELETE_RELATION_FN`(`i_relation_id` INT) RETURNS int unsigned
