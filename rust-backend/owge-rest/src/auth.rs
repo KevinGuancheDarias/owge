@@ -17,8 +17,9 @@ use crate::state::AppState;
 #[derive(Debug, Clone)]
 pub struct GameUser(pub TokenUser);
 
-/// An admin authenticated via an `/admin/**` token.
+/// An admin authenticated via an `/admin/**` token. TODO: Study if it's used
 #[derive(Debug, Clone)]
+#[allow(unused)]
 pub struct AdminUser(pub TokenUser);
 
 fn bearer_token(parts: &Parts) -> Result<&str, OwgeError> {

@@ -16,7 +16,7 @@ use serde::Serialize;
 use serde_json::Value;
 
 use crate::dto::upgrade::UpgradeDto;
-use crate::dto::{ObtainedUnitDto, PlanetDto, UserStorageDto};
+use crate::dto::{ObtainedUnitDto, PlanetDto, SimpleUserData};
 use crate::model::{Mission, MissionType};
 
 /// `AbstractRunningMissionDto.NEVER_ENDING_MISSION_SYMBOL`.
@@ -103,7 +103,7 @@ pub struct UnitRunningMissionDto {
     pub invisible: bool,
     pub source_planet: Option<PlanetDto>,
     pub target_planet: Option<PlanetDto>,
-    pub user: Option<UserStorageDto>,
+    pub user: Option<SimpleUserData>,
 }
 
 impl UnitRunningMissionDto {

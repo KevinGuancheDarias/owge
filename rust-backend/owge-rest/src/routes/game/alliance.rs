@@ -1,15 +1,13 @@
 //! `AllianceRestService` — the player-facing alliance endpoints under
 //! `game/alliance`. All require a game user; logic lives in
-//! [`AllianceBo`](owge_business::bo::AllianceBo).
+//! [`AllianceBo`](AllianceBo).
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
 use owge_business::bo::AllianceBo;
-use owge_business::dto::{
-    AllianceDto, AllianceJoinRequestDto, JoinRequestIdBody, RequestJoinBody, UserStorageDto,
-};
+use owge_business::dto::{AllianceDto, AllianceJoinRequestDto, JoinRequestIdBody, RequestJoinBody, SimpleUserData};
 
 use crate::auth::GameUser;
 use crate::http_error::ApiResult;
@@ -41,7 +39,7 @@ async fn members(
     State(state): State<AppState>,
     _user: GameUser,
     Path(id): Path<u16>,
-) -> ApiResult<Json<Vec<UserStorageDto>>> {
+) -> ApiResult<Json<Vec<SimpleUserData>>> {
     Ok(Json(AllianceBo::members(&state.db, id).await?))
 }
 

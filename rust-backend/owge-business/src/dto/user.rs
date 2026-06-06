@@ -1,19 +1,47 @@
+use crate::db::Db;
+use crate::dto::{FactionDto, PlanetDto, UserImprovementDto};
+use crate::error::OwgeResult;
+use crate::OwgeError;
 use serde::Serialize;
+use sqlx::FromRow;
+use sqlx_template::MysqlTemplate;
 
 /// Mirrors `SimpleUserDataDto` (a Java record `{id, username, email}`).
-#[derive(Debug, Clone, Serialize)]
-pub struct SimpleUserDataDto {
+#[derive(Debug, Clone, Serialize, FromRow, MysqlTemplate)]
+#[table("user_storage")]
+#[tp_select_builder]
+#[serde(rename_all = "camelCase")]
+pub struct SimpleUserData {
+    #[auto]
     pub id: i32,
     pub username: String,
     pub email: String,
+    pub alliance_id: Option<u16>,
 }
 
-/// Mirrors `SimpleUserDataWithSuspicionsCountsDto` (record `{user, suspicionsCount}`).
-#[derive(Debug, Clone, Serialize)]
-pub struct SimpleUserDataWithSuspicionsCountsDto {
-    pub user: SimpleUserDataDto,
-    #[serde(rename = "suspicionsCount")]
-    pub suspicions_count: i64,
+impl SimpleUserData {
+    pub async fn find_by_id(db: &Db, id: &i32) -> OwgeResult<Self> {
+        Self::builder_select()
+            .id(id)?
+            .find_one(db)
+            .await?
+            .ok_or_else(|| OwgeError::NotFound(format!("No user with id {id}")))
+    }
+
+    pub fn require_alliance(&self) -> OwgeResult<u16> {
+        self.alliance_id
+            .ok_or_else(|| OwgeError::InvalidInput("You don't have an alliance".into()))
+    }
+
+    pub fn check_no_alliance(&self) -> OwgeResult<()> {
+        if self.alliance_id.is_none() {
+            return Ok(());
+        }
+
+        Err(OwgeError::InvalidInput(
+            "You already have an alliance, leave it first".into(),
+        ))
+    }
 }
 
 /// Mirrors `UserStorageDto` (the `user_data_change` sync payload). The nested
@@ -21,25 +49,23 @@ pub struct SimpleUserDataWithSuspicionsCountsDto {
 /// domains land; the directly-stored and computed-resource fields are complete.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UserStorageDto {
-    pub id: i32,
-    pub username: String,
+pub struct UserData {
+    pub can_alter_twitch_state: bool,
+    pub consumed_energy: f64,
     pub email: String,
+
+    #[serde(rename = "factionDto")]
+    pub faction: FactionDto,
+
+    pub has_skipped_tutorial: bool,
+
+    #[serde(rename = "homePlanetDto")]
+    pub home_planet: PlanetDto,
+
+    pub id: i32,
+    pub improvements: UserImprovementDto,
+    pub max_energy: f64,
     pub primary_resource: Option<f64>,
     pub secondary_resource: Option<f64>,
-    pub consumed_energy: Option<f64>,
-    pub primary_resource_generation_per_second: Option<f64>,
-    pub secondary_resource_generation_per_second: Option<f64>,
-    pub max_energy: Option<f64>,
-    pub has_skipped_tutorial: bool,
-    pub can_alter_twitch_state: bool,
-    /// Java's `findData` never sets the `computed*` fields, so they stay `null`
-    /// and are omitted by the global `NON_NULL` inclusion. We mirror that:
-    /// always `None`, omitted from the JSON.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub computed_primary_resource_generation_per_second: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub computed_secondary_resource_generation_per_second: Option<f64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub computed_max_energy: Option<f64>,
+    pub username: String,
 }

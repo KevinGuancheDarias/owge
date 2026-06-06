@@ -9,9 +9,9 @@
 //! the Java code does not emit on these paths, so there are none to defer here.
 
 use crate::db::Db;
-use crate::dto::{AllianceDto, AllianceJoinRequestDto, UserStorageDto};
+use crate::dto::{AllianceDto, AllianceJoinRequestDto, SimpleUserData};
 use crate::error::{OwgeError, OwgeResult};
-use crate::model::{Alliance, UserStorage};
+use crate::model::Alliance;
 
 use super::ConfigurationBo;
 
@@ -51,37 +51,6 @@ impl From<Alliance> for AllianceDto {
     }
 }
 
-/// Builds the (simple) `UserStorageDto` projection used by the alliance member
-/// list and the join-request payloads. Mirrors `UserStorageDto.dtoFromEntity`
-/// for the fields the Rust DTO carries (nested faction/home-planet/alliance and
-/// `improvements` are not part of the Rust DTO yet); `maxEnergy` is nulled like
-/// Java. Computed values mirror stored values until the improvement engine is
-/// wired.
-fn user_dto_from(u: UserStorage) -> UserStorageDto {
-    UserStorageDto {
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        primary_resource: u.primary_resource,
-        secondary_resource: u.secondary_resource,
-        consumed_energy: Some(u.energy),
-        primary_resource_generation_per_second: u.primary_resource_generation_per_second,
-        secondary_resource_generation_per_second: u.secondary_resource_generation_per_second,
-        max_energy: None,
-        has_skipped_tutorial: u.has_skipped_tutorial,
-        can_alter_twitch_state: u.can_alter_twitch_state,
-        computed_primary_resource_generation_per_second: u.primary_resource_generation_per_second,
-        computed_secondary_resource_generation_per_second: u
-            .secondary_resource_generation_per_second,
-        computed_max_energy: None,
-    }
-}
-
-const USER_COLS: &str = "id, username, email, alliance_id, faction, last_action, home_planet, \
-    primary_resource, secondary_resource, energy, \
-    primary_resource_generation_per_second, secondary_resource_generation_per_second, \
-    has_skipped_tutorial, points, can_alter_twitch_state, banned";
-
 const ALLIANCE_COLS: &str = "id, name, description, image, owner_id";
 
 impl AllianceBo {
@@ -115,23 +84,14 @@ impl AllianceBo {
     /// users whose `alliance_id` is this alliance. Email is blanked and
     /// improvements omitted (the Rust DTO has no improvements field), matching
     /// the Java controller's `setEmail(null); setImprovements(null)`.
-    pub async fn members(db: &Db, alliance_id: u16) -> OwgeResult<Vec<UserStorageDto>> {
-        let rows = sqlx::query_as::<_, UserStorage>(&format!(
-            "SELECT {USER_COLS} FROM user_storage WHERE alliance_id = ? ORDER BY id"
-        ))
-        .bind(alliance_id)
-        .fetch_all(db)
-        .await?;
-        Ok(rows
-            .into_iter()
-            .map(|u| {
-                let mut dto = user_dto_from(u);
-                // Java nulls email; the Rust DTO field is non-optional, so blank
-                // it (never leak member emails).
-                dto.email = String::new();
-                dto
-            })
-            .collect())
+    pub async fn members(db: &Db, alliance_id: u16) -> OwgeResult<Vec<SimpleUserData>> {
+        let rows = SimpleUserData::builder_select()
+            .id(&4)?
+            .alliance_id(&Some(alliance_id))?
+            .find_all(db)
+            .await?;
+
+        Ok(rows)
     }
 
     /// `AllianceBo.save(alliance, invokerId)` — create (id null) or update
@@ -152,13 +112,8 @@ impl AllianceBo {
         let is_create = dto.id == 0;
 
         if is_create {
-            let creator = sqlx::query_as::<_, UserStorage>(&format!(
-                "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-            ))
-            .bind(invoker_id)
-            .fetch_optional(db)
-            .await?
-            .ok_or_else(|| OwgeError::NotFound(format!("No user with id {invoker_id}")))?;
+            let creator = SimpleUserData::find_by_id(db, &invoker_id).await?;
+
             if creator.alliance_id.is_some() {
                 return Err(OwgeError::InvalidInput(
                     "You already have an alliance, leave it first".into(),
@@ -217,21 +172,18 @@ impl AllianceBo {
     /// own one). Unsets every member's `alliance_id`, deletes the alliance's
     /// join requests, then deletes the alliance row.
     pub async fn delete_by_user(db: &Db, invoker_id: i32) -> OwgeResult<()> {
-        let user = sqlx::query_as::<_, UserStorage>(&format!(
-            "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-        ))
-        .bind(invoker_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| OwgeError::NotFound(format!("No user with id {invoker_id}")))?;
+        let user = SimpleUserData::find_by_id(db, &invoker_id).await?;
+
         let alliance_id = user
             .alliance_id
             .ok_or_else(|| OwgeError::InvalidInput("You don't have any alliance".into()))?;
+
         let alliance = Self::find_by_id_or_die(db, alliance_id).await?;
+
         Self::check_invoker_is_owner(&alliance, invoker_id)?;
 
         let mut tx = db.begin().await?;
-        // defineAllianceByAllianceId(id, null): unset all members.
+
         sqlx::query("UPDATE user_storage SET alliance_id = NULL WHERE alliance_id = ?")
             .bind(alliance_id)
             .execute(&mut *tx)
@@ -251,22 +203,13 @@ impl AllianceBo {
     /// `AllianceRestService.listRequest` — join requests for the invoker's
     /// alliance. The invoker must own an alliance.
     pub async fn list_request(db: &Db, invoker_id: i32) -> OwgeResult<Vec<AllianceJoinRequestDto>> {
-        let user = sqlx::query_as::<_, UserStorage>(&format!(
-            "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-        ))
-        .bind(invoker_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| OwgeError::NotFound(format!("No user with id {invoker_id}")))?;
-        let alliance_id = user
-            .alliance_id
-            .ok_or_else(|| OwgeError::InvalidInput("You don't have any alliance".into()))?;
+        let user = SimpleUserData::find_by_id(db, &invoker_id).await?;
+
+        let alliance_id = user.require_alliance()?;
+
         let alliance = Self::find_by_id_or_die(db, alliance_id).await?;
-        if alliance.owner_id != invoker_id {
-            return Err(OwgeError::InvalidInput(
-                "You are not the owner of the alliance".into(),
-            ));
-        }
+        alliance.check_owner(invoker_id)?;
+
         Self::find_join_request_dtos(db, "alliance_id", alliance_id as i64).await
     }
 
@@ -294,18 +237,10 @@ impl AllianceBo {
         invoker_id: i32,
     ) -> OwgeResult<AllianceJoinRequestDto> {
         let alliance = Self::find_by_id_or_die(db, alliance_id).await?;
-        let user = sqlx::query_as::<_, UserStorage>(&format!(
-            "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-        ))
-        .bind(invoker_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| OwgeError::NotFound(format!("No user with id {invoker_id}")))?;
-        if user.alliance_id.is_some() {
-            return Err(OwgeError::InvalidInput(
-                "You are already in an alliance, nice try!".into(),
-            ));
-        }
+        let user = SimpleUserData::find_by_id(db, &invoker_id).await?;
+
+        user.check_no_alliance()?;
+
         let now = chrono::Utc::now().naive_utc();
         let result = sqlx::query(
             "INSERT INTO alliance_join_request (alliance_id, user_id, request_date) VALUES (?, ?, ?)",
@@ -318,7 +253,7 @@ impl AllianceBo {
         let new_id = result.last_insert_id() as u32;
         Ok(AllianceJoinRequestDto {
             id: new_id,
-            user: user_dto_from(user),
+            user,
             alliance: alliance.into(),
         })
     }
@@ -333,28 +268,22 @@ impl AllianceBo {
         Self::check_invoker_is_owner(&alliance, invoker_id)?;
         Self::check_is_limit_reached(db, request.alliance_id).await?;
 
-        let requesting_user = sqlx::query_as::<_, UserStorage>(&format!(
-            "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-        ))
-        .bind(request.user_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| OwgeError::NotFound(format!("No user with id {}", request.user_id)))?;
+        let requesting_user = SimpleUserData::find_by_id(db, &request.user_id).await?;
 
         let mut tx = db.begin().await?;
+
         if requesting_user.alliance_id.is_none() {
             sqlx::query("UPDATE user_storage SET alliance_id = ? WHERE id = ?")
                 .bind(request.alliance_id)
                 .bind(request.user_id)
                 .execute(&mut *tx)
                 .await?;
-            // (M5) auditBo audits — disabled in the live port, not ported.
-            // deleteByUser: remove all of the user's join requests.
+
             sqlx::query("DELETE FROM alliance_join_request WHERE user_id = ?")
                 .bind(request.user_id)
                 .execute(&mut *tx)
                 .await?;
-        } else {
+        } else { // If accepts but the user already has an alliance, remove its join request
             sqlx::query("DELETE FROM alliance_join_request WHERE id = ?")
                 .bind(join_request_id)
                 .execute(&mut *tx)
@@ -475,17 +404,12 @@ impl AllianceBo {
 
         let mut out = Vec::with_capacity(requests.len());
         for req in requests {
-            let user = sqlx::query_as::<_, UserStorage>(&format!(
-                "SELECT {USER_COLS} FROM user_storage WHERE id = ?"
-            ))
-            .bind(req.user_id)
-            .fetch_optional(db)
-            .await?
-            .ok_or_else(|| OwgeError::NotFound(format!("No user with id {}", req.user_id)))?;
+            let user = SimpleUserData::find_by_id(db, &req.user_id).await?;
+
             let alliance = Self::find_by_id_or_die(db, req.alliance_id).await?;
             out.push(AllianceJoinRequestDto {
                 id: req.id,
-                user: user_dto_from(user),
+                user,
                 alliance: alliance.into(),
             });
         }

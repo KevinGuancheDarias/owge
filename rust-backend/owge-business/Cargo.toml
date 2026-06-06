@@ -23,3 +23,5 @@ base64.workspace = true
 async-trait.workspace = true
 md5 = "0.7"
 moka = { version = "0.12", features = ["future"] }
+sqlx-template = "0.2.1"
+futures = "0.3.32"

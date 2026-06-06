@@ -90,7 +90,7 @@ use crate::bo::mission_base_service_bo::SELECT_MISSION;
 use crate::db::Db;
 use crate::dto::mission::UnitRunningMissionDto;
 use crate::dto::running_unit_build::RunningUnitBuildDto;
-use crate::dto::PlanetDto;
+use crate::dto::{PlanetDto, SimpleUserData};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -472,29 +472,15 @@ async fn load_planet_dto_conn(
 async fn load_user_storage_dto(
     conn: &mut MySqlConnection,
     user_id: i32,
-) -> OwgeResult<Option<crate::dto::UserStorageDto>> {
-    let row: Option<(i32, String, String)> = sqlx::query_as(
+) -> OwgeResult<Option<SimpleUserData>> {
+    let row: Option<SimpleUserData> = sqlx::query_as(
         "SELECT id, username, email FROM user_storage WHERE id = ?",
     )
     .bind(user_id)
     .fetch_optional(&mut *conn)
     .await?;
-    Ok(row.map(|(id, username, email)| crate::dto::UserStorageDto {
-        id,
-        username,
-        email,
-        primary_resource: None,
-        secondary_resource: None,
-        consumed_energy: None,
-        primary_resource_generation_per_second: None,
-        secondary_resource_generation_per_second: None,
-        max_energy: None,
-        has_skipped_tutorial: false,
-        can_alter_twitch_state: false,
-        computed_primary_resource_generation_per_second: None,
-        computed_secondary_resource_generation_per_second: None,
-        computed_max_energy: None,
-    }))
+
+    Ok(row)
 }
 
 /// `PlanetExplorationService.isExplored(user, planet)` — true when the user

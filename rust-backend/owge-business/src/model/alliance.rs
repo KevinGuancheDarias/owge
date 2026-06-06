@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use crate::{OwgeError, OwgeResult};
 
 /// Mirrors the `alliances` table / Java `Alliance` entity. Although the Java
 /// entity types `id` as `Integer`, the DB column is `smallint unsigned`, so we
@@ -15,6 +16,17 @@ pub struct Alliance {
     pub image: Option<String>,
     #[sqlx(rename = "owner_id")]
     pub owner_id: i32,
+}
+
+impl Alliance {
+    pub fn check_owner(&self, invoker_id: i32) -> OwgeResult<()> {
+        if self.owner_id == invoker_id {
+            return Ok(());
+        }
+        Err(OwgeError::InvalidInput(
+            "You are not the owner of the alliance".into(),
+        ))
+    }
 }
 
 /// Mirrors the `alliance_join_request` table / Java `AllianceJoinRequest`

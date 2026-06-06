@@ -65,6 +65,20 @@ impl PlanetBo {
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
+    pub async fn find_by_id(db: &Db, id: u64) -> OwgeResult<Option<PlanetDto>> {
+        let row = sqlx::query_as::<_, PlanetRow>(&format!("{SELECT_DTO} WHERE p.id = ?"))
+            .bind(id)
+            .fetch_optional(db)
+            .await?;
+        Ok(row.map(Into::into))
+    }
+
+    pub async fn find_by_id_or_die(db: &Db, id: u64) -> OwgeResult<PlanetDto> {
+        Self::find_by_id(db, id)
+            .await?
+            .ok_or(OwgeError::NotFound("Planet not found".to_string()))
+    }
+
     /// `PlanetBo.canLeavePlanet(invokerId, planetId)`.
     ///
     /// True iff the planet is **not** a home planet, **is** owned by the invoker,
@@ -73,24 +87,22 @@ impl PlanetBo {
     /// BUILD_UNIT mission targeting the planet.
     pub async fn can_leave_planet(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
         // !isHomePlanet(planetId): planetRepository.findOneByIdAndHomeTrue(planetId) != null
-        let is_home: bool = sqlx::query_scalar(
-            "SELECT COUNT(*) > 0 FROM planets WHERE id = ? AND home = 1",
-        )
-        .bind(planet_id)
-        .fetch_one(db)
-        .await?;
+        let is_home: bool =
+            sqlx::query_scalar("SELECT COUNT(*) > 0 FROM planets WHERE id = ? AND home = 1")
+                .bind(planet_id)
+                .fetch_one(db)
+                .await?;
         if is_home {
             return Ok(false);
         }
 
         // planetRepository.isOfUserProperty(invokerId, planetId)
-        let is_owner: bool = sqlx::query_scalar(
-            "SELECT COUNT(*) > 0 FROM planets WHERE id = ? AND owner = ?",
-        )
-        .bind(planet_id)
-        .bind(user_id)
-        .fetch_one(db)
-        .await?;
+        let is_owner: bool =
+            sqlx::query_scalar("SELECT COUNT(*) > 0 FROM planets WHERE id = ? AND owner = ?")
+                .bind(planet_id)
+                .bind(user_id)
+                .fetch_one(db)
+                .await?;
         if !is_owner {
             return Ok(false);
         }
@@ -135,12 +147,11 @@ impl PlanetBo {
         // (Java reads `planet.getOwner()` / `planet.getSpecialLocation()` first).
         // canLeavePlanet already proved the invoker is the owner, so the former
         // owner is `user_id`; we still read it to mirror the Java `var user`.
-        let (former_owner, special_location_id): (Option<i32>, Option<u16>) = sqlx::query_as(
-            "SELECT owner, special_location_id FROM planets WHERE id = ?",
-        )
-        .bind(planet_id)
-        .fetch_one(db)
-        .await?;
+        let (former_owner, special_location_id): (Option<i32>, Option<u16>) =
+            sqlx::query_as("SELECT owner, special_location_id FROM planets WHERE id = ?")
+                .bind(planet_id)
+                .fetch_one(db)
+                .await?;
 
         // planet.setOwner(null); planetRepository.save(planet);
         sqlx::query("UPDATE planets SET owner = NULL WHERE id = ?")

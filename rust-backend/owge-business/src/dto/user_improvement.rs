@@ -11,10 +11,12 @@
 //! mission time math widens the unit-type SPEED improvement to a `double` rational
 //! (see `ImprovementBo.findAsRational`).
 
+use serde::Serialize;
+
 /// Port of `enumerations.ImprovementTypeEnum` — the `improvements_unit_types.type`
 /// values. Lives here (rather than a shared `enumerations` module) because no such
 /// module exists yet in the Rust tree; promote it when one is introduced.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub enum ImprovementType {
     Attack,
     Defense,
@@ -49,7 +51,7 @@ impl ImprovementType {
 
 /// One summed per-unit-type improvement entry, keyed by `(type, unit_type_id)`
 /// (mirrors `ImprovementUnitTypeDto` reduced inside `GroupedImprovement`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UnitTypeImprovementEntry {
     /// The improvement type (`ATTACK`/`DEFENSE`/`SHIELD`/`AMOUNT`/`SPEED`).
     pub improvement_type: ImprovementType,
@@ -60,7 +62,7 @@ pub struct UnitTypeImprovementEntry {
 }
 
 /// Mirrors `GroupedImprovement` — the full sum of a user's improvements.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct UserImprovementDto {
     pub more_primary_resource_production: f64,
     pub more_secondary_resource_production: f64,
@@ -120,9 +122,11 @@ impl UserImprovementDto {
         unit_type_id: u16,
         value: i64,
     ) {
-        if let Some(existing) = self.unit_types_upgrades.iter_mut().find(|e| {
-            e.improvement_type == improvement_type && e.unit_type_id == unit_type_id
-        }) {
+        if let Some(existing) = self
+            .unit_types_upgrades
+            .iter_mut()
+            .find(|e| e.improvement_type == improvement_type && e.unit_type_id == unit_type_id)
+        {
             existing.value += value;
         } else {
             self.unit_types_upgrades.push(UnitTypeImprovementEntry {

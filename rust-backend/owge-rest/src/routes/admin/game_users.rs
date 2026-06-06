@@ -11,7 +11,7 @@ use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use owge_business::bo::UserStorageBo;
-use owge_business::dto::{SimpleUserDataDto, SimpleUserDataWithSuspicionsCountsDto};
+use owge_business::dto::SimpleUserData;
 
 use crate::auth::AdminUser;
 use crate::http_error::ApiResult;
@@ -25,19 +25,17 @@ pub fn routes() -> Router<AppState> {
 }
 
 async fn find_with_suspicions(
-    State(state): State<AppState>,
+    State(_): State<AppState>,
     _admin: AdminUser,
-) -> ApiResult<Json<Vec<SimpleUserDataWithSuspicionsCountsDto>>> {
-    Ok(Json(
-        UserStorageBo::find_all_with_suspicion_counts(&state.db).await?,
-    ))
+) -> ApiResult<Json<Vec<()>>> {
+    todo!("Won't implement, but check how costly is to remove")
 }
 
 async fn find_by_id(
     State(state): State<AppState>,
     _admin: AdminUser,
     Path(id): Path<i32>,
-) -> ApiResult<Json<SimpleUserDataDto>> {
+) -> ApiResult<Json<SimpleUserData>> {
     Ok(Json(UserStorageBo::find_simple_by_id(&state.db, id).await?))
 }
 

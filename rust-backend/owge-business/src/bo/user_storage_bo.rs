@@ -1,21 +1,12 @@
 //! Port of (the read side of) `UserStorageBo` — the player record and the
-//! `user_data_change` sync payload.
 
+use crate::bo::{FactionBo, PlanetBo, UserImprovementBo};
 use crate::db::Db;
-use crate::dto::{
-    SimpleUserDataDto, SimpleUserDataWithSuspicionsCountsDto, UserStorageDto,
-};
+use crate::dto::{SimpleUserData, UserData};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::UserStorage;
 
 pub struct UserStorageBo;
-
-#[derive(sqlx::FromRow)]
-struct SimpleUserRow {
-    id: i32,
-    username: String,
-    email: String,
-}
 
 /// The faction columns `subscribe` seeds the new user's resources from.
 #[derive(sqlx::FromRow)]
@@ -28,29 +19,9 @@ struct FactionInitRow {
     initial_energy: u32,
 }
 
-impl From<SimpleUserRow> for SimpleUserDataDto {
-    fn from(r: SimpleUserRow) -> Self {
-        SimpleUserDataDto {
-            id: r.id,
-            username: r.username,
-            email: r.email,
-        }
-    }
-}
-
 impl UserStorageBo {
     pub async fn find_by_id(db: &Db, id: i32) -> OwgeResult<Option<UserStorage>> {
-        let row = sqlx::query_as::<_, UserStorage>(
-            "SELECT id, username, email, alliance_id, faction, last_action, home_planet, \
-                    primary_resource, secondary_resource, energy, \
-                    primary_resource_generation_per_second, secondary_resource_generation_per_second, \
-                    has_skipped_tutorial, points, can_alter_twitch_state, banned \
-             FROM user_storage WHERE id = ?",
-        )
-        .bind(id)
-        .fetch_optional(db)
-        .await?;
-        Ok(row)
+        Ok(UserStorage::find_one_by_id(&id, db).await?)
     }
 
     /// `UserStorageBo.subscribe(factionId)` — provision the logged-in account
@@ -153,12 +124,18 @@ impl UserStorageBo {
         // planet, then fire them (they write `unlocked_relation`/`obtained_upgrades`).
         let user = Self::find_by_id_conn(&mut tx, user_id)
             .await?
-            .ok_or_else(|| OwgeError::Common("User vanished right after subscribe insert".into()))?;
+            .ok_or_else(|| {
+                OwgeError::Common("User vanished right after subscribe insert".into())
+            })?;
         let mut req_emits = Vec::new();
         crate::bo::requirement_engine::trigger_faction_selection(&mut tx, &user, &mut req_emits)
             .await?;
-        crate::bo::requirement_engine::trigger_home_galaxy_selection(&mut tx, &user, &mut req_emits)
-            .await?;
+        crate::bo::requirement_engine::trigger_home_galaxy_selection(
+            &mut tx,
+            &user,
+            &mut req_emits,
+        )
+        .await?;
 
         tx.commit().await?;
         // Post-commit: the unit/time-special/speed-impact-group unlocks the
@@ -231,9 +208,7 @@ impl UserStorageBo {
             return Ok(());
         };
 
-        let improvements =
-            crate::bo::user_improvement_bo::UserImprovementBo::find_user_improvement(db, user_id)
-                .await?;
+        let improvements = UserImprovementBo::find_user_improvement(db, user_id).await?;
         let now = chrono::Utc::now().naive_utc();
         // calculateSum: (now - lastAction) in seconds (millis / 1000.0).
         let elapsed_secs = (now - last_action).num_milliseconds() as f64 / 1000.0;
@@ -477,43 +452,9 @@ impl UserStorageBo {
         Ok(())
     }
 
-    /// `AdminGameUsersRestService.findUsers` (`GET admin/users/with-suspicions`)
-    /// — every user with their suspicion count, sorted by count descending
-    /// (matching the Java `Comparator.reversed()`).
-    pub async fn find_all_with_suspicion_counts(
-        db: &Db,
-    ) -> OwgeResult<Vec<SimpleUserDataWithSuspicionsCountsDto>> {
-        let rows = sqlx::query_as::<_, (i32, String, String, i64)>(
-            "SELECT u.id, u.username, u.email, \
-                    (SELECT COUNT(*) FROM suspicions s WHERE s.user_id = u.id) AS cnt \
-             FROM user_storage u \
-             ORDER BY cnt DESC, u.id",
-        )
-        .fetch_all(db)
-        .await?;
-        Ok(rows
-            .into_iter()
-            .map(|(id, username, email, cnt)| SimpleUserDataWithSuspicionsCountsDto {
-                user: SimpleUserDataDto {
-                    id,
-                    username,
-                    email,
-                },
-                suspicions_count: cnt,
-            })
-            .collect())
-    }
-
     /// `AdminGameUsersRestService.findById` (`GET admin/users/{id}`).
-    pub async fn find_simple_by_id(db: &Db, id: i32) -> OwgeResult<SimpleUserDataDto> {
-        let row = sqlx::query_as::<_, SimpleUserRow>(
-            "SELECT id, username, email FROM user_storage WHERE id = ?",
-        )
-        .bind(id)
-        .fetch_optional(db)
-        .await?;
-        row.map(Into::into)
-            .ok_or_else(|| OwgeError::NotFound(format!("No user with id {id}")))
+    pub async fn find_simple_by_id(db: &Db, id: i32) -> OwgeResult<SimpleUserData> {
+        Ok(SimpleUserData::find_by_id(db, &id).await?)
     }
 
     /// The `user_data_change` payload (`UserEventEmitterBo.findData`). Mirrors
@@ -522,16 +463,19 @@ impl UserStorageBo {
     /// stored `user_storage.energy` is the *initial* energy, NOT the max (each
     /// faction has its own `initial_energy`). The `computed*` fields are never set
     /// by Java's `findData`, so they stay `None` (omitted from the JSON).
-    pub async fn find_data(db: &Db, id: i32) -> OwgeResult<Option<UserStorageDto>> {
+    pub async fn find_data(db: &Db, id: i32) -> OwgeResult<Option<UserData>> {
         let Some(u) = Self::find_by_id(db, id).await? else {
             return Ok(None);
         };
-        let improvement = crate::bo::UserImprovementBo::find_user_improvement(db, id).await?;
+        let improvement = UserImprovementBo::find_user_improvement(db, id).await?;
         let initial_energy: Option<u32> =
             sqlx::query_scalar("SELECT initial_energy FROM factions WHERE id = ?")
                 .bind(u.faction)
                 .fetch_optional(db)
                 .await?;
+
+        let faction = FactionBo::find_by_id_or_die(db, u.faction).await?;
+
         let max_energy = crate::bo::mission_bo::compute_improvement_value(
             db,
             initial_energy.unwrap_or(0) as f64,
@@ -539,6 +483,7 @@ impl UserStorageBo {
             true,
         )
         .await?;
+
         // Σ(count × energy) is integer-valued; CAST so sqlx decodes i64 (SUM → DECIMAL).
         let consumed: i64 = sqlx::query_scalar(
             "SELECT CAST(COALESCE(SUM(ou.count * un.energy), 0) AS SIGNED) \
@@ -547,21 +492,19 @@ impl UserStorageBo {
         .bind(id)
         .fetch_one(db)
         .await?;
-        Ok(Some(UserStorageDto {
-            id: u.id,
-            username: u.username,
+        Ok(Some(UserData {
+            can_alter_twitch_state: u.can_alter_twitch_state,
+            consumed_energy: consumed as f64,
             email: u.email,
+            faction,
+            has_skipped_tutorial: u.has_skipped_tutorial,
+            home_planet: PlanetBo::find_by_id_or_die(db, u.home_planet).await?,
+            id: u.id,
+            improvements: UserImprovementBo::find_user_improvement(db, id).await?,
+            max_energy,
             primary_resource: u.primary_resource,
             secondary_resource: u.secondary_resource,
-            consumed_energy: Some(consumed as f64),
-            primary_resource_generation_per_second: u.primary_resource_generation_per_second,
-            secondary_resource_generation_per_second: u.secondary_resource_generation_per_second,
-            max_energy: Some(max_energy),
-            has_skipped_tutorial: u.has_skipped_tutorial,
-            can_alter_twitch_state: u.can_alter_twitch_state,
-            computed_primary_resource_generation_per_second: None,
-            computed_secondary_resource_generation_per_second: None,
-            computed_max_energy: None,
+            username: u.username,
         }))
     }
 }

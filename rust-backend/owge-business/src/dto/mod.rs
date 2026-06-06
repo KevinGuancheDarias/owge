@@ -77,7 +77,7 @@ pub use tutorial::{
 pub use unit::{UnitDto, UnitInput};
 pub use unit_type::{UnitTypeDto, UnitTypeInput};
 pub use upgrade::{ObtainedUpgradeDto, UpgradeDto, UpgradeInput, UpgradeTypeDto, UpgradeTypeInput};
-pub use user::{SimpleUserDataDto, SimpleUserDataWithSuspicionsCountsDto, UserStorageDto};
+pub use user::{SimpleUserData, UserData};
 pub use user_improvement::{
     ImprovementType, UnitTypeImprovementEntry, UserImprovementDto,
 };

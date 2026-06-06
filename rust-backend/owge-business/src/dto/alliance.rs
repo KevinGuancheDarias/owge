@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::UserStorageDto;
+use super::{SimpleUserData};
 
 /// Mirrors `AllianceDto` (`CommonDto { id, name, description }` + `image` from
 /// `CommonEntityWithImage` + `owner`). The Java DTO annotates `owner` with
@@ -32,7 +32,7 @@ pub struct AllianceDto {
 #[serde(rename_all = "camelCase")]
 pub struct AllianceJoinRequestDto {
     pub id: u32,
-    pub user: UserStorageDto,
+    pub user: SimpleUserData,
     pub alliance: AllianceDto,
 }
 

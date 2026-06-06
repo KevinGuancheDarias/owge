@@ -11,23 +11,22 @@ use serde::Serialize;
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlanetDto {
+    pub galaxy_id: u16,
+    pub galaxy_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub home: Option<bool>,
     pub id: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
-    pub sector: u32,
-    pub quadrant: u32,
-    pub planet_number: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner_id: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner_name: Option<String>,
+    pub planet_number: u16,
+    pub quadrant: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub richness: Option<u16>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub home: Option<bool>,
-    pub galaxy_id: u16,
-    pub galaxy_name: String,
-    // specialLocation is omitted until the special-location domain lands (M2).
+    pub sector: u32,
 }
 
 impl PlanetDto {
