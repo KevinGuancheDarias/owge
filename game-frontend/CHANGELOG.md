@@ -1,7 +1,7 @@
 
 # OWGE changelog
 
-v0.11.11 (latest)
+v0.11.11 (2026-06-06 11:58)
 ============================
 * __Fix:__ Prevent building the same unique unit twice by serializing BUILD_UNIT registration with a per-user lock (in addition to the existing per-planet lock); previously concurrent requests to build a unique unit on two different planets could both bypass the uniqueness check.
 
