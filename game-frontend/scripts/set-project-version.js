@@ -5,6 +5,9 @@ const pomFiles = [
     '../business/pom.xml',
     '../game-rest/pom.xml'
 ];
+const cargoFiles = [
+    '../rust-backend/Cargo.toml'
+];
 const packageJsonFiles = [
     './package.json'
 ];
@@ -27,6 +30,16 @@ if (process.argv.length >= 3) {
                 to: `<owge.version>${targetVersion}-SNAPSHOT</owge.version>`
             })
         }
+    });
+    cargoFiles.forEach(async cargoFile => {
+        console.log(`Changing version in file ${cargoFile}`);
+        const fs = require('fs');
+        const content = fs.readFileSync(cargoFile, 'utf8');
+        const updated = content.replace(
+            /(\[workspace\.package\]\s*)version = "[\d.]+"/,
+            `$1version = "${targetVersion}"`
+        );
+        fs.writeFileSync(cargoFile, updated, 'utf8');
     });
     packageJsonFiles.forEach(async packageJson => {
         console.log(`Changing version to  file ${packageJson}`);
