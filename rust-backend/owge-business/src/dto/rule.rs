@@ -1,6 +1,8 @@
 //! Mirrors `RuleDto` (and the descriptor DTOs) from
 //! `com.kevinguanchedarias.owgejava.dto.rule`.
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::dto::RequirementInformationDto;
@@ -65,6 +67,26 @@ fn json_value_to_string(value: &serde_json::Value) -> String {
         serde_json::Value::Null => "null".to_string(),
         other => other.to_string(),
     }
+}
+
+/// Mirrors `RuleWithRelatedUnitsDto` — the `/open/websocket-sync/rule_change` payload.
+///
+/// `relatedUnits` is keyed by unit id as a string (Jackson serialises
+/// `Map<Integer, ...>` with string keys in JSON).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RuleWithRelatedUnitsDto {
+    pub rules: Vec<RuleDto>,
+    pub related_units: HashMap<String, UnitCommonDto>,
+}
+
+/// Mirrors `CommonDto<Integer, Unit>` — the three fields that `CommonEntityService`
+/// populates: `id`, `name`, `description`.
+#[derive(Debug, Clone, Serialize)]
+pub struct UnitCommonDto {
+    pub id: u16,
+    pub name: String,
+    pub description: Option<String>,
 }
 
 /// Mirrors `RuleTypeDescriptorDto` — the list of extra-arg descriptors a rule

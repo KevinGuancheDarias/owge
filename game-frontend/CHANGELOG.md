@@ -4,6 +4,7 @@
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
 * __Fix:__ `RustBackend:` factions findVisible endpoint not returning the correct data
+* __Improvement:__ `RustBackend:` migrate `/open/websocket-sync/rule_change` and `/open/websocket-sync/speed_group_change` endpoints from Java to Rust
 
 v0.11.11 (2026-06-06 11:58)
 ============================

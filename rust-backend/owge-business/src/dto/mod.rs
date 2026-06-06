@@ -63,7 +63,7 @@ pub use requirement_information::{
 };
 pub use rule::{
     IdNameDto, RuleDto, RuleExtraArgDto, RuleInput, RuleItemTypeDescriptorDto,
-    RuleTypeDescriptorDto,
+    RuleTypeDescriptorDto, RuleWithRelatedUnitsDto, UnitCommonDto,
 };
 pub use special_location::{SpecialLocationDto, SpecialLocationInput};
 pub use speed_impact_group::{SpeedImpactGroupDto, SpeedImpactGroupInput};

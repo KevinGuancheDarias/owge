@@ -22,9 +22,11 @@
 //! `SgtBackendInvalidInputException` (`OwgeError::InvalidInput`, HTTP 400).
 
 use crate::db::Db;
+use std::collections::HashMap;
+
 use crate::dto::rule::{
     IdNameDto, RuleDto, RuleExtraArgDto, RuleInput, RuleItemTypeDescriptorDto,
-    RuleTypeDescriptorDto,
+    RuleTypeDescriptorDto, RuleWithRelatedUnitsDto, UnitCommonDto,
 };
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::rule::Rule;
@@ -217,4 +219,71 @@ impl RuleBo {
             .await?;
         Ok(())
     }
+
+    /// All rules as DTOs — backing `OpenWebsocketSyncRestService.findRules`.
+    pub async fn find_all(db: &Db) -> OwgeResult<Vec<RuleDto>> {
+        let rows = sqlx::query_as::<_, Rule>(SELECT_COLUMNS)
+            .fetch_all(db)
+            .await?;
+        Ok(rows.into_iter().map(Into::into).collect())
+    }
+
+    /// `OpenWebsocketSyncRestService.findRules` — all rules plus the units that
+    /// appear as origin or destination (`origin_type = "UNIT"` /
+    /// `destination_type = "UNIT"`), keyed by unit id.
+    pub async fn find_all_with_related_units(db: &Db) -> OwgeResult<RuleWithRelatedUnitsDto> {
+        let rules = Self::find_all(db).await?;
+
+        let unit_ids: std::collections::HashSet<i64> = rules
+            .iter()
+            .flat_map(|r| {
+                let mut ids = Vec::new();
+                if r.origin_type == "UNIT" {
+                    ids.push(r.origin_id);
+                }
+                if r.destination_type == "UNIT" {
+                    ids.push(r.destination_id);
+                }
+                ids
+            })
+            .collect();
+
+        let related_units: HashMap<String, UnitCommonDto> = if unit_ids.is_empty() {
+            HashMap::new()
+        } else {
+            let ids: Vec<i64> = unit_ids.into_iter().collect();
+            let mut qb = sqlx::QueryBuilder::new(
+                "SELECT id, name, description FROM units WHERE id IN (",
+            );
+            let mut sep = qb.separated(", ");
+            for &id in &ids {
+                sep.push_bind(id as i16);
+            }
+            qb.push(")");
+            qb.build_query_as::<UnitSimpleRow>()
+                .fetch_all(db)
+                .await?
+                .into_iter()
+                .map(|r| {
+                    (
+                        r.id.to_string(),
+                        UnitCommonDto {
+                            id: r.id,
+                            name: r.name,
+                            description: r.description,
+                        },
+                    )
+                })
+                .collect()
+        };
+
+        Ok(RuleWithRelatedUnitsDto { rules, related_units })
+    }
+}
+
+#[derive(sqlx::FromRow)]
+struct UnitSimpleRow {
+    id: u16,
+    name: String,
+    description: Option<String>,
 }

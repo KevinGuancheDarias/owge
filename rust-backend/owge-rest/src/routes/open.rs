@@ -4,7 +4,8 @@ use axum::extract::State;
 use axum::routing::get;
 use axum::{Json, Router};
 use chrono::Utc;
-use owge_business::bo::ConfigurationBo;
+use owge_business::bo::{ConfigurationBo, RuleBo, SpeedImpactGroupBo};
+use owge_business::dto::{RuleWithRelatedUnitsDto, SpeedImpactGroupDto};
 use serde::Serialize;
 
 use crate::http_error::ApiResult;
@@ -14,6 +15,11 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/open/clock", get(clock))
         .route("/open/configuration", get(configuration))
+        .route("/open/websocket-sync/rule_change", get(rule_change))
+        .route(
+            "/open/websocket-sync/speed_group_change",
+            get(speed_group_change),
+        )
 }
 
 /// `ClockRestService.currentTime` — returns the server time. Jackson serialises
@@ -44,4 +50,18 @@ async fn configuration(State(state): State<AppState>) -> ApiResult<Json<Vec<Conf
         })
         .collect();
     Ok(Json(dtos))
+}
+
+/// `OpenWebsocketSyncRestService.findRules` — all rules plus the units they reference.
+async fn rule_change(
+    State(state): State<AppState>,
+) -> ApiResult<Json<RuleWithRelatedUnitsDto>> {
+    Ok(Json(RuleBo::find_all_with_related_units(&state.db).await?))
+}
+
+/// `OpenWebsocketSyncRestService.findSpeedImpactGroups` — all speed impact groups.
+async fn speed_group_change(
+    State(state): State<AppState>,
+) -> ApiResult<Json<Vec<SpeedImpactGroupDto>>> {
+    Ok(Json(SpeedImpactGroupBo::find_all_dtos(&state.db).await?))
 }
