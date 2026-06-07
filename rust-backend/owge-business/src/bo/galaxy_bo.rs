@@ -54,11 +54,12 @@ struct NavPlanetRow {
     home: i8,
     galaxy_id: u16,
     galaxy_name: String,
+    is_explored: Option<bool>,
 }
 
 impl From<NavPlanetRow> for PlanetDto {
     fn from(r: NavPlanetRow) -> Self {
-        PlanetDto {
+        let mut ret_val = PlanetDto {
             id: r.id,
             name: Some(r.name),
             sector: r.sector,
@@ -70,7 +71,12 @@ impl From<NavPlanetRow> for PlanetDto {
             home: Some(r.home != 0),
             galaxy_id: r.galaxy_id,
             galaxy_name: r.galaxy_name,
+        };
+        if !r.is_explored.unwrap_or(false) {
+            ret_val.clean_up_unexplored();
         }
+
+        ret_val
     }
 }
 
@@ -166,25 +172,25 @@ impl GalaxyBo {
     /// `PlanetBo.findByGalaxyAndSectorAndQuadrant(galaxyId, sector, quadrant)` —
     /// the planets at a navigated location, as `PlanetDto`s.
     ///
-    /// Note: `GalaxyRestService.navigate` does NOT mask unexplored planets — Java
-    /// only calls `cleanUpUnexplored` from `PlanetListBo` and the running-mission
-    /// finder, not here — so the galaxy view returns full owner/richness info.
     pub async fn find_planets_at(
         db: &Db,
         galaxy_id: u16,
         sector: u32,
         quadrant: u32,
+        user: Option<i64>,
     ) -> OwgeResult<Vec<PlanetDto>> {
         let rows = sqlx::query_as::<_, NavPlanetRow>(
             "SELECT p.id, p.name, p.sector, p.quadrant, p.planet_number AS planet_number, \
-                    p.owner AS owner_id, o.username AS owner_name, p.richness, \
-                    COALESCE(p.home, 0) AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name \
+                    p.owner AS owner_id, o.username AS owner_name, p.richness, ? as the_user, \
+                    COALESCE(p.home, 0) AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name, \
+                (SELECT owner_id = the_user OR EXISTS(SELECT 1 FROM explored_planets WHERE `user` = the_user AND planet = p.id)) AS is_explored \
              FROM planets p \
              JOIN galaxies g ON g.id = p.galaxy_id \
              LEFT JOIN user_storage o ON o.id = p.owner \
              WHERE p.galaxy_id = ? AND p.sector = ? AND p.quadrant = ? \
              ORDER BY p.planet_number",
         )
+        .bind(user.unwrap_or(0))
         .bind(galaxy_id)
         .bind(sector)
         .bind(quadrant)

@@ -4,7 +4,7 @@ members = ["owge-business", "owge-rest"]
 
 [workspace.package]
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 authors = ["Kevin Guanche Darias <kevin@kevinguanchedarias.com>"]
 

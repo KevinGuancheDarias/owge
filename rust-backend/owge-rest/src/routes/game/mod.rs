@@ -37,12 +37,21 @@ pub fn routes() -> Router<AppState> {
         .route("/game/time_special/{id}", get(time_special_by_id))
         .route("/game/tutorial/entries", get(tutorial_entries))
         .route("/game/planet-list", post(planet_list_add))
-        .route("/game/planet-list/{planetId}", axum::routing::delete(planet_list_delete))
-        .route("/game/system-message/mark-as-read", post(system_message_mark_read))
+        .route(
+            "/game/planet-list/{planetId}",
+            axum::routing::delete(planet_list_delete),
+        )
+        .route(
+            "/game/system-message/mark-as-read",
+            post(system_message_mark_read),
+        )
         .route("/game/tutorial/visited-entries", post(tutorial_add_visited))
         .route("/game/track-browser/warn", post(track_browser_warn))
         .route("/game/track-browser/error", post(track_browser_error))
-        .route("/game/twitch-state", get(twitch_state_get).put(twitch_state_put))
+        .route(
+            "/game/twitch-state",
+            get(twitch_state_get).put(twitch_state_put),
+        )
         .route("/game/report/mark-as-read", post(report_mark_as_read))
         .route(
             "/game/report/mark-as-read-before-date/{date}",
@@ -79,8 +88,13 @@ async fn find_visible_factions(
 
 /// `UserRestService.exists` -> `UserStorageBo.exists` — has this account user
 /// subscribed to this universe?
-async fn user_exists(State(state): State<AppState>, GameUser(user): GameUser) -> ApiResult<Json<bool>> {
-    Ok(Json(UserStorageBo::exists(&state.db, user.id as i32).await?))
+async fn user_exists(
+    State(state): State<AppState>,
+    GameUser(user): GameUser,
+) -> ApiResult<Json<bool>> {
+    Ok(Json(
+        UserStorageBo::exists(&state.db, user.id as i32).await?,
+    ))
 }
 
 #[derive(Deserialize)]
@@ -134,11 +148,19 @@ struct NavigationPojo {
 /// coordinates.
 async fn galaxy_navigate(
     State(state): State<AppState>,
-    _user: GameUser,
+    user: GameUser,
     Query(q): Query<NavigateQuery>,
 ) -> ApiResult<Json<NavigationPojo>> {
     let galaxies = GalaxyBo::find_all(&state.db).await?;
-    let planets = GalaxyBo::find_planets_at(&state.db, q.galaxy_id, q.sector, q.quadrant).await?;
+    let planets = GalaxyBo::find_planets_at(
+        &state.db,
+        q.galaxy_id,
+        q.sector,
+        q.quadrant,
+        Some(user.0.id),
+    )
+    .await?;
+
     Ok(Json(NavigationPojo { galaxies, planets }))
 }
 
@@ -147,7 +169,9 @@ async fn time_special_list(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<Vec<TimeSpecialDto>>> {
-    Ok(Json(TimeSpecialBo::find_all_dtos(&state.db, user.id as i32).await?))
+    Ok(Json(
+        TimeSpecialBo::find_all_dtos(&state.db, user.id as i32).await?,
+    ))
 }
 
 /// `TimeSpecialRestService` (WithRead) GET one. Java's `WithReadRestServiceTrait`
@@ -159,7 +183,9 @@ async fn time_special_by_id(
 ) -> ApiResult<Json<TimeSpecialDto>> {
     let dto = TimeSpecialBo::find_dto_by_id(&state.db, user.id as i32, id)
         .await?
-        .ok_or_else(|| owge_business::OwgeError::NotFound(format!("No time special with id {id}")))?;
+        .ok_or_else(|| {
+            owge_business::OwgeError::NotFound(format!("No time special with id {id}"))
+        })?;
     Ok(Json(dto))
 }
 
@@ -185,7 +211,13 @@ async fn planet_list_add(
     GameUser(user): GameUser,
     Json(body): Json<PlanetListAddBody>,
 ) -> ApiResult<Json<&'static str>> {
-    PlanetListBo::add(&state.db, user.id as i32, body.planet_id, body.name.as_deref()).await?;
+    PlanetListBo::add(
+        &state.db,
+        user.id as i32,
+        body.planet_id,
+        body.name.as_deref(),
+    )
+    .await?;
     Ok(Json("OK"))
 }
 
@@ -241,10 +273,7 @@ async fn track_browser_error(
 
 /// `TwitchStateRestService.findTwitchState` — the `TWITCH_STATE` config flag
 /// (defaulting to `false`).
-async fn twitch_state_get(
-    State(state): State<AppState>,
-    _user: GameUser,
-) -> ApiResult<Json<bool>> {
+async fn twitch_state_get(State(state): State<AppState>, _user: GameUser) -> ApiResult<Json<bool>> {
     let cfg = ConfigurationBo::find_or_set_default(&state.db, "TWITCH_STATE", "false").await?;
     Ok(Json(cfg.value.eq_ignore_ascii_case("true")))
 }
@@ -302,12 +331,8 @@ async fn report_mark_as_read_before_date(
 ) -> ApiResult<StatusCode> {
     let parsed = chrono::DateTime::parse_from_rfc3339(&date)
         .map(|dt| dt.naive_utc())
-        .or_else(|_| {
-            chrono::NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f")
-        })
-        .map_err(|_| {
-            owge_business::OwgeError::InvalidInput(format!("Invalid date: {date}"))
-        })?;
+        .or_else(|_| chrono::NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f"))
+        .map_err(|_| owge_business::OwgeError::InvalidInput(format!("Invalid date: {date}")))?;
     MissionReportBo::mark_as_read_before_date(&state.db, user.id as i32, parsed).await?;
     // MissionReportBo.markAsReadBeforeDate → emitCountChange(userId).
     owge_business::bo::realtime_emitter::emit_mission_report_count_change(

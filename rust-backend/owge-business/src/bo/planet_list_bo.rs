@@ -7,6 +7,7 @@
 //! on the exploration/mission state, so the cleanup is deferred (see TODO);
 //! the raw joined rows are returned for now, matching the explored-planet case.
 
+use crate::bo::PlanetBo;
 use crate::db::Db;
 use crate::dto::{PlanetDto, PlanetListDto};
 use crate::error::OwgeResult;
@@ -120,30 +121,10 @@ impl PlanetListBo {
         // of any listed planet the user has not explored.
         let mut dtos: Vec<PlanetListDto> = rows.into_iter().map(Into::into).collect();
         for dto in dtos.iter_mut() {
-            if !is_explored(db, user_id, dto.planet.id).await? {
+            if !PlanetBo::is_explored(db, user_id, dto.planet.id).await? {
                 dto.planet.clean_up_unexplored();
             }
         }
         Ok(dtos)
     }
-}
-
-/// `PlanetExplorationService.isExplored(userId, planetId)` — true when the user
-/// owns the planet or has an `explored_planets` row for it. `explored_planets`
-/// keys the user with column `user` (signed `int`) and `planet`.
-async fn is_explored(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
-    let found: i64 = sqlx::query_scalar(
-        "SELECT EXISTS( \
-             SELECT 1 FROM planets WHERE id = ? AND owner = ? \
-             UNION ALL \
-             SELECT 1 FROM explored_planets WHERE `user` = ? AND planet = ? \
-         )",
-    )
-    .bind(planet_id)
-    .bind(user_id)
-    .bind(user_id)
-    .bind(planet_id)
-    .fetch_one(db)
-    .await?;
-    Ok(found != 0)
 }

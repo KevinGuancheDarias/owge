@@ -205,4 +205,21 @@ impl PlanetBo {
 
         Ok(())
     }
+
+    /// `PlanetExplorationService.isExplored(userId, planetId)` — true when the user
+    /// owns the planet or has an `explored_planets` row for it. `explored_planets`
+    /// keys the user with column `user` (signed `int`) and `planet`.
+    pub async fn is_explored(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
+        let found: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM planets WHERE id = ? AND owner = ?) \
+             OR EXISTS(SELECT 1 FROM explored_planets WHERE `user` = ? AND planet = ?)",
+        )
+        .bind(planet_id)
+        .bind(user_id)
+        .bind(user_id)
+        .bind(planet_id)
+        .fetch_one(db)
+        .await?;
+        Ok(found)
+    }
 }
