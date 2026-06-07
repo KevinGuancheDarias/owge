@@ -23,14 +23,15 @@ pub mod explore;
 pub mod gather;
 pub mod return_mission;
 
-use sqlx::MySqlConnection;
-
+use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::builder::UnitMissionReportBuilder;
 use crate::dto::obtained_unit::{ObtainedUnitDto, ObtainedUnitUnitDto};
 use crate::dto::PlanetDto;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
+use crate::model::planet::PlanetDtoRow;
+use sqlx::MySqlConnection;
 
 /// `UnitMissionBo` dispatch — route a (unit) mission to its processor and return
 /// the produced report builder, if any. `db` is threaded for the processors that
@@ -150,41 +151,6 @@ pub(crate) async fn load_obtained_unit_dto(
     .fetch_optional(&mut *conn)
     .await?;
     Ok(row.map(Into::into))
-}
-
-// --- planet DTO row ---
-
-#[derive(sqlx::FromRow)]
-struct PlanetDtoRow {
-    id: u64,
-    name: String,
-    sector: u32,
-    quadrant: u32,
-    planet_number: u16,
-    owner_id: Option<i32>,
-    owner_name: Option<String>,
-    richness: u16,
-    home: i8,
-    galaxy_id: u16,
-    galaxy_name: String,
-}
-
-impl From<PlanetDtoRow> for PlanetDto {
-    fn from(r: PlanetDtoRow) -> Self {
-        PlanetDto {
-            id: r.id,
-            name: Some(r.name),
-            sector: r.sector,
-            quadrant: r.quadrant,
-            planet_number: r.planet_number,
-            owner_id: r.owner_id,
-            owner_name: r.owner_name,
-            richness: Some(r.richness),
-            home: Some(r.home != 0),
-            galaxy_id: r.galaxy_id,
-            galaxy_name: r.galaxy_name,
-        }
-    }
 }
 
 const SELECT_PLANET_DTO: &str = "\
@@ -375,10 +341,12 @@ pub(crate) async fn is_attack_trigger_enabled(
         Some(v) => v,
         None => {
             // findOrSetDefault writes the default the first time it is read.
-            sqlx::query("INSERT INTO configuration (name, value, privileged) VALUES (?, 'FALSE', 0)")
-                .bind(&name)
-                .execute(&mut *conn)
-                .await?;
+            sqlx::query(
+                "INSERT INTO configuration (name, value, privileged) VALUES (?, 'FALSE', 0)",
+            )
+            .bind(&name)
+            .execute(&mut *conn)
+            .await?;
             "FALSE".to_string()
         }
     };
@@ -428,10 +396,7 @@ const ARE_UNITS_INVOLVED_SQL: &str = "\
        AND (us.alliance_id IS NULL OR ? IS NULL OR us.alliance_id <> ?)";
 
 /// `planetBo.hasMaxPlanets(user)` — the user already owns >= faction.maxPlanets.
-pub(crate) async fn has_max_planets(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-) -> OwgeResult<bool> {
+pub(crate) async fn has_max_planets(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<bool> {
     // factions.max_planets is `tinyint UNSIGNED` -> u8 (decode at literal type).
     let row: Option<(u8,)> = sqlx::query_as(
         "SELECT f.max_planets \
@@ -450,15 +415,11 @@ pub(crate) async fn has_max_planets(
 }
 
 /// `planetBo.isHomePlanet(planet)` — the planet's `home` flag is set.
-pub(crate) async fn is_home_planet(
-    conn: &mut MySqlConnection,
-    planet_id: u64,
-) -> OwgeResult<bool> {
-    let home: Option<Option<i8>> =
-        sqlx::query_scalar("SELECT home FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+pub(crate) async fn is_home_planet(conn: &mut MySqlConnection, planet_id: u64) -> OwgeResult<bool> {
+    let home: Option<Option<i8>> = sqlx::query_scalar("SELECT home FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(matches!(home, Some(Some(h)) if h != 0))
 }
 
@@ -547,24 +508,21 @@ pub(crate) async fn move_unit_to_planet(
         // The caller is responsible for the non-owned (deployed) branch; here we
         // only land it on the planet as a fallback so state stays consistent.
         // TODO(M3): non-owned moveUnit (DEPLOYED mission creation) — see deploy.rs.
-        sqlx::query(
-            "UPDATE obtained_units SET source_planet = ?, target_planet = ? WHERE id = ?",
-        )
-        .bind(planet_id)
-        .bind(planet_id)
-        .bind(obtained_unit_id)
-        .execute(&mut *conn)
-        .await?;
+        sqlx::query("UPDATE obtained_units SET source_planet = ?, target_planet = ? WHERE id = ?")
+            .bind(planet_id)
+            .bind(planet_id)
+            .bind(obtained_unit_id)
+            .execute(&mut *conn)
+            .await?;
         return Ok(());
     }
 
     // Identify the moving stack's (unit_id, expiration_id) to find a merge target.
-    let row: Option<(u16, Option<u32>, u64)> = sqlx::query_as(
-        "SELECT unit_id, expiration_id, count FROM obtained_units WHERE id = ?",
-    )
-    .bind(obtained_unit_id)
-    .fetch_optional(&mut *conn)
-    .await?;
+    let row: Option<(u16, Option<u32>, u64)> =
+        sqlx::query_as("SELECT unit_id, expiration_id, count FROM obtained_units WHERE id = ?")
+            .bind(obtained_unit_id)
+            .fetch_optional(&mut *conn)
+            .await?;
     let Some((unit_id, expiration_id, count)) = row else {
         return Ok(());
     };
@@ -572,31 +530,35 @@ pub(crate) async fn move_unit_to_planet(
     // saveWithAdding: an existing stack of the same unit on this planet, not in a
     // mission, with matching expiration, absorbs the count.
     let existing: Option<u64> = match expiration_id {
-        None => sqlx::query_scalar(
-            "SELECT id FROM obtained_units \
+        None => {
+            sqlx::query_scalar(
+                "SELECT id FROM obtained_units \
               WHERE user_id = ? AND unit_id = ? AND source_planet = ? \
                 AND mission_id IS NULL AND expiration_id IS NULL AND owner_unit_id IS NULL \
                 AND id <> ? LIMIT 1",
-        )
-        .bind(user_id)
-        .bind(unit_id)
-        .bind(planet_id)
-        .bind(obtained_unit_id)
-        .fetch_optional(&mut *conn)
-        .await?,
-        Some(exp) => sqlx::query_scalar(
-            "SELECT id FROM obtained_units \
+            )
+            .bind(user_id)
+            .bind(unit_id)
+            .bind(planet_id)
+            .bind(obtained_unit_id)
+            .fetch_optional(&mut *conn)
+            .await?
+        }
+        Some(exp) => {
+            sqlx::query_scalar(
+                "SELECT id FROM obtained_units \
               WHERE user_id = ? AND unit_id = ? AND source_planet = ? \
                 AND mission_id IS NULL AND expiration_id = ? AND owner_unit_id IS NULL \
                 AND id <> ? LIMIT 1",
-        )
-        .bind(user_id)
-        .bind(unit_id)
-        .bind(planet_id)
-        .bind(exp)
-        .bind(obtained_unit_id)
-        .fetch_optional(&mut *conn)
-        .await?,
+            )
+            .bind(user_id)
+            .bind(unit_id)
+            .bind(planet_id)
+            .bind(exp)
+            .bind(obtained_unit_id)
+            .fetch_optional(&mut *conn)
+            .await?
+        }
     };
 
     if let Some(existing_id) = existing {
@@ -714,9 +676,10 @@ impl DeferredEmit {
                 });
                 realtime_emitter::send_gather_result(*user_id, value).await
             }
-            DeferredEmit::LocalMissionChange { mission_id, user_id } => {
-                MissionEventEmitter::emit_local_mission_change(db, *mission_id, *user_id).await
-            }
+            DeferredEmit::LocalMissionChange {
+                mission_id,
+                user_id,
+            } => MissionEventEmitter::emit_local_mission_change(db, *mission_id, *user_id).await,
             DeferredEmit::ConquestSuccess {
                 new_owner_id,
                 target_planet_id,
@@ -755,13 +718,12 @@ impl DeferredEmit {
                 // updatePoints' doAfterCommit: per altered user, unit_type_change +
                 // unit_obtained_change.
                 for &uid in &a.altered_users {
-                    ObtainedUnitEventEmitter::emit_unit_type_change(db, uid).await?;
+                    UnitTypeEmitter::emit_unit_type_change(db, uid).await?;
                     ObtainedUnitEventEmitter::emit_obtained_units(db, uid).await?;
                 }
                 // startAttack per-user block. The deleted-missions loop removes its
                 // users from the changed-counts set first.
-                let deleted: HashSet<i32> =
-                    a.users_with_deleted_missions.iter().copied().collect();
+                let deleted: HashSet<i32> = a.users_with_deleted_missions.iter().copied().collect();
                 let changed: Vec<i32> = a
                     .users_with_changed_counts
                     .iter()
@@ -805,10 +767,7 @@ impl DeferredEmit {
 
 /// `planetListRepository.findUserIdByPlanetListPlanet(planet)` — the ids of users
 /// whose saved planet list contains `planet_id`.
-async fn find_planet_list_holders(
-    db: &crate::db::Db,
-    planet_id: u64,
-) -> OwgeResult<Vec<i32>> {
+async fn find_planet_list_holders(db: &crate::db::Db, planet_id: u64) -> OwgeResult<Vec<i32>> {
     Ok(
         sqlx::query_scalar("SELECT DISTINCT user_id FROM planet_list WHERE planet_id = ?")
             .bind(planet_id)
@@ -823,10 +782,9 @@ pub(crate) async fn is_planet_owned_by(
     user_id: i32,
     planet_id: u64,
 ) -> OwgeResult<bool> {
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(matches!(owner, Some(Some(o)) if o == user_id))
 }

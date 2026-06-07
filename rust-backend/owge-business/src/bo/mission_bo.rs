@@ -28,13 +28,15 @@
 use sqlx::{Connection, MySqlConnection};
 
 use crate::bo::configuration_bo::ConfigurationBo;
+use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::bo::mission_base_service_bo::MissionBaseService;
-use crate::bo::realtime_emitter::RequirementEmit;
 use crate::bo::object_relation_bo::ObjectRelationBo;
+use crate::bo::realtime_emitter::RequirementEmit;
 use crate::bo::unlocked_relation_bo::UnlockedRelationBo;
 use crate::bo::upgrade_bo::UpgradeBo;
 use crate::bo::user_improvement_bo::UserImprovementBo;
 use crate::bo::user_storage_bo::UserStorageBo;
+use crate::bo::{MissionEventEmitter, UserEventEmitter};
 use crate::db::Db;
 use crate::dto::mission::RunningUpgradeDto;
 use crate::dto::user_improvement::{ImprovementType, UserImprovementDto};
@@ -119,10 +121,10 @@ impl MissionBo {
 
         // M4 (Java MissionBo build-register tail): emitMissionCountChange +
         // emitUnitBuildChange + unitTypeBo.emitUserChange + emitUserData.
-        crate::bo::MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
-        crate::bo::MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
-        crate::bo::ObtainedUnitEventEmitter::emit_unit_type_change(db, user_id).await?;
-        crate::bo::UserEventEmitter::emit_user_data(db, user_id).await?;
+        MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(db, user_id).await?;
+        UserEventEmitter::emit_user_data(db, user_id).await?;
         Ok(())
     }
 
@@ -191,10 +193,9 @@ impl MissionBo {
 
         tx.commit().await?;
 
-        // M4 (Java MissionCancelBuildService): UNIT_BUILD_MISSION_CHANGE +
-        // emitMissionCountChange.
-        crate::bo::MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
-        crate::bo::MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(db, user_id).await?;
         Ok(())
     }
 
@@ -214,18 +215,18 @@ impl MissionBo {
         let mut conn = db.acquire().await?;
         let db_for_body = db.clone();
         crate::bo::unit_mission_bo::run_locked(&mut conn, &keys, move |conn| {
-            Box::pin(async move {
-                do_register_level_up(conn, &db_for_body, user_id, upgrade_id).await
-            })
+            Box::pin(
+                async move { do_register_level_up(conn, &db_for_body, user_id, upgrade_id).await },
+            )
         })
         .await?;
         drop(conn);
 
         // M4 (Java MissionBo.registerLevelUpAnUpgrade tail): emitRunningUpgrade +
         // emitMissionCountChange + emitUserData.
-        crate::bo::MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
-        crate::bo::MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
-        crate::bo::UserEventEmitter::emit_user_data(db, user_id).await?;
+        MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        UserEventEmitter::emit_user_data(db, user_id).await?;
         Ok(())
     }
 
@@ -240,9 +241,14 @@ impl MissionBo {
         let Some(mission) = load_level_up_mission(&mut conn, user_id).await? else {
             return Ok(None);
         };
-        let info = load_mission_information(&mut conn, mission.id).await?.ok_or_else(|| {
-            OwgeError::Common(format!("Level-up mission {} has no mission_information", mission.id))
-        })?;
+        let info = load_mission_information(&mut conn, mission.id)
+            .await?
+            .ok_or_else(|| {
+                OwgeError::Common(format!(
+                    "Level-up mission {} has no mission_information",
+                    mission.id
+                ))
+            })?;
         let relation_id = info.relation_id.ok_or_else(|| {
             OwgeError::Common(format!(
                 "Level-up mission {} mission_information has no relation_id",
@@ -250,12 +256,14 @@ impl MissionBo {
             ))
         })?;
         let upgrade_id = resolve_upgrade_id(&mut conn, relation_id).await?;
-        let upgrade = UpgradeBo::find_one(db, upgrade_id).await?.ok_or_else(|| {
-            OwgeError::NotFound(format!("No upgrade with id {upgrade_id}"))
-        })?;
+        let upgrade = UpgradeBo::find_one(db, upgrade_id)
+            .await?
+            .ok_or_else(|| OwgeError::NotFound(format!("No upgrade with id {upgrade_id}")))?;
         // missionInformation.getValue().intValue() — the level being researched.
         let level = info.value.unwrap_or(0.0) as i32;
-        Ok(Some(RunningUpgradeDto::from_mission(&mission, upgrade, level)))
+        Ok(Some(RunningUpgradeDto::from_mission(
+            &mission, upgrade, level,
+        )))
     }
 
     /// `MissionBo.cancelUpgradeMission` → `cancelMission`. Cancel the invoker's
@@ -267,11 +275,13 @@ impl MissionBo {
         let mut tx = db.begin().await?;
         // findOneByUserIdAndTypeCode(LEVEL_UP) — the invoker's running level-up.
         // cancelMission throws MissionNotFoundException when there is none.
-        let mission = load_level_up_mission(&mut tx, user_id).await?.ok_or_else(|| {
-            OwgeError::NotFound(
-                "The mission was not found, or was not passed to cancelMission()".to_string(),
-            )
-        })?;
+        let mission = load_level_up_mission(&mut tx, user_id)
+            .await?
+            .ok_or_else(|| {
+                OwgeError::NotFound(
+                    "The mission was not found, or was not passed to cancelMission()".to_string(),
+                )
+            })?;
         // Ownership is implicit — the mission was queried by the invoker's id.
         let primary = mission.primary_resource.unwrap_or(0.0);
         let secondary = mission.secondary_resource.unwrap_or(0.0);
@@ -311,8 +321,8 @@ impl MissionBo {
 
         // M4 (Java MissionBo.cancelUpgradeMission): RUNNING_UPGRADE_CHANGE -> null +
         // emitMissionCountChange.
-        crate::bo::MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
-        crate::bo::MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
         Ok(())
     }
 
@@ -339,7 +349,9 @@ impl MissionBo {
             return Ok(());
         };
         let user_id = mission.user_id.ok_or_else(|| {
-            OwgeError::Common(format!("Build-unit mission {mission_id} has no owning user"))
+            OwgeError::Common(format!(
+                "Build-unit mission {mission_id} has no owning user"
+            ))
         })?;
 
         // mission.getMissionInformation().getValue().longValue() — the build planet.
@@ -398,9 +410,13 @@ impl MissionBo {
             OwgeError::Common(format!("Level-up mission {mission_id} has no owning user"))
         })?;
 
-        let info = load_mission_information(conn, mission_id).await?.ok_or_else(|| {
-            OwgeError::Common(format!("Level-up mission {mission_id} has no mission_information"))
-        })?;
+        let info = load_mission_information(conn, mission_id)
+            .await?
+            .ok_or_else(|| {
+                OwgeError::Common(format!(
+                    "Level-up mission {mission_id} has no mission_information"
+                ))
+            })?;
         // objectRelationBo.unboxObjectRelation(relation) — for an UPGRADE relation the
         // referenced entity id is object_relations.reference_id.
         let relation_id = info.relation_id.ok_or_else(|| {
@@ -448,10 +464,7 @@ impl MissionBo {
 }
 
 /// `object_relations.reference_id` for an UPGRADE relation = the upgrade id.
-async fn resolve_upgrade_id(
-    conn: &mut MySqlConnection,
-    relation_id: u16,
-) -> OwgeResult<u16> {
+async fn resolve_upgrade_id(conn: &mut MySqlConnection, relation_id: u16) -> OwgeResult<u16> {
     // reference_id is a *signed* smallint; an upgrade id is a non-negative
     // smallint unsigned, so widen and re-narrow.
     let reference_id: Option<i16> =
@@ -459,9 +472,8 @@ async fn resolve_upgrade_id(
             .bind(relation_id)
             .fetch_optional(&mut *conn)
             .await?;
-    let reference_id = reference_id.ok_or_else(|| {
-        OwgeError::NotFound(format!("No object_relation with id {relation_id}"))
-    })?;
+    let reference_id = reference_id
+        .ok_or_else(|| OwgeError::NotFound(format!("No object_relation with id {relation_id}")))?;
     Ok(reference_id as u16)
 }
 
@@ -526,10 +538,7 @@ pub(crate) async fn load_user_storage(
     .ok_or_else(|| OwgeError::NotFound(format!("No user_storage with id {user_id}")))
 }
 
-async fn load_mission(
-    conn: &mut MySqlConnection,
-    mission_id: u64,
-) -> OwgeResult<Option<Mission>> {
+async fn load_mission(conn: &mut MySqlConnection, mission_id: u64) -> OwgeResult<Option<Mission>> {
     Ok(
         sqlx::query_as::<_, Mission>(crate::bo::mission_base_service_bo::SELECT_MISSION)
             .bind(mission_id)
@@ -596,7 +605,8 @@ async fn do_register_build_unit(
     let relation_id = ObjectRelationBo::find_one(&mut tx, object_enum::UNIT, unit_id as i16)
         .await?
         .ok_or_else(|| OwgeError::NotFound(format!("No object relation for unit {unit_id}")))?;
-    let unlocked = UnlockedRelationBo::find_unlocked_reference_ids(db, user_id, object_enum::UNIT).await?;
+    let unlocked =
+        UnlockedRelationBo::find_unlocked_reference_ids(db, user_id, object_enum::UNIT).await?;
     if !unlocked.contains(&(unit_id as i16)) {
         return Err(OwgeError::InvalidInput(
             "The specified unit is not unlocked for the invoker".to_string(),
@@ -611,7 +621,9 @@ async fn do_register_build_unit(
     let unit = load_unit_cost(&mut tx, unit_id).await?;
     let final_count = if unit.is_unique { 1 } else { count };
     if final_count < 1 {
-        return Err(OwgeError::InvalidInput("Input can't be negative".to_string()));
+        return Err(OwgeError::InvalidInput(
+            "Input can't be negative".to_string(),
+        ));
     }
 
     // checkIsUniqueBuilt.
@@ -641,9 +653,14 @@ async fn do_register_build_unit(
     let improvement = UserImprovementBo::find_user_improvement(db, user_id).await?;
     let primary = user.primary_resource.unwrap_or(0.0);
     let secondary = user.secondary_resource.unwrap_or(0.0);
-    let available_energy =
-        find_available_energy(&mut tx, db, user.faction, user_id, improvement.more_energy_production)
-            .await?;
+    let available_energy = find_available_energy(
+        &mut tx,
+        db,
+        user.faction,
+        user_id,
+        improvement.more_energy_production,
+    )
+    .await?;
     let can_run = primary >= required_primary
         && secondary >= required_secondary
         && (required_energy == 0.0 || available_energy >= required_energy);
@@ -692,12 +709,14 @@ async fn do_register_build_unit(
     .await?;
     let mission_id = mission_result.last_insert_id();
 
-    sqlx::query("INSERT INTO mission_information (mission_id, relation_id, value) VALUES (?, ?, ?)")
-        .bind(mission_id)
-        .bind(relation_id)
-        .bind(planet_id as f64)
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "INSERT INTO mission_information (mission_id, relation_id, value) VALUES (?, ?, ?)",
+    )
+    .bind(mission_id)
+    .bind(relation_id)
+    .bind(planet_id as f64)
+    .execute(&mut *tx)
+    .await?;
 
     // substractResources(user, mission).
     sqlx::query(
@@ -766,9 +785,13 @@ async fn find_available_energy(
             .bind(faction_id)
             .fetch_optional(&mut *conn)
             .await?;
-    let max_energy =
-        compute_improvement_value(db, initial_energy.unwrap_or(0) as f64, more_energy_production, true)
-            .await?;
+    let max_energy = compute_improvement_value(
+        db,
+        initial_energy.unwrap_or(0) as f64,
+        more_energy_production,
+        true,
+    )
+    .await?;
     // Σ(count × energy) is integer-valued; CAST so sqlx decodes i64 (SUM → DECIMAL).
     let consumed: i64 = sqlx::query_scalar(
         "SELECT CAST(COALESCE(SUM(ou.count * u.energy), 0) AS SIGNED) \
@@ -838,12 +861,11 @@ async fn check_would_reach_unit_type_limit(
     .await?
     .flatten();
     // unit_types.max_count is BIGINT (signed); factions_unit_types.max_count is INT UNSIGNED.
-    let type_max: Option<i64> =
-        sqlx::query_scalar("SELECT max_count FROM unit_types WHERE id = ?")
-            .bind(root_type)
-            .fetch_optional(&mut *conn)
-            .await?
-            .flatten();
+    let type_max: Option<i64> = sqlx::query_scalar("SELECT max_count FROM unit_types WHERE id = ?")
+        .bind(root_type)
+        .fetch_optional(&mut *conn)
+        .await?
+        .flatten();
 
     // hasMaxCount: a faction override > 0, or the type's own max_count > 0.
     let effective_max: Option<i64> = match faction_max {
@@ -867,7 +889,8 @@ async fn check_would_reach_unit_type_limit(
     .await?;
     let user_count = owned + count;
 
-    let amount_improvement = improvement.find_unit_type_improvement(ImprovementType::Amount, root_type);
+    let amount_improvement =
+        improvement.find_unit_type_improvement(ImprovementType::Amount, root_type);
     let limit = compute_improvement_value(db, max as f64, amount_improvement, true)
         .await?
         .floor() as i64;
@@ -881,10 +904,7 @@ async fn check_would_reach_unit_type_limit(
 
 /// `UnitTypeBo.findMaxShareCountRoot` — follow the `share_max_count` chain to the
 /// type whose count limit actually applies.
-async fn find_max_share_count_root(
-    conn: &mut MySqlConnection,
-    type_id: u16,
-) -> OwgeResult<u16> {
+async fn find_max_share_count_root(conn: &mut MySqlConnection, type_id: u16) -> OwgeResult<u16> {
     let mut current = type_id;
     // Bounded walk (defensive against a cyclic share chain).
     for _ in 0..32 {
@@ -1056,7 +1076,7 @@ async fn do_register_level_up(
         .value
         == "TRUE"
     {
-        required_time = 3.0;
+        required_time = 5.0;
     } else {
         let improvement = UserImprovementBo::find_user_improvement(db, user_id).await?;
         required_time = compute_improvement_value(
@@ -1098,12 +1118,14 @@ async fn do_register_level_up(
     .await?;
     let mission_id = mission_result.last_insert_id();
 
-    sqlx::query("INSERT INTO mission_information (mission_id, relation_id, value) VALUES (?, ?, ?)")
-        .bind(mission_id)
-        .bind(relation_id)
-        .bind(target_level)
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query(
+        "INSERT INTO mission_information (mission_id, relation_id, value) VALUES (?, ?, ?)",
+    )
+    .bind(mission_id)
+    .bind(relation_id)
+    .bind(target_level)
+    .execute(&mut *tx)
+    .await?;
 
     // substractResources(user, mission).
     sqlx::query(

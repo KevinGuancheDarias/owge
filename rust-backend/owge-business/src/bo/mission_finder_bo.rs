@@ -24,6 +24,7 @@ use crate::dto::running_unit_build::RunningUnitBuildDto;
 use crate::dto::PlanetDto;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::{Mission, MissionType};
+use crate::model::planet::PlanetDtoRow;
 
 pub struct MissionFinderBo;
 
@@ -78,22 +79,16 @@ impl MissionFinderBo {
 
     /// True iff a BUILD_UNIT mission for `user_id` has
     /// `mission_information.value == planet_id` (used by `planet/leave`).
-    pub async fn has_running_unit_build(
-        db: &Db,
-        user_id: i32,
-        planet_id: u64,
-    ) -> OwgeResult<bool> {
-        Ok(find_build_mission_id(db, user_id, planet_id).await?.is_some())
+    pub async fn has_running_unit_build(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
+        Ok(find_build_mission_id(db, user_id, planet_id)
+            .await?
+            .is_some())
     }
 }
 
 /// The BUILD_UNIT mission id for the user whose `mission_information.value`
 /// equals `planet_id`, if any.
-async fn find_build_mission_id(
-    db: &Db,
-    user_id: i32,
-    planet_id: u64,
-) -> OwgeResult<Option<u64>> {
+async fn find_build_mission_id(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<Option<u64>> {
     Ok(sqlx::query_scalar(
         "SELECT m.id FROM missions m \
            JOIN mission_information mi ON mi.mission_id = m.id \
@@ -140,39 +135,4 @@ async fn find_planet_dto(db: &Db, planet_id: u64) -> OwgeResult<Option<PlanetDto
     .fetch_optional(db)
     .await?;
     Ok(row.map(Into::into))
-}
-
-/// A planet row joined with its galaxy and (optional) owner, with exact SQL
-/// column types (mirrors `PlanetBo::PlanetRow`).
-#[derive(sqlx::FromRow)]
-struct PlanetDtoRow {
-    id: u64,
-    name: String,
-    sector: u32,
-    quadrant: u32,
-    planet_number: u16,
-    owner_id: Option<i32>,
-    owner_name: Option<String>,
-    richness: u16,
-    home: i8,
-    galaxy_id: u16,
-    galaxy_name: String,
-}
-
-impl From<PlanetDtoRow> for PlanetDto {
-    fn from(r: PlanetDtoRow) -> Self {
-        PlanetDto {
-            id: r.id,
-            name: Some(r.name),
-            sector: r.sector,
-            quadrant: r.quadrant,
-            planet_number: r.planet_number,
-            owner_id: r.owner_id,
-            owner_name: r.owner_name,
-            richness: Some(r.richness),
-            home: Some(r.home != 0),
-            galaxy_id: r.galaxy_id,
-            galaxy_name: r.galaxy_name,
-        }
-    }
 }

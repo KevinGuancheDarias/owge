@@ -29,18 +29,19 @@
 
 use std::collections::BTreeSet;
 
-use async_trait::async_trait;
-use chrono::Utc;
-use sqlx::{Connection, MySqlConnection};
-
+use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::bo::mission_base_service_bo::MissionBaseService;
 use crate::bo::mission_scheduler_bo::MissionDispatch;
+use crate::bo::UserImprovementBo;
 use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::lock::{self, planet_lock_key};
 use crate::model::mission::{Mission, MissionType};
 use crate::model::user_storage::UserStorage;
 use crate::pojo::unit_mission_information::UnitMissionInformation;
+use async_trait::async_trait;
+use chrono::Utc;
+use sqlx::{Connection, MySqlConnection};
 
 /// Number of times the runner retries a mission whose body failed to acquire its
 /// planet locks (`@Retryable(retryFor = CannotAcquireLockException.class)`).
@@ -183,7 +184,9 @@ impl UnitMissionBo {
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
         if info.source_planet_id == Some(info.target_planet_id) {
-            return Err(OwgeError::InvalidInput("I18N_ERR_DEPLOY_ITSELF".to_string()));
+            return Err(OwgeError::InvalidInput(
+                "I18N_ERR_DEPLOY_ITSELF".to_string(),
+            ));
         }
         Self::common_mission_register(db, user, info, MissionType::Deploy).await
     }
@@ -489,10 +492,12 @@ async fn do_run_unit_mission(
         // running-mission list must refresh (the ATTACK processor never ran, so
         // `emit_after_run` emits nothing for this type).
         if let Some(owner) = mission.user_id {
-            emits.push(crate::bo::mission_processor::DeferredEmit::LocalMissionChange {
-                mission_id: mission.id,
-                user_id: owner,
-            });
+            emits.push(
+                crate::bo::mission_processor::DeferredEmit::LocalMissionChange {
+                    mission_id: mission.id,
+                    user_id: owner,
+                },
+            );
         }
     }
 
@@ -549,17 +554,15 @@ async fn add_planet_and_owner_planets(
     planet_id: u64,
 ) -> OwgeResult<()> {
     target.insert(planet_id);
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     if let Some(Some(owner_id)) = owner {
-        let owned: Vec<u64> =
-            sqlx::query_scalar("SELECT id FROM planets WHERE owner = ?")
-                .bind(owner_id)
-                .fetch_all(&mut *conn)
-                .await?;
+        let owned: Vec<u64> = sqlx::query_scalar("SELECT id FROM planets WHERE owner = ?")
+            .bind(owner_id)
+            .fetch_all(&mut *conn)
+            .await?;
         target.extend(owned);
     }
     Ok(())
@@ -606,20 +609,18 @@ fn is_lock_conflict(err: &OwgeError) -> bool {
 // --- small DB helpers (mirror the planetRepository / planetExplorationService calls) ---
 
 async fn is_of_user_property(db: &Db, user_id: i32, planet_id: i64) -> OwgeResult<bool> {
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(db)
-            .await?;
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(db)
+        .await?;
     Ok(matches!(owner, Some(Some(o)) if o == user_id))
 }
 
 async fn is_home_planet(db: &Db, planet_id: i64) -> OwgeResult<bool> {
-    let home: Option<Option<i8>> =
-        sqlx::query_scalar("SELECT home FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(db)
-            .await?;
+    let home: Option<Option<i8>> = sqlx::query_scalar("SELECT home FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(db)
+        .await?;
     Ok(matches!(home, Some(Some(h)) if h != 0))
 }
 
@@ -638,10 +639,7 @@ async fn is_explored(db: &Db, user_id: i32, planet_id: i64) -> OwgeResult<bool> 
     Ok(count > 0)
 }
 
-async fn load_mission(
-    conn: &mut MySqlConnection,
-    mission_id: u64,
-) -> OwgeResult<Option<Mission>> {
+async fn load_mission(conn: &mut MySqlConnection, mission_id: u64) -> OwgeResult<Option<Mission>> {
     Ok(
         sqlx::query_as::<_, Mission>(crate::bo::mission_base_service_bo::SELECT_MISSION)
             .bind(mission_id)
@@ -688,14 +686,16 @@ impl MissionRunner {
             return Ok(());
         };
 
-        tracing::debug!("Executing mission id {mission_id} of type {}", mission_type.code());
-        let result = if mission_type == MissionType::BuildUnit
-            || mission_type == MissionType::LevelUp
-        {
-            self.run_non_unit_mission(mission_id, mission_type).await
-        } else {
-            UnitMissionBo::run_unit_mission(&self.db, mission_id, mission_type).await
-        };
+        tracing::debug!(
+            "Executing mission id {mission_id} of type {}",
+            mission_type.code()
+        );
+        let result =
+            if mission_type == MissionType::BuildUnit || mission_type == MissionType::LevelUp {
+                self.run_non_unit_mission(mission_id, mission_type).await
+            } else {
+                UnitMissionBo::run_unit_mission(&self.db, mission_id, mission_type).await
+            };
 
         if let Err(e) = result {
             tracing::error!("Unexpected fatal exception when executing mission {mission_id}: {e}");
@@ -727,18 +727,16 @@ impl MissionRunner {
         let mut conn = self.db.acquire().await?;
         // Capture the owner before the run — BUILD_UNIT/LEVEL_UP delete the mission
         // row on completion, so it can't be read back afterwards for the emit.
-        let owner: Option<i32> =
-            sqlx::query_scalar("SELECT user_id FROM missions WHERE id = ?")
-                .bind(mission_id)
-                .fetch_optional(&mut *conn)
-                .await?;
-        let keys: Vec<String> = if mission_type == MissionType::BuildUnit {
-            let planet: Option<f64> = sqlx::query_scalar(
-                "SELECT value FROM mission_information WHERE mission_id = ?",
-            )
+        let owner: Option<i32> = sqlx::query_scalar("SELECT user_id FROM missions WHERE id = ?")
             .bind(mission_id)
             .fetch_optional(&mut *conn)
             .await?;
+        let keys: Vec<String> = if mission_type == MissionType::BuildUnit {
+            let planet: Option<f64> =
+                sqlx::query_scalar("SELECT value FROM mission_information WHERE mission_id = ?")
+                    .bind(mission_id)
+                    .fetch_optional(&mut *conn)
+                    .await?;
             planet
                 .map(|p| vec![planet_lock_key(p as u64)])
                 .unwrap_or_default()
@@ -765,15 +763,15 @@ impl MissionRunner {
                 MissionType::BuildUnit => {
                     // clearSourceCache(user, obtainedUnitImprovementCalculationService):
                     // the completed units may carry improvements.
-                    crate::bo::UserImprovementBo::evict_and_emit(&self.db, owner).await?;
+                    UserImprovementBo::evict_and_emit(&self.db, owner).await?;
                     MissionEventEmitter::emit_unit_build_change(&self.db, owner).await?;
                     MissionEventEmitter::emit_mission_count_change(&self.db, owner).await?;
                     ObtainedUnitEventEmitter::emit_obtained_units(&self.db, owner).await?;
-                    ObtainedUnitEventEmitter::emit_unit_type_change(&self.db, owner).await?;
+                    UnitTypeEmitter::emit_unit_type_change(&self.db, owner).await?;
                 }
                 MissionType::LevelUp => {
                     // clearSourceCache(user, obtainedUpgradeBo): the upgrade level rose.
-                    crate::bo::UserImprovementBo::evict_and_emit(&self.db, owner).await?;
+                    UserImprovementBo::evict_and_emit(&self.db, owner).await?;
                     MissionEventEmitter::emit_running_upgrade(&self.db, owner).await?;
                     MissionEventEmitter::emit_obtained_upgrades(&self.db, owner).await?;
                     MissionEventEmitter::emit_mission_count_change(&self.db, owner).await?;

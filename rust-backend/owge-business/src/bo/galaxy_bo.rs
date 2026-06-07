@@ -15,6 +15,7 @@
 use crate::db::Db;
 use crate::dto::{GalaxyDto, GalaxyInput, PlanetDto};
 use crate::error::{OwgeError, OwgeResult};
+use crate::model::planet::NavPlanetRow;
 
 #[derive(sqlx::FromRow)]
 struct GalaxyRow {
@@ -39,46 +40,6 @@ impl From<GalaxyRow> for GalaxyDto {
     }
 }
 
-/// A planet row at a navigated location joined with its galaxy and (optional)
-/// owner, with exact SQL column types so sqlx never panics on signedness/width.
-#[derive(sqlx::FromRow)]
-struct NavPlanetRow {
-    id: u64,
-    name: String,
-    sector: u32,
-    quadrant: u32,
-    planet_number: u16,
-    owner_id: Option<i32>,
-    owner_name: Option<String>,
-    richness: u16,
-    home: i8,
-    galaxy_id: u16,
-    galaxy_name: String,
-    is_explored: Option<bool>,
-}
-
-impl From<NavPlanetRow> for PlanetDto {
-    fn from(r: NavPlanetRow) -> Self {
-        let mut ret_val = PlanetDto {
-            id: r.id,
-            name: Some(r.name),
-            sector: r.sector,
-            quadrant: r.quadrant,
-            planet_number: r.planet_number,
-            owner_id: r.owner_id,
-            owner_name: r.owner_name,
-            richness: Some(r.richness),
-            home: Some(r.home != 0),
-            galaxy_id: r.galaxy_id,
-            galaxy_name: r.galaxy_name,
-        };
-        if !r.is_explored.unwrap_or(false) {
-            ret_val.clean_up_unexplored();
-        }
-
-        ret_val
-    }
-}
 
 pub struct GalaxyBo;
 

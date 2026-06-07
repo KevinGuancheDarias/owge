@@ -26,7 +26,7 @@ impl ConfigurationBo {
     }
 
     /// `ConfigurationBo.findOrSetDefault` — read, or insert a default and
-    /// return it. Used at boot to materialise JWT secrets/algos/durations.
+    /// return it. Used at boot to materialize JWT secrets/algos/durations.
     pub async fn find_or_set_default(
         db: &Db,
         name: &str,
@@ -76,7 +76,12 @@ impl ConfigurationBo {
     /// `MISSION_TIME_*` guard (value must parse to `>= 10`, else
     /// `SgtBackendInvalidInputException`). `privileged` is preserved on update
     /// and defaults to `0` on insert, matching the Java entity default.
-    pub async fn save(db: &Db, name: &str, display_name: Option<&str>, value: &str) -> OwgeResult<Configuration> {
+    pub async fn save(
+        db: &Db,
+        name: &str,
+        display_name: Option<&str>,
+        value: &str,
+    ) -> OwgeResult<Configuration> {
         if Self::is_of_type_mission_time(name) {
             Self::check_can_save_mission_time(name, value)?;
         }

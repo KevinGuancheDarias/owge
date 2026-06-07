@@ -16,6 +16,8 @@ pub struct SimpleUserData {
     pub id: i32,
     pub username: String,
     pub email: String,
+
+    #[sqlx(default)]
     pub alliance_id: Option<u16>,
 }
 
