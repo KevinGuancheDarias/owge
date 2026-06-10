@@ -30,7 +30,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<ImageStoreDto>>> {
-    Ok(Json(ImageStoreBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(ImageStoreBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -38,12 +39,11 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u64>,
 ) -> ApiResult<Json<ImageStoreDto>> {
-    ImageStoreBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    ImageStoreBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
-        .ok_or_else(|| {
-            ApiError(owge_business::OwgeError::NotFound(format!("No image {id}")))
-        })
+        .ok_or_else(|| ApiError(owge_business::OwgeError::NotFound(format!("No image {id}"))))
 }
 
 async fn update_image(
@@ -52,7 +52,8 @@ async fn update_image(
     Path(id): Path<u64>,
     Json(input): Json<ImageStoreInput>,
 ) -> ApiResult<Json<ImageStoreDto>> {
-    Ok(Json(ImageStoreBo::update(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(ImageStoreBo::update(&mut conn, id, &input).await?))
 }
 
 async fn delete_one(
@@ -60,7 +61,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u64>,
 ) -> ApiResult<StatusCode> {
-    ImageStoreBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    ImageStoreBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -73,5 +75,6 @@ async fn upload_image(
     _admin: AdminUser,
     Json(input): Json<ImageUploadInput>,
 ) -> ApiResult<Json<ImageStoreDto>> {
-    Ok(Json(ImageStoreBo::save(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(ImageStoreBo::save(&mut conn, &input).await?))
 }

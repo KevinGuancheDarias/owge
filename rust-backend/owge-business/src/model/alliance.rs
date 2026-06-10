@@ -1,6 +1,6 @@
+use crate::{OwgeError, OwgeResult};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use crate::{OwgeError, OwgeResult};
 
 /// Mirrors the `alliances` table / Java `Alliance` entity. Although the Java
 /// entity types `id` as `Integer`, the DB column is `smallint unsigned`, so we

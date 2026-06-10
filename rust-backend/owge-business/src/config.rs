@@ -137,10 +137,15 @@ pub fn parse_algorithm(name: &str) -> OwgeResult<Algorithm> {
         "RS256" => Ok(Algorithm::RS256),
         "RS384" => Ok(Algorithm::RS384),
         "RS512" => Ok(Algorithm::RS512),
-        other => Err(OwgeError::Common(format!("Unsupported JWT algorithm: {other}"))),
+        other => Err(OwgeError::Common(format!(
+            "Unsupported JWT algorithm: {other}"
+        ))),
     }
 }
 
 fn parse_env<T: std::str::FromStr>(key: &str, default: T) -> T {
-    env::var(key).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
+    env::var(key)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
 }

@@ -7,11 +7,10 @@
 //! each returns the `UPGRADE_LEVEL` requirements: which upgrade at which level
 //! must be reached. Mirrors `RequirementBo.createUnitUpgradeRequirements`.
 
-use sqlx::MySqlConnection;
+use sqlx::{Connection, MySqlConnection};
 
-use crate::bo::realtime_emitter::RequirementEmit;
 use crate::bo::ObjectRelationBo;
-use crate::db::Db;
+use crate::bo::realtime_emitter::RequirementEmit;
 use crate::dto::requirement::{UnitUpgradeRequirement, UnitWithRequirementInfo};
 use crate::dto::requirement_information::{
     ObjectRelationDto, RequirementDto, RequirementInformationDto, RequirementInformationInput,
@@ -80,9 +79,9 @@ impl UnitReqRow {
             order: self.order_number,
             has_to_display_in_requirements: self.display_in_requirements.unwrap_or(0) != 0,
             points: self.points,
-            time: self.time,
-            primary_resource: self.primary_resource,
-            secondary_resource: self.secondary_resource,
+            time: self.time.map(|v| v as u64),
+            primary_resource: self.primary_resource.map(u64::from),
+            secondary_resource: self.secondary_resource.map(u64::from),
             energy: self.energy,
             type_id: self.type_id,
             type_name: self.type_name.clone(),
@@ -129,7 +128,9 @@ impl From<UpgradeReqRow> for UnitUpgradeRequirement {
                 name: r.up_name,
                 description: r.up_description,
                 image: r.up_image_id,
-                image_url: r.up_image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
+                image_url: r
+                    .up_image_filename
+                    .map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
                 order: None, // `upgrades` has no order_number column
                 points: r.up_points,
                 time: r.up_time as i64,
@@ -184,7 +185,7 @@ impl RequirementBo {
     /// admin `GET {id}/requirements` sub-resource: every requirement attached to
     /// the relation for a concrete entity.
     pub async fn find_requirements(
-        db: &Db,
+        conn: &mut MySqlConnection,
         object_description: &str,
         reference_id: i16,
     ) -> OwgeResult<Vec<RequirementInformationDto>> {
@@ -199,7 +200,7 @@ impl RequirementBo {
         )
         .bind(object_description)
         .bind(reference_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -215,7 +216,7 @@ impl RequirementBo {
     /// does, so unlocks are intentionally not recomputed here. M4 cache eviction
     /// (`REQUIREMENT_INFORMATION_CACHE_TAG`) is deferred — see the caller TODOs.
     pub async fn add_requirement_from_dto(
-        db: &Db,
+        conn: &mut MySqlConnection,
         object_code: &str,
         reference_id: i16,
         input: &RequirementInformationInput,
@@ -231,7 +232,9 @@ impl RequirementBo {
             )));
         }
         if input.second_value.is_none() {
-            return Err(OwgeError::InvalidInput("secondValue must not be null".into()));
+            return Err(OwgeError::InvalidInput(
+                "secondValue must not be null".into(),
+            ));
         }
         if reference_id <= 0 {
             return Err(OwgeError::InvalidInput(
@@ -239,7 +242,7 @@ impl RequirementBo {
             ));
         }
 
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         let relation_id =
             ObjectRelationBo::find_object_relation_or_create(&mut tx, object_code, reference_id)
                 .await?;
@@ -275,7 +278,7 @@ impl RequirementBo {
              WHERE ri.id = ?",
         )
         .bind(new_id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         Ok(row.into())
     }
@@ -286,10 +289,13 @@ impl RequirementBo {
     /// NOTE: the Java delete additionally `triggerRelationChanged` (recompute
     /// unlocks) and evicts caches; those are M4 and intentionally deferred, since
     /// the corresponding add path also does not recompute unlocks.
-    pub async fn delete_requirement_information(db: &Db, id: i16) -> OwgeResult<()> {
+    pub async fn delete_requirement_information(
+        conn: &mut MySqlConnection,
+        id: i16,
+    ) -> OwgeResult<()> {
         sqlx::query("DELETE FROM requirements_information WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         // No-op in the Rust port: the Java REQUIREMENT_INFORMATION_CACHE_TAG and
         // REQUIREMENT_GROUP_CACHE_TAG taggable-caches (`RequirementInformationBo.delete`
@@ -303,13 +309,13 @@ impl RequirementBo {
 
     /// `findFactionUnitLevelRequirements(factionBo.findByUser(userId))`.
     pub async fn find_faction_unit_level_requirements(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<UnitWithRequirementInfo>> {
         let faction_id: Option<u16> =
             sqlx::query_scalar("SELECT faction FROM user_storage WHERE id = ?")
                 .bind(user_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
         let Some(faction_id) = faction_id else {
             return Ok(Vec::new());
@@ -337,7 +343,7 @@ impl RequirementBo {
         )
         .bind(object_enum::UNIT)
         .bind(faction_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
 
         let mut result = Vec::with_capacity(units.len());
@@ -358,7 +364,7 @@ impl RequirementBo {
                  WHERE ri.relation_id = ?",
             )
             .bind(unit.relation_id)
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
             result.push(UnitWithRequirementInfo {
                 unit: unit.to_unit_dto(),
@@ -404,8 +410,7 @@ impl RequirementBo {
         unit_id: i64,
         emits: &mut Vec<RequirementEmit>,
     ) -> OwgeResult<()> {
-        let relations =
-            find_relations_with_code_and_second_value(conn, HAVE_UNIT, unit_id).await?;
+        let relations = find_relations_with_code_and_second_value(conn, HAVE_UNIT, unit_id).await?;
         process_relation_list(conn, &relations, user, emits).await?;
         Self::trigger_unit_amount_changed(conn, user, unit_id, emits).await
     }
@@ -660,7 +665,10 @@ async fn register_obtained_relation(
     user: &UserStorage,
     emits: &mut Vec<RequirementEmit>,
 ) -> OwgeResult<()> {
-    if find_unlocked_id(conn, user.id, relation.id).await?.is_some() {
+    if find_unlocked_id(conn, user.id, relation.id)
+        .await?
+        .is_some()
+    {
         return Ok(()); // already unlocked: do nothing (matches Java)
     }
     sqlx::query("INSERT INTO unlocked_relation (user_id, relation_id) VALUES (?, ?)")
@@ -828,7 +836,9 @@ async fn is_unlocked(
     user_id: i32,
     relation_id: u16,
 ) -> OwgeResult<bool> {
-    Ok(find_unlocked_id(conn, user_id, relation_id).await?.is_some())
+    Ok(find_unlocked_id(conn, user_id, relation_id)
+        .await?
+        .is_some())
 }
 
 async fn upgrade_level(
@@ -861,11 +871,7 @@ async fn obtained_upgrade_level(
     Ok((level.is_some(), level.unwrap_or(0) as i64))
 }
 
-async fn is_built_unit(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-    unit_id: i32,
-) -> OwgeResult<bool> {
+async fn is_built_unit(conn: &mut MySqlConnection, user_id: i32, unit_id: i32) -> OwgeResult<bool> {
     let count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM obtained_units ou \
          LEFT JOIN missions m ON m.id = ou.mission_id \
@@ -892,10 +898,7 @@ async fn count_units(conn: &mut MySqlConnection, user_id: i32, unit_id: i64) -> 
     Ok(count)
 }
 
-async fn home_galaxy_id(
-    conn: &mut MySqlConnection,
-    home_planet: u64,
-) -> OwgeResult<Option<i32>> {
+async fn home_galaxy_id(conn: &mut MySqlConnection, home_planet: u64) -> OwgeResult<Option<i32>> {
     let galaxy = sqlx::query_scalar::<_, u16>("SELECT galaxy_id FROM planets WHERE id = ?")
         .bind(home_planet)
         .fetch_optional(&mut *conn)

@@ -15,10 +15,10 @@ use std::sync::LazyLock;
 
 use base64::Engine;
 
-use crate::db::Db;
 use crate::dto::{ImageStoreDto, ImageStoreInput, ImageUploadInput};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::ImageStore;
+use sqlx::MySqlConnection;
 
 /// The path segment under which dynamic images are served, read once from the
 /// environment (default `dynamic`), mirroring Spring's
@@ -63,7 +63,9 @@ fn find_valid_extension(data: &[u8]) -> OwgeResult<&'static str> {
     } else if data.starts_with(&[0xFF, 0xD8, 0xFF]) {
         Ok(".jpg")
     } else {
-        Err(OwgeError::InvalidInput("I18N_ERR_INVALID_IMAGE_TYPE".into()))
+        Err(OwgeError::InvalidInput(
+            "I18N_ERR_INVALID_IMAGE_TYPE".into(),
+        ))
     }
 }
 
@@ -75,8 +77,22 @@ fn name_uuid_from_bytes(data: &[u8]) -> String {
     bytes[8] = (bytes[8] & 0x3f) | 0x80; // IETF variant
     format!(
         "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-        bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15],
+        bytes[0],
+        bytes[1],
+        bytes[2],
+        bytes[3],
+        bytes[4],
+        bytes[5],
+        bytes[6],
+        bytes[7],
+        bytes[8],
+        bytes[9],
+        bytes[10],
+        bytes[11],
+        bytes[12],
+        bytes[13],
+        bytes[14],
+        bytes[15],
     )
 }
 
@@ -111,7 +127,10 @@ impl ImageStoreBo {
     /// image type by magic bytes, writes it to disk under a name-based UUID
     /// filename, then dedupes by md5 checksum: an existing row with the same
     /// checksum is reused, otherwise a new row is inserted.
-    pub async fn save(db: &Db, input: &ImageUploadInput) -> OwgeResult<ImageStoreDto> {
+    pub async fn save(
+        conn: &mut MySqlConnection,
+        input: &ImageUploadInput,
+    ) -> OwgeResult<ImageStoreDto> {
         let base64 = &input.base64;
         let parsed = if base64.starts_with("data:image/") {
             base64
@@ -137,7 +156,7 @@ impl ImageStoreBo {
              FROM images_store WHERE checksum = ?",
         )
         .bind(&checksum)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?
         {
             return Ok(to_dto(existing));
@@ -153,34 +172,37 @@ impl ImageStoreBo {
         .bind(&display_name)
         .bind(&filename)
         .bind(&checksum)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .last_insert_id();
 
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Not able to save the entity".into()))
     }
 
     /// `ImageStoreBo.findAll()` — every image, ordered by id, with computed urls.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<ImageStoreDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<ImageStoreDto>> {
         let rows = sqlx::query_as::<_, ImageStore>(
             "SELECT id, checksum, filename, display_name, description \
              FROM images_store ORDER BY id",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(to_dto).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById` — single image (or `None`).
-    pub async fn find_by_id(db: &Db, id: u64) -> OwgeResult<Option<ImageStoreDto>> {
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u64,
+    ) -> OwgeResult<Option<ImageStoreDto>> {
         let row = sqlx::query_as::<_, ImageStore>(
             "SELECT id, checksum, filename, display_name, description \
              FROM images_store WHERE id = ?",
         )
         .bind(id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         Ok(row.map(to_dto))
     }
@@ -188,36 +210,39 @@ impl ImageStoreBo {
     /// `ImageStoreBo.update(ImageStoreDto)` — `PUT '{id}'`. Only `displayName`
     /// and `description` are modifiable, and both must be non-empty
     /// (`ValidationUtil.requireNonEmptyString`).
-    pub async fn update(db: &Db, id: u64, input: &ImageStoreInput) -> OwgeResult<ImageStoreDto> {
+    pub async fn update(
+        conn: &mut MySqlConnection,
+        id: u64,
+        input: &ImageStoreInput,
+    ) -> OwgeResult<ImageStoreDto> {
         if input.display_name.is_empty() {
             return Err(OwgeError::InvalidInput("displayName is required".into()));
         }
         if input.description.is_empty() {
             return Err(OwgeError::InvalidInput("description is required".into()));
         }
-        let affected = sqlx::query(
-            "UPDATE images_store SET display_name = ?, description = ? WHERE id = ?",
-        )
-        .bind(&input.display_name)
-        .bind(&input.description)
-        .bind(id)
-        .execute(db)
-        .await?
-        .rows_affected();
+        let affected =
+            sqlx::query("UPDATE images_store SET display_name = ?, description = ? WHERE id = ?")
+                .bind(&input.display_name)
+                .bind(&input.description)
+                .bind(id)
+                .execute(&mut *conn)
+                .await?
+                .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No image with id {id}")));
         }
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No image with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`. The Java side also unlinks the file
     /// on disk; that is part of the filesystem work deferred with the upload.
-    pub async fn delete(db: &Db, id: u64) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u64) -> OwgeResult<()> {
         sqlx::query("DELETE FROM images_store WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }

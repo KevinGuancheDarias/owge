@@ -27,7 +27,6 @@
 use sqlx::MySqlConnection;
 
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::{Mission, MissionType};
 
@@ -44,36 +43,39 @@ impl MissionBaseService {
     /// `retryMissionIfPossible` — re-arm (or finally give up on) a mission that
     /// threw during execution.
     ///
-    /// Runs on the pool (`db`) in its own short-lived work, mirroring the Java
-    /// `@Transactional` boundary of `retryMissionIfPossible`. The realization job
-    /// calls this *after* the failed mission body's locked section is gone, so it
-    /// does not need the planet locks (the return-mission registration it may do
-    /// re-points obtained units by mission id, which is safe to run unlocked here
-    /// for the retry/give-up path — matching the Java service's own transaction).
+    /// Runs on the caller's pinned `conn`, mirroring the Java `@Transactional`
+    /// boundary of `retryMissionIfPossible`. The realization job calls this
+    /// *after* the failed mission body's locked section is gone, so it does not
+    /// need the planet locks (the return-mission registration it may do re-points
+    /// obtained units by mission id, which is safe to run unlocked here for the
+    /// retry/give-up path — matching the Java service's own transaction).
     pub async fn retry_mission_if_possible(
-        db: &Db,
+        conn: &mut MySqlConnection,
         mission_id: u64,
         mission_type: MissionType,
     ) -> OwgeResult<()> {
-        let mut conn = db.acquire().await?;
-        let mission = load_mission(&mut conn, mission_id)
+        let mission = load_mission(&mut *conn, mission_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No mission with id {mission_id}")))?;
 
         if mission.attemps >= MAX_ATTEMPTS {
-            Self::give_up(&mut conn, &mission, mission_type).await?;
+            Self::give_up(&mut *conn, &mission, mission_type).await?;
             Ok(())
         } else {
             let (report_user_id, report_id) =
-                Self::reschedule(&mut conn, mission, mission_type).await?;
-            // The error report goes through MissionReportBo.save -> emitOneToUser.
-            // The retry runs on an autocommit pool connection, so emit after it
-            // has flushed (drop the connection first).
-            drop(conn);
-            crate::bo::realtime_emitter::emit_mission_report_new(db, report_user_id, report_id)
-                .await?;
-            crate::bo::realtime_emitter::emit_mission_report_count_change(db, report_user_id)
-                .await?;
+                Self::reschedule(&mut *conn, mission, mission_type).await?;
+            // Post-commit emits — the reschedule work has flushed on the same conn.
+            crate::bo::realtime_emitter::emit_mission_report_new(
+                &mut *conn,
+                report_user_id,
+                report_id,
+            )
+            .await?;
+            crate::bo::realtime_emitter::emit_mission_report_count_change(
+                &mut *conn,
+                report_user_id,
+            )
+            .await?;
             Ok(())
         }
     }
@@ -162,13 +164,16 @@ impl MissionBaseService {
     /// `checkMissionLimitNotReached` — throws when registering one more mission
     /// would meet/exceed the user's max-allowed missions
     /// (`findUserImprovement(user).getMoreMissions() + 1`).
-    pub async fn check_mission_limit_not_reached(db: &Db, user_id: i32) -> OwgeResult<()> {
+    pub async fn check_mission_limit_not_reached(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<()> {
         let running: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM missions WHERE user_id = ? AND resolved = 0")
                 .bind(user_id)
-                .fetch_one(db)
+                .fetch_one(&mut *conn)
                 .await?;
-        let max_allowed = find_user_max_allowed_missions(db, user_id).await?;
+        let max_allowed = find_user_max_allowed_missions(&mut *conn, user_id).await?;
         if running + 1 >= max_allowed {
             return Err(OwgeError::InvalidInput(
                 "I18N_ERR_MISSION_LIMIT_EXCEEDED".to_string(),
@@ -179,13 +184,17 @@ impl MissionBaseService {
 }
 
 /// `findUserMaxAllowedMissions` — `findUserImprovement(user).getMoreMissions().intValue() + 1`.
-async fn find_user_max_allowed_missions(db: &Db, user_id: i32) -> OwgeResult<i64> {
+async fn find_user_max_allowed_missions(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<i64> {
     // `find_user_improvement` already adds the base +1 mission slot to
     // `more_missions`; Java does `.intValue() + 1` on the same aggregate, so add
     // one more here for the registration-headroom slot.
-    let improvement =
-        crate::bo::user_improvement_bo::UserImprovementBo::find_user_improvement(db, user_id)
-            .await?;
+    let improvement = crate::bo::user_improvement_bo::UserImprovementBo::find_user_improvement(
+        &mut *conn, user_id,
+    )
+    .await?;
     Ok(improvement.more_missions as i64 + 1)
 }
 
@@ -195,8 +204,7 @@ async fn build_common_error_report(
     mission: &Mission,
     mission_type: MissionType,
 ) -> OwgeResult<UnitMissionReportBuilder> {
-    let (user_id, username) =
-        crate::bo::mission_processor::load_sender_user(conn, mission).await?;
+    let (user_id, username) = crate::bo::mission_processor::load_sender_user(conn, mission).await?;
     let mut builder = UnitMissionReportBuilder::create()
         .with_sender_user(user_id, &username)
         .with_id(mission.id);
@@ -233,21 +241,20 @@ async fn load_mission_units(
     conn: &mut MySqlConnection,
     mission_id: u64,
 ) -> OwgeResult<Vec<crate::model::obtained_unit::ObtainedUnit>> {
-    Ok(sqlx::query_as::<_, crate::model::obtained_unit::ObtainedUnit>(
-        "SELECT id, user_id, unit_id, count, source_planet, target_planet, \
+    Ok(
+        sqlx::query_as::<_, crate::model::obtained_unit::ObtainedUnit>(
+            "SELECT id, user_id, unit_id, count, source_planet, target_planet, \
                 mission_id, first_deployment_mission, is_from_capture, \
                 expiration_id, owner_unit_id \
          FROM obtained_units WHERE mission_id = ?",
+        )
+        .bind(mission_id)
+        .fetch_all(&mut *conn)
+        .await?,
     )
-    .bind(mission_id)
-    .fetch_all(&mut *conn)
-    .await?)
 }
 
-async fn load_mission(
-    conn: &mut MySqlConnection,
-    mission_id: u64,
-) -> OwgeResult<Option<Mission>> {
+async fn load_mission(conn: &mut MySqlConnection, mission_id: u64) -> OwgeResult<Option<Mission>> {
     Ok(sqlx::query_as::<_, Mission>(SELECT_MISSION)
         .bind(mission_id)
         .fetch_optional(&mut *conn)

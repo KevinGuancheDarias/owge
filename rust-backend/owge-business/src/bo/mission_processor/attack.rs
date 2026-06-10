@@ -19,7 +19,6 @@ use crate::bo::attack_mission_manager_bo::AttackMissionManagerBo;
 use crate::bo::mission_report_manager_bo::MissionReportManagerBo;
 use crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo;
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -80,16 +79,11 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     _involved_units: &[ObtainedUnit],
-    db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let outcome = process_attack(
-        conn,
-        mission,
-        /* survivors_do_return = */ true,
-        /* is_triggered_by_event = */ false,
-        db,
-        emits,
+        conn, mission, /* survivors_do_return = */ true,
+        /* is_triggered_by_event = */ false, emits,
     )
     .await?;
     Ok(Some(outcome.report_builder))
@@ -103,7 +97,6 @@ pub async fn trigger_attack_if_required(
     conn: &mut MySqlConnection,
     mission: &Mission,
     mission_type: MissionType,
-    db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<bool> {
     let user_id = mission.user_id.unwrap_or_default();
@@ -119,12 +112,8 @@ pub async fn trigger_attack_if_required(
         return Ok(true);
     }
     let outcome = process_attack(
-        conn,
-        mission,
-        /* survivors_do_return = */ false,
-        /* is_triggered_by_event = */ true,
-        db,
-        emits,
+        conn, mission, /* survivors_do_return = */ false,
+        /* is_triggered_by_event = */ true, emits,
     )
     .await?;
     Ok(!outcome.removed)
@@ -140,7 +129,6 @@ pub async fn process_attack(
     mission: &Mission,
     survivors_do_return: bool,
     is_triggered_by_event: bool,
-    _db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<AttackOutcome> {
     let invoker_id = mission.user_id.unwrap_or_default();
@@ -263,10 +251,7 @@ fn participating_user_ids(attack_information: &Value) -> Vec<i32> {
 }
 
 /// `user_storage.alliance_id` for the invoker.
-async fn find_user_alliance(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-) -> OwgeResult<Option<u16>> {
+async fn find_user_alliance(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<Option<u16>> {
     let alliance: Option<Option<u16>> =
         sqlx::query_scalar("SELECT alliance_id FROM user_storage WHERE id = ?")
             .bind(user_id)

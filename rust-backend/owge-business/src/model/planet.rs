@@ -41,17 +41,34 @@ pub struct PlanetDtoRow {
 impl From<PlanetDtoRow> for PlanetDto {
     fn from(r: PlanetDtoRow) -> Self {
         planet_dto_from_parts(
-            r.id, r.name, r.sector, r.quadrant, r.planet_number,
-            r.owner_id, r.owner_name, r.richness, r.home, r.galaxy_id, r.galaxy_name,
+            r.id,
+            r.name,
+            r.sector,
+            r.quadrant,
+            r.planet_number,
+            r.owner_id,
+            r.owner_name,
+            r.richness,
+            r.home,
+            r.galaxy_id,
+            r.galaxy_name,
         )
     }
 }
 
 #[allow(clippy::too_many_arguments)]
 fn planet_dto_from_parts(
-    id: u64, name: String, sector: u32, quadrant: u32, planet_number: u16,
-    owner_id: Option<i32>, owner_name: Option<String>, richness: u16, home: i8,
-    galaxy_id: u16, galaxy_name: String,
+    id: u64,
+    name: String,
+    sector: u32,
+    quadrant: u32,
+    planet_number: u16,
+    owner_id: Option<i32>,
+    owner_name: Option<String>,
+    richness: u16,
+    home: i8,
+    galaxy_id: u16,
+    galaxy_name: String,
 ) -> PlanetDto {
     PlanetDto {
         id,
@@ -88,8 +105,17 @@ pub(crate) struct NavPlanetRow {
 impl From<NavPlanetRow> for PlanetDto {
     fn from(r: NavPlanetRow) -> Self {
         let mut dto = planet_dto_from_parts(
-            r.id, r.name, r.sector, r.quadrant, r.planet_number,
-            r.owner_id, r.owner_name, r.richness, r.home, r.galaxy_id, r.galaxy_name,
+            r.id,
+            r.name,
+            r.sector,
+            r.quadrant,
+            r.planet_number,
+            r.owner_id,
+            r.owner_name,
+            r.richness,
+            r.home,
+            r.galaxy_id,
+            r.galaxy_name,
         );
         if !r.is_explored.unwrap_or(false) {
             dto.clean_up_unexplored();

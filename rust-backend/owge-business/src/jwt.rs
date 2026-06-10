@@ -24,9 +24,7 @@
 //! mint admin tokens).
 
 use base64::Engine;
-use jsonwebtoken::{
-    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
 use crate::error::{OwgeError, OwgeResult};
@@ -113,9 +111,10 @@ impl TokenConfig {
         match self.method {
             VerificationMethod::Secret => Ok(DecodingKey::from_secret(&self.hmac_key_bytes()?)),
             VerificationMethod::RsaKey => {
-                let pem = self.public_key_pem.as_ref().ok_or_else(|| {
-                    OwgeError::Common("RSA public key not configured".into())
-                })?;
+                let pem = self
+                    .public_key_pem
+                    .as_ref()
+                    .ok_or_else(|| OwgeError::Common("RSA public key not configured".into()))?;
                 DecodingKey::from_rsa_pem(pem.as_bytes()).map_err(Into::into)
             }
         }
@@ -246,8 +245,14 @@ mod tests {
         // Reproduces: sign with secret.getBytes(), then verify. This is the
         // path OWGE uses for admin tokens.
         let secret = "super-secret-value";
-        let token = build_hmac_token(secret, Algorithm::HS256, &user(), 1_700_000_000, 4_102_444_800)
-            .expect("sign");
+        let token = build_hmac_token(
+            secret,
+            Algorithm::HS256,
+            &user(),
+            1_700_000_000,
+            4_102_444_800,
+        )
+        .expect("sign");
 
         let cfg = TokenConfig::secret(secret, Algorithm::HS256, 300);
         let decoded = decode_token(&cfg, &token).expect("verify");
@@ -260,9 +265,14 @@ mod tests {
     fn expired_token_is_rejected() {
         let secret = "another-secret";
         // exp well in the past, issued_at older still.
-        let token =
-            build_hmac_token(secret, Algorithm::HS256, &user(), 1_600_000_000, 1_600_000_300)
-                .expect("sign");
+        let token = build_hmac_token(
+            secret,
+            Algorithm::HS256,
+            &user(),
+            1_600_000_000,
+            1_600_000_300,
+        )
+        .expect("sign");
         let cfg = TokenConfig::secret(secret, Algorithm::HS256, 0);
         let err = decode_token(&cfg, &token).expect_err("must reject expired");
         assert!(matches!(err, OwgeError::Unauthorized(_)));
@@ -274,7 +284,7 @@ mod tests {
         // path: the configured secret string is Base64, and the *decoded* bytes
         // are the HMAC key. This is the path the external account system + the
         // kevinsuite verifier use, selectable via SecretEncoding::Base64.
-        use jsonwebtoken::{encode, EncodingKey, Header};
+        use jsonwebtoken::{EncodingKey, Header, encode};
         use serde_json::json;
 
         let secret_b64 = "c3VwZXItc2VjcmV0LWtleS1tYXRlcmlhbA=="; // base64 of some key
@@ -305,9 +315,14 @@ mod tests {
 
     #[test]
     fn wrong_secret_is_rejected() {
-        let token =
-            build_hmac_token("right", Algorithm::HS256, &user(), 1_700_000_000, 4_102_444_800)
-                .expect("sign");
+        let token = build_hmac_token(
+            "right",
+            Algorithm::HS256,
+            &user(),
+            1_700_000_000,
+            4_102_444_800,
+        )
+        .expect("sign");
         let cfg = TokenConfig::secret("wrong", Algorithm::HS256, 300);
         assert!(decode_token(&cfg, &token).is_err());
     }

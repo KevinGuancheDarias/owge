@@ -3,12 +3,12 @@
 //! the html symbol (and its section frontend path) and the `text` translatable
 //! resolved via joins instead of lazy entity navigation.
 
-use crate::db::Db;
 use crate::dto::{
     TranslatableDto, TutorialSectionAvailableHtmlSymbolDto, TutorialSectionDto,
     TutorialSectionEntryDto, TutorialSectionEntryInput,
 };
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::MySqlConnection;
 
 /// A tutorial entry joined with its html symbol (+ section path) and its text
 /// translatable, with exact SQL column types so sqlx never panics on
@@ -99,19 +99,23 @@ pub struct TutorialBo;
 impl TutorialBo {
     /// `TutorialRestService.addVisitedEntry` — mark a tutorial entry visited for
     /// the user (idempotent per (user, entry)). Feeds `visited_tutorial_entry_change`.
-    pub async fn add_visited_entry(db: &Db, user_id: i32, entry_id: u32) -> OwgeResult<()> {
+    pub async fn add_visited_entry(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        entry_id: u32,
+    ) -> OwgeResult<()> {
         let exists: i64 = sqlx::query_scalar(
             "SELECT COUNT(*) FROM visited_tutorial_entries WHERE user_id = ? AND entry_id = ?",
         )
         .bind(user_id)
         .bind(entry_id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         if exists == 0 {
             sqlx::query("INSERT INTO visited_tutorial_entries (user_id, entry_id) VALUES (?, ?)")
                 .bind(user_id)
                 .bind(entry_id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
         }
         Ok(())
@@ -120,11 +124,13 @@ impl TutorialBo {
     /// `tutorialSectionBo.findEntries()` -> DTOs ordered by `order` ascending —
     /// the `tutorial_entries_change` sync payload. Tutorial entries are global
     /// (not per-user), so no `user_id` is needed.
-    pub async fn find_entries(db: &Db) -> OwgeResult<Vec<TutorialSectionEntryDto>> {
+    pub async fn find_entries(
+        conn: &mut MySqlConnection,
+    ) -> OwgeResult<Vec<TutorialSectionEntryDto>> {
         let rows = sqlx::query_as::<_, TutorialSectionEntryRow>(&format!(
             "{SELECT_ENTRY_DTO} ORDER BY e.order_num ASC"
         ))
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -132,37 +138,45 @@ impl TutorialBo {
     /// `WithReadRestServiceTrait.findAll` for the admin tutorial-section CRUD —
     /// every section hydrated with its available html symbols
     /// (`TutorialSectionBo.findAllHydrated`).
-    pub async fn find_all_sections(db: &Db) -> OwgeResult<Vec<TutorialSectionDto>> {
+    pub async fn find_all_sections(
+        conn: &mut MySqlConnection,
+    ) -> OwgeResult<Vec<TutorialSectionDto>> {
         let rows = sqlx::query_as::<_, TutorialSectionRow>(
             "SELECT id, name, description, frontend_router_path AS frontend_router_path \
              FROM tutorial_sections ORDER BY id",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         let mut sections = Vec::with_capacity(rows.len());
         for row in rows {
-            sections.push(Self::hydrate_section(db, row).await?);
+            sections.push(Self::hydrate_section(&mut *conn, row).await?);
         }
         Ok(sections)
     }
 
     /// `WithReadRestServiceTrait.findOneById` — one section hydrated with its
     /// available html symbols (`TutorialSectionBo.findOneHydratedById`).
-    pub async fn find_section_by_id(db: &Db, id: u16) -> OwgeResult<Option<TutorialSectionDto>> {
+    pub async fn find_section_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<TutorialSectionDto>> {
         let row = sqlx::query_as::<_, TutorialSectionRow>(
             "SELECT id, name, description, frontend_router_path \
              FROM tutorial_sections WHERE id = ?",
         )
         .bind(id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         match row {
-            Some(row) => Ok(Some(Self::hydrate_section(db, row).await?)),
+            Some(row) => Ok(Some(Self::hydrate_section(&mut *conn, row).await?)),
             None => Ok(None),
         }
     }
 
-    async fn hydrate_section(db: &Db, row: TutorialSectionRow) -> OwgeResult<TutorialSectionDto> {
+    async fn hydrate_section(
+        conn: &mut MySqlConnection,
+        row: TutorialSectionRow,
+    ) -> OwgeResult<TutorialSectionDto> {
         // The symbol DTO carries the owning section's frontend path, which here
         // is this section's own path (`s.tutorial_section_id = sec.id`).
         let symbols = sqlx::query_as::<_, HtmlSymbolRow>(
@@ -173,7 +187,7 @@ impl TutorialBo {
              WHERE s.tutorial_section_id = ? ORDER BY s.id",
         )
         .bind(row.id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         let available_html_symbols = if symbols.is_empty() {
             None
@@ -192,7 +206,7 @@ impl TutorialBo {
     /// `tutorialSectionBo.findAvailableHtmlSymbols()` — every html symbol, with
     /// its (optional) owning section's frontend path.
     pub async fn find_available_html_symbols(
-        db: &Db,
+        conn: &mut MySqlConnection,
     ) -> OwgeResult<Vec<TutorialSectionAvailableHtmlSymbolDto>> {
         let rows = sqlx::query_as::<_, HtmlSymbolRow>(
             "SELECT s.id AS id, s.name AS name, s.identifier AS identifier, \
@@ -201,7 +215,7 @@ impl TutorialBo {
              LEFT JOIN tutorial_sections sec ON sec.id = s.tutorial_section_id \
              ORDER BY s.id",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -209,13 +223,13 @@ impl TutorialBo {
     /// `tutorialSectionBo.addUpdateEntry(pojo)` — insert (no id) or update an
     /// entry, then return it hydrated as a `TutorialSectionEntryDto`.
     pub async fn add_update_entry(
-        db: &Db,
+        conn: &mut MySqlConnection,
         input: &TutorialSectionEntryInput,
     ) -> OwgeResult<TutorialSectionEntryDto> {
         let id = match input.id {
             // Update when the row exists; an unknown id falls through to insert
             // (Java: `findById(...).orElse(new TutorialSectionEntry())`).
-            Some(id) if Self::entry_exists(db, id).await? => {
+            Some(id) if Self::entry_exists(&mut *conn, id).await? => {
                 sqlx::query(
                     "UPDATE tutorial_sections_entries \
                      SET order_num = ?, section_available_html_symbol_id = ?, event = ?, text_id = ? \
@@ -226,7 +240,7 @@ impl TutorialBo {
                 .bind(&input.event)
                 .bind(input.text.id)
                 .bind(id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
                 id
             }
@@ -240,55 +254,58 @@ impl TutorialBo {
                 .bind(input.html_symbol.id)
                 .bind(&input.event)
                 .bind(input.text.id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
                 result.last_insert_id() as u32
             }
         };
-        Self::find_entry_by_id(db, id)
+        Self::find_entry_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Tutorial entry vanished right after save".into()))
     }
 
     /// `entryRepository.deleteById(entryId)`.
-    pub async fn delete_entry(db: &Db, entry_id: u32) -> OwgeResult<()> {
+    pub async fn delete_entry(conn: &mut MySqlConnection, entry_id: u32) -> OwgeResult<()> {
         sqlx::query("DELETE FROM tutorial_sections_entries WHERE id = ?")
             .bind(entry_id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
 
-    async fn entry_exists(db: &Db, id: u32) -> OwgeResult<bool> {
+    async fn entry_exists(conn: &mut MySqlConnection, id: u32) -> OwgeResult<bool> {
         let count: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM tutorial_sections_entries WHERE id = ?")
                 .bind(id)
-                .fetch_one(db)
+                .fetch_one(&mut *conn)
                 .await?;
         Ok(count > 0)
     }
 
     async fn find_entry_by_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u32,
     ) -> OwgeResult<Option<TutorialSectionEntryDto>> {
         let row = sqlx::query_as::<_, TutorialSectionEntryRow>(&format!(
             "{SELECT_ENTRY_DTO} WHERE e.id = ?"
         ))
         .bind(id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         Ok(row.map(Into::into))
     }
 
     /// `tutorialSectionBo.findVisitedIdsByUser(userId)` -> the visited entry ids
     /// for the `visited_tutorial_entry_change` sync.
-    pub async fn find_visited_ids_by_user(db: &Db, user_id: i32) -> OwgeResult<Vec<u32>> {
+    pub async fn find_visited_ids_by_user(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<u32>> {
         let ids = sqlx::query_scalar::<_, u32>(
             "SELECT entry_id FROM visited_tutorial_entries WHERE user_id = ?",
         )
         .bind(user_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(ids)
     }

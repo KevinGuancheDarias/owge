@@ -12,8 +12,8 @@ use axum::routing::get;
 use axum::{Json, Router};
 use owge_business::bo::FactionBo;
 use owge_business::dto::faction::{
-    FactionDto, FactionInput, FactionSpawnLocationDto, FactionSpawnLocationInput, FactionUnitTypeDto,
-    FactionUnitTypeOverrideInput,
+    FactionDto, FactionInput, FactionSpawnLocationDto, FactionSpawnLocationInput,
+    FactionUnitTypeDto, FactionUnitTypeOverrideInput,
 };
 use owge_business::dto::{ImprovementDto, ImprovementUnitTypeDto};
 
@@ -54,7 +54,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<FactionDto>>> {
-    Ok(Json(FactionBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(FactionBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -62,10 +63,15 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<FactionDto>> {
-    FactionBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    FactionBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
-        .ok_or_else(|| ApiError(owge_business::OwgeError::NotFound(format!("No faction {id}"))))
+        .ok_or_else(|| {
+            ApiError(owge_business::OwgeError::NotFound(format!(
+                "No faction {id}"
+            )))
+        })
 }
 
 async fn save_new(
@@ -73,7 +79,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<FactionInput>,
 ) -> ApiResult<Json<FactionDto>> {
-    Ok(Json(FactionBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(FactionBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -82,7 +89,8 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<FactionInput>,
 ) -> ApiResult<Json<FactionDto>> {
-    Ok(Json(FactionBo::save_existing(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(FactionBo::save_existing(&mut conn, id, &input).await?))
 }
 
 async fn delete_one(
@@ -90,7 +98,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    FactionBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    FactionBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -100,7 +109,10 @@ async fn find_unit_types(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<FactionUnitTypeDto>>> {
-    Ok(Json(FactionBo::find_unit_type_overrides(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        FactionBo::find_unit_type_overrides(&mut conn, id).await?,
+    ))
 }
 
 /// `AdminFactionRestService.saveUnitTypes` — `PUT '{id}/unitTypes'`
@@ -111,7 +123,8 @@ async fn save_unit_types(
     Path(id): Path<u16>,
     Json(overrides): Json<Vec<FactionUnitTypeOverrideInput>>,
 ) -> ApiResult<StatusCode> {
-    FactionBo::save_overrides(&state.db, id, &overrides).await?;
+    let mut conn = state.db.acquire().await?;
+    FactionBo::save_overrides(&mut conn, id, &overrides).await?;
     Ok(StatusCode::OK)
 }
 
@@ -121,7 +134,8 @@ async fn find_spawn_locations(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<FactionSpawnLocationDto>>> {
-    Ok(Json(FactionBo::find_spawn_locations(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(FactionBo::find_spawn_locations(&mut conn, id).await?))
 }
 
 /// `AdminFactionRestService.saveSpawnLocations` — `PUT '{id}/spawn-locations'`
@@ -132,7 +146,8 @@ async fn save_spawn_locations(
     Path(id): Path<u16>,
     Json(spawn_locations): Json<Vec<FactionSpawnLocationInput>>,
 ) -> ApiResult<StatusCode> {
-    FactionBo::save_spawn_locations(&state.db, id, &spawn_locations).await?;
+    let mut conn = state.db.acquire().await?;
+    FactionBo::save_spawn_locations(&mut conn, id, &spawn_locations).await?;
     Ok(StatusCode::OK)
 }
 
@@ -142,7 +157,8 @@ async fn find_improvement(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<ImprovementDto>> {
-    Ok(Json(FactionBo::find_improvement(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(FactionBo::find_improvement(&mut conn, id).await?))
 }
 
 /// `CrudWithImprovements` `PUT '{id}/improvement'`.
@@ -152,7 +168,10 @@ async fn save_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementDto>,
 ) -> ApiResult<Json<ImprovementDto>> {
-    Ok(Json(FactionBo::save_improvement(&state.db, id, &dto).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        FactionBo::save_improvement(&mut conn, id, &dto).await?,
+    ))
 }
 
 /// `GET '{id}/improvement/unitTypeImprovements'`.
@@ -161,8 +180,9 @@ async fn find_unit_type_improvements(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<ImprovementUnitTypeDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        FactionBo::find_unit_type_improvements(&state.db, id).await?,
+        FactionBo::find_unit_type_improvements(&mut conn, id).await?,
     ))
 }
 
@@ -173,8 +193,9 @@ async fn add_unit_type_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementUnitTypeDto>,
 ) -> ApiResult<Json<ImprovementUnitTypeDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        FactionBo::add_unit_type_improvement(&state.db, id, &dto).await?,
+        FactionBo::add_unit_type_improvement(&mut conn, id, &dto).await?,
     ))
 }
 
@@ -184,6 +205,7 @@ async fn delete_unit_type_improvement(
     _admin: AdminUser,
     Path((id, unit_type_improvement_id)): Path<(u16, u16)>,
 ) -> ApiResult<StatusCode> {
-    FactionBo::delete_unit_type_improvement(&state.db, id, unit_type_improvement_id).await?;
+    let mut conn = state.db.acquire().await?;
+    FactionBo::delete_unit_type_improvement(&mut conn, id, unit_type_improvement_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

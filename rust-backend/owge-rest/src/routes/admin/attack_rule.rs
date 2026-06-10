@@ -18,7 +18,10 @@ use crate::state::AppState;
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/admin/attack-rule", post(save_new))
-        .route("/admin/attack-rule/{id}", delete(delete_one).put(save_existing))
+        .route(
+            "/admin/attack-rule/{id}",
+            delete(delete_one).put(save_existing),
+        )
 }
 
 async fn save_new(
@@ -26,7 +29,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<AttackRuleInput>,
 ) -> ApiResult<Json<AttackRuleDto>> {
-    Ok(Json(AttackRuleBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(AttackRuleBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -35,7 +39,10 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<AttackRuleInput>,
 ) -> ApiResult<Json<AttackRuleDto>> {
-    Ok(Json(AttackRuleBo::save_existing(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        AttackRuleBo::save_existing(&mut conn, id, &input).await?,
+    ))
 }
 
 async fn delete_one(
@@ -43,6 +50,7 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    AttackRuleBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    AttackRuleBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

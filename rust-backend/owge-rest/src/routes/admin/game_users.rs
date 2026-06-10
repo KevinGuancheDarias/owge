@@ -36,7 +36,8 @@ async fn find_by_id(
     _admin: AdminUser,
     Path(id): Path<i32>,
 ) -> ApiResult<Json<SimpleUserData>> {
-    Ok(Json(UserStorageBo::find_simple_by_id(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UserStorageBo::find_simple_by_id(&mut conn, id).await?))
 }
 
 // `UserDeleteService.deleteAccount`: cascade-delete the user across planets,
@@ -47,7 +48,8 @@ async fn delete_user(
     _admin: AdminUser,
     Path(id): Path<i32>,
 ) -> ApiResult<StatusCode> {
-    UserStorageBo::delete_account(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UserStorageBo::delete_account(&mut conn, id).await?;
     Ok(StatusCode::OK)
 }
 

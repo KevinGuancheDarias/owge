@@ -1,10 +1,10 @@
 //! Port of (the read side of) `UserStorageBo` — the player record and the
 
 use crate::bo::{FactionBo, PlanetBo, UserImprovementBo};
-use crate::db::Db;
 use crate::dto::{SimpleUserData, UserData};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::UserStorage;
+use sqlx::{Connection, MySqlConnection};
 
 pub struct UserStorageBo;
 
@@ -20,8 +20,11 @@ struct FactionInitRow {
 }
 
 impl UserStorageBo {
-    pub async fn find_by_id(db: &Db, id: i32) -> OwgeResult<Option<UserStorage>> {
-        Ok(UserStorage::find_one_by_id(&id, db).await?)
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: i32,
+    ) -> OwgeResult<Option<UserStorage>> {
+        Ok(UserStorage::find_one_by_id(&id, &mut *conn).await?)
     }
 
     /// `UserStorageBo.subscribe(factionId)` — provision the logged-in account
@@ -39,7 +42,7 @@ impl UserStorageBo {
     /// leave a half-provisioned account. The `audit` call (dropped, not ported)
     /// and websocket emissions (M4) are intentionally omitted.
     pub async fn subscribe(
-        db: &Db,
+        conn: &mut MySqlConnection,
         token: &crate::jwt::TokenUser,
         faction_id: u16,
     ) -> OwgeResult<bool> {
@@ -49,16 +52,16 @@ impl UserStorageBo {
              FROM factions WHERE id = ?",
         )
         .bind(faction_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?
         .ok_or_else(|| OwgeError::NotFound("No such faction".into()))?;
 
         let user_id = token.id as i32;
-        if Self::exists(db, user_id).await? {
+        if Self::exists(&mut *conn, user_id).await? {
             return Ok(false);
         }
 
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
 
         // determineSpawnGalaxy(faction): random spawn galaxy for the faction, or
         // None -> universe-wide planet pick.
@@ -140,7 +143,7 @@ impl UserStorageBo {
         tx.commit().await?;
         // Post-commit: the unit/time-special/speed-impact-group unlocks the
         // faction/home-galaxy selection produced (Java doAfterCommit emits).
-        crate::bo::realtime_emitter::drain_requirement_emits(db, &req_emits).await?;
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
         // NOT PORTED (deliberate): auditBo.doAudit(SUBSCRIBE_TO_WORLD) — auditing is
         // disabled in the live Java deployment, so it is an intentional no-op.
         Ok(user_id > 0)
@@ -167,19 +170,19 @@ impl UserStorageBo {
 
     /// `UserStorageBo.exists` — whether the account user has subscribed to this
     /// universe.
-    pub async fn exists(db: &Db, id: i32) -> OwgeResult<bool> {
+    pub async fn exists(conn: &mut MySqlConnection, id: i32) -> OwgeResult<bool> {
         let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_storage WHERE id = ?")
             .bind(id)
-            .fetch_one(db)
+            .fetch_one(&mut *conn)
             .await?;
         Ok(count > 0)
     }
 
     /// `UserStorageRepository.isBanned`.
-    pub async fn is_banned(db: &Db, id: i32) -> OwgeResult<bool> {
+    pub async fn is_banned(conn: &mut MySqlConnection, id: i32) -> OwgeResult<bool> {
         let banned: Option<i8> = sqlx::query_scalar("SELECT banned FROM user_storage WHERE id = ?")
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(matches!(banned, Some(b) if b != 0))
     }
@@ -194,7 +197,10 @@ impl UserStorageBo {
     /// `more<X>ResourceProduction` improvement (`computePlusPercertage`:
     /// `base + base*(pct/100)`, computed in `float` like Java then widened); the
     /// delta is `elapsedSeconds * perSecond`.
-    pub async fn trigger_resources_update(db: &Db, user_id: i32) -> OwgeResult<()> {
+    pub async fn trigger_resources_update(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<()> {
         // faction production rates + the user's last_action stamp.
         let row: Option<(Option<f32>, Option<f32>, chrono::NaiveDateTime)> = sqlx::query_as(
             "SELECT f.primary_resource_production, f.secondary_resource_production, us.last_action \
@@ -202,13 +208,13 @@ impl UserStorageBo {
               WHERE us.id = ?",
         )
         .bind(user_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         let Some((primary_prod, secondary_prod, last_action)) = row else {
             return Ok(());
         };
 
-        let improvements = UserImprovementBo::find_user_improvement(db, user_id).await?;
+        let improvements = UserImprovementBo::find_user_improvement(&mut *conn, user_id).await?;
         let now = chrono::Utc::now().naive_utc();
         // calculateSum: (now - lastAction) in seconds (millis / 1000.0).
         let elapsed_secs = (now - last_action).num_milliseconds() as f64 / 1000.0;
@@ -236,7 +242,7 @@ impl UserStorageBo {
         .bind(primary_delta)
         .bind(secondary_delta)
         .bind(user_id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         Ok(())
     }
@@ -261,18 +267,18 @@ impl UserStorageBo {
     /// Within a tie, statements are emitted in an FK-safe order (e.g. suspicions
     /// before audit; obtained_units before missions). The home-planet load is
     /// read first so PlanetBo can clear its `home` flag.
-    pub async fn delete_account(db: &Db, user_id: i32) -> OwgeResult<()> {
+    pub async fn delete_account(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
         // PlanetBo needs the user's home planet id to clear its `home` flag.
         let home_planet: Option<u64> =
             sqlx::query_scalar("SELECT home_planet FROM user_storage WHERE id = ?")
                 .bind(user_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
         let Some(home_planet) = home_planet else {
             return Err(OwgeError::NotFound(format!("No user with id {user_id}")));
         };
 
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
 
         // === order 0 ===
 
@@ -453,8 +459,11 @@ impl UserStorageBo {
     }
 
     /// `AdminGameUsersRestService.findById` (`GET admin/users/{id}`).
-    pub async fn find_simple_by_id(db: &Db, id: i32) -> OwgeResult<SimpleUserData> {
-        Ok(SimpleUserData::find_by_id(db, &id).await?)
+    pub async fn find_simple_by_id(
+        conn: &mut MySqlConnection,
+        id: i32,
+    ) -> OwgeResult<SimpleUserData> {
+        Ok(SimpleUserData::find_by_id(&mut *conn, &id).await?)
     }
 
     /// The `user_data_change` payload (`UserEventEmitterBo.findData`). Mirrors
@@ -463,21 +472,21 @@ impl UserStorageBo {
     /// stored `user_storage.energy` is the *initial* energy, NOT the max (each
     /// faction has its own `initial_energy`). The `computed*` fields are never set
     /// by Java's `findData`, so they stay `None` (omitted from the JSON).
-    pub async fn find_data(db: &Db, id: i32) -> OwgeResult<Option<UserData>> {
-        let Some(u) = Self::find_by_id(db, id).await? else {
+    pub async fn find_data(conn: &mut MySqlConnection, id: i32) -> OwgeResult<Option<UserData>> {
+        let Some(u) = Self::find_by_id(&mut *conn, id).await? else {
             return Ok(None);
         };
-        let improvement = UserImprovementBo::find_user_improvement(db, id).await?;
+        let improvement = UserImprovementBo::find_user_improvement(&mut *conn, id).await?;
         let initial_energy: Option<u32> =
             sqlx::query_scalar("SELECT initial_energy FROM factions WHERE id = ?")
                 .bind(u.faction)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
 
-        let faction = FactionBo::find_by_id_or_die(db, u.faction).await?;
+        let faction = FactionBo::find_by_id_or_die(&mut *conn, u.faction).await?;
 
         let max_energy = crate::bo::mission_bo::compute_improvement_value(
-            db,
+            &mut *conn,
             initial_energy.unwrap_or(0) as f64,
             improvement.more_energy_production,
             true,
@@ -490,7 +499,7 @@ impl UserStorageBo {
                FROM obtained_units ou JOIN units un ON un.id = ou.unit_id WHERE ou.user_id = ?",
         )
         .bind(id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         Ok(Some(UserData {
             can_alter_twitch_state: u.can_alter_twitch_state,
@@ -498,9 +507,9 @@ impl UserStorageBo {
             email: u.email,
             faction,
             has_skipped_tutorial: u.has_skipped_tutorial,
-            home_planet: PlanetBo::find_by_id_or_die(db, u.home_planet).await?,
+            home_planet: PlanetBo::find_by_id_or_die(&mut *conn, u.home_planet).await?,
             id: u.id,
-            improvements: UserImprovementBo::find_user_improvement(db, id).await?,
+            improvements: UserImprovementBo::find_user_improvement(&mut *conn, id).await?,
             max_energy,
             primary_resource: u.primary_resource,
             secondary_resource: u.secondary_resource,

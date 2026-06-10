@@ -40,10 +40,7 @@ pub fn recalculate_pending_millis(termination_date: Option<NaiveDateTime>) -> i6
 }
 
 /// Serializes an optional [`MissionType`] as its code, or `null`.
-fn serialize_opt_mission_type<S>(
-    value: &Option<MissionType>,
-    s: S,
-) -> Result<S::Ok, S::Error>
+fn serialize_opt_mission_type<S>(value: &Option<MissionType>, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {

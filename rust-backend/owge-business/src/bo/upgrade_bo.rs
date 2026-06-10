@@ -10,12 +10,12 @@
 //! (see `websocket/sync.rs`), not by this module.
 
 use crate::bo::ImprovementBo;
-use crate::db::Db;
 use crate::dto::upgrade::{
     ObtainedUpgradeDto, UpgradeDto, UpgradeInput, UpgradeTypeDto, UpgradeTypeInput,
 };
 use crate::dto::{ImprovementDto, ImprovementUnitTypeDto};
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::MySqlConnection;
 
 // --- upgrade_types ---------------------------------------------------------
 
@@ -64,7 +64,9 @@ struct ObtainedUpgradeRow {
 
 impl From<ObtainedUpgradeRow> for ObtainedUpgradeDto {
     fn from(r: ObtainedUpgradeRow) -> Self {
-        let image_url = r.upgrade_image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f));
+        let image_url = r
+            .upgrade_image_filename
+            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
         let upgrade = UpgradeDto {
             id: r.upgrade_id,
             name: r.upgrade_name,
@@ -130,7 +132,9 @@ struct UpgradeRow {
 
 impl From<UpgradeRow> for UpgradeDto {
     fn from(r: UpgradeRow) -> Self {
-        let image_url = r.image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f));
+        let image_url = r
+            .image_filename
+            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
         UpgradeDto {
             id: r.id,
             name: r.name,
@@ -164,66 +168,67 @@ pub struct UpgradeBo;
 impl UpgradeBo {
     /// `UpgradeTypeBo.findAll()` -> DTOs — the `upgrade_types_change` sync
     /// payload (the whole upgrade-type catalog).
-    pub async fn find_upgrade_types(db: &Db) -> OwgeResult<Vec<UpgradeTypeDto>> {
-        let rows = sqlx::query_as::<_, UpgradeTypeRow>(
-            "SELECT id, name FROM upgrade_types ORDER BY id",
-        )
-        .fetch_all(db)
-        .await?;
+    pub async fn find_upgrade_types(conn: &mut MySqlConnection) -> OwgeResult<Vec<UpgradeTypeDto>> {
+        let rows =
+            sqlx::query_as::<_, UpgradeTypeRow>("SELECT id, name FROM upgrade_types ORDER BY id")
+                .fetch_all(&mut *conn)
+                .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `CrudRestServiceTrait.findOneById` for the admin upgrade-type CRUD.
-    pub async fn find_upgrade_type_by_id(db: &Db, id: u16) -> OwgeResult<Option<UpgradeTypeDto>> {
-        let row = sqlx::query_as::<_, UpgradeTypeRow>(
-            "SELECT id, name FROM upgrade_types WHERE id = ?",
-        )
-        .bind(id)
-        .fetch_optional(db)
-        .await?;
+    pub async fn find_upgrade_type_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UpgradeTypeDto>> {
+        let row =
+            sqlx::query_as::<_, UpgradeTypeRow>("SELECT id, name FROM upgrade_types WHERE id = ?")
+                .bind(id)
+                .fetch_optional(&mut *conn)
+                .await?;
         Ok(row.map(Into::into))
     }
 
     /// `CrudRestServiceTrait.saveNew` — insert; `upgrade_types.id` is AUTO_INCREMENT.
     pub async fn save_new_upgrade_type(
-        db: &Db,
+        conn: &mut MySqlConnection,
         input: &UpgradeTypeInput,
     ) -> OwgeResult<UpgradeTypeDto> {
         let result = sqlx::query("INSERT INTO upgrade_types (name) VALUES (?)")
             .bind(&input.name)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_upgrade_type_by_id(db, id)
+        Self::find_upgrade_type_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Upgrade type vanished right after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id.
     pub async fn save_existing_upgrade_type(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         input: &UpgradeTypeInput,
     ) -> OwgeResult<UpgradeTypeDto> {
         let affected = sqlx::query("UPDATE upgrade_types SET name = ? WHERE id = ?")
             .bind(&input.name)
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No upgrade type with id {id}")));
         }
-        Self::find_upgrade_type_by_id(db, id)
+        Self::find_upgrade_type_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No upgrade type with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete_upgrade_type(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete_upgrade_type(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM upgrade_types WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
@@ -231,12 +236,15 @@ impl UpgradeBo {
     /// `UpgradeRestService.findObtained(user)` ->
     /// `obtainedUpgradeRepository.findByUserId(userId)` mapped to
     /// `ObtainedUpgradeDto` — the `obtained_upgrades_change` sync payload.
-    pub async fn find_obtained_dtos(db: &Db, user_id: i32) -> OwgeResult<Vec<ObtainedUpgradeDto>> {
+    pub async fn find_obtained_dtos(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<ObtainedUpgradeDto>> {
         let rows = sqlx::query_as::<_, ObtainedUpgradeRow>(&format!(
             "{SELECT_OBTAINED_DTO} WHERE ou.user_id = ? ORDER BY ou.id"
         ))
         .bind(user_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -249,19 +257,18 @@ impl UpgradeBo {
     // --- admin upgrade CRUD (AdminUpgradeRestService) ----------------------
 
     /// `CrudRestServiceTrait.findAll()` — every upgrade, ordered by id.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<UpgradeDto>> {
-        let rows =
-            sqlx::query_as::<_, UpgradeRow>(&format!("{SELECT_UPGRADE_DTO} ORDER BY u.id"))
-                .fetch_all(db)
-                .await?;
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<UpgradeDto>> {
+        let rows = sqlx::query_as::<_, UpgradeRow>(&format!("{SELECT_UPGRADE_DTO} ORDER BY u.id"))
+            .fetch_all(&mut *conn)
+            .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById` for the admin upgrade CRUD.
-    pub async fn find_one(db: &Db, id: u16) -> OwgeResult<Option<UpgradeDto>> {
+    pub async fn find_one(conn: &mut MySqlConnection, id: u16) -> OwgeResult<Option<UpgradeDto>> {
         let row = sqlx::query_as::<_, UpgradeRow>(&format!("{SELECT_UPGRADE_DTO} WHERE u.id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
@@ -280,10 +287,13 @@ impl UpgradeBo {
 
     /// `CrudRestServiceTrait.saveNew` — insert; `upgrades.id` is AUTO_INCREMENT.
     /// `typeId` is mandatory (`beforeSave` throws otherwise).
-    pub async fn save_new(db: &Db, input: &UpgradeInput) -> OwgeResult<UpgradeDto> {
-        let type_id = input.type_id.ok_or_else(|| {
-            OwgeError::InvalidInput("I18N_ERR_UPGRADE_TYPE_IS_MANDATORY".into())
-        })?;
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &UpgradeInput,
+    ) -> OwgeResult<UpgradeDto> {
+        let type_id = input
+            .type_id
+            .ok_or_else(|| OwgeError::InvalidInput("I18N_ERR_UPGRADE_TYPE_IS_MANDATORY".into()))?;
         let (time, level_effect, cloned) = Self::defaults(input);
         let result = sqlx::query(
             "INSERT INTO upgrades (name, description, image_id, points, time, \
@@ -300,19 +310,23 @@ impl UpgradeBo {
         .bind(type_id)
         .bind(level_effect)
         .bind(cloned as i8)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_one(db, id)
+        Self::find_one(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Upgrade vanished right after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id.
-    pub async fn save_existing(db: &Db, id: u16, input: &UpgradeInput) -> OwgeResult<UpgradeDto> {
-        let type_id = input.type_id.ok_or_else(|| {
-            OwgeError::InvalidInput("I18N_ERR_UPGRADE_TYPE_IS_MANDATORY".into())
-        })?;
+    pub async fn save_existing(
+        conn: &mut MySqlConnection,
+        id: u16,
+        input: &UpgradeInput,
+    ) -> OwgeResult<UpgradeDto> {
+        let type_id = input
+            .type_id
+            .ok_or_else(|| OwgeError::InvalidInput("I18N_ERR_UPGRADE_TYPE_IS_MANDATORY".into()))?;
         let (time, level_effect, cloned) = Self::defaults(input);
         let affected = sqlx::query(
             "UPDATE upgrades SET name = ?, description = ?, image_id = ?, points = ?, time = ?, \
@@ -330,65 +344,68 @@ impl UpgradeBo {
         .bind(level_effect)
         .bind(cloned as i8)
         .bind(id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No upgrade with id {id}")));
         }
-        Self::find_one(db, id)
+        Self::find_one(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No upgrade with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM upgrades WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
 
     /// `CrudWithImprovements` `GET {id}/improvement`.
-    pub async fn find_improvement(db: &Db, id: u16) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::find_for_entity(db, "upgrades", id).await
+    pub async fn find_improvement(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<ImprovementDto> {
+        ImprovementBo::find_for_entity(&mut *conn, "upgrades", id).await
     }
 
     /// `CrudWithImprovements` `PUT {id}/improvement`.
     pub async fn save_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementDto,
     ) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::save_for_entity(db, "upgrades", id, dto).await
+        ImprovementBo::save_for_entity(&mut *conn, "upgrades", id, dto).await
     }
 
     /// `GET {id}/improvement/unitTypeImprovements`.
     pub async fn find_unit_type_improvements(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
-        ImprovementBo::find_unit_type_improvements_for_entity(db, "upgrades", id).await
+        ImprovementBo::find_unit_type_improvements_for_entity(&mut *conn, "upgrades", id).await
     }
 
     /// `POST {id}/improvement/unitTypeImprovements`.
     pub async fn add_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementUnitTypeDto,
     ) -> OwgeResult<ImprovementUnitTypeDto> {
-        ImprovementBo::add_unit_type_improvement_for_entity(db, "upgrades", id, dto).await
+        ImprovementBo::add_unit_type_improvement_for_entity(&mut *conn, "upgrades", id, dto).await
     }
 
     /// `DELETE {id}/improvement/unitTypeImprovements/{utiId}`.
     pub async fn delete_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         unit_type_improvement_id: u16,
     ) -> OwgeResult<()> {
         ImprovementBo::delete_unit_type_improvement_for_entity(
-            db,
+            &mut *conn,
             "upgrades",
             id,
             unit_type_improvement_id,

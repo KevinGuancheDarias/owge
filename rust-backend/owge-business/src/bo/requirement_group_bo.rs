@@ -18,12 +18,10 @@
 //! (`REQUIREMENT_GROUP_CACHE_TAG`) is M4 and is left as a TODO.
 
 use crate::bo::{ObjectRelationBo, RequirementBo};
-use crate::db::Db;
-use crate::dto::requirement_information::{
-    RequirementGroupDto, RequirementInformationInput,
-};
+use crate::dto::requirement_information::{RequirementGroupDto, RequirementInformationInput};
 use crate::error::OwgeResult;
 use crate::model::object_relation::object_enum;
+use sqlx::{Connection, MySqlConnection};
 
 pub struct RequirementGroupBo;
 
@@ -32,7 +30,7 @@ impl RequirementGroupBo {
     /// parent entity `(target_object, reference_id)`, add its requirements, and
     /// link it as a slave of the parent's relation. Returns the new group's DTO.
     pub async fn add(
-        db: &Db,
+        conn: &mut MySqlConnection,
         target_object: &str,
         reference_id: i16,
         name: Option<&str>,
@@ -40,7 +38,7 @@ impl RequirementGroupBo {
     ) -> OwgeResult<RequirementGroupDto> {
         // 1. Persist the requirement_group row.
         let group_id = {
-            let mut tx = db.begin().await?;
+            let mut tx = conn.begin().await?;
             let result = sqlx::query("INSERT INTO requirement_group (name) VALUES (?)")
                 .bind(name)
                 .execute(&mut *tx)
@@ -57,10 +55,13 @@ impl RequirementGroupBo {
                 reference_id,
             )
             .await?;
-            let slave_id =
-                ObjectRelationBo::find_one(&mut tx, object_enum::REQUIREMENT_GROUP, group_id as i16)
-                    .await?
-                    .expect("group relation was just created");
+            let slave_id = ObjectRelationBo::find_one(
+                &mut tx,
+                object_enum::REQUIREMENT_GROUP,
+                group_id as i16,
+            )
+            .await?
+            .expect("group relation was just created");
             // 5. Link the group's relation as a slave of the master.
             sqlx::query(
                 "INSERT INTO object_relation__object_relation \
@@ -78,7 +79,7 @@ impl RequirementGroupBo {
         //    (each runs in its own transaction, like the Java per-iteration save).
         for requirement in requirements {
             RequirementBo::add_requirement_from_dto(
-                db,
+                conn,
                 object_enum::REQUIREMENT_GROUP,
                 group_id as i16,
                 requirement,
@@ -90,25 +91,23 @@ impl RequirementGroupBo {
         // `RequirementGroupBo.findRequirements`) is not replicated — requirement
         // group data is recomputed on demand, so there is nothing to evict.
 
-        Self::to_dto(db, group_id).await
+        Self::to_dto(conn, group_id).await
     }
 
     /// `RequirementGroupBo.doFindRequirements` + `toDto` — the groups (slaves)
     /// attached to the parent entity's relation, each with its requirements.
     /// Backs `GET {id}/requirement-group`.
     pub async fn find_groups(
-        db: &Db,
+        conn: &mut MySqlConnection,
         target_object: &str,
         reference_id: i16,
     ) -> OwgeResult<Vec<RequirementGroupDto>> {
         // The parent's relation; if it has none, there are no groups.
-        let mut conn = db.acquire().await?;
         let Some(master_id) =
-            ObjectRelationBo::find_one(&mut conn, target_object, reference_id).await?
+            ObjectRelationBo::find_one(&mut *conn, target_object, reference_id).await?
         else {
             return Ok(Vec::new());
         };
-        drop(conn);
         // Slave REQUIREMENT_GROUP relations -> the group ids (reference_id).
         let group_ids = sqlx::query_scalar::<_, i16>(
             "SELECT o.reference_id \
@@ -119,11 +118,11 @@ impl RequirementGroupBo {
         )
         .bind(master_id)
         .bind(object_enum::REQUIREMENT_GROUP)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         let mut result = Vec::with_capacity(group_ids.len());
         for group_id in group_ids {
-            result.push(Self::to_dto(db, group_id as u16).await?);
+            result.push(Self::to_dto(&mut *conn, group_id as u16).await?);
         }
         Ok(result)
     }
@@ -133,8 +132,8 @@ impl RequirementGroupBo {
     /// `REQUIREMENT_GROUP` relation (and its `requirements_information`,
     /// `unlocked_relation`, and the `object_relation__object_relation` link rows)
     /// before deleting the `requirement_group` row.
-    pub async fn delete(db: &Db, group_id: u16) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+    pub async fn delete(conn: &mut MySqlConnection, group_id: u16) -> OwgeResult<()> {
+        let mut tx = conn.begin().await?;
         if let Some(relation_id) =
             ObjectRelationBo::find_one(&mut tx, object_enum::REQUIREMENT_GROUP, group_id as i16)
                 .await?
@@ -176,16 +175,19 @@ impl RequirementGroupBo {
 
     /// `RequirementGroupBo.toDto` — the group's name plus its requirements
     /// (against its own `REQUIREMENT_GROUP` relation).
-    async fn to_dto(db: &Db, group_id: u16) -> OwgeResult<RequirementGroupDto> {
+    async fn to_dto(conn: &mut MySqlConnection, group_id: u16) -> OwgeResult<RequirementGroupDto> {
         let name: Option<String> =
             sqlx::query_scalar("SELECT name FROM requirement_group WHERE id = ?")
                 .bind(group_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?
                 .flatten();
-        let requirements =
-            RequirementBo::find_requirements(db, object_enum::REQUIREMENT_GROUP, group_id as i16)
-                .await?;
+        let requirements = RequirementBo::find_requirements(
+            &mut *conn,
+            object_enum::REQUIREMENT_GROUP,
+            group_id as i16,
+        )
+        .await?;
         Ok(RequirementGroupDto {
             id: group_id,
             name,

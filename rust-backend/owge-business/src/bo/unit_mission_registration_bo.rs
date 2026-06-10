@@ -247,11 +247,10 @@ async fn is_of_user_property(
     user_id: i32,
     planet_id: i64,
 ) -> OwgeResult<bool> {
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(matches!(owner, Some(Some(o)) if o == user_id))
 }
 
@@ -265,11 +264,10 @@ async fn is_enemy_planet(
     let Some(planet_id) = source_planet else {
         return Ok(false);
     };
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(matches!(owner, Some(Some(o)) if o != user.id))
 }
 
@@ -366,7 +364,9 @@ fn check_repeated_unit(
 ) -> OwgeResult<()> {
     let key = (selected.id, selected.expiration_id);
     if seen.contains(&key) {
-        return Err(OwgeError::InvalidInput("I18N_ERR_REPEATED_UNIT".to_string()));
+        return Err(OwgeError::InvalidInput(
+            "I18N_ERR_REPEATED_UNIT".to_string(),
+        ));
     }
     seen.push(key);
     Ok(())
@@ -396,23 +396,21 @@ async fn handle_selected_unit(
             selected.id
         )));
     }
-    let db_unit =
-        find_source_obtained_unit(conn, user_id, selected, source_planet_id, is_deployed_source)
-            .await?;
+    let db_unit = find_source_obtained_unit(
+        conn,
+        user_id,
+        selected,
+        source_planet_id,
+        is_deployed_source,
+    )
+    .await?;
 
     if check_can_deploy {
         // MissionRegistrationCanDeployChecker.checkUnitCanDeploy — block a
         // DEPLOY-after-DEPLOY when the deploy configuration is ONLY_ONCE_* and the
         // current obtained unit is on a DEPLOYED mission targeting a planet the
         // user doesn't own.
-        check_unit_can_deploy(
-            conn,
-            user_id,
-            target_planet_id,
-            mission_type,
-            &db_unit,
-        )
-        .await?;
+        check_unit_can_deploy(conn, user_id, target_planet_id, mission_type, &db_unit).await?;
     }
 
     let subtraction = selected.count as u64;
@@ -473,10 +471,7 @@ async fn handle_selected_unit(
 
 /// Load the full `UserStorage` on the caller's connection — needed to drive the
 /// requirement-trigger engine (which reads `faction` / `home_planet`).
-async fn load_user_storage(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-) -> OwgeResult<UserStorage> {
+async fn load_user_storage(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<UserStorage> {
     sqlx::query_as::<_, UserStorage>(
         "SELECT id, username, email, alliance_id, faction, last_action, home_planet, \
                 primary_resource, secondary_resource, energy, \
@@ -683,10 +678,11 @@ async fn check_total_weight(
 
     let mut stored_weight: i128 = 0;
     for stored_unit in stored {
-        let weight: Option<u32> = sqlx::query_scalar("SELECT stored_weight FROM units WHERE id = ?")
-            .bind(stored_unit.db_unit.unit_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+        let weight: Option<u32> =
+            sqlx::query_scalar("SELECT stored_weight FROM units WHERE id = ?")
+                .bind(stored_unit.db_unit.unit_id)
+                .fetch_optional(&mut *conn)
+                .await?;
         stored_weight += weight.unwrap_or(0) as i128 * stored_unit.count as i128;
     }
     if stored_weight > max_supported {
@@ -769,7 +765,7 @@ async fn find_mission_base_time(
             return Err(OwgeError::InvalidInput(format!(
                 "Unsupported mission base time type, specified: {}",
                 other.code()
-            )))
+            )));
         }
     };
     let existing: Option<String> =
@@ -870,10 +866,7 @@ async fn configure_obtained_unit(
     Ok(result.last_insert_id())
 }
 
-async fn read_obtained_unit(
-    conn: &mut MySqlConnection,
-    id: u64,
-) -> OwgeResult<ObtainedUnit> {
+async fn read_obtained_unit(conn: &mut MySqlConnection, id: u64) -> OwgeResult<ObtainedUnit> {
     Ok(sqlx::query_as::<_, ObtainedUnit>(
         "SELECT id, user_id, unit_id, count, source_planet, target_planet, \
                 mission_id, first_deployment_mission, is_from_capture, \
@@ -1038,8 +1031,14 @@ async fn do_check_speed_impact(
     mission_type: MissionType,
 ) -> OwgeResult<()> {
     // (a) EntityCanDoMissionChecker.canDoMission against the speed group.
-    if !speed_group_can_do_mission(conn, speed_group_id, user_id, target_planet_id, mission_type)
-        .await?
+    if !speed_group_can_do_mission(
+        conn,
+        speed_group_id,
+        user_id,
+        target_planet_id,
+        mission_type,
+    )
+    .await?
     {
         return Err(OwgeError::InvalidInput(
             "This speed group doesn't support this mission outside of the galaxy".to_string(),

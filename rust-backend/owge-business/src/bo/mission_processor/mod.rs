@@ -5,10 +5,10 @@
 //! whose `process(mission, involvedUnits)` runs the mission's effect and returns
 //! a [`UnitMissionReportBuilder`] (or `null` when the mission produced no
 //! report). The Rust port keeps one module per processor, each exposing a free
-//! `process(conn, mission, involved_units, db) -> OwgeResult<Option<...>>`
-//! function (no DI container — dependencies are explicit `conn`/`db` args, as the
-//! contract requires). The [`dispatch`] helper picks the right processor for a
-//! mission type, mirroring `UnitMissionBo`'s `processors.stream().filter(supports)`.
+//! `process(conn, mission, involved_units) -> OwgeResult<Option<...>>`
+//! function (no DI container — the connection comes from the caller). The
+//! [`dispatch`] helper picks the right processor for a mission type, mirroring
+//! `UnitMissionBo`'s `processors.stream().filter(supports)`.
 //!
 //! Shared, read-only helpers live here so every processor builds the same
 //! report base (`UnitMissionReportBuilder.create(user, source, target, units)`)
@@ -23,10 +23,11 @@ pub mod explore;
 pub mod gather;
 pub mod return_mission;
 
+use crate::bo::ObtainedUnitBo;
 use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::builder::UnitMissionReportBuilder;
-use crate::dto::obtained_unit::{ObtainedUnitDto, ObtainedUnitUnitDto};
 use crate::dto::PlanetDto;
+use crate::dto::obtained_unit::ObtainedUnitDto;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -34,8 +35,7 @@ use crate::model::planet::PlanetDtoRow;
 use sqlx::MySqlConnection;
 
 /// `UnitMissionBo` dispatch — route a (unit) mission to its processor and return
-/// the produced report builder, if any. `db` is threaded for the processors that
-/// need pool-side autonomous reads; the locked-section mutations run on `conn`.
+/// the produced report builder, if any.
 ///
 /// The non-unit/foreign mission types (`LEVEL_UP`, `BUILD_UNIT`, ...) are handled
 /// by other subsystems, not this dispatch, and yield `None`.
@@ -43,26 +43,25 @@ pub async fn dispatch(
     conn: &mut MySqlConnection,
     mission: &Mission,
     involved_units: &[ObtainedUnit],
-    db: &crate::db::Db,
     emits: &mut Vec<DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let Some(mission_type) = mission.mission_type() else {
         return Ok(None);
     };
     match mission_type {
-        MissionType::Explore => explore::process(conn, mission, involved_units, db, emits).await,
-        MissionType::Gather => gather::process(conn, mission, involved_units, db, emits).await,
+        MissionType::Explore => explore::process(conn, mission, involved_units, emits).await,
+        MissionType::Gather => gather::process(conn, mission, involved_units, emits).await,
         MissionType::EstablishBase => {
-            establish_base::process(conn, mission, involved_units, db, emits).await
+            establish_base::process(conn, mission, involved_units, emits).await
         }
-        MissionType::Attack => attack::process(conn, mission, involved_units, db, emits).await,
+        MissionType::Attack => attack::process(conn, mission, involved_units, emits).await,
         MissionType::Counterattack => {
-            counterattack::process(conn, mission, involved_units, db, emits).await
+            counterattack::process(conn, mission, involved_units, emits).await
         }
-        MissionType::Conquest => conquest::process(conn, mission, involved_units, db, emits).await,
-        MissionType::Deploy => deploy::process(conn, mission, involved_units, db, emits).await,
+        MissionType::Conquest => conquest::process(conn, mission, involved_units, emits).await,
+        MissionType::Deploy => deploy::process(conn, mission, involved_units, emits).await,
         MissionType::ReturnMission => {
-            return_mission::process(conn, mission, involved_units, db, emits).await
+            return_mission::process(conn, mission, involved_units, emits).await
         }
         _ => Ok(None),
     }
@@ -144,13 +143,7 @@ pub(crate) async fn load_obtained_unit_dto(
     conn: &mut MySqlConnection,
     obtained_unit_id: u64,
 ) -> OwgeResult<Option<ObtainedUnitDto>> {
-    let row: Option<ObtainedUnitDtoRow> = sqlx::query_as::<_, ObtainedUnitDtoRow>(&format!(
-        "{SELECT_OBTAINED_UNIT_DTO} WHERE ou.id = ?"
-    ))
-    .bind(obtained_unit_id)
-    .fetch_optional(&mut *conn)
-    .await?;
-    Ok(row.map(Into::into))
+    ObtainedUnitBo::find_by_id(&mut *conn, obtained_unit_id).await
 }
 
 const SELECT_PLANET_DTO: &str = "\
@@ -163,165 +156,6 @@ const SELECT_PLANET_DTO: &str = "\
     WHERE p.id = ?";
 
 // --- obtained-unit DTO row (mirrors obtained_unit_bo's SELECT_DTO, single id) ---
-
-#[derive(sqlx::FromRow)]
-struct ObtainedUnitDtoRow {
-    id: u64,
-    count: u64,
-    user_id: i32,
-    username: Option<String>,
-
-    unit_id: u16,
-    unit_name: String,
-    unit_type_id: Option<u16>,
-    unit_type_name: Option<String>,
-    unit_attack: Option<u16>,
-    unit_health: Option<u16>,
-    unit_shield: Option<u16>,
-    unit_charge: Option<u16>,
-    unit_is_unique: u8,
-    unit_can_fast_explore: i8,
-    unit_speed: Option<f64>,
-    unit_bypass_shield: i8,
-    unit_is_invisible: i8,
-    unit_stored_weight: u32,
-    unit_storage_capacity: Option<u32>,
-    unit_description: Option<String>,
-    unit_image: Option<u64>,
-    unit_image_filename: Option<String>,
-    unit_points: Option<u32>,
-    unit_time: Option<i32>,
-    unit_primary_resource: Option<u32>,
-    unit_secondary_resource: Option<u32>,
-    unit_energy: Option<u16>,
-    unit_cloned_improvements: i8,
-    unit_has_to_display_in_requirements: i8,
-
-    sp_id: Option<u64>,
-    sp_name: Option<String>,
-    sp_sector: Option<u32>,
-    sp_quadrant: Option<u32>,
-    sp_planet_number: Option<u16>,
-    sp_owner_id: Option<i32>,
-    sp_owner_name: Option<String>,
-    sp_richness: Option<u16>,
-    sp_home: Option<i8>,
-    sp_galaxy_id: Option<u16>,
-    sp_galaxy_name: Option<String>,
-
-    tp_id: Option<u64>,
-    tp_name: Option<String>,
-    tp_sector: Option<u32>,
-    tp_quadrant: Option<u32>,
-    tp_planet_number: Option<u16>,
-    tp_owner_id: Option<i32>,
-    tp_owner_name: Option<String>,
-    tp_richness: Option<u16>,
-    tp_home: Option<i8>,
-    tp_galaxy_id: Option<u16>,
-    tp_galaxy_name: Option<String>,
-}
-
-impl From<ObtainedUnitDtoRow> for ObtainedUnitDto {
-    fn from(r: ObtainedUnitDtoRow) -> Self {
-        let unit = ObtainedUnitUnitDto {
-            id: r.unit_id,
-            name: r.unit_name,
-            description: r.unit_description,
-            image: r.unit_image,
-            image_url: r
-                .unit_image_filename
-                .as_deref()
-                .map(crate::dto::obtained_unit::compute_unit_image_url),
-            has_to_display_in_requirements: r.unit_has_to_display_in_requirements != 0,
-            points: r.unit_points,
-            time: r.unit_time,
-            primary_resource: r.unit_primary_resource,
-            secondary_resource: r.unit_secondary_resource,
-            energy: r.unit_energy,
-            type_id: r.unit_type_id,
-            type_name: r.unit_type_name,
-            attack: r.unit_attack,
-            health: r.unit_health,
-            shield: r.unit_shield,
-            charge: r.unit_charge,
-            is_unique: r.unit_is_unique != 0,
-            can_fast_explore: r.unit_can_fast_explore != 0,
-            speed: r.unit_speed,
-            cloned_improvements: r.unit_cloned_improvements != 0,
-            bypass_shield: r.unit_bypass_shield != 0,
-            is_invisible: r.unit_is_invisible != 0,
-            stored_weight: r.unit_stored_weight,
-            storage_capacity: r.unit_storage_capacity,
-        };
-        let source_planet = r.sp_id.map(|id| PlanetDto {
-            id,
-            name: Some(r.sp_name.unwrap_or_default()),
-            sector: r.sp_sector.unwrap_or_default(),
-            quadrant: r.sp_quadrant.unwrap_or_default(),
-            planet_number: r.sp_planet_number.unwrap_or_default(),
-            owner_id: r.sp_owner_id,
-            owner_name: r.sp_owner_name,
-            richness: Some(r.sp_richness.unwrap_or_default()),
-            home: Some(r.sp_home.unwrap_or(0) != 0),
-            galaxy_id: r.sp_galaxy_id.unwrap_or_default(),
-            galaxy_name: r.sp_galaxy_name.unwrap_or_default(),
-        });
-        let target_planet = r.tp_id.map(|id| PlanetDto {
-            id,
-            name: Some(r.tp_name.unwrap_or_default()),
-            sector: r.tp_sector.unwrap_or_default(),
-            quadrant: r.tp_quadrant.unwrap_or_default(),
-            planet_number: r.tp_planet_number.unwrap_or_default(),
-            owner_id: r.tp_owner_id,
-            owner_name: r.tp_owner_name,
-            richness: Some(r.tp_richness.unwrap_or_default()),
-            home: Some(r.tp_home.unwrap_or(0) != 0),
-            galaxy_id: r.tp_galaxy_id.unwrap_or_default(),
-            galaxy_name: r.tp_galaxy_name.unwrap_or_default(),
-        });
-        ObtainedUnitDto {
-            id: r.id,
-            unit,
-            count: r.count,
-            source_planet,
-            target_planet,
-            user_id: r.user_id,
-            username: r.username,
-            temporal_information: None,
-        }
-    }
-}
-
-const SELECT_OBTAINED_UNIT_DTO: &str = "\
-    SELECT ou.id, ou.count, ou.user_id AS user_id, usr.username AS username, \
-           u.id AS unit_id, u.name AS unit_name, u.type AS unit_type_id, ut.name AS unit_type_name, \
-           u.attack AS unit_attack, u.health AS unit_health, u.shield AS unit_shield, u.charge AS unit_charge, \
-           u.is_unique AS unit_is_unique, u.can_fast_explore AS unit_can_fast_explore, u.speed AS unit_speed, \
-           u.bypass_shield AS unit_bypass_shield, u.is_invisible AS unit_is_invisible, \
-           u.stored_weight AS unit_stored_weight, u.storage_capacity AS unit_storage_capacity, \
-           u.description AS unit_description, u.image_id AS unit_image, uimg.filename AS unit_image_filename, \
-           u.points AS unit_points, u.time AS unit_time, u.primary_resource AS unit_primary_resource, \
-           u.secondary_resource AS unit_secondary_resource, u.energy AS unit_energy, \
-           u.cloned_improvements AS unit_cloned_improvements, \
-           u.display_in_requirements AS unit_has_to_display_in_requirements, \
-           sp.id AS sp_id, sp.name AS sp_name, sp.sector AS sp_sector, sp.quadrant AS sp_quadrant, \
-           sp.planet_number AS sp_planet_number, sp.owner AS sp_owner_id, spo.username AS sp_owner_name, \
-           sp.richness AS sp_richness, sp.home AS sp_home, sp.galaxy_id AS sp_galaxy_id, spg.name AS sp_galaxy_name, \
-           tp.id AS tp_id, tp.name AS tp_name, tp.sector AS tp_sector, tp.quadrant AS tp_quadrant, \
-           tp.planet_number AS tp_planet_number, tp.owner AS tp_owner_id, tpo.username AS tp_owner_name, \
-           tp.richness AS tp_richness, tp.home AS tp_home, tp.galaxy_id AS tp_galaxy_id, tpg.name AS tp_galaxy_name \
-    FROM obtained_units ou \
-    JOIN units u ON u.id = ou.unit_id \
-    LEFT JOIN unit_types ut ON ut.id = u.type \
-    LEFT JOIN images_store uimg ON uimg.id = u.image_id \
-    JOIN user_storage usr ON usr.id = ou.user_id \
-    LEFT JOIN planets sp ON sp.id = ou.source_planet \
-    LEFT JOIN galaxies spg ON spg.id = sp.galaxy_id \
-    LEFT JOIN user_storage spo ON spo.id = sp.owner \
-    LEFT JOIN planets tp ON tp.id = ou.target_planet \
-    LEFT JOIN galaxies tpg ON tpg.id = tp.galaxy_id \
-    LEFT JOIN user_storage tpo ON tpo.id = tp.owner ";
 
 // --- shared mutation helpers used by several processors ---
 
@@ -653,7 +487,7 @@ pub struct AttackEmit {
 
 impl DeferredEmit {
     /// Execute the emit against the (now-committed) DB.
-    pub async fn run(&self, db: &crate::db::Db) -> OwgeResult<()> {
+    pub async fn run(&self, conn: &mut sqlx::MySqlConnection) -> OwgeResult<()> {
         use crate::bo::realtime_emitter;
         use crate::bo::user_event_emitter::UserEventEmitter;
         use crate::bo::{MissionEventEmitter, ObtainedUnitEventEmitter};
@@ -679,25 +513,28 @@ impl DeferredEmit {
             DeferredEmit::LocalMissionChange {
                 mission_id,
                 user_id,
-            } => MissionEventEmitter::emit_local_mission_change(db, *mission_id, *user_id).await,
+            } => {
+                MissionEventEmitter::emit_local_mission_change(&mut *conn, *mission_id, *user_id)
+                    .await
+            }
             DeferredEmit::ConquestSuccess {
                 new_owner_id,
                 target_planet_id,
                 old_owner_id,
             } => {
                 // PlanetBo.definePlanetAsOwnedBy (new owner) post-commit block.
-                realtime_emitter::emit_planet_owned_change(db, *new_owner_id).await?;
-                MissionEventEmitter::emit_enemy_missions_change(db, *new_owner_id).await?;
-                ObtainedUnitEventEmitter::emit_obtained_units(db, *new_owner_id).await?;
+                realtime_emitter::emit_planet_owned_change(&mut *conn, *new_owner_id).await?;
+                MissionEventEmitter::emit_enemy_missions_change(&mut *conn, *new_owner_id).await?;
+                ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, *new_owner_id).await?;
                 // planetListBo.emitByChangedPlanet(targetPlanet): everyone whose
                 // saved planet list contains this planet.
-                for uid in find_planet_list_holders(db, *target_planet_id).await? {
-                    realtime_emitter::emit_planet_user_list_change(db, uid).await?;
+                for uid in find_planet_list_holders(&mut *conn, *target_planet_id).await? {
+                    realtime_emitter::emit_planet_user_list_change(&mut *conn, uid).await?;
                 }
                 // ConquestMissionProcessor old-owner branch.
                 if let Some(old) = old_owner_id {
-                    realtime_emitter::emit_planet_owned_change(db, *old).await?;
-                    MissionEventEmitter::emit_enemy_missions_change(db, *old).await?;
+                    realtime_emitter::emit_planet_owned_change(&mut *conn, *old).await?;
+                    MissionEventEmitter::emit_enemy_missions_change(&mut *conn, *old).await?;
                 }
                 Ok(())
             }
@@ -713,13 +550,13 @@ impl DeferredEmit {
                     .copied()
                     .collect();
                 for uid in &affected {
-                    crate::bo::UserImprovementBo::evict_and_emit(db, *uid).await?;
+                    crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, *uid).await?;
                 }
                 // updatePoints' doAfterCommit: per altered user, unit_type_change +
                 // unit_obtained_change.
                 for &uid in &a.altered_users {
-                    UnitTypeEmitter::emit_unit_type_change(db, uid).await?;
-                    ObtainedUnitEventEmitter::emit_obtained_units(db, uid).await?;
+                    UnitTypeEmitter::emit_unit_type_change(&mut *conn, uid).await?;
+                    ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, uid).await?;
                 }
                 // startAttack per-user block. The deleted-missions loop removes its
                 // users from the changed-counts set first.
@@ -731,23 +568,24 @@ impl DeferredEmit {
                     .filter(|u| !deleted.contains(u))
                     .collect();
                 for &uid in &a.users_with_deleted_missions {
-                    MissionEventEmitter::emit_unit_missions(db, uid).await?;
-                    UserEventEmitter::emit_user_data(db, uid).await?;
+                    MissionEventEmitter::emit_unit_missions(&mut *conn, uid).await?;
+                    UserEventEmitter::emit_user_data(&mut *conn, uid).await?;
                 }
                 for &uid in &changed {
                     if a.target_owner == Some(uid) {
-                        ObtainedUnitEventEmitter::emit_obtained_units(db, uid).await?;
+                        ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, uid).await?;
                         if !deleted.is_empty() || changed.len() > 1 {
-                            MissionEventEmitter::emit_enemy_missions_change(db, uid).await?;
+                            MissionEventEmitter::emit_enemy_missions_change(&mut *conn, uid)
+                                .await?;
                         }
                     }
-                    MissionEventEmitter::emit_unit_missions(db, uid).await?;
-                    UserEventEmitter::emit_user_data(db, uid).await?;
+                    MissionEventEmitter::emit_unit_missions(&mut *conn, uid).await?;
+                    UserEventEmitter::emit_user_data(&mut *conn, uid).await?;
                 }
                 // AttackMissionProcessor.processAttack conditional local change.
                 if a.removed || (a.target_owner.is_some() && !deleted.is_empty()) {
                     MissionEventEmitter::emit_local_mission_change(
-                        db,
+                        &mut *conn,
                         a.mission_id,
                         a.mission_user_id,
                     )
@@ -755,11 +593,11 @@ impl DeferredEmit {
                 }
                 Ok(())
             }
-            DeferredEmit::Requirement(req) => req.run(db).await,
+            DeferredEmit::Requirement(req) => req.run(&mut *conn).await,
             DeferredEmit::MissionReport { user_id, report_id } => {
                 // MissionReportBo.emitOneToUser: the new report, then the count.
-                realtime_emitter::emit_mission_report_new(db, *user_id, *report_id).await?;
-                realtime_emitter::emit_mission_report_count_change(db, *user_id).await
+                realtime_emitter::emit_mission_report_new(&mut *conn, *user_id, *report_id).await?;
+                realtime_emitter::emit_mission_report_count_change(&mut *conn, *user_id).await
             }
         }
     }
@@ -767,11 +605,14 @@ impl DeferredEmit {
 
 /// `planetListRepository.findUserIdByPlanetListPlanet(planet)` — the ids of users
 /// whose saved planet list contains `planet_id`.
-async fn find_planet_list_holders(db: &crate::db::Db, planet_id: u64) -> OwgeResult<Vec<i32>> {
+async fn find_planet_list_holders(
+    conn: &mut sqlx::MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Vec<i32>> {
     Ok(
         sqlx::query_scalar("SELECT DISTINCT user_id FROM planet_list WHERE planet_id = ?")
             .bind(planet_id)
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?,
     )
 }

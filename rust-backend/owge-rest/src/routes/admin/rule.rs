@@ -51,8 +51,9 @@ async fn find_by_origin(
     _admin: AdminUser,
     Path((origin_type, id)): Path<(String, i64)>,
 ) -> ApiResult<Json<Vec<RuleDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RuleBo::find_by_origin_type_and_origin_id(&state.db, &origin_type, id).await?,
+        RuleBo::find_by_origin_type_and_origin_id(&mut conn, &origin_type, id).await?,
     ))
 }
 
@@ -61,7 +62,8 @@ async fn find_by_type(
     _admin: AdminUser,
     Path(rule_type): Path<String>,
 ) -> ApiResult<Json<Vec<RuleDto>>> {
-    Ok(Json(RuleBo::find_by_type(&state.db, &rule_type).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(RuleBo::find_by_type(&mut conn, &rule_type).await?))
 }
 
 async fn find_type_descriptor(
@@ -69,8 +71,9 @@ async fn find_type_descriptor(
     _admin: AdminUser,
     Path(rule_type): Path<String>,
 ) -> ApiResult<Json<RuleTypeDescriptorDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RuleBo::find_type_descriptor(&state.db, &rule_type).await?,
+        RuleBo::find_type_descriptor(&mut conn, &rule_type).await?,
     ))
 }
 
@@ -79,8 +82,9 @@ async fn find_item_type_descriptor(
     _admin: AdminUser,
     Path(item_type): Path<String>,
 ) -> ApiResult<Json<RuleItemTypeDescriptorDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RuleBo::find_item_type_descriptor(&state.db, &item_type).await?,
+        RuleBo::find_item_type_descriptor(&mut conn, &item_type).await?,
     ))
 }
 
@@ -89,7 +93,8 @@ async fn delete_by_id(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    RuleBo::delete_by_id(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    RuleBo::delete_by_id(&mut conn, id).await?;
     // Java controller method returns `void` => Spring 200 with empty body.
     Ok(StatusCode::OK)
 }
@@ -99,5 +104,6 @@ async fn save(
     _admin: AdminUser,
     Json(input): Json<RuleInput>,
 ) -> ApiResult<Json<RuleDto>> {
-    Ok(Json(RuleBo::save(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(RuleBo::save(&mut conn, &input).await?))
 }

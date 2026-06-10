@@ -14,15 +14,15 @@
 //!
 //! All `emit_*` wrappers follow the canonical shape (see M4-CONTRACTS.md):
 //! ```text
-//! emitter::send_message(db, user_id, "<event>", || async { Ok(to_value(finder)?) }).await
+//! emitter::send_message(conn, user_id, "<event>", |conn| Box::pin(async move { Ok(to_value(finder)?) })).await
 //! ```
 //! They must be called **after** the surrounding DB transaction commits.
 
-use serde_json::Value;
-
-use crate::db::Db;
+use crate::bo::unlocked::unlocked_unit_finder::UnlockedUnitFinder;
 use crate::error::OwgeResult;
 use crate::websocket::emitter;
+use serde_json::Value;
+use sqlx::MySqlConnection;
 
 // ─── requirement / unlock emitters ──────────────────────────────────────────
 
@@ -32,11 +32,13 @@ use crate::websocket::emitter;
 /// the `unit_unlocked_change` event calls
 /// `socketIoService.sendMessage(userId, "unit_unlocked_change", () -> unitBo.findAllByUser(userId))`.
 /// Rust finder: `UnitBo::find_unlocked_by_user`.
-pub async fn emit_unit_unlocked_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "unit_unlocked_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::UnitBo::find_unlocked_by_user(db, user_id).await?,
-        )?)
+pub async fn emit_unit_unlocked_change(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "unit_unlocked_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                UnlockedUnitFinder::find_unlocked_by_user(&mut *conn, user_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -47,11 +49,17 @@ pub async fn emit_unit_unlocked_change(db: &Db, user_id: i32) -> OwgeResult<()> 
 /// Java: `socketIoService.sendMessage(userId, "unit_requirements_change", () ->
 /// requirementBo.findFactionUnitLevelRequirements(factionBo.findByUser(userId)))`.
 /// Rust finder: `RequirementBo::find_faction_unit_level_requirements`.
-pub async fn emit_unit_requirements_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "unit_requirements_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::RequirementBo::find_faction_unit_level_requirements(db, user_id).await?,
-        )?)
+pub async fn emit_unit_requirements_change(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "unit_requirements_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::RequirementBo::find_faction_unit_level_requirements(&mut *conn, user_id)
+                    .await?,
+            )?)
+        })
     })
     .await
 }
@@ -62,15 +70,21 @@ pub async fn emit_unit_requirements_change(db: &Db, user_id: i32) -> OwgeResult<
 /// Java: `socketIoService.sendMessage(userId, "speed_impact_group_unlocked_change",
 /// () -> unlockedSpeedImpactGroupService.findCrossGalaxyUnlocked(userId))`.
 /// Rust finder: `SpeedImpactGroupBo::find_cross_galaxy_unlocked`.
-pub async fn emit_speed_impact_group_unlocked_change(db: &Db, user_id: i32) -> OwgeResult<()> {
+pub async fn emit_speed_impact_group_unlocked_change(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<()> {
     emitter::send_message(
-        db,
+        conn,
         user_id,
         "speed_impact_group_unlocked_change",
-        || async move {
-            Ok(serde_json::to_value(
-                crate::bo::SpeedImpactGroupBo::find_cross_galaxy_unlocked(db, user_id).await?,
-            )?)
+        |conn| {
+            Box::pin(async move {
+                Ok(serde_json::to_value(
+                    crate::bo::SpeedImpactGroupBo::find_cross_galaxy_unlocked(&mut *conn, user_id)
+                        .await?,
+                )?)
+            })
         },
     )
     .await
@@ -86,11 +100,16 @@ pub async fn emit_speed_impact_group_unlocked_change(db: &Db, user_id: i32) -> O
 /// `time_special_change` and `time_special_unlocked_change` through the same
 /// handler, so the payload carries the per-user activation status (a superset of
 /// Java's plain `dtoFromEntity`, which the frontend recomputes anyway).
-pub async fn emit_time_special_unlocked_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "time_special_unlocked_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::TimeSpecialBo::find_unlocked_dtos(db, user_id).await?,
-        )?)
+pub async fn emit_time_special_unlocked_change(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "time_special_unlocked_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::TimeSpecialBo::find_unlocked_dtos(&mut *conn, user_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -102,11 +121,13 @@ pub async fn emit_time_special_unlocked_change(db: &Db, user_id: i32) -> OwgeRes
 /// () -> findUserImprovement(user))`. The finder is cached, so this is cheap; it
 /// must be called **after** the matching cache eviction (see
 /// [`UserImprovementBo::evict_and_emit`](crate::bo::UserImprovementBo::evict_and_emit)).
-pub async fn emit_user_improvements(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "user_improvements_change", || async move {
-        let aggregate =
-            crate::bo::UserImprovementBo::find_user_improvement(db, user_id).await?;
-        Ok(serde_json::to_value(aggregate.to_wire())?)
+pub async fn emit_user_improvements(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "user_improvements_change", |conn| {
+        Box::pin(async move {
+            let aggregate =
+                crate::bo::UserImprovementBo::find_user_improvement(&mut *conn, user_id).await?;
+            Ok(serde_json::to_value(aggregate.to_wire())?)
+        })
     })
     .await
 }
@@ -120,7 +141,7 @@ pub async fn emit_user_improvements(db: &Db, user_id: i32) -> OwgeResult<()> {
 /// Mirrors `RequirementBo.registerObtainedRelation` / `unregisterLostRelation`,
 /// whose `emitUnlockedChange` / `emitUnlockedSpeedImpactGroups` push happens via
 /// `transactionUtilService.doAfterCommit(...)`. The engine cannot observe its own
-/// uncommitted writes through the emit finders (which read via the `db` pool), so
+/// uncommitted writes through the emit finders (which read via the connection), so
 /// it records what to emit and the call site drains it once committed.
 ///
 /// The three object types Java's `registerObtainedRelation`/`unregisterLostRelation`
@@ -157,32 +178,32 @@ pub enum RequirementEmit {
 
 impl RequirementEmit {
     /// Fire this single emit against the (now-committed) DB.
-    pub async fn run(self, db: &Db) -> OwgeResult<()> {
+    pub async fn run(self, conn: &mut MySqlConnection) -> OwgeResult<()> {
         match self {
-            RequirementEmit::UnitUnlocked(u) => emit_unit_unlocked_change(db, u).await,
+            RequirementEmit::UnitUnlocked(u) => emit_unit_unlocked_change(conn, u).await,
             RequirementEmit::TimeSpecialUnlocked(u) => {
-                emit_time_special_unlocked_change(db, u).await
+                emit_time_special_unlocked_change(conn, u).await
             }
             RequirementEmit::SpeedImpactGroupUnlocked(u) => {
-                emit_speed_impact_group_unlocked_change(db, u).await
+                emit_speed_impact_group_unlocked_change(conn, u).await
             }
-            RequirementEmit::TimeSpecialChange(u) => emit_time_special_change(db, u).await,
+            RequirementEmit::TimeSpecialChange(u) => emit_time_special_change(conn, u).await,
             RequirementEmit::ImprovementCache(u) => {
-                crate::bo::UserImprovementBo::evict_and_emit(db, u).await
+                crate::bo::UserImprovementBo::evict_and_emit(conn, u).await
             }
             RequirementEmit::TimeSpecialAffectingUnits {
                 user_id,
                 time_special_id,
             } => {
                 crate::bo::ActiveTimeSpecialBo::emit_if_activation_affecting_units(
-                    db,
+                    conn,
                     user_id,
                     time_special_id,
                 )
                 .await
             }
             RequirementEmit::TemporalUnitsRelationLost(relation_id) => {
-                crate::bo::TemporalUnitsBo::on_time_special_relation_lost(db, relation_id).await
+                crate::bo::TemporalUnitsBo::on_time_special_relation_lost(conn, relation_id).await
             }
         }
     }
@@ -193,11 +214,14 @@ impl RequirementEmit {
 /// relation, so several relations of the same kind would push the same full-list
 /// payload repeatedly; since the payload is an idempotent snapshot, we emit each
 /// distinct `(event, user)` once (same final client state, fewer messages).
-pub async fn drain_requirement_emits(db: &Db, emits: &[RequirementEmit]) -> OwgeResult<()> {
+pub async fn drain_requirement_emits(
+    conn: &mut MySqlConnection,
+    emits: &[RequirementEmit],
+) -> OwgeResult<()> {
     let mut seen = std::collections::HashSet::new();
     for emit in emits {
         if seen.insert(*emit) {
-            emit.run(db).await?;
+            emit.run(&mut *conn).await?;
         }
     }
     Ok(())
@@ -210,11 +234,13 @@ pub async fn drain_requirement_emits(db: &Db, emits: &[RequirementEmit]) -> Owge
 /// Java: `socketIoService.sendMessage(userId, "time_special_change",
 /// () -> activeTimeSpecialBo.findByUserWithCurrentStatus(user))`.
 /// Rust finder: `TimeSpecialBo::find_user_status_dtos`.
-pub async fn emit_time_special_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "time_special_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::TimeSpecialBo::find_user_status_dtos(db, user_id).await?,
-        )?)
+pub async fn emit_time_special_change(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "time_special_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::TimeSpecialBo::find_user_status_dtos(&mut *conn, user_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -226,11 +252,13 @@ pub async fn emit_time_special_change(db: &Db, user_id: i32) -> OwgeResult<()> {
 /// Java: `socketIoService.sendMessage(userId, "planet_owned_change",
 /// () -> planetBo.toDto(planetRepository.findByOwnerId(userId)))`.
 /// Rust finder: `PlanetBo::find_owned_dtos`.
-pub async fn emit_planet_owned_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "planet_owned_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::PlanetBo::find_owned_dtos(db, user_id).await?,
-        )?)
+pub async fn emit_planet_owned_change(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "planet_owned_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::PlanetBo::find_owned_dtos(&mut *conn, user_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -240,11 +268,16 @@ pub async fn emit_planet_owned_change(db: &Db, user_id: i32) -> OwgeResult<()> {
 /// Java: `socketIoService.sendMessage(userId, "planet_user_list_change",
 /// () -> planetListBo.findByUserId(userId))`.
 /// Rust finder: `PlanetListBo::find_by_user_id`.
-pub async fn emit_planet_user_list_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "planet_user_list_change", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::PlanetListBo::find_by_user_id(db, user_id).await?,
-        )?)
+pub async fn emit_planet_user_list_change(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "planet_user_list_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::PlanetListBo::find_by_user_id(&mut *conn, user_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -256,9 +289,12 @@ pub async fn emit_planet_user_list_change(db: &Db, user_id: i32) -> OwgeResult<(
 /// Java: `socketIoService.sendMessage(null, "twitch_state_change", () -> statusJson)`.
 /// The `null` user resolves to `sendMessage(0, …)` in Java, which broadcasts.
 /// `status_json` is the already-serialised Twitch state value.
-pub async fn emit_twitch_state_change(db: &Db, status_json: Value) -> OwgeResult<()> {
-    emitter::send_message(db, 0, "twitch_state_change", || async move {
-        Ok(status_json)
+pub async fn emit_twitch_state_change(
+    conn: &mut MySqlConnection,
+    status_json: Value,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, 0, "twitch_state_change", |_conn| {
+        Box::pin(async move { Ok(status_json) })
     })
     .await
 }
@@ -296,10 +332,14 @@ pub async fn send_account_deleted(user_id: i32) -> OwgeResult<()> {
 /// `sendMessage(user, "warn_message", () -> i18nWarningText)`.
 /// Uses `send_message` (not one-time) so the warning is persisted in the
 /// watermark table and delivered to the client on reconnect.
-pub async fn send_warning(db: &Db, user_id: i32, i18n_text: &str) -> OwgeResult<()> {
+pub async fn send_warning(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    i18n_text: &str,
+) -> OwgeResult<()> {
     let text = i18n_text.to_owned();
-    emitter::send_message(db, user_id, "warn_message", || async move {
-        Ok(Value::String(text))
+    emitter::send_message(conn, user_id, "warn_message", |_conn| {
+        Box::pin(async move { Ok(Value::String(text)) })
     })
     .await
 }
@@ -312,11 +352,17 @@ pub async fn send_warning(db: &Db, user_id: i32, i18n_text: &str) -> OwgeResult<
 /// Java: `MissionReportBo.emitOneToUser` →
 /// `socketIoService.sendMessage(user, "mission_report_new", () -> toDto(report))`.
 /// Uses `send_message` (with watermark), matching Java's `sendMessage(UserStorage, …)`.
-pub async fn emit_mission_report_new(db: &Db, user_id: i32, report_id: u64) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "mission_report_new", || async move {
-        Ok(serde_json::to_value(
-            crate::bo::MissionReportBo::find_by_id(db, report_id).await?,
-        )?)
+pub async fn emit_mission_report_new(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    report_id: u64,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "mission_report_new", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::MissionReportBo::find_by_id(&mut *conn, report_id).await?,
+            )?)
+        })
     })
     .await
 }
@@ -330,16 +376,21 @@ pub async fn emit_mission_report_new(db: &Db, user_id: i32, report_id: u64) -> O
 /// returns a fresh `MissionReportResponse` with only the two counts set, so the
 /// wire payload (Jackson `NON_NULL`) is `{page:0, userUnread, enemyUnread,
 /// requiresFlush:false}` (`reports` is null → omitted).
-pub async fn emit_mission_report_count_change(db: &Db, user_id: i32) -> OwgeResult<()> {
-    emitter::send_message(db, user_id, "mission_report_count_change", || async move {
-        let (user_unread, enemy_unread) =
-            crate::bo::MissionReportBo::find_unread_count(db, user_id).await?;
-        Ok(serde_json::json!({
-            "page": 0,
-            "userUnread": user_unread,
-            "enemyUnread": enemy_unread,
-            "requiresFlush": false,
-        }))
+pub async fn emit_mission_report_count_change(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "mission_report_count_change", |conn| {
+        Box::pin(async move {
+            let (user_unread, enemy_unread) =
+                crate::bo::MissionReportBo::find_unread_count(&mut *conn, user_id).await?;
+            Ok(serde_json::json!({
+                "page": 0,
+                "userUnread": user_unread,
+                "enemyUnread": enemy_unread,
+                "requiresFlush": false,
+            }))
+        })
     })
     .await
 }

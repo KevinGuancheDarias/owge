@@ -25,6 +25,7 @@ pub mod mission_scheduler_bo;
 pub mod mission_time_manager_bo;
 pub mod object_relation_bo;
 pub mod obtained_unit_bo;
+pub mod obtained_unit_entity;
 pub mod planet_bo;
 pub mod planet_list_bo;
 pub mod ranking_bo;
@@ -54,9 +55,9 @@ pub mod websocket_events_information_bo;
 // M4 realtime emitters + the running-mission finders that back the mission events.
 mod emitter;
 pub mod mission_event_emitter;
-pub mod obtained_unit_event_emitter;
 pub mod realtime_emitter;
 pub mod running_mission_finder_bo;
+pub mod unlocked;
 pub mod user_event_emitter;
 
 pub use active_time_special_bo::ActiveTimeSpecialBo;
@@ -82,7 +83,6 @@ pub use mission_scheduler_bo::{MissionDispatch, MissionSchedulerService};
 pub use mission_time_manager_bo::MissionTimeManagerBo;
 pub use object_relation_bo::ObjectRelationBo;
 pub use obtained_unit_bo::ObtainedUnitBo;
-pub use obtained_unit_event_emitter::ObtainedUnitEventEmitter;
 pub use planet_bo::PlanetBo;
 pub use planet_list_bo::PlanetListBo;
 pub use ranking_bo::RankingBo;
@@ -104,6 +104,7 @@ pub use unit_interception_finder_bo::{InterceptedUnitsInformation, UnitIntercept
 pub use unit_mission_bo::{MissionRunner, UnitMissionBo};
 pub use unit_mission_registration_bo::UnitMissionRegistrationBo;
 pub use unit_type_bo::UnitTypeBo;
+pub use unlocked::obtained_unit_event_emitter::ObtainedUnitEventEmitter;
 pub use unlocked_relation_bo::UnlockedRelationBo;
 pub use upgrade_bo::UpgradeBo;
 pub use user_event_emitter::UserEventEmitter;

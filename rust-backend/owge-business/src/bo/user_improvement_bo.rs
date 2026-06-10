@@ -35,9 +35,9 @@ use std::time::Duration;
 
 use moka::future::Cache;
 
-use crate::db::Db;
 use crate::dto::user_improvement::{ImprovementType, UserImprovementDto};
-use crate::error::{OwgeError, OwgeResult};
+use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 /// Per-user aggregate improvement cache. Key = `user_storage.id`; value = the
 /// shared aggregate. TTL bounds staleness from any missed eviction; the capacity
@@ -78,21 +78,30 @@ pub struct UserImprovementBo;
 
 impl UserImprovementBo {
     /// `ImprovementBo.findUserImprovement` — the user's aggregate improvement,
-    /// served from the per-user cache (computing + storing on a miss).
-    pub async fn find_user_improvement(db: &Db, user_id: i32) -> OwgeResult<UserImprovementDto> {
-        let cached = IMPROVEMENT_CACHE
-            .try_get_with(user_id, async move {
-                Self::compute_user_improvement(db, user_id)
-                    .await
-                    .map(Arc::new)
-            })
-            .await
-            // `try_get_with` Arc-wraps the init error (it may be shared with other
-            // waiters); the underlying failure is always a DB error during compute.
-            .map_err(|e: Arc<OwgeError>| {
-                OwgeError::Common(format!("improvement computation failed: {e}"))
-            })?;
-        Ok((*cached).clone())
+    /// served from the per-user cache (computing + storing on a miss). On a cache
+    /// miss the computation runs on the provided `conn`.
+    pub async fn find_user_improvement(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<UserImprovementDto> {
+        if let Some(cached) = IMPROVEMENT_CACHE.get(&user_id).await {
+            return Ok((*cached).clone());
+        }
+        let dto = Self::compute_user_improvement(conn, user_id).await?;
+        IMPROVEMENT_CACHE
+            .insert(user_id, Arc::new(dto.clone()))
+            .await;
+        Ok(dto)
+    }
+
+    /// Connection-taking variant — same as `find_user_improvement`, kept as an
+    /// alias so callers that hold `&mut MySqlConnection` can call either name.
+    #[inline]
+    pub async fn find_user_improvement_on_conn(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<UserImprovementDto> {
+        Self::find_user_improvement(conn, user_id).await
     }
 
     /// Evict a single user's cached aggregate — call after committing any change
@@ -107,9 +116,9 @@ impl UserImprovementBo {
     /// with the freshly-recomputed value — the Rust analog of Java's
     /// `clearSourceCache(user, source)`, which evicts then emits. Call at every
     /// per-user improvement-change site, after the change commits.
-    pub async fn evict_and_emit(db: &Db, user_id: i32) -> OwgeResult<()> {
+    pub async fn evict_and_emit(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
         Self::evict(user_id).await;
-        crate::bo::realtime_emitter::emit_user_improvements(db, user_id).await
+        crate::bo::realtime_emitter::emit_user_improvements(conn, user_id).await
     }
 
     /// Evict every user's cached aggregate — the analog of `clearCacheEntries`,
@@ -121,7 +130,10 @@ impl UserImprovementBo {
 
     /// Compute the aggregate from the DB (the uncached path), reducing every
     /// improvement source for `user_id` into a [`UserImprovementDto`].
-    async fn compute_user_improvement(db: &Db, user_id: i32) -> OwgeResult<UserImprovementDto> {
+    async fn compute_user_improvement(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<UserImprovementDto> {
         let mut aggregate = UserImprovementDto::default();
 
         // --- Flat improvement values, one row per (source, improvement) with the
@@ -130,7 +142,7 @@ impl UserImprovementBo {
             .bind(user_id) // obtained_upgrades
             .bind(user_id) // active_time_specials
             .bind(user_id) // obtained_units
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         for row in &flat_rows {
             let m = row.multiplier as f64;
@@ -138,15 +150,12 @@ impl UserImprovementBo {
                 row.more_primary_resource_production.unwrap_or(0) as f64 * m;
             aggregate.more_secondary_resource_production +=
                 row.more_secondary_resource_production.unwrap_or(0) as f64 * m;
-            aggregate.more_energy_production +=
-                row.more_energy_production.unwrap_or(0) as f64 * m;
-            aggregate.more_charge_capacity +=
-                row.more_charge_capacity.unwrap_or(0) as f64 * m;
+            aggregate.more_energy_production += row.more_energy_production.unwrap_or(0) as f64 * m;
+            aggregate.more_charge_capacity += row.more_charge_capacity.unwrap_or(0) as f64 * m;
             aggregate.more_missions += row.more_missions_value.unwrap_or(0) as f64 * m;
             aggregate.more_upgrade_research_speed +=
                 row.more_upgrade_research_speed.unwrap_or(0.0) as f64 * m;
-            aggregate.more_unit_build_speed +=
-                row.more_unit_build_speed.unwrap_or(0.0) as f64 * m;
+            aggregate.more_unit_build_speed += row.more_unit_build_speed.unwrap_or(0.0) as f64 * m;
         }
 
         // --- Per-unit-type improvements, summed by (type, unit_type_id) with the
@@ -156,7 +165,7 @@ impl UserImprovementBo {
                 .bind(user_id) // obtained_upgrades
                 .bind(user_id) // active_time_specials
                 .bind(user_id) // obtained_units
-                .fetch_all(db)
+                .fetch_all(&mut *conn)
                 .await?;
         for row in unit_type_rows {
             let Some(improvement_type) = ImprovementType::from_code(&row.r#type) else {

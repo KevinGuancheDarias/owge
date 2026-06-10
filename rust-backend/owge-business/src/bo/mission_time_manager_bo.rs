@@ -17,7 +17,6 @@ use chrono::{NaiveDateTime, Utc};
 use sqlx::MySqlConnection;
 
 use crate::bo::mission_configuration_bo::MissionConfigurationBo;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -54,8 +53,11 @@ impl MissionTimeManagerBo {
     }
 
     /// `calculateRequiredTime` — the per-type base time (no speed adjustment).
-    pub async fn calculate_required_time(db: &Db, mission_type: MissionType) -> OwgeResult<f64> {
-        Ok(MissionConfigurationBo::find_mission_base_time(db, mission_type).await? as f64)
+    pub async fn calculate_required_time(
+        conn: &mut MySqlConnection,
+        mission_type: MissionType,
+    ) -> OwgeResult<f64> {
+        Ok(MissionConfigurationBo::find_mission_base_time(&mut *conn, mission_type).await? as f64)
     }
 
     /// `handleCustomDuration` — bump the mission to a custom duration when it is
@@ -65,8 +67,7 @@ impl MissionTimeManagerBo {
         if let Some(custom) = custom {
             if (custom as f64) > current {
                 mission.required_time = Some(custom as f64);
-                mission.termination_date =
-                    Some(Self::compute_termination_date(custom as f64));
+                mission.termination_date = Some(Self::compute_termination_date(custom as f64));
             }
         }
     }
@@ -101,10 +102,8 @@ impl MissionTimeManagerBo {
         }
 
         // `allUnitsHaveFixedSpeedImpactGroup` — every unit is in a fixed group.
-        let all_fixed = !rows.is_empty()
-            && rows
-                .iter()
-                .all(|r| matches!(r.is_fixed, Some(f) if f != 0));
+        let all_fixed =
+            !rows.is_empty() && rows.iter().all(|r| matches!(r.is_fixed, Some(f) if f != 0));
         if all_fixed {
             return Ok(());
         }
@@ -114,8 +113,7 @@ impl MissionTimeManagerBo {
         let lowest_speed = rows
             .iter()
             .filter(|r| {
-                matches!(r.speed, Some(s) if s > 0.0)
-                    && !matches!(r.is_fixed, Some(f) if f != 0)
+                matches!(r.speed, Some(s) if s > 0.0) && !matches!(r.is_fixed, Some(f) if f != 0)
             })
             .filter_map(|r| r.speed)
             .fold(None::<f64>, |acc, s| {
@@ -149,8 +147,7 @@ impl MissionTimeManagerBo {
         let mission_type_time = Self::find_mission_base_time_conn(conn, mission_type).await?;
 
         // Source/target coordinates (signed FK columns → unsigned planet ids).
-        let (Some(source_id), Some(target_id)) =
-            (mission.source_planet, mission.target_planet)
+        let (Some(source_id), Some(target_id)) = (mission.source_planet, mission.target_planet)
         else {
             // No planets to measure between — keep the base time.
             mission.required_time = Some(mission_type_time);
@@ -247,10 +244,30 @@ impl MissionTimeManagerBo {
         let quadrants = (source.quadrant as i64 - target.quadrant as i64).unsigned_abs() as f32;
         let sectors = (source.sector as i64 - target.sector as i64).unsigned_abs() as f32;
 
-        let planet_diff = Self::config_f32(conn, &format!("{prefix}{mission_type_name}_P_MOVE_COST"), 0.01).await?;
-        let quadrant_diff = Self::config_f32(conn, &format!("{prefix}{mission_type_name}_Q_MOVE_COST"), 0.02).await?;
-        let sector_diff = Self::config_f32(conn, &format!("{prefix}{mission_type_name}_S_MOVE_COST"), 0.03).await?;
-        let galaxy_diff = Self::config_f32(conn, &format!("{prefix}{mission_type_name}_G_MOVE_COST"), 0.15).await?;
+        let planet_diff = Self::config_f32(
+            conn,
+            &format!("{prefix}{mission_type_name}_P_MOVE_COST"),
+            0.01,
+        )
+        .await?;
+        let quadrant_diff = Self::config_f32(
+            conn,
+            &format!("{prefix}{mission_type_name}_Q_MOVE_COST"),
+            0.02,
+        )
+        .await?;
+        let sector_diff = Self::config_f32(
+            conn,
+            &format!("{prefix}{mission_type_name}_S_MOVE_COST"),
+            0.03,
+        )
+        .await?;
+        let galaxy_diff = Self::config_f32(
+            conn,
+            &format!("{prefix}{mission_type_name}_G_MOVE_COST"),
+            0.15,
+        )
+        .await?;
 
         let galaxy_component = if source.galaxy_id != target.galaxy_id {
             galaxy_diff
@@ -377,11 +394,14 @@ impl MissionTimeManagerBo {
                 return Err(crate::error::OwgeError::InvalidInput(format!(
                     "Unsupported mission base time type, specified: {}",
                     other.code()
-                )))
+                )));
             }
         };
         let value = Self::config_or_default(conn, key, default).await?;
-        Ok(value.trim().parse::<i64>().unwrap_or_else(|_| default.parse().unwrap()) as f64)
+        Ok(value
+            .trim()
+            .parse::<i64>()
+            .unwrap_or_else(|_| default.parse().unwrap()) as f64)
     }
 
     async fn load_planet_coords(
@@ -420,11 +440,7 @@ impl MissionTimeManagerBo {
         Ok(default.to_string())
     }
 
-    async fn config_f32(
-        conn: &mut MySqlConnection,
-        name: &str,
-        default: f32,
-    ) -> OwgeResult<f32> {
+    async fn config_f32(conn: &mut MySqlConnection, name: &str, default: f32) -> OwgeResult<f32> {
         let value = Self::config_or_default(conn, name, &default.to_string()).await?;
         Ok(value.trim().parse::<f32>().unwrap_or(default))
     }

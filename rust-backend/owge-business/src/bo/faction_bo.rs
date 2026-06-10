@@ -3,13 +3,13 @@
 //! `FACTION`) and its read-only sub-resources (`unitTypes`, `spawn-locations`).
 
 use crate::bo::ImprovementBo;
-use crate::db::Db;
 use crate::dto::faction::{
     FactionDto, FactionInput, FactionSpawnLocationDto, FactionSpawnLocationInput,
     FactionUnitTypeDto, FactionUnitTypeOverrideInput,
 };
 use crate::dto::{ImprovementDto, ImprovementUnitTypeDto};
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::{Connection, MySqlConnection};
 
 /// One `factions` row joined with its resource image filenames, with exact SQL
 /// column types so sqlx never panics on signedness/width.
@@ -115,34 +115,34 @@ pub struct FactionBo;
 
 impl FactionBo {
     /// All non-hidden factions (`hidden` = 0).
-    pub async fn find_visible(db: &Db) -> OwgeResult<Vec<FactionDto>> {
+    pub async fn find_visible(conn: &mut MySqlConnection) -> OwgeResult<Vec<FactionDto>> {
         let rows = sqlx::query_as::<_, FactionRow>(&format!(
             "{FACTION_SELECT} WHERE f.hidden = 0 ORDER BY f.id"
         ))
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `CrudRestServiceTrait.findAll` — every faction as the wide admin DTO.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<FactionDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<FactionDto>> {
         let rows = sqlx::query_as::<_, FactionRow>(&format!("{FACTION_SELECT} ORDER BY f.id"))
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById`.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<FactionDto>> {
+    pub async fn find_by_id(conn: &mut MySqlConnection, id: u16) -> OwgeResult<Option<FactionDto>> {
         let row = sqlx::query_as::<_, FactionRow>(&format!("{FACTION_SELECT} WHERE f.id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
 
-    pub async fn find_by_id_or_die(db: &Db, id: u16) -> OwgeResult<FactionDto> {
-        let row = Self::find_by_id(db, id).await?;
+    pub async fn find_by_id_or_die(conn: &mut MySqlConnection, id: u16) -> OwgeResult<FactionDto> {
+        let row = Self::find_by_id(&mut *conn, id).await?;
         let row = row.ok_or(OwgeError::NotFound(format!(
             "Faction with ID {id} not found"
         )))?;
@@ -166,7 +166,10 @@ impl FactionBo {
     }
 
     /// `CrudRestServiceTrait.saveNew` — insert; `factions.id` is AUTO_INCREMENT.
-    pub async fn save_new(db: &Db, input: &FactionInput) -> OwgeResult<FactionDto> {
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &FactionInput,
+    ) -> OwgeResult<FactionDto> {
         Self::validate_gather(input)?;
         let result = sqlx::query(
             "INSERT INTO factions (hidden, name, image_id, primary_resource_image_id, \
@@ -197,16 +200,20 @@ impl FactionBo {
         .bind(input.cloned_improvements as i8)
         .bind(input.custom_primary_gather_percentage)
         .bind(input.custom_secondary_gather_percentage)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Faction vanished right after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id.
-    pub async fn save_existing(db: &Db, id: u16, input: &FactionInput) -> OwgeResult<FactionDto> {
+    pub async fn save_existing(
+        conn: &mut MySqlConnection,
+        id: u16,
+        input: &FactionInput,
+    ) -> OwgeResult<FactionDto> {
         Self::validate_gather(input)?;
         let affected = sqlx::query(
             "UPDATE factions SET hidden = ?, name = ?, image_id = ?, \
@@ -239,22 +246,22 @@ impl FactionBo {
         .bind(input.custom_primary_gather_percentage)
         .bind(input.custom_secondary_gather_percentage)
         .bind(id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No faction with id {id}")));
         }
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No faction with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM factions WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
@@ -263,7 +270,7 @@ impl FactionBo {
     /// overrides (`factions_unit_types`). `factionId` is nulled out to match the
     /// Java service.
     pub async fn find_unit_type_overrides(
-        db: &Db,
+        conn: &mut MySqlConnection,
         faction_id: u16,
     ) -> OwgeResult<Vec<FactionUnitTypeDto>> {
         let rows = sqlx::query_as::<_, FactionUnitTypeRow>(
@@ -271,7 +278,7 @@ impl FactionBo {
              WHERE faction_id = ? ORDER BY id",
         )
         .bind(faction_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows
             .into_iter()
@@ -286,7 +293,7 @@ impl FactionBo {
 
     /// `FactionSpawnLocationBo.findByFaction` — the faction's spawn locations.
     pub async fn find_spawn_locations(
-        db: &Db,
+        conn: &mut MySqlConnection,
         faction_id: u16,
     ) -> OwgeResult<Vec<FactionSpawnLocationDto>> {
         let rows = sqlx::query_as::<_, SpawnLocationRow>(
@@ -295,7 +302,7 @@ impl FactionBo {
              FROM faction_spawn_location WHERE faction_id = ? ORDER BY id",
         )
         .bind(faction_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows
             .into_iter()
@@ -312,11 +319,11 @@ impl FactionBo {
     /// `FactionBo.saveOverrides` — `PUT {id}/unitTypes`: rewrite the faction's
     /// `factions_unit_types` from the override list (delete-all then insert).
     pub async fn save_overrides(
-        db: &Db,
+        conn: &mut MySqlConnection,
         faction_id: u16,
         overrides: &[FactionUnitTypeOverrideInput],
     ) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         sqlx::query("DELETE FROM factions_unit_types WHERE faction_id = ?")
             .bind(faction_id)
             .execute(&mut *tx)
@@ -339,11 +346,11 @@ impl FactionBo {
     /// `FactionSpawnLocationBo.saveSpawnLocations` — `PUT {id}/spawn-locations`:
     /// rewrite `faction_spawn_location` for the faction (delete-all then insert).
     pub async fn save_spawn_locations(
-        db: &Db,
+        conn: &mut MySqlConnection,
         faction_id: u16,
         spawn_locations: &[FactionSpawnLocationInput],
     ) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         sqlx::query("DELETE FROM faction_spawn_location WHERE faction_id = ?")
             .bind(faction_id)
             .execute(&mut *tx)
@@ -369,44 +376,47 @@ impl FactionBo {
     }
 
     /// `CrudWithImprovements` `GET {id}/improvement`.
-    pub async fn find_improvement(db: &Db, id: u16) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::find_for_entity(db, "factions", id).await
+    pub async fn find_improvement(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<ImprovementDto> {
+        ImprovementBo::find_for_entity(&mut *conn, "factions", id).await
     }
 
     /// `CrudWithImprovements` `PUT {id}/improvement`.
     pub async fn save_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementDto,
     ) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::save_for_entity(db, "factions", id, dto).await
+        ImprovementBo::save_for_entity(&mut *conn, "factions", id, dto).await
     }
 
     /// `GET {id}/improvement/unitTypeImprovements`.
     pub async fn find_unit_type_improvements(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
-        ImprovementBo::find_unit_type_improvements_for_entity(db, "factions", id).await
+        ImprovementBo::find_unit_type_improvements_for_entity(&mut *conn, "factions", id).await
     }
 
     /// `POST {id}/improvement/unitTypeImprovements`.
     pub async fn add_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementUnitTypeDto,
     ) -> OwgeResult<ImprovementUnitTypeDto> {
-        ImprovementBo::add_unit_type_improvement_for_entity(db, "factions", id, dto).await
+        ImprovementBo::add_unit_type_improvement_for_entity(&mut *conn, "factions", id, dto).await
     }
 
     /// `DELETE {id}/improvement/unitTypeImprovements/{utiId}`.
     pub async fn delete_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         unit_type_improvement_id: u16,
     ) -> OwgeResult<()> {
         ImprovementBo::delete_unit_type_improvement_for_entity(
-            db,
+            &mut *conn,
             "factions",
             id,
             unit_type_improvement_id,

@@ -7,8 +7,8 @@ use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use owge_business::bo::UnitTypeBo;
-use owge_business::dto::unit_type::UnitTypeInput;
 use owge_business::dto::UnitTypeDto;
+use owge_business::dto::unit_type::UnitTypeInput;
 
 use crate::auth::AdminUser;
 use crate::http_error::{ApiError, ApiResult};
@@ -35,7 +35,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<UnitTypeDto>>> {
-    Ok(Json(UnitTypeBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitTypeBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -43,7 +44,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<UnitTypeDto>> {
-    UnitTypeBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    UnitTypeBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| {
@@ -58,7 +60,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<UnitTypeInput>,
 ) -> ApiResult<Json<UnitTypeDto>> {
-    Ok(Json(UnitTypeBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitTypeBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -67,7 +70,10 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<UnitTypeInput>,
 ) -> ApiResult<Json<UnitTypeDto>> {
-    Ok(Json(UnitTypeBo::save_existing(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        UnitTypeBo::save_existing(&mut conn, id, &input).await?,
+    ))
 }
 
 async fn delete_one(
@@ -75,7 +81,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UnitTypeBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitTypeBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -84,7 +91,8 @@ async fn unset_attack_rule(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UnitTypeBo::unset_attack_rule(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitTypeBo::unset_attack_rule(&mut conn, id).await?;
     // Java's `void` handler returns HTTP 200 with an empty body (not 204).
     Ok(StatusCode::OK)
 }
@@ -94,7 +102,8 @@ async fn unset_critical_attack(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UnitTypeBo::unset_critical_attack(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitTypeBo::unset_critical_attack(&mut conn, id).await?;
     // Java's `void` handler returns HTTP 200 with an empty body (not 204).
     Ok(StatusCode::OK)
 }

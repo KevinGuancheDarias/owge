@@ -73,7 +73,8 @@ async fn admin_login(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<TokenPojo>> {
-    let token = AdminUserBo::login(&state.db, &user, &state.admin_jwt).await?;
+    let mut conn = state.db.acquire().await?;
+    let token = AdminUserBo::login(&mut conn, &user, &state.admin_jwt).await?;
     Ok(Json(token))
 }
 
@@ -82,7 +83,8 @@ async fn find_visible_factions(
     State(state): State<AppState>,
     _user: GameUser,
 ) -> ApiResult<Json<Vec<FactionDto>>> {
-    let factions = FactionBo::find_visible(&state.db).await?;
+    let mut conn = state.db.acquire().await?;
+    let factions = FactionBo::find_visible(&mut conn).await?;
     Ok(Json(factions))
 }
 
@@ -92,8 +94,9 @@ async fn user_exists(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<bool>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        UserStorageBo::exists(&state.db, user.id as i32).await?,
+        UserStorageBo::exists(&mut conn, user.id as i32).await?,
     ))
 }
 
@@ -111,13 +114,14 @@ async fn websocket_sync(
     GameUser(user): GameUser,
     Query(q): Query<SyncQuery>,
 ) -> ApiResult<Json<Map<String, Value>>> {
+    let mut conn = state.db.acquire().await?;
     let keys: Vec<String> = q
         .keys
         .split(',')
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
-    let data = websocket::find_wanted_data(&state.db, user.id as i32, &keys).await?;
+    let data = websocket::find_wanted_data(&mut conn, user.id as i32, &keys).await?;
     Ok(Json(data))
 }
 
@@ -126,7 +130,8 @@ async fn ranking(
     State(state): State<AppState>,
     _user: GameUser,
 ) -> ApiResult<Json<Vec<RankingEntryDto>>> {
-    Ok(Json(RankingBo::find_ranking(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(RankingBo::find_ranking(&mut conn).await?))
 }
 
 #[derive(Deserialize)]
@@ -151,9 +156,10 @@ async fn galaxy_navigate(
     user: GameUser,
     Query(q): Query<NavigateQuery>,
 ) -> ApiResult<Json<NavigationPojo>> {
-    let galaxies = GalaxyBo::find_all(&state.db).await?;
+    let mut conn = state.db.acquire().await?;
+    let galaxies = GalaxyBo::find_all(&mut conn).await?;
     let planets = GalaxyBo::find_planets_at(
-        &state.db,
+        &mut conn,
         q.galaxy_id,
         q.sector,
         q.quadrant,
@@ -169,8 +175,9 @@ async fn time_special_list(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<Vec<TimeSpecialDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        TimeSpecialBo::find_all_dtos(&state.db, user.id as i32).await?,
+        TimeSpecialBo::find_all_dtos(&mut conn, user.id as i32).await?,
     ))
 }
 
@@ -181,7 +188,8 @@ async fn time_special_by_id(
     GameUser(user): GameUser,
     axum::extract::Path(id): axum::extract::Path<u16>,
 ) -> ApiResult<Json<TimeSpecialDto>> {
-    let dto = TimeSpecialBo::find_dto_by_id(&state.db, user.id as i32, id)
+    let mut conn = state.db.acquire().await?;
+    let dto = TimeSpecialBo::find_dto_by_id(&mut conn, user.id as i32, id)
         .await?
         .ok_or_else(|| {
             owge_business::OwgeError::NotFound(format!("No time special with id {id}"))
@@ -194,7 +202,8 @@ async fn tutorial_entries(
     State(state): State<AppState>,
     _user: GameUser,
 ) -> ApiResult<Json<Vec<TutorialSectionEntryDto>>> {
-    Ok(Json(TutorialBo::find_entries(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(TutorialBo::find_entries(&mut conn).await?))
 }
 
 #[derive(Deserialize)]
@@ -211,8 +220,9 @@ async fn planet_list_add(
     GameUser(user): GameUser,
     Json(body): Json<PlanetListAddBody>,
 ) -> ApiResult<Json<&'static str>> {
+    let mut conn = state.db.acquire().await?;
     PlanetListBo::add(
-        &state.db,
+        &mut conn,
         user.id as i32,
         body.planet_id,
         body.name.as_deref(),
@@ -227,7 +237,8 @@ async fn planet_list_delete(
     GameUser(user): GameUser,
     axum::extract::Path(planet_id): axum::extract::Path<u64>,
 ) -> ApiResult<Json<&'static str>> {
-    PlanetListBo::delete(&state.db, user.id as i32, planet_id).await?;
+    let mut conn = state.db.acquire().await?;
+    PlanetListBo::delete(&mut conn, user.id as i32, planet_id).await?;
     Ok(Json("OK"))
 }
 
@@ -237,7 +248,8 @@ async fn system_message_mark_read(
     GameUser(user): GameUser,
     Json(ids): Json<Vec<u16>>,
 ) -> ApiResult<Json<&'static str>> {
-    SystemMessageBo::mark_as_read(&state.db, user.id as i32, &ids).await?;
+    let mut conn = state.db.acquire().await?;
+    SystemMessageBo::mark_as_read(&mut conn, user.id as i32, &ids).await?;
     Ok(Json("OK"))
 }
 
@@ -247,7 +259,8 @@ async fn tutorial_add_visited(
     GameUser(user): GameUser,
     Json(entry_id): Json<u32>,
 ) -> ApiResult<Json<&'static str>> {
-    TutorialBo::add_visited_entry(&state.db, user.id as i32, entry_id).await?;
+    let mut conn = state.db.acquire().await?;
+    TutorialBo::add_visited_entry(&mut conn, user.id as i32, entry_id).await?;
     Ok(Json("OK"))
 }
 
@@ -257,7 +270,8 @@ async fn track_browser_warn(
     _user: GameUser,
     body: String,
 ) -> ApiResult<StatusCode> {
-    TrackBrowserBo::track(&state.db, "warn", &body).await?;
+    let mut conn = state.db.acquire().await?;
+    TrackBrowserBo::track(&mut conn, "warn", &body).await?;
     Ok(StatusCode::OK)
 }
 
@@ -267,14 +281,16 @@ async fn track_browser_error(
     _user: GameUser,
     body: String,
 ) -> ApiResult<StatusCode> {
-    TrackBrowserBo::track(&state.db, "error", &body).await?;
+    let mut conn = state.db.acquire().await?;
+    TrackBrowserBo::track(&mut conn, "error", &body).await?;
     Ok(StatusCode::OK)
 }
 
 /// `TwitchStateRestService.findTwitchState` — the `TWITCH_STATE` config flag
 /// (defaulting to `false`).
 async fn twitch_state_get(State(state): State<AppState>, _user: GameUser) -> ApiResult<Json<bool>> {
-    let cfg = ConfigurationBo::find_or_set_default(&state.db, "TWITCH_STATE", "false").await?;
+    let mut conn = state.db.acquire().await?;
+    let cfg = ConfigurationBo::find_or_set_default(&mut conn, "TWITCH_STATE", "false").await?;
     Ok(Json(cfg.value.eq_ignore_ascii_case("true")))
 }
 
@@ -286,9 +302,10 @@ async fn twitch_state_put(
     GameUser(user): GameUser,
     body: String,
 ) -> ApiResult<StatusCode> {
+    let mut conn = state.db.acquire().await?;
     let status = body.replace('"', "");
     let status = status.trim().eq_ignore_ascii_case("true");
-    let details = UserStorageBo::find_by_id(&state.db, user.id as i32).await?;
+    let details = UserStorageBo::find_by_id(&mut conn, user.id as i32).await?;
     let can_alter = details.map(|u| u.can_alter_twitch_state).unwrap_or(false);
     if !can_alter {
         return Err(owge_business::OwgeError::InvalidInput(
@@ -296,11 +313,11 @@ async fn twitch_state_put(
         )
         .into());
     }
-    ConfigurationBo::save(&state.db, "TWITCH_STATE", None, &status.to_string()).await?;
+    ConfigurationBo::save(&mut conn, "TWITCH_STATE", None, &status.to_string()).await?;
     // socketIoService.sendMessage(null, "twitch_state_change", () -> statusBool):
     // null target → broadcast (with watermark for all users); value is the boolean.
     owge_business::bo::realtime_emitter::emit_twitch_state_change(
-        &state.db,
+        &mut conn,
         serde_json::Value::Bool(status),
     )
     .await?;
@@ -313,10 +330,11 @@ async fn report_mark_as_read(
     GameUser(user): GameUser,
     Json(ids): Json<Vec<u64>>,
 ) -> ApiResult<StatusCode> {
-    MissionReportBo::mark_as_read(&state.db, user.id as i32, &ids).await?;
+    let mut conn = state.db.acquire().await?;
+    MissionReportBo::mark_as_read(&mut conn, user.id as i32, &ids).await?;
     // MissionReportBo.markAsRead → emitCountChange(userId).
     owge_business::bo::realtime_emitter::emit_mission_report_count_change(
-        &state.db,
+        &mut conn,
         user.id as i32,
     )
     .await?;
@@ -329,14 +347,15 @@ async fn report_mark_as_read_before_date(
     GameUser(user): GameUser,
     axum::extract::Path(date): axum::extract::Path<String>,
 ) -> ApiResult<StatusCode> {
+    let mut conn = state.db.acquire().await?;
     let parsed = chrono::DateTime::parse_from_rfc3339(&date)
         .map(|dt| dt.naive_utc())
         .or_else(|_| chrono::NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f"))
         .map_err(|_| owge_business::OwgeError::InvalidInput(format!("Invalid date: {date}")))?;
-    MissionReportBo::mark_as_read_before_date(&state.db, user.id as i32, parsed).await?;
+    MissionReportBo::mark_as_read_before_date(&mut conn, user.id as i32, parsed).await?;
     // MissionReportBo.markAsReadBeforeDate → emitCountChange(userId).
     owge_business::bo::realtime_emitter::emit_mission_report_count_change(
-        &state.db,
+        &mut conn,
         user.id as i32,
     )
     .await?;
@@ -356,8 +375,9 @@ async fn report_find_my(
     GameUser(user): GameUser,
     Query(q): Query<FindMyQuery>,
 ) -> ApiResult<Json<owge_business::dto::MissionReportResponse>> {
+    let mut conn = state.db.acquire().await?;
     let response =
-        MissionReportBo::find_mission_reports_information(&state.db, user.id as i32, q.page - 1)
+        MissionReportBo::find_mission_reports_information(&mut conn, user.id as i32, q.page - 1)
             .await?;
     Ok(Json(response))
 }
@@ -377,8 +397,9 @@ async fn user_subscribe(
     GameUser(user): GameUser,
     Query(q): Query<SubscribeQuery>,
 ) -> ApiResult<Json<bool>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        UserStorageBo::subscribe(&state.db, &user, q.faction_id).await?,
+        UserStorageBo::subscribe(&mut conn, &user, q.faction_id).await?,
     ))
 }
 
@@ -401,7 +422,8 @@ async fn planet_leave(
     GameUser(user): GameUser,
     Query(q): Query<PlanetLeaveQuery>,
 ) -> ApiResult<Json<&'static str>> {
-    owge_business::bo::PlanetBo::leave_planet(&state.db, user.id as i32, q.planet_id).await?;
+    let mut conn = state.db.acquire().await?;
+    owge_business::bo::PlanetBo::leave_planet(&mut conn, user.id as i32, q.planet_id).await?;
     Ok(Json("OK"))
 }
 
@@ -420,8 +442,9 @@ async fn time_special_activate(
     GameUser(user): GameUser,
     Json(time_special_id): Json<u16>,
 ) -> ApiResult<Json<owge_business::dto::ActiveTimeSpecialDto>> {
+    let mut conn = state.db.acquire().await?;
     let dto = owge_business::bo::ActiveTimeSpecialBo::activate(
-        &state.db,
+        &mut conn,
         user.id as i32,
         time_special_id,
     )

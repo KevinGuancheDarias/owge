@@ -2,9 +2,9 @@
 //! with the per-user `read` flag resolved via a join, matching
 //! `SystemMessageBo.findReadByUser` / `translateToUser`.
 
-use crate::db::Db;
 use crate::dto::{SystemMessageDto, SystemMessageInput, SystemMessageUserDto};
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::MySqlConnection;
 
 /// A system message row with the per-user read state, with exact SQL column
 /// types so sqlx decode never panics on signedness/width.
@@ -33,14 +33,18 @@ pub struct SystemMessageBo;
 impl SystemMessageBo {
     /// `SystemMessageRestService.markAsRead` — record the given message ids as
     /// read for the user (idempotent per (user, message)).
-    pub async fn mark_as_read(db: &Db, user_id: i32, message_ids: &[u16]) -> OwgeResult<()> {
+    pub async fn mark_as_read(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        message_ids: &[u16],
+    ) -> OwgeResult<()> {
         for &message_id in message_ids {
             let exists: i64 = sqlx::query_scalar(
                 "SELECT COUNT(*) FROM user_read_system_messages WHERE user_id = ? AND message_id = ?",
             )
             .bind(user_id)
             .bind(message_id)
-            .fetch_one(db)
+            .fetch_one(&mut *conn)
             .await?;
             if exists == 0 {
                 sqlx::query(
@@ -48,7 +52,7 @@ impl SystemMessageBo {
                 )
                 .bind(user_id)
                 .bind(message_id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
             }
         }
@@ -59,7 +63,7 @@ impl SystemMessageBo {
     /// `system_message_change` sync payload. Messages are sorted by id DESC,
     /// matching the Java `Sort.by(Direction.DESC, "id")`.
     pub async fn find_read_by_user(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<SystemMessageUserDto>> {
         let rows = sqlx::query_as::<_, SystemMessageUserRow>(
@@ -72,7 +76,7 @@ impl SystemMessageBo {
              ORDER BY sm.id DESC",
         )
         .bind(user_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -83,19 +87,23 @@ impl SystemMessageBo {
     ///
     /// The Java path also emits the `system_message_change` websocket event to
     /// every user after commit; that emission is not yet ported here.
-    pub async fn save(db: &Db, input: &SystemMessageInput) -> OwgeResult<SystemMessageDto> {
+    pub async fn save(
+        conn: &mut MySqlConnection,
+        input: &SystemMessageInput,
+    ) -> OwgeResult<SystemMessageDto> {
         let creation_date = input.effective_creation_date();
-        let result = sqlx::query("INSERT INTO system_messages (content, creation_date) VALUES (?, ?)")
-            .bind(&input.content)
-            .bind(creation_date)
-            .execute(db)
-            .await?;
+        let result =
+            sqlx::query("INSERT INTO system_messages (content, creation_date) VALUES (?, ?)")
+                .bind(&input.content)
+                .bind(creation_date)
+                .execute(&mut *conn)
+                .await?;
         let id = result.last_insert_id() as u16;
         let row = sqlx::query_as::<_, SystemMessageRow>(
             "SELECT id, content, creation_date FROM system_messages WHERE id = ?",
         )
         .bind(id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?
         .ok_or_else(|| OwgeError::Common("System message vanished right after insert".into()))?;
         Ok(row.into())

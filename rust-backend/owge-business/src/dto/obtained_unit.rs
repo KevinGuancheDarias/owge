@@ -10,7 +10,7 @@
 
 use serde::Serialize;
 
-use crate::dto::PlanetDto;
+use crate::dto::{PlanetDto, UnitDto};
 
 /// The `units` row embedded in an obtained unit, mirroring the scalar fields of
 /// Java's `UnitDto` (`CommonDtoWithImageStore` + `UnitDto`). Field order and the
@@ -159,7 +159,7 @@ pub struct TemporalInformationDto {
 #[serde(rename_all = "camelCase")]
 pub struct ObtainedUnitDto {
     pub id: u64,
-    pub unit: ObtainedUnitUnitDto,
+    pub unit: UnitDto,
     pub count: u64,
     pub source_planet: Option<PlanetDto>,
     pub target_planet: Option<PlanetDto>,

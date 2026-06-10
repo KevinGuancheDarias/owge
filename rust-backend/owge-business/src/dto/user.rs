@@ -1,9 +1,8 @@
-use crate::db::Db;
+use crate::OwgeError;
 use crate::dto::{FactionDto, PlanetDto, UserImprovementDto};
 use crate::error::OwgeResult;
-use crate::OwgeError;
 use serde::Serialize;
-use sqlx::FromRow;
+use sqlx::{FromRow, MySqlConnection};
 use sqlx_template::MysqlTemplate;
 
 /// Mirrors `SimpleUserDataDto` (a Java record `{id, username, email}`).
@@ -22,10 +21,10 @@ pub struct SimpleUserData {
 }
 
 impl SimpleUserData {
-    pub async fn find_by_id(db: &Db, id: &i32) -> OwgeResult<Self> {
+    pub async fn find_by_id(conn: &mut MySqlConnection, id: &i32) -> OwgeResult<Self> {
         Self::builder_select()
             .id(id)?
-            .find_one(db)
+            .find_one(&mut *conn)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No user with id {id}")))
     }

@@ -85,9 +85,8 @@
 
 use sqlx::MySqlConnection;
 
-use crate::bo::mission_bo::MissionBo;
 use crate::bo::mission_base_service_bo::SELECT_MISSION;
-use crate::db::Db;
+use crate::bo::mission_bo::MissionBo;
 use crate::dto::mission::UnitRunningMissionDto;
 use crate::dto::running_unit_build::RunningUnitBuildDto;
 use crate::dto::{PlanetDto, SimpleUserData};
@@ -116,8 +115,7 @@ impl RunningMissionFinderBo {
     /// ```text
     /// if dto.r#type == Some(MissionType::Explore) {
     ///     if let Some(ref mut tp) = dto.target_planet {
-    ///         let mut conn = db.acquire().await?;
-    ///         if !is_planet_explored_by_user(&mut conn, user_id, tp.id).await? {
+    ///         if !is_planet_explored_by_user(conn, user_id, tp.id).await? {
     ///             tp.name = None;
     ///             tp.richness = None;
     ///             tp.home = None;
@@ -129,25 +127,24 @@ impl RunningMissionFinderBo {
     /// }
     /// ```
     pub async fn find_user_running_missions(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<UnitRunningMissionDto>> {
-        let missions = load_user_missions(db, user_id).await?;
+        let missions = load_user_missions(&mut *conn, user_id).await?;
         let mut out = Vec::with_capacity(missions.len());
         for mission in &missions {
             let mut dto = UnitRunningMissionDto::from_mission(mission);
 
             // Load source/target planet DTOs from the mission itself.
-            let mut conn = db.acquire().await?;
             if let Some(sp_id) = mission.source_planet {
-                dto.source_planet = load_planet_dto_conn(&mut conn, sp_id as u64).await?;
+                dto.source_planet = load_planet_dto_conn(&mut *conn, sp_id as u64).await?;
             }
             if let Some(tp_id) = mission.target_planet {
-                dto.target_planet = load_planet_dto_conn(&mut conn, tp_id as u64).await?;
+                dto.target_planet = load_planet_dto_conn(&mut *conn, tp_id as u64).await?;
             }
             // Load user field on the DTO from the mission's user_id.
             if let Some(uid) = mission.user_id {
-                dto.user = load_user_storage_dto(&mut conn, uid).await?;
+                dto.user = load_user_storage_dto(&mut *conn, uid).await?;
             }
 
             // obtainedUnitRepository.findByMissionId(missionId) -> ObtainedUnitFinderBo.findCompletedAsDto
@@ -155,9 +152,9 @@ impl RunningMissionFinderBo {
             // mission-attached units — Java does filter but mission units are always
             // "complete" in the involved-units sense; this matches the pattern in
             // mission_base_service_bo::build_common_error_report).
-            let units = load_mission_units_conn(&mut conn, mission.id).await?;
+            let units = load_mission_units_conn(&mut *conn, mission.id).await?;
             let dtos =
-                crate::bo::mission_processor::involved_units_to_dtos(&mut conn, &units).await?;
+                crate::bo::mission_processor::involved_units_to_dtos(&mut *conn, &units).await?;
             dto.involved_units = Some(dtos);
 
             // nullifyInvolvedUnitsPlanets()
@@ -169,7 +166,7 @@ impl RunningMissionFinderBo {
             // the user has not yet explored (the mission is in flight to explore it).
             if dto.r#type == Some(MissionType::Explore) {
                 if let Some(tp) = dto.target_planet.as_mut() {
-                    if !is_planet_explored_by_user(&mut conn, user_id, tp.id).await? {
+                    if !is_planet_explored_by_user(&mut *conn, user_id, tp.id).await? {
                         tp.clean_up_unexplored();
                     }
                 }
@@ -194,39 +191,37 @@ impl RunningMissionFinderBo {
     /// See `TODO(handleInvisible)` inline for the deferred
     /// `hiddenUnitBo.defineHidden` + `ObtainedUnitUtil.handleInvisible` logic.
     pub async fn find_enemy_running_missions(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<UnitRunningMissionDto>> {
         // planetRepository.findByOwnerId(user.getId())
-        let planet_ids = load_user_planet_ids(db, user_id).await?;
+        let planet_ids = load_user_planet_ids(&mut *conn, user_id).await?;
         if planet_ids.is_empty() {
             return Ok(Vec::new());
         }
 
         // findByTargetPlanetInAndResolvedFalseAndInvisibleFalseAndUserNot
-        let missions = load_enemy_missions(db, user_id, &planet_ids).await?;
+        let missions = load_enemy_missions(&mut *conn, user_id, &planet_ids).await?;
         let mut out = Vec::with_capacity(missions.len());
         for mission in &missions {
-            let mut conn = db.acquire().await?;
-
             // Build base DTO.
             let mut dto = UnitRunningMissionDto::from_mission(mission);
 
             // Fill source/target planet DTOs.
             if let Some(sp_id) = mission.source_planet {
-                dto.source_planet = load_planet_dto_conn(&mut conn, sp_id as u64).await?;
+                dto.source_planet = load_planet_dto_conn(&mut *conn, sp_id as u64).await?;
             }
             if let Some(tp_id) = mission.target_planet {
-                dto.target_planet = load_planet_dto_conn(&mut conn, tp_id as u64).await?;
+                dto.target_planet = load_planet_dto_conn(&mut *conn, tp_id as u64).await?;
             }
             if let Some(uid) = mission.user_id {
-                dto.user = load_user_storage_dto(&mut conn, uid).await?;
+                dto.user = load_user_storage_dto(&mut *conn, uid).await?;
             }
 
             // Load involved units and nullify their planets.
-            let units = load_mission_units_conn(&mut conn, mission.id).await?;
+            let units = load_mission_units_conn(&mut *conn, mission.id).await?;
             let dtos =
-                crate::bo::mission_processor::involved_units_to_dtos(&mut conn, &units).await?;
+                crate::bo::mission_processor::involved_units_to_dtos(&mut *conn, &units).await?;
             dto.involved_units = Some(dtos);
             dto.nullify_involved_units_planets();
 
@@ -265,7 +260,7 @@ impl RunningMissionFinderBo {
             // hide source_planet and user fields.
             if let Some(sp_id) = mission.source_planet {
                 let explored =
-                    is_planet_explored_by_user(&mut conn, user_id, sp_id as u64).await?;
+                    is_planet_explored_by_user(&mut *conn, user_id, sp_id as u64).await?;
                 if !explored {
                     dto.source_planet = None;
                     dto.user = None;
@@ -285,13 +280,12 @@ impl RunningMissionFinderBo {
     /// `mission_information` + `object_relations`, load the build planet from
     /// `mission_information.value`, load the in-build count from `obtained_units`.
     pub async fn find_build_missions(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<RunningUnitBuildDto>> {
-        let mission_ids = load_build_mission_ids(db, user_id).await?;
+        let mission_ids = load_build_mission_ids(&mut *conn, user_id).await?;
         let mut out = Vec::with_capacity(mission_ids.len());
         for mission_id in mission_ids {
-            let mut conn = db.acquire().await?;
             let mission = sqlx::query_as::<_, Mission>(SELECT_MISSION)
                 .bind(mission_id)
                 .fetch_optional(&mut *conn)
@@ -301,31 +295,26 @@ impl RunningMissionFinderBo {
             };
 
             // missionInformation.getRelation() -> unboxObjectRelation -> unit id
-            let unit_id = resolve_unit_id_for_mission(&mut conn, mission_id).await?;
-            let unit = crate::bo::unit_bo::UnitBo::find_by_id(db, unit_id)
+            let unit_id = resolve_unit_id_for_mission(&mut *conn, mission_id).await?;
+            let unit = crate::bo::unit_bo::UnitBo::find_by_id(&mut *conn, unit_id)
                 .await?
                 .ok_or_else(|| OwgeError::NotFound(format!("No unit with id {unit_id}")))?;
 
             // missionInformation.getValue().longValue() -> build planet id
-            let planet_id: Option<f64> = sqlx::query_scalar(
-                "SELECT value FROM mission_information WHERE mission_id = ?",
-            )
-            .bind(mission_id)
-            .fetch_optional(&mut *conn)
-            .await?;
-            let planet_id = planet_id
-                .map(|v| v as u64)
-                .ok_or_else(|| {
-                    OwgeError::Common(format!(
-                        "Build mission {mission_id} has no mission_information.value"
-                    ))
-                })?;
+            let planet_id: Option<f64> =
+                sqlx::query_scalar("SELECT value FROM mission_information WHERE mission_id = ?")
+                    .bind(mission_id)
+                    .fetch_optional(&mut *conn)
+                    .await?;
+            let planet_id = planet_id.map(|v| v as u64).ok_or_else(|| {
+                OwgeError::Common(format!(
+                    "Build mission {mission_id} has no mission_information.value"
+                ))
+            })?;
 
-            let planet = load_planet_dto_conn(&mut conn, planet_id)
+            let planet = load_planet_dto_conn(&mut *conn, planet_id)
                 .await?
-                .ok_or_else(|| {
-                    OwgeError::NotFound(format!("No planet with id {planet_id}"))
-                })?;
+                .ok_or_else(|| OwgeError::NotFound(format!("No planet with id {planet_id}")))?;
 
             // obtainedUnitRepository.findByMissionId(mission.getId()).get(0).getCount() or 0
             let count: u64 =
@@ -335,15 +324,20 @@ impl RunningMissionFinderBo {
                     .await?
                     .unwrap_or(0);
 
-            out.push(RunningUnitBuildDto::from_mission(&mission, unit, planet, count));
+            out.push(RunningUnitBuildDto::from_mission(
+                &mission, unit, planet, count,
+            ));
         }
         Ok(out)
     }
 
     /// `countUserRunningMissions(userId)` — delegates to
     /// `MissionBo::count_unresolved_missions`.
-    pub async fn count_user_running_missions(db: &Db, user_id: i32) -> OwgeResult<i32> {
-        MissionBo::count_unresolved_missions(db, user_id).await
+    pub async fn count_user_running_missions(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<i32> {
+        MissionBo::count_unresolved_missions(&mut *conn, user_id).await
     }
 }
 
@@ -359,23 +353,23 @@ const SELECT_MISSION_COLS: &str = "\
     FROM missions";
 
 /// All resolved=0 missions for the user.
-async fn load_user_missions(db: &Db, user_id: i32) -> OwgeResult<Vec<Mission>> {
+async fn load_user_missions(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<Vec<Mission>> {
     Ok(sqlx::query_as::<_, Mission>(&format!(
         "{SELECT_MISSION_COLS} WHERE user_id = ? AND resolved = 0"
     ))
     .bind(user_id)
-    .fetch_all(db)
+    .fetch_all(&mut *conn)
     .await?)
 }
 
 /// Planet ids owned by the user. `planets.id` is `bigint unsigned`; cast to a
 /// SIGNED value so it decodes as `i64` and binds against `missions.target_planet`
 /// (a **signed** `bigint`).
-async fn load_user_planet_ids(db: &Db, user_id: i32) -> OwgeResult<Vec<i64>> {
+async fn load_user_planet_ids(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<Vec<i64>> {
     Ok(
         sqlx::query_scalar("SELECT CAST(id AS SIGNED) FROM planets WHERE owner = ?")
             .bind(user_id)
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?,
     )
 }
@@ -383,7 +377,7 @@ async fn load_user_planet_ids(db: &Db, user_id: i32) -> OwgeResult<Vec<i64>> {
 /// Enemy missions: target_planet IN user_planets, resolved=0, invisible=0,
 /// user_id != user_id arg. Constructs the IN-list dynamically.
 async fn load_enemy_missions(
-    db: &Db,
+    conn: &mut MySqlConnection,
     user_id: i32,
     planet_ids: &[i64],
 ) -> OwgeResult<Vec<Mission>> {
@@ -406,18 +400,18 @@ async fn load_enemy_missions(
         q = q.bind(*pid);
     }
     q = q.bind(user_id);
-    Ok(q.fetch_all(db).await?)
+    Ok(q.fetch_all(&mut *conn).await?)
 }
 
 /// All BUILD_UNIT mission ids for the user (resolved=0).
-async fn load_build_mission_ids(db: &Db, user_id: i32) -> OwgeResult<Vec<u64>> {
+async fn load_build_mission_ids(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<Vec<u64>> {
     Ok(sqlx::query_scalar(
         "SELECT m.id FROM missions m \
           WHERE m.user_id = ? AND m.type = ? AND m.resolved = 0",
     )
     .bind(user_id)
     .bind(MissionType::BuildUnit.value())
-    .fetch_all(db)
+    .fetch_all(&mut *conn)
     .await?)
 }
 
@@ -473,12 +467,11 @@ async fn load_user_storage_dto(
     conn: &mut MySqlConnection,
     user_id: i32,
 ) -> OwgeResult<Option<SimpleUserData>> {
-    let row: Option<SimpleUserData> = sqlx::query_as(
-        "SELECT id, username, email FROM user_storage WHERE id = ?",
-    )
-    .bind(user_id)
-    .fetch_optional(&mut *conn)
-    .await?;
+    let row: Option<SimpleUserData> =
+        sqlx::query_as("SELECT id, username, email FROM user_storage WHERE id = ?")
+            .bind(user_id)
+            .fetch_optional(&mut *conn)
+            .await?;
 
     Ok(row)
 }
@@ -494,12 +487,11 @@ async fn is_planet_explored_by_user(
     user_id: i32,
     planet_id: u64,
 ) -> OwgeResult<bool> {
-    let count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM explored_planets WHERE `user` = ? AND planet = ?",
-    )
-    .bind(user_id)
-    .bind(planet_id)
-    .fetch_one(&mut *conn)
-    .await?;
+    let count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM explored_planets WHERE `user` = ? AND planet = ?")
+            .bind(user_id)
+            .bind(planet_id)
+            .fetch_one(&mut *conn)
+            .await?;
     Ok(count > 0)
 }

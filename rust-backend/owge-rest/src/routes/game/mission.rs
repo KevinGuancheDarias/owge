@@ -27,10 +27,11 @@ use axum::http::StatusCode;
 use axum::routing::post;
 use axum::{Json, Router};
 
+use owge_business::OwgeError;
 use owge_business::bo::{UnitMissionBo, UserStorageBo};
 use owge_business::model::{MissionType, UserStorage};
 use owge_business::pojo::unit_mission_information::UnitMissionInformation;
-use owge_business::OwgeError;
+use sqlx::MySqlConnection;
 
 use crate::auth::GameUser;
 use crate::http_error::ApiResult;
@@ -50,7 +51,11 @@ pub fn routes() -> Router<AppState> {
 
 /// Set the sender to the authenticated user and pin the mission type, mirroring
 /// `myRegister` + `commonMissionRegister`'s `setMissionType`.
-fn prepare(mut info: UnitMissionInformation, user_id: i32, mission_type: MissionType) -> UnitMissionInformation {
+fn prepare(
+    mut info: UnitMissionInformation,
+    user_id: i32,
+    mission_type: MissionType,
+) -> UnitMissionInformation {
     info.user_id = Some(user_id);
     info.mission_type = Some(mission_type);
     info
@@ -59,8 +64,8 @@ fn prepare(mut info: UnitMissionInformation, user_id: i32, mission_type: Mission
 /// Resolve the `UserStorage` for the authenticated game user (the registration
 /// `Bo` methods take the entity, not just the id, mirroring Java's
 /// `userStorageBo.findLoggedIn()`).
-async fn load_user(state: &AppState, user_id: i32) -> ApiResult<UserStorage> {
-    UserStorageBo::find_by_id(&state.db, user_id)
+async fn load_user(conn: &mut MySqlConnection, user_id: i32) -> ApiResult<UserStorage> {
+    UserStorageBo::find_by_id(conn, user_id)
         .await?
         .ok_or_else(|| OwgeError::NotFound(format!("No user with id {user_id}")).into())
 }
@@ -71,9 +76,10 @@ async fn explore_planet(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Explore);
-    UnitMissionBo::my_register_explore_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_explore_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -83,9 +89,10 @@ async fn gather(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Gather);
-    UnitMissionBo::my_register_gather_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_gather_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -95,9 +102,10 @@ async fn establish_base(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::EstablishBase);
-    UnitMissionBo::my_register_establish_base_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_establish_base_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -107,9 +115,10 @@ async fn attack(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Attack);
-    UnitMissionBo::my_register_attack_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_attack_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -120,9 +129,10 @@ async fn counterattack(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Counterattack);
-    UnitMissionBo::my_register_counterattack_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_counterattack_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -133,9 +143,10 @@ async fn conquest(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Conquest);
-    UnitMissionBo::my_register_conquest_mission(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_conquest_mission(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -146,9 +157,10 @@ async fn deploy(
     GameUser(user): GameUser,
     Json(info): Json<UnitMissionInformation>,
 ) -> ApiResult<StatusCode> {
-    let stored = load_user(&state, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    let stored = load_user(&mut conn, user.id as i32).await?;
     let info = prepare(info, user.id as i32, MissionType::Deploy);
-    UnitMissionBo::my_register_deploy(&state.db, &stored, info).await?;
+    UnitMissionBo::my_register_deploy(&mut conn, &stored, info).await?;
     Ok(StatusCode::OK)
 }
 
@@ -168,6 +180,7 @@ async fn cancel(
     GameUser(user): GameUser,
     axum::extract::Query(q): axum::extract::Query<CancelQuery>,
 ) -> ApiResult<Json<&'static str>> {
-    UnitMissionBo::my_cancel_mission(&state.db, user.id as i32, q.id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitMissionBo::my_cancel_mission(&mut conn, user.id as i32, q.id).await?;
     Ok(Json("OK"))
 }

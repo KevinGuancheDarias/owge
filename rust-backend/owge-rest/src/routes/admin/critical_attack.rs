@@ -29,7 +29,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<CriticalAttackInput>,
 ) -> ApiResult<Json<CriticalAttackDto>> {
-    Ok(Json(CriticalAttackBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(CriticalAttackBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -38,8 +39,9 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<CriticalAttackInput>,
 ) -> ApiResult<Json<CriticalAttackDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        CriticalAttackBo::save_existing(&state.db, id, &input).await?,
+        CriticalAttackBo::save_existing(&mut conn, id, &input).await?,
     ))
 }
 
@@ -48,6 +50,7 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    CriticalAttackBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    CriticalAttackBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

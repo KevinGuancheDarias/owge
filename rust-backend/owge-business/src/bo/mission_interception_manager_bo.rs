@@ -22,10 +22,12 @@
 //! `obtained_units` columns are decoded at their literal MySQL types (see the
 //! `ObtainedUnit` model); `missions.id` is `bigint unsigned` (`u64`).
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sqlx::MySqlConnection;
 
-use crate::bo::unit_interception_finder_bo::{InterceptedUnitsInformation, UnitInterceptionFinderBo};
+use crate::bo::unit_interception_finder_bo::{
+    InterceptedUnitsInformation, UnitInterceptionFinderBo,
+};
 use crate::builder::UnitMissionReportBuilder;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
@@ -74,9 +76,12 @@ impl MissionInterceptionManagerBo {
             });
         }
 
-        let intercepted_units =
-            UnitInterceptionFinderBo::check_intercepts_speed_impact_group(conn, mission, &involved_units)
-                .await?;
+        let intercepted_units = UnitInterceptionFinderBo::check_intercepts_speed_impact_group(
+            conn,
+            mission,
+            &involved_units,
+        )
+        .await?;
         let total_intercepted_units: usize = intercepted_units
             .iter()
             .map(|info| info.intercepted_units.len())
@@ -185,7 +190,8 @@ impl MissionInterceptionManagerBo {
         involved: &[ObtainedUnit],
         intercepted_units: &[InterceptedUnitsInformation],
     ) -> OwgeResult<(i32, u64)> {
-        let builder = crate::bo::mission_processor::create_report_base(conn, mission, involved).await?;
+        let builder =
+            crate::bo::mission_processor::create_report_base(conn, mission, involved).await?;
         let interception_json = Self::build_interception_info_json(conn, intercepted_units).await?;
         let builder = builder.with_interception_information(interception_json);
         crate::bo::mission_report_manager_bo::MissionReportManagerBo::handle_mission_report_save(
@@ -226,7 +232,8 @@ impl MissionInterceptionManagerBo {
     ) -> OwgeResult<Value> {
         let mut entries = Vec::with_capacity(intercepted_units.len());
         for info in intercepted_units {
-            let interceptor_unit = Self::obtained_unit_to_stripped_value(conn, info.interceptor_unit.id).await?;
+            let interceptor_unit =
+                Self::obtained_unit_to_stripped_value(conn, info.interceptor_unit.id).await?;
             let mut units = Vec::with_capacity(info.intercepted_units.len());
             for unit in &info.intercepted_units {
                 units.push(Self::obtained_unit_to_stripped_value(conn, unit.id).await?);
@@ -264,7 +271,8 @@ impl MissionInterceptionManagerBo {
         conn: &mut MySqlConnection,
         obtained_unit_id: u64,
     ) -> OwgeResult<Value> {
-        let dto = crate::bo::mission_processor::load_obtained_unit_dto(conn, obtained_unit_id).await?;
+        let dto =
+            crate::bo::mission_processor::load_obtained_unit_dto(conn, obtained_unit_id).await?;
         let mut value = match dto {
             Some(dto) => serde_json::to_value(&dto)?,
             None => return Ok(Value::Null),

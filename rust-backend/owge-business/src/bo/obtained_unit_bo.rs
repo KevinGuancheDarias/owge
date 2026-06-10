@@ -9,172 +9,310 @@
 //! i.e. units on an owned planet and not part of a running mission.
 
 use crate::bo::active_time_special_rule_finder_bo::ActiveTimeSpecialRuleFinderBo;
-use crate::db::Db;
-use crate::dto::obtained_unit::{ObtainedUnitDto, ObtainedUnitUnitDto};
-use crate::dto::PlanetDto;
+use crate::bo::obtained_unit_entity::obtained_unit::Entity;
+use crate::bo::obtained_unit_entity::{
+    galaxy, obtained_unit, planet, temporal_information, unit, unit_type, user_storage,
+};
+use crate::db;
+use crate::dto::obtained_unit::{ObtainedUnitDto, TemporalInformationDto};
+use crate::dto::{PlanetDto, UnitDto};
 use crate::error::{OwgeError, OwgeResult};
+use crate::model::seaorm::image_store::ImageSimple;
+use sea_orm::{
+    ColumnTrait, DerivePartialModel, EntityTrait, JoinType, QueryFilter, QueryOrder, QuerySelect,
+    RelationTrait, Select, SelectModel, Selector,
+};
+use sqlx::{Connection, MySqlConnection};
 
-/// One `obtained_units` row joined with its `units`, owning user, and (optional)
-/// source/target planets — exact SQL column types so sqlx never panics on
-/// signedness/width.
-#[derive(sqlx::FromRow)]
-struct ObtainedUnitRow {
+/// `unit_types.name`, `LEFT JOIN`ed in to populate `UnitDto.type_name`
+/// (`units.type` is nullable, hence `Option`).
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "unit_type::Entity", from_query_result)]
+struct UnitTypeNameRow {
+    name: String,
+}
+
+/// The `units` row joined in for an obtained-unit stack — exactly the columns
+/// the old hand-written `SELECT_DTO` hand-picked (this sync payload predates
+/// the full catalog join; see `ObtainedUnitUnitDto`'s/`reduced`'s doc comments
+/// for why fields like `description`/`image`/`points` aren't here), now
+/// expressed as a SeaORM partial model that decodes straight off the join
+/// instead of a hand-aliased SQL string + matching `FromRow` struct.
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "unit::Entity", from_query_result)]
+struct UnitJoinedRow {
+    id: u16,
+    name: String,
+    description: Option<String>,
+    type_id: Option<u16>,
+    primary_resource: Option<u64>,
+    secondary_resource: Option<u64>,
+    time: Option<u64>,
+
+    #[sea_orm(nested)]
+    image: Option<ImageSimple>,
+
+    attack: Option<u16>,
+    health: Option<u16>,
+    shield: Option<u16>,
+    charge: Option<u16>,
+    is_unique: u8,
+    can_fast_explore: i8,
+    speed: Option<f64>,
+    bypass_shield: i8,
+    is_invisible: i8,
+    stored_weight: u32,
+    storage_capacity: Option<u32>,
+    #[sea_orm(nested)]
+    unit_type: Option<UnitTypeNameRow>,
+}
+
+/// `user_storage.username` — reused both for the obtained-unit's owning user
+/// (`INNER JOIN`, always present) and for a planet's owner (`LEFT JOIN`,
+/// optional; `PlanetDto.owner_id` comes from `planets.owner` directly, not
+/// from this row).
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "user_storage::Entity", from_query_result)]
+struct UsernameRow {
+    username: String,
+}
+
+/// `galaxies.name`, joined in for a planet's `PlanetDto.galaxy_name`.
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "galaxy::Entity", from_query_result)]
+struct GalaxyNameRow {
+    name: String,
+}
+
+/// One side of the `obtained_units` -> `planets` -> `galaxies`/`user_storage`
+/// graph, joined in as the unit's source planet (table aliases `sp` /
+/// `sp_galaxy` / `sp_owner` — see `find_completed_dtos`). `TargetPlanetRow`
+/// below is identical except for which aliases its nested fields read from:
+/// `#[sea_orm(nested, alias = "...")]` is resolved at compile time, so the two
+/// sides of this doubly-joined graph can't share one partial-model type.
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "planet::Entity", from_query_result)]
+struct SourcePlanetRow {
+    id: u64,
+    name: String,
+    sector: u32,
+    quadrant: u32,
+    planet_number: u16,
+    owner: Option<i32>,
+    richness: u16,
+    home: Option<i8>,
+    galaxy_id: u16,
+    #[sea_orm(nested, alias = "sp_galaxy")]
+    galaxy: GalaxyNameRow,
+    #[sea_orm(nested, alias = "sp_owner")]
+    owner_info: Option<UsernameRow>,
+}
+
+/// The unit's target planet — see [`SourcePlanetRow`] (table aliases `tp` /
+/// `tp_galaxy` / `tp_owner`).
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "planet::Entity", from_query_result)]
+struct TargetPlanetRow {
+    id: u64,
+    name: String,
+    sector: u32,
+    quadrant: u32,
+    planet_number: u16,
+    owner: Option<i32>,
+    richness: u16,
+    home: Option<i8>,
+    galaxy_id: u16,
+    #[sea_orm(nested, alias = "tp_galaxy")]
+    galaxy: GalaxyNameRow,
+    #[sea_orm(nested, alias = "tp_owner")]
+    owner_info: Option<UsernameRow>,
+}
+
+/// `obtained_unit_temporal_information`, `LEFT JOIN`ed on `expiration_id`
+/// (present only for time-special granted unit stacks).
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "temporal_information::Entity", from_query_result)]
+struct TemporalInformationRow {
+    id: u32,
+    duration: u32,
+    expiration: chrono::DateTime<chrono::Utc>,
+    relation_id: u16,
+}
+
+/// One `obtained_units` row with every nested relation (`unit` -> `unit_type`,
+/// owning user, optional source/target planets -> galaxy/owner, optional
+/// temporal information) decoded straight off a single joined query — the
+/// direct SeaORM equivalent of the old `ObtainedUnitRow { unit: UnitRow,
+/// source_planet: Option<PlanetDtoRow>, ... }` shape that plain `sqlx::FromRow`
+/// couldn't decode (nested structs need unique column names, and this query
+/// joins `planets`/`galaxies`/`user_storage` *twice*). `DerivePartialModel`'s
+/// `#[sea_orm(nested, alias = "...")]` generates the column aliasing for us.
+#[derive(DerivePartialModel)]
+#[sea_orm(entity = "obtained_unit::Entity", from_query_result)]
+struct ObtainedUnitJoinedRow {
     id: u64,
     count: u64,
     user_id: i32,
-    username: Option<String>,
-
-    // --- units ---
-    unit_id: u16,
-    unit_name: String,
-    unit_type_id: Option<u16>,
-    unit_type_name: Option<String>,
-    unit_attack: Option<u16>,
-    unit_health: Option<u16>,
-    unit_shield: Option<u16>,
-    unit_charge: Option<u16>,
-    unit_is_unique: u8, // units.is_unique is `tinyint UNSIGNED`
-    unit_can_fast_explore: i8,
-    unit_speed: Option<f64>,
-    unit_bypass_shield: i8,
-    unit_is_invisible: i8,
-    unit_stored_weight: u32,
-    unit_storage_capacity: Option<u32>,
-
-    // --- source planet (nullable join) ---
-    sp_id: Option<u64>,
-    sp_name: Option<String>,
-    sp_sector: Option<u32>,
-    sp_quadrant: Option<u32>,
-    sp_planet_number: Option<u16>,
-    sp_owner_id: Option<i32>,
-    sp_owner_name: Option<String>,
-    sp_richness: Option<u16>,
-    sp_home: Option<i8>,
-    sp_galaxy_id: Option<u16>,
-    sp_galaxy_name: Option<String>,
-
-    // --- temporal information (nullable join; present for time-special units) ---
-    // `expiration` is a `TIMESTAMP` column → sqlx decodes it as `DateTime<Utc>`.
-    ti_id: Option<u32>,
-    ti_duration: Option<u32>,
-    ti_expiration: Option<chrono::DateTime<chrono::Utc>>,
-    ti_relation_id: Option<u16>,
-
-    // --- target planet (nullable join) ---
-    tp_id: Option<u64>,
-    tp_name: Option<String>,
-    tp_sector: Option<u32>,
-    tp_quadrant: Option<u32>,
-    tp_planet_number: Option<u16>,
-    tp_owner_id: Option<i32>,
-    tp_owner_name: Option<String>,
-    tp_richness: Option<u16>,
-    tp_home: Option<i8>,
-    tp_galaxy_id: Option<u16>,
-    tp_galaxy_name: Option<String>,
+    #[sea_orm(nested)]
+    unit: UnitJoinedRow,
+    #[sea_orm(nested)]
+    owner: UsernameRow,
+    #[sea_orm(nested, alias = "sp")]
+    source_planet: Option<SourcePlanetRow>,
+    #[sea_orm(nested, alias = "tp")]
+    target_planet: Option<TargetPlanetRow>,
+    #[sea_orm(nested)]
+    temporal_information: Option<TemporalInformationRow>,
 }
 
-impl From<ObtainedUnitRow> for ObtainedUnitDto {
-    fn from(r: ObtainedUnitRow) -> Self {
-        let unit = ObtainedUnitUnitDto::reduced(
-            r.unit_id,
-            r.unit_name,
-            r.unit_type_id,
-            r.unit_type_name,
-            r.unit_attack,
-            r.unit_health,
-            r.unit_shield,
-            r.unit_charge,
-            r.unit_is_unique != 0,
-            r.unit_can_fast_explore != 0,
-            r.unit_speed,
-            r.unit_bypass_shield != 0,
-            r.unit_is_invisible != 0,
-            r.unit_stored_weight,
-            r.unit_storage_capacity,
-        );
-        let source_planet = r.sp_id.map(|id| PlanetDto {
-            id,
-            name: Some(r.sp_name.unwrap_or_default()),
-            sector: r.sp_sector.unwrap_or_default(),
-            quadrant: r.sp_quadrant.unwrap_or_default(),
-            planet_number: r.sp_planet_number.unwrap_or_default(),
-            owner_id: r.sp_owner_id,
-            owner_name: r.sp_owner_name,
-            richness: Some(r.sp_richness.unwrap_or_default()),
-            home: Some(r.sp_home.unwrap_or(0) != 0),
-            galaxy_id: r.sp_galaxy_id.unwrap_or_default(),
-            galaxy_name: r.sp_galaxy_name.unwrap_or_default(),
-        });
-        let target_planet = r.tp_id.map(|id| PlanetDto {
-            id,
-            name: Some(r.tp_name.unwrap_or_default()),
-            sector: r.tp_sector.unwrap_or_default(),
-            quadrant: r.tp_quadrant.unwrap_or_default(),
-            planet_number: r.tp_planet_number.unwrap_or_default(),
-            owner_id: r.tp_owner_id,
-            owner_name: r.tp_owner_name,
-            richness: Some(r.tp_richness.unwrap_or_default()),
-            home: Some(r.tp_home.unwrap_or(0) != 0),
-            galaxy_id: r.tp_galaxy_id.unwrap_or_default(),
-            galaxy_name: r.tp_galaxy_name.unwrap_or_default(),
-        });
+/// Mirrors `model::planet::planet_dto_from_parts` — both `SourcePlanetRow` and
+/// `TargetPlanetRow` decode to the same [`PlanetDto`] shape.
+#[allow(clippy::too_many_arguments)]
+fn planet_dto_from_joined_parts(
+    id: u64,
+    name: String,
+    sector: u32,
+    quadrant: u32,
+    planet_number: u16,
+    owner_id: Option<i32>,
+    richness: u16,
+    home: Option<i8>,
+    galaxy_id: u16,
+    galaxy_name: String,
+    owner_name: Option<String>,
+) -> PlanetDto {
+    PlanetDto {
+        id,
+        name: Some(name),
+        sector,
+        quadrant,
+        planet_number,
+        owner_id,
+        owner_name,
+        richness: Some(richness),
+        home: home.map(|h| h != 0),
+        galaxy_id,
+        galaxy_name,
+    }
+}
+
+impl From<SourcePlanetRow> for PlanetDto {
+    fn from(r: SourcePlanetRow) -> Self {
+        planet_dto_from_joined_parts(
+            r.id,
+            r.name,
+            r.sector,
+            r.quadrant,
+            r.planet_number,
+            r.owner,
+            r.richness,
+            r.home,
+            r.galaxy_id,
+            r.galaxy.name,
+            r.owner_info.map(|o| o.username),
+        )
+    }
+}
+
+impl From<TargetPlanetRow> for PlanetDto {
+    fn from(r: TargetPlanetRow) -> Self {
+        planet_dto_from_joined_parts(
+            r.id,
+            r.name,
+            r.sector,
+            r.quadrant,
+            r.planet_number,
+            r.owner,
+            r.richness,
+            r.home,
+            r.galaxy_id,
+            r.galaxy.name,
+            r.owner_info.map(|o| o.username),
+        )
+    }
+}
+
+/// Mirrors `unit_bo::UnitRow`'s `From` impl, but only populating the scalar
+/// columns the old `SELECT_DTO` selected — see [`UnitJoinedRow`]'s doc comment.
+fn unit_dto_from_joined_row(r: UnitJoinedRow) -> UnitDto {
+    UnitDto {
+        id: r.id,
+        name: r.name,
+        description: r.description,
+        image: r.image.as_ref().map(|i| i.id),
+        image_url: r.image.as_ref().map(|i| format!("/dynamic/{}", i.filename)),
+        order: None,
+        has_to_display_in_requirements: false,
+        points: None,
+        time: r.time,
+        primary_resource: r.primary_resource,
+        secondary_resource: r.secondary_resource,
+        energy: None,
+        type_id: r.type_id,
+        type_name: r.unit_type.map(|ut| ut.name),
+        attack: r.attack,
+        health: r.health,
+        shield: r.shield,
+        charge: r.charge,
+        is_unique: r.is_unique != 0,
+        can_fast_explore: r.can_fast_explore != 0,
+        speed: r.speed,
+        cloned_improvements: false,
+        bypass_shield: r.bypass_shield != 0,
+        is_invisible: r.is_invisible != 0,
+        stored_weight: r.stored_weight,
+        storage_capacity: r.storage_capacity,
+    }
+}
+
+impl ObtainedUnitJoinedRow {
+    async fn to_dto(self, conn: &mut MySqlConnection) -> OwgeResult<ObtainedUnitDto> {
+        let db_invisible = self.unit.is_invisible != 0;
+        let unit_id = self.unit.id as i64;
+        let unit_type_id = self.unit.type_id.unwrap_or(0);
+        let is_invisible = if db_invisible {
+            true
+        } else {
+            ActiveTimeSpecialRuleFinderBo::exists_rule_matching_unit_destination(
+                &mut *conn,
+                self.user_id,
+                unit_id,
+                unit_type_id,
+                "TIME_SPECIAL_IS_ENABLED_DO_HIDE",
+            )
+            .await?
+        };
+
         // TemporalInformationUnitDataLoaderService.addInformationToDto: when the
         // stack has an `expiration_id`, attach the temporal info and compute
         // `pendingMillis` (millis from now to expiration). `expiration` goes on the
         // wire as epoch seconds (Jackson `Instant` timestamp form).
-        let temporal_information = match (r.ti_id, r.ti_expiration) {
-            (Some(id), Some(expiration)) => {
-                let expiration_ms = expiration.timestamp_millis();
-                Some(crate::dto::obtained_unit::TemporalInformationDto {
-                    id,
-                    duration: r.ti_duration.unwrap_or_default(),
-                    expiration: expiration.timestamp() as f64,
-                    relation_id: r.ti_relation_id.unwrap_or_default(),
-                    pending_millis: expiration_ms - chrono::Utc::now().timestamp_millis(),
-                })
+        let temporal_information = self.temporal_information.map(|ti| {
+            let expiration_ms = ti.expiration.timestamp_millis();
+            TemporalInformationDto {
+                id: ti.id,
+                duration: ti.duration,
+                expiration: ti.expiration.timestamp() as f64,
+                relation_id: ti.relation_id,
+                pending_millis: expiration_ms - chrono::Utc::now().timestamp_millis(),
             }
-            _ => None,
-        };
-        ObtainedUnitDto {
-            id: r.id,
+        });
+
+        let mut unit = unit_dto_from_joined_row(self.unit);
+        unit.is_invisible = is_invisible;
+
+        Ok(ObtainedUnitDto {
+            id: self.id,
             unit,
-            count: r.count,
-            source_planet,
-            target_planet,
-            user_id: r.user_id,
-            username: r.username,
+            count: self.count,
+            source_planet: self.source_planet.map(Into::into),
+            target_planet: self.target_planet.map(Into::into),
+            user_id: self.user_id,
+            username: Some(self.owner.username),
             temporal_information,
-        }
+        })
     }
 }
-
-const SELECT_DTO: &str = "\
-    SELECT ou.id, ou.count, ou.user_id AS user_id, usr.username AS username, \
-           u.id AS unit_id, u.name AS unit_name, u.type AS unit_type_id, ut.name AS unit_type_name, \
-           u.attack AS unit_attack, u.health AS unit_health, u.shield AS unit_shield, u.charge AS unit_charge, \
-           u.is_unique AS unit_is_unique, u.can_fast_explore AS unit_can_fast_explore, u.speed AS unit_speed, \
-           u.bypass_shield AS unit_bypass_shield, u.is_invisible AS unit_is_invisible, \
-           u.stored_weight AS unit_stored_weight, u.storage_capacity AS unit_storage_capacity, \
-           sp.id AS sp_id, sp.name AS sp_name, sp.sector AS sp_sector, sp.quadrant AS sp_quadrant, \
-           sp.planet_number AS sp_planet_number, sp.owner AS sp_owner_id, spo.username AS sp_owner_name, \
-           sp.richness AS sp_richness, sp.home AS sp_home, sp.galaxy_id AS sp_galaxy_id, spg.name AS sp_galaxy_name, \
-           tp.id AS tp_id, tp.name AS tp_name, tp.sector AS tp_sector, tp.quadrant AS tp_quadrant, \
-           tp.planet_number AS tp_planet_number, tp.owner AS tp_owner_id, tpo.username AS tp_owner_name, \
-           tp.richness AS tp_richness, tp.home AS tp_home, tp.galaxy_id AS tp_galaxy_id, tpg.name AS tp_galaxy_name, \
-           ti.id AS ti_id, ti.duration AS ti_duration, ti.expiration AS ti_expiration, ti.relation_id AS ti_relation_id \
-    FROM obtained_units ou \
-    JOIN units u ON u.id = ou.unit_id \
-    LEFT JOIN unit_types ut ON ut.id = u.type \
-    JOIN user_storage usr ON usr.id = ou.user_id \
-    LEFT JOIN obtained_unit_temporal_information ti ON ti.id = ou.expiration_id \
-    LEFT JOIN planets sp ON sp.id = ou.source_planet \
-    LEFT JOIN galaxies spg ON spg.id = sp.galaxy_id \
-    LEFT JOIN user_storage spo ON spo.id = sp.owner \
-    LEFT JOIN planets tp ON tp.id = ou.target_planet \
-    LEFT JOIN galaxies tpg ON tpg.id = tp.galaxy_id \
-    LEFT JOIN user_storage tpo ON tpo.id = tp.owner ";
 
 pub struct ObtainedUnitBo;
 
@@ -185,52 +323,61 @@ impl ObtainedUnitBo {
     /// (`mission_id IS NULL`) and are not stored inside another unit
     /// (`owner_unit_id IS NULL`).
     ///
+    /// Issues a single joined query built by SeaORM and executed via
+    /// [`db::sea_all`] on the caller's pinned connection — the join graph
+    /// mirrors the old hand-written `SELECT_DTO`:
+    /// ```text
+    /// obtained_units
+    ///  ├─ JOIN units                         ─ LEFT JOIN unit_types
+    ///  ├─ JOIN user_storage      (owner)
+    ///  ├─ LEFT JOIN obtained_unit_temporal_information
+    ///  ├─ LEFT JOIN planets AS sp            ─ LEFT JOIN galaxies AS sp_galaxy
+    ///  │                                     ─ LEFT JOIN user_storage AS sp_owner
+    ///  └─ LEFT JOIN planets AS tp            ─ LEFT JOIN galaxies AS tp_galaxy
+    ///                                        ─ LEFT JOIN user_storage AS tp_owner
+    /// ```
+    ///
     /// After building each DTO, applies `HiddenUnitBo.defineHidden`: the
     /// embedded `unit.is_invisible` is set to `true` if the DB flag is set OR
     /// if the user has an active time-special rule of type
     /// `TIME_SPECIAL_IS_ENABLED_DO_HIDE` targeting this unit (by exact unit id
     /// or by unit-type ancestry). Ports `HiddenUnitBo.isHiddenUnitInternal`.
-    pub async fn find_completed_dtos(db: &Db, user_id: i32) -> OwgeResult<Vec<ObtainedUnitDto>> {
-        let rows = sqlx::query_as::<_, ObtainedUnitRow>(&format!(
-            "{SELECT_DTO} \
-             WHERE ou.user_id = ? \
-               AND ou.source_planet IS NOT NULL \
-               AND ou.mission_id IS NULL \
-               AND ou.owner_unit_id IS NULL \
-             ORDER BY ou.id"
-        ))
-        .bind(user_id)
-        .fetch_all(db)
-        .await?;
+    pub async fn find_completed_dtos(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<ObtainedUnitDto>> {
+        let filters = Entity::find()
+            .filter(obtained_unit::Column::UserId.eq(user_id))
+            .filter(obtained_unit::Column::SourcePlanet.is_not_null())
+            .filter(obtained_unit::Column::MissionId.is_null())
+            .filter(obtained_unit::Column::OwnerUnitId.is_null())
+            .order_by_asc(obtained_unit::Column::Id);
 
-        // Acquire a single connection for all per-unit time-special rule checks.
-        let mut conn = db.acquire().await?;
+        let rows = db::sea_all(&mut *conn, Self::with_full_joins(filters)).await?;
 
         let mut dtos = Vec::with_capacity(rows.len());
         for row in rows {
             // `HiddenUnitBo.isHiddenUnitInternal`: is_invisible = DB flag OR
             // an ACTIVE time-special DO_HIDE rule matches this unit.
-            let db_invisible = row.unit_is_invisible != 0;
-            let unit_id = row.unit_id as i64;
-            let unit_type_id = row.unit_type_id.unwrap_or(0);
-            let is_invisible = if db_invisible {
-                true
-            } else {
-                ActiveTimeSpecialRuleFinderBo::exists_rule_matching_unit_destination(
-                    &mut conn,
-                    user_id,
-                    unit_id,
-                    unit_type_id,
-                    "TIME_SPECIAL_IS_ENABLED_DO_HIDE",
-                )
-                .await?
-            };
 
-            let mut dto: ObtainedUnitDto = row.into();
-            dto.unit.is_invisible = is_invisible;
+            let dto = row.to_dto(&mut *conn).await?;
             dtos.push(dto);
         }
         Ok(dtos)
+    }
+
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u64,
+    ) -> OwgeResult<Option<ObtainedUnitDto>> {
+        let filters = Entity::find()
+            .filter(obtained_unit::Column::Id.eq(id))
+            .limit(1);
+
+        match db::sea_one(&mut *conn, Self::with_full_joins(filters)).await? {
+            Some(row) => Ok(Some(row.to_dto(&mut *conn).await?)),
+            None => Ok(None),
+        }
     }
 
     /// `ObtainedUnitBo.saveWithSubtraction(ObtainedUnitDto, handleImprovements)`
@@ -264,18 +411,17 @@ impl ObtainedUnitBo {
     /// websocket events (`emitUserData`, `emitUserChange`, `emitObtainedUnits`) are
     /// M4 remainders deferred with the rest of the event-emitter work.
     pub async fn save_with_subtraction(
-        db: &Db,
+        conn: &mut MySqlConnection,
         dto: &ObtainedUnitDto,
         _planet_check: bool,
     ) -> OwgeResult<()> {
         let row: Option<(u64, u16)> =
             sqlx::query_as("SELECT count, unit_id FROM obtained_units WHERE id = ?")
                 .bind(dto.id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
-        let (stack_count, unit_id) = row.ok_or_else(|| {
-            OwgeError::NotFound(format!("No obtained unit with id {}", dto.id))
-        })?;
+        let (stack_count, unit_id) =
+            row.ok_or_else(|| OwgeError::NotFound(format!("No obtained unit with id {}", dto.id)))?;
         let subtraction_count = dto.count;
         if subtraction_count > stack_count {
             return Err(OwgeError::InvalidInput(
@@ -283,7 +429,7 @@ impl ObtainedUnitBo {
                     .to_string(),
             ));
         }
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         if subtraction_count < stack_count {
             // saveWithChange(obtainedUnit, -subtractionCount).
             sqlx::query("UPDATE obtained_units SET count = count - ? WHERE id = ?")
@@ -310,9 +456,152 @@ impl ObtainedUnitBo {
         .await?;
         tx.commit().await?;
         // Requirement-trigger unlock pushes from the removed units (after commit).
-        crate::bo::realtime_emitter::drain_requirement_emits(db, &req_emits).await?;
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
         // clearSourceCache: removing units changes the obtained-unit improvement source.
-        crate::bo::UserImprovementBo::evict_and_emit(db, dto.user_id).await?;
+        crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, dto.user_id).await?;
         Ok(())
+    }
+
+    fn with_full_joins(select: Select<Entity>) -> Selector<SelectModel<ObtainedUnitJoinedRow>> {
+        select
+            .join(JoinType::InnerJoin, obtained_unit::Relation::Unit.def())
+            .join(JoinType::LeftJoin, unit::Relation::UnitType.def())
+            .join(JoinType::InnerJoin, obtained_unit::Relation::Owner.def())
+            .join(JoinType::LeftJoin, unit::Relation::ImageStore.def())
+            .join(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::TemporalInformation.def(),
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::SourcePlanet.def(),
+                "sp",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Galaxy.def().from_alias("sp"),
+                "sp_galaxy",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Owner.def().from_alias("sp"),
+                "sp_owner",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::TargetPlanet.def(),
+                "tp",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Galaxy.def().from_alias("tp"),
+                "tp_galaxy",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Owner.def().from_alias("tp"),
+                "tp_owner",
+            )
+            .into_partial_model::<ObtainedUnitJoinedRow>()
+    }
+}
+
+#[cfg(test)]
+mod sql_shape_tests {
+    use super::*;
+    use sea_orm::DbBackend;
+
+    /// Confirms `find_completed_dtos` builds exactly **one** SQL query that
+    /// performs every join itself (no lazy-loading / N+1 fan-out) — the
+    /// "single round trip doing all the joins" the refactor was for.
+    #[test]
+    fn find_completed_dtos_query_is_a_single_joined_select() {
+        let sql = Entity::find()
+            .filter(obtained_unit::Column::UserId.eq(1))
+            .filter(obtained_unit::Column::SourcePlanet.is_not_null())
+            .filter(obtained_unit::Column::MissionId.is_null())
+            .filter(obtained_unit::Column::OwnerUnitId.is_null())
+            .order_by_asc(obtained_unit::Column::Id)
+            .join(JoinType::InnerJoin, obtained_unit::Relation::Unit.def())
+            .join(JoinType::LeftJoin, unit::Relation::UnitType.def())
+            .join(JoinType::InnerJoin, obtained_unit::Relation::Owner.def())
+            .join(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::TemporalInformation.def(),
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::SourcePlanet.def(),
+                "sp",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Galaxy.def().from_alias("sp"),
+                "sp_galaxy",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Owner.def().from_alias("sp"),
+                "sp_owner",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                obtained_unit::Relation::TargetPlanet.def(),
+                "tp",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Galaxy.def().from_alias("tp"),
+                "tp_galaxy",
+            )
+            .join_as(
+                JoinType::LeftJoin,
+                planet::Relation::Owner.def().from_alias("tp"),
+                "tp_owner",
+            )
+            .into_partial_model::<ObtainedUnitJoinedRow>()
+            .into_statement(DbBackend::MySql)
+            .to_string();
+
+        println!("{sql}");
+
+        // One statement, one `SELECT`, one `FROM` — i.e. a single round trip.
+        assert_eq!(sql.matches("SELECT").count(), 1);
+        assert_eq!(sql.matches(" FROM ").count(), 1);
+        assert!(!sql.contains(';'), "expected a single statement: {sql}");
+
+        // Every joined table/alias from the doc-comment diagram is present.
+        for needle in [
+            "INNER JOIN `units`",
+            "LEFT JOIN `unit_types`",
+            "INNER JOIN `user_storage`",
+            "LEFT JOIN `obtained_unit_temporal_information`",
+            "LEFT JOIN `planets` AS `sp`",
+            "LEFT JOIN `galaxies` AS `sp_galaxy`",
+            "LEFT JOIN `user_storage` AS `sp_owner`",
+            "LEFT JOIN `planets` AS `tp`",
+            "LEFT JOIN `galaxies` AS `tp_galaxy`",
+            "LEFT JOIN `user_storage` AS `tp_owner`",
+        ] {
+            assert!(sql.contains(needle), "missing `{needle}` in: {sql}");
+        }
+
+        // Spot-check the nested column aliasing `DerivePartialModel` generates
+        // for the doubly-joined sides — this is the exact "magic" the old
+        // hand-written `SELECT_DTO` + `FromRow` couldn't pull off.
+        for needle in [
+            "AS `unit_id`",
+            "AS `unit_unit_type_name`",
+            "AS `owner_username`",
+            "AS `source_planet_id`",
+            "AS `source_planet_galaxy_name`",
+            "AS `source_planet_owner_info_username`",
+            "AS `target_planet_id`",
+            "AS `target_planet_galaxy_name`",
+            "AS `target_planet_owner_info_username`",
+            "AS `temporal_information_id`",
+        ] {
+            assert!(sql.contains(needle), "missing `{needle}` in: {sql}");
+        }
     }
 }

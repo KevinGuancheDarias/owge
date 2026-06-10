@@ -7,9 +7,8 @@
 //! rest of the port), so these methods just perform the DB update.
 
 use chrono::NaiveDateTime;
-use sqlx::FromRow;
+use sqlx::{FromRow, MySqlConnection};
 
-use crate::db::Db;
 use crate::dto::{MissionReportDto, MissionReportResponse};
 use crate::error::OwgeResult;
 
@@ -38,12 +37,12 @@ impl MissionReportBo {
     ///
     /// Note (per Java): when `page == 0` the response is flagged `requiresFlush`.
     pub async fn find_mission_reports_information(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         page: i32,
     ) -> OwgeResult<MissionReportResponse> {
-        let reports = Self::find_paginated_by_user_id(db, user_id, page).await?;
-        let (user_unread, enemy_unread) = Self::find_unread_count(db, user_id).await?;
+        let reports = Self::find_paginated_by_user_id(&mut *conn, user_id, page).await?;
+        let (user_unread, enemy_unread) = Self::find_unread_count(&mut *conn, user_id).await?;
         Ok(MissionReportResponse {
             page,
             user_unread,
@@ -57,7 +56,7 @@ impl MissionReportBo {
     /// reports for `userId`, newest first, with the owning mission's id/date
     /// joined in and `jsonBody` parsed into `parsedJson`.
     async fn find_paginated_by_user_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         page: i32,
     ) -> OwgeResult<Vec<MissionReportDto>> {
@@ -77,7 +76,7 @@ impl MissionReportBo {
         .bind(user_id)
         .bind(DEFAULT_PAGE_SIZE)
         .bind(offset)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
 
         rows.into_iter()
@@ -108,7 +107,10 @@ impl MissionReportBo {
     ///
     /// Returns `None` if the report no longer exists (defensive; the emit is
     /// fired immediately after the row is inserted, so it normally exists).
-    pub async fn find_by_id(db: &Db, report_id: u64) -> OwgeResult<Option<MissionReportDto>> {
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        report_id: u64,
+    ) -> OwgeResult<Option<MissionReportDto>> {
         let row = sqlx::query_as::<_, MissionReportRow>(
             "SELECT mr.id AS id, mr.json_body AS json_body, mr.report_date AS report_date, \
                     mr.user_read_date AS user_read_date, mr.is_enemy AS is_enemy, \
@@ -118,7 +120,7 @@ impl MissionReportBo {
              WHERE mr.id = ?",
         )
         .bind(report_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
 
         match row {
@@ -144,28 +146,39 @@ impl MissionReportBo {
 
     /// `findUnreadCount` — `(userUnread, enemyUnread)`: unread report counts for
     /// non-enemy (`is_enemy = false`) and enemy (`is_enemy = true`) reports.
-    pub async fn find_unread_count(db: &Db, user_id: i32) -> OwgeResult<(i64, i64)> {
-        let enemy_unread = Self::count_unread(db, user_id, true).await?;
-        let user_unread = Self::count_unread(db, user_id, false).await?;
+    pub async fn find_unread_count(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<(i64, i64)> {
+        let enemy_unread = Self::count_unread(&mut *conn, user_id, true).await?;
+        let user_unread = Self::count_unread(&mut *conn, user_id, false).await?;
         Ok((user_unread, enemy_unread))
     }
 
     /// `countByUserIdAndIsEnemyAndUserReadDateIsNull`.
-    async fn count_unread(db: &Db, user_id: i32, is_enemy: bool) -> OwgeResult<i64> {
+    async fn count_unread(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        is_enemy: bool,
+    ) -> OwgeResult<i64> {
         let (count,): (i64,) = sqlx::query_as(
             "SELECT CAST(COUNT(*) AS SIGNED) FROM mission_reports \
              WHERE user_id = ? AND is_enemy = ? AND user_read_date IS NULL",
         )
         .bind(user_id)
         .bind(is_enemy)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         Ok(count)
     }
 
     /// `markAsReadIfUserIsOwner(reportsIds, userId)` — set `user_read_date = now`
     /// for the owned reports in the list.
-    pub async fn mark_as_read(db: &Db, user_id: i32, report_ids: &[u64]) -> OwgeResult<()> {
+    pub async fn mark_as_read(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        report_ids: &[u64],
+    ) -> OwgeResult<()> {
         if report_ids.is_empty() {
             return Ok(());
         }
@@ -182,14 +195,14 @@ impl MissionReportBo {
         for id in report_ids {
             q = q.bind(id);
         }
-        q.execute(db).await?;
+        q.execute(&mut *conn).await?;
         Ok(())
     }
 
     /// `markAsReadBeforeDate(userId, date)` — mark every still-unread report
     /// older than `date` as read.
     pub async fn mark_as_read_before_date(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         date: NaiveDateTime,
     ) -> OwgeResult<()> {
@@ -199,7 +212,7 @@ impl MissionReportBo {
         )
         .bind(user_id)
         .bind(date)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         Ok(())
     }

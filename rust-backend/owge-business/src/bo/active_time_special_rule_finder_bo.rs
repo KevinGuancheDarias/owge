@@ -89,13 +89,11 @@ impl ActiveTimeSpecialRuleFinderBo {
                     if type_id as i64 == destination_id {
                         return Ok(true);
                     }
-                    current = sqlx::query_scalar(
-                        "SELECT parent_type FROM unit_types WHERE id = ?",
-                    )
-                    .bind(type_id)
-                    .fetch_optional(&mut *conn)
-                    .await?
-                    .flatten();
+                    current = sqlx::query_scalar("SELECT parent_type FROM unit_types WHERE id = ?")
+                        .bind(type_id)
+                        .fetch_optional(&mut *conn)
+                        .await?
+                        .flatten();
                 }
                 Ok(false)
             }

@@ -21,7 +21,6 @@
 //! the unit catalog from the DB. An unknown id mirrors Java's
 //! `SgtBackendInvalidInputException` (`OwgeError::InvalidInput`, HTTP 400).
 
-use crate::db::Db;
 use std::collections::HashMap;
 
 use crate::dto::rule::{
@@ -30,6 +29,7 @@ use crate::dto::rule::{
 };
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::rule::Rule;
+use sqlx::MySqlConnection;
 
 /// Matches `RuleBo.ARGS_DELIMITER`.
 pub const ARGS_DELIMITER: char = '#';
@@ -58,15 +58,14 @@ impl From<Rule> for RuleDto {
     }
 }
 
-const SELECT_COLUMNS: &str =
-    "SELECT id, type, origin_type, origin_id, destination_type, destination_id, extra_args FROM rules";
+const SELECT_COLUMNS: &str = "SELECT id, type, origin_type, origin_id, destination_type, destination_id, extra_args FROM rules";
 
 pub struct RuleBo;
 
 impl RuleBo {
     /// `RuleBo.findByOriginTypeAndOriginId`.
     pub async fn find_by_origin_type_and_origin_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         origin_type: &str,
         origin_id: i64,
     ) -> OwgeResult<Vec<RuleDto>> {
@@ -75,19 +74,21 @@ impl RuleBo {
         ))
         .bind(origin_type)
         .bind(origin_id as i16)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `RuleBo.findByType`.
-    pub async fn find_by_type(db: &Db, rule_type: &str) -> OwgeResult<Vec<RuleDto>> {
-        let rows = sqlx::query_as::<_, Rule>(&format!(
-            "{SELECT_COLUMNS} WHERE type = ? ORDER BY id"
-        ))
-        .bind(rule_type)
-        .fetch_all(db)
-        .await?;
+    pub async fn find_by_type(
+        conn: &mut MySqlConnection,
+        rule_type: &str,
+    ) -> OwgeResult<Vec<RuleDto>> {
+        let rows =
+            sqlx::query_as::<_, Rule>(&format!("{SELECT_COLUMNS} WHERE type = ? ORDER BY id"))
+                .bind(rule_type)
+                .fetch_all(&mut *conn)
+                .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -96,7 +97,7 @@ impl RuleBo {
     /// the constants defined on the `RuleTypeProvider` beans; an unknown id
     /// matches Java's `SgtBackendInvalidInputException`.
     pub async fn find_type_descriptor(
-        _db: &Db,
+        _conn: &mut MySqlConnection,
         rule_type: &str,
     ) -> OwgeResult<RuleTypeDescriptorDto> {
         match rule_type {
@@ -133,22 +134,21 @@ impl RuleBo {
     /// `id`/`name` items (`unitRepository.findAll()`, natural primary-key order).
     /// An unknown id matches Java's `SgtBackendInvalidInputException`.
     pub async fn find_item_type_descriptor(
-        db: &Db,
+        conn: &mut MySqlConnection,
         item_type: &str,
     ) -> OwgeResult<RuleItemTypeDescriptorDto> {
         match item_type {
             "UNIT" => {
-                let items = sqlx::query_as::<_, (u16, String)>(
-                    "SELECT id, name FROM units ORDER BY id",
-                )
-                .fetch_all(db)
-                .await?
-                .into_iter()
-                .map(|(id, name)| IdNameDto {
-                    id: id as i64,
-                    name,
-                })
-                .collect();
+                let items =
+                    sqlx::query_as::<_, (u16, String)>("SELECT id, name FROM units ORDER BY id")
+                        .fetch_all(&mut *conn)
+                        .await?
+                        .into_iter()
+                        .map(|(id, name)| IdNameDto {
+                            id: id as i64,
+                            name,
+                        })
+                        .collect();
                 Ok(RuleItemTypeDescriptorDto { items })
             }
             other => Err(OwgeError::InvalidInput(format!(
@@ -158,17 +158,17 @@ impl RuleBo {
     }
 
     /// Read one rule by id (used internally to return the saved entity).
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<RuleDto>> {
+    pub async fn find_by_id(conn: &mut MySqlConnection, id: u16) -> OwgeResult<Option<RuleDto>> {
         let row = sqlx::query_as::<_, Rule>(&format!("{SELECT_COLUMNS} WHERE id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
 
     /// `RuleBo.save` — `rules.id` is AUTO_INCREMENT. An input without an id (or
     /// id 0) inserts; otherwise it updates the existing row.
-    pub async fn save(db: &Db, input: &RuleInput) -> OwgeResult<RuleDto> {
+    pub async fn save(conn: &mut MySqlConnection, input: &RuleInput) -> OwgeResult<RuleDto> {
         let extra_args = input.joined_extra_args();
         match input.id.filter(|&id| id != 0) {
             None => {
@@ -183,10 +183,10 @@ impl RuleBo {
                 .bind(&input.destination_type)
                 .bind(input.destination_id as i16)
                 .bind(&extra_args)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
                 let id = result.last_insert_id() as u16;
-                Self::find_by_id(db, id)
+                Self::find_by_id(&mut *conn, id)
                     .await?
                     .ok_or_else(|| OwgeError::Common("Rule vanished right after insert".into()))
             }
@@ -202,9 +202,9 @@ impl RuleBo {
                 .bind(input.destination_id as i16)
                 .bind(&extra_args)
                 .bind(id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
-                Self::find_by_id(db, id)
+                Self::find_by_id(&mut *conn, id)
                     .await?
                     .ok_or_else(|| OwgeError::NotFound(format!("No rule with id {id}")))
             }
@@ -212,18 +212,18 @@ impl RuleBo {
     }
 
     /// `RuleBo.deleteById`.
-    pub async fn delete_by_id(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete_by_id(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM rules WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
 
     /// All rules as DTOs — backing `OpenWebsocketSyncRestService.findRules`.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<RuleDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<RuleDto>> {
         let rows = sqlx::query_as::<_, Rule>(SELECT_COLUMNS)
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -231,8 +231,10 @@ impl RuleBo {
     /// `OpenWebsocketSyncRestService.findRules` — all rules plus the units that
     /// appear as origin or destination (`origin_type = "UNIT"` /
     /// `destination_type = "UNIT"`), keyed by unit id.
-    pub async fn find_all_with_related_units(db: &Db) -> OwgeResult<RuleWithRelatedUnitsDto> {
-        let rules = Self::find_all(db).await?;
+    pub async fn find_all_with_related_units(
+        conn: &mut MySqlConnection,
+    ) -> OwgeResult<RuleWithRelatedUnitsDto> {
+        let rules = Self::find_all(&mut *conn).await?;
 
         let unit_ids: std::collections::HashSet<i64> = rules
             .iter()
@@ -252,16 +254,15 @@ impl RuleBo {
             HashMap::new()
         } else {
             let ids: Vec<i64> = unit_ids.into_iter().collect();
-            let mut qb = sqlx::QueryBuilder::new(
-                "SELECT id, name, description FROM units WHERE id IN (",
-            );
+            let mut qb =
+                sqlx::QueryBuilder::new("SELECT id, name, description FROM units WHERE id IN (");
             let mut sep = qb.separated(", ");
             for &id in &ids {
                 sep.push_bind(id as i16);
             }
             qb.push(")");
             qb.build_query_as::<UnitSimpleRow>()
-                .fetch_all(db)
+                .fetch_all(&mut *conn)
                 .await?
                 .into_iter()
                 .map(|r| {
@@ -277,7 +278,10 @@ impl RuleBo {
                 .collect()
         };
 
-        Ok(RuleWithRelatedUnitsDto { rules, related_units })
+        Ok(RuleWithRelatedUnitsDto {
+            rules,
+            related_units,
+        })
     }
 }
 

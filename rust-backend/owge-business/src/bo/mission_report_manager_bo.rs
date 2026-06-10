@@ -60,8 +60,7 @@ impl MissionReportManagerBo {
             ))
         })?;
 
-        let report_id =
-            Self::insert_report(conn, user_id, report, /* is_enemy = */ false).await?;
+        let report_id = Self::insert_report(conn, user_id, report, /* is_enemy = */ false).await?;
 
         // Java relies on the managed Mission entity being flushed with
         // report = savedReport and resolved = true; we write both explicitly.

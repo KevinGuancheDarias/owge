@@ -4,22 +4,22 @@
 
 use chrono::Utc;
 
-use crate::db::Db;
 use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 pub struct TrackBrowserBo;
 
 impl TrackBrowserBo {
     /// `TrackBrowser.builder().method(method).jsonContent(content).createdAt(now)`.
     /// `method` is `warn` or `error`; the column is `varchar(8)`.
-    pub async fn track(db: &Db, method: &str, content: &str) -> OwgeResult<()> {
+    pub async fn track(conn: &mut MySqlConnection, method: &str, content: &str) -> OwgeResult<()> {
         sqlx::query(
             "INSERT INTO track_browser (method, json_content, created_at) VALUES (?, ?, ?)",
         )
         .bind(method)
         .bind(content)
         .bind(Utc::now().naive_utc())
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         Ok(())
     }

@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use owge_business::bo::admin_user_bo::AdminJwtSettings;
 use owge_business::config::{
-    self, EnvConfig, ADMIN_JWT_ALGO_CODE, ADMIN_JWT_DURATION_CODE, ADMIN_JWT_SECRET_CODE,
+    self, ADMIN_JWT_ALGO_CODE, ADMIN_JWT_DURATION_CODE, ADMIN_JWT_SECRET_CODE, EnvConfig,
     GAME_JWT_SECRET_CODE,
 };
 use owge_business::db::{self, Db};
@@ -35,6 +35,7 @@ impl AppState {
     /// `configuration` table, reproducing the Spring security bean wiring.
     pub async fn bootstrap(env: EnvConfig) -> OwgeResult<Self> {
         let db = db::create_pool(&env.database_url, env.db_max_connections).await?;
+        let mut conn = db.acquire().await?;
 
         // --- Game token config: RSA under the `rsaKeys` profile, else HMAC. ---
         let game_token = if env.has_profile("rsaKeys") {
@@ -46,36 +47,42 @@ impl AppState {
             })?;
             TokenConfig::rsa(pem, env.clock_skew_seconds)
         } else {
-            let secret = ConfigurationBo::find_value(&db, GAME_JWT_SECRET_CODE).await?;
+            let secret = ConfigurationBo::find_value(&mut conn, GAME_JWT_SECRET_CODE).await?;
             // Dev game tokens are HMAC; algorithm is fixed HS256 on the verify
             // side (jsonwebtoken keys the validator by algorithm). The secret
             // byte interpretation is operator-pinned (see EnvConfig docs / the
             // raw-vs-base64 compatibility note).
-            let mut cfg =
-                TokenConfig::secret(secret, jsonwebtoken::Algorithm::HS256, env.clock_skew_seconds);
+            let mut cfg = TokenConfig::secret(
+                secret,
+                jsonwebtoken::Algorithm::HS256,
+                env.clock_skew_seconds,
+            );
             cfg.secret_encoding = env.game_secret_encoding;
             cfg
         };
 
         // --- Admin token config (always HMAC). ---
         let admin_secret = ConfigurationBo::find_or_set_default(
-            &db,
+            &mut conn,
             ADMIN_JWT_SECRET_CODE,
             &gen_random_secret(),
         )
         .await?
         .value;
         let admin_algo_name =
-            ConfigurationBo::find_or_set_default(&db, ADMIN_JWT_ALGO_CODE, "HS256")
+            ConfigurationBo::find_or_set_default(&mut conn, ADMIN_JWT_ALGO_CODE, "HS256")
                 .await?
                 .value;
         let admin_algo = config::parse_algorithm(&admin_algo_name)?;
         let admin_duration: i64 =
-            ConfigurationBo::find_or_set_default(&db, ADMIN_JWT_DURATION_CODE, "86400")
+            ConfigurationBo::find_or_set_default(&mut conn, ADMIN_JWT_DURATION_CODE, "86400")
                 .await?
                 .value
                 .parse()
-                .map_err(|_| OwgeError::Common("ADMIN_JWT_DURATION_SECONDS is not an integer".into()))?;
+                .map_err(|_| {
+                    OwgeError::Common("ADMIN_JWT_DURATION_SECONDS is not an integer".into())
+                })?;
+        drop(conn);
 
         let admin_token =
             TokenConfig::secret(admin_secret.clone(), admin_algo, env.clock_skew_seconds);

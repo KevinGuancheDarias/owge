@@ -3,11 +3,12 @@
 //!
 //! Java's `SocketIoService` is a Spring singleton that holds the netty-socketio
 //! server and is autowired into every `*EventEmitter`/`*Bo`. The Rust `*Bo`s are
-//! stateless free functions over `&Db`, so threading a socket handle through
-//! every signature would be hugely invasive. Instead, exactly as Spring keeps
-//! one bean, we keep one process-global [`WebsocketEmitter`] (set once at
-//! startup by `owge-rest`, which owns the socketioxide server). The business
-//! layer stays framework-agnostic behind the trait.
+//! stateless free functions over a pinned `&mut MySqlConnection`, so threading a
+//! socket handle through every signature would be hugely invasive. Instead,
+//! exactly as Spring keeps one bean, we keep one process-global
+//! [`WebsocketEmitter`] (set once at startup by `owge-rest`, which owns the
+//! socketioxide server). The business layer stays framework-agnostic behind the
+//! trait.
 //!
 //! ## Semantics mirrored from `sendMessage`
 //! * The `websocket_events_information` **watermark is persisted first, for
@@ -20,18 +21,17 @@
 //!
 //! Emits must run **after** the surrounding DB transaction commits (Java uses
 //! `transactionUtilService.doAfterCommit`): the finders here read through the
-//! pool, which cannot see another connection's uncommitted writes. Call sites
-//! place the emit after `tx.commit()`.
+//! connection, which cannot see uncommitted writes from another transaction. Call
+//! sites place the emit after `tx.commit()`.
 
-use std::future::Future;
 use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use chrono::Utc;
 use serde_json::Value;
+use sqlx::MySqlConnection;
 
 use crate::bo::WebsocketEventsInformationBo;
-use crate::db::Db;
 use crate::dto::websocket::WebsocketMessage;
 use crate::error::OwgeResult;
 
@@ -70,15 +70,22 @@ pub fn emitter() -> Option<Arc<dyn WebsocketEmitter>> {
 ///
 /// `target_user_id == 0` broadcasts: the watermark is bumped for **all** users
 /// and the value is delivered to every connected client.
-pub async fn send_message<F, Fut>(
-    db: &Db,
+///
+/// The connection is threaded into `value_fn` via an HRTB closure so the same
+/// pinned `&mut MySqlConnection` can be reused for both the watermark writes
+/// and the payload query — no second borrow or pool acquire needed.
+pub async fn send_message<F>(
+    conn: &mut MySqlConnection,
     target_user_id: i32,
     event_name: &str,
-    compute: F,
+    value_fn: F,
 ) -> OwgeResult<()>
 where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = OwgeResult<Value>>,
+    F: for<'c> FnOnce(
+        &'c mut MySqlConnection,
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = OwgeResult<Value>> + Send + 'c>,
+    >,
 {
     let now = Utc::now();
     let now_naive = now.naive_utc();
@@ -91,15 +98,16 @@ where
     // 1) Persist watermark(s) first — always, regardless of connectivity.
     let recipients: Vec<i32> = if target_user_id == 0 {
         let ids: Vec<(i32,)> = sqlx::query_as("SELECT id FROM user_storage")
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         let ids: Vec<i32> = ids.into_iter().map(|(id,)| id).collect();
         for id in &ids {
-            WebsocketEventsInformationBo::save(db, event_name, *id, now_naive).await?;
+            WebsocketEventsInformationBo::save(&mut *conn, event_name, *id, now_naive).await?;
         }
         ids
     } else {
-        WebsocketEventsInformationBo::save(db, event_name, target_user_id, now_naive).await?;
+        WebsocketEventsInformationBo::save(&mut *conn, event_name, target_user_id, now_naive)
+            .await?;
         vec![target_user_id]
     };
 
@@ -114,7 +122,7 @@ where
     if connected.is_empty() {
         return Ok(());
     }
-    let value = compute().await?;
+    let value = value_fn(&mut *conn).await?;
     let message = serde_json::to_value(WebsocketMessage::with_last_sent(
         event_name,
         value,
@@ -148,7 +156,8 @@ pub async fn send_one_time_message(
 /// (The watermark-table truncation is the caller's responsibility.)
 pub async fn broadcast_cache_clear() -> OwgeResult<()> {
     if let Some(em) = emitter() {
-        em.broadcast_raw("cache_clear", Value::String("null".into())).await;
+        em.broadcast_raw("cache_clear", Value::String("null".into()))
+            .await;
     }
     Ok(())
 }

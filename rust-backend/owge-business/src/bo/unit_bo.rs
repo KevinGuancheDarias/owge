@@ -5,14 +5,13 @@
 //! type name.
 
 use crate::bo::ImprovementBo;
-use crate::db::Db;
 use crate::dto::unit::UnitInput;
 use crate::dto::{ImprovementDto, ImprovementUnitTypeDto, UnitDto};
 use crate::error::{OwgeError, OwgeResult};
-use crate::model::object_relation::object_enum;
+use sqlx::MySqlConnection;
 
 #[derive(sqlx::FromRow)]
-struct UnitRow {
+pub(crate) struct UnitRow {
     id: u16,
     name: String,
     description: Option<String>,
@@ -54,9 +53,9 @@ impl From<UnitRow> for UnitDto {
             order: r.order_number,
             has_to_display_in_requirements: r.display_in_requirements.unwrap_or(0) != 0,
             points: r.points,
-            time: r.time,
-            primary_resource: r.primary_resource,
-            secondary_resource: r.secondary_resource,
+            time: r.time.map(|v| v as u64),
+            primary_resource: r.primary_resource.map(u64::from),
+            secondary_resource: r.secondary_resource.map(u64::from),
             energy: r.energy,
             type_id: r.type_id,
             type_name: r.type_name,
@@ -76,7 +75,7 @@ impl From<UnitRow> for UnitDto {
     }
 }
 
-const SELECT_UNIT: &str = "\
+pub const SELECT_UNIT: &str = "\
     SELECT u.id, u.name, u.description, u.image_id, i.filename AS image_filename, \
            u.order_number, u.display_in_requirements, \
            u.points, u.time, u.primary_resource, u.secondary_resource, u.energy, \
@@ -90,37 +89,22 @@ const SELECT_UNIT: &str = "\
 pub struct UnitBo;
 
 impl UnitBo {
-    /// `UnitBo.findAllByUser` — the units unlocked for the user.
-    pub async fn find_unlocked_by_user(db: &Db, user_id: i32) -> OwgeResult<Vec<UnitDto>> {
-        let rows = sqlx::query_as::<_, UnitRow>(&format!(
-            "{SELECT_UNIT} \
-             JOIN object_relations o ON o.object_description = ? AND o.reference_id = u.id \
-             JOIN unlocked_relation ur ON ur.relation_id = o.id AND ur.user_id = ? \
-             ORDER BY u.order_number IS NULL, u.order_number, u.id"
-        ))
-        .bind(object_enum::UNIT)
-        .bind(user_id)
-        .fetch_all(db)
-        .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
-    }
-
     /// `CrudRestServiceTrait.findAll` for the admin unit CRUD — every unit,
     /// ordered by `order_number` (nulls last) then id.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<UnitDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<UnitDto>> {
         let rows = sqlx::query_as::<_, UnitRow>(&format!(
             "{SELECT_UNIT} ORDER BY u.order_number IS NULL, u.order_number, u.id"
         ))
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById` for the admin unit CRUD.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<UnitDto>> {
+    pub async fn find_by_id(conn: &mut MySqlConnection, id: u16) -> OwgeResult<Option<UnitDto>> {
         let row = sqlx::query_as::<_, UnitRow>(&format!("{SELECT_UNIT} WHERE u.id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
@@ -138,12 +122,12 @@ impl UnitBo {
     /// empty `improvements` row to satisfy the FK and link it.
     /// TODO(improvement-write): populate the improvement from the body
     /// `improvement` object once the improvement engine is ported.
-    pub async fn save_new(db: &Db, input: &UnitInput) -> OwgeResult<UnitDto> {
+    pub async fn save_new(conn: &mut MySqlConnection, input: &UnitInput) -> OwgeResult<UnitDto> {
         let type_id = input
             .type_id
             .ok_or_else(|| OwgeError::InvalidInput("I18N_ERR_UNIT_TYPE_IS_MANDATORY".into()))?;
         let improvement_id = sqlx::query("INSERT INTO improvements () VALUES ()")
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .last_insert_id() as u16;
         let result = sqlx::query(
@@ -182,17 +166,21 @@ impl UnitBo {
         .bind(input.is_invisible as i8)
         .bind(input.stored_weight)
         .bind(input.storage_capacity)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_by_id(db, id)
+        Self::find_by_id(conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Unit vanished right after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id. The `improvement_id`
     /// link is left untouched (improvement writes are out of scope this pass).
-    pub async fn save_existing(db: &Db, id: u16, input: &UnitInput) -> OwgeResult<UnitDto> {
+    pub async fn save_existing(
+        conn: &mut MySqlConnection,
+        id: u16,
+        input: &UnitInput,
+    ) -> OwgeResult<UnitDto> {
         let type_id = input
             .type_id
             .ok_or_else(|| OwgeError::InvalidInput("I18N_ERR_UNIT_TYPE_IS_MANDATORY".into()))?;
@@ -232,65 +220,73 @@ impl UnitBo {
         .bind(input.stored_weight)
         .bind(input.storage_capacity)
         .bind(id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No unit with id {id}")));
         }
-        Self::find_by_id(db, id)
+        Self::find_by_id(conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No unit with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM units WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
 
     /// `CrudWithImprovements` `GET {id}/improvement`.
-    pub async fn find_improvement(db: &Db, id: u16) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::find_for_entity(db, "units", id).await
+    pub async fn find_improvement(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<ImprovementDto> {
+        ImprovementBo::find_for_entity(conn, "units", id).await
     }
 
     /// `CrudWithImprovements` `PUT {id}/improvement`.
     pub async fn save_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementDto,
     ) -> OwgeResult<ImprovementDto> {
-        ImprovementBo::save_for_entity(db, "units", id, dto).await
+        ImprovementBo::save_for_entity(conn, "units", id, dto).await
     }
 
     /// `GET {id}/improvement/unitTypeImprovements`.
     pub async fn find_unit_type_improvements(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
-        ImprovementBo::find_unit_type_improvements_for_entity(db, "units", id).await
+        ImprovementBo::find_unit_type_improvements_for_entity(conn, "units", id).await
     }
 
     /// `POST {id}/improvement/unitTypeImprovements`.
     pub async fn add_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         dto: &ImprovementUnitTypeDto,
     ) -> OwgeResult<ImprovementUnitTypeDto> {
-        ImprovementBo::add_unit_type_improvement_for_entity(db, "units", id, dto).await
+        ImprovementBo::add_unit_type_improvement_for_entity(conn, "units", id, dto).await
     }
 
     /// `DELETE {id}/improvement/unitTypeImprovements/{utiId}`.
     pub async fn delete_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         unit_type_improvement_id: u16,
     ) -> OwgeResult<()> {
-        ImprovementBo::delete_unit_type_improvement_for_entity(db, "units", id, unit_type_improvement_id)
-            .await
+        ImprovementBo::delete_unit_type_improvement_for_entity(
+            conn,
+            "units",
+            id,
+            unit_type_improvement_id,
+        )
+        .await
     }
 
     /// `UnitBo.findUsedCriticalAttack(int unitId)` — the critical attack id the
@@ -300,15 +296,17 @@ impl UnitBo {
     /// neither the unit nor any ancestor type defines one.
     ///
     /// `findByIdOrDie(unitId)` — a missing unit is a `NotFound`.
-    pub async fn find_used_critical_attack(db: &Db, unit_id: u16) -> OwgeResult<Option<u16>> {
-        let row: Option<(Option<u16>, Option<u16>)> = sqlx::query_as(
-            "SELECT critical_attack_id, type FROM units WHERE id = ?",
-        )
-        .bind(unit_id)
-        .fetch_optional(db)
-        .await?;
-        let (unit_critical, type_id) = row
-            .ok_or_else(|| OwgeError::NotFound(format!("No unit with id {unit_id}")))?;
+    pub async fn find_used_critical_attack(
+        conn: &mut MySqlConnection,
+        unit_id: u16,
+    ) -> OwgeResult<Option<u16>> {
+        let row: Option<(Option<u16>, Option<u16>)> =
+            sqlx::query_as("SELECT critical_attack_id, type FROM units WHERE id = ?")
+                .bind(unit_id)
+                .fetch_optional(&mut *conn)
+                .await?;
+        let (unit_critical, type_id) =
+            row.ok_or_else(|| OwgeError::NotFound(format!("No unit with id {unit_id}")))?;
         if let Some(critical) = unit_critical {
             return Ok(Some(critical));
         }
@@ -319,7 +317,7 @@ impl UnitBo {
                 "SELECT critical_attack_id, parent_type FROM unit_types WHERE id = ?",
             )
             .bind(tid)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
             let Some((type_critical, parent_type)) = row else {
                 break;
@@ -333,10 +331,10 @@ impl UnitBo {
     }
 
     /// `AdminUnitRestService.unsetCriticalAttack` — clears the critical attack FK.
-    pub async fn unset_critical_attack(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn unset_critical_attack(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         let affected = sqlx::query("UPDATE units SET critical_attack_id = NULL WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .rows_affected();
         if affected == 0 {

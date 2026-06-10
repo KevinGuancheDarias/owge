@@ -11,7 +11,6 @@ use sqlx::MySqlConnection;
 use crate::bo::mission_report_manager_bo::MissionReportManagerBo;
 use crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo;
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::Mission;
 use crate::model::obtained_unit::ObtainedUnit;
@@ -25,7 +24,6 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     involved_units: &[ObtainedUnit],
-    db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();
@@ -41,12 +39,8 @@ pub async fn process(
     let old_owner = find_planet_owner(conn, target_planet_id).await?;
 
     let outcome = attack::process_attack(
-        conn,
-        mission,
-        /* survivors_do_return = */ false,
-        /* is_triggered_by_event = */ false,
-        db,
-        emits,
+        conn, mission, /* survivors_do_return = */ false,
+        /* is_triggered_by_event = */ false, emits,
     )
     .await?;
 
@@ -90,7 +84,8 @@ pub async fn process(
             if let Some(special_location_id) =
                 find_planet_special_location(conn, target_planet_id).await?
             {
-                let old_owner_user = crate::bo::mission_bo::load_user_storage(conn, owner_id).await?;
+                let old_owner_user =
+                    crate::bo::mission_bo::load_user_storage(conn, owner_id).await?;
                 let mut req_emits = Vec::new();
                 crate::bo::requirement_bo::RequirementBo::trigger_special_location(
                     conn,
@@ -119,8 +114,12 @@ pub async fn process(
             if let Some(build_mission_id) =
                 find_old_owner_build_mission(conn, owner_id, target_planet_id).await?
             {
-                crate::bo::mission_bo::MissionBo::cancel_build_unit(db, owner_id, build_mission_id)
-                    .await?;
+                crate::bo::mission_bo::MissionBo::cancel_build_unit(
+                    &mut *conn,
+                    owner_id,
+                    build_mission_id,
+                )
+                .await?;
             }
             let enemy_builder = create_report_base(conn, mission, involved_units)
                 .await?
@@ -182,7 +181,8 @@ async fn calculate_is_alliance_defeated(
     };
     for participant_id in outcome.participating_user_ids() {
         let participant_alliance = find_user_alliance(conn, participant_id).await?;
-        if participant_alliance == Some(owner_alliance) && outcome.user_has_survivors(participant_id)
+        if participant_alliance == Some(owner_alliance)
+            && outcome.user_has_survivors(participant_id)
         {
             return Ok(false);
         }
@@ -245,22 +245,15 @@ async fn find_old_owner_build_mission(
     Ok(id)
 }
 
-async fn find_planet_owner(
-    conn: &mut MySqlConnection,
-    planet_id: u64,
-) -> OwgeResult<Option<i32>> {
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+async fn find_planet_owner(conn: &mut MySqlConnection, planet_id: u64) -> OwgeResult<Option<i32>> {
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(owner.flatten())
 }
 
-async fn find_user_alliance(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-) -> OwgeResult<Option<u16>> {
+async fn find_user_alliance(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<Option<u16>> {
     let alliance: Option<Option<u16>> =
         sqlx::query_scalar("SELECT alliance_id FROM user_storage WHERE id = ?")
             .bind(user_id)

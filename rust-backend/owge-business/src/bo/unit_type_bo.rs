@@ -9,13 +9,13 @@
 //! user's obtained units (`countUnitsByUserAndUnitType`), exactly as in Java;
 //! `used` and the catalog fields are fully resolved.
 
-use crate::bo::mission_bo::{compute_improvement_value, load_user_storage};
 use crate::bo::UserImprovementBo;
-use crate::db::Db;
-use crate::dto::user_improvement::ImprovementType;
-use crate::dto::unit_type::UnitTypeInput;
+use crate::bo::mission_bo::{compute_improvement_value, load_user_storage};
 use crate::dto::UnitTypeDto;
+use crate::dto::unit_type::UnitTypeInput;
+use crate::dto::user_improvement::ImprovementType;
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::MySqlConnection;
 
 /// A `unit_types` row joined with its image and a `used` existence flag, with
 /// exact SQL column types so sqlx decode never panics on signedness/width.
@@ -42,7 +42,9 @@ struct UnitTypeRow {
 
 impl From<UnitTypeRow> for UnitTypeDto {
     fn from(r: UnitTypeRow) -> Self {
-        let image_url = r.image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f));
+        let image_url = r
+            .image_filename
+            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
         UnitTypeDto {
             id: r.id,
             name: r.name,
@@ -93,18 +95,18 @@ impl UnitTypeBo {
     /// - `userBuilt` = `countUnitsByUserAndUnitType(user, type)` ONLY when the
     ///   type `hasMaxCount`; left null otherwise.
     pub async fn find_unit_types_with_user_info(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<UnitTypeDto>> {
         let rows = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} ORDER BY ut.id"))
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
 
         // Load the user (faction) once — `findUniTypeLimitByUser` /
         // `hasMaxCount` / `findMaxCount` all key off `user.getFaction()`.
-        let mut conn = db.acquire().await?;
-        let user = load_user_storage(&mut conn, user_id).await?;
-        let improvement = UserImprovementBo::find_user_improvement(db, user_id).await?;
+        let user = load_user_storage(&mut *conn, user_id).await?;
+        let improvement =
+            UserImprovementBo::find_user_improvement_on_conn(&mut *conn, user_id).await?;
 
         let mut out = Vec::with_capacity(rows.len());
         for r in rows {
@@ -132,17 +134,22 @@ impl UnitTypeBo {
 
             // hasMaxCount(faction, type): a faction override max_count > 0, OR
             // unit_types.max_count present and > 0.
-            let has_max_count =
-                faction_max.map(|m| m > 0).unwrap_or(false) || type_max.map(|m| m > 0).unwrap_or(false);
+            let has_max_count = faction_max.map(|m| m > 0).unwrap_or(false)
+                || type_max.map(|m| m > 0).unwrap_or(false);
 
             // findUniTypeLimitByUser: 0 when !hasMaxCount, else the
             // improvement-boosted, floored max count.
             let computed_max_count: i64 = if has_max_count {
                 let amount_improvement =
                     improvement.find_unit_type_improvement(ImprovementType::Amount, type_id);
-                compute_improvement_value(db, max_count_value as f64, amount_improvement, true)
-                    .await?
-                    .floor() as i64
+                compute_improvement_value(
+                    &mut *conn,
+                    max_count_value as f64,
+                    amount_improvement,
+                    true,
+                )
+                .await?
+                .floor() as i64
             } else {
                 0
             };
@@ -174,18 +181,21 @@ impl UnitTypeBo {
     /// `CrudRestServiceTrait.findAll` for the admin unit-type CRUD — every row,
     /// ordered by id. Same catalog read as the sync payload but without per-user
     /// info (the admin list does not need it).
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<UnitTypeDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<UnitTypeDto>> {
         let rows = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} ORDER BY ut.id"))
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById` for the admin unit-type CRUD.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<UnitTypeDto>> {
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
         let row = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} WHERE ut.id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
@@ -193,7 +203,10 @@ impl UnitTypeBo {
     /// `CrudRestServiceTrait.saveNew` — insert; `unit_types.id` is AUTO_INCREMENT.
     /// Mirrors `entityFromDto` + `beforeSave`: the scalar/limitation fields come
     /// straight from the body, the relations are stored as their resolved ids.
-    pub async fn save_new(db: &Db, input: &UnitTypeInput) -> OwgeResult<UnitTypeDto> {
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &UnitTypeInput,
+    ) -> OwgeResult<UnitTypeDto> {
         let result = sqlx::query(
             "INSERT INTO unit_types \
                 (name, image_id, max_count, has_to_inherit_improvements, \
@@ -219,17 +232,17 @@ impl UnitTypeBo {
         .bind(input.critical_attack_id())
         .bind(input.parent_id())
         .bind(input.share_max_count_id())
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_by_id(db, id)
+        Self::find_by_id(conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Unit type vanished right after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id.
     pub async fn save_existing(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         input: &UnitTypeInput,
     ) -> OwgeResult<UnitTypeDto> {
@@ -259,31 +272,31 @@ impl UnitTypeBo {
         .bind(input.parent_id())
         .bind(input.share_max_count_id())
         .bind(id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
         if affected == 0 {
             return Err(OwgeError::NotFound(format!("No unit type with id {id}")));
         }
-        Self::find_by_id(db, id)
+        Self::find_by_id(conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No unit type with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM unit_types WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
 
     /// `AdminUnitTypeRestService.unsetAttackRule` — clears the attack rule FK.
-    pub async fn unset_attack_rule(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn unset_attack_rule(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         let affected = sqlx::query("UPDATE unit_types SET attack_rule_id = NULL WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .rows_affected();
         if affected == 0 {
@@ -294,10 +307,10 @@ impl UnitTypeBo {
 
     /// `AdminUnitTypeRestService.unsetCriticalAttack` — clears the critical
     /// attack FK.
-    pub async fn unset_critical_attack(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn unset_critical_attack(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         let affected = sqlx::query("UPDATE unit_types SET critical_attack_id = NULL WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .rows_affected();
         if affected == 0 {

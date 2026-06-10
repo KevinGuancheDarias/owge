@@ -9,19 +9,17 @@ use sqlx::MySqlConnection;
 
 use crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo;
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::dto::obtained_unit::ObtainedUnitDto;
 use crate::error::OwgeResult;
 use crate::model::mission::Mission;
 use crate::model::obtained_unit::ObtainedUnit;
 
-use super::{create_report_base, SELECT_OBTAINED_UNIT_DTO};
+use super::create_report_base;
 
 pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     involved_units: &[ObtainedUnit],
-    _db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();
@@ -42,9 +40,7 @@ pub async fn process(
     }
 
     let units_in_planet = match target_planet_id {
-        Some(target_planet_id) => {
-            explore_planet_units(conn, mission.id, target_planet_id).await?
-        }
+        Some(target_planet_id) => explore_planet_units(conn, mission.id, target_planet_id).await?,
         None => Vec::new(),
     };
 
@@ -61,22 +57,17 @@ pub async fn process(
 
 /// `PlanetExplorationService.isExplored` — the planet is the user's property, or
 /// has an `explored_planets` row for the user.
-async fn is_explored(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-    planet_id: u64,
-) -> OwgeResult<bool> {
+async fn is_explored(conn: &mut MySqlConnection, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
     let is_owned = super::is_planet_owned_by(conn, user_id, planet_id).await?;
     if is_owned {
         return Ok(true);
     }
-    let count: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM explored_planets WHERE user = ? AND planet = ?",
-    )
-    .bind(user_id)
-    .bind(planet_id)
-    .fetch_one(&mut *conn)
-    .await?;
+    let count: i64 =
+        sqlx::query_scalar("SELECT COUNT(*) FROM explored_planets WHERE user = ? AND planet = ?")
+            .bind(user_id)
+            .bind(planet_id)
+            .fetch_one(&mut *conn)
+            .await?;
     Ok(count > 0)
 }
 
@@ -105,19 +96,26 @@ async fn explore_planet_units(
     explore_mission_id: u64,
     planet_id: u64,
 ) -> OwgeResult<Vec<ObtainedUnitDto>> {
-    let rows = sqlx::query_as::<_, super::ObtainedUnitDtoRow>(&format!(
-        "{SELECT_OBTAINED_UNIT_DTO} \
+    let ids: Vec<u64> = sqlx::query_scalar(
+        "SELECT ou.id FROM obtained_units ou \
          LEFT JOIN missions oum ON oum.id = ou.mission_id \
          LEFT JOIN mission_types mt_oum ON mt_oum.id = oum.type \
          WHERE (ou.mission_id IS NULL AND ou.source_planet = ?) \
             OR (ou.target_planet = ? AND ou.mission_id IS NOT NULL \
-                AND ou.mission_id <> ? AND mt_oum.code = 'DEPLOYED')"
-    ))
+                AND ou.mission_id <> ? AND mt_oum.code = 'DEPLOYED') \
+         ORDER BY ou.id",
+    )
     .bind(planet_id)
     .bind(planet_id)
     .bind(explore_mission_id)
     .fetch_all(&mut *conn)
     .await?;
     // TODO(M3/M4): hiddenUnitBo.defineHidden + ObtainedUnitUtil.handleInvisible.
-    Ok(rows.into_iter().map(Into::into).collect())
+    let mut units = Vec::with_capacity(ids.len());
+    for id in ids {
+        if let Some(dto) = super::load_obtained_unit_dto(conn, id).await? {
+            units.push(dto);
+        }
+    }
+    Ok(units)
 }

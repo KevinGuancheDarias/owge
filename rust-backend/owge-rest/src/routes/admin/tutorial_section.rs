@@ -26,7 +26,9 @@ pub fn routes() -> Router<AppState> {
         )
         .route(
             "/admin/tutorial_section/entries",
-            get(find_entries).post(add_update_entry).put(add_update_entry),
+            get(find_entries)
+                .post(add_update_entry)
+                .put(add_update_entry),
         )
         .route(
             "/admin/tutorial_section/entries/{entryId}",
@@ -39,7 +41,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<TutorialSectionDto>>> {
-    Ok(Json(TutorialBo::find_all_sections(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(TutorialBo::find_all_sections(&mut conn).await?))
 }
 
 async fn find_one(
@@ -47,7 +50,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<TutorialSectionDto>> {
-    TutorialBo::find_section_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    TutorialBo::find_section_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| {
@@ -61,14 +65,18 @@ async fn find_html_symbols(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<TutorialSectionAvailableHtmlSymbolDto>>> {
-    Ok(Json(TutorialBo::find_available_html_symbols(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        TutorialBo::find_available_html_symbols(&mut conn).await?,
+    ))
 }
 
 async fn find_entries(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<TutorialSectionEntryDto>>> {
-    Ok(Json(TutorialBo::find_entries(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(TutorialBo::find_entries(&mut conn).await?))
 }
 
 async fn add_update_entry(
@@ -76,7 +84,8 @@ async fn add_update_entry(
     _admin: AdminUser,
     Json(input): Json<TutorialSectionEntryInput>,
 ) -> ApiResult<Json<TutorialSectionEntryDto>> {
-    Ok(Json(TutorialBo::add_update_entry(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(TutorialBo::add_update_entry(&mut conn, &input).await?))
 }
 
 async fn delete_entry(
@@ -84,6 +93,7 @@ async fn delete_entry(
     _admin: AdminUser,
     Path(entry_id): Path<u32>,
 ) -> ApiResult<StatusCode> {
-    TutorialBo::delete_entry(&state.db, entry_id).await?;
+    let mut conn = state.db.acquire().await?;
+    TutorialBo::delete_entry(&mut conn, entry_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

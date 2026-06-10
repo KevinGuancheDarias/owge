@@ -22,7 +22,7 @@ use axum::response::{IntoResponse, Response};
 use serde_json::json;
 
 use owge_business::bo::{CriticalAttackBo, MissionBo, MissionFinderBo, ObtainedUnitBo, UnitBo};
-use owge_business::dto::{CriticalAttackInformationResponse, ObtainedUnitDto, ObtainedUnitUnitDto};
+use owge_business::dto::{CriticalAttackInformationResponse, ObtainedUnitDto, UnitDto};
 
 use crate::auth::GameUser;
 use crate::http_error::ApiResult;
@@ -56,8 +56,9 @@ async fn find_running(
     GameUser(user): GameUser,
     axum::extract::Query(q): axum::extract::Query<FindRunningQuery>,
 ) -> ApiResult<Response> {
+    let mut conn = state.db.acquire().await?;
     let running =
-        MissionFinderBo::find_running_unit_build(&state.db, user.id as i32, q.planet_id).await?;
+        MissionFinderBo::find_running_unit_build(&mut conn, user.id as i32, q.planet_id).await?;
     match running {
         // Java `return "";` via StringHttpMessageConverter writes an EMPTY body
         // (text/plain, zero bytes), not the JSON string `""`.
@@ -96,8 +97,15 @@ async fn build(
     GameUser(user): GameUser,
     axum::extract::Query(q): axum::extract::Query<BuildQuery>,
 ) -> ApiResult<StatusCode> {
-    MissionBo::register_build_unit(&state.db, user.id as i32, q.planet_id, q.unit_id, q.count as i64)
-        .await?;
+    let mut conn = state.db.acquire().await?;
+    MissionBo::register_build_unit(
+        &mut conn,
+        user.id as i32,
+        q.planet_id,
+        q.unit_id,
+        q.count as i64,
+    )
+    .await?;
     Ok(StatusCode::OK)
 }
 
@@ -114,7 +122,8 @@ async fn cancel(
     GameUser(user): GameUser,
     axum::extract::Query(q): axum::extract::Query<CancelQuery>,
 ) -> ApiResult<Json<&'static str>> {
-    MissionBo::cancel_build_unit(&state.db, user.id as i32, q.mission_id).await?;
+    let mut conn = state.db.acquire().await?;
+    MissionBo::cancel_build_unit(&mut conn, user.id as i32, q.mission_id).await?;
     Ok(Json("OK"))
 }
 
@@ -136,13 +145,40 @@ async fn delete(
     GameUser(user): GameUser,
     Json(body): Json<DeleteRequest>,
 ) -> ApiResult<Json<&'static str>> {
+    let mut conn = state.db.acquire().await?;
     // obtainedUnitDto.setUserId(loggedIn.id) — server-stamped owner.
     let dto = ObtainedUnitDto {
         id: body.id,
-        unit: ObtainedUnitUnitDto::reduced(
-            0, String::new(), None, None, None, None, None, None, false, false, None, false,
-            false, 0, None,
-        ),
+        // Only `id`/`count`/`userId` matter to `save_with_subtraction`; this
+        // placeholder unit is never read.
+        unit: UnitDto {
+            id: 0,
+            name: String::new(),
+            description: None,
+            image: None,
+            image_url: None,
+            order: None,
+            has_to_display_in_requirements: false,
+            points: None,
+            time: None,
+            primary_resource: None,
+            secondary_resource: None,
+            energy: None,
+            type_id: None,
+            type_name: None,
+            attack: None,
+            health: None,
+            shield: None,
+            charge: None,
+            is_unique: false,
+            can_fast_explore: false,
+            speed: None,
+            cloned_improvements: false,
+            bypass_shield: false,
+            is_invisible: false,
+            stored_weight: 0,
+            storage_capacity: None,
+        },
         count: body.count,
         source_planet: None,
         target_planet: None,
@@ -150,7 +186,7 @@ async fn delete(
         username: None,
         temporal_information: None,
     };
-    ObtainedUnitBo::save_with_subtraction(&state.db, &dto, true).await?;
+    ObtainedUnitBo::save_with_subtraction(&mut conn, &dto, true).await?;
     Ok(Json("OK"))
 }
 
@@ -162,9 +198,10 @@ async fn critical_attack(
     _user: GameUser,
     axum::extract::Path(unit_id): axum::extract::Path<u16>,
 ) -> ApiResult<Json<Vec<CriticalAttackInformationResponse>>> {
-    match UnitBo::find_used_critical_attack(&state.db, unit_id).await? {
+    let mut conn = state.db.acquire().await?;
+    match UnitBo::find_used_critical_attack(&mut conn, unit_id).await? {
         Some(critical_attack_id) => Ok(Json(
-            CriticalAttackBo::build_full_information(&state.db, critical_attack_id).await?,
+            CriticalAttackBo::build_full_information(&mut conn, critical_attack_id).await?,
         )),
         None => Ok(Json(Vec::new())),
     }

@@ -7,7 +7,9 @@ use axum::http::StatusCode;
 use axum::routing::{delete, get, post};
 use axum::{Json, Router};
 use owge_business::bo::AllianceBo;
-use owge_business::dto::{AllianceDto, AllianceJoinRequestDto, JoinRequestIdBody, RequestJoinBody, SimpleUserData};
+use owge_business::dto::{
+    AllianceDto, AllianceJoinRequestDto, JoinRequestIdBody, RequestJoinBody, SimpleUserData,
+};
 
 use crate::auth::GameUser;
 use crate::http_error::ApiResult;
@@ -22,16 +24,29 @@ pub fn routes() -> Router<AppState> {
         .route("/game/alliance/{id}/members", get(members))
         .route("/game/alliance/listRequest", get(list_request))
         .route("/game/alliance/my-requests", get(my_requests))
-        .route("/game/alliance/my-requests/{id}", delete(my_requests_delete))
+        .route(
+            "/game/alliance/my-requests/{id}",
+            delete(my_requests_delete),
+        )
         .route("/game/alliance/requestJoin", post(request_join))
-        .route("/game/alliance/acceptJoinRequest", post(accept_join_request))
-        .route("/game/alliance/rejectJoinRequest", post(reject_join_request))
+        .route(
+            "/game/alliance/acceptJoinRequest",
+            post(accept_join_request),
+        )
+        .route(
+            "/game/alliance/rejectJoinRequest",
+            post(reject_join_request),
+        )
         .route("/game/alliance/leave", post(leave))
 }
 
 /// `findAll`.
-async fn find_all(State(state): State<AppState>, _user: GameUser) -> ApiResult<Json<Vec<AllianceDto>>> {
-    Ok(Json(AllianceBo::find_all(&state.db).await?))
+async fn find_all(
+    State(state): State<AppState>,
+    _user: GameUser,
+) -> ApiResult<Json<Vec<AllianceDto>>> {
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(AllianceBo::find_all(&mut conn).await?))
 }
 
 /// `members` — email is blanked (Java nulls it), improvements omitted.
@@ -40,7 +55,8 @@ async fn members(
     _user: GameUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<SimpleUserData>>> {
-    Ok(Json(AllianceBo::members(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(AllianceBo::members(&mut conn, id).await?))
 }
 
 /// `save` — bound to both POST (create) and PUT (update); the body's `id`
@@ -50,7 +66,10 @@ async fn save(
     GameUser(user): GameUser,
     Json(dto): Json<AllianceDto>,
 ) -> ApiResult<Json<AllianceDto>> {
-    Ok(Json(AllianceBo::save(&state.db, dto, user.id as i32).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        AllianceBo::save(&mut conn, dto, user.id as i32).await?,
+    ))
 }
 
 /// `delete` — delete the invoker's own alliance.
@@ -58,7 +77,8 @@ async fn delete_by_user(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<StatusCode> {
-    AllianceBo::delete_by_user(&state.db, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    AllianceBo::delete_by_user(&mut conn, user.id as i32).await?;
     Ok(StatusCode::OK)
 }
 
@@ -67,7 +87,10 @@ async fn list_request(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<Vec<AllianceJoinRequestDto>>> {
-    Ok(Json(AllianceBo::list_request(&state.db, user.id as i32).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        AllianceBo::list_request(&mut conn, user.id as i32).await?,
+    ))
 }
 
 /// `myRequests`.
@@ -75,7 +98,10 @@ async fn my_requests(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<Json<Vec<AllianceJoinRequestDto>>> {
-    Ok(Json(AllianceBo::my_requests(&state.db, user.id as i32).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        AllianceBo::my_requests(&mut conn, user.id as i32).await?,
+    ))
 }
 
 /// `myRequestsDelete` — bare delete by id (no checks, matching Java).
@@ -84,7 +110,8 @@ async fn my_requests_delete(
     _user: GameUser,
     Path(id): Path<u32>,
 ) -> ApiResult<StatusCode> {
-    AllianceBo::delete_join_request_by_id(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    AllianceBo::delete_join_request_by_id(&mut conn, id).await?;
     Ok(StatusCode::OK)
 }
 
@@ -94,8 +121,9 @@ async fn request_join(
     GameUser(user): GameUser,
     Json(body): Json<RequestJoinBody>,
 ) -> ApiResult<Json<AllianceJoinRequestDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        AllianceBo::request_join(&state.db, body.alliance_id, user.id as i32).await?,
+        AllianceBo::request_join(&mut conn, body.alliance_id, user.id as i32).await?,
     ))
 }
 
@@ -105,7 +133,8 @@ async fn accept_join_request(
     GameUser(user): GameUser,
     Json(body): Json<JoinRequestIdBody>,
 ) -> ApiResult<StatusCode> {
-    AllianceBo::accept_join(&state.db, body.join_request_id, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    AllianceBo::accept_join(&mut conn, body.join_request_id, user.id as i32).await?;
     Ok(StatusCode::OK)
 }
 
@@ -115,12 +144,14 @@ async fn reject_join_request(
     GameUser(user): GameUser,
     Json(body): Json<JoinRequestIdBody>,
 ) -> ApiResult<StatusCode> {
-    AllianceBo::reject_join(&state.db, body.join_request_id, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    AllianceBo::reject_join(&mut conn, body.join_request_id, user.id as i32).await?;
     Ok(StatusCode::OK)
 }
 
 /// `leave`.
 async fn leave(State(state): State<AppState>, GameUser(user): GameUser) -> ApiResult<StatusCode> {
-    AllianceBo::leave(&state.db, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    AllianceBo::leave(&mut conn, user.id as i32).await?;
     Ok(StatusCode::OK)
 }

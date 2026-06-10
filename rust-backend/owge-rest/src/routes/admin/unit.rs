@@ -62,7 +62,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<UnitDto>>> {
-    Ok(Json(UnitBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -70,7 +71,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<UnitDto>> {
-    UnitBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    UnitBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| ApiError(owge_business::OwgeError::NotFound(format!("No unit {id}"))))
@@ -81,7 +83,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<UnitInput>,
 ) -> ApiResult<Json<UnitDto>> {
-    Ok(Json(UnitBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -90,7 +93,8 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<UnitInput>,
 ) -> ApiResult<Json<UnitDto>> {
-    Ok(Json(UnitBo::save_existing(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitBo::save_existing(&mut conn, id, &input).await?))
 }
 
 async fn delete_one(
@@ -98,7 +102,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UnitBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -109,8 +114,9 @@ async fn find_requirements(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<RequirementInformationDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RequirementBo::find_requirements(&state.db, OBJECT_CODE, id as i16).await?,
+        RequirementBo::find_requirements(&mut conn, OBJECT_CODE, id as i16).await?,
     ))
 }
 
@@ -122,8 +128,9 @@ async fn save_requirement(
     Path(id): Path<u16>,
     Json(input): Json<RequirementInformationInput>,
 ) -> ApiResult<Json<RequirementInformationDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RequirementBo::add_requirement_from_dto(&state.db, OBJECT_CODE, id as i16, &input).await?,
+        RequirementBo::add_requirement_from_dto(&mut conn, OBJECT_CODE, id as i16, &input).await?,
     ))
 }
 
@@ -133,7 +140,8 @@ async fn delete_requirement(
     _admin: AdminUser,
     Path((_id, requirement_information_id)): Path<(u16, i16)>,
 ) -> ApiResult<StatusCode> {
-    RequirementBo::delete_requirement_information(&state.db, requirement_information_id).await?;
+    let mut conn = state.db.acquire().await?;
+    RequirementBo::delete_requirement_information(&mut conn, requirement_information_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -143,7 +151,8 @@ async fn find_improvement(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<ImprovementDto>> {
-    Ok(Json(UnitBo::find_improvement(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitBo::find_improvement(&mut conn, id).await?))
 }
 
 /// `CrudWithImprovements` `PUT '{id}/improvement'`.
@@ -153,7 +162,8 @@ async fn save_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementDto>,
 ) -> ApiResult<Json<ImprovementDto>> {
-    Ok(Json(UnitBo::save_improvement(&state.db, id, &dto).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UnitBo::save_improvement(&mut conn, id, &dto).await?))
 }
 
 /// `GET '{id}/improvement/unitTypeImprovements'`.
@@ -162,7 +172,10 @@ async fn find_unit_type_improvements(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<ImprovementUnitTypeDto>>> {
-    Ok(Json(UnitBo::find_unit_type_improvements(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        UnitBo::find_unit_type_improvements(&mut conn, id).await?,
+    ))
 }
 
 /// `POST '{id}/improvement/unitTypeImprovements'`.
@@ -172,8 +185,9 @@ async fn add_unit_type_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementUnitTypeDto>,
 ) -> ApiResult<Json<ImprovementUnitTypeDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        UnitBo::add_unit_type_improvement(&state.db, id, &dto).await?,
+        UnitBo::add_unit_type_improvement(&mut conn, id, &dto).await?,
     ))
 }
 
@@ -183,7 +197,8 @@ async fn delete_unit_type_improvement(
     _admin: AdminUser,
     Path((id, unit_type_improvement_id)): Path<(u16, u16)>,
 ) -> ApiResult<StatusCode> {
-    UnitBo::delete_unit_type_improvement(&state.db, id, unit_type_improvement_id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitBo::delete_unit_type_improvement(&mut conn, id, unit_type_improvement_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -193,6 +208,7 @@ async fn unset_critical_attack(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UnitBo::unset_critical_attack(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UnitBo::unset_critical_attack(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

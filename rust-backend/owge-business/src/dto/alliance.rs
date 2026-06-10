@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{SimpleUserData};
+use super::SimpleUserData;
 
 /// Mirrors `AllianceDto` (`CommonDto { id, name, description }` + `image` from
 /// `CommonEntityWithImage` + `owner`). The Java DTO annotates `owner` with

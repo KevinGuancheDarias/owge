@@ -42,7 +42,11 @@ impl WebsocketMessage {
 
     /// `new WebsocketMessage<>(information, value)` — carries the watermark's
     /// `lastSent` so the client can update its event-information cache.
-    pub fn with_last_sent(event_name: impl Into<String>, value: Value, last_sent_secs: i64) -> Self {
+    pub fn with_last_sent(
+        event_name: impl Into<String>,
+        value: Value,
+        last_sent_secs: i64,
+    ) -> Self {
         Self {
             event_name: event_name.into(),
             value,

@@ -7,9 +7,9 @@
 //! resolved entirely through the unlock engine (`UnlockedRelationBo` over
 //! `ObjectEnum.SPEED_IMPACT_GROUP`).
 
-use crate::db::Db;
 use crate::dto::{SpeedImpactGroupDto, SpeedImpactGroupInput};
 use crate::error::{OwgeError, OwgeResult};
+use sqlx::MySqlConnection;
 
 const ANY: &str = "ANY";
 
@@ -80,18 +80,21 @@ pub struct SpeedImpactGroupBo;
 impl SpeedImpactGroupBo {
     /// Every speed impact group as a DTO — the basis for the unlocked-groups
     /// handler once the unlock engine is ported.
-    pub async fn find_all_dtos(db: &Db) -> OwgeResult<Vec<SpeedImpactGroupDto>> {
+    pub async fn find_all_dtos(conn: &mut MySqlConnection) -> OwgeResult<Vec<SpeedImpactGroupDto>> {
         let rows = sqlx::query_as::<_, SpeedImpactGroupRow>(&format!("{SELECT_DTO} ORDER BY s.id"))
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
     /// `WithReadRestServiceTrait.findOneById` for the admin CRUD.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<SpeedImpactGroupDto>> {
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<SpeedImpactGroupDto>> {
         let row = sqlx::query_as::<_, SpeedImpactGroupRow>(&format!("{SELECT_DTO} WHERE s.id = ?"))
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
@@ -99,7 +102,10 @@ impl SpeedImpactGroupBo {
     /// `CrudRestServiceTrait.saveNew` — `speed_impact_groups.id` is AUTO_INCREMENT.
     /// Mirrors `beforeSave`: a `null` image clears the column, otherwise the image
     /// id is stored as-is (the existence check is the FK's job here).
-    pub async fn save_new(db: &Db, input: &SpeedImpactGroupInput) -> OwgeResult<SpeedImpactGroupDto> {
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &SpeedImpactGroupInput,
+    ) -> OwgeResult<SpeedImpactGroupDto> {
         let result = sqlx::query(
             "INSERT INTO speed_impact_groups \
                 (name, is_fixed, mission_explore, mission_gather, mission_establish_base, \
@@ -124,17 +130,17 @@ impl SpeedImpactGroupBo {
         .bind(&input.can_conquest)
         .bind(&input.can_deploy)
         .bind(input.image)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Speed impact group vanished after insert".into()))
     }
 
     /// `CrudRestServiceTrait.saveExisting` — update by id.
     pub async fn save_existing(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         input: &SpeedImpactGroupInput,
     ) -> OwgeResult<SpeedImpactGroupDto> {
@@ -164,7 +170,7 @@ impl SpeedImpactGroupBo {
         .bind(&input.can_deploy)
         .bind(input.image)
         .bind(id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
         if affected == 0 {
@@ -172,16 +178,16 @@ impl SpeedImpactGroupBo {
                 "No speed impact group with id {id}"
             )));
         }
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No speed impact group with id {id}")))
     }
 
     /// `WithDeleteRestServiceTrait.delete`.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM speed_impact_groups WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
@@ -190,12 +196,15 @@ impl SpeedImpactGroupBo {
     /// `speed_impact_group_unlocked_change` sync payload: the speed impact
     /// groups unlocked for the user, resolved through the unlock engine
     /// (`unlocked_relation -> object_relations(SPEED_IMPACT_GROUP)`).
-    pub async fn find_cross_galaxy_unlocked(db: &Db, user_id: i32) -> OwgeResult<Vec<i16>> {
+    pub async fn find_cross_galaxy_unlocked(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<i16>> {
         // Java `UnlockedSpeedImpactGroupService.findCrossGalaxyUnlocked` returns a
         // bare `List<Integer>` of the unlocked SPEED_IMPACT_GROUP ids (it does NOT
         // filter to cross-galaxy-capable groups despite the name).
         crate::bo::unlocked_relation_bo::UnlockedRelationBo::find_unlocked_reference_ids(
-            db,
+            &mut *conn,
             user_id,
             crate::model::object_relation::object_enum::SPEED_IMPACT_GROUP,
         )

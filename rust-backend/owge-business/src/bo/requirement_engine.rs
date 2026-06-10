@@ -31,8 +31,8 @@ use sqlx::MySqlConnection;
 
 use crate::bo::realtime_emitter::RequirementEmit;
 use crate::error::{OwgeError, OwgeResult};
-use crate::model::object_relation::object_enum;
 use crate::model::UserStorage;
+use crate::model::object_relation::object_enum;
 
 // Requirement codes (the `requirements.code` column / `RequirementTypeEnum`).
 const UPGRADE_LEVEL: &str = "UPGRADE_LEVEL";
@@ -239,7 +239,10 @@ async fn register_obtained_relation(
     user: &UserStorage,
     emits: &mut Vec<RequirementEmit>,
 ) -> OwgeResult<()> {
-    if find_unlocked_id(conn, user.id, relation.id).await?.is_some() {
+    if find_unlocked_id(conn, user.id, relation.id)
+        .await?
+        .is_some()
+    {
         return Ok(()); // already unlocked: do nothing (matches Java)
     }
     sqlx::query("INSERT INTO unlocked_relation (user_id, relation_id) VALUES (?, ?)")
@@ -445,7 +448,9 @@ async fn is_unlocked(
     user_id: i32,
     relation_id: u16,
 ) -> OwgeResult<bool> {
-    Ok(find_unlocked_id(conn, user_id, relation_id).await?.is_some())
+    Ok(find_unlocked_id(conn, user_id, relation_id)
+        .await?
+        .is_some())
 }
 
 /// The user's level for an upgrade (`0` if none) — `checkUpgradeLevelRequirement`.
@@ -482,11 +487,7 @@ async fn obtained_upgrade_level(
 
 /// `obtainedUnitRepository.isBuiltUnit(user, unit)` — owns at least one of the
 /// unit that is not currently a pending `BUILD_UNIT` mission.
-async fn is_built_unit(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-    unit_id: i32,
-) -> OwgeResult<bool> {
+async fn is_built_unit(conn: &mut MySqlConnection, user_id: i32, unit_id: i32) -> OwgeResult<bool> {
     let count: i64 = sqlx::query_scalar(
         "SELECT COUNT(*) FROM obtained_units ou \
          LEFT JOIN missions m ON m.id = ou.mission_id \
@@ -515,10 +516,7 @@ async fn count_units(conn: &mut MySqlConnection, user_id: i32, unit_id: i32) -> 
 }
 
 /// `checkBeenGalaxyRequirement` — the galaxy of the user's home planet.
-async fn home_galaxy_id(
-    conn: &mut MySqlConnection,
-    home_planet: u64,
-) -> OwgeResult<Option<i32>> {
+async fn home_galaxy_id(conn: &mut MySqlConnection, home_planet: u64) -> OwgeResult<Option<i32>> {
     let galaxy = sqlx::query_scalar::<_, u16>("SELECT galaxy_id FROM planets WHERE id = ?")
         .bind(home_planet)
         .fetch_optional(&mut *conn)

@@ -6,9 +6,9 @@
 //! 1-based position by points descending, and embeds each user's faction
 //! (name/description/image) and alliance (id/name when present).
 
-use crate::db::Db;
 use crate::dto::ranking::{RankingEntryDto, RankingFactionDto};
 use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 /// One user joined with its faction (+ faction image) and optional alliance,
 /// with exact SQL column types so sqlx never panics on signedness/width.
@@ -30,7 +30,9 @@ struct RankingRow {
 
 impl From<RankingRow> for RankingFactionDto {
     fn from(r: RankingRow) -> Self {
-        let image_url = r.faction_image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f));
+        let image_url = r
+            .faction_image_filename
+            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
         RankingFactionDto {
             id: None,
             name: r.faction_name,
@@ -46,7 +48,7 @@ pub struct RankingBo;
 impl RankingBo {
     /// `RankingBo.findRanking()` — every user ordered by points descending, with
     /// a 1-based `position`, faction info and (optional) alliance info.
-    pub async fn find_ranking(db: &Db) -> OwgeResult<Vec<RankingEntryDto>> {
+    pub async fn find_ranking(conn: &mut MySqlConnection) -> OwgeResult<Vec<RankingEntryDto>> {
         let rows = sqlx::query_as::<_, RankingRow>(
             "SELECT u.id AS user_id, u.username, u.points, \
                     a.id AS alliance_id, a.name AS alliance_name, \
@@ -58,7 +60,7 @@ impl RankingBo {
              LEFT JOIN alliances a ON a.id = u.alliance_id \
              ORDER BY u.points DESC",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows
             .into_iter()

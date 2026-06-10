@@ -6,8 +6,8 @@ use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use owge_business::bo::UpgradeBo;
-use owge_business::dto::upgrade::UpgradeTypeInput;
 use owge_business::dto::UpgradeTypeDto;
+use owge_business::dto::upgrade::UpgradeTypeInput;
 
 use crate::auth::AdminUser;
 use crate::http_error::{ApiError, ApiResult};
@@ -26,7 +26,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<UpgradeTypeDto>>> {
-    Ok(Json(UpgradeBo::find_upgrade_types(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(UpgradeBo::find_upgrade_types(&mut conn).await?))
 }
 
 async fn find_one(
@@ -34,7 +35,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<UpgradeTypeDto>> {
-    UpgradeBo::find_upgrade_type_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    UpgradeBo::find_upgrade_type_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| {
@@ -49,7 +51,10 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<UpgradeTypeInput>,
 ) -> ApiResult<Json<UpgradeTypeDto>> {
-    Ok(Json(UpgradeBo::save_new_upgrade_type(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        UpgradeBo::save_new_upgrade_type(&mut conn, &input).await?,
+    ))
 }
 
 async fn save_existing(
@@ -58,8 +63,9 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<UpgradeTypeInput>,
 ) -> ApiResult<Json<UpgradeTypeDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        UpgradeBo::save_existing_upgrade_type(&state.db, id, &input).await?,
+        UpgradeBo::save_existing_upgrade_type(&mut conn, id, &input).await?,
     ))
 }
 
@@ -68,6 +74,7 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    UpgradeBo::delete_upgrade_type(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    UpgradeBo::delete_upgrade_type(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

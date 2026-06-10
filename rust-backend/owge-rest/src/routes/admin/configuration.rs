@@ -12,9 +12,9 @@ use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
+use owge_business::OwgeError;
 use owge_business::bo::ConfigurationBo;
 use owge_business::dto::{ConfigurationDto, ConfigurationInput};
-use owge_business::OwgeError;
 
 use crate::auth::AdminUser;
 use crate::http_error::{ApiError, ApiResult};
@@ -33,7 +33,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<ConfigurationDto>>> {
-    let rows = ConfigurationBo::find_all_non_privileged(&state.db).await?;
+    let mut conn = state.db.acquire().await?;
+    let rows = ConfigurationBo::find_all_non_privileged(&mut conn).await?;
     Ok(Json(rows.into_iter().map(Into::into).collect()))
 }
 
@@ -44,7 +45,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(name): Path<String>,
 ) -> ApiResult<Json<Option<ConfigurationDto>>> {
-    let configuration = ConfigurationBo::find(&state.db, &name).await?;
+    let mut conn = state.db.acquire().await?;
+    let configuration = ConfigurationBo::find(&mut conn, &name).await?;
     if configuration.privileged != 0 {
         Ok(Json(None))
     } else {
@@ -57,11 +59,15 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<ConfigurationInput>,
 ) -> ApiResult<Json<ConfigurationDto>> {
-    if ConfigurationBo::find_opt(&state.db, &input.name).await?.is_some() {
+    let mut conn = state.db.acquire().await?;
+    if ConfigurationBo::find_opt(&mut conn, &input.name)
+        .await?
+        .is_some()
+    {
         return Err(ApiError(OwgeError::InvalidInput("Key in use".into())));
     }
     let saved = ConfigurationBo::save(
-        &state.db,
+        &mut conn,
         &input.name,
         input.display_name.as_deref(),
         &input.value,
@@ -76,7 +82,8 @@ async fn save_existing(
     Path(name): Path<String>,
     Json(input): Json<ConfigurationInput>,
 ) -> ApiResult<Json<ConfigurationDto>> {
-    let existing = ConfigurationBo::find_opt(&state.db, &input.name).await?;
+    let mut conn = state.db.acquire().await?;
+    let existing = ConfigurationBo::find_opt(&mut conn, &input.name).await?;
     match existing {
         None => Err(ApiError(OwgeError::NotFound(format!(
             "No configuration with name {}",
@@ -90,7 +97,7 @@ async fn save_existing(
         ))),
         Some(_) => {
             let saved = ConfigurationBo::save(
-                &state.db,
+                &mut conn,
                 &input.name,
                 input.display_name.as_deref(),
                 &input.value,
@@ -107,6 +114,7 @@ async fn delete_one(
     _admin: AdminUser,
     Path(name): Path<String>,
 ) -> ApiResult<StatusCode> {
-    ConfigurationBo::delete_one(&state.db, &name).await?;
+    let mut conn = state.db.acquire().await?;
+    ConfigurationBo::delete_one(&mut conn, &name).await?;
     Ok(StatusCode::OK)
 }

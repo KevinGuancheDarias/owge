@@ -38,7 +38,6 @@ use std::collections::BTreeMap;
 use sqlx::{Connection, MySqlConnection};
 
 use crate::bo::ObjectRelationBo;
-use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::lock;
 use crate::model::object_relation::object_enum;
@@ -147,7 +146,10 @@ impl TemporalUnitsBo {
                 );
                 continue;
             };
-            by_duration.entry(duration).or_default().push((unit_id, count));
+            by_duration
+                .entry(duration)
+                .or_default()
+                .push((unit_id, count));
         }
 
         for (duration, units) in by_duration {
@@ -236,17 +238,19 @@ impl TemporalUnitsBo {
     /// `obtained_unit_temporal_information` id. No-op if the row is already gone
     /// (`existsById` guard), else delete the units under their planet locks and
     /// fire the post-commit emits.
-    pub async fn handle_unit_expired(db: &Db, expiration_id: u32) -> OwgeResult<()> {
-        let exists: Option<u32> = sqlx::query_scalar(
-            "SELECT id FROM obtained_unit_temporal_information WHERE id = ?",
-        )
-        .bind(expiration_id)
-        .fetch_optional(db)
-        .await?;
+    pub async fn handle_unit_expired(
+        conn: &mut MySqlConnection,
+        expiration_id: u32,
+    ) -> OwgeResult<()> {
+        let exists: Option<u32> =
+            sqlx::query_scalar("SELECT id FROM obtained_unit_temporal_information WHERE id = ?")
+                .bind(expiration_id)
+                .fetch_optional(&mut *conn)
+                .await?;
         if exists.is_none() {
             return Ok(());
         }
-        Self::aggressive_lock_and_delete(db, expiration_id).await
+        Self::aggressive_lock_and_delete(conn, expiration_id).await
     }
 
     /// `TemporalUnitScheduleListener.relationLost` (listener #2): a lost
@@ -261,15 +265,18 @@ impl TemporalUnitsBo {
     /// directly. Runs after the caller's transaction has committed (it locks +
     /// opens its own transactions per expiry), so it is invoked from the
     /// post-commit emit drain, not inside the requirement-engine transaction.
-    pub async fn on_time_special_relation_lost(db: &Db, relation_id: u16) -> OwgeResult<()> {
+    pub async fn on_time_special_relation_lost(
+        conn: &mut MySqlConnection,
+        relation_id: u16,
+    ) -> OwgeResult<()> {
         let ids: Vec<u32> = sqlx::query_scalar(
             "SELECT id FROM obtained_unit_temporal_information WHERE relation_id = ?",
         )
         .bind(relation_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         for expiration_id in ids {
-            Self::aggressive_lock_and_delete(db, expiration_id).await?;
+            Self::aggressive_lock_and_delete(&mut *conn, expiration_id).await?;
         }
         Ok(())
     }
@@ -279,16 +286,21 @@ impl TemporalUnitsBo {
     /// and only delete if it is unchanged (else release + retry with the new set).
     /// No-op when the units are on no planet (Java's `if (!planetIds.isEmpty())`
     /// guard — leaves the temporal-info row, matching Java).
-    async fn aggressive_lock_and_delete(db: &Db, expiration_id: u32) -> OwgeResult<()> {
+    async fn aggressive_lock_and_delete(
+        conn: &mut MySqlConnection,
+        expiration_id: u32,
+    ) -> OwgeResult<()> {
         for _ in 0..lock::MAX_LOCK_ATTEMPTS {
-            let planet_ids = Self::find_planet_ids_by_expiration(db, expiration_id).await?;
+            let planet_ids = Self::find_planet_ids_on_conn(&mut *conn, expiration_id).await?;
             if planet_ids.is_empty() {
                 return Ok(());
             }
-            let keys: Vec<String> = planet_ids.iter().map(|&id| lock::planet_lock_key(id)).collect();
+            let keys: Vec<String> = planet_ids
+                .iter()
+                .map(|&id| lock::planet_lock_key(id))
+                .collect();
 
-            let mut conn = db.acquire().await?;
-            let outcome = crate::bo::unit_mission_bo::run_locked(&mut conn, &keys, {
+            let outcome = crate::bo::unit_mission_bo::run_locked(conn, &keys, {
                 let expected = planet_ids.clone();
                 move |conn| {
                     Box::pin(async move {
@@ -305,7 +317,7 @@ impl TemporalUnitsBo {
             .await?;
 
             if let Some(emits) = outcome {
-                Self::drain_expiry_emits(db, emits).await?;
+                Self::drain_expiry_emits(conn, emits).await?;
                 return Ok(());
             }
             // Planet set shifted under the lock; retry with the fresh set.
@@ -409,41 +421,27 @@ impl TemporalUnitsBo {
     }
 
     /// Fire the post-commit websocket emits collected by [`do_delete_expired`].
-    async fn drain_expiry_emits(db: &Db, emits: ExpiryEmits) -> OwgeResult<()> {
+    async fn drain_expiry_emits(conn: &mut MySqlConnection, emits: ExpiryEmits) -> OwgeResult<()> {
         if let Some(user_id) = emits.affected_user {
             // maybeTriggerClearImprovement + emitObtainedUnitsAfterCommit.
-            crate::bo::UserImprovementBo::evict_and_emit(db, user_id).await?;
-            crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(db, user_id).await?;
+            crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, user_id).await?;
+            crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, user_id).await?;
             if emits.missions_affected {
-                crate::bo::MissionEventEmitter::emit_unit_missions(db, user_id).await?;
-                crate::bo::MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+                crate::bo::MissionEventEmitter::emit_unit_missions(&mut *conn, user_id).await?;
+                crate::bo::MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id)
+                    .await?;
             }
         }
         for enemy_id in emits.enemy_users {
-            crate::bo::MissionEventEmitter::emit_enemy_missions_change(db, enemy_id).await?;
+            crate::bo::MissionEventEmitter::emit_enemy_missions_change(&mut *conn, enemy_id)
+                .await?;
         }
         Ok(())
     }
 
-    /// `findPlanetIdsByExpirationId` — distinct planet ids the units sit on (both
-    /// source and target planets), via the `db` pool.
-    async fn find_planet_ids_by_expiration(db: &Db, expiration_id: u32) -> OwgeResult<Vec<u64>> {
-        let ids = sqlx::query_scalar::<_, u64>(
-            "SELECT DISTINCT source_planet FROM obtained_units \
-              WHERE expiration_id = ? AND source_planet IS NOT NULL \
-             UNION \
-             SELECT DISTINCT target_planet FROM obtained_units \
-              WHERE expiration_id = ? AND target_planet IS NOT NULL",
-        )
-        .bind(expiration_id)
-        .bind(expiration_id)
-        .fetch_all(db)
-        .await?;
-        Self::sorted_unique(ids)
-    }
-
-    /// Same query as [`find_planet_ids_by_expiration`] but on the locked
-    /// connection (the under-lock re-read in `aggressiveLockAcquire`).
+    /// Same query as `find_planet_ids_by_expiration` but on the provided
+    /// connection (the under-lock re-read in `aggressiveLockAcquire` and the
+    /// initial pre-lock read).
     async fn find_planet_ids_on_conn(
         conn: &mut MySqlConnection,
         expiration_id: u32,

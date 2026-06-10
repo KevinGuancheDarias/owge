@@ -1,26 +1,29 @@
 //! Port of `ConfigurationBo` — reads/writes the `configuration` key/value table
 //! that holds engine settings (including the JWT secrets).
 
-use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::Configuration;
+use sqlx::MySqlConnection;
 
 pub struct ConfigurationBo;
 
 impl ConfigurationBo {
     /// `ConfigurationBo.findConfigurationParam` — returns the row or `NotFound`.
-    pub async fn find(db: &Db, name: &str) -> OwgeResult<Configuration> {
-        Self::find_opt(db, name)
+    pub async fn find(conn: &mut MySqlConnection, name: &str) -> OwgeResult<Configuration> {
+        Self::find_opt(&mut *conn, name)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No configuration with name {name}")))
     }
 
-    pub async fn find_opt(db: &Db, name: &str) -> OwgeResult<Option<Configuration>> {
+    pub async fn find_opt(
+        conn: &mut MySqlConnection,
+        name: &str,
+    ) -> OwgeResult<Option<Configuration>> {
         let row = sqlx::query_as::<_, Configuration>(
             "SELECT name, display_name, value, privileged FROM configuration WHERE name = ?",
         )
         .bind(name)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         Ok(row)
     }
@@ -28,17 +31,17 @@ impl ConfigurationBo {
     /// `ConfigurationBo.findOrSetDefault` — read, or insert a default and
     /// return it. Used at boot to materialize JWT secrets/algos/durations.
     pub async fn find_or_set_default(
-        db: &Db,
+        conn: &mut MySqlConnection,
         name: &str,
         default_value: &str,
     ) -> OwgeResult<Configuration> {
-        if let Some(existing) = Self::find_opt(db, name).await? {
+        if let Some(existing) = Self::find_opt(&mut *conn, name).await? {
             return Ok(existing);
         }
         sqlx::query("INSERT INTO configuration (name, value, privileged) VALUES (?, ?, 0)")
             .bind(name)
             .bind(default_value)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(Configuration {
             name: name.to_string(),
@@ -49,17 +52,17 @@ impl ConfigurationBo {
     }
 
     /// Convenience: just the value string for a code.
-    pub async fn find_value(db: &Db, name: &str) -> OwgeResult<String> {
-        Ok(Self::find(db, name).await?.value)
+    pub async fn find_value(conn: &mut MySqlConnection, name: &str) -> OwgeResult<String> {
+        Ok(Self::find(&mut *conn, name).await?.value)
     }
 
     /// `ConfigurationBo.findConfiguration` for the open endpoint — only the
     /// non-privileged rows are exposed publicly.
-    pub async fn find_public(db: &Db) -> OwgeResult<Vec<Configuration>> {
+    pub async fn find_public(conn: &mut MySqlConnection) -> OwgeResult<Vec<Configuration>> {
         let rows = sqlx::query_as::<_, Configuration>(
             "SELECT name, display_name, value, privileged FROM configuration WHERE privileged = 0",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows)
     }
@@ -68,8 +71,10 @@ impl ConfigurationBo {
     /// by the admin `GET admin/configuration` listing. (Same predicate as
     /// [`find_public`](Self::find_public); kept separate to mirror the Java
     /// method names.)
-    pub async fn find_all_non_privileged(db: &Db) -> OwgeResult<Vec<Configuration>> {
-        Self::find_public(db).await
+    pub async fn find_all_non_privileged(
+        conn: &mut MySqlConnection,
+    ) -> OwgeResult<Vec<Configuration>> {
+        Self::find_public(&mut *conn).await
     }
 
     /// `ConfigurationBo.save` — upsert a row by `name`. Re-implements the
@@ -77,7 +82,7 @@ impl ConfigurationBo {
     /// `SgtBackendInvalidInputException`). `privileged` is preserved on update
     /// and defaults to `0` on insert, matching the Java entity default.
     pub async fn save(
-        db: &Db,
+        conn: &mut MySqlConnection,
         name: &str,
         display_name: Option<&str>,
         value: &str,
@@ -95,16 +100,16 @@ impl ConfigurationBo {
         .bind(name)
         .bind(display_name)
         .bind(value)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
-        Self::find(db, name).await
+        Self::find(&mut *conn, name).await
     }
 
     /// `ConfigurationBo.deleteOne`.
-    pub async fn delete_one(db: &Db, name: &str) -> OwgeResult<()> {
+    pub async fn delete_one(conn: &mut MySqlConnection, name: &str) -> OwgeResult<()> {
         sqlx::query("DELETE FROM configuration WHERE name = ?")
             .bind(name)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }

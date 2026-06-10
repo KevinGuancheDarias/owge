@@ -23,13 +23,13 @@ use std::sync::{Arc, Mutex};
 use async_trait::async_trait;
 use owge_business::bo::{ConfigurationBo, WebsocketEventsInformationBo};
 use owge_business::dto::websocket::{WebsocketEventsInformationDto, WebsocketMessage};
-use owge_business::jwt::{decode_token, TokenUser};
+use owge_business::jwt::{TokenUser, decode_token};
 use owge_business::websocket::emitter::WebsocketEmitter;
 use serde::Deserialize;
 use serde_json::Value;
+use socketioxide::SocketIo;
 use socketioxide::extract::{Data, SocketRef, State};
 use socketioxide::socket::Sid;
-use socketioxide::SocketIo;
 
 use crate::state::AppState;
 
@@ -73,7 +73,10 @@ impl WsRegistry {
 
     fn is_connected(&self, user_id: i64) -> bool {
         let g = self.0.lock().unwrap();
-        g.by_user.get(&user_id).map(|s| !s.is_empty()).unwrap_or(false)
+        g.by_user
+            .get(&user_id)
+            .map(|s| !s.is_empty())
+            .unwrap_or(false)
     }
 }
 
@@ -113,10 +116,7 @@ pub fn build(state: AppState) -> (socketioxide::layer::SocketIoLayer, Arc<WsEmit
 
     io.ns("/", on_connect);
 
-    let emitter = Arc::new(WsEmitter {
-        io,
-        registry,
-    });
+    let emitter = Arc::new(WsEmitter { io, registry });
     (layer, emitter)
 }
 
@@ -184,8 +184,9 @@ async fn build_events_info(
     state: &AppState,
     user_id: i32,
 ) -> owge_business::OwgeResult<Vec<WebsocketEventsInformationDto>> {
-    let mut info = WebsocketEventsInformationBo::find_by_user_id(&state.db, user_id).await?;
-    let universe_id = ConfigurationBo::find_value(&state.db, "UNIVERSE_ID")
+    let mut conn = state.db.acquire().await?;
+    let mut info = WebsocketEventsInformationBo::find_by_user_id(&mut conn, user_id).await?;
+    let universe_id = ConfigurationBo::find_value(&mut conn, "UNIVERSE_ID")
         .await
         .unwrap_or_default();
     info.push(WebsocketEventsInformationDto {
@@ -198,6 +199,9 @@ async fn build_events_info(
 
 fn send_auth_error(socket: &SocketRef, text: &str) {
     tracing::warn!("{text}");
-    let _ = socket.emit(AUTHENTICATION, &WebsocketMessage::error(AUTHENTICATION, text));
+    let _ = socket.emit(
+        AUTHENTICATION,
+        &WebsocketMessage::error(AUTHENTICATION, text),
+    );
     let _ = socket.clone().disconnect();
 }

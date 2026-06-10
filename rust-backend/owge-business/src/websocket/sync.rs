@@ -9,13 +9,14 @@
 
 use chrono::{SubsecRound, Utc};
 use serde_json::{Map, Value};
+use sqlx::MySqlConnection;
 
+use crate::bo::unlocked::unlocked_unit_finder::UnlockedUnitFinder;
 use crate::bo::{
-    MissionBo, MissionReportBo, ObtainedUnitBo, PlanetBo, PlanetListBo, RunningMissionFinderBo,
-    SpeedImpactGroupBo, SystemMessageBo, TimeSpecialBo, RequirementBo, TutorialBo, UnitBo,
+    MissionBo, MissionReportBo, ObtainedUnitBo, PlanetBo, PlanetListBo, RequirementBo,
+    RunningMissionFinderBo, SpeedImpactGroupBo, SystemMessageBo, TimeSpecialBo, TutorialBo,
     UnitTypeBo, UpgradeBo, UserStorageBo, WebsocketEventsInformationBo,
 };
-use crate::db::Db;
 use crate::dto::mission_websocket::MissionWebsocketMessage;
 use crate::error::OwgeResult;
 
@@ -23,7 +24,7 @@ use crate::error::OwgeResult;
 /// for the logged-in user, record the watermark, and return
 /// `{ key: { data, lastSent } }`.
 pub async fn find_wanted_data(
-    db: &Db,
+    conn: &mut MySqlConnection,
     user_id: i32,
     keys: &[String],
 ) -> OwgeResult<Map<String, Value>> {
@@ -31,8 +32,8 @@ pub async fn find_wanted_data(
     // Instant.now().truncatedTo(SECONDS) in the Java service.
     let now = Utc::now().trunc_subsecs(0);
     for key in keys {
-        if let Some(data) = dispatch(db, user_id, key).await? {
-            WebsocketEventsInformationBo::save(db, key, user_id, now.naive_utc()).await?;
+        if let Some(data) = dispatch(&mut *conn, user_id, key).await? {
+            WebsocketEventsInformationBo::save(&mut *conn, key, user_id, now.naive_utc()).await?;
             let mut pair = Map::new();
             pair.insert("data".to_string(), data);
             // lastSent: epoch millis (server clock); see PORTING-ROADMAP parity note.
@@ -46,66 +47,85 @@ pub async fn find_wanted_data(
 /// The handler registry. Returns `None` for unknown keys (the Java service
 /// simply filters those out). Each arm mirrors one controller's
 /// `withHandler("<key>", ...)` registration.
-async fn dispatch(db: &Db, user_id: i32, key: &str) -> OwgeResult<Option<Value>> {
+async fn dispatch(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    key: &str,
+) -> OwgeResult<Option<Value>> {
     let value = match key {
         // UserRestService
-        "user_data_change" => to_value(UserStorageBo::find_data(db, user_id).await?)?,
+        "user_data_change" => to_value(UserStorageBo::find_data(&mut *conn, user_id).await?)?,
         // PlanetRestService
-        "planet_owned_change" => to_value(PlanetBo::find_owned_dtos(db, user_id).await?)?,
+        "planet_owned_change" => to_value(PlanetBo::find_owned_dtos(&mut *conn, user_id).await?)?,
         // PlanetListRestService
-        "planet_user_list_change" => to_value(PlanetListBo::find_by_user_id(db, user_id).await?)?,
+        "planet_user_list_change" => {
+            to_value(PlanetListBo::find_by_user_id(&mut *conn, user_id).await?)?
+        }
         // UnitTypeRestService
         "unit_type_change" => {
-            to_value(UnitTypeBo::find_unit_types_with_user_info(db, user_id).await?)?
+            to_value(UnitTypeBo::find_unit_types_with_user_info(&mut *conn, user_id).await?)?
         }
         // UnitRestService
-        "unit_obtained_change" => to_value(ObtainedUnitBo::find_completed_dtos(db, user_id).await?)?,
-        "unit_unlocked_change" => to_value(UnitBo::find_unlocked_by_user(db, user_id).await?)?,
-        "unit_requirements_change" => {
-            to_value(RequirementBo::find_faction_unit_level_requirements(db, user_id).await?)?
+        "unit_obtained_change" => {
+            to_value(ObtainedUnitBo::find_completed_dtos(&mut *conn, user_id).await?)?
         }
+        "unit_unlocked_change" => {
+            to_value(UnlockedUnitFinder::find_unlocked_by_user(&mut *conn, user_id).await?)?
+        }
+        "unit_requirements_change" => to_value(
+            RequirementBo::find_faction_unit_level_requirements(&mut *conn, user_id).await?,
+        )?,
         // UpgradeTypeRestService / UpgradeRestService
-        "upgrade_types_change" => to_value(UpgradeBo::find_upgrade_types(db).await?)?,
-        "obtained_upgrades_change" => to_value(UpgradeBo::find_obtained_dtos(db, user_id).await?)?,
+        "upgrade_types_change" => to_value(UpgradeBo::find_upgrade_types(&mut *conn).await?)?,
+        "obtained_upgrades_change" => {
+            to_value(UpgradeBo::find_obtained_dtos(&mut *conn, user_id).await?)?
+        }
         "running_upgrade_change" => {
-            to_value(MissionBo::find_running_level_up_mission(db, user_id).await?)?
+            to_value(MissionBo::find_running_level_up_mission(&mut *conn, user_id).await?)?
         }
         // TimeSpecialRestService
-        "time_special_change" => to_value(TimeSpecialBo::find_user_status_dtos(db, user_id).await?)?,
+        "time_special_change" => {
+            to_value(TimeSpecialBo::find_user_status_dtos(&mut *conn, user_id).await?)?
+        }
         // SystemMessageRestService
-        "system_message_change" => to_value(SystemMessageBo::find_read_by_user(db, user_id).await?)?,
+        "system_message_change" => {
+            to_value(SystemMessageBo::find_read_by_user(&mut *conn, user_id).await?)?
+        }
         // TutorialRestService
-        "tutorial_entries_change" => to_value(TutorialBo::find_entries(db).await?)?,
+        "tutorial_entries_change" => to_value(TutorialBo::find_entries(&mut *conn).await?)?,
         "visited_tutorial_entry_change" => {
-            to_value(TutorialBo::find_visited_ids_by_user(db, user_id).await?)?
+            to_value(TutorialBo::find_visited_ids_by_user(&mut *conn, user_id).await?)?
         }
         // SpeedImpactRestService
         "speed_impact_group_unlocked_change" => {
-            to_value(SpeedImpactGroupBo::find_cross_galaxy_unlocked(db, user_id).await?)?
+            to_value(SpeedImpactGroupBo::find_cross_galaxy_unlocked(&mut *conn, user_id).await?)?
         }
         // Mission-system sync keys (M3 finders, M4-wired here as both the HTTP
         // sync source and the socket emit value).
         "unit_mission_change" => {
-            let count = RunningMissionFinderBo::count_user_running_missions(db, user_id).await?;
+            let count =
+                RunningMissionFinderBo::count_user_running_missions(&mut *conn, user_id).await?;
             let my_unit_missions =
-                RunningMissionFinderBo::find_user_running_missions(db, user_id).await?;
+                RunningMissionFinderBo::find_user_running_missions(&mut *conn, user_id).await?;
             to_value(MissionWebsocketMessage {
                 count,
                 my_unit_missions,
             })?
         }
-        "enemy_mission_change" => {
-            to_value(RunningMissionFinderBo::find_enemy_running_missions(db, user_id).await?)?
-        }
-        "missions_count_change" => {
-            to_value(RunningMissionFinderBo::count_user_running_missions(db, user_id).await?)?
-        }
+        "enemy_mission_change" => to_value(
+            RunningMissionFinderBo::find_enemy_running_missions(&mut *conn, user_id).await?,
+        )?,
+        "missions_count_change" => to_value(
+            RunningMissionFinderBo::count_user_running_missions(&mut *conn, user_id).await?,
+        )?,
         "unit_build_mission_change" => {
-            to_value(RunningMissionFinderBo::find_build_missions(db, user_id).await?)?
+            to_value(RunningMissionFinderBo::find_build_missions(&mut *conn, user_id).await?)?
         }
         "mission_report_change" => {
             // MissionReportBo.emitToUser → findMissionReportsInformation(userId, 0).
-            to_value(MissionReportBo::find_mission_reports_information(db, user_id, 0).await?)?
+            to_value(
+                MissionReportBo::find_mission_reports_information(&mut *conn, user_id, 0).await?,
+            )?
         }
         _ => return Ok(None),
     };

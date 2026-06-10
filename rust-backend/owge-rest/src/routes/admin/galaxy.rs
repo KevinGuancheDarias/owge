@@ -25,7 +25,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<GalaxyDto>>> {
-    Ok(Json(GalaxyBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(GalaxyBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -33,10 +34,15 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<GalaxyDto>> {
-    GalaxyBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    GalaxyBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
-        .ok_or_else(|| ApiError(owge_business::OwgeError::NotFound(format!("No galaxy {id}"))))
+        .ok_or_else(|| {
+            ApiError(owge_business::OwgeError::NotFound(format!(
+                "No galaxy {id}"
+            )))
+        })
 }
 
 async fn save_new(
@@ -44,7 +50,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<GalaxyInput>,
 ) -> ApiResult<Json<GalaxyDto>> {
-    Ok(Json(GalaxyBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(GalaxyBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -53,7 +60,8 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<GalaxyInput>,
 ) -> ApiResult<Json<GalaxyDto>> {
-    Ok(Json(GalaxyBo::save_existing(&state.db, id, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(GalaxyBo::save_existing(&mut conn, id, &input).await?))
 }
 
 async fn delete_one(
@@ -61,7 +69,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    GalaxyBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    GalaxyBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -70,5 +79,6 @@ async fn has_players(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<bool>> {
-    Ok(Json(GalaxyBo::has_players(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(GalaxyBo::has_players(&mut conn, id).await?))
 }

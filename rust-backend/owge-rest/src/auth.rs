@@ -6,9 +6,9 @@
 
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
+use owge_business::OwgeError;
 use owge_business::bo::UserStorageBo;
 use owge_business::jwt::{self, TokenConfig, TokenUser};
-use owge_business::OwgeError;
 
 use crate::http_error::ApiError;
 use crate::state::AppState;
@@ -31,11 +31,9 @@ fn bearer_token(parts: &Parts) -> Result<&str, OwgeError> {
         })?
         .to_str()
         .map_err(|_| OwgeError::Unauthorized("Malformed Authorization header".into()))?;
-    header
-        .strip_prefix("Bearer ")
-        .ok_or_else(|| {
-            OwgeError::Unauthorized("HTTP Authorization header not found, or it's invalid".into())
-        })
+    header.strip_prefix("Bearer ").ok_or_else(|| {
+        OwgeError::Unauthorized("HTTP Authorization header not found, or it's invalid".into())
+    })
 }
 
 fn authenticate(parts: &Parts, config: &TokenConfig) -> Result<TokenUser, ApiError> {
@@ -56,17 +54,23 @@ impl FromRequestParts<AppState> for GameUser {
         // time elapsed since their last request. Skipped for accounts not yet
         // subscribed to this universe (no `user_storage` row).
         let user_id = user.id as i32;
-        if UserStorageBo::exists(&state.db, user_id)
+        let mut conn = state
+            .db
+            .acquire()
+            .await
+            .map_err(owge_business::OwgeError::from)
+            .map_err(ApiError)?;
+        if UserStorageBo::exists(&mut conn, user_id)
             .await
             .map_err(ApiError)?
         {
-            if UserStorageBo::is_banned(&state.db, user_id)
+            if UserStorageBo::is_banned(&mut conn, user_id)
                 .await
                 .map_err(ApiError)?
             {
                 return Err(ApiError(OwgeError::AccessDenied("I18N_ERR_BANNED".into())));
             }
-            UserStorageBo::trigger_resources_update(&state.db, user_id)
+            UserStorageBo::trigger_resources_update(&mut conn, user_id)
                 .await
                 .map_err(ApiError)?;
         }

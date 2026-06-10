@@ -29,10 +29,10 @@
 
 use std::collections::BTreeSet;
 
+use crate::bo::UserImprovementBo;
 use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::bo::mission_base_service_bo::MissionBaseService;
 use crate::bo::mission_scheduler_bo::MissionDispatch;
-use crate::bo::UserImprovementBo;
 use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::lock::{self, planet_lock_key};
@@ -41,7 +41,7 @@ use crate::model::user_storage::UserStorage;
 use crate::pojo::unit_mission_information::UnitMissionInformation;
 use async_trait::async_trait;
 use chrono::Utc;
-use sqlx::{Connection, MySqlConnection};
+use sqlx::{Acquire, MySqlConnection};
 
 /// Number of times the runner retries a mission whose body failed to acquire its
 /// planet locks (`@Retryable(retryFor = CannotAcquireLockException.class)`).
@@ -53,133 +53,133 @@ impl UnitMissionBo {
     // ---- registration entry methods -------------------------------------------------
 
     pub async fn my_register_explore_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_explore_mission(db, user, info).await
+        Self::admin_register_explore_mission(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_explore_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::common_mission_register(db, user, info, MissionType::Explore).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Explore).await
     }
 
     pub async fn my_register_gather_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_gather_mission(db, user, info).await
+        Self::admin_register_gather_mission(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_gather_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::common_mission_register(db, user, info, MissionType::Gather).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Gather).await
     }
 
     pub async fn my_register_establish_base_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_establish_base(db, user, info).await
+        Self::admin_register_establish_base(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_establish_base(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::common_mission_register(db, user, info, MissionType::EstablishBase).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::EstablishBase).await
     }
 
     pub async fn my_register_attack_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_attack_mission(db, user, info).await
+        Self::admin_register_attack_mission(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_attack_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::common_mission_register(db, user, info, MissionType::Attack).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Attack).await
     }
 
     pub async fn my_register_counterattack_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_counterattack_mission(db, user, info).await
+        Self::admin_register_counterattack_mission(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_counterattack_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
         // TargetPlanet must belong to the sender user.
-        if !is_of_user_property(db, user.id, info.target_planet_id).await? {
+        if !is_of_user_property(&mut *conn, user.id, info.target_planet_id).await? {
             return Err(OwgeError::InvalidInput(
                 "TargetPlanet doesn't belong to sender user, try again dear Hacker, maybe next \
                  time you have some luck"
                     .to_string(),
             ));
         }
-        Self::common_mission_register(db, user, info, MissionType::Counterattack).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Counterattack).await
     }
 
     pub async fn my_register_conquest_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_conquest_mission(db, user, info).await
+        Self::admin_register_conquest_mission(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_conquest_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        if is_of_user_property(db, user.id, info.target_planet_id).await? {
+        if is_of_user_property(&mut *conn, user.id, info.target_planet_id).await? {
             return Err(OwgeError::InvalidInput(
                 "Doesn't make sense to conquest your own planet... unless your population hates \
                  you, and are going to organize a rebelion"
                     .to_string(),
             ));
         }
-        if is_home_planet(db, info.target_planet_id).await? {
+        if is_home_planet(&mut *conn, info.target_planet_id).await? {
             return Err(OwgeError::InvalidInput(
                 "Can't steal a home planet to a user, would you like a bandit to steal in your \
                  own home??!"
                     .to_string(),
             ));
         }
-        Self::common_mission_register(db, user, info, MissionType::Conquest).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Conquest).await
     }
 
     pub async fn my_register_deploy(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
-        Self::admin_register_deploy(db, user, info).await
+        Self::admin_register_deploy(&mut *conn, user, info).await
     }
 
     pub async fn admin_register_deploy(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         info: UnitMissionInformation,
     ) -> OwgeResult<()> {
@@ -188,13 +188,13 @@ impl UnitMissionBo {
                 "I18N_ERR_DEPLOY_ITSELF".to_string(),
             ));
         }
-        Self::common_mission_register(db, user, info, MissionType::Deploy).await
+        Self::common_mission_register(&mut *conn, user, info, MissionType::Deploy).await
     }
 
     /// `commonMissionRegister` — shared registration path: set the sender, apply
     /// the mission-limit + explored guards, then register under the planet lock.
     async fn common_mission_register(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user: &UserStorage,
         mut info: UnitMissionInformation,
         mission_type: MissionType,
@@ -205,14 +205,14 @@ impl UnitMissionBo {
         let is_deploy = mission_type == MissionType::Deploy;
         // Deploying onto an already-owned planet does not count against the limit.
         let deploy_to_own =
-            is_deploy && is_of_user_property(db, user.id, info.target_planet_id).await?;
+            is_deploy && is_of_user_property(&mut *conn, user.id, info.target_planet_id).await?;
         if !deploy_to_own {
-            MissionBaseService::check_mission_limit_not_reached(db, user.id).await?;
+            MissionBaseService::check_mission_limit_not_reached(&mut *conn, user.id).await?;
         }
 
         // Non-explore missions require the target planet to be explored by the user.
         if mission_type != MissionType::Explore
-            && !is_explored(db, user.id, info.target_planet_id).await?
+            && !is_explored(&mut *conn, user.id, info.target_planet_id).await?
         {
             return Err(OwgeError::InvalidInput(
                 "Can't send this mission, because target planet is not explored ".to_string(),
@@ -226,12 +226,11 @@ impl UnitMissionBo {
         }
         keys.push(planet_lock_key(info.target_planet_id as u64));
 
-        let mut conn = db.acquire().await?;
         // Move owned copies into the locked body so the boxed future borrows only
         // `conn` (the HRTB factory must be valid for any connection lifetime).
         let owned_user = user.clone();
         let source_planet_id = info.source_planet_id;
-        let (mission, req_emits) = run_locked(&mut conn, &keys, move |conn| {
+        let (mission, req_emits) = run_locked(&mut *conn, &keys, move |conn| {
             Box::pin(async move {
                 crate::bo::unit_mission_registration_bo::UnitMissionRegistrationBo::do_common_mission_register(
                     conn, &info, mission_type, &owned_user, is_deploy,
@@ -240,28 +239,30 @@ impl UnitMissionBo {
             })
         })
         .await?;
-        drop(conn);
 
         // Requirement-trigger unlock pushes from the unit subtraction, after the
         // tx commit + lock release (Java doAfterCommit semantics).
-        crate::bo::realtime_emitter::drain_requirement_emits(db, &req_emits).await?;
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
 
         // M4 emits, after commit + lock release (Java doCommonMissionRegister tail):
         // emitLocalMissionChangeAfterCommit + (if invoker owns the source planet)
         // emitObtainedUnitsAfterCommit, else (enemy source planet) emitEnemyMissionsChange.
-        crate::bo::MissionEventEmitter::emit_local_mission_change(db, mission.id, user.id).await?;
+        crate::bo::MissionEventEmitter::emit_local_mission_change(&mut *conn, mission.id, user.id)
+            .await?;
         if let Some(src) = source_planet_id {
             let source_owner: Option<Option<i32>> =
                 sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
                     .bind(src)
-                    .fetch_optional(db)
+                    .fetch_optional(&mut *conn)
                     .await?;
             match source_owner.flatten() {
                 Some(o) if o == user.id => {
-                    crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(db, user.id).await?;
+                    crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, user.id)
+                        .await?;
                 }
                 Some(o) => {
-                    crate::bo::MissionEventEmitter::emit_enemy_missions_change(db, o).await?;
+                    crate::bo::MissionEventEmitter::emit_enemy_missions_change(&mut *conn, o)
+                        .await?;
                 }
                 None => {}
             }
@@ -276,9 +277,12 @@ impl UnitMissionBo {
     ///
     /// `user_id` is the authenticated user (the Java side reads it from the
     /// session); the cancel is rejected if it does not own the mission.
-    pub async fn my_cancel_mission(db: &Db, user_id: i32, mission_id: u64) -> OwgeResult<()> {
-        let mut conn = db.acquire().await?;
-        let mission = load_mission(&mut conn, mission_id).await?.ok_or_else(|| {
+    pub async fn my_cancel_mission(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        mission_id: u64,
+    ) -> OwgeResult<()> {
+        let mission = load_mission(&mut *conn, mission_id).await?.ok_or_else(|| {
             OwgeError::NotFound(format!("No mission with id {mission_id} was found"))
         })?;
         if mission.user_id != Some(user_id) {
@@ -294,8 +298,8 @@ impl UnitMissionBo {
 
         // The cancel + return-registration run under the planet lock superset, like
         // a mission run (returnMissionRegistrationBo re-points obtained units).
-        let keys = Self::resolve_lock_keys(&mut conn, &mission).await?;
-        run_locked(&mut conn, &keys, move |conn| {
+        let keys = Self::resolve_lock_keys(&mut *conn, &mission).await?;
+        run_locked(&mut *conn, &keys, move |conn| {
             Box::pin(async move {
                 sqlx::query("UPDATE missions SET resolved = 1 WHERE id = ?")
                     .bind(mission.id)
@@ -321,14 +325,13 @@ impl UnitMissionBo {
             })
         })
         .await?;
-        drop(conn);
 
         // M4: cancel registers a RETURN mission whose user is the canceller, so
         // their running-mission list changed. Java's ReturnMissionRegistrationBo
         // emits emitLocalMissionChangeAfterCommit(returnMission); the dominant
         // effect for the canceller is unit_mission_change. (The return mission's
         // enemy-side emit toward the original source-planet owner is Tier-2.)
-        crate::bo::MissionEventEmitter::emit_unit_missions(db, user_id).await?;
+        crate::bo::MissionEventEmitter::emit_unit_missions(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -338,13 +341,13 @@ impl UnitMissionBo {
     /// superset on one pinned connection. Retries the whole locked section a few
     /// times on a lock-acquisition conflict (the Java `@Retryable`).
     pub async fn run_unit_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         mission_id: u64,
         mission_type: MissionType,
     ) -> OwgeResult<()> {
         let mut last_err = None;
         for attempt in 1..=LOCK_RETRY_ATTEMPTS {
-            match Self::run_unit_mission_once(db, mission_id, mission_type).await {
+            match Self::run_unit_mission_once(&mut *conn, mission_id, mission_type).await {
                 Ok(()) => return Ok(()),
                 Err(e) if is_lock_conflict(&e) && attempt < LOCK_RETRY_ATTEMPTS => {
                     last_err = Some(e);
@@ -361,21 +364,17 @@ impl UnitMissionBo {
     }
 
     async fn run_unit_mission_once(
-        db: &Db,
+        conn: &mut MySqlConnection,
         mission_id: u64,
         mission_type: MissionType,
     ) -> OwgeResult<()> {
-        let mut conn = db.acquire().await?;
-        let mission = load_mission(&mut conn, mission_id)
+        let mission = load_mission(&mut *conn, mission_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No mission with id {mission_id}")))?;
-        let keys = Self::resolve_lock_keys(&mut conn, &mission).await?;
+        let keys = Self::resolve_lock_keys(&mut *conn, &mission).await?;
 
-        let db_for_processors = db.clone();
-        run_locked(&mut conn, &keys, move |conn| {
-            Box::pin(async move {
-                do_run_unit_mission(conn, &db_for_processors, &mission, mission_type).await
-            })
+        run_locked(&mut *conn, &keys, move |conn| {
+            Box::pin(async move { do_run_unit_mission(conn, &mission, mission_type).await })
         })
         .await
     }
@@ -410,13 +409,8 @@ impl UnitMissionBo {
 /// row and `retry_mission_if_possible` reschedules, so the next attempt runs
 /// against clean, consistent state. This mirrors Java's
 /// `@Transactional(READ_COMMITTED)` around `doRunUnitMission`.
-///
-/// Processors still take their autonomous read-only snapshots through the `db`
-/// pool (separate connection); those are committed-data reads and need not be
-/// part of this transaction.
 async fn do_run_unit_mission(
     conn: &mut MySqlConnection,
-    db: &Db,
     mission: &Mission,
     mission_type: MissionType,
 ) -> OwgeResult<()> {
@@ -437,7 +431,6 @@ async fn do_run_unit_mission(
             &mut tx,
             mission,
             &interception.involved_units,
-            db,
             &mut emits,
         )
         .await?;
@@ -504,10 +497,10 @@ async fn do_run_unit_mission(
     tx.commit().await?;
 
     // M4 emits, after commit. Per-processor in Java; replicated by type here.
-    emit_after_run(db, mission, mission_type).await?;
+    emit_after_run(&mut *conn, mission, mission_type).await?;
     // Drain the processor-scheduled deferred emits (explore/gather/attack/conquest).
     for emit in &emits {
-        emit.run(db).await?;
+        emit.run(&mut *conn).await?;
     }
     Ok(())
 }
@@ -521,22 +514,26 @@ async fn do_run_unit_mission(
 /// `mission_gather_result`, ATTACK/COUNTERATTACK per-user emit set, CONQUEST
 /// new/old-owner planet+mission emits) schedule their own [`DeferredEmit`]s while
 /// running inside the tx; those are drained by the caller after commit.
-async fn emit_after_run(db: &Db, mission: &Mission, mission_type: MissionType) -> OwgeResult<()> {
+async fn emit_after_run(
+    conn: &mut MySqlConnection,
+    mission: &Mission,
+    mission_type: MissionType,
+) -> OwgeResult<()> {
     let Some(owner) = mission.user_id else {
         return Ok(());
     };
     use crate::bo::{MissionEventEmitter, ObtainedUnitEventEmitter};
     match mission_type {
         MissionType::ReturnMission => {
-            MissionEventEmitter::emit_local_mission_change(db, mission.id, owner).await?;
-            ObtainedUnitEventEmitter::emit_obtained_units(db, owner).await?;
+            MissionEventEmitter::emit_local_mission_change(&mut *conn, mission.id, owner).await?;
+            ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
         }
         MissionType::Deploy => {
-            ObtainedUnitEventEmitter::emit_obtained_units(db, owner).await?;
-            MissionEventEmitter::emit_local_mission_change(db, mission.id, owner).await?;
+            ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
+            MissionEventEmitter::emit_local_mission_change(&mut *conn, mission.id, owner).await?;
         }
         MissionType::EstablishBase => {
-            MissionEventEmitter::emit_local_mission_change(db, mission.id, owner).await?;
+            MissionEventEmitter::emit_local_mission_change(&mut *conn, mission.id, owner).await?;
         }
         // EXPLORE/GATHER/ATTACK/COUNTERATTACK/CONQUEST schedule their own
         // processor-specific emits via the DeferredEmit queue (drained by the
@@ -608,33 +605,37 @@ fn is_lock_conflict(err: &OwgeError) -> bool {
 
 // --- small DB helpers (mirror the planetRepository / planetExplorationService calls) ---
 
-async fn is_of_user_property(db: &Db, user_id: i32, planet_id: i64) -> OwgeResult<bool> {
+async fn is_of_user_property(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    planet_id: i64,
+) -> OwgeResult<bool> {
     let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
         .bind(planet_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
     Ok(matches!(owner, Some(Some(o)) if o == user_id))
 }
 
-async fn is_home_planet(db: &Db, planet_id: i64) -> OwgeResult<bool> {
+async fn is_home_planet(conn: &mut MySqlConnection, planet_id: i64) -> OwgeResult<bool> {
     let home: Option<Option<i8>> = sqlx::query_scalar("SELECT home FROM planets WHERE id = ?")
         .bind(planet_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
     Ok(matches!(home, Some(Some(h)) if h != 0))
 }
 
 /// `PlanetExplorationService.isExplored(userId, planetId)` — the planet is the
 /// user's property, or has an `explored_planets` row for the user.
-async fn is_explored(db: &Db, user_id: i32, planet_id: i64) -> OwgeResult<bool> {
-    if is_of_user_property(db, user_id, planet_id).await? {
+async fn is_explored(conn: &mut MySqlConnection, user_id: i32, planet_id: i64) -> OwgeResult<bool> {
+    if is_of_user_property(&mut *conn, user_id, planet_id).await? {
         return Ok(true);
     }
     let count: i64 =
         sqlx::query_scalar("SELECT COUNT(*) FROM explored_planets WHERE user = ? AND planet = ?")
             .bind(user_id)
             .bind(planet_id)
-            .fetch_one(db)
+            .fetch_one(&mut *conn)
             .await?;
     Ok(count > 0)
 }
@@ -665,7 +666,9 @@ impl MissionRunner {
     }
 
     async fn execute(&self, mission_id: u64) -> OwgeResult<()> {
+        // Acquire exactly ONE connection for the entire mission execution.
         let mut conn = self.db.acquire().await?;
+
         let mission = match load_mission(&mut conn, mission_id).await? {
             Some(m) => m,
             None => {
@@ -673,7 +676,6 @@ impl MissionRunner {
                 return Ok(());
             }
         };
-        drop(conn);
 
         if mission.is_resolved() {
             return Ok(());
@@ -692,16 +694,16 @@ impl MissionRunner {
         );
         let result =
             if mission_type == MissionType::BuildUnit || mission_type == MissionType::LevelUp {
-                self.run_non_unit_mission(mission_id, mission_type).await
+                run_non_unit_mission(&mut conn, mission_id, mission_type).await
             } else {
-                UnitMissionBo::run_unit_mission(&self.db, mission_id, mission_type).await
+                UnitMissionBo::run_unit_mission(&mut conn, mission_id, mission_type).await
             };
 
         if let Err(e) = result {
             tracing::error!("Unexpected fatal exception when executing mission {mission_id}: {e}");
             // missionBaseService.retryMissionIfPossible(missionId, missionType)
             if let Err(retry_err) =
-                MissionBaseService::retry_mission_if_possible(&self.db, mission_id, mission_type)
+                MissionBaseService::retry_mission_if_possible(&mut conn, mission_id, mission_type)
                     .await
             {
                 tracing::error!("retry handling for mission {mission_id} also failed: {retry_err}");
@@ -713,74 +715,72 @@ impl MissionRunner {
         }
         Ok(())
     }
+}
 
-    /// BUILD_UNIT / LEVEL_UP completion under the appropriate planet lock.
-    ///
-    /// BUILD_UNIT locks the build planet (`mission_information.value`); LEVEL_UP
-    /// has no planet, so it runs without a planet lock (the Java
-    /// `processLevelUpAnUpgrade` takes no `planetLockUtilService` lock).
-    async fn run_non_unit_mission(
-        &self,
-        mission_id: u64,
-        mission_type: MissionType,
-    ) -> OwgeResult<()> {
-        let mut conn = self.db.acquire().await?;
-        // Capture the owner before the run — BUILD_UNIT/LEVEL_UP delete the mission
-        // row on completion, so it can't be read back afterwards for the emit.
-        let owner: Option<i32> = sqlx::query_scalar("SELECT user_id FROM missions WHERE id = ?")
-            .bind(mission_id)
-            .fetch_optional(&mut *conn)
-            .await?;
-        let keys: Vec<String> = if mission_type == MissionType::BuildUnit {
-            let planet: Option<f64> =
-                sqlx::query_scalar("SELECT value FROM mission_information WHERE mission_id = ?")
-                    .bind(mission_id)
-                    .fetch_optional(&mut *conn)
-                    .await?;
-            planet
-                .map(|p| vec![planet_lock_key(p as u64)])
-                .unwrap_or_default()
-        } else {
-            Vec::new()
-        };
-
-        let req_emits = run_locked(&mut conn, &keys, move |conn| {
-            Box::pin(async move {
-                crate::bo::mission_bo::MissionBo::run_mission(conn, mission_id, mission_type).await
-            })
-        })
+/// BUILD_UNIT / LEVEL_UP completion under the appropriate planet lock.
+///
+/// BUILD_UNIT locks the build planet (`mission_information.value`); LEVEL_UP
+/// has no planet, so it runs without a planet lock (the Java
+/// `processLevelUpAnUpgrade` takes no `planetLockUtilService` lock).
+async fn run_non_unit_mission(
+    conn: &mut MySqlConnection,
+    mission_id: u64,
+    mission_type: MissionType,
+) -> OwgeResult<()> {
+    // Capture the owner before the run — BUILD_UNIT/LEVEL_UP delete the mission
+    // row on completion, so it can't be read back afterwards for the emit.
+    let owner: Option<i32> = sqlx::query_scalar("SELECT user_id FROM missions WHERE id = ?")
+        .bind(mission_id)
+        .fetch_optional(&mut *conn)
         .await?;
-        drop(conn);
+    let keys: Vec<String> = if mission_type == MissionType::BuildUnit {
+        let planet: Option<f64> =
+            sqlx::query_scalar("SELECT value FROM mission_information WHERE mission_id = ?")
+                .bind(mission_id)
+                .fetch_optional(&mut *conn)
+                .await?;
+        planet
+            .map(|p| vec![planet_lock_key(p as u64)])
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
 
-        // Requirement-trigger unlock pushes from the completion (drained after the
-        // tx commit + lock release, matching Java doAfterCommit semantics).
-        crate::bo::realtime_emitter::drain_requirement_emits(&self.db, &req_emits).await?;
+    let req_emits = run_locked(&mut *conn, &keys, move |conn| {
+        Box::pin(async move {
+            crate::bo::mission_bo::MissionBo::run_mission(conn, mission_id, mission_type).await
+        })
+    })
+    .await?;
 
-        // M4 completion emits (Java MissionBo.processBuildUnit / processLevelUp).
-        if let Some(owner) = owner {
-            use crate::bo::{MissionEventEmitter, ObtainedUnitEventEmitter};
-            match mission_type {
-                MissionType::BuildUnit => {
-                    // clearSourceCache(user, obtainedUnitImprovementCalculationService):
-                    // the completed units may carry improvements.
-                    UserImprovementBo::evict_and_emit(&self.db, owner).await?;
-                    MissionEventEmitter::emit_unit_build_change(&self.db, owner).await?;
-                    MissionEventEmitter::emit_mission_count_change(&self.db, owner).await?;
-                    ObtainedUnitEventEmitter::emit_obtained_units(&self.db, owner).await?;
-                    UnitTypeEmitter::emit_unit_type_change(&self.db, owner).await?;
-                }
-                MissionType::LevelUp => {
-                    // clearSourceCache(user, obtainedUpgradeBo): the upgrade level rose.
-                    UserImprovementBo::evict_and_emit(&self.db, owner).await?;
-                    MissionEventEmitter::emit_running_upgrade(&self.db, owner).await?;
-                    MissionEventEmitter::emit_obtained_upgrades(&self.db, owner).await?;
-                    MissionEventEmitter::emit_mission_count_change(&self.db, owner).await?;
-                }
-                _ => {}
+    // Requirement-trigger unlock pushes from the completion (drained after the
+    // tx commit + lock release, matching Java doAfterCommit semantics).
+    crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
+
+    // M4 completion emits (Java MissionBo.processBuildUnit / processLevelUp).
+    if let Some(owner) = owner {
+        use crate::bo::{MissionEventEmitter, ObtainedUnitEventEmitter};
+        match mission_type {
+            MissionType::BuildUnit => {
+                // clearSourceCache(user, obtainedUnitImprovementCalculationService):
+                // the completed units may carry improvements.
+                UserImprovementBo::evict_and_emit(&mut *conn, owner).await?;
+                MissionEventEmitter::emit_unit_build_change(&mut *conn, owner).await?;
+                MissionEventEmitter::emit_mission_count_change(&mut *conn, owner).await?;
+                ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
+                UnitTypeEmitter::emit_unit_type_change(&mut *conn, owner).await?;
             }
+            MissionType::LevelUp => {
+                // clearSourceCache(user, obtainedUpgradeBo): the upgrade level rose.
+                UserImprovementBo::evict_and_emit(&mut *conn, owner).await?;
+                MissionEventEmitter::emit_running_upgrade(&mut *conn, owner).await?;
+                MissionEventEmitter::emit_obtained_upgrades(&mut *conn, owner).await?;
+                MissionEventEmitter::emit_mission_count_change(&mut *conn, owner).await?;
+            }
+            _ => {}
         }
-        Ok(())
     }
+    Ok(())
 }
 
 #[async_trait]

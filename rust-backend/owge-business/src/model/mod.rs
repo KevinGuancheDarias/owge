@@ -17,6 +17,7 @@ pub mod planet;
 pub mod planet_list;
 pub mod ranking;
 pub mod rule;
+pub mod seaorm;
 pub mod special_location;
 pub mod speed_impact_group;
 pub mod system_message;

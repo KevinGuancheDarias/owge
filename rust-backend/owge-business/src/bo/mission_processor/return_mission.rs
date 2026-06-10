@@ -7,7 +7,6 @@
 use sqlx::MySqlConnection;
 
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::Mission;
 use crate::model::obtained_unit::ObtainedUnit;
@@ -16,7 +15,6 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     _involved_units: &[ObtainedUnit],
-    _db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();

@@ -54,7 +54,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<SpeedImpactGroupDto>>> {
-    Ok(Json(SpeedImpactGroupBo::find_all_dtos(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(SpeedImpactGroupBo::find_all_dtos(&mut conn).await?))
 }
 
 async fn find_one(
@@ -62,7 +63,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<SpeedImpactGroupDto>> {
-    SpeedImpactGroupBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    SpeedImpactGroupBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| {
@@ -77,7 +79,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<SpeedImpactGroupInput>,
 ) -> ApiResult<Json<SpeedImpactGroupDto>> {
-    Ok(Json(SpeedImpactGroupBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(SpeedImpactGroupBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -86,8 +89,9 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<SpeedImpactGroupInput>,
 ) -> ApiResult<Json<SpeedImpactGroupDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        SpeedImpactGroupBo::save_existing(&state.db, id, &input).await?,
+        SpeedImpactGroupBo::save_existing(&mut conn, id, &input).await?,
     ))
 }
 
@@ -96,7 +100,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    SpeedImpactGroupBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    SpeedImpactGroupBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -107,8 +112,9 @@ async fn find_requirement_groups(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<RequirementGroupDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        RequirementGroupBo::find_groups(&state.db, OBJECT_CODE, id as i16).await?,
+        RequirementGroupBo::find_groups(&mut conn, OBJECT_CODE, id as i16).await?,
     ))
 }
 
@@ -119,9 +125,10 @@ async fn add_requirement_group(
     Path(id): Path<u16>,
     Json(input): Json<RequirementGroupInput>,
 ) -> ApiResult<Json<RequirementGroupDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
         RequirementGroupBo::add(
-            &state.db,
+            &mut conn,
             OBJECT_CODE,
             id as i16,
             input.name.as_deref(),
@@ -137,7 +144,8 @@ async fn delete_requirement_group(
     _admin: AdminUser,
     Path((_id, group_id)): Path<(u16, u16)>,
 ) -> ApiResult<StatusCode> {
-    RequirementGroupBo::delete(&state.db, group_id).await?;
+    let mut conn = state.db.acquire().await?;
+    RequirementGroupBo::delete(&mut conn, group_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -149,8 +157,9 @@ async fn add_group_requirement(
     Path((_id, group_id)): Path<(u16, u16)>,
     Json(input): Json<RequirementInformationInput>,
 ) -> ApiResult<Json<RequirementInformationDto>> {
+    let mut conn = state.db.acquire().await?;
     let dto = RequirementBo::add_requirement_from_dto(
-        &state.db,
+        &mut conn,
         "REQUIREMENT_GROUP",
         group_id as i16,
         &input,
@@ -168,7 +177,8 @@ async fn delete_group_requirement(
     _admin: AdminUser,
     Path((_id, _group_id, requirement_information_id)): Path<(u16, u16, i16)>,
 ) -> ApiResult<StatusCode> {
-    RequirementBo::delete_requirement_information(&state.db, requirement_information_id).await?;
+    let mut conn = state.db.acquire().await?;
+    RequirementBo::delete_requirement_information(&mut conn, requirement_information_id).await?;
     // No-op in the Rust port: the Java REQUIREMENT_GROUP taggable-cache is not
     // replicated — requirement group data is recomputed on demand, so there is
     // nothing to evict.

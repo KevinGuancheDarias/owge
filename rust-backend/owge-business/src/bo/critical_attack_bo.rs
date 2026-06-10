@@ -10,11 +10,11 @@
 //! `findUsedCriticalAttack`, `buildFullInformation`) are part of the mission
 //! system and are out of scope for this admin port.
 
-use crate::db::Db;
 use crate::dto::critical_attack_information::CriticalAttackInformationResponse;
 use crate::dto::{CriticalAttackDto, CriticalAttackEntryDto, CriticalAttackInput};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::critical_attack::{CriticalAttack, CriticalAttackEntry};
+use sqlx::MySqlConnection;
 
 /// `AttackableTargetEnum.UNIT` / `UNIT_TYPE`, stored as text.
 const TARGET_UNIT: &str = "UNIT";
@@ -25,12 +25,15 @@ pub struct CriticalAttackBo;
 impl CriticalAttackBo {
     /// Loads a `critical_attack` and its entries as a [`CriticalAttackDto`]
     /// (mirrors `CriticalAttackBo.toDto`). Returns `None` if the row is missing.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<CriticalAttackDto>> {
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<CriticalAttackDto>> {
         let row = sqlx::query_as::<_, CriticalAttack>(
             "SELECT id, name FROM critical_attack WHERE id = ?",
         )
         .bind(id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         let Some(row) = row else {
             return Ok(None);
@@ -40,7 +43,7 @@ impl CriticalAttackBo {
              FROM critical_attack_entries WHERE critical_attack_id = ? ORDER BY id",
         )
         .bind(id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(Some(CriticalAttackDto {
             id: row.id,
@@ -67,7 +70,7 @@ impl CriticalAttackBo {
     /// unit type's parent chain, or the default `1.0`). Sorted by descending
     /// value the same way Java does (`b.value*1000 - a.value*1000`).
     pub async fn build_full_information(
-        db: &Db,
+        conn: &mut MySqlConnection,
         critical_attack_id: u16,
     ) -> OwgeResult<Vec<CriticalAttackInformationResponse>> {
         let entries = sqlx::query_as::<_, CriticalAttackEntry>(
@@ -75,7 +78,7 @@ impl CriticalAttackBo {
              FROM critical_attack_entries WHERE critical_attack_id = ? ORDER BY id",
         )
         .bind(critical_attack_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
 
         // unit_types.findAll() ordered by id (mirrors UnitTypeBo.findAll), as
@@ -83,7 +86,7 @@ impl CriticalAttackBo {
         let unit_types = sqlx::query_as::<_, (u16, String, Option<u16>)>(
             "SELECT id, name, parent_type FROM unit_types ORDER BY id",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         let parent_of: std::collections::HashMap<u16, Option<u16>> =
             unit_types.iter().map(|(id, _, p)| (*id, *p)).collect();
@@ -92,7 +95,7 @@ impl CriticalAttackBo {
 
         // Entries that target a concrete unit.
         for entry in entries.iter().filter(|e| e.target == TARGET_UNIT) {
-            ret_val.push(Self::map_entry_to_information_response(db, entry).await?);
+            ret_val.push(Self::map_entry_to_information_response(&mut *conn, entry).await?);
         }
 
         // One per unit type: its first matching rule, or the default value.
@@ -102,7 +105,7 @@ impl CriticalAttackBo {
                 .find(|entry| Self::matches_unit_type(entry.reference_id, *type_id, &parent_of));
             match matching {
                 Some(entry) => {
-                    ret_val.push(Self::map_entry_to_information_response(db, entry).await?);
+                    ret_val.push(Self::map_entry_to_information_response(&mut *conn, entry).await?);
                 }
                 None => ret_val.push(CriticalAttackInformationResponse {
                     target: "UNIT_TYPE".to_string(),
@@ -114,9 +117,7 @@ impl CriticalAttackBo {
         }
 
         // b.value*1000 - a.value*1000 (descending value).
-        ret_val.sort_by(|a, b| {
-            ((b.value * 1000.0) as i64).cmp(&((a.value * 1000.0) as i64))
-        });
+        ret_val.sort_by(|a, b| ((b.value * 1000.0) as i64).cmp(&((a.value * 1000.0) as i64)));
         Ok(ret_val)
     }
 
@@ -140,13 +141,13 @@ impl CriticalAttackBo {
     /// `CriticalAttackBo.mapEntryToInformationResponse` — resolves the target's
     /// name (`unit` name when target is `UNIT`, else the `unit_type` name).
     async fn map_entry_to_information_response(
-        db: &Db,
+        conn: &mut MySqlConnection,
         entry: &CriticalAttackEntry,
     ) -> OwgeResult<CriticalAttackInformationResponse> {
         let target_name: String = if entry.target == TARGET_UNIT {
             sqlx::query_scalar("SELECT name FROM units WHERE id = ?")
                 .bind(entry.reference_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?
                 .ok_or_else(|| {
                     OwgeError::NotFound(format!("No unit with id {}", entry.reference_id))
@@ -154,7 +155,7 @@ impl CriticalAttackBo {
         } else {
             sqlx::query_scalar("SELECT name FROM unit_types WHERE id = ?")
                 .bind(entry.reference_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?
                 .ok_or_else(|| {
                     OwgeError::NotFound(format!("No unit type with id {}", entry.reference_id))
@@ -170,14 +171,17 @@ impl CriticalAttackBo {
 
     /// `CriticalAttackBo.save` for a create (no id) — inserts the rule then its
     /// entries. `critical_attack.id` is AUTO_INCREMENT.
-    pub async fn save_new(db: &Db, input: &CriticalAttackInput) -> OwgeResult<CriticalAttackDto> {
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &CriticalAttackInput,
+    ) -> OwgeResult<CriticalAttackDto> {
         let result = sqlx::query("INSERT INTO critical_attack (name) VALUES (?)")
             .bind(&input.name)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         let id = result.last_insert_id() as u16;
-        Self::insert_entries(db, id, input).await?;
-        Self::find_by_id(db, id)
+        Self::insert_entries(&mut *conn, id, input).await?;
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Critical attack vanished right after insert".into()))
     }
@@ -185,32 +189,38 @@ impl CriticalAttackBo {
     /// `CriticalAttackBo.save` for an update — replaces the row's name and all
     /// of its entries (delete-then-insert, matching the Java code).
     pub async fn save_existing(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         input: &CriticalAttackInput,
     ) -> OwgeResult<CriticalAttackDto> {
         let affected = sqlx::query("UPDATE critical_attack SET name = ? WHERE id = ?")
             .bind(&input.name)
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?
             .rows_affected();
         if affected == 0 {
-            return Err(OwgeError::NotFound(format!("No critical attack with id {id}")));
+            return Err(OwgeError::NotFound(format!(
+                "No critical attack with id {id}"
+            )));
         }
         sqlx::query("DELETE FROM critical_attack_entries WHERE critical_attack_id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
-        Self::insert_entries(db, id, input).await?;
-        Self::find_by_id(db, id)
+        Self::insert_entries(&mut *conn, id, input).await?;
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No critical attack with id {id}")))
     }
 
     /// Inserts the body's entries for the given critical attack, clamping
     /// negative values to their absolute value (Java `Math.abs`).
-    async fn insert_entries(db: &Db, id: u16, input: &CriticalAttackInput) -> OwgeResult<()> {
+    async fn insert_entries(
+        conn: &mut MySqlConnection,
+        id: u16,
+        input: &CriticalAttackInput,
+    ) -> OwgeResult<()> {
         for entry in &input.entries {
             let value = entry.value.abs();
             sqlx::query(
@@ -221,7 +231,7 @@ impl CriticalAttackBo {
             .bind(&entry.target)
             .bind(entry.reference_id)
             .bind(value)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         }
         Ok(())
@@ -229,14 +239,14 @@ impl CriticalAttackBo {
 
     /// `CriticalAttackBo.delete(Integer)` — removes the rule's entries then the
     /// rule itself.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
         sqlx::query("DELETE FROM critical_attack_entries WHERE critical_attack_id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         sqlx::query("DELETE FROM critical_attack WHERE id = ?")
             .bind(id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }

@@ -16,12 +16,12 @@
 //! The recursion-based `findAttackRule` / `canAttack` combat helpers are part of
 //! the mission engine, not this admin endpoint, and are out of scope here.
 
-use crate::db::Db;
 use crate::dto::attack_rule::{
     AttackRuleDto, AttackRuleEntryDto, AttackRuleEntryInput, AttackRuleInput,
 };
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::attack_rule::{AttackRule, AttackRuleEntry};
+use sqlx::{Connection, MySqlConnection};
 
 impl From<AttackRuleEntry> for AttackRuleEntryDto {
     fn from(r: AttackRuleEntry) -> Self {
@@ -40,11 +40,15 @@ pub struct AttackRuleBo;
 
 impl AttackRuleBo {
     /// Loads an attack rule with its entries as a DTO, or `None` if absent.
-    pub async fn find_by_id(db: &Db, id: u16) -> OwgeResult<Option<AttackRuleDto>> {
-        let rule = sqlx::query_as::<_, AttackRule>("SELECT id, name FROM attack_rules WHERE id = ?")
-            .bind(id)
-            .fetch_optional(db)
-            .await?;
+    pub async fn find_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<AttackRuleDto>> {
+        let rule =
+            sqlx::query_as::<_, AttackRule>("SELECT id, name FROM attack_rules WHERE id = ?")
+                .bind(id)
+                .fetch_optional(&mut *conn)
+                .await?;
         let Some(rule) = rule else {
             return Ok(None);
         };
@@ -53,7 +57,7 @@ impl AttackRuleBo {
              FROM attack_rule_entries WHERE attack_rule_id = ? ORDER BY id",
         )
         .bind(id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(Some(AttackRuleDto {
             id: rule.id,
@@ -65,8 +69,11 @@ impl AttackRuleBo {
     /// `AttackRuleBo.save` for a brand-new rule — `attack_rules.id` is
     /// AUTO_INCREMENT. Inserts the rule and all of its entries in one
     /// transaction.
-    pub async fn save_new(db: &Db, input: &AttackRuleInput) -> OwgeResult<AttackRuleDto> {
-        let mut tx = db.begin().await?;
+    pub async fn save_new(
+        conn: &mut MySqlConnection,
+        input: &AttackRuleInput,
+    ) -> OwgeResult<AttackRuleDto> {
+        let mut tx = conn.begin().await?;
         let result = sqlx::query("INSERT INTO attack_rules (name) VALUES (?)")
             .bind(&input.name)
             .execute(&mut *tx)
@@ -74,7 +81,7 @@ impl AttackRuleBo {
         let id = result.last_insert_id() as u16;
         Self::insert_entries(&mut tx, id, &input.entries).await?;
         tx.commit().await?;
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::Common("Attack rule vanished right after insert".into()))
     }
@@ -83,11 +90,11 @@ impl AttackRuleBo {
     /// previous entries (`deleteByAttackRuleId`) and re-inserts the body's
     /// entries, all in one transaction.
     pub async fn save_existing(
-        db: &Db,
+        conn: &mut MySqlConnection,
         id: u16,
         input: &AttackRuleInput,
     ) -> OwgeResult<AttackRuleDto> {
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         let affected = sqlx::query("UPDATE attack_rules SET name = ? WHERE id = ?")
             .bind(&input.name)
             .bind(id)
@@ -103,14 +110,14 @@ impl AttackRuleBo {
             .await?;
         Self::insert_entries(&mut tx, id, &input.entries).await?;
         tx.commit().await?;
-        Self::find_by_id(db, id)
+        Self::find_by_id(&mut *conn, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No attack rule with id {id}")))
     }
 
     /// `AttackRuleBo.delete` — removes the rule's entries and then the rule.
-    pub async fn delete(db: &Db, id: u16) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+    pub async fn delete(conn: &mut MySqlConnection, id: u16) -> OwgeResult<()> {
+        let mut tx = conn.begin().await?;
         sqlx::query("DELETE FROM attack_rule_entries WHERE attack_rule_id = ?")
             .bind(id)
             .execute(&mut *tx)

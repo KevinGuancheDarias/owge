@@ -10,9 +10,8 @@
 
 use sqlx::MySqlConnection;
 
-use crate::db::Db;
-use crate::dto::improvement::{ImprovementDto, ImprovementUnitTypeDto};
 use crate::dto::UnitTypeDto;
+use crate::dto::improvement::{ImprovementDto, ImprovementUnitTypeDto};
 use crate::error::{OwgeError, OwgeResult};
 
 /// An `improvements` row, with exact column types so sqlx never panics on
@@ -76,7 +75,9 @@ impl From<ImprovementUnitTypeRow> for ImprovementUnitTypeDto {
             id: r.unit_type_id,
             name: r.unit_type_name,
             image: r.unit_type_image,
-            image_url: r.unit_type_image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
+            image_url: r
+                .unit_type_image_filename
+                .map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
             max_count: r.unit_type_max_count,
             share_max_count_id: r.unit_type_share_max_count_id,
             parent_id: r.unit_type_parent_id,
@@ -109,7 +110,10 @@ impl ImprovementBo {
     /// `CrudWithImprovements.find` — build the full `ImprovementDto` (including the
     /// nested `unitTypesUpgrades`) for an entity's `improvement_id`.
     /// `NotFound("I18N_ERR_NULL_IMPROVEMENT")` when the entity has no improvement.
-    pub async fn find_dto(db: &Db, improvement_id: Option<u16>) -> OwgeResult<ImprovementDto> {
+    pub async fn find_dto(
+        conn: &mut MySqlConnection,
+        improvement_id: Option<u16>,
+    ) -> OwgeResult<ImprovementDto> {
         let improvement_id = improvement_id
             .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
         let row = sqlx::query_as::<_, ImprovementRow>(
@@ -119,13 +123,16 @@ impl ImprovementBo {
              FROM improvements WHERE id = ?",
         )
         .bind(improvement_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?
         .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
-        let unit_types_upgrades = Self::load_unit_type_improvement_dtos(db, improvement_id).await?;
+        let unit_types_upgrades =
+            Self::load_unit_type_improvement_dtos(&mut *conn, improvement_id).await?;
         Ok(ImprovementDto {
             id: row.id,
-            more_primary_resource_production: row.more_primary_resource_production.map(|v| v as f32),
+            more_primary_resource_production: row
+                .more_primary_resource_production
+                .map(|v| v as f32),
             more_secondary_resource_production: row
                 .more_secondary_resource_production
                 .map(|v| v as f32),
@@ -148,7 +155,7 @@ impl ImprovementBo {
     /// matching `dtoUtilService.entityFromDto` which narrows back to the entity's
     /// declared field types (`Short`/`Byte`/`Float`).
     pub async fn update_from_dto(
-        db: &Db,
+        conn: &mut MySqlConnection,
         improvement_id: u16,
         dto: &ImprovementDto,
     ) -> OwgeResult<ImprovementDto> {
@@ -167,7 +174,7 @@ impl ImprovementBo {
         .bind(dto.more_upgrade_research_speed)
         .bind(dto.more_unit_build_speed)
         .bind(improvement_id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         // No further cache action needed here: `update_from_dto` is only called
         // from `save_for_entity`, which calls `UserImprovementBo::evict_all()`
@@ -175,7 +182,7 @@ impl ImprovementBo {
         // level). This is an admin definition edit, so there is no specific user
         // to emit `user_improvements_change` to — `evict_all()` is the correct
         // granularity and is already applied by the callers.
-        Self::find_dto(db, Some(improvement_id)).await
+        Self::find_dto(&mut *conn, Some(improvement_id)).await
     }
 
     /// Resolves an entity's `improvement_id` column, distinguishing
@@ -183,14 +190,14 @@ impl ImprovementBo {
     /// but has no improvement" (`Ok(None)`). `table` must be a trusted constant
     /// (never user input) — it is interpolated into the SQL.
     pub async fn resolve_entity_improvement_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         table: &str,
         id: u16,
     ) -> OwgeResult<Option<u16>> {
         let improvement_id: Option<Option<u16>> =
             sqlx::query_scalar(&format!("SELECT improvement_id FROM {table} WHERE id = ?"))
                 .bind(id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
         match improvement_id {
             None => Err(OwgeError::NotFound(format!("No {table} with id {id}"))),
@@ -200,35 +207,39 @@ impl ImprovementBo {
 
     /// `GET {id}/improvement` for an entity stored in `table` (with an
     /// `improvement_id` column).
-    pub async fn find_for_entity(db: &Db, table: &str, id: u16) -> OwgeResult<ImprovementDto> {
-        let improvement_id = Self::resolve_entity_improvement_id(db, table, id).await?;
-        Self::find_dto(db, improvement_id).await
+    pub async fn find_for_entity(
+        conn: &mut MySqlConnection,
+        table: &str,
+        id: u16,
+    ) -> OwgeResult<ImprovementDto> {
+        let improvement_id = Self::resolve_entity_improvement_id(&mut *conn, table, id).await?;
+        Self::find_dto(&mut *conn, improvement_id).await
     }
 
     /// `PUT {id}/improvement` for an entity stored in `table` — create-if-missing
     /// then update, linking the new improvement via the entity's `improvement_id`.
     pub async fn save_for_entity(
-        db: &Db,
+        conn: &mut MySqlConnection,
         table: &str,
         id: u16,
         dto: &ImprovementDto,
     ) -> OwgeResult<ImprovementDto> {
-        let improvement_id = match Self::resolve_entity_improvement_id(db, table, id).await? {
-            Some(existing) => existing,
-            None => {
-                let mut conn = db.acquire().await?;
-                let new_id = Self::create_empty(&mut conn).await?;
-                sqlx::query(&format!(
-                    "UPDATE {table} SET improvement_id = ? WHERE id = ?"
-                ))
-                .bind(new_id)
-                .bind(id)
-                .execute(db)
-                .await?;
-                new_id
-            }
-        };
-        let result = Self::update_from_dto(db, improvement_id, dto).await?;
+        let improvement_id =
+            match Self::resolve_entity_improvement_id(&mut *conn, table, id).await? {
+                Some(existing) => existing,
+                None => {
+                    let new_id = Self::create_empty(&mut *conn).await?;
+                    sqlx::query(&format!(
+                        "UPDATE {table} SET improvement_id = ? WHERE id = ?"
+                    ))
+                    .bind(new_id)
+                    .bind(id)
+                    .execute(&mut *conn)
+                    .await?;
+                    new_id
+                }
+            };
+        let result = Self::update_from_dto(&mut *conn, improvement_id, dto).await?;
         // clearCacheEntries: an improvement *definition* changed → any user holding
         // it has a stale aggregate.
         crate::bo::UserImprovementBo::evict_all();
@@ -237,42 +248,43 @@ impl ImprovementBo {
 
     /// `GET {id}/improvement/unitTypeImprovements` for an entity in `table`.
     pub async fn find_unit_type_improvements_for_entity(
-        db: &Db,
+        conn: &mut MySqlConnection,
         table: &str,
         id: u16,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
-        let improvement_id = Self::resolve_entity_improvement_id(db, table, id)
+        let improvement_id = Self::resolve_entity_improvement_id(&mut *conn, table, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
-        Self::load_unit_type_improvement_dtos(db, improvement_id).await
+        Self::load_unit_type_improvement_dtos(&mut *conn, improvement_id).await
     }
 
     /// `POST {id}/improvement/unitTypeImprovements` for an entity in `table`.
     pub async fn add_unit_type_improvement_for_entity(
-        db: &Db,
+        conn: &mut MySqlConnection,
         table: &str,
         id: u16,
         dto: &ImprovementUnitTypeDto,
     ) -> OwgeResult<ImprovementUnitTypeDto> {
-        let improvement_id = Self::resolve_entity_improvement_id(db, table, id)
+        let improvement_id = Self::resolve_entity_improvement_id(&mut *conn, table, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
-        let result = Self::add_unit_type_improvement(db, improvement_id, dto).await?;
+        let result = Self::add_unit_type_improvement(&mut *conn, improvement_id, dto).await?;
         crate::bo::UserImprovementBo::evict_all();
         Ok(result)
     }
 
     /// `DELETE {id}/improvement/unitTypeImprovements/{uti}` for an entity in `table`.
     pub async fn delete_unit_type_improvement_for_entity(
-        db: &Db,
+        conn: &mut MySqlConnection,
         table: &str,
         id: u16,
         unit_type_improvement_id: u16,
     ) -> OwgeResult<()> {
-        let improvement_id = Self::resolve_entity_improvement_id(db, table, id)
+        let improvement_id = Self::resolve_entity_improvement_id(&mut *conn, table, id)
             .await?
             .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
-        Self::remove_unit_type_improvement(db, improvement_id, unit_type_improvement_id).await?;
+        Self::remove_unit_type_improvement(&mut *conn, improvement_id, unit_type_improvement_id)
+            .await?;
         crate::bo::UserImprovementBo::evict_all();
         Ok(())
     }
@@ -289,14 +301,14 @@ impl ImprovementBo {
     /// `ImprovementUnitTypeBo.loadImprovementUnitTypes` + `convertEntireArray` —
     /// the per-unit-type improvements for an improvement, as DTOs.
     pub async fn load_unit_type_improvement_dtos(
-        db: &Db,
+        conn: &mut MySqlConnection,
         improvement_id: u16,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
         let rows = sqlx::query_as::<_, ImprovementUnitTypeRow>(&format!(
             "{SELECT_IMPROVEMENT_UNIT_TYPE} WHERE iut.improvement_id = ? ORDER BY iut.id"
         ))
         .bind(improvement_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -311,7 +323,7 @@ impl ImprovementBo {
     /// "unit type must have a max count" check is omitted (a value-only check
     /// against the unit-type config — see the TODO).
     pub async fn add_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         improvement_id: u16,
         dto: &ImprovementUnitTypeDto,
     ) -> OwgeResult<ImprovementUnitTypeDto> {
@@ -326,7 +338,7 @@ impl ImprovementBo {
         let unit_type_exists: bool =
             sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM unit_types WHERE id = ?")
                 .bind(unit_type_id)
-                .fetch_one(db)
+                .fetch_one(&mut *conn)
                 .await?
                 > 0;
         if !unit_type_exists {
@@ -346,7 +358,7 @@ impl ImprovementBo {
         .bind(improvement_id)
         .bind(type_value)
         .bind(unit_type_id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?
             > 0;
         if duplicated {
@@ -362,7 +374,7 @@ impl ImprovementBo {
         .bind(type_value)
         .bind(unit_type_id)
         .bind(value as i32)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         let id = result.last_insert_id() as u16;
         // No further cache action here: `add_unit_type_improvement_for_entity`
@@ -372,7 +384,7 @@ impl ImprovementBo {
             "{SELECT_IMPROVEMENT_UNIT_TYPE} WHERE iut.id = ?"
         ))
         .bind(id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         Ok(row.into())
     }
@@ -381,7 +393,7 @@ impl ImprovementBo {
     /// `removeImprovementUnitType` — delete a per-unit-type improvement after
     /// verifying it belongs to the given improvement.
     pub async fn remove_unit_type_improvement(
-        db: &Db,
+        conn: &mut MySqlConnection,
         improvement_id: u16,
         unit_type_improvement_id: u16,
     ) -> OwgeResult<()> {
@@ -390,7 +402,7 @@ impl ImprovementBo {
         )
         .bind(unit_type_improvement_id)
         .bind(improvement_id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?
             > 0;
         if !belongs {
@@ -400,7 +412,7 @@ impl ImprovementBo {
         }
         sqlx::query("DELETE FROM improvements_unit_types WHERE id = ?")
             .bind(unit_type_improvement_id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         // No further cache action here: `delete_unit_type_improvement_for_entity`
         // (the only public caller) already calls `UserImprovementBo::evict_all()`

@@ -13,7 +13,6 @@ use sqlx::MySqlConnection;
 use crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo;
 use crate::bo::user_improvement_bo::UserImprovementBo;
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -24,14 +23,13 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     involved_units: &[ObtainedUnit],
-    db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();
     let target_planet_id = mission.target_planet.map(|p| p as u64);
 
     let continue_mission =
-        attack::trigger_attack_if_required(conn, mission, MissionType::Gather, db, emits).await?;
+        attack::trigger_attack_if_required(conn, mission, MissionType::Gather, emits).await?;
     if !continue_mission {
         return Ok(None);
     }
@@ -57,7 +55,7 @@ pub async fn process(
     let with_planet_richness = gathered as f64 * rational_richness;
 
     // improvementBo.findUserImprovement(user).getMoreChargeCapacity() as rational.
-    let grouped = UserImprovementBo::find_user_improvement(db, user_id).await?;
+    let grouped = UserImprovementBo::find_user_improvement(&mut *conn, user_id).await?;
     let with_user_improvement =
         with_planet_richness + with_planet_richness * (grouped.more_charge_capacity / 100.0);
 
@@ -103,15 +101,11 @@ pub async fn process(
 }
 
 /// `Planet.findRationalRichness` — `richness / 100`.
-async fn find_rational_richness(
-    conn: &mut MySqlConnection,
-    planet_id: u64,
-) -> OwgeResult<f64> {
-    let richness: Option<u16> =
-        sqlx::query_scalar("SELECT richness FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+async fn find_rational_richness(conn: &mut MySqlConnection, planet_id: u64) -> OwgeResult<f64> {
+    let richness: Option<u16> = sqlx::query_scalar("SELECT richness FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(richness.unwrap_or(0) as f64 / 100.0)
 }
 

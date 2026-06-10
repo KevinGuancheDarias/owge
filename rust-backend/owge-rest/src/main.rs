@@ -91,9 +91,7 @@ async fn run() -> owge_business::OwgeResult<()> {
         tracing::info!("serving REST under context path {context_path}");
         axum::Router::new().nest(&context_path, routed)
     };
-    let app = routed
-        .layer(cors)
-        .layer(TraceLayer::new_for_http());
+    let app = routed.layer(cors).layer(TraceLayer::new_for_http());
 
     let listener = tokio::net::TcpListener::bind(&bind)
         .await

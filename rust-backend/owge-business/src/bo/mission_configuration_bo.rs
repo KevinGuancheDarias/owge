@@ -6,8 +6,9 @@
 //! [`ConfigurationBo::find_or_set_default`], which inserts the default the first
 //! time the key is read — same observable result without a boot hook.
 
+use sqlx::MySqlConnection;
+
 use crate::bo::ConfigurationBo;
-use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::MissionType;
 
@@ -36,7 +37,10 @@ impl MissionConfigurationBo {
     /// (and lazily inserts) the value via `ConfigurationBo::find_or_set_default`.
     /// Unsupported mission types raise `InvalidInput` (the Java
     /// `SgtBackendInvalidInputException`).
-    pub async fn find_mission_base_time(db: &Db, mission_type: MissionType) -> OwgeResult<i64> {
+    pub async fn find_mission_base_time(
+        conn: &mut MySqlConnection,
+        mission_type: MissionType,
+    ) -> OwgeResult<i64> {
         let (key, default) = match mission_type {
             MissionType::Explore => (MISSION_TIME_EXPLORE_KEY, DEFAULT_TIME_EXPLORE),
             MissionType::Gather => (MISSION_TIME_GATHER_KEY, DEFAULT_TIME_GATHER),
@@ -53,10 +57,10 @@ impl MissionConfigurationBo {
                 return Err(OwgeError::InvalidInput(format!(
                     "Unsupported mission base time type, specified: {}",
                     other.code()
-                )))
+                )));
             }
         };
-        let value = ConfigurationBo::find_or_set_default(db, key, default)
+        let value = ConfigurationBo::find_or_set_default(&mut *conn, key, default)
             .await?
             .value;
         value.trim().parse::<i64>().map_err(|_| {

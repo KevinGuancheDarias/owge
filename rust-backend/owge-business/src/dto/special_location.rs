@@ -48,4 +48,3 @@ pub struct SpecialLocationInput {
     #[serde(default)]
     pub cloned_improvements: bool,
 }
-

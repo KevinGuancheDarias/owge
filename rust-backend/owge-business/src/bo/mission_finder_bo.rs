@@ -19,12 +19,12 @@
 
 use crate::bo::mission_base_service_bo::SELECT_MISSION;
 use crate::bo::unit_bo::UnitBo;
-use crate::db::Db;
-use crate::dto::running_unit_build::RunningUnitBuildDto;
 use crate::dto::PlanetDto;
+use crate::dto::running_unit_build::RunningUnitBuildDto;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::{Mission, MissionType};
 use crate::model::planet::PlanetDtoRow;
+use sqlx::MySqlConnection;
 
 pub struct MissionFinderBo;
 
@@ -33,30 +33,30 @@ impl MissionFinderBo {
     /// BUILD_UNIT mission for the user whose `mission_information.value` equals
     /// `planetId`, as a [`RunningUnitBuildDto`], or `None`.
     pub async fn find_running_unit_build(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         planet_id: u64,
     ) -> OwgeResult<Option<RunningUnitBuildDto>> {
         // findByUserIdAndTypeCodeAndMissionInformationValue(userId, BUILD_UNIT, planetId).
-        let Some(mission_id) = find_build_mission_id(db, user_id, planet_id).await? else {
+        let Some(mission_id) = find_build_mission_id(&mut *conn, user_id, planet_id).await? else {
             return Ok(None);
         };
 
         let mission = sqlx::query_as::<_, Mission>(SELECT_MISSION)
             .bind(mission_id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?
             .ok_or_else(|| OwgeError::Common(format!("Mission {mission_id} vanished")))?;
 
         // missionInformation.getRelation() -> unboxObjectRelation: a UNIT
         // object_relation resolves to the units row via object_relations.reference_id.
-        let unit_id = resolve_unit_id_for_mission(db, mission_id).await?;
-        let unit = UnitBo::find_by_id(db, unit_id)
+        let unit_id = resolve_unit_id_for_mission(&mut *conn, mission_id).await?;
+        let unit = UnitBo::find_by_id(&mut *conn, unit_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No unit with id {unit_id}")))?;
 
         // SpringRepositoryUtil.findByIdOrDie(planetRepository, planetId.longValue()).
-        let planet = find_planet_dto(db, planet_id)
+        let planet = find_planet_dto(&mut *conn, planet_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No planet with id {planet_id}")))?;
 
@@ -64,7 +64,7 @@ impl MissionFinderBo {
         let count: u64 =
             sqlx::query_scalar("SELECT count FROM obtained_units WHERE mission_id = ? LIMIT 1")
                 .bind(mission_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?
                 .ok_or_else(|| {
                     OwgeError::Common(format!(
@@ -79,8 +79,12 @@ impl MissionFinderBo {
 
     /// True iff a BUILD_UNIT mission for `user_id` has
     /// `mission_information.value == planet_id` (used by `planet/leave`).
-    pub async fn has_running_unit_build(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<bool> {
-        Ok(find_build_mission_id(db, user_id, planet_id)
+    pub async fn has_running_unit_build(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        planet_id: u64,
+    ) -> OwgeResult<bool> {
+        Ok(find_build_mission_id(&mut *conn, user_id, planet_id)
             .await?
             .is_some())
     }
@@ -88,7 +92,11 @@ impl MissionFinderBo {
 
 /// The BUILD_UNIT mission id for the user whose `mission_information.value`
 /// equals `planet_id`, if any.
-async fn find_build_mission_id(db: &Db, user_id: i32, planet_id: u64) -> OwgeResult<Option<u64>> {
+async fn find_build_mission_id(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    planet_id: u64,
+) -> OwgeResult<Option<u64>> {
     Ok(sqlx::query_scalar(
         "SELECT m.id FROM missions m \
            JOIN mission_information mi ON mi.mission_id = m.id \
@@ -97,20 +105,23 @@ async fn find_build_mission_id(db: &Db, user_id: i32, planet_id: u64) -> OwgeRes
     .bind(user_id)
     .bind(MissionType::BuildUnit.value())
     .bind(planet_id as f64)
-    .fetch_optional(db)
+    .fetch_optional(&mut *conn)
     .await?)
 }
 
 /// `objectRelationBo.unboxObjectRelation(missionInformation.getRelation())` for a
 /// UNIT relation — the referenced unit id (`object_relations.reference_id`).
-async fn resolve_unit_id_for_mission(db: &Db, mission_id: u64) -> OwgeResult<u16> {
+async fn resolve_unit_id_for_mission(
+    conn: &mut MySqlConnection,
+    mission_id: u64,
+) -> OwgeResult<u16> {
     let reference_id: Option<i16> = sqlx::query_scalar(
         "SELECT o.reference_id FROM mission_information mi \
            JOIN object_relations o ON o.id = mi.relation_id \
           WHERE mi.mission_id = ?",
     )
     .bind(mission_id)
-    .fetch_optional(db)
+    .fetch_optional(&mut *conn)
     .await?;
     let reference_id = reference_id.ok_or_else(|| {
         OwgeError::Common(format!(
@@ -121,7 +132,10 @@ async fn resolve_unit_id_for_mission(db: &Db, mission_id: u64) -> OwgeResult<u16
 }
 
 /// `PlanetBo.toDto` for a single planet by id (mirrors `PlanetBo`'s DTO SELECT).
-async fn find_planet_dto(db: &Db, planet_id: u64) -> OwgeResult<Option<PlanetDto>> {
+async fn find_planet_dto(
+    conn: &mut MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Option<PlanetDto>> {
     let row = sqlx::query_as::<_, PlanetDtoRow>(
         "SELECT p.id, p.name, p.sector, p.quadrant, p.planet_number AS planet_number, \
                 p.owner AS owner_id, o.username AS owner_name, p.richness, \
@@ -132,7 +146,7 @@ async fn find_planet_dto(db: &Db, planet_id: u64) -> OwgeResult<Option<PlanetDto
          WHERE p.id = ?",
     )
     .bind(planet_id)
-    .fetch_optional(db)
+    .fetch_optional(&mut *conn)
     .await?;
     Ok(row.map(Into::into))
 }

@@ -41,7 +41,7 @@
 use std::collections::{HashMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use sqlx::MySqlConnection;
 
 use crate::bo::mission_report_manager_bo::MissionReportManagerBo;
@@ -49,9 +49,9 @@ use crate::bo::realtime_emitter::RequirementEmit;
 use crate::builder::UnitMissionReportBuilder;
 use crate::dto::user_improvement::{ImprovementType, UserImprovementDto};
 use crate::error::{OwgeError, OwgeResult};
+use crate::model::UserStorage;
 use crate::model::mission::Mission;
 use crate::model::obtained_unit::ObtainedUnit;
-use crate::model::UserStorage;
 
 /// An `obtained_units` row enriched with the unit catalog scalars and the owning
 /// user's alliance — everything the combat loop needs without further round-trips.
@@ -385,13 +385,16 @@ impl AttackMissionManagerBo {
         let count = initial_count as f64;
 
         let attack_imp = as_rational(
-            improvement.find_unit_type_improvement_for_chain(ImprovementType::Attack, unit_type_chain),
+            improvement
+                .find_unit_type_improvement_for_chain(ImprovementType::Attack, unit_type_chain),
         );
         let shield_imp = as_rational(
-            improvement.find_unit_type_improvement_for_chain(ImprovementType::Shield, unit_type_chain),
+            improvement
+                .find_unit_type_improvement_for_chain(ImprovementType::Shield, unit_type_chain),
         );
         let defense_imp = as_rational(
-            improvement.find_unit_type_improvement_for_chain(ImprovementType::Defense, unit_type_chain),
+            improvement
+                .find_unit_type_improvement_for_chain(ImprovementType::Defense, unit_type_chain),
         );
 
         let mut total_attack = count * row.unit_attack.unwrap_or(0) as f64;
@@ -442,10 +445,18 @@ impl AttackMissionManagerBo {
                 .copied()
                 .filter(|&i| {
                     let target = &info.units[i];
-                    are_enemies(uid, ualliance, target.row.user_id, target.row.user_alliance_id)
+                    are_enemies(
+                        uid,
+                        ualliance,
+                        target.row.user_id,
+                        target.row.user_alliance_id,
+                    )
                 })
                 .collect();
-            info.users.get_mut(&user_id).expect("present").attackable_indices = attackable;
+            info.users
+                .get_mut(&user_id)
+                .expect("present")
+                .attackable_indices = attackable;
         }
 
         // Capture the target planet's owner (pre-conquest reassignment) for the
@@ -562,7 +573,8 @@ impl AttackMissionManagerBo {
             }
         };
 
-        let killed_count = Self::add_points_and_update_count(info, my_attack, source_idx, target_idx);
+        let killed_count =
+            Self::add_points_and_update_count(info, my_attack, source_idx, target_idx);
         // `attackEventEmitter.emitAfterUnitKilledCalculation` — roll the capture
         // rule for this attacker→victim pair (runs before the wipe DELETE below,
         // matching Java's call order inside `addPointsAndUpdateCount`).
@@ -752,8 +764,7 @@ impl AttackMissionManagerBo {
             return Ok(());
         }
         // `Long.parseLong(args.get(0|1))` — malformed args yield no capture here.
-        let (Ok(probability), Ok(percentage)) =
-            (parts[0].parse::<i64>(), parts[1].parse::<i64>())
+        let (Ok(probability), Ok(percentage)) = (parts[0].parse::<i64>(), parts[1].parse::<i64>())
         else {
             return Ok(());
         };
@@ -790,9 +801,14 @@ impl AttackMissionManagerBo {
         let victim_chain = Self::unit_type_chain(conn, victim_unit_type).await?;
 
         // 1. unit vs unit
-        if let Some(extra) =
-            Self::lookup_rule(conn, "UNIT", attacker_unit_id as i64, "UNIT", victim_unit_id as i64)
-                .await?
+        if let Some(extra) = Self::lookup_rule(
+            conn,
+            "UNIT",
+            attacker_unit_id as i64,
+            "UNIT",
+            victim_unit_id as i64,
+        )
+        .await?
         {
             return Ok(extra);
         }
@@ -808,7 +824,8 @@ impl AttackMissionManagerBo {
         // 3. unit-type (up the attacker's chain) vs unit
         for &f in &attacker_chain {
             if let Some(extra) =
-                Self::lookup_rule(conn, "UNIT_TYPE", f as i64, "UNIT", victim_unit_id as i64).await?
+                Self::lookup_rule(conn, "UNIT_TYPE", f as i64, "UNIT", victim_unit_id as i64)
+                    .await?
             {
                 return Ok(extra);
             }
@@ -832,9 +849,14 @@ impl AttackMissionManagerBo {
         .fetch_all(&mut *conn)
         .await?;
         for ts_id in time_special_ids {
-            if let Some(extra) =
-                Self::lookup_rule(conn, "TIME_SPECIAL", ts_id as i64, "UNIT", victim_unit_id as i64)
-                    .await?
+            if let Some(extra) = Self::lookup_rule(
+                conn,
+                "TIME_SPECIAL",
+                ts_id as i64,
+                "UNIT",
+                victim_unit_id as i64,
+            )
+            .await?
             {
                 return Ok(extra);
             }
@@ -889,26 +911,26 @@ impl AttackMissionManagerBo {
 
         // Java: source/target come from the captor unit's mission when it has one,
         // otherwise the captured units land on the captor unit's own planet.
-        let (source_planet, dest_planet): (Option<u64>, Option<u64>) =
-            if let Some(mission_id) = captor_mission_id {
-                let row: Option<(Option<i64>, Option<i64>)> = sqlx::query_as(
-                    "SELECT source_planet, target_planet FROM missions WHERE id = ?",
-                )
-                .bind(mission_id)
-                .fetch_optional(&mut *conn)
-                .await?;
-                match row {
-                    Some((s, t)) => (s.map(|v| v as u64), t.map(|v| v as u64)),
-                    None => (None, None),
-                }
-            } else {
-                let sp: Option<Option<u64>> =
-                    sqlx::query_scalar("SELECT source_planet FROM obtained_units WHERE id = ?")
-                        .bind(captor_ou_id)
-                        .fetch_optional(&mut *conn)
-                        .await?;
-                (None, sp.flatten())
-            };
+        let (source_planet, dest_planet): (Option<u64>, Option<u64>) = if let Some(mission_id) =
+            captor_mission_id
+        {
+            let row: Option<(Option<i64>, Option<i64>)> =
+                sqlx::query_as("SELECT source_planet, target_planet FROM missions WHERE id = ?")
+                    .bind(mission_id)
+                    .fetch_optional(&mut *conn)
+                    .await?;
+            match row {
+                Some((s, t)) => (s.map(|v| v as u64), t.map(|v| v as u64)),
+                None => (None, None),
+            }
+        } else {
+            let sp: Option<Option<u64>> =
+                sqlx::query_scalar("SELECT source_planet FROM obtained_units WHERE id = ?")
+                    .bind(captor_ou_id)
+                    .fetch_optional(&mut *conn)
+                    .await?;
+            (None, sp.flatten())
+        };
         // Java dereferences `targetPlanet.getId()`; without a destination there is
         // nowhere to station the units, so skip (cannot happen for attack stacks,
         // which always carry a mission with a target planet).
@@ -1234,12 +1256,11 @@ impl AttackMissionManagerBo {
     ) -> OwgeResult<Option<u16>> {
         let mut current = unit_type_id;
         while let Some(id) = current {
-            let row: Option<(Option<u16>, Option<u16>)> = sqlx::query_as(
-                "SELECT attack_rule_id, parent_type FROM unit_types WHERE id = ?",
-            )
-            .bind(id)
-            .fetch_optional(&mut *conn)
-            .await?;
+            let row: Option<(Option<u16>, Option<u16>)> =
+                sqlx::query_as("SELECT attack_rule_id, parent_type FROM unit_types WHERE id = ?")
+                    .bind(id)
+                    .fetch_optional(&mut *conn)
+                    .await?;
             match row {
                 Some((Some(rule), _)) => return Ok(Some(rule)),
                 Some((None, parent)) => current = parent,
@@ -1497,10 +1518,7 @@ fn next_unit_f64(state: &mut u64) -> f64 {
 
 /// Load the full `UserStorage` on the caller's connection — needed to drive the
 /// requirement-trigger engine (which reads `faction` / `home_planet`).
-async fn load_user_storage(
-    conn: &mut MySqlConnection,
-    user_id: i32,
-) -> OwgeResult<UserStorage> {
+async fn load_user_storage(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<UserStorage> {
     sqlx::query_as::<_, UserStorage>(
         "SELECT id, username, email, alliance_id, faction, last_action, home_planet, \
                 primary_resource, secondary_resource, energy, \

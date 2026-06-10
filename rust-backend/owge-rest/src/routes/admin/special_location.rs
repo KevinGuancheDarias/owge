@@ -9,10 +9,10 @@ use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 use owge_business::bo::SpecialLocationBo;
+use owge_business::dto::ImprovementUnitTypeDto;
 use owge_business::dto::special_location::{
     ImprovementDto, SpecialLocationDto, SpecialLocationInput,
 };
-use owge_business::dto::ImprovementUnitTypeDto;
 
 use crate::auth::AdminUser;
 use crate::http_error::{ApiError, ApiResult};
@@ -47,7 +47,8 @@ async fn find_all(
     State(state): State<AppState>,
     _admin: AdminUser,
 ) -> ApiResult<Json<Vec<SpecialLocationDto>>> {
-    Ok(Json(SpecialLocationBo::find_all(&state.db).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(SpecialLocationBo::find_all(&mut conn).await?))
 }
 
 async fn find_one(
@@ -55,7 +56,8 @@ async fn find_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<SpecialLocationDto>> {
-    SpecialLocationBo::find_by_id(&state.db, id)
+    let mut conn = state.db.acquire().await?;
+    SpecialLocationBo::find_by_id(&mut conn, id)
         .await?
         .map(Json)
         .ok_or_else(|| {
@@ -70,7 +72,8 @@ async fn save_new(
     _admin: AdminUser,
     Json(input): Json<SpecialLocationInput>,
 ) -> ApiResult<Json<SpecialLocationDto>> {
-    Ok(Json(SpecialLocationBo::save_new(&state.db, &input).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(SpecialLocationBo::save_new(&mut conn, &input).await?))
 }
 
 async fn save_existing(
@@ -79,8 +82,9 @@ async fn save_existing(
     Path(id): Path<u16>,
     Json(input): Json<SpecialLocationInput>,
 ) -> ApiResult<Json<SpecialLocationDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        SpecialLocationBo::save_existing(&state.db, id, &input).await?,
+        SpecialLocationBo::save_existing(&mut conn, id, &input).await?,
     ))
 }
 
@@ -89,7 +93,8 @@ async fn delete_one(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<StatusCode> {
-    SpecialLocationBo::delete(&state.db, id).await?;
+    let mut conn = state.db.acquire().await?;
+    SpecialLocationBo::delete(&mut conn, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -100,7 +105,10 @@ async fn find_improvement(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<ImprovementDto>> {
-    Ok(Json(SpecialLocationBo::find_improvement(&state.db, id).await?))
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        SpecialLocationBo::find_improvement(&mut conn, id).await?,
+    ))
 }
 
 /// `PUT '{id}/improvement'` — `ImprovementBo.createOrUpdateFromDto`.
@@ -110,8 +118,9 @@ async fn save_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementDto>,
 ) -> ApiResult<Json<ImprovementDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        SpecialLocationBo::save_improvement(&state.db, id, &dto).await?,
+        SpecialLocationBo::save_improvement(&mut conn, id, &dto).await?,
     ))
 }
 
@@ -121,8 +130,9 @@ async fn find_unit_type_improvements(
     _admin: AdminUser,
     Path(id): Path<u16>,
 ) -> ApiResult<Json<Vec<ImprovementUnitTypeDto>>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        SpecialLocationBo::find_unit_type_improvements(&state.db, id).await?,
+        SpecialLocationBo::find_unit_type_improvements(&mut conn, id).await?,
     ))
 }
 
@@ -133,8 +143,9 @@ async fn add_unit_type_improvement(
     Path(id): Path<u16>,
     Json(dto): Json<ImprovementUnitTypeDto>,
 ) -> ApiResult<Json<ImprovementUnitTypeDto>> {
+    let mut conn = state.db.acquire().await?;
     Ok(Json(
-        SpecialLocationBo::add_unit_type_improvement(&state.db, id, &dto).await?,
+        SpecialLocationBo::add_unit_type_improvement(&mut conn, id, &dto).await?,
     ))
 }
 
@@ -144,7 +155,8 @@ async fn delete_unit_type_improvement(
     _admin: AdminUser,
     Path((id, unit_type_improvement_id)): Path<(u16, u16)>,
 ) -> ApiResult<StatusCode> {
-    SpecialLocationBo::delete_unit_type_improvement(&state.db, id, unit_type_improvement_id)
+    let mut conn = state.db.acquire().await?;
+    SpecialLocationBo::delete_unit_type_improvement(&mut conn, id, unit_type_improvement_id)
         .await?;
     Ok(StatusCode::NO_CONTENT)
 }

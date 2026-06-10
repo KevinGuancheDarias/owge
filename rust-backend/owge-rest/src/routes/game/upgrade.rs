@@ -15,9 +15,9 @@ use axum::extract::State;
 use axum::routing::get;
 use axum::{Json, Router};
 
+use owge_business::OwgeError;
 use owge_business::bo::MissionBo;
 use owge_business::dto::mission::RunningUpgradeDto;
-use owge_business::OwgeError;
 
 use crate::auth::GameUser;
 use crate::http_error::ApiResult;
@@ -43,16 +43,17 @@ async fn register_level_up(
     GameUser(user): GameUser,
     axum::extract::Query(q): axum::extract::Query<RegisterLevelUpQuery>,
 ) -> ApiResult<Json<RunningUpgradeDto>> {
+    let mut conn = state.db.acquire().await?;
     let user_id = user.id as i32;
-    MissionBo::register_level_up_an_upgrade(&state.db, user_id, q.upgrade_id).await?;
-    let mut running = MissionBo::find_running_level_up_mission(&state.db, user_id)
+    MissionBo::register_level_up_an_upgrade(&mut conn, user_id, q.upgrade_id).await?;
+    let mut running = MissionBo::find_running_level_up_mission(&mut conn, user_id)
         .await?
         .ok_or_else(|| {
             OwgeError::Common(
                 "Running level-up mission vanished right after registration".to_string(),
             )
         })?;
-    running.missions_count = Some(MissionBo::count_unresolved_missions(&state.db, user_id).await?);
+    running.missions_count = Some(MissionBo::count_unresolved_missions(&mut conn, user_id).await?);
     Ok(Json(running))
 }
 
@@ -62,6 +63,7 @@ async fn cancel_upgrade(
     State(state): State<AppState>,
     GameUser(user): GameUser,
 ) -> ApiResult<&'static str> {
-    MissionBo::cancel_upgrade_mission(&state.db, user.id as i32).await?;
+    let mut conn = state.db.acquire().await?;
+    MissionBo::cancel_upgrade_mission(&mut conn, user.id as i32).await?;
     Ok("{}")
 }

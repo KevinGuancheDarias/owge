@@ -2,8 +2,8 @@
 //! returns the string `"OK"` — used by the admin frontend to verify the admin
 //! token works.
 
-use axum::routing::get;
 use axum::Router;
+use axum::routing::get;
 
 use crate::auth::AdminUser;
 use crate::state::AppState;

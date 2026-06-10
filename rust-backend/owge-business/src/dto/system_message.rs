@@ -79,7 +79,6 @@ where
 impl SystemMessageInput {
     /// The effective creation date: the supplied value, or "now" in UTC.
     pub fn effective_creation_date(&self) -> NaiveDateTime {
-        self.creation_date
-            .unwrap_or_else(|| Utc::now().naive_utc())
+        self.creation_date.unwrap_or_else(|| Utc::now().naive_utc())
     }
 }

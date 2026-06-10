@@ -134,14 +134,16 @@ impl UnitInterceptionFinderBo {
         let defenders = Self::find_involved_in_attack(conn, target_planet_id).await?;
 
         // alreadyIntercepted: an involved unit is intercepted at most once.
-        let mut already_intercepted: std::collections::HashSet<u64> = std::collections::HashSet::new();
+        let mut already_intercepted: std::collections::HashSet<u64> =
+            std::collections::HashSet::new();
         // interceptedMap keyed by interceptor user id, insertion-ordered.
         let mut order: Vec<i32> = Vec::new();
         let mut intercepted_map: std::collections::HashMap<i32, InterceptedUnitsInformation> =
             std::collections::HashMap::new();
 
         for defender in &defenders {
-            let interceptable_groups = Self::find_interceptable_group_ids(conn, defender.unit_id).await?;
+            let interceptable_groups =
+                Self::find_interceptable_group_ids(conn, defender.unit_id).await?;
             if interceptable_groups.is_empty() {
                 continue;
             }
@@ -207,7 +209,8 @@ impl UnitInterceptionFinderBo {
             None => involved.unit_id,
         };
         let applicable =
-            Self::find_applicable_speed_impact_group(conn, involved.user_id, target_unit_id).await?;
+            Self::find_applicable_speed_impact_group(conn, involved.user_id, target_unit_id)
+                .await?;
         Ok(matches!(applicable, Some(group_id) if interceptable_group_ids.contains(&group_id)))
     }
 
@@ -258,12 +261,11 @@ impl UnitInterceptionFinderBo {
         conn: &mut MySqlConnection,
         unit_id: u16,
     ) -> OwgeResult<Option<u16>> {
-        let row: Option<(Option<u16>, Option<u16>)> = sqlx::query_as(
-            "SELECT speed_impact_group_id, type FROM units WHERE id = ?",
-        )
-        .bind(unit_id)
-        .fetch_optional(&mut *conn)
-        .await?;
+        let row: Option<(Option<u16>, Option<u16>)> =
+            sqlx::query_as("SELECT speed_impact_group_id, type FROM units WHERE id = ?")
+                .bind(unit_id)
+                .fetch_optional(&mut *conn)
+                .await?;
         let Some((own_group, unit_type_id)) = row else {
             return Ok(None);
         };

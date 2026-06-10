@@ -37,7 +37,6 @@ use crate::bo::upgrade_bo::UpgradeBo;
 use crate::bo::user_improvement_bo::UserImprovementBo;
 use crate::bo::user_storage_bo::UserStorageBo;
 use crate::bo::{MissionEventEmitter, UserEventEmitter};
-use crate::db::Db;
 use crate::dto::mission::RunningUpgradeDto;
 use crate::dto::user_improvement::{ImprovementType, UserImprovementDto};
 use crate::error::{OwgeError, OwgeResult};
@@ -90,7 +89,7 @@ impl MissionBo {
     /// validation + persistence then runs in one transaction so a rejected build
     /// leaves no partial state.
     pub async fn register_build_unit(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         planet_id: u64,
         unit_id: u16,
@@ -100,7 +99,7 @@ impl MissionBo {
         let owner: Option<Option<i32>> =
             sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
                 .bind(planet_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
         if !matches!(owner, Some(Some(o)) if o == user_id) {
             return Err(OwgeError::InvalidInput(
@@ -109,22 +108,19 @@ impl MissionBo {
         }
 
         let keys = vec![user_lock_key(user_id), planet_lock_key(planet_id)];
-        let mut conn = db.acquire().await?;
-        let db_for_body = db.clone();
-        crate::bo::unit_mission_bo::run_locked(&mut conn, &keys, move |conn| {
+        crate::bo::unit_mission_bo::run_locked(&mut *conn, &keys, move |conn| {
             Box::pin(async move {
-                do_register_build_unit(conn, &db_for_body, user_id, planet_id, unit_id, count).await
+                do_register_build_unit(conn, user_id, planet_id, unit_id, count).await
             })
         })
         .await?;
-        drop(conn);
 
         // M4 (Java MissionBo build-register tail): emitMissionCountChange +
         // emitUnitBuildChange + unitTypeBo.emitUserChange + emitUserData.
-        MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
-        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
-        UnitTypeEmitter::emit_unit_type_change(db, user_id).await?;
-        UserEventEmitter::emit_user_data(db, user_id).await?;
+        MissionEventEmitter::emit_unit_build_change(&mut *conn, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(&mut *conn, user_id).await?;
+        UserEventEmitter::emit_user_data(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -133,8 +129,12 @@ impl MissionBo {
     /// then delete the mission and abort its scheduled completion. No planet/user
     /// lock (matching Java's plain `@Transactional`); one transaction so the refund
     /// and the deletes are atomic.
-    pub async fn cancel_build_unit(db: &Db, user_id: i32, mission_id: u64) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+    pub async fn cancel_build_unit(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        mission_id: u64,
+    ) -> OwgeResult<()> {
+        let mut tx = conn.begin().await?;
         let mission = load_mission(&mut tx, mission_id).await?.ok_or_else(|| {
             OwgeError::NotFound(
                 "The mission was not found, or was not passed to cancelMission()".to_string(),
@@ -193,9 +193,9 @@ impl MissionBo {
 
         tx.commit().await?;
 
-        MissionEventEmitter::emit_unit_build_change(db, user_id).await?;
-        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
-        UnitTypeEmitter::emit_unit_type_change(db, user_id).await?;
+        MissionEventEmitter::emit_unit_build_change(&mut *conn, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -207,26 +207,21 @@ impl MissionBo {
     /// validation + persistence runs in one transaction so a rejected level-up
     /// leaves no partial state. Direct sibling of [`Self::register_build_unit`].
     pub async fn register_level_up_an_upgrade(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         upgrade_id: u16,
     ) -> OwgeResult<()> {
         let keys = vec![user_lock_key(user_id)];
-        let mut conn = db.acquire().await?;
-        let db_for_body = db.clone();
-        crate::bo::unit_mission_bo::run_locked(&mut conn, &keys, move |conn| {
-            Box::pin(
-                async move { do_register_level_up(conn, &db_for_body, user_id, upgrade_id).await },
-            )
+        crate::bo::unit_mission_bo::run_locked(&mut *conn, &keys, move |conn| {
+            Box::pin(async move { do_register_level_up(conn, user_id, upgrade_id).await })
         })
         .await?;
-        drop(conn);
 
         // M4 (Java MissionBo.registerLevelUpAnUpgrade tail): emitRunningUpgrade +
         // emitMissionCountChange + emitUserData.
-        MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
-        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
-        UserEventEmitter::emit_user_data(db, user_id).await?;
+        MissionEventEmitter::emit_running_upgrade(&mut *conn, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id).await?;
+        UserEventEmitter::emit_user_data(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -234,14 +229,13 @@ impl MissionBo {
     /// mission for the user as a [`RunningUpgradeDto`], or `None`. Drives the
     /// `running_upgrade_change` sync payload and the `registerLevelUp` response.
     pub async fn find_running_level_up_mission(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Option<RunningUpgradeDto>> {
-        let mut conn = db.acquire().await?;
-        let Some(mission) = load_level_up_mission(&mut conn, user_id).await? else {
+        let Some(mission) = load_level_up_mission(&mut *conn, user_id).await? else {
             return Ok(None);
         };
-        let info = load_mission_information(&mut conn, mission.id)
+        let info = load_mission_information(&mut *conn, mission.id)
             .await?
             .ok_or_else(|| {
                 OwgeError::Common(format!(
@@ -255,8 +249,8 @@ impl MissionBo {
                 mission.id
             ))
         })?;
-        let upgrade_id = resolve_upgrade_id(&mut conn, relation_id).await?;
-        let upgrade = UpgradeBo::find_one(db, upgrade_id)
+        let upgrade_id = resolve_upgrade_id(&mut *conn, relation_id).await?;
+        let upgrade = UpgradeBo::find_one(&mut *conn, upgrade_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No upgrade with id {upgrade_id}")))?;
         // missionInformation.getValue().intValue() — the level being researched.
@@ -271,8 +265,11 @@ impl MissionBo {
     /// mission and abort its scheduled completion. No lock (matching Java's plain
     /// `@Transactional`); one transaction so the refund and deletes are atomic.
     /// Unlike BUILD_UNIT there are no in-build units to drop.
-    pub async fn cancel_upgrade_mission(db: &Db, user_id: i32) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+    pub async fn cancel_upgrade_mission(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<()> {
+        let mut tx = conn.begin().await?;
         // findOneByUserIdAndTypeCode(LEVEL_UP) — the invoker's running level-up.
         // cancelMission throws MissionNotFoundException when there is none.
         let mission = load_level_up_mission(&mut tx, user_id)
@@ -321,18 +318,21 @@ impl MissionBo {
 
         // M4 (Java MissionBo.cancelUpgradeMission): RUNNING_UPGRADE_CHANGE -> null +
         // emitMissionCountChange.
-        MissionEventEmitter::emit_running_upgrade(db, user_id).await?;
-        MissionEventEmitter::emit_mission_count_change(db, user_id).await?;
+        MissionEventEmitter::emit_running_upgrade(&mut *conn, user_id).await?;
+        MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id).await?;
         Ok(())
     }
 
     /// `missionRepository.countByUserIdAndResolvedFalse` — the unresolved-mission
     /// count the `registerLevelUp` response carries in `missionsCount`.
-    pub async fn count_unresolved_missions(db: &Db, user_id: i32) -> OwgeResult<i32> {
+    pub async fn count_unresolved_missions(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<i32> {
         let count: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM missions WHERE user_id = ? AND resolved = 0")
                 .bind(user_id)
-                .fetch_one(db)
+                .fetch_one(&mut *conn)
                 .await?;
         Ok(count as i32)
     }
@@ -576,7 +576,6 @@ struct UnitCost {
 /// schedule completion — all in one transaction on the pinned, locked connection.
 async fn do_register_build_unit(
     conn: &mut MySqlConnection,
-    db: &Db,
     user_id: i32,
     planet_id: u64,
     unit_id: u16,
@@ -606,17 +605,18 @@ async fn do_register_build_unit(
         .await?
         .ok_or_else(|| OwgeError::NotFound(format!("No object relation for unit {unit_id}")))?;
     let unlocked =
-        UnlockedRelationBo::find_unlocked_reference_ids(db, user_id, object_enum::UNIT).await?;
+        UnlockedRelationBo::find_unlocked_reference_ids(&mut tx, user_id, object_enum::UNIT)
+            .await?;
     if !unlocked.contains(&(unit_id as i16)) {
         return Err(OwgeError::InvalidInput(
             "The specified unit is not unlocked for the invoker".to_string(),
         ));
     }
 
-    let user = UserStorageBo::find_by_id(db, user_id)
+    let user = UserStorageBo::find_by_id(&mut tx, user_id)
         .await?
         .ok_or_else(|| OwgeError::NotFound(format!("No user with id {user_id}")))?;
-    MissionBaseService::check_mission_limit_not_reached(db, user_id).await?;
+    MissionBaseService::check_mission_limit_not_reached(&mut tx, user_id).await?;
 
     let unit = load_unit_cost(&mut tx, unit_id).await?;
     let final_count = if unit.is_unique { 1 } else { count };
@@ -650,12 +650,11 @@ async fn do_register_build_unit(
     let required_energy = unit.energy.unwrap_or(0) as f64 * final_count as f64;
 
     // canRun(user): enough primary/secondary resources and energy headroom.
-    let improvement = UserImprovementBo::find_user_improvement(db, user_id).await?;
+    let improvement = UserImprovementBo::find_user_improvement(&mut tx, user_id).await?;
     let primary = user.primary_resource.unwrap_or(0.0);
     let secondary = user.secondary_resource.unwrap_or(0.0);
     let available_energy = find_available_energy(
         &mut tx,
-        db,
         user.faction,
         user_id,
         improvement.more_energy_production,
@@ -669,16 +668,20 @@ async fn do_register_build_unit(
     }
 
     // moreUnitBuildSpeed reduces the build time (computeImprovementValue sum=false).
-    required_time =
-        compute_improvement_value(db, required_time, improvement.more_unit_build_speed, false)
-            .await?;
+    required_time = compute_improvement_value(
+        &mut tx,
+        required_time,
+        improvement.more_unit_build_speed,
+        false,
+    )
+    .await?;
 
     // checkWouldReachUnitTypeLimit.
-    check_would_reach_unit_type_limit(&mut tx, db, &user, unit.type_id, final_count, &improvement)
+    check_would_reach_unit_type_limit(&mut tx, &user, unit.type_id, final_count, &improvement)
         .await?;
 
     // ZERO_BUILD_TIME (default TRUE) collapses the build time to 3s.
-    if ConfigurationBo::find_or_set_default(db, "ZERO_BUILD_TIME", "TRUE")
+    if ConfigurationBo::find_or_set_default(&mut tx, "ZERO_BUILD_TIME", "TRUE")
         .await?
         .value
         == "TRUE"
@@ -775,7 +778,6 @@ async fn load_unit_cost(conn: &mut MySqlConnection, unit_id: u16) -> OwgeResult<
 /// improvement; consumedEnergy = Σ(count × unit.energy) over the user's units.
 async fn find_available_energy(
     conn: &mut MySqlConnection,
-    db: &Db,
     faction_id: u16,
     user_id: i32,
     more_energy_production: f64,
@@ -786,7 +788,7 @@ async fn find_available_energy(
             .fetch_optional(&mut *conn)
             .await?;
     let max_energy = compute_improvement_value(
-        db,
+        &mut *conn,
         initial_energy.unwrap_or(0) as f64,
         more_energy_production,
         true,
@@ -807,13 +809,13 @@ async fn find_available_energy(
 /// percentage in `IMPROVEMENT_STEP`-sized increments (default 10), summing or
 /// subtracting each step off the running value.
 pub(crate) async fn compute_improvement_value(
-    db: &Db,
+    conn: &mut MySqlConnection,
     base: f64,
     input_percentage: f64,
     sum: bool,
 ) -> OwgeResult<f64> {
     let mut ret_val = base;
-    let mut step: f64 = ConfigurationBo::find_or_set_default(db, "IMPROVEMENT_STEP", "10")
+    let mut step: f64 = ConfigurationBo::find_or_set_default(&mut *conn, "IMPROVEMENT_STEP", "10")
         .await?
         .value
         .trim()
@@ -844,7 +846,6 @@ pub(crate) async fn compute_improvement_value(
 /// `countByUserAndUnitType` + `countByUserAndSharedCountUnitType` sum).
 async fn check_would_reach_unit_type_limit(
     conn: &mut MySqlConnection,
-    db: &Db,
     user: &crate::model::UserStorage,
     type_id: u16,
     count: i64,
@@ -891,7 +892,7 @@ async fn check_would_reach_unit_type_limit(
 
     let amount_improvement =
         improvement.find_unit_type_improvement(ImprovementType::Amount, root_type);
-    let limit = compute_improvement_value(db, max as f64, amount_improvement, true)
+    let limit = compute_improvement_value(&mut *conn, max as f64, amount_improvement, true)
         .await?
         .floor() as i64;
     if user_count > limit {
@@ -1001,7 +1002,6 @@ async fn load_upgrade_cost(conn: &mut MySqlConnection, upgrade_id: u16) -> OwgeR
 /// pinned, locked connection.
 async fn do_register_level_up(
     conn: &mut MySqlConnection,
-    db: &Db,
     user_id: i32,
     upgrade_id: u16,
 ) -> OwgeResult<()> {
@@ -1041,10 +1041,10 @@ async fn do_register_level_up(
         ));
     }
 
-    let user = UserStorageBo::find_by_id(db, user_id)
+    let user = UserStorageBo::find_by_id(&mut tx, user_id)
         .await?
         .ok_or_else(|| OwgeError::NotFound(format!("No user with id {user_id}")))?;
-    MissionBaseService::check_mission_limit_not_reached(db, user_id).await?;
+    MissionBaseService::check_mission_limit_not_reached(&mut tx, user_id).await?;
 
     // calculateRequirementsAreMet(obtainedUpgrade): the upgrade's base cost grown
     // by `levelEffect` once per already-owned level (i.e. `current_level` times,
@@ -1071,16 +1071,16 @@ async fn do_register_level_up(
     // ZERO_UPGRADE_TIME (default TRUE) collapses the research time to 3s;
     // otherwise the moreUpgradeResearchSpeed improvement reduces it
     // (computeImprovementValue sum=false).
-    if ConfigurationBo::find_or_set_default(db, "ZERO_UPGRADE_TIME", "TRUE")
+    if ConfigurationBo::find_or_set_default(&mut tx, "ZERO_UPGRADE_TIME", "TRUE")
         .await?
         .value
         == "TRUE"
     {
         required_time = 5.0;
     } else {
-        let improvement = UserImprovementBo::find_user_improvement(db, user_id).await?;
+        let improvement = UserImprovementBo::find_user_improvement(&mut tx, user_id).await?;
         required_time = compute_improvement_value(
-            db,
+            &mut tx,
             required_time,
             improvement.more_upgrade_research_speed,
             false,

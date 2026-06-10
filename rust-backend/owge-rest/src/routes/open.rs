@@ -40,7 +40,12 @@ struct ConfigurationDto {
 /// `ConfigurationRestService.findUnprivilege` — the non-privileged settings the
 /// frontend needs before login.
 async fn configuration(State(state): State<AppState>) -> ApiResult<Json<Vec<ConfigurationDto>>> {
-    let configs = ConfigurationBo::find_public(&state.db).await?;
+    let mut conn = state
+        .db
+        .acquire()
+        .await
+        .map_err(owge_business::OwgeError::from)?;
+    let configs = ConfigurationBo::find_public(&mut conn).await?;
     let dtos = configs
         .into_iter()
         .map(|c| ConfigurationDto {
@@ -53,15 +58,23 @@ async fn configuration(State(state): State<AppState>) -> ApiResult<Json<Vec<Conf
 }
 
 /// `OpenWebsocketSyncRestService.findRules` — all rules plus the units they reference.
-async fn rule_change(
-    State(state): State<AppState>,
-) -> ApiResult<Json<RuleWithRelatedUnitsDto>> {
-    Ok(Json(RuleBo::find_all_with_related_units(&state.db).await?))
+async fn rule_change(State(state): State<AppState>) -> ApiResult<Json<RuleWithRelatedUnitsDto>> {
+    let mut conn = state
+        .db
+        .acquire()
+        .await
+        .map_err(owge_business::OwgeError::from)?;
+    Ok(Json(RuleBo::find_all_with_related_units(&mut conn).await?))
 }
 
 /// `OpenWebsocketSyncRestService.findSpeedImpactGroups` — all speed impact groups.
 async fn speed_group_change(
     State(state): State<AppState>,
 ) -> ApiResult<Json<Vec<SpeedImpactGroupDto>>> {
-    Ok(Json(SpeedImpactGroupBo::find_all_dtos(&state.db).await?))
+    let mut conn = state
+        .db
+        .acquire()
+        .await
+        .map_err(owge_business::OwgeError::from)?;
+    Ok(Json(SpeedImpactGroupBo::find_all_dtos(&mut conn).await?))
 }

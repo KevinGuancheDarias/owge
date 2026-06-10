@@ -12,9 +12,9 @@
 //! Computing that predicate is a call-site concern; the emitter only acts on it.
 
 use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::websocket::emitter;
+use sqlx::MySqlConnection;
 
 pub struct ObtainedUnitEventEmitter;
 
@@ -23,11 +23,13 @@ impl ObtainedUnitEventEmitter {
     ///
     /// Java: `ObtainedUnitEventEmitter.emitObtainedUnits` ->
     /// `socketIoService.sendMessage(user, UNIT_OBTAINED_CHANGE, () -> obtainedUnitFinderBo.findCompletedAsDto(user))`.
-    pub async fn emit_obtained_units(db: &Db, user_id: i32) -> OwgeResult<()> {
-        emitter::send_message(db, user_id, "unit_obtained_change", || async move {
-            Ok(serde_json::to_value(
-                crate::bo::ObtainedUnitBo::find_completed_dtos(db, user_id).await?,
-            )?)
+    pub async fn emit_obtained_units(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
+        emitter::send_message(conn, user_id, "unit_obtained_change", |conn| {
+            Box::pin(async move {
+                Ok(serde_json::to_value(
+                    crate::bo::ObtainedUnitBo::find_completed_dtos(&mut *conn, user_id).await?,
+                )?)
+            })
         })
         .await
     }
@@ -41,15 +43,15 @@ impl ObtainedUnitEventEmitter {
     /// The caller is responsible for determining `any_unit_has_energy`
     /// (i.e. whether any affected unit has `energy > 0`).
     pub async fn emit_side_changes(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         any_unit_has_energy: bool,
     ) -> OwgeResult<()> {
         if any_unit_has_energy {
-            crate::bo::user_event_emitter::UserEventEmitter::emit_user_data(db, user_id).await?;
+            crate::bo::user_event_emitter::UserEventEmitter::emit_user_data(conn, user_id).await?;
         }
-        UnitTypeEmitter::emit_unit_type_change(db, user_id).await?;
-        Self::emit_obtained_units(db, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(conn, user_id).await?;
+        Self::emit_obtained_units(conn, user_id).await?;
         Ok(())
     }
 }

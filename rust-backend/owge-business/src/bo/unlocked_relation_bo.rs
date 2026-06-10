@@ -6,8 +6,8 @@
 //! indirection) — the basis for `UnitBo.findAllByUser`, the unlocked
 //! speed-impact-groups, the available time-specials, etc.
 
-use crate::db::Db;
 use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 pub struct UnlockedRelationBo;
 
@@ -15,7 +15,7 @@ impl UnlockedRelationBo {
     /// `findByUserIdAndObjectType(userId, type)` unboxed to the referenced
     /// entity ids. `reference_id` is `smallint` (signed) in the schema.
     pub async fn find_unlocked_reference_ids(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         object_description: &str,
     ) -> OwgeResult<Vec<i16>> {
@@ -27,7 +27,7 @@ impl UnlockedRelationBo {
         )
         .bind(user_id)
         .bind(object_description)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(ids)
     }

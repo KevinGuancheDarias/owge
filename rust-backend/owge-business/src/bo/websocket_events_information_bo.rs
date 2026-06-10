@@ -4,9 +4,9 @@
 
 use chrono::NaiveDateTime;
 
-use crate::db::Db;
 use crate::dto::websocket::WebsocketEventsInformationDto;
 use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 pub struct WebsocketEventsInformationBo;
 
@@ -14,7 +14,7 @@ impl WebsocketEventsInformationBo {
     /// Upsert the watermark for `(event_name, user_id)`. The table has no unique
     /// key in the base schema, so we emulate save-or-update explicitly.
     pub async fn save(
-        db: &Db,
+        conn: &mut MySqlConnection,
         event_name: &str,
         user_id: i32,
         last_sent: NaiveDateTime,
@@ -26,7 +26,7 @@ impl WebsocketEventsInformationBo {
         .bind(last_sent)
         .bind(event_name)
         .bind(user_id)
-        .execute(db)
+        .execute(&mut *conn)
         .await?
         .rows_affected();
 
@@ -38,7 +38,7 @@ impl WebsocketEventsInformationBo {
             .bind(event_name)
             .bind(user_id)
             .bind(last_sent)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         }
         Ok(())
@@ -48,14 +48,14 @@ impl WebsocketEventsInformationBo {
     /// shaped as the [`WebsocketEventsInformationDto`] list the `authentication`
     /// reply carries. `lastSent` is rendered as epoch millis (see the dto docs).
     pub async fn find_by_user_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<WebsocketEventsInformationDto>> {
         let rows: Vec<(String, NaiveDateTime)> = sqlx::query_as(
             "SELECT event_name, last_sent FROM websocket_events_information WHERE user_id = ?",
         )
         .bind(user_id)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows
             .into_iter()

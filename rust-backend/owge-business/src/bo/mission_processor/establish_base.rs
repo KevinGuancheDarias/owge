@@ -9,7 +9,6 @@ use sqlx::MySqlConnection;
 
 use crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo;
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -23,7 +22,6 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     involved_units: &[ObtainedUnit],
-    db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();
@@ -32,8 +30,7 @@ pub async fn process(
         None => return Ok(None),
     };
 
-    if !attack::trigger_attack_if_required(conn, mission, MissionType::EstablishBase, db, emits)
-        .await?
+    if !attack::trigger_attack_if_required(conn, mission, MissionType::EstablishBase, emits).await?
     {
         return Ok(None);
     }
@@ -61,14 +58,10 @@ pub async fn process(
 }
 
 /// `targetPlanet.getOwner()` — the planet's owner id, if any.
-async fn find_planet_owner(
-    conn: &mut MySqlConnection,
-    planet_id: u64,
-) -> OwgeResult<Option<i32>> {
-    let owner: Option<Option<i32>> =
-        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+async fn find_planet_owner(conn: &mut MySqlConnection, planet_id: u64) -> OwgeResult<Option<i32>> {
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
     Ok(owner.flatten())
 }

@@ -11,7 +11,6 @@
 use sqlx::MySqlConnection;
 
 use crate::builder::UnitMissionReportBuilder;
-use crate::db::Db;
 use crate::error::OwgeResult;
 use crate::model::mission::Mission;
 use crate::model::obtained_unit::ObtainedUnit;
@@ -20,7 +19,6 @@ pub async fn process(
     conn: &mut MySqlConnection,
     mission: &Mission,
     _involved_units: &[ObtainedUnit],
-    _db: &Db,
     emits: &mut Vec<super::DeferredEmit>,
 ) -> OwgeResult<Option<UnitMissionReportBuilder>> {
     let user_id = mission.user_id.unwrap_or_default();
@@ -92,33 +90,37 @@ async fn move_unit_to_foreign_planet(
     // saveWithAdding: an existing DEPLOYED stack of the same unit/expiration at the
     // planet absorbs this count.
     let existing: Option<u64> = match ou.expiration_id {
-        None => sqlx::query_scalar(
-            "SELECT ou.id FROM obtained_units ou \
+        None => {
+            sqlx::query_scalar(
+                "SELECT ou.id FROM obtained_units ou \
                JOIN missions m ON m.id = ou.mission_id \
                JOIN mission_types mt ON mt.id = m.type \
               WHERE ou.user_id = ? AND ou.unit_id = ? AND ou.target_planet = ? \
                 AND mt.code = 'DEPLOYED' AND ou.expiration_id IS NULL AND ou.id <> ? LIMIT 1",
-        )
-        .bind(user_id)
-        .bind(ou.unit_id)
-        .bind(planet_id)
-        .bind(ou.id)
-        .fetch_optional(&mut *conn)
-        .await?,
-        Some(exp) => sqlx::query_scalar(
-            "SELECT ou.id FROM obtained_units ou \
+            )
+            .bind(user_id)
+            .bind(ou.unit_id)
+            .bind(planet_id)
+            .bind(ou.id)
+            .fetch_optional(&mut *conn)
+            .await?
+        }
+        Some(exp) => {
+            sqlx::query_scalar(
+                "SELECT ou.id FROM obtained_units ou \
                JOIN missions m ON m.id = ou.mission_id \
                JOIN mission_types mt ON mt.id = m.type \
               WHERE ou.user_id = ? AND ou.unit_id = ? AND ou.target_planet = ? \
                 AND mt.code = 'DEPLOYED' AND ou.expiration_id = ? AND ou.id <> ? LIMIT 1",
-        )
-        .bind(user_id)
-        .bind(ou.unit_id)
-        .bind(planet_id)
-        .bind(exp)
-        .bind(ou.id)
-        .fetch_optional(&mut *conn)
-        .await?,
+            )
+            .bind(user_id)
+            .bind(ou.unit_id)
+            .bind(planet_id)
+            .bind(exp)
+            .bind(ou.id)
+            .fetch_optional(&mut *conn)
+            .await?
+        }
     };
 
     if let Some(existing_id) = existing {

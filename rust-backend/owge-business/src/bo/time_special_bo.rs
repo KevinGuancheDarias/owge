@@ -13,9 +13,9 @@
 //! system, so it is stubbed to an empty list here — see
 //! [`TimeSpecialBo::find_user_status_dtos`].
 
-use crate::db::Db;
 use crate::dto::time_special::{ActiveTimeSpecialDto, TimeSpecialDto};
 use crate::error::OwgeResult;
+use sqlx::MySqlConnection;
 
 /// A `time_specials` row joined with its image and (optionally) the requesting
 /// user's `active_time_specials` row — exact SQL column types so sqlx never
@@ -40,11 +40,12 @@ struct TimeSpecialRow {
 
 impl From<TimeSpecialRow> for TimeSpecialDto {
     fn from(r: TimeSpecialRow) -> Self {
-        let image_url = r.image_filename.map(|f| crate::bo::image_store_bo::compute_image_url(&f));
+        let image_url = r
+            .image_filename
+            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
         let active_time_special_dto = match (r.active_id, r.active_state) {
             (Some(id), Some(state)) => {
-                let activation_date =
-                    r.active_activation_date.map(millis).unwrap_or_default();
+                let activation_date = r.active_activation_date.map(millis).unwrap_or_default();
                 let expiring_date = r.active_expiring_date.map(millis).unwrap_or_default();
                 let ready_date = r.active_ready_date.map(millis);
                 // `ActiveTimeSpecialDto.calculatePendingMillis`: time left until
@@ -107,10 +108,13 @@ impl TimeSpecialBo {
     /// `GET game/time_special` — the read-CRUD list. Returns every time special
     /// with the requesting user's activation status filled in
     /// (`TimeSpecialBo.toDto`).
-    pub async fn find_all_dtos(db: &Db, user_id: i32) -> OwgeResult<Vec<TimeSpecialDto>> {
+    pub async fn find_all_dtos(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<TimeSpecialDto>> {
         let rows = sqlx::query_as::<_, TimeSpecialRow>(&format!("{SELECT_DTO} ORDER BY ts.id"))
             .bind(user_id)
-            .fetch_all(db)
+            .fetch_all(&mut *conn)
             .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -118,14 +122,14 @@ impl TimeSpecialBo {
     /// `GET game/time_special/{id}` — a single time special with the requesting
     /// user's activation status, or `None` when it does not exist.
     pub async fn find_dto_by_id(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         id: u16,
     ) -> OwgeResult<Option<TimeSpecialDto>> {
         let row = sqlx::query_as::<_, TimeSpecialRow>(&format!("{SELECT_DTO} WHERE ts.id = ?"))
             .bind(user_id)
             .bind(id)
-            .fetch_optional(db)
+            .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
     }
@@ -134,9 +138,12 @@ impl TimeSpecialBo {
     /// the user has unlocked (`unlocked_relation` → `object_relations` of type
     /// `TIME_SPECIAL`), each with the requesting user's activation status filled
     /// in. Drives the `time_special_unlocked_change` emit.
-    pub async fn find_unlocked_dtos(db: &Db, user_id: i32) -> OwgeResult<Vec<TimeSpecialDto>> {
+    pub async fn find_unlocked_dtos(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<Vec<TimeSpecialDto>> {
         let ids = crate::bo::unlocked_relation_bo::UnlockedRelationBo::find_unlocked_reference_ids(
-            db,
+            &mut *conn,
             user_id,
             crate::model::object_relation::object_enum::TIME_SPECIAL,
         )
@@ -153,7 +160,7 @@ impl TimeSpecialBo {
         for id in &ids {
             query = query.bind(*id);
         }
-        let rows = query.fetch_all(db).await?;
+        let rows = query.fetch_all(&mut *conn).await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
 
@@ -165,9 +172,9 @@ impl TimeSpecialBo {
     /// (`recomputeDates` is reproduced inside the DTO mapping, which computes the
     /// pending millis relative to the current time at query.)
     pub async fn find_user_status_dtos(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<TimeSpecialDto>> {
-        Self::find_unlocked_dtos(db, user_id).await
+        Self::find_unlocked_dtos(&mut *conn, user_id).await
     }
 }

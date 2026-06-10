@@ -2,9 +2,9 @@
 //! error bodies (`BackendErrorPojo { exceptionType, message }`), so existing
 //! frontend error handling keeps working unchanged.
 
+use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use owge_business::OwgeError;
 use serde_json::json;
 
@@ -15,6 +15,14 @@ pub struct ApiError(pub OwgeError);
 impl From<OwgeError> for ApiError {
     fn from(e: OwgeError) -> Self {
         ApiError(e)
+    }
+}
+
+/// Lets handlers use `?` directly on raw sqlx results — most importantly the
+/// per-request `state.db.acquire()` at the top of every DB-touching handler.
+impl From<sqlx::Error> for ApiError {
+    fn from(e: sqlx::Error) -> Self {
+        ApiError(OwgeError::from(e))
     }
 }
 
@@ -68,8 +76,10 @@ impl IntoResponse for ApiError {
 /// never reads them, and `developerHint` embeds the deployed version so it can
 /// never be universally bit-for-bit.
 fn not_found_body(message: &str) -> serde_json::Value {
-    let is_i18n_key =
-        !message.is_empty() && message.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'_');
+    let is_i18n_key = !message.is_empty()
+        && message
+            .bytes()
+            .all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'_');
     if is_i18n_key {
         return json!({
             "message": message,

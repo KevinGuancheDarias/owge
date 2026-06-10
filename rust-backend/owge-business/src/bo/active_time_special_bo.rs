@@ -31,7 +31,7 @@
 //! The only remaining unported side effect is `improvementBo.clearSourceCache`
 //! (Rust recomputes user improvements on demand, so no cache to clear).
 
-use sqlx::MySqlConnection;
+use sqlx::{Connection, MySqlConnection};
 
 use crate::bo::realtime_emitter::RequirementEmit;
 use crate::bo::unlocked_relation_bo::UnlockedRelationBo;
@@ -59,28 +59,30 @@ impl ActiveTimeSpecialBo {
     /// pre-existing) active time special as the `ActiveTimeSpecialDto` the
     /// controller emits (`activeTimeSpecialBo.toDto(...)`).
     pub async fn activate(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         time_special_id: u16,
     ) -> OwgeResult<ActiveTimeSpecialDto> {
         // 1. findByIdOrDie — load the time special's `duration` (seconds); 404 if
         // it does not exist (NotFoundException → HTTP 404).
-        let duration: u64 = sqlx::query_scalar::<_, u64>(
-            "SELECT duration FROM time_specials WHERE id = ?",
-        )
-        .bind(time_special_id)
-        .fetch_optional(db)
-        .await?
-        .ok_or_else(|| {
-            OwgeError::NotFound(format!("No TimeSpecial with id {time_special_id}"))
-        })?;
+        let duration: u64 =
+            sqlx::query_scalar::<_, u64>("SELECT duration FROM time_specials WHERE id = ?")
+                .bind(time_special_id)
+                .fetch_optional(&mut *conn)
+                .await?
+                .ok_or_else(|| {
+                    OwgeError::NotFound(format!("No TimeSpecial with id {time_special_id}"))
+                })?;
 
         // 2. checkIsUnlocked: the TIME_SPECIAL relation must be unlocked for the
         // user. Java throws SgtBackendTargetNotUnlocked (a bare CommonException),
         // which the game-rest handler maps to HTTP 500.
-        let unlocked =
-            UnlockedRelationBo::find_unlocked_reference_ids(db, user_id, object_enum::TIME_SPECIAL)
-                .await?;
+        let unlocked = UnlockedRelationBo::find_unlocked_reference_ids(
+            &mut *conn,
+            user_id,
+            object_enum::TIME_SPECIAL,
+        )
+        .await?;
         if !unlocked.contains(&(time_special_id as i16)) {
             return Err(OwgeError::Common(
                 "The target object relation has not been unlocked".to_string(),
@@ -88,7 +90,9 @@ impl ActiveTimeSpecialBo {
         }
 
         // 3. findOneByTimeSpecial — already active/recharging? return unchanged.
-        if let Some(existing) = Self::find_one_by_time_special(db, time_special_id, user_id).await? {
+        if let Some(existing) =
+            Self::find_one_by_time_special(&mut *conn, time_special_id, user_id).await?
+        {
             tracing::warn!("The specified time special, is already active, doing nothing");
             return Ok(Self::to_dto(existing));
         }
@@ -100,7 +104,7 @@ impl ActiveTimeSpecialBo {
         // `unlocked_relation` and must commit atomically with the activation.
         let now = chrono::Utc::now().naive_utc();
         let expiring_date = now + chrono::Duration::seconds(duration as i64);
-        let mut tx = db.begin().await?;
+        let mut tx = conn.begin().await?;
         let result = sqlx::query(
             "INSERT INTO active_time_specials \
                  (user_id, time_special_id, state, activation_date, expiring_date, ready_date) \
@@ -142,16 +146,16 @@ impl ActiveTimeSpecialBo {
         tx.commit().await?;
 
         // Requirement-trigger unlock pushes now that the special is ACTIVE.
-        crate::bo::realtime_emitter::drain_requirement_emits(db, &req_emits).await?;
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
 
         // improvementBo.clearSourceCache(user, this): the new ACTIVE special adds an
         // improvement source — evict the cache and push user_improvements_change.
-        crate::bo::UserImprovementBo::evict_and_emit(db, user_id).await?;
+        crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, user_id).await?;
         // emitTimeSpecialChange(user) + emitIfActivationAffectingUnits — post-commit
         // websocket pushes (the applicationEventPublisher event remains unported;
         // requirement-trigger unlock emits are a follow-up).
-        crate::bo::realtime_emitter::emit_time_special_change(db, user_id).await?;
-        Self::emit_if_activation_affecting_units(db, user_id, time_special_id).await?;
+        crate::bo::realtime_emitter::emit_time_special_change(&mut *conn, user_id).await?;
+        Self::emit_if_activation_affecting_units(&mut *conn, user_id, time_special_id).await?;
 
         let new_active = ActiveTimeSpecial {
             id: new_id,
@@ -170,7 +174,7 @@ impl ActiveTimeSpecialBo {
     /// `UNIT_TYPE` (i.e. the special alters units, e.g. temporal-unit swaps), the
     /// user's obtained units changed shape, so re-emit `unit_obtained_change`.
     pub(crate) async fn emit_if_activation_affecting_units(
-        db: &Db,
+        conn: &mut MySqlConnection,
         user_id: i32,
         time_special_id: u16,
     ) -> OwgeResult<()> {
@@ -180,10 +184,10 @@ impl ActiveTimeSpecialBo {
                 AND destination_type IN ('UNIT', 'UNIT_TYPE')",
         )
         .bind(time_special_id)
-        .fetch_one(db)
+        .fetch_one(&mut *conn)
         .await?;
         if affects > 0 {
-            crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(db, user_id).await?;
+            crate::bo::ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, user_id).await?;
         }
         Ok(())
     }
@@ -191,7 +195,7 @@ impl ActiveTimeSpecialBo {
     /// `findOneByTimeSpecial(timeSpecialId, userId)` — the user's row for this
     /// special (ACTIVE or RECHARGE), or `None`.
     async fn find_one_by_time_special(
-        db: &Db,
+        conn: &mut MySqlConnection,
         time_special_id: u16,
         user_id: i32,
     ) -> OwgeResult<Option<ActiveTimeSpecial>> {
@@ -201,7 +205,7 @@ impl ActiveTimeSpecialBo {
         )
         .bind(time_special_id)
         .bind(user_id)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         Ok(row)
     }
@@ -256,6 +260,9 @@ impl ActiveTimeSpecialBo {
     /// `UNIT_EXPIRED` rows with a `version` CAS and dispatch each. Handler errors are logged and
     /// swallowed so the claimed row is still cleared (mirroring the mission poller).
     async fn poll_effects_once(db: &Db, worker_id: &str) -> OwgeResult<()> {
+        // Acquire exactly ONE connection for this tick; all handlers share it.
+        let mut conn = db.acquire().await?;
+
         let candidates: Vec<(String, String, i64)> = sqlx::query_as(
             "SELECT task_name, task_instance, version FROM scheduled_tasks \
              WHERE task_name IN (?, ?, ?) \
@@ -271,7 +278,7 @@ impl ActiveTimeSpecialBo {
         .bind(crate::bo::temporal_units_bo::UNIT_EXPIRED_TASK_NAME)
         .bind(STALE_PICK_MINUTES)
         .bind(POLL_BATCH)
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
 
         for (task_name, task_instance, version) in candidates {
@@ -284,7 +291,7 @@ impl ActiveTimeSpecialBo {
             .bind(&task_name)
             .bind(&task_instance)
             .bind(version)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
             if claimed.rows_affected() != 1 {
                 continue; // lost the CAS race to another worker/tick
@@ -293,12 +300,12 @@ impl ActiveTimeSpecialBo {
             match task_instance.parse::<u64>() {
                 Ok(id) => {
                     let result = if task_name == EFFECT_END_TASK_NAME {
-                        Self::handle_effect_end(db, id).await
+                        Self::handle_effect_end(&mut conn, id).await
                     } else if task_name == IS_READY_TASK_NAME {
-                        Self::handle_is_ready(db, id).await
+                        Self::handle_is_ready(&mut conn, id).await
                     } else {
                         // UNIT_EXPIRED — task_instance is the temporal-info id.
-                        crate::bo::TemporalUnitsBo::handle_unit_expired(db, id as u32).await
+                        crate::bo::TemporalUnitsBo::handle_unit_expired(&mut conn, id as u32).await
                     };
                     if let Err(e) = result {
                         tracing::error!("time-special {task_name}({id}) failed: {e}");
@@ -308,19 +315,19 @@ impl ActiveTimeSpecialBo {
                     tracing::warn!("non-numeric {task_name} task_instance {task_instance}");
                 }
             }
-            Self::delete_task(db, &task_name, &task_instance).await?;
+            Self::delete_task(&mut conn, &task_name, &task_instance).await?;
         }
         Ok(())
     }
 
     /// `TIME_SPECIAL_EFFECT_END` handler → `ActiveTimeSpecialBo.deactivate`: run the
     /// deactivation in its own transaction, then drain the queued post-commit emits.
-    async fn handle_effect_end(db: &Db, active_id: u64) -> OwgeResult<()> {
-        let mut tx = db.begin().await?;
+    async fn handle_effect_end(conn: &mut MySqlConnection, active_id: u64) -> OwgeResult<()> {
+        let mut tx = conn.begin().await?;
         let mut emits = Vec::new();
         Self::deactivate_in_tx(&mut tx, active_id, &mut emits).await?;
         tx.commit().await?;
-        crate::bo::realtime_emitter::drain_requirement_emits(db, &emits).await?;
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &emits).await?;
         Ok(())
     }
 
@@ -389,20 +396,20 @@ impl ActiveTimeSpecialBo {
     /// `TIME_SPECIAL_IS_READY` handler: the recharge finished — delete the
     /// `active_time_specials` row (the special is usable again) and emit
     /// `time_special_change`.
-    async fn handle_is_ready(db: &Db, active_id: u64) -> OwgeResult<()> {
+    async fn handle_is_ready(conn: &mut MySqlConnection, active_id: u64) -> OwgeResult<()> {
         let user_id: Option<i32> =
             sqlx::query_scalar("SELECT user_id FROM active_time_specials WHERE id = ?")
                 .bind(active_id)
-                .fetch_optional(db)
+                .fetch_optional(&mut *conn)
                 .await?;
         let Some(user_id) = user_id else {
             return Ok(());
         };
         sqlx::query("DELETE FROM active_time_specials WHERE id = ?")
             .bind(active_id)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
-        crate::bo::realtime_emitter::emit_time_special_change(db, user_id).await?;
+        crate::bo::realtime_emitter::emit_time_special_change(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -431,11 +438,15 @@ impl ActiveTimeSpecialBo {
         Ok(())
     }
 
-    async fn delete_task(db: &Db, task_name: &str, task_instance: &str) -> OwgeResult<()> {
+    async fn delete_task(
+        conn: &mut MySqlConnection,
+        task_name: &str,
+        task_instance: &str,
+    ) -> OwgeResult<()> {
         sqlx::query("DELETE FROM scheduled_tasks WHERE task_name = ? AND task_instance = ?")
             .bind(task_name)
             .bind(task_instance)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }

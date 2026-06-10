@@ -7,10 +7,10 @@ use chrono::Utc;
 use jsonwebtoken::Algorithm;
 use serde::Serialize;
 
-use crate::db::Db;
 use crate::error::{OwgeError, OwgeResult};
 use crate::jwt::{self, TokenUser};
 use crate::model::AdminUser;
+use sqlx::MySqlConnection;
 
 pub struct AdminUserBo;
 
@@ -54,22 +54,22 @@ impl From<AdminUser> for AdminUserDto {
 }
 
 impl AdminUserBo {
-    pub async fn find_by_id(db: &Db, id: i64) -> OwgeResult<Option<AdminUser>> {
+    pub async fn find_by_id(conn: &mut MySqlConnection, id: i64) -> OwgeResult<Option<AdminUser>> {
         let row = sqlx::query_as::<_, AdminUser>(
             "SELECT id, username, enabled, can_add_admins FROM admin_users WHERE id = ?",
         )
         .bind(id as u32)
-        .fetch_optional(db)
+        .fetch_optional(&mut *conn)
         .await?;
         Ok(row)
     }
 
     /// `AdminAdminsRestService.findAll` -> `adminUserBo.toDto(adminUserBo.findAll())`.
-    pub async fn find_all(db: &Db) -> OwgeResult<Vec<AdminUserDto>> {
+    pub async fn find_all(conn: &mut MySqlConnection) -> OwgeResult<Vec<AdminUserDto>> {
         let rows = sqlx::query_as::<_, AdminUser>(
             "SELECT id, username, enabled, can_add_admins FROM admin_users ORDER BY id",
         )
-        .fetch_all(db)
+        .fetch_all(&mut *conn)
         .await?;
         Ok(rows.into_iter().map(Into::into).collect())
     }
@@ -77,8 +77,12 @@ impl AdminUserBo {
     /// `AdminUserBo.addAdmin(accountUserId, username)` — idempotent: if the admin
     /// already exists it is returned unchanged, otherwise a new enabled admin is
     /// inserted (`can_add_admins` defaults to `false`, matching the entity).
-    pub async fn add_admin(db: &Db, id: i64, username: &str) -> OwgeResult<AdminUserDto> {
-        if let Some(existing) = Self::find_by_id(db, id).await? {
+    pub async fn add_admin(
+        conn: &mut MySqlConnection,
+        id: i64,
+        username: &str,
+    ) -> OwgeResult<AdminUserDto> {
+        if let Some(existing) = Self::find_by_id(&mut *conn, id).await? {
             return Ok(existing.into());
         }
         sqlx::query(
@@ -86,7 +90,7 @@ impl AdminUserBo {
         )
         .bind(id as u32)
         .bind(username)
-        .execute(db)
+        .execute(&mut *conn)
         .await?;
         Ok(AdminUserDto {
             id: id as u32,
@@ -97,10 +101,10 @@ impl AdminUserBo {
     }
 
     /// `AdminAdminsRestService.delete` -> `adminUserRepository.deleteById(id)`.
-    pub async fn delete_by_id(db: &Db, id: i64) -> OwgeResult<()> {
+    pub async fn delete_by_id(conn: &mut MySqlConnection, id: i64) -> OwgeResult<()> {
         sqlx::query("DELETE FROM admin_users WHERE id = ?")
             .bind(id as u32)
-            .execute(db)
+            .execute(&mut *conn)
             .await?;
         Ok(())
     }
@@ -108,11 +112,11 @@ impl AdminUserBo {
     /// `AdminUserBo.login()` — validate the already-authenticated game user as
     /// an admin and issue the admin token.
     pub async fn login(
-        db: &Db,
+        conn: &mut MySqlConnection,
         game_user: &TokenUser,
         settings: &AdminJwtSettings,
     ) -> OwgeResult<TokenPojo> {
-        let admin = Self::find_by_id(db, game_user.id)
+        let admin = Self::find_by_id(&mut *conn, game_user.id)
             .await?
             .ok_or_else(|| OwgeError::AccessDenied("ERR_NO_SUCH_USER".into()))?;
         if !admin.enabled {
@@ -124,7 +128,7 @@ impl AdminUserBo {
             sqlx::query("UPDATE admin_users SET username = ? WHERE id = ?")
                 .bind(&game_user.username)
                 .bind(admin.id)
-                .execute(db)
+                .execute(&mut *conn)
                 .await?;
         }
 

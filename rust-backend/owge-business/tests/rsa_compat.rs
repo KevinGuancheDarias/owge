@@ -3,8 +3,8 @@
 //! SPKI ("BEGIN PUBLIC KEY") public key — the exact PEM formats the Java
 //! backend's `SgtTokenConfigLoader` loads from `/var/owge_data/keys`.
 
-use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use owge_business::jwt::{decode_token, TokenConfig};
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+use owge_business::jwt::{TokenConfig, decode_token};
 use serde_json::json;
 
 const PRIVATE_PEM: &str = include_str!("fixtures/test_rsa_private.pem");
