@@ -1,7 +1,5 @@
 package com.kevinguanchedarias.owgejava.pojo;
 
-import java.time.Instant;
-
 import com.kevinguanchedarias.owgejava.entity.WebsocketEventsInformation;
 import com.kevinguanchedarias.owgejava.exception.ProgrammingException;
 
@@ -11,7 +9,7 @@ public class WebsocketMessage<T> {
 	private T value;
 
 	private String status;
-	private Instant lastSent;
+	private Long lastSent;
 
 	public WebsocketMessage() {
 		this.status = "ok";
@@ -30,7 +28,7 @@ public class WebsocketMessage<T> {
 
 	public WebsocketMessage(WebsocketEventsInformation information, T value) {
 		eventName = information.getEventNameUserId().getEventName();
-		lastSent = information.getLastSent();
+		lastSent = information.getLastSent().toEpochMilli();
 		this.value = value;
 		status = "ok";
 	}
@@ -72,7 +70,7 @@ public class WebsocketMessage<T> {
 	}
 
 	public void setStatus(String status) {
-		if (status != "ok" && status != "error") {
+		if (!"ok".equals(status) && !"error".equals(status)) {
 			throw new ProgrammingException("invalid value supplied to status");
 		}
 		this.status = status;
@@ -83,7 +81,7 @@ public class WebsocketMessage<T> {
 	 * @since 0.9.6
 	 * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
 	 */
-	public Instant getLastSent() {
+	public Long getLastSent() {
 		return lastSent;
 	}
 
@@ -92,7 +90,7 @@ public class WebsocketMessage<T> {
 	 * @author Kevin Guanche Darias
 	 * @since 0.9.6
 	 */
-	public void setLastSent(Instant lastSent) {
+	public void setLastSent(Long lastSent) {
 		this.lastSent = lastSent;
 	}
 

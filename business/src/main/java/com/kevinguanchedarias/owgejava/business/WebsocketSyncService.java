@@ -66,9 +66,9 @@ public class WebsocketSyncService {
                     var data = handler.apply(loggedUser);
 
                     Map<String, Object> pair = new HashMap<>();
-                    var date = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+                    var date = Instant.now().truncatedTo(ChronoUnit.MILLIS);
                     pair.put("data", data);
-                    pair.put("lastSent", date);
+                    pair.put("lastSent", date.toEpochMilli());
                     var userId = loggedUser.getId();
                     websocketEventsInformationBo.save(key, userId, date);
                     retVal.put(key, pair);

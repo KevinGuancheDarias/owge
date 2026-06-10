@@ -39,14 +39,18 @@ public class TransactionUtilService {
     public void doAfterCommit(Runnable action) {
         if (TransactionSynchronizationManager.hasResource(ALREADY_COMMITTING_KEY)) {
             action.run();
+        } else if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
         } else {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    if (!TransactionSynchronizationManager.hasResource(ALREADY_COMMITTING_KEY)) {
-                        TransactionSynchronizationManager.bindResource(ALREADY_COMMITTING_KEY, true);
+                    TransactionSynchronizationManager.bindResource(ALREADY_COMMITTING_KEY, true);
+                    try {
+                        action.run();
+                    } finally {
+                        TransactionSynchronizationManager.unbindResourceIfPossible(ALREADY_COMMITTING_KEY);
                     }
-                    action.run();
                 }
             });
         }

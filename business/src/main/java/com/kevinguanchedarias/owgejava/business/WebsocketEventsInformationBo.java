@@ -64,7 +64,7 @@ public class WebsocketEventsInformationBo
                 .findById(websocketEventsInformation.getEventNameUserId());
         if (existing.isPresent()) {
             WebsocketEventsInformation existingEntity = existing.get();
-            existingEntity.setLastSent(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+            existingEntity.setLastSent(Instant.now().truncatedTo(ChronoUnit.MILLIS));
             return repository.save(existingEntity);
         } else {
             return repository.save(websocketEventsInformation);

@@ -24,12 +24,14 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
 
 @Service
@@ -62,9 +64,16 @@ public class SocketIoService {
 
     protected SocketIOServer server;
     protected final ObjectMapper mapper;
+    protected ExecutorService sendExecutor;
 
     public SocketIoService(ObjectMapper springMapper) {
         mapper = springMapper.copy();
+        ThreadFactory daemonFactory = r -> {
+            var t = new Thread(r, "socketio-send");
+            t.setDaemon(true);
+            return t;
+        };
+        sendExecutor = Executors.newSingleThreadExecutor(daemonFactory);
     }
 
     @PostConstruct
@@ -83,6 +92,7 @@ public class SocketIoService {
     @PreDestroy
     public void destroy() {
         log.debug("Closing websocket connection");
+        sendExecutor.shutdown();
         server.stop();
     }
 
@@ -182,16 +192,17 @@ public class SocketIoService {
     ) {
         if (!userSockets.isEmpty()) {
             T sendValue = messageContent.get();
-            asyncRunnerBo.runAsyncWithoutContext(() -> userSockets.forEach(client -> {
-                if (TransactionSynchronizationManager.isActualTransactionActive()) {
-                    log.warn("Should never happened, if everything is nice!!!");
-                }
+            sendExecutor.submit(() -> userSockets.forEach(client -> {
                 TokenUser user = client.get(USER_TOKEN_KEY);
                 log.trace("Sending message to socket, event: {}, user: {}", eventName, user.getId());
                 var message = savedInformation != null
                         ? new WebsocketMessage<>(savedInformation.get(user.getId()), sendValue)
                         : new WebsocketMessage<>(eventName, sendValue);
-                client.sendEvent("deliver_message", message);
+                try {
+                    client.sendEvent("deliver_message", message);
+                } catch (Exception e) {
+                    log.error("Failed to send event {} to user {}", eventName, user.getId(), e);
+                }
             }));
         } else if (notConnectedAction != null) {
             notConnectedAction.run();

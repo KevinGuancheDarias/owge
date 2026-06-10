@@ -1,5 +1,8 @@
 
 # OWGE changelog
+v0.11.12 (latest)
+==================
+* __Fix:__ Websocket reconnection reliability: auth failures no longer leave the client deaf (silent no-data state); stale JWTs on reconnect are prevented; live events arriving during the connect/auth/sync window are now buffered and replayed instead of dropped; cache-clear on device wake-up no longer triggers duplicate resync races.
 
 v0.11.11 (2026-06-06 11:58)
 ============================

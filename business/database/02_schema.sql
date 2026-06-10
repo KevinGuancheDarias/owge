@@ -1194,8 +1194,8 @@ CREATE TABLE `visited_tutorial_entries` (
 CREATE TABLE `websocket_events_information` (
   `event_name` varchar(100) NOT NULL,
   `user_id` int NOT NULL,
-  `last_sent` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `last_sent` datetime(3) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
 
