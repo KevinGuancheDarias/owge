@@ -1,5 +1,8 @@
 
 # OWGE changelog
+v0.11.13 (latest)
+===================
+
 v0.11.12 (2026-06-11 22:5)
 ============================
 * __Fix:__ Failed missions now really retry: the retry was being silently discarded by the scheduler (it was scheduled while the failing execution still owned the task slot), so a failed mission would hang unresolved forever instead of retrying and eventually returning home after 3 attempts.
