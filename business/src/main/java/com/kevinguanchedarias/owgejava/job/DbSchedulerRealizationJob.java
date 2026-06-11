@@ -16,6 +16,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+
 @Component
 @Slf4j
 @AllArgsConstructor
@@ -31,10 +33,17 @@ public class DbSchedulerRealizationJob {
     @Lazy
     private final MissionBo missionBo;
 
-    public void execute(Long missionId) {
+    /**
+     * Runs the mission, returning the instant at which the execution should be retried, or
+     * null when the job is done (success, gave up after max attempts, or nothing to execute).
+     * The retry is applied by the task's completion handler (see DbSchedulerConfiguration)
+     * by rescheduling the current execution
+     */
+    public Instant execute(Long missionId) {
         Thread.currentThread().setName("OWGE_BACKGROUND_" + missionId);
         transactionUtilService.clearStatus();
         var mission = missionRepository.findById(missionId).orElse(null);
+        Instant retryAt = null;
         if (mission != null && !mission.getResolved()) {
             var missionType = MissionType.valueOf(mission.getType().getCode());
             try {
@@ -46,7 +55,7 @@ public class DbSchedulerRealizationJob {
                 }
             } catch (Exception e) {
                 log.error("Unexpected fatal exception when executing mission {}", missionId, e);
-                missionBaseService.retryMissionIfPossible(missionId, missionType);
+                retryAt = missionBaseService.retryMissionIfPossible(missionId, missionType);
                 var user = mission.getUser();
                 if (missionType.isUnitMission()) {
                     missionEventEmitterBo.emitUnitMissions(user.getId());
@@ -61,6 +70,7 @@ public class DbSchedulerRealizationJob {
                 maybeLogPessimistic(e);
             }
         }
+        return retryAt;
     }
 
     private void maybeLogPessimistic(Exception e) {

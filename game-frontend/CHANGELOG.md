@@ -2,6 +2,8 @@
 # OWGE changelog
 v0.11.12 (latest)
 ==================
+* __Fix:__ Failed missions now really retry: the retry was being silently discarded by the scheduler (it was scheduled while the failing execution still owned the task slot), so a failed mission would hang unresolved forever instead of retrying and eventually returning home after 3 attempts.
+* __Fix:__ Explore missions no longer crash on planets that hold units whose associated mission was already deleted; mission deletion now always detaches or removes the referencing obtained units first, and a database foreign key (ON DELETE SET NULL) is added as a safety backstop.
 * __Fix:__ Websocket reconnection reliability: auth failures no longer leave the client deaf (silent no-data state); stale JWTs on reconnect are prevented; live events arriving during the connect/auth/sync window are now buffered and replayed instead of dropped; cache-clear on device wake-up no longer triggers duplicate resync races.
 
 v0.11.11 (2026-06-06 11:58)

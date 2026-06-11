@@ -4,6 +4,7 @@ import com.kevinguanchedarias.owgejava.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -149,6 +150,18 @@ public interface ObtainedUnitRepository extends JpaRepository<ObtainedUnit, Long
     @Query("UPDATE ObtainedUnit ou SET ou.count = ou.count + ?2 WHERE ou = ?1")
     @Modifying
     void updateCount(ObtainedUnit obtainedUnit, long sumValue);
+
+    /**
+     * Detaches the given missions from all obtained units referencing them via mission_id,
+     * setting the field to null. Used before deleting a mission to avoid stale foreign-key
+     * references that would later blow up with EntityNotFoundException on lazy-proxy init.
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.11.12
+     */
+    @Query("UPDATE ObtainedUnit ou SET ou.mission = null, ou.targetPlanet = null WHERE ou.mission IN :missions")
+    @Modifying
+    void detachMissions(@Param("missions") List<Mission> missions);
 
     ObtainedUnit findOneByUserIdAndUnitIdAndSourcePlanetIdAndMissionIsNullAndExpirationId(Integer userId, Integer unitId, Long targetPlanet, Long expirationId);
 

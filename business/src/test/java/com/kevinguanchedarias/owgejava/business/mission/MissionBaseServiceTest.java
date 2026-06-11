@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -121,7 +122,7 @@ class MissionBaseServiceTest {
         mission.setAttemps(5);
         given(missionRepository.findById(missionId)).willReturn(Optional.of(mission));
 
-        missionBaseService.retryMissionIfPossible(missionId, missionType);
+        assertThat(missionBaseService.retryMissionIfPossible(missionId, missionType)).isNull();
 
         verify(returnMissionRegistrationBo, times(timesRegisterReturnMission)).registerReturnMission(mission, null);
         verify(obtainedUnitModificationBo, times(timesDeletedByMissionId)).deleteByMissionId(missionId);
@@ -145,6 +146,7 @@ class MissionBaseServiceTest {
         mission.setRequiredTime(requiredTime);
         mission.setType(givenMissionType(missionType));
         var terminationDate = LocalDateTime.now();
+        var retryAt = Instant.now().plusSeconds(27);
         var involvedUnits = List.of(givenObtainedUnit1());
         var reportBuilderMock = mock(UnitMissionReportBuilder.class);
         given(missionRepository.findById(missionId)).willReturn(Optional.of(mission));
@@ -155,18 +157,19 @@ class MissionBaseServiceTest {
         given(reportBuilderMock.withTargetPlanet(mission.getTargetPlanet())).willReturn(reportBuilderMock);
         given(obtainedUnitRepository.findByMissionId(missionId)).willReturn(involvedUnits);
         given(reportBuilderMock.withInvolvedUnits(involvedUnits)).willReturn(reportBuilderMock);
+        given(missionSchedulerService.computeExecutionTime(mission)).willReturn(retryAt);
         try (var mockedStatic = mockStatic(UnitMissionReportBuilder.class)) {
             mockedStatic.when(UnitMissionReportBuilder::create)
                     .thenReturn(reportBuilderMock);
 
-            missionBaseService.retryMissionIfPossible(missionId, missionType);
+            assertThat(missionBaseService.retryMissionIfPossible(missionId, missionType)).isSameAs(retryAt);
 
             assertThat(mission.getAttemps()).isEqualTo(3);
             assertThat(mission.getTerminationDate()).isSameAs(terminationDate);
             verify(reportBuilderMock, times(timesIfUnitMission)).withInvolvedUnits(involvedUnits);
             verify(reportBuilderMock, times(1)).withErrorInformation(contains("please contact an admin"));
             verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportBuilderMock);
-            verify(missionSchedulerService, times(1)).scheduleMission(mission);
+            verify(missionSchedulerService, never()).scheduleMission(mission);
             verify(missionRepository, times(1)).save(mission);
         }
     }
