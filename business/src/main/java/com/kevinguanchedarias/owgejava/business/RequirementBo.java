@@ -504,6 +504,9 @@ public class RequirementBo implements Serializable {
         var userId = unlockedRelation.getUser().getId();
         var eventPrefix = object.name().toLowerCase();
         transactionUtilService.doAfterCommit(() -> {
+            if (object == ObjectEnum.TIME_SPECIAL) {
+                unlockableTimeSpecialService.evictByUserCache(userId);
+            }
             socketIoService.sendMessage(userId, eventPrefix + "_unlocked_change",
                     () -> dtoUtilService.convertEntireArray(bo.getDtoClass(), bo.findUnlocked(userId)));
         });

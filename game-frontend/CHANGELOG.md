@@ -2,6 +2,7 @@
 # OWGE changelog
 v0.11.13 (latest)
 ===================
+* __Fix:__ The available time specials list no longer goes stale: a time special whose unlock state changes through requirements (most visibly HAVE_SPECIAL_LOCATION when a special location is conquered or lost) is now correctly added to or removed from the list. The cached per-user list was only invalidated on activation/recharge, so unlock/lock changes that didn't touch an active time special were not reflected until the cache happened to be evicted by something else.
 
 v0.11.12 (2026-06-11 22:5)
 ============================
