@@ -13,6 +13,7 @@ use crate::bo::obtained_unit_entity::obtained_unit::Entity;
 use crate::bo::obtained_unit_entity::{
     galaxy, obtained_unit, planet, temporal_information, unit, unit_type, user_storage,
 };
+use crate::bo::{ImprovementBo, SpeedImpactGroupBo, UnitInterceptionFinderBo};
 use crate::db;
 use crate::dto::obtained_unit::{ObtainedUnitDto, TemporalInformationDto};
 use crate::dto::{PlanetDto, UnitDto};
@@ -45,9 +46,17 @@ struct UnitJoinedRow {
     name: String,
     description: Option<String>,
     type_id: Option<u16>,
-    primary_resource: Option<u64>,
-    secondary_resource: Option<u64>,
-    time: Option<u64>,
+    // Match the actual `units` column types so SeaORM's generated `unit_*`
+    // aliases decode: primary/secondary_resource are INT UNSIGNED (-> u32),
+    // time is signed INT (-> i32). Declaring these as u64 made sqlx reject the
+    // decode and 500'd the whole `unit_obtained_change` sync key.
+    primary_resource: Option<u32>,
+    secondary_resource: Option<u32>,
+    time: Option<i32>,
+    points: Option<u32>,
+    energy: Option<u16>,
+    display_in_requirements: Option<i8>,
+    improvement_id: u16,
 
     #[sea_orm(nested)]
     image: Option<ImageSimple>,
@@ -242,12 +251,12 @@ fn unit_dto_from_joined_row(r: UnitJoinedRow) -> UnitDto {
         image: r.image.as_ref().map(|i| i.id),
         image_url: r.image.as_ref().map(|i| format!("/dynamic/{}", i.filename)),
         order: None,
-        has_to_display_in_requirements: false,
-        points: None,
-        time: r.time,
-        primary_resource: r.primary_resource,
-        secondary_resource: r.secondary_resource,
-        energy: None,
+        has_to_display_in_requirements: r.display_in_requirements.unwrap_or(0) != 0,
+        points: r.points,
+        time: r.time.map(|v| v as u64),
+        primary_resource: r.primary_resource.map(|v| v as u64),
+        secondary_resource: r.secondary_resource.map(|v| v as u64),
+        energy: r.energy,
         type_id: r.type_id,
         type_name: r.unit_type.map(|ut| ut.name),
         attack: r.attack,
@@ -262,6 +271,8 @@ fn unit_dto_from_joined_row(r: UnitJoinedRow) -> UnitDto {
         is_invisible: r.is_invisible != 0,
         stored_weight: r.stored_weight,
         storage_capacity: r.storage_capacity,
+        improvement: None,
+        speed_impact_group: None,
     }
 }
 
@@ -298,8 +309,27 @@ impl ObtainedUnitJoinedRow {
             }
         });
 
+        // The nested unit mirrors Java's `UnitDto.dtoFromEntity`: its own
+        // improvement, and the entity's effective speedImpactGroup — which the
+        // JPA getter resolves as own-else-inherited from the unit-type chain
+        // (no user-specific time-special swap on this path).
+        let own_improvement_id = self.unit.improvement_id;
+        let unit_id_u16 = self.unit.id;
         let mut unit = unit_dto_from_joined_row(self.unit);
         unit.is_invisible = is_invisible;
+        unit.improvement = match ImprovementBo::find_dto(&mut *conn, Some(own_improvement_id)).await {
+            Ok(improvement) => Some(improvement),
+            Err(OwgeError::NotFound(_)) => None,
+            Err(e) => return Err(e),
+        };
+        unit.speed_impact_group = match UnitInterceptionFinderBo::find_his_or_inherited_speed_impact_group(
+            &mut *conn, unit_id_u16,
+        )
+        .await?
+        {
+            Some(group_id) => SpeedImpactGroupBo::find_by_id(&mut *conn, group_id).await?,
+            None => None,
+        };
 
         Ok(ObtainedUnitDto {
             id: self.id,
@@ -310,6 +340,7 @@ impl ObtainedUnitJoinedRow {
             user_id: self.user_id,
             username: Some(self.owner.username),
             temporal_information,
+            stored_units: Vec::new(),
         })
     }
 }

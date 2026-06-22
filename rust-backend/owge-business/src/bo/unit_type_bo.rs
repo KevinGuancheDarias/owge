@@ -9,13 +9,17 @@
 //! user's obtained units (`countUnitsByUserAndUnitType`), exactly as in Java;
 //! `used` and the catalog fields are fully resolved.
 
-use crate::bo::UserImprovementBo;
+use crate::bo::{AttackRuleBo, CriticalAttackBo, SpeedImpactGroupBo, UserImprovementBo};
 use crate::bo::mission_bo::{compute_improvement_value, load_user_storage};
 use crate::dto::UnitTypeDto;
 use crate::dto::unit_type::UnitTypeInput;
 use crate::dto::user_improvement::ImprovementType;
 use crate::error::{OwgeError, OwgeResult};
 use sqlx::MySqlConnection;
+
+/// Guard against pathological `parent` / `shareMaxCount` chains (Java recurses
+/// the full chain; real data is shallow, but a cycle would loop forever).
+const MAX_NESTED_DEPTH: u8 = 16;
 
 /// A `unit_types` row joined with its image and a `used` existence flag, with
 /// exact SQL column types so sqlx decode never panics on signedness/width.
@@ -28,6 +32,9 @@ struct UnitTypeRow {
     max_count: Option<i64>,
     share_max_count_id: Option<u16>,
     parent_id: Option<u16>,
+    speed_impact_group_id: Option<u16>,
+    attack_rule_id: Option<u16>,
+    critical_attack_id: Option<u16>,
     has_to_inherit_improvements: i8,
     can_explore: String,
     can_gather: String,
@@ -40,42 +47,98 @@ struct UnitTypeRow {
     used: i8,
 }
 
-impl From<UnitTypeRow> for UnitTypeDto {
-    fn from(r: UnitTypeRow) -> Self {
-        let image_url = r
-            .image_filename
-            .map(|f| crate::bo::image_store_bo::compute_image_url(&f));
-        UnitTypeDto {
-            id: r.id,
-            name: r.name,
-            image: r.image,
-            image_url,
-            // Catalog default (no per-user info): the stored maxCount. The
-            // sync payload overrides this with `findUniTypeLimitByUser`.
-            computed_max_count: r.max_count,
-            max_count: r.max_count,
-            share_max_count_id: r.share_max_count_id,
-            parent_id: r.parent_id,
-            has_to_inherit_improvements: r.has_to_inherit_improvements != 0,
-            can_explore: r.can_explore,
-            can_gather: r.can_gather,
-            can_establish_base: r.can_establish_base,
-            can_attack: r.can_attack,
-            can_counterattack: r.can_counterattack,
-            can_conquest: r.can_conquest,
-            can_deploy: r.can_deploy,
-            // Catalog default (no per-user info): null. The sync payload sets
-            // this from `countUnitsByUserAndUnitType` when the type has a max.
-            user_built: None,
-            used: r.used != 0,
+/// Build the **catalog** form of a unit type (Java `UnitTypeDto.dtoFromEntity`):
+/// scalars + the nested `speedImpactGroup` / `attackRule` / `criticalAttack`
+/// objects and the recursively-nested `parent` / `shareMaxCount`. The per-user
+/// fields (`computedMaxCount` / `userBuilt` / `used`) are left `None` here; the
+/// sync path sets them on the top-level type only.
+async fn build_catalog_dto(
+    conn: &mut MySqlConnection,
+    r: UnitTypeRow,
+    depth: u8,
+    with_req_groups: bool,
+) -> OwgeResult<UnitTypeDto> {
+    let image_url = r
+        .image_filename
+        .as_deref()
+        .map(crate::bo::image_store_bo::compute_image_url);
+
+    // `with_req_groups` mirrors Java's path-dependent `requirementsGroups`: the
+    // `unit_type_change` rest service nulls it (false here), but it is present
+    // where the entity is reached with the transient initialized (e.g. embedded
+    // in an improvement's `unitType` — `find_catalog_by_id`, true).
+    let speed_impact_group = match r.speed_impact_group_id {
+        Some(id) if with_req_groups => {
+            SpeedImpactGroupBo::find_by_id_with_requirement_groups(conn, id).await?
         }
+        Some(id) => SpeedImpactGroupBo::find_by_id(conn, id).await?,
+        None => None,
+    };
+    let attack_rule = match r.attack_rule_id {
+        Some(id) => AttackRuleBo::find_by_id(conn, id).await?,
+        None => None,
+    };
+    let critical_attack = match r.critical_attack_id {
+        Some(id) => CriticalAttackBo::find_by_id(conn, id).await?,
+        None => None,
+    };
+    let parent = build_nested_by_id(conn, r.parent_id, depth, with_req_groups).await?;
+    let share_max_count = build_nested_by_id(conn, r.share_max_count_id, depth, with_req_groups).await?;
+
+    Ok(UnitTypeDto {
+        id: r.id,
+        name: r.name,
+        image: r.image,
+        image_url,
+        max_count: r.max_count,
+        share_max_count,
+        parent,
+        has_to_inherit_improvements: r.has_to_inherit_improvements != 0,
+        can_explore: r.can_explore,
+        can_gather: r.can_gather,
+        can_establish_base: r.can_establish_base,
+        can_attack: r.can_attack,
+        can_counterattack: r.can_counterattack,
+        can_conquest: r.can_conquest,
+        can_deploy: r.can_deploy,
+        speed_impact_group,
+        attack_rule,
+        critical_attack,
+        computed_max_count: None,
+        user_built: None,
+        used: None,
+    })
+}
+
+/// Recursively load a nested `parent` / `shareMaxCount` by id (boxed to break
+/// the async recursion cycle; depth-guarded against malformed cyclic data).
+async fn build_nested_by_id(
+    conn: &mut MySqlConnection,
+    id: Option<u16>,
+    depth: u8,
+    with_req_groups: bool,
+) -> OwgeResult<Option<Box<UnitTypeDto>>> {
+    let Some(id) = id else { return Ok(None) };
+    if depth >= MAX_NESTED_DEPTH {
+        return Ok(None);
+    }
+    let row = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} WHERE ut.id = ?"))
+        .bind(id)
+        .fetch_optional(&mut *conn)
+        .await?;
+    match row {
+        Some(r) => Ok(Some(Box::new(
+            Box::pin(build_catalog_dto(conn, r, depth + 1, with_req_groups)).await?,
+        ))),
+        None => Ok(None),
     }
 }
 
 const SELECT_DTO: &str = "\
     SELECT ut.id, ut.name, ut.image_id AS image, i.filename AS image_filename, \
            ut.max_count, ut.share_max_count AS share_max_count_id, \
-           ut.parent_type AS parent_id, ut.has_to_inherit_improvements, \
+           ut.parent_type AS parent_id, ut.speed_impact_group_id, \
+           ut.attack_rule_id, ut.critical_attack_id, ut.has_to_inherit_improvements, \
            ut.can_explore, ut.can_gather, ut.can_establish_base, ut.can_attack, \
            ut.can_counterattack, ut.can_conquest, ut.can_deploy, \
            EXISTS(SELECT 1 FROM units u WHERE u.type = ut.id) AS used \
@@ -112,7 +175,10 @@ impl UnitTypeBo {
         for r in rows {
             let type_id = r.id;
             let type_max = r.max_count;
-            let mut dto: UnitTypeDto = r.into();
+            let used_flag = r.used != 0;
+            let mut dto = build_catalog_dto(&mut *conn, r, 0, false).await?;
+            // `used` is a top-level (sync) field only; nested catalog forms omit it.
+            dto.used = Some(used_flag);
 
             // findMaxCount(faction, type): the faction override row's max_count
             // if present, else unit_types.max_count.
@@ -185,7 +251,71 @@ impl UnitTypeBo {
         let rows = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} ORDER BY ut.id"))
             .fetch_all(&mut *conn)
             .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        let mut out = Vec::with_capacity(rows.len());
+        for r in rows {
+            out.push(build_catalog_dto(&mut *conn, r, 0, false).await?);
+        }
+        Ok(out)
+    }
+
+    /// The **catalog** form of one unit type by id (Java `dtoFromEntity`: nested
+    /// relations, no per-user fields). Used to hydrate the `unitType` embedded in
+    /// improvement `unitTypesUpgrades` entries. `None` when the id is absent.
+    pub async fn find_catalog_by_id(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
+        Ok(build_nested_by_id(conn, Some(id), 0, true).await?.map(|b| *b))
+    }
+
+    /// Catalog form with **only `attackRule`** hydrated. This matches the exact
+    /// shape Java emits for the `unitType` embedded in a user's aggregate
+    /// improvement (`GroupedImprovement.unitTypesUpgrades[].unitType`): on that
+    /// load path only the `attackRule` association is lazily initialized, so
+    /// `speedImpactGroup` / `criticalAttack` / `parent` / `shareMaxCount` are
+    /// absent (despite their FKs being set).
+    pub async fn find_catalog_attack_rule_only(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
+        let Some(r) = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} WHERE ut.id = ?"))
+            .bind(id)
+            .fetch_optional(&mut *conn)
+            .await?
+        else {
+            return Ok(None);
+        };
+        let image_url = r
+            .image_filename
+            .as_deref()
+            .map(crate::bo::image_store_bo::compute_image_url);
+        let attack_rule = match r.attack_rule_id {
+            Some(rule_id) => AttackRuleBo::find_by_id(&mut *conn, rule_id).await?,
+            None => None,
+        };
+        Ok(Some(UnitTypeDto {
+            id: r.id,
+            name: r.name,
+            image: r.image,
+            image_url,
+            max_count: r.max_count,
+            share_max_count: None,
+            parent: None,
+            has_to_inherit_improvements: r.has_to_inherit_improvements != 0,
+            can_explore: r.can_explore,
+            can_gather: r.can_gather,
+            can_establish_base: r.can_establish_base,
+            can_attack: r.can_attack,
+            can_counterattack: r.can_counterattack,
+            can_conquest: r.can_conquest,
+            can_deploy: r.can_deploy,
+            speed_impact_group: None,
+            attack_rule,
+            critical_attack: None,
+            computed_max_count: None,
+            user_built: None,
+            used: None,
+        }))
     }
 
     /// `WithReadRestServiceTrait.findOneById` for the admin unit-type CRUD.
@@ -197,7 +327,10 @@ impl UnitTypeBo {
             .bind(id)
             .fetch_optional(&mut *conn)
             .await?;
-        Ok(row.map(Into::into))
+        match row {
+            Some(r) => Ok(Some(build_catalog_dto(&mut *conn, r, 0, false).await?)),
+            None => Ok(None),
+        }
     }
 
     /// `CrudRestServiceTrait.saveNew` — insert; `unit_types.id` is AUTO_INCREMENT.

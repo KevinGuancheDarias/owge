@@ -4,6 +4,7 @@
 
 pub mod alliance;
 pub mod attack_rule;
+pub mod serde_helpers;
 pub mod configuration;
 pub mod critical_attack;
 pub mod critical_attack_information;
@@ -78,4 +79,6 @@ pub use unit::{UnitDto, UnitInput};
 pub use unit_type::{UnitTypeDto, UnitTypeInput};
 pub use upgrade::{ObtainedUpgradeDto, UpgradeDto, UpgradeInput, UpgradeTypeDto, UpgradeTypeInput};
 pub use user::{SimpleUserData, UserData};
-pub use user_improvement::{ImprovementType, UnitTypeImprovementEntry, UserImprovementDto};
+pub use user_improvement::{
+    GroupedImprovementResponse, ImprovementType, UnitTypeImprovementEntry, UserImprovementDto,
+};

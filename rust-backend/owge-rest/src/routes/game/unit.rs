@@ -178,6 +178,8 @@ async fn delete(
             is_invisible: false,
             stored_weight: 0,
             storage_capacity: None,
+            improvement: None,
+            speed_impact_group: None,
         },
         count: body.count,
         source_planet: None,
@@ -185,6 +187,7 @@ async fn delete(
         user_id: user.id as i32,
         username: None,
         temporal_information: None,
+        stored_units: Vec::new(),
     };
     ObtainedUnitBo::save_with_subtraction(&mut conn, &dto, true).await?;
     Ok(Json("OK"))

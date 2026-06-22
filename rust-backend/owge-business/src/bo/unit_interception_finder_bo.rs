@@ -218,7 +218,7 @@ impl UnitInterceptionFinderBo {
     /// group swapped in by an active `TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP`
     /// rule for one of the user's active time specials, else the unit's own group,
     /// else the nearest ancestor unit type's group (`findHisOrInherited`).
-    async fn find_applicable_speed_impact_group(
+    pub(crate) async fn find_applicable_speed_impact_group(
         conn: &mut MySqlConnection,
         user_id: i32,
         unit_id: u16,
@@ -257,7 +257,7 @@ impl UnitInterceptionFinderBo {
 
     /// `SpeedImpactGroupFinderBo.findHisOrInherited(unit)` — the unit's own
     /// `speed_impact_group_id`, else the nearest ancestor unit type with one set.
-    async fn find_his_or_inherited_speed_impact_group(
+    pub(crate) async fn find_his_or_inherited_speed_impact_group(
         conn: &mut MySqlConnection,
         unit_id: u16,
     ) -> OwgeResult<Option<u16>> {

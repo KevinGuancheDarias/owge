@@ -509,7 +509,7 @@ impl UserStorageBo {
             has_skipped_tutorial: u.has_skipped_tutorial,
             home_planet: PlanetBo::find_by_id_or_die(&mut *conn, u.home_planet).await?,
             id: u.id,
-            improvements: UserImprovementBo::find_user_improvement(&mut *conn, id).await?,
+            improvements: UserImprovementBo::find_user_improvement_response(&mut *conn, id).await?,
             max_energy,
             primary_resource: u.primary_resource,
             secondary_resource: u.secondary_resource,

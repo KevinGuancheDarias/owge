@@ -26,7 +26,9 @@ pub struct RequirementInformationDto {
     pub id: i16,
     pub relation: ObjectRelationDto,
     pub requirement: RequirementDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub second_value: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub third_value: Option<i64>,
 }
 

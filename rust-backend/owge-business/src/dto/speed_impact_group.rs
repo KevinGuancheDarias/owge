@@ -25,9 +25,16 @@ pub struct SpeedImpactGroupDto {
     pub can_counterattack: String,
     pub can_conquest: String,
     pub can_deploy: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<String>,
-    // requirementsGroups is omitted until the requirement domain lands (M2).
+    /// `SpeedImpactGroupDto.requirementsGroups` — populated on paths where Java's
+    /// `@PostLoad` listener initialized the transient (e.g. embedded in an
+    /// improvement's `unitType`); explicitly nulled by the `unit_type_change`
+    /// rest service, so it stays `None` on the catalog/unit-type paths.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub requirements_groups: Option<Vec<crate::dto::RequirementGroupDto>>,
 }
 
 /// Admin create/update request body for a speed impact group. Mirrors

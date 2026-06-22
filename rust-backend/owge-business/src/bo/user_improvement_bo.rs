@@ -68,6 +68,7 @@ struct FlatImprovementRow {
 /// One `improvements_unit_types` row, with the multiplier of its owning source.
 #[derive(sqlx::FromRow)]
 struct UnitTypeImprovementRow {
+    source_id: u32,
     r#type: String,
     unit_type_id: u16,
     value: i32,
@@ -102,6 +103,42 @@ impl UserImprovementBo {
         user_id: i32,
     ) -> OwgeResult<UserImprovementDto> {
         Self::find_user_improvement(conn, user_id).await
+    }
+
+    /// Build the `user_data_change` serialization form of the aggregate: the
+    /// seven `more*` floats plus `unitTypesUpgrades` whose entries carry the full
+    /// catalog `unitType` (Java `GroupedImprovement` → `ImprovementUnitTypeDto`).
+    pub async fn find_user_improvement_response(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<crate::dto::GroupedImprovementResponse> {
+        let aggregate = Self::find_user_improvement(&mut *conn, user_id).await?;
+        let mut unit_types_upgrades = Vec::with_capacity(aggregate.unit_types_upgrades.len());
+        for entry in &aggregate.unit_types_upgrades {
+            // The aggregate's load path initializes only `attackRule` on the
+            // embedded unitType (see `find_catalog_attack_rule_only`).
+            let unit_type =
+                crate::bo::UnitTypeBo::find_catalog_attack_rule_only(&mut *conn, entry.unit_type_id)
+                    .await?;
+            unit_types_upgrades.push(crate::dto::ImprovementUnitTypeDto {
+                id: entry.id.map(|v| v as u16),
+                r#type: Some(entry.improvement_type.code().to_string()),
+                unit_type_id: None,
+                unit_type_name: None,
+                unit_type,
+                value: Some(entry.value),
+            });
+        }
+        Ok(crate::dto::GroupedImprovementResponse {
+            more_primary_resource_production: aggregate.more_primary_resource_production,
+            more_secondary_resource_production: aggregate.more_secondary_resource_production,
+            more_energy_production: aggregate.more_energy_production,
+            more_charge_capacity: aggregate.more_charge_capacity,
+            more_missions: aggregate.more_missions,
+            more_upgrade_research_speed: aggregate.more_upgrade_research_speed,
+            more_unit_build_speed: aggregate.more_unit_build_speed,
+            unit_types_upgrades,
+        })
     }
 
     /// Evict a single user's cached aggregate — call after committing any change
@@ -171,7 +208,8 @@ impl UserImprovementBo {
             let Some(improvement_type) = ImprovementType::from_code(&row.r#type) else {
                 continue;
             };
-            aggregate.add_unit_type_improvement(
+            aggregate.add_unit_type_improvement_with_id(
+                Some(row.source_id),
                 improvement_type,
                 row.unit_type_id,
                 row.value as i64 * row.multiplier,
@@ -225,19 +263,19 @@ const FLAT_IMPROVEMENTS_SQL: &str = "\
 
 /// Same three sources, joined to their `improvements_unit_types` rows.
 const UNIT_TYPE_IMPROVEMENTS_SQL: &str = "\
-    SELECT iut.type AS `type`, iut.unit_type_id, iut.value, ou.level AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, ou.level AS multiplier \
       FROM obtained_upgrades ou \
       JOIN upgrades u ON u.id = ou.upgrade_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = u.improvement_id \
      WHERE ou.user_id = ? \
     UNION ALL \
-    SELECT iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
       FROM active_time_specials ats \
       JOIN time_specials ts ON ts.id = ats.time_special_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = ts.improvement_id \
      WHERE ats.user_id = ? AND ats.state = 'ACTIVE' \
     UNION ALL \
-    SELECT iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
       FROM obtained_units obu \
       JOIN units un ON un.id = obu.unit_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = un.improvement_id \

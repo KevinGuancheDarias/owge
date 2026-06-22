@@ -1,5 +1,5 @@
 use crate::OwgeError;
-use crate::dto::{FactionDto, PlanetDto, UserImprovementDto};
+use crate::dto::{FactionDto, GroupedImprovementResponse, PlanetDto};
 use crate::error::OwgeResult;
 use serde::Serialize;
 use sqlx::{FromRow, MySqlConnection};
@@ -64,7 +64,7 @@ pub struct UserData {
     pub home_planet: PlanetDto,
 
     pub id: i32,
-    pub improvements: UserImprovementDto,
+    pub improvements: GroupedImprovementResponse,
     pub max_energy: f64,
     pub primary_resource: Option<f64>,
     pub secondary_resource: Option<f64>,

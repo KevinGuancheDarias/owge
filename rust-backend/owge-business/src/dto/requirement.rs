@@ -18,4 +18,8 @@ pub struct UnitWithRequirementInfo {
 pub struct UnitUpgradeRequirement {
     pub level: i64,
     pub upgrade: UpgradeDto,
+    /// Java `UnitUpgradeRequirements.reached`. The Java builder
+    /// (`RequirementBo.createUnitUpgradeRequirements`) never calls `setReached`,
+    /// so on this read path it is always the primitive default `false`.
+    pub reached: bool,
 }

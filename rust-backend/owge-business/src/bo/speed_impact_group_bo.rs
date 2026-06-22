@@ -34,7 +34,7 @@ struct SpeedImpactGroupRow {
     can_conquest: Option<String>,
     can_deploy: Option<String>,
     image: Option<u64>,
-    image_url: Option<String>,
+    image_filename: Option<String>,
 }
 
 impl From<SpeedImpactGroupRow> for SpeedImpactGroupDto {
@@ -57,23 +57,27 @@ impl From<SpeedImpactGroupRow> for SpeedImpactGroupDto {
             can_conquest: r.can_conquest.unwrap_or_else(|| ANY.to_string()),
             can_deploy: r.can_deploy.unwrap_or_else(|| ANY.to_string()),
             image: r.image,
-            image_url: r.image_url,
+            image_url: r
+                .image_filename
+                .map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
+            // Populated only on paths that mirror Java's initialized transient
+            // (see `find_by_id_with_requirement_groups`); `None` by default.
+            requirements_groups: None,
         }
     }
 }
 
 // `imageUrl` is a Java `@Transient` field computed by `ImageStoreListener`
-// (base URL + `images_store.filename`); the base URL is a config value, so it
-// is left NULL here and resolved when the image domain lands (M2). Only the raw
-// `image_id` is selected.
+// (`/dynamic/<images_store.filename>`); resolved here via the image join.
 const SELECT_DTO: &str = "\
     SELECT s.id, s.name, s.is_fixed, \
            s.mission_explore, s.mission_gather, s.mission_establish_base, \
            s.mission_attack, s.mission_conquest, s.mission_counterattack, \
            s.can_explore, s.can_gather, s.can_establish_base, s.can_attack, \
            s.can_counterattack, s.can_conquest, s.can_deploy, \
-           s.image_id AS image, NULL AS image_url \
-    FROM speed_impact_groups s ";
+           s.image_id AS image, img.filename AS image_filename \
+    FROM speed_impact_groups s \
+    LEFT JOIN images_store img ON img.id = s.image_id ";
 
 pub struct SpeedImpactGroupBo;
 
@@ -97,6 +101,27 @@ impl SpeedImpactGroupBo {
             .fetch_optional(&mut *conn)
             .await?;
         Ok(row.map(Into::into))
+    }
+
+    /// `find_by_id` plus the `requirementsGroups` list (mirrors the JPA
+    /// `@PostLoad` transient on `SpeedImpactGroup`). Used where Java emits the
+    /// groups (e.g. embedded in an improvement's `unitType`).
+    pub async fn find_by_id_with_requirement_groups(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<SpeedImpactGroupDto>> {
+        let Some(mut dto) = Self::find_by_id(&mut *conn, id).await? else {
+            return Ok(None);
+        };
+        dto.requirements_groups = Some(
+            crate::bo::RequirementGroupBo::find_groups(
+                &mut *conn,
+                crate::model::object_relation::object_enum::SPEED_IMPACT_GROUP,
+                id as i16,
+            )
+            .await?,
+        );
+        Ok(Some(dto))
     }
 
     /// `CrudRestServiceTrait.saveNew` — `speed_impact_groups.id` is AUTO_INCREMENT.

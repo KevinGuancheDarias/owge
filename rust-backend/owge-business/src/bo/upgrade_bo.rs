@@ -83,6 +83,9 @@ impl From<ObtainedUpgradeRow> for ObtainedUpgradeDto {
             type_name: r.upgrade_type_name,
             level_effect: r.upgrade_level_effect,
             cloned_improvements: r.upgrade_cloned_improvements != 0,
+            // Enriched asynchronously in `find_obtained_dtos`.
+            improvement: None,
+            requirements: None,
         };
         ObtainedUpgradeDto {
             id: r.id,
@@ -150,6 +153,8 @@ impl From<UpgradeRow> for UpgradeDto {
             type_name: r.type_name,
             level_effect: r.level_effect,
             cloned_improvements: r.cloned_improvements != 0,
+            improvement: None,
+            requirements: None,
         }
     }
 }
@@ -246,7 +251,34 @@ impl UpgradeBo {
         .bind(user_id)
         .fetch_all(&mut *conn)
         .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        let mut out: Vec<ObtainedUpgradeDto> = Vec::with_capacity(rows.len());
+        for row in rows {
+            let mut dto: ObtainedUpgradeDto = row.into();
+            let upgrade_id = dto.upgrade.id;
+            // Java hydrates the nested upgrade's `@ManyToOne` improvement and the
+            // `@PostLoad` requirement-information list on this path.
+            dto.upgrade.improvement = match crate::bo::ImprovementBo::find_for_entity(
+                &mut *conn,
+                "upgrades",
+                upgrade_id,
+            )
+            .await
+            {
+                Ok(improvement) => Some(improvement),
+                Err(crate::error::OwgeError::NotFound(_)) => None,
+                Err(e) => return Err(e),
+            };
+            dto.upgrade.requirements = Some(
+                crate::bo::RequirementBo::find_requirements(
+                    &mut *conn,
+                    crate::model::object_relation::object_enum::UPGRADE,
+                    upgrade_id as i16,
+                )
+                .await?,
+            );
+            out.push(dto);
+        }
+        Ok(out)
     }
 
     // The `running_upgrade_change` sync payload is now driven directly by

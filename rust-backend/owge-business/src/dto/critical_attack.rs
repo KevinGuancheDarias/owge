@@ -26,7 +26,9 @@ pub struct CriticalAttackEntryDto {
     pub id: u32,
     pub target: String,
     pub reference_id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reference_name: Option<String>,
+    #[serde(serialize_with = "crate::dto::serde_helpers::serialize_f32")]
     pub value: f32,
 }
 

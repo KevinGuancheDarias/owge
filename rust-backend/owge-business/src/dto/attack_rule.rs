@@ -22,6 +22,8 @@ pub struct AttackRuleEntryDto {
     pub id: u16,
     pub target: String,
     pub reference_id: u16,
+    /// `@Transient`, never populated on the read path; Java's `NON_NULL` omits it.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reference_name: Option<String>,
     pub can_attack: bool,
 }

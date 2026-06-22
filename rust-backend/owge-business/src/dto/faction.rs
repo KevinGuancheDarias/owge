@@ -37,15 +37,28 @@ pub struct FactionDto {
     pub initial_primary_resource: u32,
     pub initial_secondary_resource: u32,
     pub initial_energy: u32,
+    // Java `Float`s: print shortest round-trip decimal (not the f32->f64 tail).
+    #[serde(serialize_with = "crate::dto::serde_helpers::serialize_f32")]
     pub primary_resource_production: f32,
+    #[serde(serialize_with = "crate::dto::serde_helpers::serialize_f32")]
     pub secondary_resource_production: f32,
     pub max_planets: u8,
     pub cloned_improvements: bool,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub custom_primary_gather_percentage: Option<f32>,
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub custom_secondary_gather_percentage: Option<f32>,
-    /// Always `None` (the Java DTO nulls this in `dtoFromEntity`).
+    /// Java nulls this in `dtoFromEntity`; `NON_NULL` then omits it.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub improvement: Option<()>,
-    /// Always `None` (the Java DTO nulls this in `dtoFromEntity`).
+    /// Java nulls this in `dtoFromEntity`; `NON_NULL` then omits it.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub unit_types: Option<()>,
 }
 

@@ -71,6 +71,10 @@ impl From<UnitRow> for UnitDto {
             is_invisible: r.is_invisible != 0,
             stored_weight: r.stored_weight,
             storage_capacity: r.storage_capacity,
+            // Resolved by the per-user finders (e.g. UnlockedUnitFinder), not in
+            // this base row mapping.
+            improvement: None,
+            speed_impact_group: None,
         }
     }
 }

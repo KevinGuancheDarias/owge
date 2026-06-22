@@ -97,6 +97,8 @@ impl UnitReqRow {
             is_invisible: self.is_invisible != 0,
             stored_weight: self.stored_weight,
             storage_capacity: self.storage_capacity,
+            improvement: None,
+            speed_impact_group: None,
         }
     }
 }
@@ -117,6 +119,7 @@ struct UpgradeReqRow {
     up_type_name: Option<String>,
     up_level_effect: f32,
     up_cloned_improvements: i8,
+    up_order: Option<u16>,
 }
 
 impl From<UpgradeReqRow> for UnitUpgradeRequirement {
@@ -131,7 +134,7 @@ impl From<UpgradeReqRow> for UnitUpgradeRequirement {
                 image_url: r
                     .up_image_filename
                     .map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
-                order: None, // `upgrades` has no order_number column
+                order: r.up_order, // `upgrades.order_number` (smallint unsigned)
                 points: r.up_points,
                 time: r.up_time as i64,
                 primary_resource: r.up_primary_resource,
@@ -140,7 +143,13 @@ impl From<UpgradeReqRow> for UnitUpgradeRequirement {
                 type_name: r.up_type_name,
                 level_effect: r.up_level_effect,
                 cloned_improvements: r.up_cloned_improvements != 0,
+                // Java leaves these lazy/uninitialized on the requirement read
+                // path (Hibernate doesn't init them), so they are omitted here.
+                improvement: None,
+                requirements: None,
             },
+            // Java never sets `reached` on this read path; always default false.
+            reached: false,
         }
     }
 }
@@ -355,7 +364,8 @@ impl RequirementBo {
                         up.time AS up_time, up.primary_resource AS up_primary_resource, \
                         up.secondary_resource AS up_secondary_resource, up.type AS up_type_id, \
                         ut.name AS up_type_name, up.level_effect AS up_level_effect, \
-                        up.cloned_improvements AS up_cloned_improvements \
+                        up.cloned_improvements AS up_cloned_improvements, \
+                        up.order_number AS up_order \
                  FROM requirements_information ri \
                  JOIN requirements r ON r.id = ri.requirement_id AND r.code = 'UPGRADE_LEVEL' \
                  JOIN upgrades up ON up.id = ri.second_value \

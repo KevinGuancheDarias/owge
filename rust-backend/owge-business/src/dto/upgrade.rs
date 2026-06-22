@@ -55,6 +55,14 @@ pub struct UpgradeDto {
     pub type_name: Option<String>,
     pub level_effect: f32,
     pub cloned_improvements: bool,
+    /// `UpgradeDto.improvement` — hydrated on paths where Java initializes the
+    /// `@ManyToOne` improvement (e.g. obtained upgrades); omitted otherwise.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub improvement: Option<crate::dto::ImprovementDto>,
+    /// `UpgradeDto.requirements` — the `@PostLoad`-loaded requirement-information
+    /// list (object code `UPGRADE`). Hydrated on the obtained-upgrades path.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub requirements: Option<Vec<crate::dto::RequirementInformationDto>>,
 }
 
 /// Admin create/update request body for an upgrade

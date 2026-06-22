@@ -53,6 +53,10 @@ impl ImprovementType {
 /// (mirrors `ImprovementUnitTypeDto` reduced inside `GroupedImprovement`).
 #[derive(Debug, Clone, Serialize)]
 pub struct UnitTypeImprovementEntry {
+    /// The `improvements_unit_types.id` of the first source row that contributed
+    /// this `(type, unit_type)` pair — mirrors Java's `BeanUtils.copyProperties`
+    /// keeping the first source's id when reducing into `GroupedImprovement`.
+    pub id: Option<u32>,
     /// The improvement type (`ATTACK`/`DEFENSE`/`SHIELD`/`AMOUNT`/`SPEED`).
     pub improvement_type: ImprovementType,
     /// The targeted `unit_types.id`.
@@ -122,6 +126,19 @@ impl UserImprovementDto {
         unit_type_id: u16,
         value: i64,
     ) {
+        self.add_unit_type_improvement_with_id(None, improvement_type, unit_type_id, value);
+    }
+
+    /// As [`add_unit_type_improvement`](Self::add_unit_type_improvement) but also
+    /// records the source `improvements_unit_types.id` on first insert (kept, not
+    /// overwritten, when later sources merge into the same pair — matching Java).
+    pub fn add_unit_type_improvement_with_id(
+        &mut self,
+        id: Option<u32>,
+        improvement_type: ImprovementType,
+        unit_type_id: u16,
+        value: i64,
+    ) {
         if let Some(existing) = self
             .unit_types_upgrades
             .iter_mut()
@@ -130,6 +147,7 @@ impl UserImprovementDto {
             existing.value += value;
         } else {
             self.unit_types_upgrades.push(UnitTypeImprovementEntry {
+                id,
                 improvement_type,
                 unit_type_id,
                 value,
@@ -160,6 +178,24 @@ impl UserImprovementDto {
                 .collect(),
         }
     }
+}
+
+/// The `user_data_change` serialization of `GroupedImprovement` (Jackson
+/// camelCase): the seven `more*` floats plus `unitTypesUpgrades` whose entries
+/// carry the full catalog `unitType` (Java `ImprovementUnitTypeDto`). Built from
+/// [`UserImprovementDto`] with DB access (the `unitType` needs hydration), so it
+/// is a distinct type from the math-side aggregate.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GroupedImprovementResponse {
+    pub more_primary_resource_production: f64,
+    pub more_secondary_resource_production: f64,
+    pub more_energy_production: f64,
+    pub more_charge_capacity: f64,
+    pub more_missions: f64,
+    pub more_upgrade_research_speed: f64,
+    pub more_unit_build_speed: f64,
+    pub unit_types_upgrades: Vec<crate::dto::ImprovementUnitTypeDto>,
 }
 
 /// Wire shape of `GroupedImprovement` for the `user_improvements_change` socket

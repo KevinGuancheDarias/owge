@@ -40,8 +40,6 @@ struct ImprovementUnitTypeRow {
     unit_type_image: Option<u64>,
     unit_type_image_filename: Option<String>,
     unit_type_max_count: Option<i64>,
-    unit_type_share_max_count_id: Option<u16>,
-    unit_type_parent_id: Option<u16>,
     unit_type_has_to_inherit_improvements: i8,
     unit_type_can_explore: String,
     unit_type_can_gather: String,
@@ -57,8 +55,6 @@ const SELECT_IMPROVEMENT_UNIT_TYPE: &str = "\
            ut.id AS unit_type_id, ut.name AS unit_type_name, \
            ut.image_id AS unit_type_image, img.filename AS unit_type_image_filename, \
            ut.max_count AS unit_type_max_count, \
-           ut.share_max_count AS unit_type_share_max_count_id, \
-           ut.parent_type AS unit_type_parent_id, \
            ut.has_to_inherit_improvements AS unit_type_has_to_inherit_improvements, \
            ut.can_explore AS unit_type_can_explore, ut.can_gather AS unit_type_can_gather, \
            ut.can_establish_base AS unit_type_can_establish_base, \
@@ -79,8 +75,12 @@ impl From<ImprovementUnitTypeRow> for ImprovementUnitTypeDto {
                 .unit_type_image_filename
                 .map(|f| crate::bo::image_store_bo::compute_image_url(&f)),
             max_count: r.unit_type_max_count,
-            share_max_count_id: r.unit_type_share_max_count_id,
-            parent_id: r.unit_type_parent_id,
+            // The nested relation objects on this embedded unit type are loaded
+            // by the catalog builder on the unit-type sync path; here (inside an
+            // improvement's unitTypesUpgrades) they are not hydrated. The flat
+            // FK ids are no longer part of the Java JSON, so they are dropped.
+            share_max_count: None,
+            parent: None,
             has_to_inherit_improvements: r.unit_type_has_to_inherit_improvements != 0,
             can_explore: r.unit_type_can_explore,
             can_gather: r.unit_type_can_gather,
@@ -89,9 +89,12 @@ impl From<ImprovementUnitTypeRow> for ImprovementUnitTypeDto {
             can_counterattack: r.unit_type_can_counterattack,
             can_conquest: r.unit_type_can_conquest,
             can_deploy: r.unit_type_can_deploy,
-            computed_max_count: r.unit_type_max_count,
+            speed_impact_group: None,
+            attack_rule: None,
+            critical_attack: None,
+            computed_max_count: None,
             user_built: None,
-            used: false,
+            used: None,
         };
         ImprovementUnitTypeDto {
             id: Some(r.id),
@@ -310,7 +313,19 @@ impl ImprovementBo {
         .bind(improvement_id)
         .fetch_all(&mut *conn)
         .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        let mut out: Vec<ImprovementUnitTypeDto> = Vec::with_capacity(rows.len());
+        for row in rows {
+            let mut dto: ImprovementUnitTypeDto = row.into();
+            // Java's `ImprovementUnitTypeDto.dtoFromEntity` embeds the full
+            // (catalog) `UnitTypeDto`, including nested attackRule /
+            // speedImpactGroup / etc. Replace the flat placeholder with it.
+            if let Some(unit_type_id) = dto.resolved_unit_type_id() {
+                dto.unit_type =
+                    crate::bo::UnitTypeBo::find_catalog_by_id(&mut *conn, unit_type_id).await?;
+            }
+            out.push(dto);
+        }
+        Ok(out)
     }
 
     /// `ImprovementUnitTypeBo.add` — validate and insert a per-unit-type

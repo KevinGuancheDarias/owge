@@ -161,12 +161,19 @@ pub struct ObtainedUnitDto {
     pub id: u64,
     pub unit: UnitDto,
     pub count: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_planet: Option<PlanetDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_planet: Option<PlanetDto>,
     pub user_id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
     /// Present only for temporal (time-special granted) units; omitted otherwise
     /// (Jackson `Include.NON_NULL`).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temporal_information: Option<TemporalInformationDto>,
+    /// `ObtainedUnitDto.storedUnits` — units stored inside this one. The
+    /// completed-in-my-planets path emits an empty list (non-null), so it is
+    /// always serialized.
+    pub stored_units: Vec<ObtainedUnitDto>,
 }

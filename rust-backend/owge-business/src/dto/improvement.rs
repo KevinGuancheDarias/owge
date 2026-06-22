@@ -19,20 +19,50 @@ pub struct ImprovementDto {
     /// to 0 when absent.
     #[serde(default)]
     pub id: u16,
-    #[serde(default)]
+    // Java serializes these as `Float` with `Include.NON_NULL`: omitted when
+    // null, and printed as the shortest round-trippable decimal otherwise.
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_primary_resource_production: Option<f32>,
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_secondary_resource_production: Option<f32>,
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_energy_production: Option<f32>,
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_charge_capacity: Option<f32>,
     /// Java `moreMissions` (from `more_missions_value`).
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_missions: Option<f32>,
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_upgrade_research_speed: Option<f32>,
-    #[serde(default)]
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        serialize_with = "crate::dto::serde_helpers::serialize_opt_f32"
+    )]
     pub more_unit_build_speed: Option<f32>,
     /// The per-unit-type improvements (`improvements_unit_types` rows). Nulled by
     /// the controller on the `PUT` body and ignored there.

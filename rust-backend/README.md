@@ -124,6 +124,56 @@ game-JWT auth, `adminLogin`).
 | `OWGE_GAME_SECRET_ENCODING` | `raw` | `raw` or `base64` — how the game HMAC `JWT_SECRET` becomes key bytes (the #1 interop knob; pin against a real token) |
 | `OWGE_CORS_ORIGINS` | `*` | comma-separated allowed origins |
 
+## Verifying parity vs the Java backend (`/game/websocket-sync`)
+
+During the port we frequently need to confirm the Rust `/game/websocket-sync`
+output matches the Java backend's, **field for field**, against the *same*
+database. `scripts/ws_verify/compare_rest_sync.sh` automates the whole thing:
+it boots the Java backend in a container on the dev DB's docker network, mints
+**one** HS256 JWT that both backends accept (dev uses the HMAC
+`DevelopmentSgtTokenConfigLoader`, secret = `configuration.JWT_SECRET`), then
+runs `rest_sync_diff.py` to request all 20 sync keys from each and deep-diff the
+payloads (`lastSent` stripped, id-keyed arrays sorted, so only real differences
+show). Diff lines are tagged `RUST MISSING FIELD` / `RUST FEWER ITEMS` /
+`RUST EMPTY/NULL` so "Rust returns less data" jumps out.
+
+**Prerequisites** (the dev stack — see `docker-ci/dev` — provides the DB):
+
+```bash
+# 1. The dev MySQL `db` container must be running with universe data in DB `owge`
+#    (default creds root/1234, container owge_backend_developer-db-1 on :3306).
+
+# 2. Build the Java backend image once (rebuild it whenever Java code changes):
+docker build -f docker-ci/dev/images_creation/Dockerfile_for_war_files \
+  --target game-rest-and-admin -t owge-java-compare:latest .   # run from repo root
+
+# 3. Run the Rust backend against that same DB:
+cd rust-backend
+OWGE_DB_JDBC_URL='mysql://root:1234@127.0.0.1:3306/owge' \
+OWGE_SERVER_PORT=8080 cargo run -p owge-rest        # or ./target/debug/owge-rest
+```
+
+**Run the comparison** (from `rust-backend/`):
+
+```bash
+RUST_PORT=8080 ./scripts/ws_verify/compare_rest_sync.sh
+```
+
+It prints a per-key `✅ match` / `🔴 RUST RETURNS LESS` report and a final
+summary line listing every key where Rust is behind, and writes the full
+machine-readable diff to `/tmp/rest_sync_diff.json`. The Java container is
+started and torn down automatically each run; iterate by editing Rust code,
+restarting the Rust process, and re-running the script.
+
+Overridable env: `RUST_PORT` (8080), `JAVA_HOST_PORT` (8099),
+`DB_CONTAINER` (`owge_backend_developer-db-1`), `DB_NAME` (`owge`),
+`DB_PASS` (`1234`). To diff a subset of keys directly, call
+`scripts/ws_verify/rest_sync_diff.py --help`.
+
+> This is the **REST snapshot** path. For the live **socket.io** event stream
+> (mission completions etc.) use `scripts/ws_verify/ws_capture.js` — see
+> `scripts/ws_verify/README.md`.
+
 ## Implemented so far
 
 **M0 — foundation** (verified against the dc12 clone):
