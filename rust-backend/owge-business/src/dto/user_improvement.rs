@@ -231,3 +231,36 @@ pub struct ImprovementUnitTypeWire {
 pub struct UnitTypeRefWire {
     pub id: u16,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// D0 (improvement inheritance): `findUnitTypeImprovement` must only fold in a
+    /// parent unit type's ATTACK/SHIELD/DEFENSE bonus when the chain handed in
+    /// includes that parent — which the combat caller builds only while each level's
+    /// `has_to_inherit_improvements` is TRUE. This test pins the summing contract the
+    /// `AttackMissionManagerBo::unit_type_improvement_chain` fix depends on: a
+    /// non-inheriting child (chain `[child]`) excludes the parent's bonus; an
+    /// inheriting child (chain `[child, parent]`) includes it.
+    #[test]
+    fn improvement_chain_respects_inheritance_boundary() {
+        let mut imp = UserImprovementDto::default();
+        // child type = 10 carries +25% ATTACK, parent type = 20 carries +40% ATTACK.
+        imp.add_unit_type_improvement(ImprovementType::Attack, 10, 25);
+        imp.add_unit_type_improvement(ImprovementType::Attack, 20, 40);
+
+        // Non-inheriting child: chain stops at the child, so only its own +25%.
+        let non_inheriting = imp.find_unit_type_improvement_for_chain(ImprovementType::Attack, &[10]);
+        assert_eq!(non_inheriting, 25.0);
+
+        // Inheriting child: chain includes the parent, so +25% + +40% = +65%.
+        let inheriting =
+            imp.find_unit_type_improvement_for_chain(ImprovementType::Attack, &[10, 20]);
+        assert_eq!(inheriting, 65.0);
+
+        // Other improvement types on the same chain are independent (here: none).
+        let shield = imp.find_unit_type_improvement_for_chain(ImprovementType::Shield, &[10, 20]);
+        assert_eq!(shield, 0.0);
+    }
+}

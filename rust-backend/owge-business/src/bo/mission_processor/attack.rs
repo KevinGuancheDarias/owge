@@ -269,7 +269,8 @@ async fn find_units_involved(
         "SELECT id, user_id, unit_id, count, source_planet, target_planet, \
                 mission_id, first_deployment_mission, is_from_capture, \
                 expiration_id, owner_unit_id \
-         FROM obtained_units WHERE mission_id = ?",
+         FROM obtained_units WHERE mission_id = ? \
+         ORDER BY id",
     )
     .bind(mission_id)
     .fetch_all(&mut *conn)

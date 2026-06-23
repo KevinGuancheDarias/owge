@@ -21,7 +21,8 @@ DELETE FROM explored_planets WHERE user IN (1,2);
 DELETE FROM unlocked_relation WHERE user_id IN (1,2);
 DELETE FROM active_time_specials WHERE user_id IN (1,2);
 DELETE FROM websocket_events_information WHERE user_id IN (1,2);
-UPDATE planets SET owner=NULL, home=NULL WHERE id IN (1002,1003,1004);
+UPDATE planets SET owner=NULL, home=NULL WHERE id IN (1002,1003,1004) OR owner IN (1,2);
+DELETE FROM obtained_upgrades WHERE user_id IN (1,2);
 DELETE FROM user_storage WHERE id IN (1,2);
 
 INSERT INTO user_storage
@@ -40,5 +41,15 @@ INSERT INTO obtained_units (user_id, unit_id, count, is_from_capture, source_pla
   (2, 309, 5,  0, 1003);
 
 INSERT INTO explored_planets (user, planet) VALUES (1, 1003);
+
+-- Force the UNIT_CAPTURE rule 12 (unit 3 -> unit 309) to '100#10' so the capture
+-- outcome is SEED-INDEPENDENT and thus identical across the Java and Rust runs
+-- (which use different mission-id seeds):
+--   * prob = 100  -> capture ALWAYS fires regardless of the nextDouble prob roll.
+--   * amount pct = 10 -> floor(killed * 0.10) = 0 for killed < 10, and the amount
+--     draw floor(rand * 0 + 1) = 1 for ANY rand, so exactly 1 unit is captured.
+-- Without this the 42% default probability makes capture fire-or-not depend on the
+-- per-run seed, so the two backends would legitimately diverge.
+UPDATE rules SET extra_args='100#10' WHERE id=12;
 
 COMMIT;

@@ -12,7 +12,10 @@ DELETE FROM obtained_units WHERE user_id IN (1,2);
 DELETE FROM missions WHERE user_id IN (1,2);
 DELETE FROM explored_planets WHERE user IN (1,2);
 DELETE FROM websocket_events_information WHERE user_id IN (1,2);
-UPDATE planets SET owner=NULL, home=NULL WHERE id IN (1002,1003,1004);
+DELETE FROM unlocked_relation WHERE user_id IN (1,2);
+DELETE FROM active_time_specials WHERE user_id IN (1,2);
+UPDATE planets SET owner=NULL, home=NULL WHERE id IN (1002,1003,1004) OR owner IN (1,2);
+DELETE FROM obtained_upgrades WHERE user_id IN (1,2);
 DELETE FROM user_storage WHERE id IN (1,2);
 
 INSERT INTO user_storage

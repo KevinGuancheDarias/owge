@@ -25,9 +25,51 @@ public class AttackInformation {
     private boolean isRemoved;
     private UnitMissionReportBuilder reportBuilder;
 
+    /**
+     * Seeded {@link Random} used only when the {@code ATTACK_DETERMINISTIC_RNG} configuration flag is on.
+     * When {@code null}, the engine falls back to its default (time-random) behaviour and emits no RNG trace.
+     */
+    private Random deterministicRandom;
+
+    /**
+     * Seed used to build {@link #deterministicRandom} (the attack mission id). Emitted on every trace line.
+     */
+    private long rngSeed;
+
+    /**
+     * Per-attack RNG trace sequence counter; starts at 0 and increments once per primitive draw.
+     */
+    private long rngSeq;
+
     public AttackInformation(Mission attackMission, Planet targetPlanet) {
         this.attackMission = attackMission;
         this.targetPlanet = targetPlanet;
+    }
+
+    /**
+     * @return {@code true} when deterministic RNG mode is active (a seeded {@link Random} has been set).
+     */
+    public boolean isDeterministicRng() {
+        return deterministicRandom != null;
+    }
+
+    /**
+     * Emits one {@code @@RNG@@} trace line to stderr (deterministic mode only) and advances the sequence counter.
+     * The JSON is compact (no internal spaces) with fixed field names so both backends can be diffed by {@code seq}.
+     */
+    public void traceRng(String site, Integer bound, Long attacker, Long victim, Long killed, Number result) {
+        var sb = new StringBuilder();
+        sb.append("{\"seq\":").append(rngSeq)
+                .append(",\"site\":\"").append(site).append('"')
+                .append(",\"seed\":").append(rngSeed)
+                .append(",\"bound\":").append(bound == null ? "null" : bound.toString())
+                .append(",\"attacker\":").append(attacker == null ? "null" : attacker.toString())
+                .append(",\"victim\":").append(victim == null ? "null" : victim.toString())
+                .append(",\"killed\":").append(killed == null ? "null" : killed.toString())
+                .append(",\"result\":").append(result)
+                .append('}');
+        System.err.println("@@RNG@@ " + sb);
+        rngSeq++;
     }
 
     public <T> List<T> getContextData(String key, Class<T> clazz) {

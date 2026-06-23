@@ -44,6 +44,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde_json::{Value, json};
 use sqlx::MySqlConnection;
 
+use crate::bo::configuration_bo::ConfigurationBo;
+use crate::bo::java_random::JavaRandom;
 use crate::bo::mission_report_manager_bo::MissionReportManagerBo;
 use crate::bo::realtime_emitter::RequirementEmit;
 use crate::builder::UnitMissionReportBuilder;
@@ -197,12 +199,80 @@ struct AttackInformation {
     /// per successful capture, drained into per-captor reports at `emitAttackEnd`.
     capture_contexts: Vec<CaptureContext>,
     /// xorshift64 state driving the capture probability/amount rolls (the Rust
-    /// stand-in for `Math.random()`, kept separate from the shuffle PRNG).
+    /// stand-in for `Math.random()`, kept separate from the shuffle PRNG). Used only
+    /// when deterministic mode is OFF.
     rng_state: u64,
+    /// DETERMINISTIC MODE (`ATTACK_DETERMINISTIC_RNG = TRUE`): a single
+    /// `java.util.Random` seeded from the attack `mission.id`, consumed in Java's
+    /// exact draw order (shuffle, then capture prob/amount per pair). `None` keeps
+    /// the legacy clock-seeded xorshift path unchanged. See `ATTACK_PARITY_PLAN.md`.
+    det_rng: Option<JavaRandom>,
+    /// The i64 attack seed (`mission.id`), emitted on every `@@RNG@@` trace line.
+    det_seed: i64,
+    /// Per-attack trace sequence counter (starts at 0, increments each draw).
+    trace_seq: u64,
     /// `(captor_user_id, report_id)` for each capture report written at
     /// `emitAttackEnd`, surfaced so the processor can emit `mission_report_new` +
     /// `mission_report_count_change` post-commit.
     capture_report_pairs: Vec<(i32, u64)>,
+}
+
+impl AttackInformation {
+    /// Emit one `@@RNG@@ ` trace line per primitive draw (deterministic mode only)
+    /// and bump `trace_seq`. Compact single-line JSON, no spaces; the harness greps
+    /// stderr for the `@@RNG@@ ` prefix and aligns the two backends by `seq`.
+    fn trace_draw(
+        &mut self,
+        site: &str,
+        bound: Option<i32>,
+        attacker: Option<i64>,
+        victim: Option<i64>,
+        killed: Option<i64>,
+        result: &Value,
+    ) {
+        let line = json!({
+            "seq": self.trace_seq,
+            "site": site,
+            "seed": self.det_seed,
+            "bound": bound,
+            "attacker": attacker,
+            "victim": victim,
+            "killed": killed,
+            "result": result,
+        });
+        eprintln!("@@RNG@@ {line}");
+        self.trace_seq += 1;
+    }
+
+    /// One deterministic `nextInt(bound)` draw for the explicit Fisher-Yates shuffle,
+    /// traced as `site="shuffle"`. Caller guarantees deterministic mode is on.
+    fn det_shuffle_next(&mut self, bound: i32) -> usize {
+        let j = self
+            .det_rng
+            .as_mut()
+            .expect("deterministic mode")
+            .next_int_bound(bound);
+        self.trace_draw("shuffle", Some(bound), None, None, None, &json!(j));
+        j as usize
+    }
+
+    /// One deterministic `nextDouble()` capture draw, traced as `site` with the
+    /// attacker/victim obtained_unit ids (and `killed` for the amount draw).
+    fn det_capture_next(
+        &mut self,
+        site: &str,
+        attacker: i64,
+        victim: i64,
+        killed: Option<i64>,
+    ) -> f64 {
+        let d = self
+            .det_rng
+            .as_mut()
+            .expect("deterministic mode")
+            .next_double();
+        self.trace_draw(site, None, Some(attacker), Some(victim), killed, &json!(d));
+        d
+    }
 }
 
 /// One successful unit capture — the Rust counterpart of `UnitCaptureContext`,
@@ -270,6 +340,26 @@ impl AttackMissionManagerBo {
         mission: &Mission,
         involved_units: &[ObtainedUnit],
     ) -> OwgeResult<AttackInformation> {
+        // DETERMINISTIC MODE gate: `configuration` row name='ATTACK_DETERMINISTIC_RNG'
+        // value 'TRUE' (case-insensitive, anything else = false; absent = false —
+        // parsed like Java `Boolean.parseBoolean`). When ON we build exactly ONE
+        // `JavaRandom` seeded from the attack `mission.id` and consume it in Java's
+        // draw order; when OFF the legacy clock-seeded xorshift path is untouched.
+        let deterministic = ConfigurationBo::find_or_set_default(
+            &mut *conn,
+            "ATTACK_DETERMINISTIC_RNG",
+            "FALSE",
+        )
+        .await?
+        .value
+        .eq_ignore_ascii_case("true");
+        let det_seed = mission.id as i64;
+        let det_rng = if deterministic {
+            Some(JavaRandom::new(det_seed))
+        } else {
+            None
+        };
+
         let mut info = AttackInformation {
             attack_mission_id: mission.id,
             units: Vec::new(),
@@ -292,6 +382,9 @@ impl AttackMissionManagerBo {
                 .unwrap_or(0x2545_F491_4F6C_DD1D)
                 ^ 0x9E37_79B9_7F4A_7C15
                 | 1,
+            det_rng,
+            det_seed,
+            trace_seq: 0,
         };
 
         // --- Defenders involved at the target planet, excluding this mission's
@@ -355,10 +448,16 @@ impl AttackMissionManagerBo {
             );
             info.user_order.push(user_id);
         }
-        let unit_type_chain = Self::unit_type_chain(conn, row.unit_type_id).await?;
+        // Improvement inheritance walks the parent chain ONLY while each level's
+        // `has_to_inherit_improvements` is TRUE (Java `GroupedImprovement
+        // .findUnitTypeImprovement`, `pojo/GroupedImprovement.java:74-86`), stopping
+        // at the first non-inheriting level. This is distinct from the rule/critical
+        // chain (`unit_type_chain`), which inherits unconditionally.
+        let improvement_chain =
+            Self::unit_type_improvement_chain(conn, row.unit_type_id).await?;
         let stack = {
             let user = info.users.get(&user_id).expect("just inserted");
-            Self::create_combat_stack(&row, &user.improvement, &unit_type_chain)
+            Self::create_combat_stack(&row, &user.improvement, &improvement_chain)
         };
         if let Some(owner_unit_id) = row.owner_unit_id {
             info.units_storing_units.insert(owner_unit_id);
@@ -432,7 +531,22 @@ impl AttackMissionManagerBo {
         // stands in for `java.util.Random` (combat targeting only needs an
         // unbiased random order, not reproducibility).
         let mut order: Vec<usize> = (0..info.units.len()).collect();
-        shuffle_indices(&mut order);
+        if info.det_rng.is_some() {
+            // DETERMINISTIC: explicit Fisher-Yates over the index permutation so each
+            // `nextInt` draw is traced. The permutation array has the SAME length and
+            // initial order as Java's shuffled `units` list (defenders in
+            // category order, then the attacker's stacks), so the swap indices match
+            // Java's `Collections.shuffle(units, rnd)` byte-for-byte. Mirrors JDK
+            // `Collections.shuffle`: for i = n down to 2, swap(i-1, nextInt(i)).
+            let n = order.len();
+            for i in (2..=n).rev() {
+                let j = info.det_shuffle_next(i as i32);
+                order.swap(i - 1, j);
+            }
+        } else {
+            // NON-DETERMINISTIC (unchanged): clock-seeded xorshift Fisher-Yates.
+            shuffle_indices(&mut order);
+        }
 
         // Per user, the indices of enemy stacks they may attack.
         for user_id in info.user_order.clone() {
@@ -734,13 +848,13 @@ impl AttackMissionManagerBo {
         victim_idx: usize,
         killed: u64,
     ) -> OwgeResult<()> {
-        let (captor_user_id, attacker_unit_id, attacker_unit_type) = {
+        let (captor_user_id, attacker_unit_id, attacker_unit_type, attacker_ou_id) = {
             let a = &info.units[source_idx];
-            (a.row.user_id, a.row.unit_id, a.row.unit_type_id)
+            (a.row.user_id, a.row.unit_id, a.row.unit_type_id, a.row.id)
         };
-        let (victim_unit_id, victim_unit_type) = {
+        let (victim_unit_id, victim_unit_type, victim_ou_id) = {
             let v = &info.units[victim_idx];
-            (v.row.unit_id, v.row.unit_type_id)
+            (v.row.unit_id, v.row.unit_type_id, v.row.id)
         };
 
         // findRule(UNIT_CAPTURE, attackerUnit, victimUnit)
@@ -769,14 +883,37 @@ impl AttackMissionManagerBo {
             return Ok(());
         };
 
-        // `.filter(args -> Math.random() * 100 < probability)`
-        if !(next_unit_f64(&mut info.rng_state) * 100.0 < probability as f64) {
+        // `.filter(args -> Math.random() * 100 < probability)`. In deterministic mode
+        // the double comes from the shared `JavaRandom` (traced); otherwise from the
+        // legacy clock-seeded xorshift. The trace ids are the attacker/victim
+        // obtained_unit ids (`row.id`).
+        let capture_prob = if info.det_rng.is_some() {
+            info.det_capture_next(
+                "capture_prob",
+                attacker_ou_id as i64,
+                victim_ou_id as i64,
+                None,
+            )
+        } else {
+            next_unit_f64(&mut info.rng_state)
+        };
+        if !(capture_prob * 100.0 < probability as f64) {
             return Ok(());
         }
 
         // captured = floor(Math.random() * floor(killed * (percentage * 0.01))) + 1
         let scaled = (killed as f64 * (percentage as f64 * 0.01)).floor();
-        let captured = (next_unit_f64(&mut info.rng_state) * scaled + 1.0).floor();
+        let capture_amount = if info.det_rng.is_some() {
+            info.det_capture_next(
+                "capture_amount",
+                attacker_ou_id as i64,
+                victim_ou_id as i64,
+                Some(killed as i64),
+            )
+        } else {
+            next_unit_f64(&mut info.rng_state)
+        };
+        let captured = (capture_amount * scaled + 1.0).floor();
         if captured < 1.0 {
             return Ok(());
         }
@@ -830,15 +967,18 @@ impl AttackMissionManagerBo {
                 return Ok(extra);
             }
         }
-        // 4. unit-type vs unit-type (attacker chain × victim chain)
-        for &f in &attacker_chain {
-            for &t in &victim_chain {
-                if let Some(extra) =
-                    Self::lookup_rule(conn, "UNIT_TYPE", f as i64, "UNIT_TYPE", t as i64).await?
-                {
-                    return Ok(extra);
-                }
-            }
+        // 4. unit-type vs unit-type. Java `unitTypeVsUnitTypeOptional` recurses the
+        // VICTIM (to) parent chain to exhaustion at each attacker level BEFORE
+        // stepping the ATTACKER (from) chain — `(f,t)` then `(f, t.parent...)` then
+        // `(f.parent, t)`. The attacker-outer × victim-inner loop this replaced gave
+        // a different first match when several overlapping type-chain capture rules
+        // exist (D2). Replicate the recursion order exactly via depth-first walk
+        // over the precomputed chains (duplicate probes just re-hit the same row, so
+        // the first present rule still wins identically to Java).
+        if let Some(extra) =
+            Self::unit_type_vs_unit_type_capture(conn, &attacker_chain, 0, &victim_chain, 0).await?
+        {
+            return Ok(extra);
         }
         // 5. the captor's ACTIVE time-specials vs the victim unit / unit-type
         let time_special_ids: Vec<u64> = sqlx::query_scalar(
@@ -870,6 +1010,54 @@ impl AttackMissionManagerBo {
             }
         }
         Ok(None)
+    }
+
+    /// Byte-exact port of Java `UnitRuleFinderService.unitTypeVsUnitTypeOptional`'s
+    /// recursion order for the UNIT_TYPE×UNIT_TYPE capture-rule probe: try
+    /// `(from[fi], to[ti])`, then exhaust the victim (to) chain
+    /// (`unitTypeVsUnitTypeOptional(from[fi], to.parent)`), then step the attacker
+    /// (from) chain (`unitTypeVsUnitTypeOptional(from.parent, to[ti])`). The chains
+    /// are `[self, parent, ...]`, so `chain[idx + 1]` is "parent". Returning the
+    /// first present rule reproduces Java's `Optional::or` short-circuit (fixes D2).
+    fn unit_type_vs_unit_type_capture<'a>(
+        conn: &'a mut MySqlConnection,
+        from_chain: &'a [u16],
+        fi: usize,
+        to_chain: &'a [u16],
+        ti: usize,
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = OwgeResult<Option<Option<String>>>> + Send + 'a>,
+    > {
+        Box::pin(async move {
+            if fi >= from_chain.len() || ti >= to_chain.len() {
+                return Ok(None);
+            }
+            // try (from[fi], to[ti])
+            if let Some(extra) = Self::lookup_rule(
+                conn,
+                "UNIT_TYPE",
+                from_chain[fi] as i64,
+                "UNIT_TYPE",
+                to_chain[ti] as i64,
+            )
+            .await?
+            {
+                return Ok(Some(extra));
+            }
+            // .or -> recurse the victim (to) chain first
+            if let Some(found) =
+                Self::unit_type_vs_unit_type_capture(conn, from_chain, fi, to_chain, ti + 1).await?
+            {
+                return Ok(Some(found));
+            }
+            // .or -> then step the attacker (from) chain
+            if let Some(found) =
+                Self::unit_type_vs_unit_type_capture(conn, from_chain, fi + 1, to_chain, ti).await?
+            {
+                return Ok(Some(found));
+            }
+            Ok(None)
+        })
     }
 
     /// One `rules` lookup for `type = 'UNIT_CAPTURE'`. The outer `Option` is row
@@ -1382,6 +1570,40 @@ impl AttackMissionManagerBo {
         Ok(chain.contains(&reference_id))
     }
 
+    /// The unit-type id chain to sum improvements over, honouring
+    /// `has_to_inherit_improvements` per level (Java `GroupedImprovement
+    /// .findUnitTypeImprovement`): always include the unit's own type, then keep
+    /// climbing to the parent only while the *current* level's
+    /// `has_to_inherit_improvements` flag is TRUE — stopping at the first level that
+    /// does not inherit. So a non-inheriting child does NOT pick up its parent's
+    /// ATTACK/SHIELD/DEFENSE bonus, matching Java (fixes D0).
+    async fn unit_type_improvement_chain(
+        conn: &mut MySqlConnection,
+        unit_type_id: Option<u16>,
+    ) -> OwgeResult<Vec<u16>> {
+        let mut chain = Vec::new();
+        let mut current = unit_type_id;
+        while let Some(id) = current {
+            if chain.contains(&id) {
+                break; // guard against a malformed cycle
+            }
+            chain.push(id);
+            // `has_to_inherit_improvements` (i8 / tinyint) and `parent_type`.
+            let row: Option<(i8, Option<u16>)> = sqlx::query_as(
+                "SELECT has_to_inherit_improvements, parent_type FROM unit_types WHERE id = ?",
+            )
+            .bind(id)
+            .fetch_optional(&mut *conn)
+            .await?;
+            match row {
+                // Recurse to the parent ONLY when this level inherits.
+                Some((inherit, parent)) if inherit != 0 => current = parent,
+                _ => break,
+            }
+        }
+        Ok(chain)
+    }
+
     /// The full `[self, parent, grandparent, ...]` unit-type id chain, used both
     /// for rule matching and improvement inheritance.
     async fn unit_type_chain(
@@ -1454,18 +1676,37 @@ impl AttackMissionManagerBo {
     /// Java map exactly.
     fn to_attack_information_json(info: &AttackInformation) -> Value {
         let mut users_json = Vec::new();
-        for user_id in &info.user_order {
+        // Java builds `attackInformation` by iterating `AttackInformation.users`,
+        // a HashMap<Integer, ...>; for the small user ids in play its iteration is
+        // ascending by key. Combat itself uses insertion order (`user_order`) for
+        // shuffle-input parity, but the persisted REPORT must mirror Java's
+        // ascending-by-user-id array order, so sort a copy here (this does not
+        // affect any RNG draw or combat outcome — report serialisation only).
+        let mut ordered_users = info.user_order.clone();
+        ordered_users.sort_unstable();
+        for user_id in &ordered_users {
             let user = &info.users[user_id];
             let mut units_json = Vec::new();
             for &idx in &user.unit_indices {
                 let stack = &info.units[idx];
+                // `obtainedUnit.count` mirrors the ObtainedUnit ENTITY's count at
+                // report-build time, which is NOT always the final count: Java
+                // updates the entity via `saveWithChange` only for SURVIVING stacks
+                // (final > 0); a fully-wiped stack (final == 0) is `delete`d, so its
+                // entity count is never decremented and the report carries the
+                // ORIGINAL (initial) count. Match that here.
+                let report_count = if stack.final_count == 0 {
+                    stack.initial_count
+                } else {
+                    stack.final_count
+                };
                 units_json.push(json!({
                     "initialCount": stack.initial_count,
                     "finalCount": stack.final_count,
                     "obtainedUnit": {
                         "id": stack.row.id,
                         "unit": stack.row.to_unit_dto(),
-                        "count": stack.final_count,
+                        "count": report_count,
                         "userId": stack.row.user_id,
                         "username": stack.row.username,
                     },
@@ -1601,6 +1842,19 @@ const SELECT_COMBAT_UNIT_BASE: &str = "\
 /// Defenders involved at the target planet (ObtainedUnitFinderBo.findInvolvedInAttack),
 /// excluding the attack mission's own stacks. `?1/?2/?3` = target planet id;
 /// `?4` = attack mission id.
+///
+/// **Ordering (Part 3, load-bearing for shuffle parity).** Java assembles defenders
+/// as three *separate* queries concatenated in this exact sequence:
+///   1. `findBySourcePlanetIdAndMissionIsNull` (planet-resident, no mission)
+///   2. `findByTargetPlanetIdAndMissionTypeCode(DEPLOYED)`
+///   3. `findByTargetPlanetIdWhereReferencePercentageTimePassed(CONQUEST >= 10%)`
+/// — none of which carry an explicit `ORDER BY`, so each returns rows in `ou.id`
+/// order. The previous single OR-query interleaved the three categories by raw scan
+/// order, which differs from Java's category-grouped order and so produced a
+/// different shuffle input list. We restore Java's order with an explicit category
+/// rank (`cat`) plus `ou.id`. The categories are mutually exclusive (category 0
+/// requires `mission_id IS NULL`; 1/2 require a typed mission), so the `CASE` is
+/// unambiguous.
 const SELECT_DEFENDERS_SQL: &str = "\
     SELECT ou.id AS id, ou.user_id AS user_id, ou.count AS count, \
            ou.mission_id AS mission_id, ou.owner_unit_id AS owner_unit_id, \
@@ -1632,7 +1886,11 @@ const SELECT_DEFENDERS_SQL: &str = "\
             OR (ou.target_planet = ? AND mt.code = 'CONQUEST' \
                 AND m.required_time * 0.1 < TIME_TO_SEC(TIMEDIFF(UTC_TIMESTAMP(), m.starting_date))) \
           ) \
-      AND (ou.mission_id IS NULL OR ou.mission_id <> ?)";
+      AND (ou.mission_id IS NULL OR ou.mission_id <> ?) \
+    ORDER BY CASE \
+            WHEN ou.mission_id IS NULL THEN 0 \
+            WHEN mt.code = 'DEPLOYED' THEN 1 \
+            ELSE 2 END, ou.id";
 
 /// Per-unit-type improvements for a user, summed by the three sources (matches
 /// `UserImprovementBo`'s `UNIT_TYPE_IMPROVEMENTS_SQL`). `?1/?2/?3` = user id.

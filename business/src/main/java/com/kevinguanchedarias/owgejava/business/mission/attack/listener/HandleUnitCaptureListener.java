@@ -43,10 +43,39 @@ public class HandleUnitCaptureListener
                 )
                 .filter(rule -> ruleBo.hasExtraArg(rule, 0) && ruleBo.hasExtraArg(rule, 1))
                 .map(ruleBo::findExtraArgs)
-                .filter(args -> (Math.random()) * 100 < Long.parseLong(args.get(0)))
+                .filter(args -> captureProbabilityRoll(information, attacker, victim) * 100 < Long.parseLong(args.get(0)))
                 .map(args -> Long.parseLong(args.get(1)))
-                .map(captureCountPercentage -> Math.floor((Math.random() * Math.floor(killed * (captureCountPercentage * 0.01))) + 1))
+                .map(captureCountPercentage -> Math.floor((captureAmountRoll(information, attacker, victim, killed) * Math.floor(killed * (captureCountPercentage * 0.01))) + 1))
                 .ifPresent(captured -> saveCaptured(information, attacker, victim, captured));
+    }
+
+    /**
+     * Capture-probability draw. In deterministic mode uses the {@link AttackInformation}'s seeded
+     * {@link java.util.Random} and emits a {@code capture_prob} trace line; otherwise keeps {@code Math.random()}
+     * and emits nothing, so production behaviour is unchanged.
+     */
+    private double captureProbabilityRoll(AttackInformation information, AttackObtainedUnit attacker, AttackObtainedUnit victim) {
+        if (information.isDeterministicRng()) {
+            double result = information.getDeterministicRandom().nextDouble();
+            information.traceRng("capture_prob", null,
+                    attacker.getObtainedUnit().getId(), victim.getObtainedUnit().getId(), null, result);
+            return result;
+        }
+        return Math.random();
+    }
+
+    /**
+     * Capture-amount draw, only reached when the probability roll passed. Deterministic mode uses the same
+     * seeded {@link java.util.Random} and emits a {@code capture_amount} trace line; otherwise {@code Math.random()}.
+     */
+    private double captureAmountRoll(AttackInformation information, AttackObtainedUnit attacker, AttackObtainedUnit victim, long killed) {
+        if (information.isDeterministicRng()) {
+            double result = information.getDeterministicRandom().nextDouble();
+            information.traceRng("capture_amount", null,
+                    attacker.getObtainedUnit().getId(), victim.getObtainedUnit().getId(), killed, result);
+            return result;
+        }
+        return Math.random();
     }
 
     @Override

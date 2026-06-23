@@ -13,6 +13,7 @@ pub mod faction_bo;
 pub mod galaxy_bo;
 pub mod image_store_bo;
 pub mod improvement_bo;
+pub mod java_random;
 pub mod mission_base_service_bo;
 pub mod mission_bo;
 pub mod mission_configuration_bo;

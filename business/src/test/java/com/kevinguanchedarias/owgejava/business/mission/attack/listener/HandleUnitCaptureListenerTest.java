@@ -23,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import static com.kevinguanchedarias.owgejava.business.mission.attack.listener.HandleUnitCaptureListener.CAPTURE_UNIT_CONTEXT_NAME;
 import static com.kevinguanchedarias.owgejava.mock.AttackMock.*;
@@ -176,6 +177,37 @@ class HandleUnitCaptureListenerTest {
             assertThat(sentToReport.get(0)).isEqualTo(entry);
             verify(missionReportBo, times(1)).create(builderMock, false, givenUser1());
         }
+    }
+
+    @Test
+    void onAfterUnitKilledCalculation_should_use_seeded_random_when_deterministic_on() {
+        long seed = 99L;
+        var attacker = givenAttackObtainedUnit();
+        var victim = givenAttackObtainedUnit(givenObtainedUnit2());
+        var killed = 4L;
+        int probability = 100;
+        var captureRule = givenUnitCaptureRule(probability);
+        int captureAmountPercentage = 50;
+        var information = givenAttackInformation();
+        information.setRngSeed(seed);
+        information.setDeterministicRandom(new Random(seed));
+        when(ruleBo.findExtraArgs(captureRule)).thenReturn(List.of(Integer.toString(probability), Integer.toString(captureAmountPercentage)));
+        when(ruleBo.hasExtraArg(eq(captureRule), anyInt())).thenReturn(true);
+        mockRule(attacker.getObtainedUnit().getUnit(), victim.getObtainedUnit().getUnit(), probability);
+
+        handleUnitCaptureListener.onAfterUnitKilledCalculation(information, attacker, victim, killed);
+
+        // Reproduce the exact draws the listener consumes: prob roll then amount roll, both from new Random(seed).
+        var reference = new Random(seed);
+        double probRoll = reference.nextDouble();
+        assertThat(probRoll * 100).isLessThan(probability);
+        double expectedCaptured = Math.floor((reference.nextDouble() * Math.floor(killed * (captureAmountPercentage * 0.01))) + 1);
+
+        var captor = ArgumentCaptor.forClass(ObtainedUnit.class);
+        verify(obtainedUnitBo, times(1)).moveUnit(captor.capture(), eq(USER_ID_1), eq(SOURCE_PLANET_ID));
+        assertThat(captor.getValue().getCount()).isEqualTo((long) expectedCaptured);
+        // Two draws were taken -> sequence counter advanced by 2.
+        assertThat(information.getRngSeq()).isEqualTo(2L);
     }
 
     private void mockRule(Unit from, Unit to, int captureProbability) {

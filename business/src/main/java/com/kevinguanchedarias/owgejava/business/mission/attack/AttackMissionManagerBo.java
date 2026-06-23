@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 @Service
@@ -95,7 +96,14 @@ public class AttackMissionManagerBo {
     public void startAttack(AttackInformation attackInformation) {
         var units = attackInformation.getUnits();
         var users = attackInformation.getUsers();
-        attackObtainedUnitBo.shuffleUnits(units);
+        if (Boolean.parseBoolean(
+                configurationBo.findOrSetDefault("ATTACK_DETERMINISTIC_RNG", "FALSE").getValue())) {
+            long seed = attackInformation.getAttackMission().getId();
+            attackInformation.setRngSeed(seed);
+            attackInformation.setRngSeq(0L);
+            attackInformation.setDeterministicRandom(new Random(seed));
+        }
+        attackObtainedUnitBo.shuffleUnits(units, attackInformation);
         users.forEach((userId, user) -> user.setAttackableUnits(units.stream().filter(
                 unit -> allianceBo.areEnemies(user.getUser(), unit.getUser().getUser())
         ).toList()));

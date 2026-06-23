@@ -10,6 +10,7 @@ import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.dto.ObtainedUnitDto;
 import com.kevinguanchedarias.owgejava.entity.AttackRule;
+import com.kevinguanchedarias.owgejava.entity.Configuration;
 import com.kevinguanchedarias.owgejava.entity.ObtainedUnit;
 import com.kevinguanchedarias.owgejava.entity.Unit;
 import com.kevinguanchedarias.owgejava.entity.UnitType;
@@ -91,6 +92,7 @@ class AttackMissionManagerBoTest {
     private final ObtainedUnitFinderBo obtainedUnitFinderBo;
     private final TransactionUtilService transactionUtilService;
     private final AttackBypassShieldService attackBypassShieldService;
+    private final ConfigurationBo configurationBo;
 
     private final ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService;
 
@@ -109,6 +111,7 @@ class AttackMissionManagerBoTest {
             ObtainedUnitFinderBo obtainedUnitFinderBo,
             TransactionUtilService transactionUtilService,
             AttackBypassShieldService attackBypassShieldService,
+            ConfigurationBo configurationBo,
             ObtainedUnitImprovementCalculationService obtainedUnitImprovementCalculationService
     ) {
         this.attackMissionManagerBo = attackMissionManagerBo;
@@ -125,6 +128,7 @@ class AttackMissionManagerBoTest {
         this.obtainedUnitFinderBo = obtainedUnitFinderBo;
         this.transactionUtilService = transactionUtilService;
         this.attackBypassShieldService = attackBypassShieldService;
+        this.configurationBo = configurationBo;
         this.obtainedUnitImprovementCalculationService = obtainedUnitImprovementCalculationService;
     }
 
@@ -285,10 +289,12 @@ class AttackMissionManagerBoTest {
         when(obtainedUnitRepository.findDeployedInUserOwnedPlanets(any())).thenReturn(List.of(fakedFindDeployedInUserOwnedPlanets));
         when(obtainedUnitBo.toDto(anyList())).thenReturn(List.of(fakedToDtoOfindDeployedInUserOwnedPlanets));
         when(attackBypassShieldService.bypassShields(eq(withBypassShields.getObtainedUnit()), any())).thenReturn(true);
+        when(configurationBo.findOrSetDefault("ATTACK_DETERMINISTIC_RNG", "FALSE"))
+                .thenReturn(Configuration.builder().value("FALSE").build());
 
         attackMissionManagerBo.startAttack(information);
 
-        verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits());
+        verify(attackObtainedUnitBo, times(1)).shuffleUnits(information.getUnits(), information);
         verify(obtainedUnitRepository, times(2)).delete(any(ObtainedUnit.class));
         verify(attackEventEmitter, times(9)).emitAfterUnitKilledCalculation(any(), any(), any(), anyLong());
         verify(improvementBo, times(1)).clearSourceCache(user1.getUser(), obtainedUnitImprovementCalculationService);
@@ -354,6 +360,8 @@ class AttackMissionManagerBoTest {
         given(attackRuleBo.canAttack(attackRule, holderUnit)).willReturn(true);
         given(allianceBo.areEnemies(user1.getUser(), user2.getUser())).willReturn(true);
         given(allianceBo.areEnemies(user2.getUser(), user1.getUser())).willReturn(true);
+        given(configurationBo.findOrSetDefault("ATTACK_DETERMINISTIC_RNG", "FALSE"))
+                .willReturn(Configuration.builder().value("FALSE").build());
 
         attackMissionManagerBo.startAttack(information);
 
@@ -402,6 +410,8 @@ class AttackMissionManagerBoTest {
         given(attackRuleBo.canAttack(attackRule, victimOu)).willReturn(true);
         given(allianceBo.areEnemies(user1.getUser(), user2.getUser())).willReturn(true);
         given(allianceBo.areEnemies(user2.getUser(), user1.getUser())).willReturn(true);
+        given(configurationBo.findOrSetDefault("ATTACK_DETERMINISTIC_RNG", "FALSE"))
+                .willReturn(Configuration.builder().value("FALSE").build());
 
         attackMissionManagerBo.startAttack(information);
 
