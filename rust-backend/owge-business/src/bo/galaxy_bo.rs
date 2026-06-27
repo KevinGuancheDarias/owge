@@ -7,11 +7,14 @@
 //! - `planets` is every planet at the requested location
 //!   (`PlanetBo.findByGalaxyAndSectorAndQuadrant`).
 //!
-//! `PlanetCleanerService.cleanUpUnexplored` (which blanks owner info on planets
-//! the requesting user has not yet explored) depends on the mission/exploration
-//! system and is **not** applied here yet — see the TODO on
-//! [`GalaxyBo::find_planets_at`].
+//! `PlanetCleanerService.cleanUpUnexplored` (which blanks name/richness/home/
+//! owner and the special location on planets the requesting user has not yet
+//! explored) is applied per planet: [`GalaxyBo::find_planets_at`] computes an
+//! `is_explored` flag (owner of the planet OR a matching `explored_planets`
+//! row, matching `PlanetExplorationService.isExplored`) and the `NavPlanetRow`
+//! conversion masks the hidden fields when it is false.
 
+use crate::bo::ImprovementBo;
 use crate::dto::{GalaxyDto, GalaxyInput, PlanetDto};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::planet::NavPlanetRow;
@@ -149,11 +152,18 @@ impl GalaxyBo {
         let rows = sqlx::query_as::<_, NavPlanetRow>(
             "SELECT p.id, p.name, p.sector, p.quadrant, p.planet_number AS planet_number, \
                     p.owner AS owner_id, o.username AS owner_name, p.richness, ? as the_user, \
-                    COALESCE(p.home, 0) AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name, \
-                (SELECT owner_id = the_user OR EXISTS(SELECT 1 FROM explored_planets WHERE `user` = the_user AND planet = p.id)) AS is_explored \
+                    p.home AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name, \
+                (SELECT owner_id = the_user OR EXISTS(SELECT 1 FROM explored_planets WHERE `user` = the_user AND planet = p.id)) AS is_explored, \
+                    sl.id AS sl_id, sl.name AS sl_name, sl.description AS sl_description, \
+                    sl.image_id AS sl_image_id, sli.filename AS sl_image_filename, \
+                    sl.galaxy_id AS sl_galaxy_id, slg.name AS sl_galaxy_name, \
+                    sl.improvement_id AS sl_improvement_id \
              FROM planets p \
              JOIN galaxies g ON g.id = p.galaxy_id \
              LEFT JOIN user_storage o ON o.id = p.owner \
+             LEFT JOIN special_locations sl ON sl.id = p.special_location_id \
+             LEFT JOIN images_store sli ON sli.id = sl.image_id \
+             LEFT JOIN galaxies slg ON slg.id = sl.galaxy_id \
              WHERE p.galaxy_id = ? AND p.sector = ? AND p.quadrant = ? \
              ORDER BY p.planet_number",
         )
@@ -163,6 +173,23 @@ impl GalaxyBo {
         .bind(quadrant)
         .fetch_all(&mut *conn)
         .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        let mut planets = Vec::with_capacity(rows.len());
+        for row in rows {
+            // Capture before the row is consumed by the `PlanetDto` conversion.
+            let sl_improvement_id = row.sl_improvement_id;
+            let mut dto = PlanetDto::from(row);
+            // Java emits the special location's (otherwise lazy) improvement on
+            // this path. Only explored planets keep their `specialLocation` (the
+            // rest are masked by `clean_up_unexplored`), so only they need the
+            // extra load; a location without an `improvement_id` keeps `None`.
+            if let Some(sl) = dto.special_location.as_mut() {
+                if let Some(improvement_id) = sl_improvement_id {
+                    sl.improvement =
+                        Some(ImprovementBo::find_dto(&mut *conn, Some(improvement_id)).await?);
+                }
+            }
+            planets.push(dto);
+        }
+        Ok(planets)
     }
 }

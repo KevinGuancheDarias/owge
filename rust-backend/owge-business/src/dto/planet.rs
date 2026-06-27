@@ -1,13 +1,15 @@
 use serde::Serialize;
 
+use crate::dto::special_location::SpecialLocationDto;
+
 /// Mirrors `PlanetDto`. `ownerName` and `galaxyName` come from joins, so the
 /// `Bo` populates them when building the DTO (no lazy entity navigation).
 ///
-/// `name`, `richness`, `home`, `ownerId` and `ownerName` are `Option` because
-/// `PlanetCleanerService.cleanUpUnexplored` nulls them for planets the viewing
-/// user has not explored. Java's global Jackson `NON_NULL` omits null fields, so
-/// they carry `skip_serializing_if` to reproduce the wire shape (the field is
-/// absent, not `null`, for an unexplored planet).
+/// `name`, `richness`, `home`, `ownerId`, `ownerName` and `specialLocation` are
+/// `Option` because `PlanetCleanerService.cleanUpUnexplored` nulls them for
+/// planets the viewing user has not explored. Java's global Jackson `NON_NULL`
+/// omits null fields, so they carry `skip_serializing_if` to reproduce the wire
+/// shape (the field is absent, not `null`, for an unexplored planet).
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlanetDto {
@@ -27,6 +29,12 @@ pub struct PlanetDto {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub richness: Option<u16>,
     pub sector: u32,
+    /// The planet's special location (`Planet.specialLocation`, FK
+    /// `planets.special_location_id`), when it has one. Nulled for unexplored
+    /// planets by `clean_up_unexplored`, so it is only visible on owned/explored
+    /// planets — matching `PlanetCleanerService.cleanUpUnexplored`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub special_location: Option<SpecialLocationDto>,
 }
 
 impl PlanetDto {
@@ -38,5 +46,6 @@ impl PlanetDto {
         self.home = None;
         self.owner_id = None;
         self.owner_name = None;
+        self.special_location = None;
     }
 }

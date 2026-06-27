@@ -51,6 +51,7 @@ impl From<PlanetListRow> for PlanetListDto {
                 home: Some(r.home != 0),
                 galaxy_id: r.galaxy_id,
                 galaxy_name: r.galaxy_name,
+                special_location: None,
             },
         }
     }

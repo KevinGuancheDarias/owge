@@ -202,6 +202,7 @@ fn planet_dto_from_joined_parts(
         home: home.map(|h| h != 0),
         galaxy_id,
         galaxy_name,
+        special_location: None,
     }
 }
 
