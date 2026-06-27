@@ -3,16 +3,17 @@
 //! `...business.ActiveTimeSpecialBo`.
 //!
 //! Direct reads back `GET game/time_special` (list) and the by-id read,
-//! building `TimeSpecialDto`s with the image URL resolved via a join and the
+//! building `TimeSpecialDto`s with the image URL resolved via a join, the
 //! per-user activation status (`activeTimeSpecialDto`) filled from
-//! `active_time_specials`, matching `TimeSpecialBo.toDto`.
+//! `active_time_specials`, and the `improvement` loaded from the improvement
+//! engine (Java's `DtoWithImprovements`), matching `TimeSpecialBo.toDto`.
 //!
 //! The `time_special_change` sync payload
 //! (`ActiveTimeSpecialBo.findByUserWithCurrentStatus`) only returns the time
-//! specials the user has *unlocked*, which depends on the requirement/unlock
-//! system, so it is stubbed to an empty list here — see
-//! [`TimeSpecialBo::find_user_status_dtos`].
+//! specials the user has *unlocked* (`unlocked_relation` → `object_relations` of
+//! type `TIME_SPECIAL`) — see [`TimeSpecialBo::find_user_status_dtos`].
 
+use crate::bo::ImprovementBo;
 use crate::dto::time_special::{ActiveTimeSpecialDto, TimeSpecialDto};
 use crate::error::OwgeResult;
 use sqlx::MySqlConnection;
@@ -29,6 +30,9 @@ struct TimeSpecialRow {
     image_filename: Option<String>,
     duration: u64,
     recharge_time: u64,
+    /// `improvement_id` FK; read by the `Bo` to load the nested `improvement`
+    /// (the `From` impl is sync and cannot query, so it leaves it `None`).
+    improvement_id: Option<u16>,
 
     // --- the user's active_time_specials row (all NULL when not active) ---
     active_id: Option<u64>,
@@ -76,6 +80,8 @@ impl From<TimeSpecialRow> for TimeSpecialDto {
             image_url,
             duration: r.duration,
             recharge_time: r.recharge_time,
+            // Loaded by the async read methods (see `enrich_improvements`).
+            improvement: None,
             active_time_special_dto,
         }
     }
@@ -89,10 +95,31 @@ fn now_millis() -> i64 {
     chrono::Utc::now().timestamp_millis()
 }
 
+/// Converts rows to DTOs, loading each one's `improvement` (Java's
+/// `DtoWithImprovements.dtoFromEntity`). The `From` impl is sync and leaves
+/// `improvement` `None`; this fills it from the improvement engine for any time
+/// special that has an `improvement_id`.
+async fn rows_to_dtos(
+    conn: &mut MySqlConnection,
+    rows: Vec<TimeSpecialRow>,
+) -> OwgeResult<Vec<TimeSpecialDto>> {
+    let mut dtos = Vec::with_capacity(rows.len());
+    for row in rows {
+        let improvement_id = row.improvement_id;
+        let mut dto = TimeSpecialDto::from(row);
+        if let Some(id) = improvement_id {
+            dto.improvement = Some(ImprovementBo::find_dto(&mut *conn, Some(id)).await?);
+        }
+        dtos.push(dto);
+    }
+    Ok(dtos)
+}
+
 const SELECT_DTO: &str = "\
     SELECT ts.id, ts.name, ts.description, \
            ts.image_id AS image, i.filename AS image_filename, \
            ts.duration, ts.recharge_time AS recharge_time, \
+           ts.improvement_id AS improvement_id, \
            ats.id AS active_id, ats.state AS active_state, \
            ats.activation_date AS active_activation_date, \
            ats.expiring_date AS active_expiring_date, \
@@ -116,7 +143,7 @@ impl TimeSpecialBo {
             .bind(user_id)
             .fetch_all(&mut *conn)
             .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        rows_to_dtos(&mut *conn, rows).await
     }
 
     /// `GET game/time_special/{id}` — a single time special with the requesting
@@ -131,7 +158,10 @@ impl TimeSpecialBo {
             .bind(id)
             .fetch_optional(&mut *conn)
             .await?;
-        Ok(row.map(Into::into))
+        match row {
+            Some(row) => Ok(rows_to_dtos(&mut *conn, vec![row]).await?.into_iter().next()),
+            None => Ok(None),
+        }
     }
 
     /// `UnlockableTimeSpecialService.findUnlocked(userId)` — the time specials
@@ -161,7 +191,7 @@ impl TimeSpecialBo {
             query = query.bind(*id);
         }
         let rows = query.fetch_all(&mut *conn).await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        rows_to_dtos(&mut *conn, rows).await
     }
 
     /// `ActiveTimeSpecialBo.findByUserWithCurrentStatus(user)` — the

@@ -6,19 +6,20 @@
 //! with `WRITE_DATES_AS_TIMESTAMPS=true`, so every date field below is an epoch
 //! millis number (`i64`), matching the JSON the frontend already consumes.
 //!
-//! As with the other ported catalog DTOs, the nested objects driven by other
-//! domains — `improvement` (improvement engine, M2) and `requirements`
-//! (requirement system, M3) — are deferred and not emitted yet.
+//! `improvement` mirrors Java's `DtoWithImprovements`: the `Bo` loads it via the
+//! improvement engine for each time special. `requirements` (requirement-system
+//! DTO list) is still deferred — Java leaves it null on these read paths, so its
+//! global `NON_NULL` omits it and there is nothing to match here.
 
+use crate::dto::improvement::ImprovementDto;
 use serde::Serialize;
 
 /// JSON payload for one time special, mirroring `TimeSpecialDto` (which extends
-/// `CommonDtoWithImageStore` / `CommonDto`).
+/// `CommonDtoWithImageStore` / `CommonDto` and implements `DtoWithImprovements`).
 ///
-/// `improvement` and `requirements` are omitted until the improvement engine
-/// (M2) and requirement system (M3) are ported. `activeTimeSpecialDto` is the
-/// per-user activation status, populated when the special is currently
-/// active/recharging for the requesting user.
+/// `activeTimeSpecialDto` is the per-user activation status, populated when the
+/// special is currently active/recharging for the requesting user; like Java's
+/// `NON_NULL` it is omitted (not `null`) when absent.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TimeSpecialDto {
@@ -34,8 +35,13 @@ pub struct TimeSpecialDto {
     pub duration: u64,
     /// `bigint unsigned` — recharge time in seconds.
     pub recharge_time: u64,
+    /// The time special's improvement (`DtoWithImprovements.improvement`), loaded
+    /// by the `Bo`. `None` (omitted) only when the special has no improvement row.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub improvement: Option<ImprovementDto>,
     /// The per-user activation status, or null when the special is not active
     /// nor recharging for the user (`TimeSpecialDto.activeTimeSpecialDto`).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub active_time_special_dto: Option<ActiveTimeSpecialDto>,
 }
 
