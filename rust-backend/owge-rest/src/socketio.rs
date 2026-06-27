@@ -19,6 +19,7 @@
 
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use async_trait::async_trait;
 use owge_business::bo::{ConfigurationBo, WebsocketEventsInformationBo};
@@ -109,7 +110,14 @@ impl WebsocketEmitter for WsEmitter {
 /// pushes through. The layer is mounted on its own axum router in `main`.
 pub fn build(state: AppState) -> (socketioxide::layer::SocketIoLayer, Arc<WsEmitter>) {
     let registry = WsRegistry::default();
+    // Match netty-socketio's defaults (used by the Java backend): 25s ping interval,
+    // 60s ping timeout. socketioxide's default ping timeout is only 20s, which drops
+    // idle/backgrounded tabs much sooner — their engine.io ping/pong gets throttled by
+    // the browser — and every drop forces the frontend to reconnect and re-run the heavy
+    // websocket-sync. The wider timeout keeps idle clients connected like the Java server.
     let (layer, io) = SocketIo::builder()
+        .ping_interval(Duration::from_secs(25))
+        .ping_timeout(Duration::from_secs(60))
         .with_state(state)
         .with_state(registry.clone())
         .build_layer();

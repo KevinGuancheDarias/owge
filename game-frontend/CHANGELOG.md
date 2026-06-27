@@ -3,6 +3,8 @@
 
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
+* __Fix:__ Stop the client from re-running websocket-sync at random intervals on idle tabs: the suspension detector now ignores the timer throttling browsers apply to hidden tabs (it only acts while the tab is visible, with the gap threshold raised to 5s), and a Page Visibility listener handles returning to the foreground (e.g. on Android or after the machine wakes from sleep). Cache clears now also respect the 10s resync throttle.
+* __Fix:__ `RustBackend:` widen the socket.io ping timeout to 60s (matching the Java backend) so idle/backgrounded tabs are no longer disconnected early and forced to resync.
 * __Fix:__ `RustBackend:` factions findVisible endpoint not returning the correct data
 * __Fix:__ `RustBackend:` fixed bad json signature for user_data_change sync event
 * __Fix:__ `RustBackend:` unexplored planets no longer appear in the navigate for users

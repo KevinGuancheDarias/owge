@@ -48,6 +48,9 @@ export class WebsocketService {
   private static readonly _RECONNECT_BACKOFF_BASE_MS = 1000;
   private static readonly _RECONNECT_BACKOFF_MAX_MS = 30000;
   private static readonly _MIN_RESYNC_INTERVAL_MS = 10000;
+  // Gap (in seconds) between 1s suspension-detector ticks above which we assume the tab
+  // was suspended/stalled and resync. Only applied while the tab is visible.
+  private static readonly _SUSPENSION_GAP_SECONDS = 5;
   private _reconnectAttempts = 0;
   private _reconnectTimer: any = null;
   private _lastSyncAt = 0;
@@ -251,18 +254,26 @@ export class WebsocketService {
    * @returns
    */
   public async clearCache(): Promise<void> {
-    if(!this.isClearingCache) {
-      this.isClearingCache = true;
-      try {
-        this._log.info('Full cache clear, just wanted');
-        await this._wsEventCacheService.clearCaches();
-        await this._setupSync({value: []}, true);
-        await this._runWithSyncedData();
-      } finally {
-        this.isClearingCache = false;
-      }
-    } else {
+    if (this.isClearingCache) {
       this._log.warn('already clearing cache');
+      return;
+    }
+    // Respect the same resync throttle the reconnect path uses, so repeated triggers
+    // (suspension detector, visibility changes, server cache_clear) can't hammer the
+    // heavy websocket-sync endpoint. We gate the whole clear here — not inside
+    // _setupSync — so we never wipe the local cache without immediately repopulating it.
+    if (Date.now() - this._lastSyncAt < WebsocketService._MIN_RESYNC_INTERVAL_MS) {
+      this._log.debug('Skipping cache clear, throttled to avoid hammering websocket-sync');
+      return;
+    }
+    this.isClearingCache = true;
+    try {
+      this._log.info('Full cache clear, just wanted');
+      await this._wsEventCacheService.clearCaches();
+      await this._setupSync({value: []}, true);
+      await this._runWithSyncedData();
+    } finally {
+      this.isClearingCache = false;
     }
   }
 
@@ -414,10 +425,34 @@ export class WebsocketService {
       const now = new Date().getTime();
       const diff = (now - currentDate) / 1000;
       currentDate = now;
-      if(diff > 3) {
+      // A gap larger than the threshold between 1s ticks means the event loop stalled
+      // or the machine resumed from suspension. Only act on it while the tab is actually
+      // visible: a hidden tab's timers are throttled by the browser (down to ~once per
+      // minute), which would otherwise look like a suspension on every tick and hammer
+      // websocket-sync at random intervals while idle. A foreground tab stays "visible"
+      // across a machine sleep (no visibilitychange fires), so this path is what recovers
+      // that case.
+      if (diff > WebsocketService._SUSPENSION_GAP_SECONDS && this.isDocumentVisible()) {
         await this.maybeTriggerCache();
       }
     },1000);
+
+    // Covers the wake-ups the gap detector above can't see, because they happen while the
+    // tab is hidden (its timers throttled): an Android browser returning to the foreground,
+    // or a backgrounded tab brought back after the machine slept. On the transition back to
+    // visible we resync and reset the gap baseline so the same wake-up isn't counted twice.
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', () => {
+        if (this.isDocumentVisible()) {
+          currentDate = new Date().getTime();
+          this.maybeTriggerCache();
+        }
+      });
+    }
+  }
+
+  private isDocumentVisible(): boolean {
+    return typeof document === 'undefined' || document.visibilityState === 'visible';
   }
 
   private async maybeTriggerCache(): Promise<void> {
