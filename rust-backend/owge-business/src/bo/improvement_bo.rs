@@ -113,9 +113,38 @@ impl ImprovementBo {
     /// `CrudWithImprovements.find` — build the full `ImprovementDto` (including the
     /// nested `unitTypesUpgrades`) for an entity's `improvement_id`.
     /// `NotFound("I18N_ERR_NULL_IMPROVEMENT")` when the entity has no improvement.
+    ///
+    /// Each embedded `unitTypesUpgrades[].unitType` is hydrated to the full
+    /// recursive catalog form, **including** `speedImpactGroup.requirementsGroups`
+    /// — this matches the load path Java reaches through an *upgrade's*
+    /// improvement (`obtained_upgrades_change`; see `RESOLUTION.md`). Use
+    /// [`Self::find_dto_shallow`] for a *unit's own* improvement, where Java's
+    /// lazy-init leaves that nested list uninitialized.
     pub async fn find_dto(
         conn: &mut MySqlConnection,
         improvement_id: Option<u16>,
+    ) -> OwgeResult<ImprovementDto> {
+        Self::find_dto_impl(&mut *conn, improvement_id, true).await
+    }
+
+    /// Like [`Self::find_dto`], but each embedded `unitTypesUpgrades[].unitType`
+    /// omits the nested `speedImpactGroup.requirementsGroups` — the shape Java
+    /// emits when the improvement is reached from a *unit* (its own
+    /// `improvement`, on the `unit_obtained_change`/`unit_unlocked_change` paths):
+    /// on that load path only `speedImpactGroup`/`attackRule`/`criticalAttack`/
+    /// `parent`/`shareMaxCount` are eagerly resolved, not the deeper
+    /// `requirementsGroups` graph.
+    pub async fn find_dto_shallow(
+        conn: &mut MySqlConnection,
+        improvement_id: Option<u16>,
+    ) -> OwgeResult<ImprovementDto> {
+        Self::find_dto_impl(&mut *conn, improvement_id, false).await
+    }
+
+    async fn find_dto_impl(
+        conn: &mut MySqlConnection,
+        improvement_id: Option<u16>,
+        with_req_groups: bool,
     ) -> OwgeResult<ImprovementDto> {
         let improvement_id = improvement_id
             .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
@@ -129,8 +158,12 @@ impl ImprovementBo {
         .fetch_optional(&mut *conn)
         .await?
         .ok_or_else(|| OwgeError::NotFound("I18N_ERR_NULL_IMPROVEMENT".into()))?;
-        let unit_types_upgrades =
-            Self::load_unit_type_improvement_dtos(&mut *conn, improvement_id).await?;
+        let unit_types_upgrades = Self::load_unit_type_improvement_dtos_impl(
+            &mut *conn,
+            improvement_id,
+            with_req_groups,
+        )
+        .await?;
         Ok(ImprovementDto {
             id: row.id,
             more_primary_resource_production: row
@@ -219,6 +252,18 @@ impl ImprovementBo {
         Self::find_dto(&mut *conn, improvement_id).await
     }
 
+    /// Like [`Self::find_for_entity`], using [`Self::find_dto_shallow`] — for a
+    /// *unit*'s own improvement (see that method's doc for why the shape
+    /// differs).
+    pub async fn find_for_entity_shallow(
+        conn: &mut MySqlConnection,
+        table: &str,
+        id: u16,
+    ) -> OwgeResult<ImprovementDto> {
+        let improvement_id = Self::resolve_entity_improvement_id(&mut *conn, table, id).await?;
+        Self::find_dto_shallow(&mut *conn, improvement_id).await
+    }
+
     /// `PUT {id}/improvement` for an entity stored in `table` — create-if-missing
     /// then update, linking the new improvement via the entity's `improvement_id`.
     pub async fn save_for_entity(
@@ -302,10 +347,21 @@ impl ImprovementBo {
     }
 
     /// `ImprovementUnitTypeBo.loadImprovementUnitTypes` + `convertEntireArray` —
-    /// the per-unit-type improvements for an improvement, as DTOs.
+    /// the per-unit-type improvements for an improvement, as DTOs. Defaults to
+    /// the full (`with_req_groups = true`) catalog shape; existing callers are
+    /// unaffected. [`Self::find_dto_shallow`] threads `false` through here for
+    /// a unit's own improvement.
     pub async fn load_unit_type_improvement_dtos(
         conn: &mut MySqlConnection,
         improvement_id: u16,
+    ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
+        Self::load_unit_type_improvement_dtos_impl(&mut *conn, improvement_id, true).await
+    }
+
+    async fn load_unit_type_improvement_dtos_impl(
+        conn: &mut MySqlConnection,
+        improvement_id: u16,
+        with_req_groups: bool,
     ) -> OwgeResult<Vec<ImprovementUnitTypeDto>> {
         let rows = sqlx::query_as::<_, ImprovementUnitTypeRow>(&format!(
             "{SELECT_IMPROVEMENT_UNIT_TYPE} WHERE iut.improvement_id = ? ORDER BY iut.id"
@@ -320,8 +376,12 @@ impl ImprovementBo {
             // (catalog) `UnitTypeDto`, including nested attackRule /
             // speedImpactGroup / etc. Replace the flat placeholder with it.
             if let Some(unit_type_id) = dto.resolved_unit_type_id() {
-                dto.unit_type =
-                    crate::bo::UnitTypeBo::find_catalog_by_id(&mut *conn, unit_type_id).await?;
+                dto.unit_type = if with_req_groups {
+                    crate::bo::UnitTypeBo::find_catalog_by_id(&mut *conn, unit_type_id).await?
+                } else {
+                    crate::bo::UnitTypeBo::find_catalog_by_id_shallow(&mut *conn, unit_type_id)
+                        .await?
+                };
             }
             out.push(dto);
         }

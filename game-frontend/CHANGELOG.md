@@ -10,6 +10,7 @@ v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 * __Fix:__ `RustBackend:` unexplored planets no longer appear in the navigate for users
 * __Fix:__ `RustBackend:` missing emit of unit_type_change when a unit build is cancelled
 * __Fix:__ `RustBackend:` time specials now include their improvement
+* __Fix:__ `RustBackend:` websocket-sync payloads now byte-match the Java backend on every key: planets include their specialLocation, units their attackRule/criticalAttack/order, mission reports use epoch-millis dates and link their mission, null fields are omitted, the user improvements aggregate keeps Java's merge order, and mission payloads no longer expose the user email
 * __Improvement:__ `RustBackend:` migrate `/open/websocket-sync/rule_change` and `/open/websocket-sync/speed_group_change` endpoints from Java to Rust
 
 v0.11.11 (2026-06-06 11:58)

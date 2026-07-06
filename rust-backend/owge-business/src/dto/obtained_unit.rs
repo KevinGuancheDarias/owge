@@ -10,7 +10,7 @@
 
 use serde::Serialize;
 
-use crate::dto::{PlanetDto, UnitDto};
+use crate::dto::{MissionDto, PlanetDto, UnitDto};
 
 /// The `units` row embedded in an obtained unit, mirroring the scalar fields of
 /// Java's `UnitDto` (`CommonDtoWithImageStore` + `UnitDto`). Field order and the
@@ -165,6 +165,13 @@ pub struct ObtainedUnitDto {
     pub source_planet: Option<PlanetDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_planet: Option<PlanetDto>,
+    /// The owning mission (`ObtainedUnitDto.mission`), when this stack is
+    /// attached to a running mission. `None` (omitted) for units sitting on an
+    /// owned planet outside any mission — the `unit_obtained_change` payload's
+    /// units are always in that state, so it stays absent there; the
+    /// `unit_mission_change` `involvedUnits` populate it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mission: Option<MissionDto>,
     pub user_id: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,

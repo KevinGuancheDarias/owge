@@ -87,9 +87,9 @@ use sqlx::MySqlConnection;
 
 use crate::bo::mission_base_service_bo::SELECT_MISSION;
 use crate::bo::mission_bo::MissionBo;
-use crate::dto::mission::UnitRunningMissionDto;
+use crate::dto::mission::{AllianceIdOnly, MissionUserDto, UnitRunningMissionDto};
 use crate::dto::running_unit_build::RunningUnitBuildDto;
-use crate::dto::{PlanetDto, SimpleUserData};
+use crate::dto::PlanetDto;
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
@@ -460,20 +460,32 @@ async fn load_planet_dto_conn(
     crate::bo::mission_processor::load_planet_dto(conn, planet_id).await
 }
 
-/// A minimal `UserStorageDto` (id + username + email) for the `user` field on
-/// `UnitRunningMissionDto` — mirrors what Java's `UserStorageDto` constructor
-/// copies from the entity: id, username, email (other fields null/zero).
+/// A minimal `UserStorageDto` (id + username + optional `{alliance: {id}}` +
+/// `canAlterTwitchState: false`) for the `user` field on
+/// `UnitRunningMissionDto` — mirrors what Java's constructor sets on a fresh
+/// `new UserStorageDto()`: `id`, `username`, and `alliance` only when the user
+/// has one. `canAlterTwitchState` keeps `UserStorageDto`'s Java field
+/// initializer default of `false` (the constructor never calls
+/// `setCanAlterTwitchState`, so it's always `false` here regardless of the
+/// user's actual setting); every other `UserStorageDto` field — notably
+/// `email` — is never set and so stays absent (Jackson `Include.NON_NULL`).
 async fn load_user_storage_dto(
     conn: &mut MySqlConnection,
     user_id: i32,
-) -> OwgeResult<Option<SimpleUserData>> {
-    let row: Option<SimpleUserData> =
-        sqlx::query_as("SELECT id, username, email FROM user_storage WHERE id = ?")
-            .bind(user_id)
-            .fetch_optional(&mut *conn)
-            .await?;
+) -> OwgeResult<Option<MissionUserDto>> {
+    let row: Option<(i32, String, Option<u16>)> = sqlx::query_as(
+        "SELECT id, username, alliance_id FROM user_storage WHERE id = ?",
+    )
+    .bind(user_id)
+    .fetch_optional(&mut *conn)
+    .await?;
 
-    Ok(row)
+    Ok(row.map(|(id, username, alliance_id)| MissionUserDto {
+        id,
+        username,
+        alliance: alliance_id.map(|id| AllianceIdOnly { id }),
+        can_alter_twitch_state: false,
+    }))
 }
 
 /// `PlanetExplorationService.isExplored(user, planet)` — true when the user

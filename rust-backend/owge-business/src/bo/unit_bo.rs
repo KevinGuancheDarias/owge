@@ -38,6 +38,11 @@ pub(crate) struct UnitRow {
     is_invisible: i8,
     stored_weight: u32,
     storage_capacity: Option<u32>,
+    /// Read post-conversion by `find_unlocked_by_user` /
+    /// `UnlockedUnitFinder::find_unlocked_by_user` to hydrate the nested
+    /// `attackRule`/`criticalAttack` (the `From` impl is sync and cannot query).
+    pub(crate) attack_rule_id: Option<u16>,
+    pub(crate) critical_attack_id: Option<u16>,
 }
 
 impl From<UnitRow> for UnitDto {
@@ -75,6 +80,8 @@ impl From<UnitRow> for UnitDto {
             // this base row mapping.
             improvement: None,
             speed_impact_group: None,
+            attack_rule: None,
+            critical_attack: None,
         }
     }
 }
@@ -85,7 +92,8 @@ pub const SELECT_UNIT: &str = "\
            u.points, u.time, u.primary_resource, u.secondary_resource, u.energy, \
            u.type AS type_id, ut.name AS type_name, u.attack, u.health, u.shield, u.charge, \
            u.is_unique, u.can_fast_explore, u.speed, u.cloned_improvements, u.bypass_shield, \
-           u.is_invisible, u.stored_weight, u.storage_capacity \
+           u.is_invisible, u.stored_weight, u.storage_capacity, \
+           u.attack_rule_id, u.critical_attack_id \
     FROM units u \
     LEFT JOIN unit_types ut ON ut.id = u.type \
     LEFT JOIN images_store i ON i.id = u.image_id ";

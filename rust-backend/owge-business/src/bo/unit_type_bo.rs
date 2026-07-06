@@ -261,6 +261,11 @@ impl UnitTypeBo {
     /// The **catalog** form of one unit type by id (Java `dtoFromEntity`: nested
     /// relations, no per-user fields). Used to hydrate the `unitType` embedded in
     /// improvement `unitTypesUpgrades` entries. `None` when the id is absent.
+    ///
+    /// Includes nested `speedImpactGroup.requirementsGroups` — matches the load
+    /// path Java reaches through an *upgrade's* improvement
+    /// (`obtained_upgrades_change`). Use [`Self::find_catalog_by_id_shallow`] for
+    /// a *unit's own* improvement, where that nested list stays uninitialized.
     pub async fn find_catalog_by_id(
         conn: &mut MySqlConnection,
         id: u16,
@@ -268,13 +273,43 @@ impl UnitTypeBo {
         Ok(build_nested_by_id(conn, Some(id), 0, true).await?.map(|b| *b))
     }
 
-    /// Catalog form with **only `attackRule`** hydrated. This matches the exact
-    /// shape Java emits for the `unitType` embedded in a user's aggregate
-    /// improvement (`GroupedImprovement.unitTypesUpgrades[].unitType`): on that
-    /// load path only the `attackRule` association is lazily initialized, so
-    /// `speedImpactGroup` / `criticalAttack` / `parent` / `shareMaxCount` are
-    /// absent (despite their FKs being set).
-    pub async fn find_catalog_attack_rule_only(
+    /// Like [`Self::find_catalog_by_id`], but every nested `speedImpactGroup`
+    /// (including on `parent`/`shareMaxCount`) omits `requirementsGroups` — the
+    /// shape Java emits for the `unitType` embedded in a *unit's own*
+    /// improvement (`unit_obtained_change`/`unit_unlocked_change`): on that load
+    /// path Java resolves `speedImpactGroup`/`attackRule`/`criticalAttack`/
+    /// `parent`/`shareMaxCount` eagerly, but not the deeper requirement-group
+    /// graph.
+    pub async fn find_catalog_by_id_shallow(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
+        Ok(build_nested_by_id(conn, Some(id), 0, false)
+            .await?
+            .map(|b| *b))
+    }
+
+    /// Catalog form for the `unitType` embedded in a user's aggregate
+    /// improvement (`GroupedImprovement.unitTypesUpgrades[].unitType`, the
+    /// `user_data_change` payload): full `parent`/`shareMaxCount` (recursively,
+    /// **with** their own nested `speedImpactGroup.requirementsGroups` — they
+    /// go through the ordinary catalog builder) plus `attackRule`/
+    /// `criticalAttack`, but the top-level entry's **own** `speedImpactGroup`
+    /// is never hydrated.
+    ///
+    /// Matched empirically against the running Java backend across five unit
+    /// types with different FK combinations (some with `attackRule` only,
+    /// some with `parent`+`criticalAttack`+`attackRule`, one with every
+    /// relation set): in every case the entry's own `speedImpactGroup` was
+    /// absent despite a non-null `speed_impact_group_id`, while a *nested*
+    /// `parent`/`shareMaxCount` on the very same response carried a fully
+    /// populated `speedImpactGroup` (including `requirementsGroups`). This
+    /// mirrors the already-documented "path-dependent nested-relation" pattern
+    /// (see `pending_migration/RESOLUTION.md`) one level deeper than
+    /// previously known — the earlier "attackRule only" shape only *looked*
+    /// right because the older/thinner seed data's unit types never had a
+    /// `parent`/`shareMaxCount`/`criticalAttack` FK to reveal the gap.
+    pub async fn find_catalog_by_id_for_aggregate(
         conn: &mut MySqlConnection,
         id: u16,
     ) -> OwgeResult<Option<UnitTypeDto>> {
@@ -293,14 +328,20 @@ impl UnitTypeBo {
             Some(rule_id) => AttackRuleBo::find_by_id(&mut *conn, rule_id).await?,
             None => None,
         };
+        let critical_attack = match r.critical_attack_id {
+            Some(id) => CriticalAttackBo::find_by_id(&mut *conn, id).await?,
+            None => None,
+        };
+        let parent = build_nested_by_id(conn, r.parent_id, 0, true).await?;
+        let share_max_count = build_nested_by_id(conn, r.share_max_count_id, 0, true).await?;
         Ok(Some(UnitTypeDto {
             id: r.id,
             name: r.name,
             image: r.image,
             image_url,
             max_count: r.max_count,
-            share_max_count: None,
-            parent: None,
+            share_max_count,
+            parent,
             has_to_inherit_improvements: r.has_to_inherit_improvements != 0,
             can_explore: r.can_explore,
             can_gather: r.can_gather,
@@ -311,7 +352,7 @@ impl UnitTypeBo {
             can_deploy: r.can_deploy,
             speed_impact_group: None,
             attack_rule,
-            critical_attack: None,
+            critical_attack,
             computed_max_count: None,
             user_built: None,
             used: None,

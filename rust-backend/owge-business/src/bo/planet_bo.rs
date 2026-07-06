@@ -1,55 +1,52 @@
 //! Port of (the read side of) `PlanetBo`. Builds `PlanetDto`s with the owner
 //! and galaxy names resolved via joins, matching `PlanetBo.toDto`.
 
+use crate::bo::ImprovementBo;
 use crate::bo::mission_finder_bo::MissionFinderBo;
 use crate::bo::realtime_emitter;
 use crate::dto::PlanetDto;
 use crate::error::{OwgeError, OwgeResult};
+use crate::model::planet::NavPlanetRow;
 use sqlx::{Connection, MySqlConnection};
 
-/// A planet row joined with its galaxy and (optional) owner, with exact SQL
-/// column types so sqlx decode never panics on signedness/width.
-#[derive(sqlx::FromRow)]
-struct PlanetRow {
-    id: u64,
-    name: String,
-    sector: u32,
-    quadrant: u32,
-    planet_number: u16,
-    owner_id: Option<i32>,
-    owner_name: Option<String>,
-    richness: u16,
-    home: i8,
-    galaxy_id: u16,
-    galaxy_name: String,
-}
-
-impl From<PlanetRow> for PlanetDto {
-    fn from(r: PlanetRow) -> Self {
-        PlanetDto {
-            id: r.id,
-            name: Some(r.name),
-            sector: r.sector,
-            quadrant: r.quadrant,
-            planet_number: r.planet_number,
-            owner_id: r.owner_id,
-            owner_name: r.owner_name,
-            richness: Some(r.richness),
-            home: Some(r.home != 0),
-            galaxy_id: r.galaxy_id,
-            galaxy_name: r.galaxy_name,
-            special_location: None,
-        }
-    }
-}
-
+/// Selects a planet with its galaxy, (optional) owner, and (optional) special
+/// location joined in, mirroring `PlanetBo.toDto` — Java is not lazy on
+/// `Planet.specialLocation` here, so its (otherwise lazy) `improvement` is
+/// loaded too (see [`hydrate_special_location`]). `home` is left nullable
+/// (not `COALESCE`d) since Java's Jackson `NON_NULL` omits it when the column
+/// is SQL NULL, rather than coercing it to `false`. `is_explored` is hardcoded
+/// `1`: these rows are never masked by `cleanUpUnexplored` (the owner's own
+/// planets, or a direct by-id lookup).
 const SELECT_DTO: &str = "\
     SELECT p.id, p.name, p.sector, p.quadrant, p.planet_number AS planet_number, \
            p.owner AS owner_id, o.username AS owner_name, p.richness, \
-           COALESCE(p.home, 0) AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name \
+           p.home AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name, \
+           1 AS is_explored, \
+           sl.id AS sl_id, sl.name AS sl_name, sl.description AS sl_description, \
+           sl.image_id AS sl_image_id, sli.filename AS sl_image_filename, \
+           sl.galaxy_id AS sl_galaxy_id, slg.name AS sl_galaxy_name, \
+           sl.improvement_id AS sl_improvement_id \
     FROM planets p \
     JOIN galaxies g ON g.id = p.galaxy_id \
-    LEFT JOIN user_storage o ON o.id = p.owner ";
+    LEFT JOIN user_storage o ON o.id = p.owner \
+    LEFT JOIN special_locations sl ON sl.id = p.special_location_id \
+    LEFT JOIN images_store sli ON sli.id = sl.image_id \
+    LEFT JOIN galaxies slg ON slg.id = sl.galaxy_id ";
+
+/// Converts a [`NavPlanetRow`] into a [`PlanetDto`] and, when it has a special
+/// location with an `improvement_id`, loads the full nested `ImprovementDto`
+/// (the `From` impl is sync and cannot query) — the same pattern as
+/// `GalaxyBo::find_planets_at`.
+async fn hydrate_planet_row(conn: &mut MySqlConnection, row: NavPlanetRow) -> OwgeResult<PlanetDto> {
+    let sl_improvement_id = row.sl_improvement_id;
+    let mut dto = PlanetDto::from(row);
+    if let Some(sl) = dto.special_location.as_mut() {
+        if let Some(improvement_id) = sl_improvement_id {
+            sl.improvement = Some(ImprovementBo::find_dto(&mut *conn, Some(improvement_id)).await?);
+        }
+    }
+    Ok(dto)
+}
 
 pub struct PlanetBo;
 
@@ -60,21 +57,28 @@ impl PlanetBo {
         conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<Vec<PlanetDto>> {
-        let rows = sqlx::query_as::<_, PlanetRow>(&format!(
+        let rows = sqlx::query_as::<_, NavPlanetRow>(&format!(
             "{SELECT_DTO} WHERE p.owner = ? ORDER BY COALESCE(p.home,0) DESC, p.id"
         ))
         .bind(user_id)
         .fetch_all(&mut *conn)
         .await?;
-        Ok(rows.into_iter().map(Into::into).collect())
+        let mut out = Vec::with_capacity(rows.len());
+        for row in rows {
+            out.push(hydrate_planet_row(&mut *conn, row).await?);
+        }
+        Ok(out)
     }
 
     pub async fn find_by_id(conn: &mut MySqlConnection, id: u64) -> OwgeResult<Option<PlanetDto>> {
-        let row = sqlx::query_as::<_, PlanetRow>(&format!("{SELECT_DTO} WHERE p.id = ?"))
+        let row = sqlx::query_as::<_, NavPlanetRow>(&format!("{SELECT_DTO} WHERE p.id = ?"))
             .bind(id)
             .fetch_optional(&mut *conn)
             .await?;
-        Ok(row.map(Into::into))
+        match row {
+            Some(row) => Ok(Some(hydrate_planet_row(&mut *conn, row).await?)),
+            None => Ok(None),
+        }
     }
 
     pub async fn find_by_id_or_die(conn: &mut MySqlConnection, id: u64) -> OwgeResult<PlanetDto> {

@@ -66,6 +66,19 @@ struct FlatImprovementRow {
 }
 
 /// One `improvements_unit_types` row, with the multiplier of its owning source.
+///
+/// `source_order`/`owner_id` exist purely to reproduce Java's tie-break when
+/// two rows land on the same `(type, unit_type_id)` pair: `GroupedImprovement.
+/// addToType` keeps the **first**-merged entry's `id` (and only bumps its
+/// value on later merges), so which id survives depends on the exact
+/// iteration order — Java's is `improvementSources` registration order
+/// (upgrades, then active time specials, then obtained units; see this file's
+/// module doc) and, within a source, the owning row's ascending id (JPA
+/// `findByUserId`/`findByUserIdAndState` with no explicit `ORDER BY` returns
+/// rows in primary-key order on this schema — verified empirically against
+/// the running Java backend). A plain `UNION ALL` has no guaranteed row
+/// order, so the rows are sorted in Rust (see `compute_user_improvement`)
+/// before folding, rather than relying on MySQL preserving branch order.
 #[derive(sqlx::FromRow)]
 struct UnitTypeImprovementRow {
     source_id: u32,
@@ -73,6 +86,14 @@ struct UnitTypeImprovementRow {
     unit_type_id: u16,
     value: i32,
     multiplier: i64,
+    /// `1` = obtained upgrade, `2` = active time special, `3` = obtained unit —
+    /// Java's `improvementSources` iteration order. A plain integer literal in
+    /// a `UNION ALL` branch decodes as (signed) `BIGINT` over the wire, hence
+    /// `i64` rather than a narrower type.
+    source_order: i64,
+    /// The owning row's id in its source table (`obtained_upgrades.id` /
+    /// `active_time_specials.id` / `obtained_units.id`).
+    owner_id: u64,
 }
 
 pub struct UserImprovementBo;
@@ -115,10 +136,10 @@ impl UserImprovementBo {
         let aggregate = Self::find_user_improvement(&mut *conn, user_id).await?;
         let mut unit_types_upgrades = Vec::with_capacity(aggregate.unit_types_upgrades.len());
         for entry in &aggregate.unit_types_upgrades {
-            // The aggregate's load path initializes only `attackRule` on the
-            // embedded unitType (see `find_catalog_attack_rule_only`).
+            // See `UnitTypeBo::find_catalog_by_id_for_aggregate`'s doc for the
+            // exact (empirically-matched) hydration shape this path needs.
             let unit_type =
-                crate::bo::UnitTypeBo::find_catalog_attack_rule_only(&mut *conn, entry.unit_type_id)
+                crate::bo::UnitTypeBo::find_catalog_by_id_for_aggregate(&mut *conn, entry.unit_type_id)
                     .await?;
             unit_types_upgrades.push(crate::dto::ImprovementUnitTypeDto {
                 id: entry.id.map(|v| v as u16),
@@ -197,13 +218,19 @@ impl UserImprovementBo {
 
         // --- Per-unit-type improvements, summed by (type, unit_type_id) with the
         // source multiplier applied. ---
-        let unit_type_rows =
+        let mut unit_type_rows =
             sqlx::query_as::<_, UnitTypeImprovementRow>(UNIT_TYPE_IMPROVEMENTS_SQL)
                 .bind(user_id) // obtained_upgrades
                 .bind(user_id) // active_time_specials
                 .bind(user_id) // obtained_units
                 .fetch_all(&mut *conn)
                 .await?;
+        // `UNION ALL` has no guaranteed row order; sort explicitly into Java's
+        // iteration order (source rank, then owning-row id, then the
+        // improvements_unit_type's own id) so the dedupe fold below keeps the
+        // same "first" entry Java's `GroupedImprovement.addToType` would —
+        // see `UnitTypeImprovementRow`'s doc.
+        unit_type_rows.sort_by_key(|r| (r.source_order, r.owner_id, r.source_id));
         for row in unit_type_rows {
             let Some(improvement_type) = ImprovementType::from_code(&row.r#type) else {
                 continue;
@@ -261,21 +288,29 @@ const FLAT_IMPROVEMENTS_SQL: &str = "\
       LEFT JOIN mission_types mt ON mt.id = m.type \
      WHERE obu.user_id = ? AND (mt.code IS NULL OR mt.code <> 'BUILD_UNIT')";
 
-/// Same three sources, joined to their `improvements_unit_types` rows.
+/// Same three sources, joined to their `improvements_unit_types` rows. Each
+/// branch carries `source_order` (this source's rank in Java's
+/// `improvementSources` list) and `owner_id` (the owning
+/// upgrade/time-special/unit row's id) so the Rust side can sort rows into
+/// the same order Java iterates them before folding duplicates — see
+/// [`UnitTypeImprovementRow`]'s doc for why that order is load-bearing.
 const UNIT_TYPE_IMPROVEMENTS_SQL: &str = "\
-    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, ou.level AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, ou.level AS multiplier, \
+           1 AS source_order, ou.id AS owner_id \
       FROM obtained_upgrades ou \
       JOIN upgrades u ON u.id = ou.upgrade_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = u.improvement_id \
      WHERE ou.user_id = ? \
     UNION ALL \
-    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier, \
+           2 AS source_order, ats.id AS owner_id \
       FROM active_time_specials ats \
       JOIN time_specials ts ON ts.id = ats.time_special_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = ts.improvement_id \
      WHERE ats.user_id = ? AND ats.state = 'ACTIVE' \
     UNION ALL \
-    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier \
+    SELECT iut.id AS source_id, iut.type AS `type`, iut.unit_type_id, iut.value, 1 AS multiplier, \
+           3 AS source_order, obu.id AS owner_id \
       FROM obtained_units obu \
       JOIN units un ON un.id = obu.unit_id \
       JOIN improvements_unit_types iut ON iut.improvement_id = un.improvement_id \

@@ -45,7 +45,9 @@ pub struct UpgradeDto {
     /// The resolved image URL (`CommonDtoWithImageStore.imageUrl`). Built from
     /// the image filename in the `Bo` query.
     pub image_url: Option<String>,
-    /// `UpgradeDto.order` (`order_number`).
+    /// `UpgradeDto.order` (`order_number`). Some upgrades have a NULL
+    /// `order_number`; omitted (not `null`) to match Jackson `Include.NON_NULL`.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub order: Option<u16>,
     pub points: i32,
     pub time: i64,
@@ -53,6 +55,10 @@ pub struct UpgradeDto {
     pub secondary_resource: i32,
     pub type_id: Option<u16>,
     pub type_name: Option<String>,
+    /// `units.level_effect` — `f32` column; serialized via the shortest
+    /// round-trip decimal to match Jackson's `Float` printing (avoids the
+    /// `0.1` -> `0.10000000149011612` f32->f64 widening artifact).
+    #[serde(serialize_with = "crate::dto::serde_helpers::serialize_f32")]
     pub level_effect: f32,
     pub cloned_improvements: bool,
     /// `UpgradeDto.improvement` — hydrated on paths where Java initializes the

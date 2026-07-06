@@ -1,7 +1,7 @@
 use crate::OwgeResult;
 use crate::bo::unit_bo::SELECT_UNIT;
 use crate::bo::unit_bo::UnitRow;
-use crate::bo::{ImprovementBo, SpeedImpactGroupBo, UnitInterceptionFinderBo};
+use crate::bo::{AttackRuleBo, CriticalAttackBo, ImprovementBo, SpeedImpactGroupBo, UnitInterceptionFinderBo};
 use crate::dto::UnitDto;
 use crate::error::OwgeError;
 use crate::model::object_relation::object_enum;
@@ -11,8 +11,8 @@ pub struct UnlockedUnitFinder {}
 
 impl UnlockedUnitFinder {
     /// `UnitBo.findAllByUser` — the units unlocked for the user, each enriched
-    /// with its `improvement` and applicable `speedImpactGroup` (Java resolves
-    /// both per unit before `toDto`).
+    /// with its `improvement`, applicable `speedImpactGroup`, `attackRule` and
+    /// `criticalAttack` (Java resolves all four per unit before `toDto`).
     pub async fn find_unlocked_by_user(
         conn: &mut MySqlConnection,
         user_id: i32,
@@ -30,6 +30,8 @@ impl UnlockedUnitFinder {
 
         let mut out = Vec::with_capacity(rows.len());
         for row in rows {
+            let attack_rule_id = row.attack_rule_id;
+            let critical_attack_id = row.critical_attack_id;
             let mut dto: UnitDto = row.into();
             let unit_id = dto.id;
             dto.improvement = Self::resolve_improvement(&mut *conn, unit_id).await?;
@@ -41,18 +43,29 @@ impl UnlockedUnitFinder {
                 Some(group_id) => SpeedImpactGroupBo::find_by_id(&mut *conn, group_id).await?,
                 None => None,
             };
+            dto.attack_rule = match attack_rule_id {
+                Some(id) => AttackRuleBo::find_by_id(&mut *conn, id).await?,
+                None => None,
+            };
+            dto.critical_attack = match critical_attack_id {
+                Some(id) => CriticalAttackBo::find_by_id(&mut *conn, id).await?,
+                None => None,
+            };
             out.push(dto);
         }
         Ok(out)
     }
 
     /// The unit's own improvement, or `None` when it has no `improvement_id`
-    /// (Java's `DtoWithImprovements` leaves the field null, which `NON_NULL` omits).
+    /// (Java's `DtoWithImprovements` leaves the field null, which `NON_NULL`
+    /// omits). Uses the *shallow* improvement shape (no nested
+    /// `speedImpactGroup.requirementsGroups` on the embedded `unitType` —
+    /// see `ImprovementBo::find_for_entity_shallow`'s doc for why).
     async fn resolve_improvement(
         conn: &mut MySqlConnection,
         unit_id: u16,
     ) -> OwgeResult<Option<crate::dto::ImprovementDto>> {
-        match ImprovementBo::find_for_entity(conn, "units", unit_id).await {
+        match ImprovementBo::find_for_entity_shallow(conn, "units", unit_id).await {
             Ok(improvement) => Ok(Some(improvement)),
             Err(OwgeError::NotFound(_)) => Ok(None),
             Err(e) => Err(e),

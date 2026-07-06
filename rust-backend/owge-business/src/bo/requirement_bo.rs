@@ -99,6 +99,8 @@ impl UnitReqRow {
             storage_capacity: self.storage_capacity,
             improvement: None,
             speed_impact_group: None,
+            attack_rule: None,
+            critical_attack: None,
         }
     }
 }

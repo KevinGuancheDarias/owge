@@ -23,6 +23,7 @@ pub mod explore;
 pub mod gather;
 pub mod return_mission;
 
+use crate::bo::ImprovementBo;
 use crate::bo::ObtainedUnitBo;
 use crate::bo::emitter::unit_type_emitter::UnitTypeEmitter;
 use crate::builder::UnitMissionReportBuilder;
@@ -31,7 +32,7 @@ use crate::dto::obtained_unit::ObtainedUnitDto;
 use crate::error::OwgeResult;
 use crate::model::mission::{Mission, MissionType};
 use crate::model::obtained_unit::ObtainedUnit;
-use crate::model::planet::PlanetDtoRow;
+use crate::model::planet::NavPlanetRow;
 use sqlx::MySqlConnection;
 
 /// `UnitMissionBo` dispatch — route a (unit) mission to its processor and return
@@ -109,17 +110,37 @@ pub(crate) async fn load_sender_user(
     Ok((user_id, username.unwrap_or_default()))
 }
 
-/// Load a single planet DTO by id (joined with galaxy/owner names), matching
-/// `PlanetBo.toDto`. Returns `None` when the planet no longer exists.
+/// Load a single planet DTO by id (joined with galaxy/owner names and its
+/// special location), matching `PlanetBo.toDto` — Java is not lazy on
+/// `Planet.specialLocation` on this path, so the location's `improvement` is
+/// loaded too (same pattern as `GalaxyBo::find_planets_at` /
+/// `PlanetBo::find_owned_dtos`). Returns `None` when the planet no longer
+/// exists. `home` is left nullable (Java's Jackson `NON_NULL` omits it rather
+/// than coercing a NULL to `false`); `is_explored` is hardcoded `1` since
+/// mission source/target planets aren't masked on this path (the EXPLORE
+/// target-planet masking is applied separately by the caller).
 pub(crate) async fn load_planet_dto(
     conn: &mut MySqlConnection,
     planet_id: u64,
 ) -> OwgeResult<Option<PlanetDto>> {
-    let row: Option<PlanetDtoRow> = sqlx::query_as::<_, PlanetDtoRow>(SELECT_PLANET_DTO)
+    let row: Option<NavPlanetRow> = sqlx::query_as::<_, NavPlanetRow>(SELECT_PLANET_DTO)
         .bind(planet_id)
         .fetch_optional(&mut *conn)
         .await?;
-    Ok(row.map(Into::into))
+    match row {
+        Some(row) => {
+            let sl_improvement_id = row.sl_improvement_id;
+            let mut dto = PlanetDto::from(row);
+            if let Some(sl) = dto.special_location.as_mut() {
+                if let Some(improvement_id) = sl_improvement_id {
+                    sl.improvement =
+                        Some(ImprovementBo::find_dto(&mut *conn, Some(improvement_id)).await?);
+                }
+            }
+            Ok(Some(dto))
+        }
+        None => Ok(None),
+    }
 }
 
 /// Convert the mission's involved `ObtainedUnit` rows into `ObtainedUnitDto`s for
@@ -149,10 +170,18 @@ pub(crate) async fn load_obtained_unit_dto(
 const SELECT_PLANET_DTO: &str = "\
     SELECT p.id, p.name, p.sector, p.quadrant, p.planet_number AS planet_number, \
            p.owner AS owner_id, o.username AS owner_name, p.richness, \
-           COALESCE(p.home, 0) AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name \
+           p.home AS home, p.galaxy_id AS galaxy_id, g.name AS galaxy_name, \
+           1 AS is_explored, \
+           sl.id AS sl_id, sl.name AS sl_name, sl.description AS sl_description, \
+           sl.image_id AS sl_image_id, sli.filename AS sl_image_filename, \
+           sl.galaxy_id AS sl_galaxy_id, slg.name AS sl_galaxy_name, \
+           sl.improvement_id AS sl_improvement_id \
     FROM planets p \
     JOIN galaxies g ON g.id = p.galaxy_id \
     LEFT JOIN user_storage o ON o.id = p.owner \
+    LEFT JOIN special_locations sl ON sl.id = p.special_location_id \
+    LEFT JOIN images_store sli ON sli.id = sl.image_id \
+    LEFT JOIN galaxies slg ON slg.id = sl.galaxy_id \
     WHERE p.id = ?";
 
 // --- obtained-unit DTO row (mirrors obtained_unit_bo's SELECT_DTO, single id) ---

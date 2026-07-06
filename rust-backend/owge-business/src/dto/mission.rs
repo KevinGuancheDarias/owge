@@ -15,8 +15,9 @@ use chrono::{NaiveDateTime, Utc};
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::dto::serde_helpers::serialize_opt_millis;
 use crate::dto::upgrade::UpgradeDto;
-use crate::dto::{ObtainedUnitDto, PlanetDto, SimpleUserData};
+use crate::dto::{ObtainedUnitDto, PlanetDto};
 use crate::model::{Mission, MissionType};
 
 /// `AbstractRunningMissionDto.NEVER_ENDING_MISSION_SYMBOL`.
@@ -56,6 +57,7 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct MissionDto {
     pub id: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub termination_date: Option<NaiveDateTime>,
     pub resolved: bool,
     pub invisible: bool,
@@ -72,6 +74,33 @@ impl From<&Mission> for MissionDto {
     }
 }
 
+/// The `alliance` sub-object `UnitRunningMissionDto` embeds on its `user`,
+/// mirroring `new AllianceDto(); alliance.setId(id)` — only `id` is ever set
+/// (the full `AllianceDto` has `name`/`description`/`image`/`owner` too, but
+/// they stay null/omitted since nothing else is populated on this path).
+#[derive(Debug, Clone, Serialize)]
+pub struct AllianceIdOnly {
+    pub id: u16,
+}
+
+/// The trimmed `UserStorageDto` `UnitRunningMissionDto.user` embeds, mirroring
+/// the Java constructor: `new UserStorageDto(); user.setId(...);
+/// user.setUsername(...); if (alliance != null) user.setAlliance({id})`.
+/// `UserStorageDto.canAlterTwitchState` has a `false` field initializer (not
+/// left null), so it is always emitted, never omitted — unlike `email` and
+/// every other `UserStorageDto` field, which are never set here and so stay
+/// absent (Jackson `Include.NON_NULL`). Notably this is a *different* shape
+/// from [`crate::dto::SimpleUserData`] (which carries `email`, absent here).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MissionUserDto {
+    pub id: i32,
+    pub username: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub alliance: Option<AllianceIdOnly>,
+    pub can_alter_twitch_state: bool,
+}
+
 /// Mirrors `UnitRunningMissionDto`, with the `AbstractRunningMissionDto` base
 /// fields flattened in (Jackson serializes the inheritance flat).
 ///
@@ -86,21 +115,29 @@ impl From<&Mission> for MissionDto {
 pub struct UnitRunningMissionDto {
     // --- AbstractRunningMissionDto fields ---
     pub mission_id: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_primary: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_secondary: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_time: Option<f64>,
     pub pending_millis: i64,
     #[serde(serialize_with = "serialize_opt_mission_type")]
     pub r#type: Option<MissionType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub missions_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub termination_date: Option<NaiveDateTime>,
 
     // --- UnitRunningMissionDto fields ---
     pub involved_units: Option<Vec<ObtainedUnitDto>>,
     pub invisible: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub source_planet: Option<PlanetDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub target_planet: Option<PlanetDto>,
-    pub user: Option<SimpleUserData>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub user: Option<MissionUserDto>,
 }
 
 impl UnitRunningMissionDto {
@@ -154,13 +191,18 @@ impl UnitRunningMissionDto {
 pub struct RunningUpgradeDto {
     // --- AbstractRunningMissionDto fields ---
     pub mission_id: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_primary: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_secondary: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub required_time: Option<f64>,
     pub pending_millis: i64,
     #[serde(serialize_with = "serialize_opt_mission_type")]
     pub r#type: Option<MissionType>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub missions_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub termination_date: Option<NaiveDateTime>,
 
     // --- RunningUpgradeDto fields ---
@@ -199,11 +241,26 @@ impl RunningUpgradeDto {
 #[serde(rename_all = "camelCase")]
 pub struct MissionReportDto {
     pub id: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub json_body: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub parsed_json: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mission_id: Option<u64>,
+    #[serde(
+        serialize_with = "serialize_opt_millis",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub mission_date: Option<NaiveDateTime>,
+    #[serde(
+        serialize_with = "serialize_opt_millis",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub report_date: Option<NaiveDateTime>,
+    #[serde(
+        serialize_with = "serialize_opt_millis",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub user_read_date: Option<NaiveDateTime>,
     pub is_enemy: Option<bool>,
 }

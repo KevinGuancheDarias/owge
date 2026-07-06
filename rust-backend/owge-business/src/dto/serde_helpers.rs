@@ -1,5 +1,6 @@
 //! Shared serde serialization helpers for Jackson parity.
 
+use chrono::NaiveDateTime;
 use serde::Serializer;
 
 /// Serialize an `f32` the way Jackson serializes a Java `float`: via its
@@ -24,6 +25,21 @@ pub fn serialize_opt_f32<S: Serializer>(
 ) -> Result<S::Ok, S::Error> {
     match value {
         Some(v) => serialize_f32(v, serializer),
+        None => serializer.serialize_none(),
+    }
+}
+
+/// Serialize an `Option<NaiveDateTime>` the way Jackson serializes a
+/// `java.util.Date`/`Instant` field with `WRITE_DATES_AS_TIMESTAMPS=true`: an
+/// epoch-millis number (treating the naive value as UTC, matching how the rest
+/// of the codebase computes millis from `NaiveDateTime`, e.g. `time_special_bo`).
+/// Pair with `skip_serializing_if = "Option::is_none"` when Java omits nulls.
+pub fn serialize_opt_millis<S: Serializer>(
+    value: &Option<NaiveDateTime>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    match value {
+        Some(dt) => serializer.serialize_i64(dt.and_utc().timestamp_millis()),
         None => serializer.serialize_none(),
     }
 }

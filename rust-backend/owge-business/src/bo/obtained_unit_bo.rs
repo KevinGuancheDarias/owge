@@ -16,7 +16,7 @@ use crate::bo::obtained_unit_entity::{
 use crate::bo::{ImprovementBo, SpeedImpactGroupBo, UnitInterceptionFinderBo};
 use crate::db;
 use crate::dto::obtained_unit::{ObtainedUnitDto, TemporalInformationDto};
-use crate::dto::{PlanetDto, UnitDto};
+use crate::dto::{MissionDto, PlanetDto, UnitDto};
 use crate::error::{OwgeError, OwgeResult};
 use crate::model::seaorm::image_store::ImageSimple;
 use sea_orm::{
@@ -45,6 +45,7 @@ struct UnitJoinedRow {
     id: u16,
     name: String,
     description: Option<String>,
+    order_number: Option<u16>,
     type_id: Option<u16>,
     // Match the actual `units` column types so SeaORM's generated `unit_*`
     // aliases decode: primary/secondary_resource are INT UNSIGNED (-> u32),
@@ -57,6 +58,8 @@ struct UnitJoinedRow {
     energy: Option<u16>,
     display_in_requirements: Option<i8>,
     improvement_id: u16,
+    attack_rule_id: Option<u16>,
+    critical_attack_id: Option<u16>,
 
     #[sea_orm(nested)]
     image: Option<ImageSimple>,
@@ -162,6 +165,7 @@ struct ObtainedUnitJoinedRow {
     id: u64,
     count: u64,
     user_id: i32,
+    mission_id: Option<u64>,
     #[sea_orm(nested)]
     unit: UnitJoinedRow,
     #[sea_orm(nested)]
@@ -251,7 +255,7 @@ fn unit_dto_from_joined_row(r: UnitJoinedRow) -> UnitDto {
         description: r.description,
         image: r.image.as_ref().map(|i| i.id),
         image_url: r.image.as_ref().map(|i| format!("/dynamic/{}", i.filename)),
-        order: None,
+        order: r.order_number,
         has_to_display_in_requirements: r.display_in_requirements.unwrap_or(0) != 0,
         points: r.points,
         time: r.time.map(|v| v as u64),
@@ -274,6 +278,8 @@ fn unit_dto_from_joined_row(r: UnitJoinedRow) -> UnitDto {
         storage_capacity: r.storage_capacity,
         improvement: None,
         speed_impact_group: None,
+        attack_rule: None,
+        critical_attack: None,
     }
 }
 
@@ -313,12 +319,19 @@ impl ObtainedUnitJoinedRow {
         // The nested unit mirrors Java's `UnitDto.dtoFromEntity`: its own
         // improvement, and the entity's effective speedImpactGroup — which the
         // JPA getter resolves as own-else-inherited from the unit-type chain
-        // (no user-specific time-special swap on this path).
+        // (no user-specific time-special swap on this path) — plus its own
+        // `attackRule`/`criticalAttack`.
         let own_improvement_id = self.unit.improvement_id;
         let unit_id_u16 = self.unit.id;
+        let attack_rule_id = self.unit.attack_rule_id;
+        let critical_attack_id = self.unit.critical_attack_id;
         let mut unit = unit_dto_from_joined_row(self.unit);
         unit.is_invisible = is_invisible;
-        unit.improvement = match ImprovementBo::find_dto(&mut *conn, Some(own_improvement_id)).await {
+        // Uses the *shallow* improvement shape: on this load path (a unit's own
+        // improvement) Java's embedded `unitType` doesn't carry the nested
+        // `speedImpactGroup.requirementsGroups` — see
+        // `ImprovementBo::find_dto_shallow`'s doc for why.
+        unit.improvement = match ImprovementBo::find_dto_shallow(&mut *conn, Some(own_improvement_id)).await {
             Ok(improvement) => Some(improvement),
             Err(OwgeError::NotFound(_)) => None,
             Err(e) => return Err(e),
@@ -331,6 +344,23 @@ impl ObtainedUnitJoinedRow {
             Some(group_id) => SpeedImpactGroupBo::find_by_id(&mut *conn, group_id).await?,
             None => None,
         };
+        unit.attack_rule = match attack_rule_id {
+            Some(id) => crate::bo::AttackRuleBo::find_by_id(&mut *conn, id).await?,
+            None => None,
+        };
+        unit.critical_attack = match critical_attack_id {
+            Some(id) => crate::bo::CriticalAttackBo::find_by_id(&mut *conn, id).await?,
+            None => None,
+        };
+
+        // `ObtainedUnitDto.mission` — `DtoUtilService.staticDtoFromEntity(MissionDto.class,
+        // entity.getMission())`: present only when this stack is attached to a
+        // running mission (the `unit_mission_change` involved-units path); the
+        // `unit_obtained_change` completed-units query never has a mission_id.
+        let mission = match self.mission_id {
+            Some(mission_id) => load_mission_dto(&mut *conn, mission_id).await?,
+            None => None,
+        };
 
         Ok(ObtainedUnitDto {
             id: self.id,
@@ -338,12 +368,34 @@ impl ObtainedUnitJoinedRow {
             count: self.count,
             source_planet: self.source_planet.map(Into::into),
             target_planet: self.target_planet.map(Into::into),
+            mission,
             user_id: self.user_id,
             username: Some(self.owner.username),
             temporal_information,
             stored_units: Vec::new(),
         })
     }
+}
+
+/// `DtoUtilService.staticDtoFromEntity(MissionDto.class, mission)` for the
+/// owning mission of an obtained-unit stack. Returns `None` if the mission row
+/// is somehow gone (defensive; `mission_id` is a live FK in practice).
+async fn load_mission_dto(
+    conn: &mut MySqlConnection,
+    mission_id: u64,
+) -> OwgeResult<Option<MissionDto>> {
+    let row: Option<(Option<chrono::NaiveDateTime>, i8, i8)> = sqlx::query_as(
+        "SELECT termination_date, resolved, invisible FROM missions WHERE id = ?",
+    )
+    .bind(mission_id)
+    .fetch_optional(&mut *conn)
+    .await?;
+    Ok(row.map(|(termination_date, resolved, invisible)| MissionDto {
+        id: mission_id,
+        termination_date,
+        resolved: resolved != 0,
+        invisible: invisible != 0,
+    }))
 }
 
 pub struct ObtainedUnitBo;

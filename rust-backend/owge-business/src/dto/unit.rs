@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::dto::{ImprovementDto, SpeedImpactGroupDto};
+use crate::dto::{AttackRuleDto, CriticalAttackDto, ImprovementDto, SpeedImpactGroupDto};
 
 /// Mirrors `UnitDto` (the unit catalog DTO). Core stats + the unit type
 /// (id/name via join) are populated; the nested improvement / speedImpactGroup
@@ -69,6 +69,14 @@ pub struct UnitDto {
     /// swap → inherited). Absent on paths that don't hydrate it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub speed_impact_group: Option<SpeedImpactGroupDto>,
+    /// `UnitDto.attackRule` (`units.attack_rule_id`). Absent when the unit has
+    /// none, or on paths that don't hydrate it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attack_rule: Option<AttackRuleDto>,
+    /// `UnitDto.criticalAttack` (`units.critical_attack_id`). Absent when the
+    /// unit has none, or on paths that don't hydrate it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub critical_attack: Option<CriticalAttackDto>,
 }
 
 /// A shallow `{ "id": N }` reference, matching how the admin frontend serializes
