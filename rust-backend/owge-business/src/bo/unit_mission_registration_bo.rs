@@ -616,12 +616,12 @@ async fn mark_orphan_missions_resolved(
     candidate_mission_ids: &[u64],
 ) -> OwgeResult<()> {
     for &mission_id in candidate_mission_ids {
-        let remaining: Option<u64> =
+        let remaining: i64 =
             sqlx::query_scalar("SELECT COUNT(*) FROM obtained_units WHERE mission_id = ?")
                 .bind(mission_id)
                 .fetch_one(&mut *conn)
                 .await?;
-        if remaining.unwrap_or(0) == 0 {
+        if remaining == 0 {
             sqlx::query("UPDATE missions SET resolved = 1 WHERE id = ?")
                 .bind(mission_id)
                 .execute(&mut *conn)
