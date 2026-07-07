@@ -1,7 +1,7 @@
 
 # OWGE changelog
-v0.11.13 (latest)
-===================
+v0.11.13 (2026-07-07 22:59)
+============================
 * __Fix:__ Mission executions no longer deadlock on the database planet locks: the locks are now acquired strictly one at a time in ascending order, stopping at the first unavailable one, instead of a single statement that kept acquiring (and holding) later locks after an earlier one had already failed — the ordering violation that allowed deadlock cycles and multi-minute lock convoys under heavy same-planet mission traffic.
 * __Fix:__ Players no longer receive a "Mission with id X failed, please contact an admin!" report for a mission failure that is going to be retried (and usually succeeds on retry); the report is now only sent when the mission definitively fails after exhausting all its attempts.
 * __Fix:__ Units nested inside other units ("stored" units) no longer get left behind when launching a mission from a non-owned planet where the units were DEPLOYED. The already-stored units now travel with their holder (carried proportionally to the amount of holders moved); previously they stayed on the planet still attached to the DEPLOYED mission, which got deleted once the holder left, leaving them uncontrollable.
