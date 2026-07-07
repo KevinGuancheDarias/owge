@@ -52,6 +52,10 @@ public class MissionBaseService {
     public Instant retryMissionIfPossible(Long missionId, MissionType missionType) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         if (mission.getAttemps() >= MAX_ATTEMPTS) {
+            // The player is only notified when the mission is definitively given up; attempts that
+            // will still be retried used to save this report too, alarming players ("contact an
+            // admin!") over failures that ended up succeeding on a later attempt
+            missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
             if (missionType.isUnitMission()) {
                 returnMissionRegistrationBo.registerReturnMission(mission, null);
                 mission.setResolved(true);
@@ -67,7 +71,6 @@ public class MissionBaseService {
         } else {
             mission.setAttemps(mission.getAttemps() + 1);
             mission.setTerminationDate(missionTimeManagerBo.computeTerminationDate(mission.getRequiredTime()));
-            missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
             missionRepository.save(mission);
             return missionSchedulerService.computeExecutionTime(mission);
         }
