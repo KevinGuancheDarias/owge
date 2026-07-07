@@ -24,7 +24,9 @@ import org.springframework.dao.CannotAcquireLockException;
 @AllArgsConstructor
 @Slf4j
 public class MysqlLockUtilService {
-    public static final int TIMEOUT_SECONDS = 10;
+    // Mission executions hold the locks for well under a second; 3s is already a generous wait
+    // for a single holder, and the 5-attempt retry (with backoff) covers anything longer
+    public static final int TIMEOUT_SECONDS = 3;
     public static final int MAX_LOCK_ATTEMPTS = 5;
     public static final String GET_LOCK_SQL = "SELECT GET_LOCK(?,?);";
 
