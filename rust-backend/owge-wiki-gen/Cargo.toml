@@ -1,0 +1,18 @@
+[package]
+name = "owge-wiki-gen"
+description = "Static game-wiki generator: renders the universe configuration (units, upgrades, time specials, special locations, galaxies, factions, requirement/unlock graph) to plain HTML, rebuilding when the config tables change."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+owge-business = { path = "../owge-business" }
+tokio = { workspace = true }
+sqlx = { workspace = true }
+askama = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

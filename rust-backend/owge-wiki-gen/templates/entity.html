@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="detail">
+  <div class="head">
+    {% if let Some(img) = e.image_url %}<img class="portrait" src="{{ img }}" alt="">{% endif %}
+    <div>
+      <h1>{{ e.name }}</h1>
+      {% if let Some(l) = e.header_link %}<p class="headlink"><a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a></p>{% endif %}
+      <p class="badges">{% for b in e.badges %}<span class="badge">{{ b }}</span>{% endfor %}</p>
+      {% if !e.description.is_empty() %}<p class="desc">{{ e.description }}</p>{% endif %}
+    </div>
+  </div>
+
+  {% if !e.stats.is_empty() %}
+  <section>
+    <h2>{{ meta.t.stats }}</h2>
+    <table class="kv">
+      {% for s in e.stats %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+    </table>
+  </section>
+  {% endif %}
+
+  {% if !e.req_groups.is_empty() %}
+  <section>
+    <h2>{{ meta.t.how_to_get_it }}</h2>
+    {% for g in e.req_groups %}
+      {% if !loop.first %}<div class="or">{{ meta.t.or_separator }}</div>{% endif %}
+      <div class="reqgroup">
+        {% if !g.name.is_empty() %}<h3>{{ g.name }}</h3>{% endif %}
+        <ul>
+          {% for r in g.reqs %}
+          <li>{{ r.prefix }}{% if let Some(l) = r.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endif %}{{ r.suffix }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if !e.improvement.is_empty() %}
+  <section>
+    <h2>{{ meta.t.improvements }}{{ e.improvement_note }}</h2>
+    <ul class="plain">
+      {% for l in e.improvement %}<li>{{ l }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if let Some(c) = e.combat %}
+  {% if c.attack_rule.is_some() || c.critical.is_some() || c.speed_group.is_some() || !c.intercepts.is_empty() || !c.intercepted_by.is_empty() %}
+  <section>
+    <h2>{{ meta.t.combat_and_travel }}</h2>
+    {% if let Some(rule) = c.attack_rule %}
+    <h3>{{ meta.t.attack_rule }}: {{ rule.name }} <span class="muted">({{ rule.source }})</span></h3>
+    <ul class="plain">
+      {% for en in rule.entries %}
+      <li>{% if en.can %}<span class="yes">{{ meta.t.can_attack }}</span>{% else %}<span class="no">{{ meta.t.cannot_attack }}</span>{% endif %} {{ en.target }}</li>
+      {% endfor %}
+    </ul>
+    <p class="muted">{{ meta.t.rule_default_note }}</p>
+    {% endif %}
+    {% if let Some(crit) = c.critical %}
+    <h3>{{ meta.t.critical_attack }}: {{ crit.name }} <span class="muted">({{ crit.source }})</span></h3>
+    <ul class="plain">
+      {% for en in crit.entries %}
+      <li>{{ en.value }} {{ meta.t.damage_against }} {{ en.target }}</li>
+      {% endfor %}
+    </ul>
+    <p class="muted">{{ meta.t.crit_default_note }}</p>
+    {% endif %}
+    {% if let Some(sg) = c.speed_group %}
+    <p>{{ meta.t.travels_in_group }} <a href="{{ meta.root }}{{ sg.href }}">{{ sg.label }}</a>.</p>
+    {% endif %}
+    {% if !c.intercepts.is_empty() %}
+    <p>{{ meta.t.can_intercept }} {% for l in c.intercepts %}{% if !loop.first %}, {% endif %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endfor %}.</p>
+    {% endif %}
+    {% if !c.intercepted_by.is_empty() %}
+    <p>{{ meta.t.intercepted_by }} {% for l in c.intercepted_by %}{% if !loop.first %}, {% endif %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endfor %}.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+  {% endif %}
+
+  {% if !e.unlocks.is_empty() %}
+  <section>
+    <h2>{{ meta.t.needed_for }}</h2>
+    <ul class="plain">
+      {% for u in e.unlocks %}
+      <li><span class="kind">{{ u.kind }}</span> {% if let Some(l) = u.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% else %}{{ u.label }}{% endif %}{% if !u.detail.is_empty() %} <span class="muted">({{ u.detail }})</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if !e.blocks.is_empty() %}
+  <section class="warn">
+    <h2>{{ meta.t.leveling_locks }}</h2>
+    <ul class="plain">
+      {% for u in e.blocks %}
+      <li><span class="kind">{{ u.kind }}</span> {% if let Some(l) = u.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% else %}{{ u.label }}{% endif %}{% if !u.detail.is_empty() %} <span class="muted">({{ u.detail }})</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

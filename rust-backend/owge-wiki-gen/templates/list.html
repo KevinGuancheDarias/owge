@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<p class="blurb">{{ blurb }}</p>
+<ul class="listing">
+{% for r in rows %}
+  {% include "list_row.html" %}
+{% endfor %}
+</ul>
+{% endblock %}

@@ -72,12 +72,12 @@ function _menu () {
     echo -e "OWGE launcher :: By Kevin Guanche Darias & contributors\n"
     echo -e "Passed compose up options:\e[32m${EXTRA_COMPOSE_OPTIONS}. \e[36mPass environment variable EXTRA_COMPOSE_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_OPTIONS=--build -it ./owge_launcher.sh\e[39m"
     echo -e "Passed compose build options:\e[32m${EXTRA_COMPOSE_BUILD_OPTIONS}. $_emptyWarning  \e[36mPass environment variable EXTRA_COMPOSE_BUILD_OPTIONS to change values. Ie: \e[32m$ EXTRA_COMPOSE_BUILD_OPTIONS=--no-cache -it ./owge_launcher.sh\e[39m"
-    echo -e "     `__findRunningComposerProject owge_all_dockerized 8` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
-     `__findRunningComposerProject owge_all_dockerized_rust 8` \e[32m1r\e[39m. \e[36mLaunch all dockerized (RUST backend)\e[39m (same as 1, but the Rust port replaces the Java game-rest)
-     `__findRunningComposerProject owge_frontend_developer 6` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
-     `__findRunningComposerProject owge_backend_developer 7` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
-     `__findRunningComposerProject owge_fullstack_developer 5` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
-     `__findRunningComposerProject owge_fullstack_without_database 4` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
+    echo -e "     `__findRunningComposerProject owge_all_dockerized 9` \e[32m1\e[39m. \e[36mLaunch all dockerized\e[39m (just for the sake of seeing some great black magic going under the hood)
+     `__findRunningComposerProject owge_all_dockerized_rust 9` \e[32m1r\e[39m. \e[36mLaunch all dockerized (RUST backend)\e[39m (same as 1, but the Rust port replaces the Java game-rest)
+     `__findRunningComposerProject owge_frontend_developer 7` \e[32m2\e[39m. \e[36mFrontend developer mode\e[39m (launchs everything in docker, but not the Frontend ng serve)
+     `__findRunningComposerProject owge_backend_developer 8` \e[32m3\e[39m. \e[36mBackend developer mode\e[39m (launchs database, nginx, the accounts system and the frontend)
+     `__findRunningComposerProject owge_fullstack_developer 6` \e[32m4\e[39m. \e[36mFullstack developer mode\e[39m (launchs database, nginx and the accounts system) \e[33mWarning: \e[35madvanced users\e[39m
+     `__findRunningComposerProject owge_fullstack_without_database 5` \e[32m5\e[39m. \e[36mFullstack with local database\e[39m (Only launchs the account system and nginx) \e[33mWarning: \e[35mpro guys\e[39m
      $_extraMockAccountCommands
      \e[32m6\e[39m. \e[31m\U2665 \e[36mDonate \e[31m\U2665\e[39m
      \e[32m7\e[39m. \e[36mSee something nice \e[33m???\e[36m x') \e[39m
@@ -109,24 +109,24 @@ function _menu () {
             (
                 export OWGE_BACKEND_SERVER="rest_and_admin:8080";
                 export OWGE_WS_SERVER="rest_and_admin:7474";
-                _doLaunch "owge_frontend_developer" _withFrontend _withBackend _withDatabase;
+                _doLaunch "owge_frontend_developer" _withFrontend _withBackend _withDatabase _withWikiGenerator;
             )
             ;;
 
         3)
             (
                 export OWGE_FRONTEND_SERVER="frontend:4200";
-                _doLaunch "owge_backend_developer" _withFrontend _withBackend _withDatabase _withExportedDatabase;
+                _doLaunch "owge_backend_developer" _withFrontend _withBackend _withDatabase _withExportedDatabase _withWikiGenerator;
             )
             ;;
         4)
             (
-                _doLaunch "owge_fullstack_developer" _withFrontend _withBackend _withDatabase _withExportedDatabase;
+                _doLaunch "owge_fullstack_developer" _withFrontend _withBackend _withDatabase _withExportedDatabase _withWikiGenerator;
             )
             ;;
         5)
             (
-                _doLaunch "owge_fullstack_without_database" _withFrontend _withBackend;
+                _doLaunch "owge_fullstack_without_database" _withFrontend _withBackend _withWikiGenerator;
             )
             ;;
         account)
@@ -293,6 +293,7 @@ function _withAllDockerized() {
     _withFrontend;
     _withBackend;
     _withDatabase;
+    _withWikiGenerator;
 }
 
 # As _withAllDockerized, but uses the Rust backend profile (same rest_and_admin
@@ -304,6 +305,7 @@ function _withAllDockerizedRust() {
     _withFrontend;
     _withBackendRust;
     _withDatabase;
+    _withWikiGenerator;
 }
 
 function _withFrontend() {
@@ -365,6 +367,46 @@ function _withBackendRust() {
 function _withDatabase() {
     export OWGE_PHPMYADMIN_SERVERS="Universe database ($_profileName):db:3306:root:1234|$OWGE_PHPMYADMIN_SERVERS";
     export _launchLine="$_launchLine -f ./profiles/backend_database.docker-compose.yml";
+}
+
+##
+# Adds the universe wiki generator (owge-wiki-gen watch). It publishes the
+# static wiki inside the dynamic-images volume (served by nginx at
+# /dynamic/wiki/index.html). Must run AFTER _withDatabase (when used) so it can
+# detect whether the database is dockerized; with a local database it prompts
+# for the connection values instead.
+##
+function _withWikiGenerator() {
+    if echo "$_launchLine" | grep -q "backend_database.docker-compose.yml"; then
+        _wikiDbHost="db";
+        _wikiDbPort="3306";
+        _wikiDbUser="root";
+        _wikiDbPass="1234";
+        _wikiDbName="owge";
+    else
+        echo -e "\e[36mThe wiki generator needs to reach your local database\e[39m";
+        dockerFindHostIp;
+        promptWithDefault "Database ip" "$output";
+        _wikiDbHost="$_output";
+        promptWithDefault "Database port" "3306";
+        _wikiDbPort="$_output";
+        promptWithDefault "Database user" "root";
+        _wikiDbUser="$_output";
+        promptWithDefault "Database password" "1234";
+        _wikiDbPass="$_output";
+        promptWithDefault "Database name" "owge";
+        _wikiDbName="$_output";
+    fi
+    export OWGE_WIKI_DB_URL="mysql://$_wikiDbUser:$_wikiDbPass@$_wikiDbHost:$_wikiDbPort/$_wikiDbName";
+    export OWGE_WIKI_UNIVERSE="${_testWorld:-OWGE Universe}";
+    export OWGE_WIKI_INTERVAL="${OWGE_WIKI_INTERVAL:-30}";
+    # Only for the image's wait-for-initialized-DB readiness gate.
+    export OWGE_WIKI_MYSQL_HOST="$_wikiDbHost";
+    export OWGE_WIKI_MYSQL_PORT="$_wikiDbPort";
+    export OWGE_WIKI_MYSQL_USER="$_wikiDbUser";
+    export OWGE_WIKI_MYSQL_PASSWORD="$_wikiDbPass";
+    export OWGE_WIKI_MYSQL_DB="$_wikiDbName";
+    export _launchLine="$_launchLine -f ./profiles/wiki_generator.docker-compose.yml";
 }
 
 

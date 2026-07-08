@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="{{ meta.lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ meta.title }} — {{ meta.universe }} wiki</title>
+<link rel="stylesheet" href="{{ meta.root }}style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="{{ meta.root }}index.html">{{ meta.universe }}</a>
+  <nav>
+    <a{% if meta.active == "units" %} class="on"{% endif %} href="{{ meta.root }}units/index.html">{{ meta.t.units }}</a>
+    <a{% if meta.active == "upgrades" %} class="on"{% endif %} href="{{ meta.root }}upgrades/index.html">{{ meta.t.upgrades }}</a>
+    <a{% if meta.active == "time-specials" %} class="on"{% endif %} href="{{ meta.root }}time-specials/index.html">{{ meta.t.time_specials }}</a>
+    <a{% if meta.active == "special-locations" %} class="on"{% endif %} href="{{ meta.root }}special-locations/index.html">{{ meta.t.special_locations }}</a>
+    <a{% if meta.active == "factions" %} class="on"{% endif %} href="{{ meta.root }}factions/index.html">{{ meta.t.factions }}</a>
+    <a{% if meta.active == "unit-types" %} class="on"{% endif %} href="{{ meta.root }}unit-types.html">{{ meta.t.unit_types }}</a>
+    <a{% if meta.active == "galaxies" %} class="on"{% endif %} href="{{ meta.root }}galaxies.html">{{ meta.t.galaxies }}</a>
+    <a{% if meta.active == "travel-groups" %} class="on"{% endif %} href="{{ meta.root }}travel-groups.html">{{ meta.t.travel_groups }}</a>
+  </nav>
+  <div class="search">
+    <input id="q" placeholder="{{ meta.t.search_placeholder }}" autocomplete="off">
+    <div id="qr"></div>
+  </div>
+  <a class="lang" href="{{ meta.switch_href }}">{{ meta.switch_label }}</a>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+<footer>{{ meta.footer }}</footer>
+<script>var OWGE_ROOT="{{ meta.root }}";</script>
+<script src="{{ meta.root }}search-index.js"></script>
+<script src="{{ meta.root }}search.js"></script>
+</body>
+</html>

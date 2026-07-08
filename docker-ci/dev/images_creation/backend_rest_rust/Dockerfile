@@ -6,6 +6,9 @@
 # Build context is rust-backend/ (see backend_rust.docker-compose.yml), so
 # `COPY . .` is the workspace (minus target/, per rust-backend/.dockerignore).
 FROM rust:1-bookworm AS builder
+# The MysqlTemplate derive macro pipes its generated code through rustfmt and
+# panics when it is missing (current rust:1 images don't ship it by default).
+RUN rustup component add rustfmt
 WORKDIR /build
 COPY . .
 RUN cargo build --release --bin owge-rest

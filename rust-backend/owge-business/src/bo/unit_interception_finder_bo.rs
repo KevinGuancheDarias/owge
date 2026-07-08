@@ -257,7 +257,10 @@ impl UnitInterceptionFinderBo {
 
     /// `SpeedImpactGroupFinderBo.findHisOrInherited(unit)` — the unit's own
     /// `speed_impact_group_id`, else the nearest ancestor unit type with one set.
-    pub(crate) async fn find_his_or_inherited_speed_impact_group(
+    ///
+    /// Public because `owge-wiki-gen` reuses it to show each unit's effective
+    /// travel group with the exact engine inheritance semantics.
+    pub async fn find_his_or_inherited_speed_impact_group(
         conn: &mut MySqlConnection,
         unit_id: u16,
     ) -> OwgeResult<Option<u16>> {
@@ -309,7 +312,9 @@ impl UnitInterceptionFinderBo {
 
     /// The `speed_impact_group_id`s a unit declares as interceptable
     /// (`unit.getInterceptableSpeedGroups()`).
-    async fn find_interceptable_group_ids(
+    ///
+    /// Public because `owge-wiki-gen` reuses it for the interception matrix.
+    pub async fn find_interceptable_group_ids(
         conn: &mut MySqlConnection,
         unit_id: u16,
     ) -> OwgeResult<Vec<u16>> {

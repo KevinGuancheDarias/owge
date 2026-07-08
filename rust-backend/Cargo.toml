@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["owge-business", "owge-rest"]
+members = ["owge-business", "owge-rest", "owge-wiki-gen"]
 
 [workspace.package]
 version = "1.0.0"
@@ -27,6 +27,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 base64 = "0.22"
 async-trait = "0.1"
 futures = "0.3"
+askama = "0.14"
 
 [profile.release]
 opt-level = 3

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ meta.t.unit_types }}</h1>
+<p class="blurb">{{ meta.t.blurb_unit_types }}</p>
+{% for t in types %}
+<article class="detail anchor" id="t{{ t.id }}">
+  <h2>{{ t.name }}{% if let Some(p) = t.parent %} <span class="muted">⊂ <a href="{{ meta.root }}{{ p.href }}">{{ p.label }}</a></span>{% endif %}</h2>
+  {% if !t.stats.is_empty() %}
+  <table class="kv">
+    {% for s in t.stats %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+  </table>
+  {% endif %}
+  {% if !t.mission_limits.is_empty() %}
+  <h3>{{ meta.t.ut_mission_restrictions }}</h3>
+  <table class="kv">
+    {% for s in t.mission_limits %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+  </table>
+  {% endif %}
+  {% if !t.units.is_empty() %}
+  <h3>{{ meta.t.ut_units_of_type }}</h3>
+  <p>{% for l in t.units %}{% if !loop.first %}, {% endif %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endfor %}</p>
+  {% endif %}
+</article>
+{% endfor %}
+{% endblock %}

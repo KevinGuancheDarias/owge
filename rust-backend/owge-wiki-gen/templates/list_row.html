@@ -1,0 +1,10 @@
+<li>
+  <a href="{{ meta.root }}{{ r.href }}">
+    {% if let Some(img) = r.image_url %}<img loading="lazy" src="{{ img }}" alt="">{% else %}<span class="noimg"></span>{% endif %}
+    <span class="txt">
+      <span class="name">{{ r.name }}</span>
+      {% if !r.subtitle.is_empty() %}<span class="sub">{{ r.subtitle }}</span>{% endif %}
+    </span>
+    {% for b in r.badges %}<span class="badge">{{ b }}</span>{% endfor %}
+  </a>
+</li>

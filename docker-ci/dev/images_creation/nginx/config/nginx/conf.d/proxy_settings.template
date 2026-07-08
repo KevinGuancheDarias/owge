@@ -53,6 +53,14 @@ server{
 		index fake;
 	}
 
+	# The generated universe wiki (owge-wiki-gen watch, see the wiki_generator
+	# profile). Lives inside the dynamic volume so its /dynamic/<file> image
+	# URLs resolve; exposed under the clean /wiki/ path with directory indexes.
+	location /wiki/ {
+		alias /var/owge_data/dynamic/wiki/;
+		index index.html;
+	}
+
 	location / {
 		root /var/www;
 		try_files $uri @frontendsvr;

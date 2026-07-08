@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ meta.t.travel_groups }}</h1>
+<p class="blurb">{{ meta.t.blurb_travel_groups }}</p>
+{% for g in groups %}
+<article class="detail anchor" id="s{{ g.id }}">
+  <h2>{{ g.name }}</h2>
+  <p class="badges">{% for b in g.badges %}<span class="badge">{{ b }}</span>{% endfor %}</p>
+  <h3>{{ meta.t.tg_factors }}</h3>
+  <table class="kv">
+    {% for s in g.factors %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+  </table>
+  {% if !g.mission_limits.is_empty() %}
+  <h3>{{ meta.t.ut_mission_restrictions }}</h3>
+  <table class="kv">
+    {% for s in g.mission_limits %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+  </table>
+  {% endif %}
+  {% if !g.req_groups.is_empty() %}
+  <h3>{{ meta.t.how_to_unlock }}</h3>
+  {% for rg in g.req_groups %}
+    {% if !loop.first %}<div class="or">{{ meta.t.or_separator }}</div>{% endif %}
+    <div class="reqgroup">
+      {% if !rg.name.is_empty() %}<h4>{{ rg.name }}</h4>{% endif %}
+      <ul>
+        {% for r in rg.reqs %}
+        <li>{{ r.prefix }}{% if let Some(l) = r.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endif %}{{ r.suffix }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+  {% endif %}
+</article>
+{% endfor %}
+{% endblock %}

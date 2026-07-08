@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ heading }}</h1>
+<p class="blurb">{{ blurb }}</p>
+{% for g in groups %}
+<details class="facgroup">
+  <summary>
+    <h2>{% if let Some(l) = g.link %}<a href="{{ meta.root }}{{ l.href }}">{{ g.title }}</a>{% else %}{{ g.title }}{% endif %} <span class="muted">({{ g.count() }})</span></h2>
+  </summary>
+  {% if g.subgroups.is_empty() %}
+  <ul class="listing">
+  {% for r in g.rows %}
+    {% include "list_row.html" %}
+  {% endfor %}
+  </ul>
+  {% else %}
+  {% for sg in g.subgroups %}
+  <h3 class="subgroup">{{ sg.title }} <span class="muted">({{ sg.rows.len() }})</span></h3>
+  <ul class="listing">
+  {% for r in sg.rows %}
+    {% include "list_row.html" %}
+  {% endfor %}
+  </ul>
+  {% endfor %}
+  {% endif %}
+</details>
+{% endfor %}
+{% endblock %}

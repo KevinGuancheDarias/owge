@@ -1,0 +1,28 @@
+version: '3.4'
+
+# Universe wiki generator: runs `owge-wiki-gen watch` against the universe
+# database and publishes the static wiki INSIDE the dynamic-images volume
+# (`/var/owge_data/dynamic/wiki`) — the same host directory nginx mounts — so
+# the wiki is served at /dynamic/wiki/index.html and its /dynamic/<file> image
+# URLs resolve without any nginx changes.
+#
+# OWGE_WIKI_DB_URL is exported by the launcher's _withWikiGenerator: it points
+# at the dockerized `db` service, or at the values prompted from the user when
+# the database is local. The MYSQL_* vars only feed the image's wait-for-DB
+# readiness gate.
+services:
+  wiki_generator:
+    build:
+      context: ../../../rust-backend
+      dockerfile: ../docker-ci/dev/images_creation/wiki_generator/Dockerfile
+    volumes:
+      - ${DYNAMIC_IMAGES_DIR}:/var/owge_data/dynamic
+    environment:
+      - OWGE_WIKI_DB_URL
+      - OWGE_WIKI_UNIVERSE
+      - OWGE_WIKI_INTERVAL
+      - MYSQL_HOST=${OWGE_WIKI_MYSQL_HOST}
+      - MYSQL_PORT=${OWGE_WIKI_MYSQL_PORT}
+      - MYSQL_USER=${OWGE_WIKI_MYSQL_USER}
+      - MYSQL_PASSWORD=${OWGE_WIKI_MYSQL_PASSWORD}
+      - MYSQL_DB=${OWGE_WIKI_MYSQL_DB}

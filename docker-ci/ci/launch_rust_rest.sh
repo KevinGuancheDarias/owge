@@ -126,11 +126,14 @@ function cargoBuildRust () {
 	fi
 	log info "Compiling rust backend (cargo build --release --bin owge-rest)";
 	mkdir -p "$HOME/.cargo/registry";
+	# rustup component add rustfmt: the MysqlTemplate derive macro pipes its
+	# generated code through rustfmt and panics when it is missing (current
+	# rust:1 images don't ship it by default).
 	docker run -i --rm `dockerBuildPriorityArgs` \
 		--volume "$_dir":/work \
 		--volume "$HOME/.cargo/registry":/usr/local/cargo/registry \
 		-w /work rust:1-bookworm \
-		cargo build --release --bin owge-rest;
+		sh -c 'rustup component add rustfmt && cargo build --release --bin owge-rest';
 	if [ ! -f "$_dir/target/release/owge-rest" ]; then
 		log error "FATAL, rust compilation failed, no binary at $_dir/target/release/owge-rest, aborting";
 		rollback;

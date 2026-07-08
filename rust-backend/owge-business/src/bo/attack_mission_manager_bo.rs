@@ -1438,7 +1438,10 @@ impl AttackMissionManagerBo {
 
     /// `AttackRuleBo.findAttackRule(UnitType)` — the nearest ancestor unit type
     /// with an `attack_rule_id`.
-    async fn find_attack_rule(
+    ///
+    /// Public because `owge-wiki-gen` reuses it to show each unit's effective
+    /// attack rule with the exact combat-time fallback semantics.
+    pub async fn find_attack_rule(
         conn: &mut MySqlConnection,
         unit_type_id: Option<u16>,
     ) -> OwgeResult<Option<u16>> {

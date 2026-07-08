@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="detail">
+  <div class="head">
+    {% if let Some(img) = f.image_url %}<img class="portrait" src="{{ img }}" alt="">{% endif %}
+    <div>
+      <h1>{{ f.name }}</h1>
+      <p class="badges">{% for b in f.badges %}<span class="badge">{{ b }}</span>{% endfor %}</p>
+      {% if !f.description.is_empty() %}<p class="desc">{{ f.description }}</p>{% endif %}
+    </div>
+  </div>
+
+  <section>
+    <h2>{{ meta.t.economy }}</h2>
+    <table class="kv">
+      {% for s in f.stats %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+    </table>
+  </section>
+
+  {% if !f.improvement.is_empty() %}
+  <section>
+    <h2>{{ meta.t.faction_bonuses }}</h2>
+    <ul class="plain">
+      {% for l in f.improvement %}<li>{{ l }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if !f.unit_type_limits.is_empty() %}
+  <section>
+    <h2>{{ meta.t.unit_type_limits }}</h2>
+    <table class="kv">
+      {% for s in f.unit_type_limits %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+    </table>
+  </section>
+  {% endif %}
+
+  {% if !f.spawn_locations.is_empty() %}
+  <section>
+    <h2>{{ meta.t.players_start_in }}</h2>
+    <ul class="plain">
+      {% for s in f.spawn_locations %}<li>{{ s }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if !f.exclusive.is_empty() %}
+  <section>
+    <h2>{{ meta.t.faction_content }}</h2>
+    <p class="muted">{{ meta.t.faction_content_note }}</p>
+    <ul class="plain">
+      {% for u in f.exclusive %}
+      <li><span class="kind">{{ u.kind }}</span> {% if let Some(l) = u.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% else %}{{ u.label }}{% endif %}{% if !u.detail.is_empty() %} <span class="muted">({{ u.detail }})</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

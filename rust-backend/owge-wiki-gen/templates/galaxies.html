@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ meta.t.galaxies }}</h1>
+{% for g in galaxies %}
+<article class="detail anchor" id="g{{ g.id }}">
+  <h2>{{ g.name }}</h2>
+  <table class="kv">
+    {% for s in g.stats %}<tr><th>{{ s.k }}</th><td>{{ s.v }}</td></tr>{% endfor %}
+  </table>
+  {% if !g.special_locations.is_empty() %}
+  <h3>{{ meta.t.special_locations }}</h3>
+  <p>{% for l in g.special_locations %}{% if !loop.first %}, {% endif %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endfor %}</p>
+  {% endif %}
+  {% if !g.spawn_factions.is_empty() %}
+  <h3>{{ meta.t.ga_spawn_region_for }}</h3>
+  <p>{% for l in g.spawn_factions %}{% if !loop.first %}, {% endif %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endfor %}</p>
+  {% endif %}
+  {% if !g.home_only.is_empty() %}
+  <h3>{{ meta.t.ga_home_content }}</h3>
+  <p class="muted">{{ meta.t.ga_home_content_note }}</p>
+  <ul class="plain">
+    {% for u in g.home_only %}
+    <li><span class="kind">{{ u.kind }}</span> {% if let Some(l) = u.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% else %}{{ u.label }}{% endif %}{% if !u.detail.is_empty() %} <span class="muted">({{ u.detail }})</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</article>
+{% endfor %}
+{% endblock %}
