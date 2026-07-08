@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ meta.t.configuration }}</h1>
+<p class="blurb">{{ meta.t.blurb_configuration }}</p>
+{% for s in sections %}
+<article class="detail anchor" id="c{{ s.slug }}">
+  <h2>{{ s.title }}</h2>
+  <table class="kv">
+    {% for e in s.entries %}
+    <tr>
+      <th>{{ e.label }}</th>
+      <td>
+        {{ e.value }}
+        <details class="rawvals">
+          <summary>{{ meta.t.raw_values_summary }}</summary>
+          <table class="kv">
+            {% for r in e.raws %}<tr><th><code>{{ r.k }}</code></th><td><code>{{ r.v }}</code></td></tr>{% endfor %}
+          </table>
+        </details>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</article>
+{% endfor %}
+{% endblock %}

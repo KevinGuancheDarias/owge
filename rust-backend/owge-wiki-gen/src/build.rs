@@ -3,7 +3,7 @@
 //! and the requirement-group OR semantics can never drift from the game) and
 //! inverts the requirement graph both ways into the [`Site`] view model.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use anyhow::Result;
 use sqlx::MySqlConnection;
@@ -11,20 +11,25 @@ use sqlx::MySqlConnection;
 use owge_business::OwgeError;
 use owge_business::bo::attack_mission_manager_bo::AttackMissionManagerBo;
 use owge_business::bo::attack_rule_bo::AttackRuleBo;
+use owge_business::bo::configuration_bo::ConfigurationBo;
 use owge_business::bo::critical_attack_bo::CriticalAttackBo;
 use owge_business::bo::faction_bo::FactionBo;
 use owge_business::bo::galaxy_bo::GalaxyBo;
 use owge_business::bo::improvement_bo::ImprovementBo;
 use owge_business::bo::requirement_bo::RequirementBo;
 use owge_business::bo::requirement_group_bo::RequirementGroupBo;
+use owge_business::bo::rule_bo::RuleBo;
 use owge_business::bo::special_location_bo::SpecialLocationBo;
 use owge_business::bo::speed_impact_group_bo::SpeedImpactGroupBo;
+use owge_business::bo::temporal_units_bo::TemporalUnitsBo;
 use owge_business::bo::time_special_bo::TimeSpecialBo;
 use owge_business::bo::unit_bo::UnitBo;
 use owge_business::bo::unit_interception_finder_bo::UnitInterceptionFinderBo;
 use owge_business::bo::unit_type_bo::UnitTypeBo;
 use owge_business::bo::upgrade_bo::UpgradeBo;
-use owge_business::dto::{FactionDto, ImprovementDto, RequirementInformationDto};
+use owge_business::dto::{FactionDto, GalaxyDto, ImprovementDto, RequirementInformationDto};
+use owge_business::model::Configuration;
+use owge_business::model::object_relation::object_enum;
 use owge_business::model::unit::Unit as UnitRow;
 
 use crate::i18n::Tr;
@@ -337,6 +342,33 @@ fn is_default_unlock(raws: &[RawReq]) -> bool {
         .all(|r| r.code == "BEEN_RACE" || r.code == "UPGRADE_LEVEL")
 }
 
+/// Detects the per-faction clone workaround in an unlock list: requirement OR
+/// groups are only supported for travel groups, so to offer one hero/special
+/// to several factions admins create it once per faction ("Foo (Wraith)",
+/// "Foo (Ori)"…). Two labels count as clones when they collide after removing
+/// all spaces (check 1), or after additionally removing a "(FactionName)"
+/// fragment (check 2).
+fn has_cloned_unlocks(lines: &[UnlockLine], faction_names: &[String]) -> bool {
+    let nospace = |s: &str| s.chars().filter(|c| !c.is_whitespace()).collect::<String>();
+    let faction_parens: Vec<String> = faction_names
+        .iter()
+        .map(|f| format!("({})", nospace(f)))
+        .collect();
+    let mut seen = HashSet::new();
+    let mut seen_defactioned = HashSet::new();
+    for line in lines {
+        let name = nospace(&line.label);
+        let mut defactioned = name.clone();
+        for paren in &faction_parens {
+            defactioned = defactioned.replace(paren.as_str(), "");
+        }
+        if !seen.insert(name) || !seen_defactioned.insert(defactioned) {
+            return true;
+        }
+    }
+    false
+}
+
 fn list_row(p: &EntityPage) -> ListRow {
     ListRow {
         href: p.href.clone(),
@@ -420,6 +452,47 @@ fn faction_groups(
     out
 }
 
+/// Group a sorted special-location page list by galaxy, in galaxy display
+/// order, with an "Unassigned" bucket last for locations not tied to a galaxy.
+/// A location's galaxy is coarse enough to always reveal; only its exact
+/// planet (the "found at" coordinates) is gated by `WIKI_EXPOSE_SPECIAL_LOCATIONS`.
+fn galaxy_groups(
+    pages: &[EntityPage],
+    galaxy_of: &HashMap<u16, Option<u16>>,
+    galaxies: &[GalaxyDto],
+    names: &Names,
+    tr: &'static Tr,
+) -> Vec<ListGroup> {
+    let flat = |title: String, link: Option<Link>, members: Vec<&EntityPage>| ListGroup {
+        title,
+        link,
+        rows: members.iter().map(|p| list_row(p)).collect(),
+        subgroups: Vec::new(),
+    };
+    let mut out = Vec::new();
+    for g in galaxies {
+        let members: Vec<&EntityPage> = pages
+            .iter()
+            .filter(|p| galaxy_of.get(&p.id).copied().flatten() == Some(g.id))
+            .collect();
+        if !members.is_empty() {
+            out.push(flat(
+                format!("{}{}", tr.galaxy_prefix, g.name),
+                names.link(GALAXIES, g.id as i64),
+                members,
+            ));
+        }
+    }
+    let unassigned: Vec<&EntityPage> = pages
+        .iter()
+        .filter(|p| galaxy_of.get(&p.id).copied().flatten().is_none())
+        .collect();
+    if !unassigned.is_empty() {
+        out.push(flat(tr.st_unassigned.into(), None, unassigned));
+    }
+    out
+}
+
 fn mission_support(v: &str, tr: &'static Tr) -> Option<&'static str> {
     match v {
         "NONE" => Some(tr.mi_never),
@@ -438,6 +511,217 @@ fn mission_limit_rows(pairs: &[(&'static str, &str)], tr: &'static Tr) -> Vec<Kv
             })
         })
         .collect()
+}
+
+/// The mission types that have tunable time/speed configuration params
+/// (matches the engine's `MissionType` values used by `MissionTimeManagerBo`).
+const CONFIG_MISSION_TYPES: [(&str, fn(&Tr) -> &'static str); 7] = [
+    ("EXPLORE", |tr| tr.mi_explore),
+    ("GATHER", |tr| tr.mi_gather),
+    ("ESTABLISH_BASE", |tr| tr.mi_establish_base),
+    ("ATTACK", |tr| tr.mi_attack),
+    ("COUNTERATTACK", |tr| tr.mi_counterattack),
+    ("CONQUEST", |tr| tr.mi_conquest),
+    ("DEPLOY", |tr| tr.mi_deploy),
+];
+
+/// Integer config values get thousands separators; anything else (floats,
+/// enums, free text) is shown as stored.
+fn fmt_config_num(v: &str) -> String {
+    let v = v.trim();
+    match v.parse::<i64>() {
+        Ok(n) => fmt_int(n),
+        Err(_) => v
+            .parse::<f32>()
+            .map(fmt_f32)
+            .unwrap_or_else(|_| v.to_string()),
+    }
+}
+
+/// The universe-configuration page. Only **non-privileged** rows are read
+/// (the same predicate as the game's public configuration endpoint), so
+/// secrets can never leak into the generated site. Known gameplay params are
+/// rendered as human sentences; whatever is left lands raw in "Other".
+async fn config_sections(
+    conn: &mut MySqlConnection,
+    tr: &'static Tr,
+) -> Result<Vec<ConfigSection>> {
+    let mut rows: BTreeMap<String, Configuration> =
+        ConfigurationBo::find_all_non_privileged(&mut *conn)
+            .await?
+            .into_iter()
+            .map(|c| (c.name.clone(), c))
+            .collect();
+    let raw_kv = |c: &Configuration| Kv {
+        k: c.name.clone(),
+        v: c.value.clone(),
+    };
+    let yes_no = |v: &str| {
+        if v.eq_ignore_ascii_case("TRUE") {
+            tr.cfg_yes
+        } else {
+            tr.cfg_no
+        }
+    };
+    let entry = |c: &Configuration, label: &str, value: String| ConfigEntry {
+        label: label.to_string(),
+        value,
+        raws: vec![raw_kv(c)],
+    };
+
+    let mut general = Vec::new();
+    if let Some(c) = rows.remove("DEPLOYMENT_CONFIG") {
+        let value = match c.value.as_str() {
+            "FREEDOM" => tr.cfg_deploy_freedom.into(),
+            "ONLY_ONCE_RETURN_DEPLOYED" => tr.cfg_deploy_return_deployed.into(),
+            "ONLY_ONCE_RETURN_SOURCE" => tr.cfg_deploy_return_source.into(),
+            "DISALLOWED" => tr.cfg_disabled.into(),
+            other => other.to_string(),
+        };
+        general.push(entry(&c, tr.cfg_deploy, value));
+    }
+    if let Some(c) = rows.remove("ZERO_BUILD_TIME") {
+        general.push(entry(&c, tr.cfg_zero_build, yes_no(&c.value).into()));
+    }
+    if let Some(c) = rows.remove("ZERO_UPGRADE_TIME") {
+        general.push(entry(&c, tr.cfg_zero_upgrade, yes_no(&c.value).into()));
+    }
+    if let Some(c) = rows.remove("IMPROVEMENT_STEP") {
+        general.push(entry(
+            &c,
+            tr.cfg_improvement_step,
+            format!("{}%", fmt_config_num(&c.value)),
+        ));
+    }
+    if let Some(c) = rows.remove("DISABLED_FEATURE_ALLIANCE") {
+        // The param disables the feature, so TRUE reads as "Disabled".
+        let value = if c.value.eq_ignore_ascii_case("TRUE") {
+            tr.cfg_disabled
+        } else {
+            tr.cfg_enabled
+        };
+        general.push(entry(&c, tr.cfg_alliances, value.into()));
+    }
+    if let Some(c) = rows.remove("ALLIANCE_MAX_SIZE") {
+        general.push(entry(&c, tr.cfg_alliance_max_size, fmt_config_num(&c.value)));
+    }
+    if let Some(c) = rows.remove("ALLIANCE_MAX_SIZE_PERCENTAGE") {
+        general.push(entry(
+            &c,
+            tr.cfg_alliance_max_pct,
+            format!("{}%", fmt_config_num(&c.value)),
+        ));
+    }
+    if let Some(c) = rows.remove("WIKI_EXPOSE_SPECIAL_LOCATIONS") {
+        general.push(entry(&c, tr.cfg_wiki_expose, yes_no(&c.value).into()));
+    }
+    if let Some(c) = rows.remove("ATTACK_DETERMINISTIC_RNG") {
+        general.push(entry(&c, tr.cfg_deterministic_rng, yes_no(&c.value).into()));
+    }
+
+    let mut sections = Vec::new();
+    if !general.is_empty() {
+        sections.push(ConfigSection {
+            slug: "general".into(),
+            title: tr.cfg_general.into(),
+            entries: general,
+        });
+    }
+
+    for (key, label_of) in CONFIG_MISSION_TYPES {
+        let mut entries = Vec::new();
+        if let Some(c) = rows.remove(&format!("MISSION_TIME_{key}")) {
+            let value = c
+                .value
+                .trim()
+                .parse::<i64>()
+                .map(fmt_secs)
+                .unwrap_or_else(|_| c.value.clone());
+            entries.push(entry(&c, tr.cfg_base_time, value));
+        }
+        // Multi-param entries: each present piece becomes "label: value" and
+        // contributes its raw row to the shared details block.
+        let multi = |suffixes: &[(&str, &'static str)],
+                         rows: &mut BTreeMap<String, Configuration>| {
+            let mut parts = Vec::new();
+            let mut raws = Vec::new();
+            for (suffix, part_label) in suffixes {
+                if let Some(c) = rows.remove(&format!("MISSION_SPEED_{key}_{suffix}")) {
+                    parts.push(format!("{part_label}: {}", fmt_config_num(&c.value)));
+                    raws.push(raw_kv(&c));
+                }
+            }
+            (parts, raws)
+        };
+        let (parts, raws) = multi(
+            &[
+                ("SAME_Q", tr.cfg_same_q),
+                ("DIFF_Q", tr.cfg_diff_q),
+                ("DIFF_S", tr.cfg_diff_s),
+                ("DIFF_G", tr.cfg_diff_g),
+            ],
+            &mut rows,
+        );
+        if !parts.is_empty() {
+            entries.push(ConfigEntry {
+                label: tr.cfg_distance_penalty.into(),
+                value: parts.join(" · "),
+                raws,
+            });
+        }
+        let (parts, raws) = multi(
+            &[
+                ("P_MOVE_COST", tr.cfg_per_planet),
+                ("Q_MOVE_COST", tr.cfg_per_quadrant),
+                ("S_MOVE_COST", tr.cfg_per_sector),
+                ("G_MOVE_COST", tr.cfg_cross_galaxy),
+            ],
+            &mut rows,
+        );
+        if !parts.is_empty() {
+            entries.push(ConfigEntry {
+                label: tr.cfg_move_cost.into(),
+                value: parts.join(" · "),
+                raws,
+            });
+        }
+        if let Some(c) = rows.remove(&format!("MISSION_SPEED_DIVISOR_{key}")) {
+            entries.push(entry(&c, tr.cfg_divisor, fmt_config_num(&c.value)));
+        }
+        if let Some(c) = rows.remove(&format!("MISSION_{key}_TRIGGER_ATTACK")) {
+            entries.push(entry(&c, tr.cfg_trigger_attack, yes_no(&c.value).into()));
+        }
+        if !entries.is_empty() {
+            sections.push(ConfigSection {
+                slug: key.to_lowercase(),
+                title: tr.cfg_mission_section.replace("{m}", label_of(tr)),
+                entries,
+            });
+        }
+    }
+
+    // Anything the wiki doesn't know how to phrase: the admin's display name
+    // (when set) plus the stored value, still raw-inspectable.
+    if !rows.is_empty() {
+        let entries = rows
+            .values()
+            .map(|c| ConfigEntry {
+                label: c
+                    .display_name
+                    .clone()
+                    .filter(|d| !d.trim().is_empty())
+                    .unwrap_or_else(|| c.name.clone()),
+                value: c.value.clone(),
+                raws: vec![raw_kv(c)],
+            })
+            .collect();
+        sections.push(ConfigSection {
+            slug: "other".into(),
+            title: tr.cfg_other.into(),
+            entries,
+        });
+    }
+    Ok(sections)
 }
 
 /// Build the resolved site once per configured language (the DB content is
@@ -469,6 +753,14 @@ pub async fn build_site(
     // user 0 exists for no one → no active-time-special decoration.
     let time_specials = TimeSpecialBo::find_all_dtos(&mut *conn, 0).await?;
     let special_locations = SpecialLocationBo::find_all(&mut *conn).await?;
+    // WIKI_EXPOSE_SPECIAL_LOCATIONS (TRUE/FALSE, absent = FALSE): whether the
+    // wiki may reveal each special location's *exact* planet. The galaxy is
+    // coarse enough to always show (grouping, subtitle, galaxies page); this
+    // flag only gates the precise "found at" planet coordinates.
+    let expose_special_locations =
+        ConfigurationBo::find_opt(&mut *conn, "WIKI_EXPOSE_SPECIAL_LOCATIONS")
+            .await?
+            .is_some_and(|c| c.value.eq_ignore_ascii_case("TRUE"));
     let factions = FactionBo::find_all(&mut *conn).await?;
     let galaxies = GalaxyBo::find_all(&mut *conn).await?;
     let travel_groups = SpeedImpactGroupBo::find_all_dtos(&mut *conn).await?;
@@ -516,6 +808,19 @@ pub async fn build_site(
     }
 
     let mut inverse = Inverse::default();
+
+    // For the attackable-types panel: parent chain per unit type, and the
+    // types the game shows (its panel filters on the engine's `used` flag).
+    let ut_parent: HashMap<u16, Option<u16>> = unit_types
+        .iter()
+        .map(|t| (t.id, t.parent.as_ref().map(|p| p.id)))
+        .collect();
+    let mut used_type_ids: Vec<u16> = Vec::new();
+    for t in &unit_types {
+        if UnitTypeBo::is_used(&mut *conn, t.id).await? {
+            used_type_ids.push(t.id);
+        }
+    }
 
     // ---- Units. ----
     let mut unit_pages = Vec::with_capacity(units.len());
@@ -639,6 +944,36 @@ pub async fn build_site(
                         })
                         .collect(),
                 });
+                // The game's "Attackable types" panel, frontend-computed there
+                // (`UnitTypeService.canAttack`): for each used type, the first
+                // entry whose UNIT_TYPE reference matches the type or one of
+                // its ancestors decides; UNIT entries are skipped and no match
+                // means attackable.
+                combat.attackable_types = used_type_ids
+                    .iter()
+                    .filter_map(|type_id| {
+                        let can = rule
+                            .entries
+                            .iter()
+                            .find_map(|e| {
+                                if e.target != "UNIT_TYPE" {
+                                    return None;
+                                }
+                                let mut current = Some(*type_id);
+                                while let Some(t) = current {
+                                    if t as i64 == e.reference_id as i64 {
+                                        return Some(e.can_attack);
+                                    }
+                                    current = ut_parent.get(&t).copied().flatten();
+                                }
+                                None
+                            })
+                            .unwrap_or(true);
+                        names
+                            .link(UNIT_TYPES, *type_id as i64)
+                            .map(|link| AttackableChip { link, can })
+                    })
+                    .collect();
             }
         if let Some(crit_id) = UnitBo::find_used_critical_attack(&mut *conn, dto.id).await?
             && let Some(crit) = CriticalAttackBo::find_by_id(&mut *conn, crit_id).await? {
@@ -647,12 +982,13 @@ pub async fn build_site(
                 } else {
                     tr.source_inherited
                 };
+                let mut crit_entries: Vec<_> = crit.entries.iter().collect();
+                crit_entries.sort_by(|a, b| b.value.total_cmp(&a.value));
                 combat.critical = Some(CritView {
                     name: crit.name.clone(),
                     source: source.into(),
-                    entries: crit
-                        .entries
-                        .iter()
+                    entries: crit_entries
+                        .into_iter()
                         .map(|e| {
                             let kind = if e.target == "UNIT" { UNITS } else { UNIT_TYPES };
                             let label = if e.target == "UNIT" {
@@ -752,6 +1088,9 @@ pub async fn build_site(
     let mut ts_pages = Vec::with_capacity(time_specials.len());
     let mut ts_factions: HashMap<u16, Vec<i64>> = HashMap::new();
     let mut ts_defaults: HashMap<u16, bool> = HashMap::new();
+    // unit id → "provided temporarily by <time special>" lines, attached to
+    // the unit pages after this loop.
+    let mut temporal_sources: HashMap<i64, Vec<ReqLine>> = HashMap::new();
     for dto in &time_specials {
         let mut page = EntityPage::new(dto.id, TIME_SPECIALS, dto.name.clone());
         page.image_url = dto.image_url.clone();
@@ -780,6 +1119,88 @@ pub async fn build_site(
         page.improvement =
             improvement_lines(&mut *conn, "time_specials", dto.id, &names, tr).await?;
         page.improvement_note = tr.note_while_active.into();
+        // Units granted while active, with the engine's activation-time filter
+        // (two extra args = duration#count, destination must be a UNIT; rows
+        // pointing at deleted units are skipped like the listener does).
+        for rule in TemporalUnitsBo::find_temporal_unit_rules(&mut *conn, dto.id).await? {
+            if rule.extra_args.len() != 2 || rule.destination_type != object_enum::UNIT {
+                continue;
+            }
+            let (Ok(duration), Ok(count)) = (
+                rule.extra_args[0].parse::<i64>(),
+                rule.extra_args[1].parse::<i64>(),
+            ) else {
+                continue;
+            };
+            let Some(unit_link) = names.link(UNITS, rule.destination_id) else {
+                continue;
+            };
+            page.effects.push(EffectLine {
+                prefix: format!("{} × ", fmt_int(count)),
+                link: Some(unit_link),
+                mid: String::new(),
+                link2: None,
+                suffix: tr
+                    .temporal_grant_suffix
+                    .replace("{d}", &fmt_secs(duration)),
+            });
+            temporal_sources
+                .entry(rule.destination_id)
+                .or_default()
+                .push(ReqLine {
+                    prefix: String::new(),
+                    link: self_link.clone(),
+                    suffix: tr
+                        .temporal_source_suffix
+                        .replace("{c}", &fmt_int(count))
+                        .replace("{d}", &fmt_secs(duration)),
+                });
+        }
+        // Hide-units and travel-group-swap rules. A UNIT destination matches
+        // that exact unit; a UNIT_TYPE destination also covers its subtypes
+        // (`RuleBo.isWantedUnitDestination` walks `parent_type`). Rules whose
+        // target — or, for swaps, whose speed group — no longer exists are
+        // dead at runtime too (`SpeedImpactGroupFinderBo.ruleToEntity`), skip.
+        for rule in
+            RuleBo::find_by_origin_type_and_origin_id(&mut *conn, "TIME_SPECIAL", dto.id as i64)
+                .await?
+        {
+            let target = match rule.destination_type.as_str() {
+                "UNIT" => names.link(UNITS, rule.destination_id),
+                "UNIT_TYPE" => names.link(UNIT_TYPES, rule.destination_id),
+                _ => None,
+            };
+            let Some(target) = target else { continue };
+            match rule.r#type.as_str() {
+                "TIME_SPECIAL_IS_ENABLED_DO_HIDE" => {
+                    page.effects.push(EffectLine {
+                        prefix: tr.effect_hide_prefix.into(),
+                        link: Some(target),
+                        mid: String::new(),
+                        link2: None,
+                        suffix: tr.effect_hide_suffix.into(),
+                    });
+                }
+                "TIME_SPECIAL_IS_ENABLED_DO_SWAP_SPEED_IMPACT_GROUP" => {
+                    let Some(group) = rule
+                        .extra_args
+                        .first()
+                        .and_then(|arg| arg.parse::<i64>().ok())
+                        .and_then(|id| names.link(TRAVEL_GROUPS, id))
+                    else {
+                        continue;
+                    };
+                    page.effects.push(EffectLine {
+                        prefix: tr.effect_swap_prefix.into(),
+                        link: Some(target),
+                        mid: tr.effect_swap_mid.into(),
+                        link2: Some(group),
+                        suffix: String::new(),
+                    });
+                }
+                _ => {}
+            }
+        }
         ts_pages.push(page);
     }
 
@@ -837,17 +1258,21 @@ pub async fn build_site(
 
     // ---- Special locations. ----
     let mut sl_pages = Vec::with_capacity(special_locations.len());
+    let mut sl_galaxies: HashMap<u16, Option<u16>> = HashMap::new();
     for dto in &special_locations {
         let mut page = EntityPage::new(dto.id, SPECIAL_LOCATIONS, dto.name.clone());
         page.image_url = dto.image_url.clone();
         page.description = dto.description.clone();
+        sl_galaxies.insert(dto.id, dto.galaxy_id);
+        // The galaxy is always shown (as the header link, and as the list-page
+        // group heading); only the exact planet is gated by
+        // WIKI_EXPOSE_SPECIAL_LOCATIONS. The list-row subtitle carries that
+        // planet when exposed — the galaxy would just repeat the group heading.
         page.header_link = dto.galaxy_id.and_then(|g| names.link(GALAXIES, g as i64));
-        page.subtitle = dto
-            .galaxy_name
-            .clone()
-            .map(|g| format!("{}{g}", tr.galaxy_prefix))
-            .unwrap_or_else(|| tr.st_unassigned.into());
-        if let Some(planet) = &dto.assigned_planet_name {
+        if expose_special_locations
+            && let Some(planet) = &dto.assigned_planet_name
+        {
+            page.subtitle = planet.clone();
             page.stats.push(Kv {
                 k: tr.st_found_at.into(),
                 v: planet.clone(),
@@ -1008,6 +1433,8 @@ pub async fn build_site(
                     v: fmt_int(total),
                 },
             ],
+            // A location's galaxy is safe to reveal (only its exact planet is
+            // gated), so list every galaxy's special locations unconditionally.
             special_locations: special_locations
                 .iter()
                 .filter(|s| s.galaxy_id == Some(dto.id))
@@ -1091,10 +1518,15 @@ pub async fn build_site(
     }
 
     // ---- Attach the inverse index. ----
+    let faction_names: Vec<String> = factions.iter().map(|f| f.name.clone()).collect();
     for page in &mut unit_pages {
         page.unlocks = inverse
             .unlocks
             .remove(&(UNITS, page.id as i64))
+            .unwrap_or_default();
+        page.unlocks_disclaimer = has_cloned_unlocks(&page.unlocks, &faction_names);
+        page.temporal_sources = temporal_sources
+            .remove(&(page.id as i64))
             .unwrap_or_default();
     }
     for page in &mut upgrade_pages {
@@ -1102,6 +1534,7 @@ pub async fn build_site(
             .unlocks
             .remove(&(UPGRADES, page.id as i64))
             .unwrap_or_default();
+        page.unlocks_disclaimer = has_cloned_unlocks(&page.unlocks, &faction_names);
         page.blocks = inverse.blocks.remove(&(page.id as i64)).unwrap_or_default();
     }
     for page in &mut ts_pages {
@@ -1109,6 +1542,7 @@ pub async fn build_site(
             .unlocks
             .remove(&(TIME_SPECIALS, page.id as i64))
             .unwrap_or_default();
+        page.unlocks_disclaimer = has_cloned_unlocks(&page.unlocks, &faction_names);
     }
     // Special locations are conquered (own their planet), never "unlocked", so
     // they have no ObjectEnum relation — only the inverse index applies.
@@ -1117,6 +1551,7 @@ pub async fn build_site(
             .unlocks
             .remove(&(SPECIAL_LOCATIONS, page.id as i64))
             .unwrap_or_default();
+        page.unlocks_disclaimer = has_cloned_unlocks(&page.unlocks, &faction_names);
     }
     for page in &mut faction_pages {
         page.exclusive = inverse
@@ -1157,6 +1592,9 @@ pub async fn build_site(
         &names,
         tr,
     );
+    let special_location_groups = galaxy_groups(&sl_pages, &sl_galaxies, &galaxies, &names, tr);
+
+    let config_sections = config_sections(&mut *conn, tr).await?;
 
     let counts = vec![
         Kv { k: tr.units.into(), v: fmt_int(unit_pages.len() as i64) },
@@ -1180,9 +1618,11 @@ pub async fn build_site(
         time_specials: ts_pages,
         time_special_groups,
         special_locations: sl_pages,
+        special_location_groups,
         factions: faction_pages,
         galaxies: galaxy_views,
         unit_types: ut_views,
         travel_groups: tg_views,
+        config_sections,
     })
 }

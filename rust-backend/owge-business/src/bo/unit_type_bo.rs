@@ -258,6 +258,19 @@ impl UnitTypeBo {
         Ok(out)
     }
 
+    /// `UnitTypeBo.isUsed` — whether at least one unit uses this exact type
+    /// (`unitTypeRepository.existsByUnitsTypeId`; no parent-chain walk).
+    ///
+    /// Public because `owge-wiki-gen` reuses it to pick the unit types shown on
+    /// the attackable-types panel, matching the game's `used` filter.
+    pub async fn is_used(conn: &mut MySqlConnection, id: u16) -> OwgeResult<bool> {
+        let used: i8 = sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM units u WHERE u.type = ?)")
+            .bind(id)
+            .fetch_one(&mut *conn)
+            .await?;
+        Ok(used != 0)
+    }
+
     /// The **catalog** form of one unit type by id (Java `dtoFromEntity`: nested
     /// relations, no per-user fields). Used to hydrate the `unitType` embedded in
     /// improvement `unitTypesUpgrades` entries. `None` when the id is absent.

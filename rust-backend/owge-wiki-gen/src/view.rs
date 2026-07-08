@@ -50,6 +50,17 @@ pub struct UnlockLine {
     pub detail: String,
 }
 
+/// One rule-driven effect of a time special: up to two linked entities in a
+/// sentence, e.g. `"Your "` + link(Naves) + `" travel in group "` + link(Fast).
+#[derive(Debug, Clone)]
+pub struct EffectLine {
+    pub prefix: String,
+    pub link: Option<Link>,
+    pub mid: String,
+    pub link2: Option<Link>,
+    pub suffix: String,
+}
+
 /// An attack-rule entry rendered for display.
 #[derive(Debug, Clone)]
 pub struct RuleEntryView {
@@ -80,10 +91,23 @@ pub struct CritView {
     pub entries: Vec<CritEntryView>,
 }
 
+/// One chip on the attackable-types panel: a used unit type and whether the
+/// unit's effective attack rule lets it attack that type.
+#[derive(Debug, Clone)]
+pub struct AttackableChip {
+    pub link: Link,
+    pub can: bool,
+}
+
 /// The combat block of a unit page.
 #[derive(Debug, Clone, Default)]
 pub struct CombatView {
     pub attack_rule: Option<RuleView>,
+    /// The game's "Attackable types" panel: every *used* unit type with the
+    /// resolved verdict (first rule entry matching the type or an ancestor
+    /// wins; no entry = attackable). Mirrors the frontend's
+    /// `UnitTypeService.canAttack`, which only evaluates UNIT_TYPE entries.
+    pub attackable_types: Vec<AttackableChip>,
     pub critical: Option<CritView>,
     /// The unit's effective travel (speed impact) group, engine-resolved.
     pub speed_group: Option<Link>,
@@ -110,12 +134,22 @@ pub struct EntityPage {
     pub stats: Vec<Kv>,
     pub req_groups: Vec<ReqGroupView>,
     pub unlocks: Vec<UnlockLine>,
+    /// True when `unlocks` contains per-faction clones of the same content
+    /// (the engine only supports OR requirement groups for travel groups, so
+    /// admins re-create an entity once per faction) — shows a disclaimer.
+    pub unlocks_disclaimer: bool,
     /// Content that requires this upgrade *below* some level — leveling it
     /// locks these (UPGRADE_LEVEL_LOWER_THAN inverse).
     pub blocks: Vec<UnlockLine>,
     pub improvement: Vec<String>,
     /// e.g. " (per level)" for upgrades.
     pub improvement_note: String,
+    /// Time-special pages: rule-driven effects while the special is active —
+    /// temporal unit grants, unit hiding, travel-group swaps.
+    pub effects: Vec<EffectLine>,
+    /// Unit pages: time specials that grant this unit temporarily (inverse of
+    /// `temporal_units`).
+    pub temporal_sources: Vec<ReqLine>,
     pub combat: Option<CombatView>,
 }
 
@@ -133,9 +167,12 @@ impl EntityPage {
             stats: Vec::new(),
             req_groups: Vec::new(),
             unlocks: Vec::new(),
+            unlocks_disclaimer: false,
             blocks: Vec::new(),
             improvement: Vec::new(),
             improvement_note: String::new(),
+            effects: Vec::new(),
+            temporal_sources: Vec::new(),
             combat: None,
         }
     }
@@ -198,6 +235,25 @@ pub struct TravelGroupView {
     pub req_groups: Vec<ReqGroupView>,
 }
 
+/// One universe-configuration setting rendered human-readably; the raw
+/// `configuration` rows backing it (param name → stored value) sit behind a
+/// collapsed "raw values" details block. Only non-privileged rows ever get
+/// this far — privileged ones (secrets) are filtered at the query.
+#[derive(Debug, Clone)]
+pub struct ConfigEntry {
+    pub label: String,
+    pub value: String,
+    pub raws: Vec<Kv>,
+}
+
+/// A titled group on the single configuration page (anchor `#c<slug>`).
+#[derive(Debug, Clone)]
+pub struct ConfigSection {
+    pub slug: String,
+    pub title: String,
+    pub entries: Vec<ConfigEntry>,
+}
+
 /// A row on a section list page.
 #[derive(Debug, Clone)]
 pub struct ListRow {
@@ -216,10 +272,11 @@ pub struct ListSubgroup {
     pub rows: Vec<ListRow>,
 }
 
-/// A faction group on a grouped list page (units / upgrades / time specials
-/// are grouped by their BEEN_RACE requirement; the "Any faction" group
-/// collects entities without one). Either `rows` (flat group) or `subgroups`
-/// is populated, never both.
+/// A group on a grouped list page (units / upgrades / time specials by their
+/// BEEN_RACE faction, the "Any faction" group collecting those without one;
+/// special locations by their galaxy). `link` is the group heading's own page
+/// (the faction or galaxy) when there is one. Either `rows` (flat group) or
+/// `subgroups` is populated, never both.
 #[derive(Debug, Clone)]
 pub struct ListGroup {
     pub title: String,
@@ -256,10 +313,15 @@ pub struct Site {
     /// Time-specials list page grouped by required faction.
     pub time_special_groups: Vec<ListGroup>,
     pub special_locations: Vec<EntityPage>,
+    /// Special-locations list page grouped by galaxy (or a single ungrouped
+    /// bucket when the galaxy assignment is secret).
+    pub special_location_groups: Vec<ListGroup>,
     pub factions: Vec<FactionPage>,
     pub galaxies: Vec<GalaxyView>,
     pub unit_types: Vec<UnitTypeView>,
     pub travel_groups: Vec<TravelGroupView>,
+    /// The universe configuration page (non-privileged settings only).
+    pub config_sections: Vec<ConfigSection>,
 }
 
 /// `12 345 678` — thousands separated with a narrow space.

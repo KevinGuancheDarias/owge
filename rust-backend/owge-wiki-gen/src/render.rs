@@ -92,6 +92,13 @@ struct TravelGroupsT<'a> {
     groups: &'a [TravelGroupView],
 }
 
+#[derive(Template)]
+#[template(path = "configuration.html")]
+struct ConfigurationT<'a> {
+    meta: Meta,
+    sections: &'a [ConfigSection],
+}
+
 /// Per-language render context.
 struct Ctx<'a> {
     site: &'a Site,
@@ -125,19 +132,6 @@ fn write(path: PathBuf, content: String) -> Result<()> {
     fs::write(&path, content).with_context(|| format!("writing {}", path.display()))
 }
 
-fn entity_rows(pages: &[EntityPage]) -> Vec<ListRow> {
-    pages
-        .iter()
-        .map(|p| ListRow {
-            href: p.href.clone(),
-            image_url: p.image_url.clone(),
-            name: p.name.clone(),
-            subtitle: p.subtitle.clone(),
-            badges: p.badges.clone(),
-        })
-        .collect()
-}
-
 /// Render one language's whole subtree into `dir` (which must already exist).
 fn render_lang(ctx: &Ctx, dir: &Path) -> Result<()> {
     let site = ctx.site;
@@ -161,30 +155,9 @@ fn render_lang(ctx: &Ctx, dir: &Path) -> Result<()> {
         .render()?,
     )?;
 
-    // Flat list pages (special locations).
-    let flat_sections: [(&str, &'static str, &str, &[EntityPage]); 1] = [(
-        tr.special_locations,
-        "special-locations",
-        tr.blurb_special_locations,
-        &site.special_locations,
-    )];
-    for (heading, section, blurb, pages) in flat_sections {
-        let rows = entity_rows(pages);
-        let list_path = format!("{section}/index.html");
-        write(
-            dir.join(&list_path),
-            ListT {
-                meta: ctx.meta(heading, "../", section_key(section), &list_path),
-                heading: heading.to_string(),
-                blurb: blurb.to_string(),
-                rows: &rows,
-            }
-            .render()?,
-        )?;
-    }
-
-    // Faction-grouped list pages (units, upgrades, time specials).
-    let grouped_sections: [(&str, &'static str, &str, &[ListGroup]); 3] = [
+    // Grouped list pages: units, upgrades and time specials by faction;
+    // special locations by galaxy.
+    let grouped_sections: [(&str, &'static str, &str, &[ListGroup]); 4] = [
         (tr.units, "units", tr.blurb_units, &site.unit_groups),
         (
             tr.upgrades,
@@ -197,6 +170,12 @@ fn render_lang(ctx: &Ctx, dir: &Path) -> Result<()> {
             "time-specials",
             tr.blurb_time_specials,
             &site.time_special_groups,
+        ),
+        (
+            tr.special_locations,
+            "special-locations",
+            tr.blurb_special_locations,
+            &site.special_location_groups,
         ),
     ];
     for (heading, section, blurb, groups) in grouped_sections {
@@ -286,6 +265,14 @@ fn render_lang(ctx: &Ctx, dir: &Path) -> Result<()> {
         TravelGroupsT {
             meta: ctx.meta(tr.travel_groups, "", "travel-groups", "travel-groups.html"),
             groups: &site.travel_groups,
+        }
+        .render()?,
+    )?;
+    write(
+        dir.join("configuration.html"),
+        ConfigurationT {
+            meta: ctx.meta(tr.configuration, "", "configuration", "configuration.html"),
+            sections: &site.config_sections,
         }
         .render()?,
     )?;

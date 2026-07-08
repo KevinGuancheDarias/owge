@@ -189,7 +189,10 @@ impl TemporalUnitsBo {
     /// `ruleBo.findByOriginTypeAndOriginIdAndType(TIME_SPECIAL, id, TEMPORAL_UNITS)`.
     /// Returns the parsed [`RuleDto`](crate::dto::rule::RuleDto)s (extra_args split
     /// on `#`).
-    async fn find_temporal_unit_rules(
+    ///
+    /// Public because `owge-wiki-gen` reuses it to list the units a time
+    /// special grants temporarily, with the exact activation-time rule lookup.
+    pub async fn find_temporal_unit_rules(
         conn: &mut MySqlConnection,
         time_special_id: u16,
     ) -> OwgeResult<Vec<crate::dto::rule::RuleDto>> {

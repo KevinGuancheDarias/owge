@@ -184,8 +184,31 @@ ul.plain li { padding: 0.15rem 0; }
 }
 .reqgroup ul { margin: 0.2rem 0; padding-left: 1.2rem; }
 .or { text-align: center; color: var(--accent2); margin: 0.4rem 0; font-size: 0.85rem; }
+.disclaimer { color: var(--muted); font-size: 0.9rem; font-style: italic; margin: 0.2rem 0 0.5rem; }
 .yes { color: var(--ok); font-weight: 600; }
 .no { color: var(--bad); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.4rem 0; }
+.chip {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  text-decoration: none;
+  border: 1px solid;
+}
+.chip-yes { color: var(--ok); border-color: var(--ok); }
+.chip-no { color: var(--bad); border-color: var(--bad); }
+h4 { margin: 0.8rem 0 0.3rem; font-size: 0.9rem; }
+details.rawvals { margin: 0.6rem 0; }
+details.rawvals summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
+details.rawvals summary:hover { color: var(--accent); }
+details.rawvals code {
+  background: var(--panel2);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  font-size: 0.85em;
+}
+details.rawvals table.kv { min-width: 0; margin: 0.3rem 0; }
 section.warn {
   border: 1px solid var(--bad);
   border-radius: 10px;

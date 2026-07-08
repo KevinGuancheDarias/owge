@@ -37,11 +37,33 @@
   </section>
   {% endif %}
 
+  {% if !e.temporal_sources.is_empty() %}
+  <section>
+    <h2>{{ meta.t.temporal_sources_heading }}</h2>
+    <ul class="plain">
+      {% for r in e.temporal_sources %}
+      <li>{{ r.prefix }}{% if let Some(l) = r.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endif %}{{ r.suffix }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
   {% if !e.improvement.is_empty() %}
   <section>
     <h2>{{ meta.t.improvements }}{{ e.improvement_note }}</h2>
     <ul class="plain">
       {% for l in e.improvement %}<li>{{ l }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if !e.effects.is_empty() %}
+  <section>
+    <h2>{{ meta.t.effects_heading }}</h2>
+    <ul class="plain">
+      {% for r in e.effects %}
+      <li>{{ r.prefix }}{% if let Some(l) = r.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endif %}{{ r.mid }}{% if let Some(l) = r.link2 %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% endif %}{{ r.suffix }}</li>
+      {% endfor %}
     </ul>
   </section>
   {% endif %}
@@ -52,12 +74,19 @@
     <h2>{{ meta.t.combat_and_travel }}</h2>
     {% if let Some(rule) = c.attack_rule %}
     <h3>{{ meta.t.attack_rule }}: {{ rule.name }} <span class="muted">({{ rule.source }})</span></h3>
-    <ul class="plain">
-      {% for en in rule.entries %}
-      <li>{% if en.can %}<span class="yes">{{ meta.t.can_attack }}</span>{% else %}<span class="no">{{ meta.t.cannot_attack }}</span>{% endif %} {{ en.target }}</li>
-      {% endfor %}
-    </ul>
-    <p class="muted">{{ meta.t.rule_default_note }}</p>
+    {% if !c.attackable_types.is_empty() %}
+    <h4>{{ meta.t.attackable_types }}</h4>
+    <p class="chips">{% for ch in c.attackable_types %}<a class="chip {% if ch.can %}chip-yes{% else %}chip-no{% endif %}" href="{{ meta.root }}{{ ch.link.href }}">{{ ch.link.label }}</a>{% endfor %}</p>
+    {% endif %}
+    <details class="rawvals">
+      <summary>{{ meta.t.raw_values_summary }}</summary>
+      <ul class="plain">
+        {% for en in rule.entries %}
+        <li>{% if en.can %}<span class="yes">{{ meta.t.can_attack }}</span>{% else %}<span class="no">{{ meta.t.cannot_attack }}</span>{% endif %} {{ en.target }}</li>
+        {% endfor %}
+      </ul>
+      <p class="muted">{{ meta.t.rule_default_note }}</p>
+    </details>
     {% endif %}
     {% if let Some(crit) = c.critical %}
     <h3>{{ meta.t.critical_attack }}: {{ crit.name }} <span class="muted">({{ crit.source }})</span></h3>
@@ -84,6 +113,7 @@
   {% if !e.unlocks.is_empty() %}
   <section>
     <h2>{{ meta.t.needed_for }}</h2>
+    {% if e.unlocks_disclaimer %}<p class="disclaimer">{{ meta.t.dup_unlocks_disclaimer }}</p>{% endif %}
     <ul class="plain">
       {% for u in e.unlocks %}
       <li><span class="kind">{{ u.kind }}</span> {% if let Some(l) = u.link %}<a href="{{ meta.root }}{{ l.href }}">{{ l.label }}</a>{% else %}{{ u.label }}{% endif %}{% if !u.detail.is_empty() %} <span class="muted">({{ u.detail }})</span>{% endif %}</li>

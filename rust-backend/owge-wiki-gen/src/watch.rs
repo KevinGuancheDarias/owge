@@ -20,6 +20,7 @@ use crate::{build, render};
 
 /// Every table the resolve layer reads, directly or through a bo.
 const WATCHED_TABLES: &[&str] = &[
+    "configuration",
     "units",
     "unit_types",
     "upgrades",
@@ -40,6 +41,7 @@ const WATCHED_TABLES: &[&str] = &[
     "requirement_group",
     "attack_rules",
     "attack_rule_entries",
+    "rules",
     "critical_attack",
     "critical_attack_entries",
     "speed_impact_groups",
