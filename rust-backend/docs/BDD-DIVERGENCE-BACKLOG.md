@@ -1,5 +1,27 @@
 # BDD parity — divergence backlog
 
+## SWEEP 2 (post-fix wave, 2026-07-09 22:02, artifacts `/tmp/bdd_parity_runs/20260709_220239`)
+
+37 scenarios: JAVA_SPEC 35 ✅ · RUST_SPEC 36 ✅ · PARITY 18 ✅ / 19 🔴.
+vs sweep 1 (36 scenarios: JAVA 36 · RUST 28 · PARITY 18✅/18🔴):
+- ALL 8 original RUST_SPEC reds fixed (D5 ×7, D6/D7 via the fix wave).
+- Deploy family: 4 scenarios flipped to FULL three-verdict parity (D8 + date
+  format + canonicalizer).
+- Remaining 19 PARITY reds are concentrated in TWO classes: the D2/D3/D11
+  report/unlock payload shapes (special_location ×4, reports/gather/explore
+  ×4, upgrades completion, unit_build ×2, time_specials payloads) and D9
+  (upgrade-register table rows) + D10 (Quartz structural, time_specials).
+- TWO NEW findings from the fix wave itself:
+  - **D13**: `time_specials :: not-unlocked rejection` — Java now 400
+    `SgtBackendTargetNotUnlocked` "The target object relation has not been
+    unlocked" (improved by the D5 re-parenting); Rust still answers 500
+    there. Fix Rust's activate-not-unlocked error to InvalidInput(400) and
+    update the scenario (currently pins the stale 500 → JAVA red).
+  - **D14 (investigate first)**: `explore` scenario went red on BOTH backends —
+    `planet_explored_event` not captured within 10 s. Passed in sweep 1 and
+    validation; suspect ws-capture timing flake (the event fires synchronously
+    at registration). RE-RUN before treating as real.
+
 Every RUST_SPEC / PARITY red from `bdd_parity` runs gets an entry here with
 the artifact path that proves it. Java is the default spec (plan §9.11) —
 entries marked JAVA-SUSPECT need Kevin's ruling on which side is right.
