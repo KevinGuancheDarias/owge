@@ -290,14 +290,23 @@ async fn user_registers_level_up(world: &mut BddWorld, user: i64, mode: String, 
         // before its dump, Rust hadn't). A "running" mission must stay running
         // until an explicit completes/cancel step; the completion nudge
         // rewinds execution_time anyway, so freezing is transparent to it.
+        // (two queries: an inline CAST-to-CHAR subquery hits MySQL error 1267 —
+        // collation mix between the cast and the task_instance column; a bound
+        // parameter, like the nudge uses, does not)
+        let mission_id: Option<i64> = sqlx::query_scalar(
+            "SELECT CAST(MAX(id) AS SIGNED) FROM missions WHERE user_id = ? AND resolved = 0",
+        )
+        .bind(user)
+        .fetch_one(&world.db)
+        .await
+        .expect("find registered level-up mission id");
+        let mission_id = mission_id.expect("registerLevelUp succeeded but no unresolved mission");
         sqlx::query(
             "UPDATE scheduled_tasks \
              SET execution_time = DATE_ADD(NOW(6), INTERVAL 1 HOUR) \
-             WHERE task_name = 'mission-run' \
-               AND task_instance = (SELECT CAST(MAX(id) AS CHAR) FROM missions \
-                                    WHERE user_id = ? AND resolved = 0)",
+             WHERE task_name = 'mission-run' AND task_instance = ?",
         )
-        .bind(user)
+        .bind(mission_id.to_string())
         .execute(&world.db)
         .await
         .expect("freeze level-up scheduled task");

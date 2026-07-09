@@ -144,11 +144,23 @@ java 1× vs rust 2× `unit_obtained_change` (plus payload diffs in
 `unit_mission_change`). Note the inventory predicted MISSING emits here;
 reality is a duplicate — check `deploy.rs` DeferredEmit wiring.
 
-### D9 — LEVEL_UP registration: Rust writes a `mission_information` row, Java doesn't
-`{mission_id, relation_id=1, value=1}` B-only in all three upgrade-register
-scenarios; missions table also shows an extra Rust row (type 12) —
-investigate via the register scenario's table.diff (alignment noise makes the
-condensed view misleading; read the full diff).
+### D9 — ✅ ROOT-CAUSED + FIXED — the "B-only mission_information row" was a scenario RACE, not a Rust write
+Java writes the identical row on registration (MissionBo L139). The diff was a
+race: ZERO_UPGRADE_TIME collapses required_time to 3 s and DELAY_HANDLE is 2 s,
+so the level-up task is due at **+1 s** and auto-fires MID-SCENARIO on
+whichever backend's scheduler polls first — in the sweeps Java completed (and
+HARD-DELETED the mission) before its dump while Rust hadn't fired yet.
+Harness fix: `user_registers_level_up` now FREEZES the task (+1 h) so a
+"running" mission stays running until an explicit completes/cancel step
+(the completion nudge rewinds execution_time, so it is transparent).
+Verified: upgrades feature now has ZERO table diffs (run 20260709_231926).
+- **JAVA-SUSPECT spin-off**: Java's completion delete left the
+  `mission_information` row ORPHANED in the dump despite
+  `cascade = CascadeType.ALL` — and the table has NO FK in `02_schema.sql`.
+  Production Java universes likely accumulate orphaned rows; check a live DB.
+- Footgun: freezing via inline `CAST(id AS CHAR)` subquery hits MySQL 1267
+  (collation mix vs `task_instance` utf8mb4_unicode_ci) — bind the id as a
+  parameter instead.
 
 ### D10 — time-special expiry scheduling: Rust `scheduled_tasks` row vs Java Quartz
 `TIME_SPECIAL_EFFECT_END` row is B-only (Java schedules in QRTZ_* tables,
@@ -210,6 +222,32 @@ diffs. NEEDS KEVIN'S RULING: (a) is millis precision contractual (→ Rust keeps
 the in-memory timestamp through to the emit, cf. [[websocket-lastsent-millis-parity]]),
 and (b) should reportDate/activationDate/expiringDate/readyDate/userReadDate
 join DATEISH with a precision-preserving placeholder (<TS-NUM-MS> vs <TS-NUM-S>)?
+
+### D18 — NEW (upgrades run 20260709_231926): socket `user_data_change` also carries `unitType.speedImpactGroup`
+Same socket-vs-REST path-dependence as `user_improvements_change`: Java's
+socket-pushed `user_data_change.improvements.unitTypesUpgrades[].unitType` has
+the hydrated own `speedImpactGroup` while the REST websocket-sync response
+(byte-proven earlier) does NOT. Fixed: `UserStorageBo::find_data_for_socket`
+(socket emitter only; REST sync path unchanged). PENDING VERIFICATION.
+
+### D19 — NEW: upgrades-completion unlock-frame class (the remaining D11 chunk)
+From `Completing a level-up bumps…` ws diff:
+- `obtained_upgrades_change.value[].upgrade.improvement.unitTypesUpgrades[].unitType.speedImpactGroup.requirementsGroups`
+  RUST-only ×126 (+1 on `parent`) — here Rust OVER-emits: this payload wants
+  the SHALLOW catalog shape (opposite direction from the report path; exactly
+  the ws_verify "lazy-init path-dependence" catalog already handled for
+  `unit_obtained_change` — check which builder obtained_upgrades_change uses).
+- `unit_unlocked_change.value[].speedImpactGroup` RUST-only ×1 (unit-level).
+- FRAME-COUNT `time_special_unlocked_change`: java **5** rust 1 — Java emits
+  one frame per requirement re-trigger; Rust dedups/coalesces.
+- FRAME-COUNT `unit_type_change`: java 1 rust 0 — Rust misses the emit on
+  level-up completion.
+- `running_upgrade_change.value.upgrade.{improvement,requirements}` JAVA-only
+  (registration scenarios) — Rust's running-upgrade payload embeds a slimmer
+  upgrade.
+- `user_data_change.{primaryResource,secondaryResource}` VALUE — live
+  per-second accrual drift, unassertable (same tolerated class as ws_verify);
+  candidate for a justified normalization of these two keys.
 
 ### D17 — NEW: ws diff misalignment from intra-payload array ordering (extends D4)
 `time_special_change.value[]`: java […,614,193,…] vs rust […,193,614,…] — one

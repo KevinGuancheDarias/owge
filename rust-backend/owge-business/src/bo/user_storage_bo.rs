@@ -473,6 +473,27 @@ impl UserStorageBo {
     /// faction has its own `initial_energy`). The `computed*` fields are never set
     /// by Java's `findData`, so they stay `None` (omitted from the JSON).
     pub async fn find_data(conn: &mut MySqlConnection, id: i32) -> OwgeResult<Option<UserData>> {
+        Self::find_data_impl(conn, id, false).await
+    }
+
+    /// `find_data` for the SOCKET-pushed `user_data_change`: identical except
+    /// `improvements.unitTypesUpgrades[].unitType` carries its own hydrated
+    /// `speedImpactGroup` — Java's socket frames have it while the REST
+    /// websocket-sync response does not (same lazy-init path-dependence as
+    /// `user_improvements_change`; verified against captured frames, bdd run
+    /// 20260709_231926).
+    pub async fn find_data_for_socket(
+        conn: &mut MySqlConnection,
+        id: i32,
+    ) -> OwgeResult<Option<UserData>> {
+        Self::find_data_impl(conn, id, true).await
+    }
+
+    async fn find_data_impl(
+        conn: &mut MySqlConnection,
+        id: i32,
+        for_socket: bool,
+    ) -> OwgeResult<Option<UserData>> {
         let Some(u) = Self::find_by_id(&mut *conn, id).await? else {
             return Ok(None);
         };
@@ -509,7 +530,11 @@ impl UserStorageBo {
             has_skipped_tutorial: u.has_skipped_tutorial,
             home_planet: PlanetBo::find_by_id_or_die(&mut *conn, u.home_planet).await?,
             id: u.id,
-            improvements: UserImprovementBo::find_user_improvement_response(&mut *conn, id).await?,
+            improvements: if for_socket {
+                UserImprovementBo::find_user_improvement_response_for_socket(&mut *conn, id).await?
+            } else {
+                UserImprovementBo::find_user_improvement_response(&mut *conn, id).await?
+            },
             max_energy,
             primary_resource: u.primary_resource,
             secondary_resource: u.secondary_resource,

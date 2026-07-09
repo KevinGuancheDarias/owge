@@ -24,7 +24,9 @@ impl UserEventEmitter {
     pub async fn emit_user_data(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
         emitter::send_message(conn, user_id, "user_data_change", |conn| {
             Box::pin(async move {
-                let dto = crate::bo::UserStorageBo::find_data(&mut *conn, user_id).await?;
+                // Socket variant: improvements carry each unitType's own
+                // speedImpactGroup (Java's socket frames have it, REST sync doesn't).
+                let dto = crate::bo::UserStorageBo::find_data_for_socket(&mut *conn, user_id).await?;
                 // Java always has a user row; skip the emit if somehow missing.
                 match dto {
                     Some(d) => Ok(serde_json::to_value(d)?),
