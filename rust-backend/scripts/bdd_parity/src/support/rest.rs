@@ -84,6 +84,27 @@ pub async fn post_json(
     (status, text)
 }
 
+/// GET with Bearer auth (some mutating game endpoints are GETs, e.g.
+/// game/upgrade/registerLevelUp).
+pub async fn get_query(
+    backend: &Backend,
+    jwt: &str,
+    path: &str,
+    query: &[(&str, String)],
+) -> (u16, String) {
+    let url = format!("{}/{}", backend.base_url.trim_end_matches('/'), path);
+    let resp = reqwest::Client::new()
+        .get(&url)
+        .bearer_auth(jwt)
+        .query(query)
+        .send()
+        .await
+        .unwrap_or_else(|e| panic!("GET {url} failed to send: {e}"));
+    let status = resp.status().as_u16();
+    let text = resp.text().await.unwrap_or_default();
+    (status, text)
+}
+
 /// POST with query params and empty body (e.g. game/planet/leave?planetId=N).
 pub async fn post_query(
     backend: &Backend,

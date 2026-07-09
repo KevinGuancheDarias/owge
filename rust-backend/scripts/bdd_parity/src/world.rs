@@ -18,6 +18,9 @@ pub struct BddWorld {
     pub created_missions: Vec<i64>,
     /// Planets/users registered by Given steps — widen the layer-2 dump filter.
     pub registered_planets: HashSet<i64>,
+    /// (http_status, body) of the last `attempts`-style REST call — read by the
+    /// rejection Thens (§6.6 negative-path design).
+    pub last_response: Option<(u16, String)>,
 }
 
 impl BddWorld {
@@ -29,6 +32,7 @@ impl BddWorld {
             ws_procs: HashMap::new(),
             created_missions: Vec::new(),
             registered_planets: HashSet::new(),
+            last_response: None,
         })
     }
 

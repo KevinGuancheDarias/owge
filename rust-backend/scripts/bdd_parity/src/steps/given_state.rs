@@ -182,6 +182,79 @@ async fn user_has_unlocked_relation(
     world.captured_users.insert(user);
 }
 
+#[given(expr = "configuration {string} is {string}")]
+async fn configuration_is(world: &mut BddWorld, name: String, value: String) {
+    sqlx::query(
+        "INSERT INTO configuration (name, value) VALUES (?, ?) \
+         ON DUPLICATE KEY UPDATE value = VALUES(value)",
+    )
+    .bind(name)
+    .bind(value)
+    .execute(&world.db)
+    .await
+    .expect("Given: upsert configuration");
+}
+
+#[given(expr = "user {int} has {int} primary resource and {int} secondary resource")]
+async fn user_has_resources(world: &mut BddWorld, user: i64, primary: i64, secondary: i64) {
+    sqlx::query("UPDATE user_storage SET primary_resource = ?, secondary_resource = ? WHERE id = ?")
+        .bind(primary)
+        .bind(secondary)
+        .bind(user)
+        .execute(&world.db)
+        .await
+        .expect("Given: set user resources");
+    world.captured_users.insert(user);
+}
+
+#[given(regex = r"^user (\d+) has obtained upgrade (\d+) at level (\d+) (available|unavailable)$")]
+async fn user_has_obtained_upgrade(
+    world: &mut BddWorld,
+    user: i64,
+    upgrade: i64,
+    level: i64,
+    availability: String,
+) {
+    sqlx::query("DELETE FROM obtained_upgrades WHERE user_id = ? AND upgrade_id = ?")
+        .bind(user)
+        .bind(upgrade)
+        .execute(&world.db)
+        .await
+        .expect("Given: clear obtained_upgrades");
+    sqlx::query(
+        "INSERT INTO obtained_upgrades (user_id, upgrade_id, level, available) VALUES (?, ?, ?, ?)",
+    )
+    .bind(user)
+    .bind(upgrade)
+    .bind(level)
+    .bind(availability == "available")
+    .execute(&world.db)
+    .await
+    .expect("Given: insert obtained_upgrades");
+    world.captured_users.insert(user);
+}
+
+#[given(expr = "user {int} has no unlocked relation for object {word} reference {int}")]
+async fn user_has_no_unlocked_relation(
+    world: &mut BddWorld,
+    user: i64,
+    object: String,
+    reference: i64,
+) {
+    sqlx::query(
+        "DELETE ur FROM unlocked_relation ur \
+         JOIN object_relations orl ON orl.id = ur.relation_id \
+         WHERE ur.user_id = ? AND orl.object_description = ? AND orl.reference_id = ?",
+    )
+    .bind(user)
+    .bind(&object)
+    .bind(reference)
+    .execute(&world.db)
+    .await
+    .expect("Given: delete unlocked_relation");
+    world.captured_users.insert(user);
+}
+
 #[given(expr = "user {int} has explored planet {int}")]
 async fn user_has_explored_planet(world: &mut BddWorld, user: i64, planet: i64) {
     sqlx::query("DELETE FROM explored_planets WHERE user = ? AND planet = ?")
