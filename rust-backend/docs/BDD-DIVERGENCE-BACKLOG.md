@@ -41,6 +41,57 @@ Player data repair still pending (BUG doc "Consequences").
 - Candidate for a justified normalization (compare requirements as sets) —
   needs Kevin's call: is requirement order contractual for the frontend?
 
+## From the FULL SWEEP (36 scenarios, 2026-07-09, artifacts `/tmp/bdd_parity_runs/20260709_182651`)
+
+Scoreboard: JAVA_SPEC 36/36 ✅ · RUST_SPEC 28/36 (8 🔴) · PARITY 18/36 (18 🔴).
+
+### D5 — error-response divergence class (7 RUST_SPEC reds) — JAVA-SUSPECT, needs Kevin's ruling ⭐
+Rust returns properly mapped errors — 400 `SgtBackendInvalidInputException` with
+the real business message ("No enough resources!", "There is already an upgrade
+going", "Can't register mission, of type LEVEL_UP, when upgrade is not
+available!", "The specified unit is not unlocked for the invoker") or 404
+`NotFoundException` — where Java swallows the SAME business exceptions into
+generic 500s (`{"message":"Unexpected server error"}` or raw servlet errors).
+Affects: unit build rejections (2), upgrade rejections (4), deploy
+units-not-held (1). The features currently assert Java's observed 500s, so
+Rust goes red. Ruling needed: fix Java's exception mapping (likely kevinsuite
+handler coverage) and flip the specs to the proper statuses, or accept Java's
+500s as the contract and degrade Rust to match. Rust's behavior is clearly the
+intended design.
+
+### D6 — ZERO_UPGRADE_TIME drift CONFIRMED LIVE (was static finding #3)
+`upgrades :: ZERO_UPGRADE_TIME…` red on Rust: missions.required_time = 5 vs
+Java 3. One-line fix in `mission_bo.rs:1079` (its own comment says 3s).
+
+### D7 — Rust cancel_upgrade_mission missing `unit_type_change` emit CONFIRMED LIVE (was static finding #4)
+`upgrades :: Cancelling a running level-up…` red: the event never arrives on Rust.
+
+### D8 — deploy path: Rust emits `unit_obtained_change` TWICE (Java once)
+All four deploy scenarios PARITY-red with tables CLEAN — pure ws divergence:
+java 1× vs rust 2× `unit_obtained_change` (plus payload diffs in
+`unit_mission_change`). Note the inventory predicted MISSING emits here;
+reality is a duplicate — check `deploy.rs` DeferredEmit wiring.
+
+### D9 — LEVEL_UP registration: Rust writes a `mission_information` row, Java doesn't
+`{mission_id, relation_id=1, value=1}` B-only in all three upgrade-register
+scenarios; missions table also shows an extra Rust row (type 12) —
+investigate via the register scenario's table.diff (alignment noise makes the
+condensed view misleading; read the full diff).
+
+### D10 — time-special expiry scheduling: Rust `scheduled_tasks` row vs Java Quartz
+`TIME_SPECIAL_EFFECT_END` row is B-only (Java schedules in QRTZ_* tables,
+outside the dump). STRUCTURAL, matches the known design difference —
+candidate for a documented differ suppression (needs Kevin's sign-off per
+plan §5.4; alternative: dump+normalize QRTZ triggers into pseudo-rows).
+
+### D11 — report/event payload shapes across explore/gather/establish/conquest/cancel-return
+`mission_reports.json_body` + `mission_report_new`/`planet_explored_event`/
+`mission_gather_result`/`enemy_mission_change`/`unit_mission_change` payload
+diffs — same D2 (`requirementsGroups` omission) and D3 (field-shape gaps)
+classes extended to more mission types. Also upgrade completion shows unlock-
+list payload diffs (`unit_unlocked_change`/`time_special_unlocked_change`)
+with the unlocked_relation TABLE matching — serialization-only.
+
 ## From the inventory wave (static analysis — not yet reproduced by a scenario)
 
 Confirmed-by-reading, highest confidence first; each has full detail in
