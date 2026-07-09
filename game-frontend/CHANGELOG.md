@@ -4,6 +4,7 @@
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
 * __Fix:__ `RustBackend:` conquering or establishing a base on a planet with a special location now correctly unlocks the units/time specials gated by that special location (previously they never appeared for the new owner)
+* __Fix:__ rejected actions (building without enough resources, building a locked unit, leveling an unavailable upgrade, or starting a second upgrade) now return their real error message instead of a generic "Unexpected server error"; cancelling a non-running upgrade or sending units you don't hold now returns a proper not-found error instead of a server error
 * __Fix:__ Stop the client from re-running websocket-sync at random intervals on idle tabs: the suspension detector now ignores the timer throttling browsers apply to hidden tabs (it only acts while the tab is visible, with the gap threshold raised to 5s), and a Page Visibility listener handles returning to the foreground (e.g. on Android or after the machine wakes from sleep). Cache clears now also respect the 10s resync throttle.
 * __Fix:__ `RustBackend:` widen the socket.io ping timeout to 60s (matching the Java backend) so idle/backgrounded tabs are no longer disconnected early and forced to resync.
 * __Fix:__ `RustBackend:` factions findVisible endpoint not returning the correct data

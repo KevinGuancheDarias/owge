@@ -45,15 +45,17 @@ Feature: Unit build registration, completion, and cancellation
     # covers: B8
     Given user 1 has 1 primary resource and 1 secondary resource
     When user 1 attempts to build 1 units of id 10 on planet 1002
-    # Java swallows this business error into a generic 500 (observed live)
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 400 + message is the contract
+    Then the request is rejected with HTTP status 400
+    And the request is rejected with error containing "No enough resources!"
     And table missions has no row where user_id=1 and type_code=BUILD_UNIT
 
   Scenario: Build is rejected when the unit is not unlocked for the user
     # covers: B4
     Given user 1 has no unlocked relation for object UNIT reference 11
     When user 1 attempts to build 1 units of id 11 on planet 1002
-    # Java swallows this business error into a generic 500 (observed live)
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 400 is the contract (message wording differs per
+    # backend for this one — status-only assertion)
+    Then the request is rejected with HTTP status 400
     And table missions has no row where user_id=1 and type_code=BUILD_UNIT
     And table unlocked_relation has no row for user 1 and object UNIT reference 11

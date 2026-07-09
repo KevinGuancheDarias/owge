@@ -388,7 +388,9 @@ public class MissionBo implements UserDeleteListener {
      */
     private void cancelMission(Mission mission) {
         if (mission == null) {
-            throw new MissionNotFoundException("The mission was not found, or was not passed to cancelMission()");
+            // I18N message required: the exception handler builds a doc url from
+            // NotFoundException messages (prose here used to crash it into a raw 500)
+            throw new MissionNotFoundException("I18N_ERR_GENERIC_ITEM_NOT_FOUND");
         }
         var missionUser = mission.getUser();
         var loggedInUser = userSessionService.findLoggedIn();

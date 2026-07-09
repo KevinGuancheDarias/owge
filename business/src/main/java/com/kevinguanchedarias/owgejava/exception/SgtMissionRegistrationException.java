@@ -1,6 +1,6 @@
 package com.kevinguanchedarias.owgejava.exception;
 
-public class SgtMissionRegistrationException extends CommonException {
+public class SgtMissionRegistrationException extends SgtBackendInvalidInputException {
 	private static final long serialVersionUID = 5366562657664899377L;
 
 	public SgtMissionRegistrationException(String message) {

@@ -63,8 +63,10 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
   Scenario: Sending units the user doesn't hold on the source planet is rejected
     # covers: B9
     When user 1 attempts a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 11
-    # Java raw-500s here (unhandled servlet error, observed live)
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 404 is the contract (Java's "nice try, dirty hacker!"
+    # prose message used to crash the handler's doc-url builder into a raw 500)
+    Then the request is rejected with HTTP status 404
+    And the request is rejected with error containing "I18N_ERR_GENERIC_ITEM_NOT_FOUND"
 
   Scenario: Establishing a base on a planet that changed owner mid-flight returns the survivors home
     # covers: B30, B43, B45, B46, B47

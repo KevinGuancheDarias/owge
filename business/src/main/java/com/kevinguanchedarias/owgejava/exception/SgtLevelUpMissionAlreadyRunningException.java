@@ -7,7 +7,7 @@ package com.kevinguanchedarias.owgejava.exception;
  * @author Kevin Guanche Darias
  *
  */
-public class SgtLevelUpMissionAlreadyRunningException extends CommonException {
+public class SgtLevelUpMissionAlreadyRunningException extends SgtBackendInvalidInputException {
 	private static final long serialVersionUID = -3887373140216678467L;
 
 	public SgtLevelUpMissionAlreadyRunningException(String message) {

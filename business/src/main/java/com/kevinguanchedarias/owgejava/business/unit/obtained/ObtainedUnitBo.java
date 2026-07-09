@@ -245,8 +245,10 @@ public class ObtainedUnitBo implements BaseBo<Long, ObtainedUnit, ObtainedUnitDt
         }
 
         if (retVal == null) {
-            throw new NotFoundException("No obtainedUnit for unit with id " + unitId + " was found in planet "
-                    + planetId + ", nice try, dirty hacker!");
+            // I18N message: the exception handler builds a doc url from NotFoundException
+            // messages and requires the I18N_ERR prefix (prose here used to crash it into
+            // a raw 500)
+            throw NotFoundException.fromAffected(ObtainedUnit.class, unitId);
         }
         return retVal;
     }

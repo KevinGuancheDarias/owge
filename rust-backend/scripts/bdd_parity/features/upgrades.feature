@@ -34,9 +34,10 @@ Feature: Upgrade level-up registration, completion, and cancellation
     Given user 1 has 1 primary resource and 1 secondary resource
     And user 1 has obtained upgrade 1 at level 0 available
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    # Java swallows this business error into a generic 500 (observed:
-    # {"message":"Unexpected server error","exceptionType":"InternalServerError"})
-    Then the request is rejected with HTTP status 500
+    # Kevin's 2026-07-09 ruling on D5: proper 400 + message is the contract
+    # (Java's SgtMissionRegistrationException now extends SgtBackendInvalidInputException)
+    Then the request is rejected with HTTP status 400
+    And the request is rejected with error containing "No enough resources!"
     And table missions has no row where user_id=1 and type_code=LEVEL_UP
 
   Scenario: Registration is rejected when the upgrade is not available
@@ -44,8 +45,9 @@ Feature: Upgrade level-up registration, completion, and cancellation
     Given user 1 has 490 primary resource and 330 secondary resource
     And user 1 has obtained upgrade 1 at level 0 unavailable
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    # Java swallows this business error into a generic 500 (observed live)
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 400 + message is the contract
+    Then the request is rejected with HTTP status 400
+    And the request is rejected with error containing "when upgrade is not available!"
     And table missions has no row where user_id=1 and type_code=LEVEL_UP
 
   Scenario: A second level-up cannot be registered while one is already running
@@ -55,8 +57,9 @@ Feature: Upgrade level-up registration, completion, and cancellation
     When user 1 registers a LEVEL_UP mission for upgrade 1
     Then the request succeeded
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    # Java swallows this business error into a generic 500 (observed live)
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 400 + message is the contract
+    Then the request is rejected with HTTP status 400
+    And the request is rejected with error containing "There is already an upgrade going"
     And table missions has 1 row where user_id=1 and type_code=LEVEL_UP
 
   Scenario: Completing a level-up bumps the obtained-upgrade level
@@ -89,9 +92,10 @@ Feature: Upgrade level-up registration, completion, and cancellation
     # covers: B3
     Given user 1 has obtained upgrade 1 at level 0 available
     When user 1 attempts to cancel the running upgrade mission
-    # Java NPEs into a raw servlet 500 here (observed live) — a candidate
-    # both-are-wrong spec item, but 500 is the current reference behavior
-    Then the request is rejected with HTTP status 500
+    # D5 ruling: proper 404 is the contract (Java's prose NotFoundException
+    # message used to crash the handler's doc-url builder into a raw 500)
+    Then the request is rejected with HTTP status 404
+    And the request is rejected with error containing "I18N_ERR_GENERIC_ITEM_NOT_FOUND"
 
   Scenario: ZERO_UPGRADE_TIME collapses the required time to 3 seconds
     # covers: B1

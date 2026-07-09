@@ -45,7 +45,20 @@ Player data repair still pending (BUG doc "Consequences").
 
 Scoreboard: JAVA_SPEC 36/36 ✅ · RUST_SPEC 28/36 (8 🔴) · PARITY 18/36 (18 🔴).
 
-### D5 — error-response divergence class (7 RUST_SPEC reds) — JAVA-SUSPECT, needs Kevin's ruling ⭐
+### D5 — ✅ RESOLVED 2026-07-09 (Kevin's ruling: Rust behavior is the contract; Java fixed) ⭐
+TWO Java root causes, both fixed and verified green on all 7 scenarios:
+1. `SgtMissionRegistrationException` / `SgtLevelUpMissionAlreadyRunningException` /
+   `SgtBackendTargetNotUnlocked` extended `CommonException`, which
+   `SgtGameRestExceptionHandler` doesn't map → generic 500. Re-parented to
+   `SgtBackendInvalidInputException` → 400 + real message.
+2. Prose `NotFoundException` messages ("nice try, dirty hacker!", "The mission
+   was not found…") CRASHED the handler itself — `handleGameException`'s
+   doc-url builder requires the `I18N_ERR` prefix and threw
+   `ProgrammingException` → Spring fell back to a raw servlet 500. Fixed via
+   `NotFoundException.fromAffected(...)` / I18N message → proper 404.
+Features updated to assert the proper statuses+messages; changelog entry added.
+
+### (original D5 report, for history) — error-response divergence class (7 RUST_SPEC reds)
 Rust returns properly mapped errors — 400 `SgtBackendInvalidInputException` with
 the real business message ("No enough resources!", "There is already an upgrade
 going", "Can't register mission, of type LEVEL_UP, when upgrade is not
