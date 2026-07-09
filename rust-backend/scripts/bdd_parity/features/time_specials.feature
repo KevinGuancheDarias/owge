@@ -35,8 +35,10 @@ Feature: Time special activation
   Scenario: Activating an already-active time special is a silent no-op
     # covers: B3
     Given user 1 has an unlocked relation for object TIME_SPECIAL reference 900
-    And user 1 activates time special 900
+    # activate twice: the second call must be a silent no-op (no duplicate row).
+    # ("no event on the SECOND call" is not expressible — the negative ws step
+    # is scenario-cumulative and the first activation legitimately emits.)
     When user 1 activates time special 900
+    And user 1 activates time special 900
     Then the request succeeded
     And table active_time_specials has 1 rows where user_id=1 and time_special_id=900 and state=ACTIVE
-    And user 1 received no websocket event "user_improvements_change"

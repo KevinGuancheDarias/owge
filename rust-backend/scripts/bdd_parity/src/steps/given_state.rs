@@ -280,6 +280,19 @@ async fn user_has_no_unlocked_relation(
     world.captured_users.insert(user);
 }
 
+#[given(expr = "user {int} has not explored planet {int}")]
+async fn user_has_not_explored_planet(world: &mut BddWorld, user: i64, planet: i64) {
+    // negative fixture: the rich baseline pre-explores several planets, so
+    // "unexplored" must be forced, not assumed
+    sqlx::query("DELETE FROM explored_planets WHERE user = ? AND planet = ?")
+        .bind(user)
+        .bind(planet)
+        .execute(&world.db)
+        .await
+        .expect("Given: delete explored_planets");
+    world.registered_planets.insert(planet);
+}
+
 #[given(expr = "user {int} has explored planet {int}")]
 async fn user_has_explored_planet(world: &mut BddWorld, user: i64, planet: i64) {
     sqlx::query("DELETE FROM explored_planets WHERE user = ? AND planet = ?")

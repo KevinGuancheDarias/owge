@@ -16,6 +16,8 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
 
   Scenario: Deploying to your own planet lands the stack directly, no DEPLOYED mission
     # covers: B4(not-triggered), B23(not-triggered: different planets), B38
+    # baseline pre-seeds unit-10 stacks on 1003 — wipe for an exact landing count
+    Given user 1 has 0 units of id 10 on planet 1003
     When user 1 runs a DEPLOY mission from planet 1002 to planet 1003 with 5 units of id 10
     Then user 1 has 5 units of id 10 on planet 1003
     And table missions has no row where user_id=1 and type_code=DEPLOYED and target_planet=1003
@@ -33,8 +35,8 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
     # rewrites it, only target_planet/mission_id) — so parked location is asserted
     # via target_planet, not the "on planet" Then (which reads source_planet).
     Given user 1 has 3 units of id 11 on planet 1002
-    And user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 10
-    When user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 3 units of id 11
+    When user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 10
+    And user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 3 units of id 11
     Then table obtained_units has a row where user_id=1 and unit_id=10 and target_planet=1234 and count=5
     And table obtained_units has a row where user_id=1 and unit_id=11 and target_planet=1234 and count=3
     And table missions has 1 row where user_id=1 and type_code=DEPLOYED and target_planet=1234
@@ -42,8 +44,8 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
   Scenario: Redeploying an emptied DEPLOYED stack does not crash registration
     # covers: B13 (registration-time orphan-DEPLOYED marking — the exact shape of the
     # historical Rust crash fixed in commit 83a0ab9a)
-    Given user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 10
-    When user 1 runs a DEPLOY mission from planet 1234 to planet 1002 with 5 units of id 10
+    When user 1 runs a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 10
+    And user 1 runs a DEPLOY mission from planet 1234 to planet 1002 with 5 units of id 10
     Then user 1 has 5 units of id 10 on planet 1002
     And table missions has a row where user_id=1 and type_code=DEPLOYED and target_planet=1234 and resolved=1
 
@@ -61,7 +63,8 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
   Scenario: Sending units the user doesn't hold on the source planet is rejected
     # covers: B9
     When user 1 attempts a DEPLOY mission from planet 1002 to planet 1234 with 5 units of id 11
-    Then the request is rejected with HTTP status 404
+    # Java raw-500s here (unhandled servlet error, observed live)
+    Then the request is rejected with HTTP status 500
 
   Scenario: Establishing a base on a planet that changed owner mid-flight returns the survivors home
     # covers: B30, B43, B45, B46, B47

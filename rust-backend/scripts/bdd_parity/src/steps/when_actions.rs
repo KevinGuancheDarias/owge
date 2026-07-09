@@ -47,7 +47,7 @@ fn mission_verb(mission_type: &str) -> &'static str {
         "DEPLOY" => "deploy",
         "ATTACK" => "attack",
         "COUNTERATTACK" => "counterattack",
-        "EXPLORE" => "explore",
+        "EXPLORE" => "explorePlanet",
         "GATHER" => "gather",
         other => panic!("unknown mission type {other:?} — extend mission_verb()"),
     }

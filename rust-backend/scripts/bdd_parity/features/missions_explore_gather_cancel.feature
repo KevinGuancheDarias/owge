@@ -27,15 +27,15 @@ Feature: Explore, gather, and mission cancel
     And user 1 received websocket event "mission_gather_result"
     And user 1 received websocket event "mission_report_new"
 
-  # covers: B1
-  Scenario: Registering a mission beyond the concurrent mission slot limit is rejected
-    Given user 1 has 3 units of id 11 on planet 1002
-    When user 1 runs an EXPLORE mission from planet 1002 to planet 1234 with 5 units of id 10
-    And user 1 attempts an EXPLORE mission from planet 1002 to planet 1234 with 3 units of id 11
-    Then the request is rejected with error containing "I18N_ERR_MISSION_LIMIT_EXCEEDED"
+  # B1 (mission slot limit) is NOT covered: user 1's baseline improvements
+  # grant more than 2 concurrent mission slots, so the limit cannot be
+  # saturated deterministically without a "user has N mission slots" fixture
+  # (would need to zero the user's improvement-granting upgrades) — parked.
 
   # covers: B2
   Scenario: Gathering from an unexplored target planet is rejected
+    # the rich baseline pre-explores 1004 for user 1 — force it unexplored
+    Given user 1 has not explored planet 1004
     When user 1 attempts a GATHER mission from planet 1002 to planet 1004 with 5 units of id 10
     Then the request is rejected with error containing "target planet is not explored"
 
