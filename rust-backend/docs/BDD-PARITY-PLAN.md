@@ -1,6 +1,10 @@
 # BDD Parity Harness — executable Gherkin specs that run against BOTH backends
 
-**Status:** design document, nothing implemented yet (2026-07-07)
+**Status:** design document, nothing implemented yet (2026-07-07).
+**Verified against repo + dev DB 2026-07-09:** all referenced harness assets,
+endpoints, table names, config rows and docker images exist; §6.1 ids and §9
+environment state were corrected/confirmed from the live baseline (see the
+"VERIFIED" notes inline).
 **Audience:** the implementer (human or model). This document is deliberately
 verbose and self-contained: read it top to bottom before writing any code, and
 treat every "MUST"/"MUST NOT" as a hard rule. Where a decision was already made,
@@ -69,19 +73,41 @@ level up where nothing can detect it. Every step is naturally black-box anyway:
 `Given` = SQL writes, `When` = REST calls / scheduler nudges, `Then` = SQL reads
 + captured websocket frames. The backends need zero test code.
 
-### 2.2 Driver language: Python 3, runner: `behave`
+### 2.2 Driver language: Rust, runner: the `cucumber` crate (cucumber-rs)
 
-*Why:* every existing diff/normalization utility this harness must reuse is
-Python (`mission_verify/table_diff.py`, `mission_verify/trace_diff.py`,
-`ws_verify/rest_sync_diff.py`, `mint_jwt.py`). `behave` is the standard Python
-Gherkin runner, pure-Python, installable with `pip install behave`, and its
-`environment.py` hook model (`before_scenario` / `after_scenario`) maps exactly
-onto the reset/capture lifecycle described in §5. The Node option (cucumber-js)
-was rejected because the frontend is pinned to Node 14 (too old for current
-cucumber-js) and none of the reusable tooling is JS except `ws_capture.js`,
-which the driver shells out to as a subprocess anyway. The Rust option
-(`cucumber` crate) was rejected because it would tempt in-process access to the
-Rust backend, breaking the black-box rule.
+**(REVISED 2026-07-09 by Kevin — supersedes the original Python/behave choice.)**
+The test suite will grow large; a statically typed driver is easier to read
+and maintain at that scale, and Rust has first-class raw-SQL support via
+`sqlx` (plain runtime `query()`/`fetch_all()` — do NOT use the compile-time
+`query!` macros; the harness doesn't need them and they'd couple builds to a
+live DB). Stack: `cucumber` crate (async, tokio) for Gherkin execution with a
+typed `World` struct instead of an untyped context; `sqlx` (mysql) for
+Given/Then SQL; `reqwest` for When REST calls; `jsonwebtoken` for HS256 JWT
+minting (replaces wrapping `mint_jwt.py`); `serde_json` for ws-frame
+predicates. The feature files are plain Gherkin — nothing about them is
+runner-specific.
+
+The reusable Python diff utilities (`table_diff.py`, `trace_diff.py`,
+`rest_sync_diff.py`, `dump_mission_state.sh`) are NOT ported: they were always
+invoked by the runner as subprocesses (§5.4), never imported in-process, so
+the driver language doesn't affect them. `python3` must merely be on PATH.
+Likewise `ws_capture.js` remains a Node 14 subprocess.
+
+**The black-box guardrail (the reason Rust was originally rejected):** a Rust
+driver tempts in-process access to `owge-business`/`owge-rest`. This is made
+structurally impossible: the driver is a **standalone crate with its own
+`[workspace]`** (NOT a member of the rust-backend workspace), and it MUST
+NEVER declare a path dependency on any `owge-*` crate. Depending on `sqlx`
+(which the backend also happens to use) is fine — that's a shared third-party
+library, not backend internals. Both backends stay pure black boxes: SQL in,
+REST in, SQL + websocket frames out.
+
+Rejected alternatives: **Java/Cucumber-JVM** — this machine has no local
+JDK/maven (docker-only builds), making driver iteration painfully slow, and
+the in-process-temptation argument applies equally. **Node (cucumber-js)** —
+frontend is pinned to Node 14, too old for current cucumber-js. **Python 3 +
+behave** (the original choice) — dynamic typing reads and maintains poorly at
+the suite size this plan targets; rejected 2026-07-09.
 
 ### 2.3 Sequential runs against ONE shared database, snapshot/restore between
 
@@ -136,7 +162,7 @@ in old docs as the repo root.
 | `mission_verify/trace_diff.py` | RNG-trace differ. Only relevant for combat scenarios; wire it in for those. |
 | `ws_verify/ws_capture.js` | The socket.io capture client (Node 14 + `socket.io-client@2.4.0`, run from `/tmp/wsclient` or with the node_modules symlink — see ws_verify README "Prerequisites"). Emits one JSON line per received event, already normalizing `lastSent` → `"<TS>"` and sorting the authentication payload. Layer-2 websocket capture shells out to this, one process per captured user, started before the `When` and stopped after the last `Then`. |
 | `ws_verify/rest_sync_diff.py` | Structural `norm`/`short`/`diff` helpers, imported by `table_diff.py`. |
-| `mint_jwt.py` | Mints the HS256 JWT for a given user id (`--id 1 --username … --email …`) from the `JWT_SECRET` configuration row. Needed for REST `When` steps and for `ws_capture.js`. |
+| `mint_jwt.py` | Mints the HS256 JWT for a given user id (`--id 1 --username … --email …`) from the `JWT_SECRET` configuration row. The Rust driver reimplements this with the `jsonwebtoken` crate (§2.2) — use `mint_jwt.py` as the **reference for the exact claim shape** (and as a debugging cross-check: both must produce tokens the backends accept). |
 | `seed_*.sql` (in `scripts/`) | Existing scenario seeds (attack, conquest, deploy, gather, …). These become the `Given`-step building blocks / get ported into feature Backgrounds over time (§8 Phase 2). |
 | The rich websocket seed (committed in 89fd4771, `ws_verify/seed_user1_full_compare.sql`) | The maximal "user 1 exercises every payload path" baseline. Useful as the Background for read-side scenarios. |
 | `../pending_migration/ATTACK_PARITY_PLAN.md` | Context on the deterministic-RNG design (`ATTACK_DETERMINISTIC_RNG` configuration row, mission-id-seeded `JavaRandom`, the RNG trace schema). |
@@ -172,53 +198,63 @@ Key techniques already proven by those harnesses, which the BDD steps rely on:
 ```
 rust-backend/scripts/bdd_parity/
 ├── README.md                  # quickstart: prerequisites, how to run, how to add a scenario
-├── requirements.txt           # behave, PyMySQL (or mysql-connector-python), PyJWT
-├── behave.ini                 # behave config (paths, default tags, no color in CI)
+├── Cargo.toml                 # OWN [workspace] — standalone, NOT a rust-backend workspace member
+│                              # deps: cucumber, tokio, sqlx (mysql), reqwest, jsonwebtoken,
+│                              #       serde/serde_json, anyhow. NEVER an owge-* path dep (§2.2).
+├── run_bdd_parity.sh          # the §5.1/§7 runner (loops backends, restores DB, diffs)
 ├── features/
 │   ├── special_location_unlock.feature      # §6.1 — the first feature, written below
 │   ├── conquest.feature                     # Phase 2
 │   ├── establish_base.feature               # Phase 2
 │   ├── deploy.feature                       # Phase 2
 │   └── ...
-├── steps/
-│   ├── given_state.py         # all Given step defs (SQL seeding)
-│   ├── when_actions.py        # all When step defs (REST + scheduler nudge)
-│   ├── then_db.py             # Then defs asserting table state
-│   └── then_ws.py             # Then defs asserting captured websocket frames
-├── support/
-│   ├── backends.py            # Backend abstraction: base_url, ws path, boot/health/teardown
-│   ├── db.py                  # MySQL access + snapshot/restore (wraps mysqldump/mysql)
-│   ├── ws.py                  # ws_capture.js subprocess management + frame parsing
-│   ├── rest.py                # JWT minting (wraps mint_jwt.py logic) + HTTP helpers
-│   └── artifacts.py           # per-run artifact dirs, dump/diff invocation, verdicts
-└── environment.py             # behave hooks: the §5 lifecycle lives here
+└── src/
+    ├── main.rs                # #[tokio::main]: builds the cucumber runner, .before/.after
+    │                          # hooks = the §5 lifecycle; reads OWGE_BDD_BACKEND
+    ├── world.rs               # BddWorld: typed scenario state (backend handle, captured_users,
+    │                          # ws_procs, created_missions, registered planet/unit filters)
+    ├── steps/
+    │   ├── given_state.rs     # all Given step defs (SQL seeding)
+    │   ├── when_actions.rs    # all When step defs (REST + scheduler nudge)
+    │   ├── then_db.rs         # Then defs asserting table state
+    │   └── then_ws.rs         # Then defs asserting captured websocket frames
+    └── support/
+        ├── backends.rs        # Backend abstraction: base_url, ws path, boot/health/teardown
+        ├── db.rs              # sqlx pool/queries + snapshot/restore (shells to mysqldump/mysql)
+        ├── ws.rs              # ws_capture.js subprocess management + frame parsing
+        ├── rest.rs            # JWT minting (jsonwebtoken, claims per mint_jwt.py) + reqwest helpers
+        └── artifacts.rs       # per-run artifact dirs, dump/diff subprocess invocation, verdicts
 ```
 
 Conventions:
 
-- Everything under `bdd_parity/` is committed. Artifacts go to
+- Everything under `bdd_parity/` is committed (plus `Cargo.lock`; `target/` is
+  git-ignored). Artifacts go to
   `/tmp/bdd_parity_runs/<timestamp>/<feature>/<scenario>/{java,rust}/…` — never
   into the repo.
-- `support/db.py` may talk to MySQL either via a Python driver (PyMySQL) or by
-  shelling to `docker exec <db-container> mysql …` exactly as the existing
-  shell harnesses do. Shelling out is acceptable and proven; a driver is nicer
-  for `Then` row assertions. Recommendation: **PyMySQL for reads/asserts,
-  shell-out `mysqldump`/`mysql` for snapshot/restore** (dump/restore through a
-  Python driver is a reimplementation trap — don't).
-- No ORM, no migrations framework, no pytest mixing. Keep it boring.
+- `support/db.rs` uses sqlx runtime queries (never `query!` macros, §2.2) for
+  reads/asserts and Given seeding; snapshot/restore **shells out to
+  `docker exec <db-container> mysqldump/mysql`** exactly as the existing shell
+  harnesses do (dump/restore through a driver is a reimplementation trap —
+  don't).
+- The cucumber runner is a **binary target** (`cargo run --`), not a
+  `cargo test` harness — the shell runner invokes it once per backend pass
+  with `OWGE_BDD_BACKEND` set.
+- No ORM, no migrations framework. Keep it boring.
 
 ---
 
 ## 5. Execution model — what one scenario run actually does
 
-This is the heart of the design. Implement it in `environment.py` +
-`support/`, driven by behave's hooks. Behave executes each scenario **twice**
-via the "backend axis" described below.
+This is the heart of the design. Implement it in `src/main.rs` (cucumber
+`.before`/`.after` hooks) + `src/support/`, with per-scenario state in
+`BddWorld`. The driver executes each scenario **twice** via the "backend axis"
+described below.
 
 ### 5.1 The backend axis
 
-Behave has no native "run each scenario against N targets" concept. Implement
-it the simple way: **the runner script loops**. A top-level
+cucumber-rs has no native "run each scenario against N targets" concept.
+Implement it the simple way: **the runner script loops**. A top-level
 `run_bdd_parity.sh`:
 
 ```
@@ -229,14 +265,15 @@ it the simple way: **the runner script loops**. A top-level
    c. build (cargo build) + start the Rust backend natively, health-poll
 2. for each feature/scenario selected:
    a. RESET  : restore the clean-universe baseline (§5.2)
-   b. SEED   : run behave for this scenario with OWGE_BDD_PHASE=seed
+   b. SEED   : run the driver for this scenario with OWGE_BDD_PHASE=seed
                → executes ONLY the Given steps (via a phase guard in the step
                  code), writing the scenario state into the DB
    c. SNAP   : mysqldump snapshot of the in-scope tables (post-seed state)
-   d. JAVA   : run behave with OWGE_BDD_BACKEND=java (full scenario; Given steps
-               are no-ops in this phase — state already present), lifecycle §5.3
+   d. JAVA   : run the driver with OWGE_BDD_BACKEND=java (full scenario; Given
+               steps are no-ops in this phase — state already present),
+               lifecycle §5.3
    e. RESTORE: restore the §5.2c snapshot
-   f. RUST   : run behave with OWGE_BDD_BACKEND=rust, lifecycle §5.3
+   f. RUST   : run the driver with OWGE_BDD_BACKEND=rust, lifecycle §5.3
    g. DIFF   : layer-2 diff of the java/ vs rust/ artifacts (§5.4)
    h. record verdicts (JAVA_SPEC, RUST_SPEC, PARITY)
 3. summary table + non-zero exit if any verdict failed
@@ -246,7 +283,7 @@ it the simple way: **the runner script loops**. A top-level
 (2b/2c), make Given steps **idempotent deterministic SQL** (DELETE-then-INSERT
 with fixed ids, exactly like the existing `seed_*.sql` files) and simply run
 them in both the JAVA and RUST passes, with the RESET(a) restore before *each*
-pass. Then the pipeline is: RESET → behave(java) → RESET → behave(rust) → DIFF.
+pass. Then the pipeline is: RESET → driver(java) → RESET → driver(rust) → DIFF.
 This is byte-identical-by-construction **iff** Givens are deterministic (fixed
 ids, no NOW() except in columns the differ strips). Start with this; introduce
 the snapshot-after-seed refinement only if a Given legitimately can't be made
@@ -282,26 +319,26 @@ deterministic.
      hitting an admin endpoint or accepting a container restart per scenario
      (slow — measure first). Document what was needed in the harness README.
 
-### 5.3 The behave lifecycle within one backend pass
+### 5.3 The driver lifecycle within one backend pass
 
-In `environment.py`:
+In `src/main.rs` hooks + `BddWorld` (pseudocode; `context` = the World):
 
 ```
-before_all(context):
+global setup (once per driver invocation, e.g. lazy static / before-first-scenario):
     read OWGE_BDD_BACKEND (java|rust) → context.backend  (base_url, ws_path,
-        jwt cache, db handle from support/backends.py)
+        jwt cache, sqlx pool from support/backends.rs)
     create artifact dir /tmp/bdd_parity_runs/<run>/<feature>/<scenario>/<backend>/
 
-before_scenario(context, scenario):
+World::new / .before hook (per scenario):
     context.captured_users = set()      # user ids whose ws traffic we record
-    context.ws_procs = {}               # user_id -> ws_capture.js Popen
+    context.ws_procs = {}               # user_id -> ws_capture.js Child
     context.created_missions = []       # mission ids created by When steps
 
-  # NOTE: DB reset happens OUTSIDE behave (runner script §5.1) so both
-  # backends see identical state. Do NOT reset inside before_scenario.
+  # NOTE: DB reset happens OUTSIDE the driver (runner script §5.1) so both
+  # backends see identical state. Do NOT reset inside the before hook.
 
 Given steps:
-    pure SQL via support/db.py. Register interesting ids on context
+    pure SQL via support/db.rs. Register interesting ids on the World
     (users involved → auto-added to captured_users; planets/units → added to
     the layer-2 dump filter set).
 
@@ -320,7 +357,7 @@ When steps:
     the mission row + scheduled_tasks row dumped into the failure message.
 
 Then steps:
-    - DB assertions: SELECT via support/db.py, assert, and on failure print the
+    - DB assertions: SELECT via support/db.rs, assert, and on failure print the
       actual rows (not just "assertion failed") — failure messages are the
       product here.
     - WS assertions: read the capture files written so far (flush-safe: read
@@ -331,7 +368,7 @@ Then steps:
       "poll the capture file up to N seconds (default 10) for a matching
       frame", not a single read.
 
-after_scenario(context, scenario):
+.after hook (per scenario):
     sleep the settle window (2 s) → kill all ws_capture procs
     LAYER-2 CAPTURE:
       - dump_mission_state.sh <db> artifacts/<backend>/tables.json
@@ -339,7 +376,8 @@ after_scenario(context, scenario):
       - ws captures are already in artifacts/<backend>/ws_user<id>.jsonl
       - if combat: copy the RNG trace from the backend log to
         artifacts/<backend>/rng_trace.jsonl
-    record JAVA_SPEC / RUST_SPEC verdict from behave's scenario status
+    record JAVA_SPEC / RUST_SPEC verdict from the cucumber scenario result
+    (runner reads the driver's summary output / process exit code per pass)
 ```
 
 ### 5.4 Layer-2 diff (runner script, after both passes)
@@ -395,38 +433,39 @@ Feature: Special-location unlocks
 
   Background:
     Given the standard test universe
-    And planet 1234 has special location 1 and no owner
-    And unit 55 exists gated by requirement HAVE_SPECIAL_LOCATION with second value 1
-    And time special 7 exists gated by requirement HAVE_SPECIAL_LOCATION with second value 1
+    And planet 1234 has special location 500 and no owner
+    And unit 9100 exists gated by requirement HAVE_SPECIAL_LOCATION with second value 500
+    And time special 900 exists gated by requirement HAVE_SPECIAL_LOCATION with second value 500
     And user 1 has 5 units of id 10 on planet 1002
+    And user 1 has explored planet 1234
 
   Scenario: Establish base grants the unlocks to the new owner
     When user 1 runs an ESTABLISH_BASE mission from planet 1002 to planet 1234 with 5 units of id 10
     Then planet 1234 is owned by user 1
-    And table unlocked_relation has a row for user 1 and object UNIT reference 55
-    And table unlocked_relation has a row for user 1 and object TIME_SPECIAL reference 7
-    And user 1 received websocket event "unit_unlocked_change" where some item has id 55
-    And user 1 received websocket event "time_special_unlocked_change" where some item has id 7
+    And table unlocked_relation has a row for user 1 and object UNIT reference 9100
+    And table unlocked_relation has a row for user 1 and object TIME_SPECIAL reference 900
+    And user 1 received websocket event "unit_unlocked_change" where some item has id 9100
+    And user 1 received websocket event "time_special_unlocked_change" where some item has id 900
 
   Scenario: Conquest transfers the unlocks from old owner to new owner
     Given planet 1234 is owned by user 2
-    And user 2 has an unlocked relation for object UNIT reference 55
-    And user 2 has an unlocked relation for object TIME_SPECIAL reference 7
+    And user 2 has an unlocked relation for object UNIT reference 9100
+    And user 2 has an unlocked relation for object TIME_SPECIAL reference 900
     And user 2 has 1 unit of id 11 on planet 1234
     When user 1 runs a CONQUEST mission from planet 1002 to planet 1234 with 5 units of id 10
     Then planet 1234 is owned by user 1
-    And table unlocked_relation has a row for user 1 and object UNIT reference 55
-    And table unlocked_relation has no row for user 2 and object UNIT reference 55
-    And user 1 received websocket event "unit_unlocked_change" where some item has id 55
-    And user 2 received websocket event "unit_unlocked_change" where no item has id 55
+    And table unlocked_relation has a row for user 1 and object UNIT reference 9100
+    And table unlocked_relation has no row for user 2 and object UNIT reference 9100
+    And user 1 received websocket event "unit_unlocked_change" where some item has id 9100
+    And user 2 received websocket event "unit_unlocked_change" where no item has id 9100
 
   Scenario: Leaving the planet revokes the unlocks
     Given planet 1234 is owned by user 1
-    And user 1 has an unlocked relation for object UNIT reference 55
+    And user 1 has an unlocked relation for object UNIT reference 9100
     When user 1 leaves planet 1234
     Then planet 1234 has no owner
-    And table unlocked_relation has no row for user 1 and object UNIT reference 55
-    And user 1 received websocket event "unit_unlocked_change" where no item has id 55
+    And table unlocked_relation has no row for user 1 and object UNIT reference 9100
+    And user 1 received websocket event "unit_unlocked_change" where no item has id 9100
 ```
 
 Expected initial result: Java passes everything; Rust fails the establish-base
@@ -434,13 +473,20 @@ and conquest **grant** assertions (the documented bug) and passes the revoke
 scenario. That asymmetry IS the acceptance test for the harness itself: build
 the harness until it reports exactly this.
 
-(Unit/time-special/user/planet ids above are indicative; align them with the
-ids actually free in the baseline seed — check `seed_reqtrigger.sql` and the
-rich seed for the id ranges already in use, and keep scenario-created ids in a
-reserved high range, e.g. ≥ 900000 for missions, ≥ 1200 for planets, 50–99 for
-content ids, to avoid colliding with baseline content.)
+(**VERIFIED 2026-07-09 against the live dev DB** — the ids above are real:
+the plan's original indicative ids collided with baseline content, so they
+were replaced. Baseline maxima: `units` 9001, `time_specials` 688,
+`special_locations` 202, `planets` 8681. Reserved scenario ranges therefore:
+units ≥ 9100, time specials ≥ 900, special locations ≥ 500, missions ≥ 900000.
+Do NOT create special location 1 — it exists and is already assigned to planet
+1074; unit 55 exists with 5 requirement rows; time special 7 exists with 1.
+Confirmed good as-is: user 1 (home planet 1002) and user 2 (home 1004) exist;
+planet 1234 exists in galaxy 1, owner NULL, special_location_id NULL — the
+perfect target; units 10 (X-302) and 11 (BC-303) are baseline ships with
+speed 7. `JWT_SECRET` and `ATTACK_DETERMINISTIC_RNG` configuration rows both
+exist. The users table is `user_storage`, not `users`.)
 
-### 6.2 Given steps (`steps/given_state.py`) — SQL seeding
+### 6.2 Given steps (`src/steps/given_state.rs`) — SQL seeding
 
 All Givens are deterministic DELETE-then-INSERT with explicit ids (§5.1). Key
 tables involved (schema in `business/database/02_schema.sql`):
@@ -451,7 +497,7 @@ tables involved (schema in `business/database/02_schema.sql`):
 | `planet {pid} has special location {slid} and no owner` | Ensure `special_locations` row `{slid}` exists (INSERT IGNORE with a name + galaxy null); `UPDATE planets SET special_location_id={slid}, owner=NULL WHERE id={pid}`. The planet must exist in the baseline galaxy — pick from seeded galaxies. |
 | `unit {uid} exists gated by requirement HAVE_SPECIAL_LOCATION with second value {sv}` | 1) INSERT the `units` row (copy a baseline unit's column defaults; fixed id). 2) find-or-create `object_relations` row (`object_description='UNIT'`, `reference_id={uid}`). 3) INSERT `requirements_information` (relation_id, requirement_id of code `HAVE_SPECIAL_LOCATION` from `requirements`, second_value={sv}, third_value NULL). This mirrors what the admin panel writes. |
 | `time special {tsid} exists gated by …` | Same pattern against `time_specials` + object_description `TIME_SPECIAL`. |
-| `user {u} has {n} units of id {uid} on planet {pid}` | DELETE existing `obtained_units` for (u, uid, pid); INSERT one stack: `user_id, unit_id, count, source_planet={pid}, target_planet NULL, mission_id NULL`. Register user u for ws capture; register pid/uid in the layer-2 filter. |
+| `user {u} has {n} units of id {uid} on planet {pid}` | DELETE existing `obtained_units` for (u, uid, pid); INSERT one stack: `user_id, unit_id, count, source_planet={pid}, target_planet NULL, mission_id NULL`, **and `is_from_capture=0` — the column is NOT NULL with no default** (copy the INSERT shape from `seed_deploy.sql`). Register user u for ws capture; register pid/uid in the layer-2 filter. |
 | `planet {pid} is owned by user {u}` | `UPDATE planets SET owner={u} WHERE id={pid}`. Registers u for capture. |
 | `user {u} has an unlocked relation for object {OBJ} reference {rid}` | Find the `object_relations` id for (OBJ, rid); INSERT `unlocked_relation (user_id, relation_id)`. |
 
@@ -465,11 +511,11 @@ General rules for Givens:
   it (`requirements` and `objects` are reference data seeded by
   `04_insert_data.sql`; they DO exist).
 
-### 6.3 When steps (`steps/when_actions.py`) — REST + scheduler
+### 6.3 When steps (`src/steps/when_actions.rs`) — REST + scheduler
 
 | Step | Implementation notes |
 |---|---|
-| `user {u} runs a(n) {TYPE} mission from planet {src} to planet {dst} with {n} units of id {uid}` | (W1) Mint JWT for u (`mint_jwt.py` logic). POST to the backend's mission endpoint — the same `game/mission/<verb>` routes the frontend uses; find the exact verb per type in `game-rest/.../rest/game/` (Java) and `owge-rest/src/` (Rust); they are already proven equal by mission_verify's REST-POST path. Body: source/target planet ids + involved units `[{id: uid, count: n}]`. Then (W2) read back the created mission id, nudge its `scheduled_tasks.execution_time` into the past (§3 technique #1), and poll `missions.resolved=1` (timeout → loud failure). Record mission id on context. |
+| `user {u} runs a(n) {TYPE} mission from planet {src} to planet {dst} with {n} units of id {uid}` | (W1) Mint JWT for u (`support/rest.rs`, claims per `mint_jwt.py`). POST to the backend's mission endpoint — the same `game/mission/<verb>` routes the frontend uses; find the exact verb per type in `game-rest/.../rest/game/` (Java) and `owge-rest/src/` (Rust); they are already proven equal by mission_verify's REST-POST path. Body: source/target planet ids + involved units `[{id: uid, count: n}]`. Then (W2) read back the created mission id, nudge its `scheduled_tasks.execution_time` into the past (§3 technique #1), and poll `missions.resolved=1` (timeout → loud failure). Record mission id on context. |
 | `user {u} runs … with fixed mission id {mid}` | (W3) Combat-RNG variant: skip the REST POST; INSERT the `missions` row with id {mid} + `mission_information` + the db-scheduler row (`task_name='mission-run'`, `task_instance='{mid}'`, `task_data=NULL`) exactly as the `FIXED_MISSION_ID` seeds do (mission_verify README §fixed-seed — copy the INSERT shapes from `seed_attack_partialkill.sql`), then nudge+poll. Use ONLY when the scenario asserts RNG-derived numbers; W1 is closer to production. |
 | `user {u} leaves planet {pid}` | REST: the leave-planet endpoint (`PlanetBo.doLeavePlanet` — find the route in `game-rest` `PlanetRestService` and its Rust twin). Synchronous — no scheduler nudge needed. |
 | `user {u} activates time special {tsid}` | REST activate endpoint; synchronous. |
@@ -479,7 +525,7 @@ The FIRST When in a scenario triggers ws-capture startup (§5.3). Every When
 that creates a mission also asserts the POST returned 2xx — a 4xx/5xx is a
 scenario failure with the response body in the message, not a silent skip.
 
-### 6.4 Then steps — DB (`steps/then_db.py`)
+### 6.4 Then steps — DB (`src/steps/then_db.rs`)
 
 | Step | Implementation notes |
 |---|---|
@@ -491,7 +537,7 @@ scenario failure with the response body in the message, not a silent skip.
 
 On failure, print the full actual rows of the queried table slice.
 
-### 6.5 Then steps — websocket (`steps/then_ws.py`)
+### 6.5 Then steps — websocket (`src/steps/then_ws.rs`)
 
 | Step | Implementation notes |
 |---|---|
@@ -503,6 +549,86 @@ On failure, print the full actual rows of the queried table slice.
 Payload shape reference: each deliver line is
 `{"kind":"deliver","payload":{"eventName":…,"value":…,"lastSent":"<TS>"}}` (see
 ws_verify README).
+
+### 6.6 Vocabulary v2 — consolidated from the 2026-07-09 inventory wave
+
+The eight `bdd_parity/inventories/*.md` files each carry a quarantined
+"proposed new steps" section. Consolidated result (dedup'd; the per-domain
+files keep the full implementation notes — read the relevant one before
+implementing a step from this list):
+
+**DESIGN DECISION — negative paths.** Five inventories independently hit the
+same wall: W1's "non-2xx fails the scenario" contract makes every
+registration-validation branch inexpressible. Resolution: each mutating When
+gets an `attempts` variant (`user {u} attempts …`) that stores
+`(http_status, body)` on the World instead of asserting, paired with:
+- `Then the request is rejected with HTTP status {code}` (strict), and
+- `Then the request is rejected with error containing "{marker}"` (loose body
+  match — Java's `GameBackendErrorPojo.exceptionType`/message vs Rust's
+  `OwgeError` shapes differ by design; exact error-body parity is NOT a goal
+  of this harness, HTTP status equality is).
+The plain (asserting) When remains the default for happy paths.
+
+**Generic table escape hatch (§6.4) — extend, it's load-bearing:**
+`table {t} has a row where <preds>` / `has no row where <preds>` /
+`has {n} rows where <preds>`; predicates are an `and`-chain supporting `=`,
+`is null`, `is not null`; `missions` gets a `type_code` pseudo-column (join
+`mission_types`). Whitelist grows to: missions, planet_list,
+visited_tutorial_entries, user_read_system_messages, mission_reports,
+system_messages, user_storage, obtained_unit_temporal_information,
+explored_planets, alliances, alliance_join_requests. The **row-COUNT variant
+is the single most important addition** — it is the only way to catch the
+confirmed Java-dups-vs-Rust-dedups divergences (tutorial visited entries,
+system-message reads).
+
+**Accepted new Givens:** `configuration "{name}" is "{value}"` (upsert);
+`user {u} has {p} primary resource and {s} secondary resource`;
+`user {u} has obtained upgrade {upid} at level {lvl} available|unavailable`;
+`user {u} has no unlocked relation for object {OBJ} reference {rid}`;
+`user {u} has explored planet {pid}`; `alliance {aid} exists owned by user {u}`;
+`user {u} is a member of alliance {aid}`; generalize every `… exists gated by
+requirement …` Given to ANY requirement code (validate against `requirements`)
+and add the UPGRADE variant; `time special {id} has duration {d} seconds and
+recharge time {r} seconds`; combat extras (capture-rule forcing via
+`rules.extra_args`, `owner_unit_id` carrier linkage — see missions-combat.md).
+New id reservations: **users ≥ 9000**, tutorial entries / system messages
+≥ 900, reports ≥ 900000 (shared with missions).
+
+**Accepted new Whens:** `user {u} cancels their latest mission` (+ cross-user
+rejection variant); `the {TYPE} mission of user {u} completes` (nudge+poll,
+already in §6.3); `user {u} cancels their build mission on planet {pid}`;
+`user {u} disbands {n|all} units of id {uid} on planet {pid}`;
+`user {u} registers a LEVEL_UP mission for upgrade {upid}` and
+`user {u} cancels the running upgrade mission` (GET-shaped, no unit body);
+`user {u} activates time special {tsid}`; multi-stack W1 extension
+(`… and {m} units of id {uid2} from planet {src2}`) for asymmetric combat;
+alliance/planet-list/tutorial/report/system-message Whens (see
+planet-user-misc.md, alliance.md); `user {u} subscribes to faction {fid}`
+(GET that mutates!).
+
+**Accepted new ws Thens (non-list payloads):** `… where the payload has id
+{id}` (single-object values like planet_explored_event);
+`… where value has upgrade id {id}` (running_upgrade_change);
+`… where some item has upgrade id {id} and level {lvl}`
+(obtained_upgrades_change — top-level item id is the surrogate!);
+`… with null value` (running_upgrade_change on completion/cancel).
+
+**Backend-conditional nudges (time-specials only):** `the effect of time
+special {tsid} for user {u} ends` and `the recharge of time special {tsid} for
+user {u} completes` — Java drives these through **Quartz** (`QRTZ_TRIGGERS.
+NEXT_FIRE_TIME`, ≥45 s poll budget), Rust through `scheduled_tasks`; the step
+body dispatches on the backend. Full SQL in time-specials.md §4. This is the
+one sanctioned deviation from "steps don't know the backend" — the observed
+outcome stays backend-agnostic, only the nudge mechanism differs.
+
+**Special completion semantics:** BUILD_UNIT missions are hard-DELETED on
+completion (never `resolved=1`) — their completion step polls for the mission
+row's disappearance + the obtained_units grant, not for `resolved`.
+
+**Rejected/parked:** audit-cookie assertion (dev plumbing, out of scope);
+`deliver-backdoor` scenarios (unported debug tool); a raw-SQL unlock-revoke
+Given (must go through a real backend path — needs Kevin's sign-off on which;
+see time-specials.md §4 last row).
 
 ---
 
@@ -580,8 +706,17 @@ The suite is the migration's contract; that's the payoff of black-box design.
 2. **Node 14 only for `ws_capture.js`**, via `source ~/.nvm/nvm.sh && nvm use
    14`; `socket.io-client@2.4.0` lives in `/tmp/wsclient/node_modules` (re-`npm
    install socket.io-client@2.4.0` there if the machine was cleaned). The
-   Python driver just needs `node` resolvable — wrap capture startup in a shell
+   driver just needs `node` resolvable — wrap capture startup in a shell
    that sources nvm.
+   **VERIFIED 2026-07-09:** `/tmp/wsclient` WAS cleaned — recreate it first.
+   nvm has v14.21.3 installed. `python3` is available (needed only for the
+   shared differ scripts, which are stdlib-only — behave/PyMySQL are NOT
+   needed since the §2.2 revision; `mint_jwt.py` needs PyJWT but is now only
+   a debugging cross-check, not part of the pipeline). Already in place: the
+   dev DB container
+   `owge_backend_developer-db-1` (port 3306, db `owge`, root/1234), the
+   `owge-java-compare:latest` image for booting the Java backend, and a built
+   `rust-backend/target/debug/owge-rest`.
 3. **No local mvn/JDK** — the Java backend runs as a container (mission_verify
    boots it; reuse that). Rust builds natively with cargo.
 4. **WSL2: NEVER search/scan under `/mnt`** (it hydrates a OneDrive). Keep all

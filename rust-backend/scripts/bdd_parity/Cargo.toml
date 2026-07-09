@@ -1,0 +1,27 @@
+[package]
+name = "bdd_parity"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Standalone on purpose: this crate is the BLACK-BOX test driver of the BDD
+# parity plan (rust-backend/docs/BDD-PARITY-PLAN.md §2.2). It must NEVER
+# depend on any owge-* crate — the backends are only reachable through SQL,
+# REST and websocket captures. The empty [workspace] below detaches it from
+# the rust-backend workspace.
+[workspace]
+
+[dependencies]
+cucumber = "0.21"
+tokio = { version = "1", features = ["full"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "mysql", "chrono"] }
+# rustls: the host has no libssl-dev; backends are plain http anyway
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+jsonwebtoken = "9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+[[bin]]
+name = "bdd_parity"
+path = "src/main.rs"
