@@ -101,7 +101,12 @@ Java 3. One-line fix in `mission_bo.rs:1079` (its own comment says 3s).
 ### D7 — ✅ RESOLVED 2026-07-09 — Rust cancel_upgrade_mission missing `unit_type_change` emit (was static finding #4)
 `upgrades :: Cancelling a running level-up…` red: the event never arrives on Rust.
 
-### D8 — deploy path: Rust emits `unit_obtained_change` TWICE (Java once)
+### D8 — ✅ RESOLVED 2026-07-09 — deploy path: Rust emitted `unit_obtained_change` TWICE (Java once)
+Fixed: `emit_after_run` + `deploy.rs` now gate the emit AND the requirement
+trigger behind target ownership like Java's DeployMissionProcessor. Together
+with the LocalDateTime-as-ISO Java fix (`9782f81f`) and the canonicalizing ws
+normalizer, all four deploy scenarios reached full three-verdict parity
+(sweep 2).
 All four deploy scenarios PARITY-red with tables CLEAN — pure ws divergence:
 java 1× vs rust 2× `unit_obtained_change` (plus payload diffs in
 `unit_mission_change`). Note the inventory predicted MISSING emits here;
