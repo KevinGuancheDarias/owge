@@ -50,22 +50,26 @@ pub async fn process(
 
     // requirementBo.triggerUnitBuildCompletedOrKilled(user, alteredUnits' units) —
     // re-evaluate HAVE_UNIT / UNIT_AMOUNT relations for each deployed unit.
-    let user = crate::bo::mission_bo::load_user_storage(conn, user_id).await?;
-    let mut seen: std::collections::HashSet<u16> = std::collections::HashSet::new();
-    let mut req_emits = Vec::new();
-    for ou in &units {
-        if seen.insert(ou.unit_id) {
-            crate::bo::requirement_bo::RequirementBo::trigger_unit_build_completed_or_killed(
-                conn,
-                &user,
-                ou.unit_id as i64,
-                &mut req_emits,
-            )
-            .await?;
+    // Java gates this (and emitObtainedUnits) behind `user == targetPlanet.owner`:
+    // foreign deploys park units under a DEPLOYED mission and trigger nothing.
+    if is_owned {
+        let user = crate::bo::mission_bo::load_user_storage(conn, user_id).await?;
+        let mut seen: std::collections::HashSet<u16> = std::collections::HashSet::new();
+        let mut req_emits = Vec::new();
+        for ou in &units {
+            if seen.insert(ou.unit_id) {
+                crate::bo::requirement_bo::RequirementBo::trigger_unit_build_completed_or_killed(
+                    conn,
+                    &user,
+                    ou.unit_id as i64,
+                    &mut req_emits,
+                )
+                .await?;
+            }
         }
-    }
-    for req in req_emits {
-        emits.push(super::DeferredEmit::Requirement(req));
+        for req in req_emits {
+            emits.push(super::DeferredEmit::Requirement(req));
+        }
     }
 
     // TODO(M3/M4): set the deployed mission `invisible` when every involved unit is

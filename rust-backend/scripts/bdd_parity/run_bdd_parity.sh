@@ -223,12 +223,22 @@ for i in "${!SCN_FILES[@]}"; do
          --a-label Java --b-label Rust >"$ART/table.diff" 2>&1; then
       PARITY="🔴"; sed 's/^/  TABLE /' "$ART/table.diff"
     fi
-    # ws deliver frames: sorted-multiset diff per captured user (§5.5)
+    # ws deliver frames: sorted-multiset diff per captured user (§5.5).
+    # NORMALIZATION (not suppression, plan §5.4): wall-clock-derived VALUES
+    # (terminationDate/startingDate/pendingMillis/…) always differ between the
+    # sequential Java and Rust passes by construction. Values are replaced with
+    # placeholders that PRESERVE the serialization format (<TS-ARR> vs <TS-STR>)
+    # so a Jackson-array vs ISO-string divergence still shows as a diff.
+    norm_ws() {
+      sed -E 's/"(terminationDate|startingDate|creationDate|browsingDate)":\[[0-9, ]*\]/"\1":"<TS-ARR>"/g;
+              s/"(terminationDate|startingDate|creationDate|browsingDate)":"[^"]*"/"\1":"<TS-STR>"/g;
+              s/"(pendingMillis)":[0-9.]+/"\1":"<NUM>"/g'
+    }
     for jf in "$ART"/java/ws_user*.jsonl; do
       [ -f "$jf" ] || continue
       rf="$ART/rust/$(basename "$jf")"
-      grep '"kind":"deliver"' "$jf" 2>/dev/null | sort >"$jf.sorted" || true
-      grep '"kind":"deliver"' "${rf}" 2>/dev/null | sort >"$jf.rust.sorted" || true
+      grep '"kind":"deliver"' "$jf" 2>/dev/null | norm_ws | sort >"$jf.sorted" || true
+      grep '"kind":"deliver"' "${rf}" 2>/dev/null | norm_ws | sort >"$jf.rust.sorted" || true
       if ! diff -u "$jf.sorted" "$jf.rust.sorted" >"$jf.diff" 2>&1; then
         PARITY="🔴"; echo "  WS    $(basename "$jf"): differs (see $jf.diff)"
       fi

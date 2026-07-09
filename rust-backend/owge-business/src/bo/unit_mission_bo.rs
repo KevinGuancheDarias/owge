@@ -529,7 +529,24 @@ async fn emit_after_run(
             ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
         }
         MissionType::Deploy => {
-            ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
+            // Java DeployMissionProcessor emits obtainedUnits ONLY when the user
+            // owns the target planet (foreign deploys park the stack under a
+            // DEPLOYED mission and emit just the mission change) — D8: the
+            // unconditional emit here produced a duplicate frame.
+            let target_owned = match mission.target_planet {
+                Some(target) => {
+                    crate::bo::mission_processor::is_planet_owned_by(
+                        &mut *conn,
+                        owner,
+                        target as u64,
+                    )
+                    .await?
+                }
+                None => false,
+            };
+            if target_owned {
+                ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
+            }
             MissionEventEmitter::emit_local_mission_change(&mut *conn, mission.id, owner).await?;
         }
         MissionType::EstablishBase => {
