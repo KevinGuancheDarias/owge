@@ -70,19 +70,19 @@ pub async fn process(
             is_alliance_defeated,
         );
     } else {
-        super::define_planet_as_owned_by(conn, user_id, involved_units, target_planet_id).await?;
+        super::define_planet_as_owned_by(conn, user_id, involved_units, target_planet_id, emits)
+            .await?;
         builder = builder.with_conquest_information(true, "I18N_PLANET_IS_NOW_OURS");
         // ConquestMissionProcessor.process (Java lines 74-85): when the planet has a
         // special location and there was an old owner, re-evaluate that (former)
         // owner's HAVE_SPECIAL_LOCATION unlocks, then cancel their BUILD_UNIT mission
-        // on the planet, then save the enemy report. Centralizes the special-location
-        // trigger that `define_planet_as_owned_by`'s comment refers to (it is NOT
-        // fired there — Return/re-home also call that helper and must not trigger it).
+        // on the planet, then save the enemy report. The NEW owner's grant already
+        // fired inside `define_planet_as_owned_by` (Java's ordering: grant then revoke).
         if let Some(owner_id) = old_owner {
             // maybeTriggerSpecialLocation(targetPlanet, oldOwner) — only when the
             // planet actually carries a special location.
             if let Some(special_location_id) =
-                find_planet_special_location(conn, target_planet_id).await?
+                super::find_planet_special_location(conn, target_planet_id).await?
             {
                 let old_owner_user =
                     crate::bo::mission_bo::load_user_storage(conn, owner_id).await?;
@@ -210,17 +210,6 @@ fn append_conquest_information(
 
 /// `targetPlanet.getSpecialLocation()` — the planet's `special_location_id`
 /// (`smallint UNSIGNED` -> `u16`), or `None` when the planet has none.
-async fn find_planet_special_location(
-    conn: &mut MySqlConnection,
-    planet_id: u64,
-) -> OwgeResult<Option<u16>> {
-    let special: Option<Option<u16>> =
-        sqlx::query_scalar("SELECT special_location_id FROM planets WHERE id = ?")
-            .bind(planet_id)
-            .fetch_optional(&mut *conn)
-            .await?;
-    Ok(special.flatten())
-}
 
 /// `missionRepository.findOneByResolvedFalseAndTypeCodeAndMissionInformationValue(
 /// BUILD_UNIT, planet.getId())` constrained to the old owner — the unresolved

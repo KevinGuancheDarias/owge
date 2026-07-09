@@ -288,24 +288,27 @@ pub(crate) async fn is_home_planet(conn: &mut MySqlConnection, planet_id: u64) -
 
 /// `planetBo.definePlanetAsOwnedBy(owner, involvedUnits, targetPlanet)` — set the
 /// planet's owner, land the involved units on it (clearing their mission/target/
-/// owner-unit), and re-home the owner's previously-deployed units there.
+/// owner-unit), re-home the owner's previously-deployed units there, and — like
+/// Java's `maybeTriggerSpecialLocation(targetPlanet, owner)` at the end of the
+/// helper — re-evaluate the NEW owner's `HAVE_SPECIAL_LOCATION` unlocks when the
+/// planet carries a special location (grants the gated units/time specials/etc.;
+/// see docs/BUG-SPECIAL-LOCATION-UNLOCK.md — this helper is reached only from the
+/// conquest and establish-base processors, exactly as in Java, so the trigger
+/// cannot mis-fire from Return/re-home paths).
 ///
-/// The Java `definePlanetAsOwnedBy` also calls `maybeTriggerSpecialLocation`, but
-/// that special-location requirement trigger is intentionally NOT fired here: it is
-/// centralized in `conquest::process` (the only caller for which the conquered
-/// planet has special-location semantics and a former owner). This helper is also
-/// reached by the Return / re-home path, where re-evaluating HAVE_SPECIAL_LOCATION
-/// for the mover would be wrong, so firing it here would double-fire / mis-fire.
+/// Ordering matches Java: the new-owner grant fires here, BEFORE the old-owner
+/// revoke that `conquest::process` runs after this helper returns.
 ///
 /// The remaining websocket side effects (`emitPlanetOwnedChange`,
 /// `emitEnemyMissionsChange`, `emitObtainedUnits`, `planetListBo.emitByChangedPlanet`)
-/// are emitted post-commit via `DeferredEmit::ConquestSuccess` — no persisted state
-/// effect beyond what is written here.
+/// are emitted post-commit via `DeferredEmit::ConquestSuccess` — the requirement
+/// emits produced by the grant ride along as `DeferredEmit::Requirement`.
 pub(crate) async fn define_planet_as_owned_by(
     conn: &mut MySqlConnection,
     owner_id: i32,
     involved_units: &[ObtainedUnit],
     target_planet_id: u64,
+    emits: &mut Vec<DeferredEmit>,
 ) -> OwgeResult<()> {
     sqlx::query("UPDATE planets SET owner = ? WHERE id = ?")
         .bind(owner_id)
@@ -346,7 +349,40 @@ pub(crate) async fn define_planet_as_owned_by(
                 .await?;
         }
     }
+
+    // maybeTriggerSpecialLocation(targetPlanet, owner) — Java PlanetBo.java:194:
+    // grant the new owner every relation gated by HAVE_SPECIAL_LOCATION on this
+    // planet's special location, inside the same firing transaction.
+    if let Some(special_location_id) = find_planet_special_location(conn, target_planet_id).await? {
+        let owner = crate::bo::mission_bo::load_user_storage(conn, owner_id).await?;
+        let mut req_emits = Vec::new();
+        crate::bo::requirement_bo::RequirementBo::trigger_special_location(
+            conn,
+            &owner,
+            special_location_id as i64,
+            &mut req_emits,
+        )
+        .await?;
+        for req in req_emits {
+            emits.push(DeferredEmit::Requirement(req));
+        }
+    }
     Ok(())
+}
+
+/// `planet.getSpecialLocation()` — the planet's special-location id, if any.
+/// Shared by `define_planet_as_owned_by` (new-owner grant) and
+/// `conquest::process` (old-owner revoke).
+pub(crate) async fn find_planet_special_location(
+    conn: &mut MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Option<u16>> {
+    let special: Option<Option<u16>> =
+        sqlx::query_scalar("SELECT special_location_id FROM planets WHERE id = ?")
+            .bind(planet_id)
+            .fetch_optional(&mut *conn)
+            .await?;
+    Ok(special.flatten())
 }
 
 /// `ObtainedUnitBo.moveUnit(unit, userId, planetId)` — the path taken when the

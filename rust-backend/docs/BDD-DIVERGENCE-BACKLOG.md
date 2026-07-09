@@ -6,7 +6,10 @@ entries marked JAVA-SUSPECT need Kevin's ruling on which side is right.
 
 ## From the Phase-1 run (special_location_unlock, 2026-07-09, artifacts `/tmp/bdd_parity_runs/20260709_172100`)
 
-### D1 — Rust never grants HAVE_SPECIAL_LOCATION unlocks to a new planet owner ⭐ the Phase-1 target
+### D1 — ✅ FIXED 2026-07-09 — Rust never granted HAVE_SPECIAL_LOCATION unlocks to a new planet owner ⭐ the Phase-1 target
+Fixed in `define_planet_as_owned_by` (new-owner trigger + emits param); verified
+green by the harness, `unlocked_relation` now byte-matches (17 rows both).
+Player data repair still pending (BUG doc "Consequences").
 - Scenarios: "Establish base grants…" and "Conquest transfers…" — JAVA ✅ RUST 🔴 PARITY 🔴.
 - `unlocked_relation`: Java grants the gated UNIT/TIME_SPECIAL relations to the
   new owner, Rust doesn't (table diff row count 17 vs 15); the

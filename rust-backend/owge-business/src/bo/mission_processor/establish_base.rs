@@ -49,7 +49,8 @@ pub async fn process(
         }
     } else {
         builder = builder.with_establish_base_information(true, "");
-        super::define_planet_as_owned_by(conn, user_id, involved_units, target_planet_id).await?;
+        super::define_planet_as_owned_by(conn, user_id, involved_units, target_planet_id, emits)
+            .await?;
     }
 
     // mission.setResolved(true) is persisted by the report save path.

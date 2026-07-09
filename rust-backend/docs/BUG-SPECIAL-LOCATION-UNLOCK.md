@@ -1,6 +1,14 @@
 # Bug: special-location unlocks never granted to the new planet owner
 
-**Status:** confirmed, not yet fixed (2026-07-07)
+**Status:** FIXED 2026-07-09 — the "Proposed fix" below was applied verbatim
+(`define_planet_as_owned_by` now fires the new-owner trigger and takes an
+`emits` parameter; both processor call sites updated; misleading comment
+rewritten). Reproduced RED and verified GREEN by the BDD parity harness
+(`bdd_parity/features/special_location_unlock.feature`): after the fix,
+`unlocked_relation` matches Java exactly (17 rows both) on the establish-base
+and conquest scenarios and all `unit_unlocked_change`/`time_special_unlocked_change`
+assertions pass on both backends. **Data repair for affected players is still
+pending** (see "Consequences").
 **Severity:** high — persistent data bug, player-visible, matches live user reports
 **Reported symptom:** units or time specials (heroes) not appearing after conquering
 or establishing a base on a planet whose special location should unlock them.
