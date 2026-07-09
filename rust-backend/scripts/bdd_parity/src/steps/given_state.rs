@@ -42,22 +42,35 @@ pub async fn find_or_create_relation(
     inserted.last_insert_id() as i64
 }
 
-/// DELETE-then-INSERT the HAVE_SPECIAL_LOCATION requirement on a relation —
-/// mirrors what the admin panel writes (§6.2).
-async fn gate_by_special_location(db: &sqlx::MySqlPool, relation_id: i64, second_value: i64) {
-    sqlx::query(
-        "DELETE FROM requirements_information WHERE relation_id = ? AND requirement_id = \
-         (SELECT id FROM requirements WHERE code = 'HAVE_SPECIAL_LOCATION')",
-    )
-    .bind(relation_id)
-    .execute(db)
-    .await
-    .expect("clear requirements_information");
+/// DELETE-then-INSERT a requirement on a relation — mirrors what the admin
+/// panel writes (§6.2). The code is validated against the live `requirements`
+/// table (any RequirementTypeEnum name works, §6.6).
+async fn gate_by_requirement(
+    db: &sqlx::MySqlPool,
+    relation_id: i64,
+    requirement_code: &str,
+    second_value: i64,
+) {
+    let req_id: Option<i64> =
+        sqlx::query_scalar("SELECT CAST(id AS SIGNED) FROM requirements WHERE code = ?")
+            .bind(requirement_code)
+            .fetch_optional(db)
+            .await
+            .expect("query requirements");
+    let req_id = req_id
+        .unwrap_or_else(|| panic!("requirement code {requirement_code:?} not in `requirements`"));
+    sqlx::query("DELETE FROM requirements_information WHERE relation_id = ? AND requirement_id = ?")
+        .bind(relation_id)
+        .bind(req_id)
+        .execute(db)
+        .await
+        .expect("clear requirements_information");
     sqlx::query(
         "INSERT INTO requirements_information (relation_id, requirement_id, second_value, third_value) \
-         SELECT ?, id, ?, NULL FROM requirements WHERE code = 'HAVE_SPECIAL_LOCATION'",
+         VALUES (?, ?, ?, NULL)",
     )
     .bind(relation_id)
+    .bind(req_id)
     .bind(second_value)
     .execute(db)
     .await
@@ -84,8 +97,13 @@ async fn planet_has_special_location(world: &mut BddWorld, planet: i64, special_
     world.registered_planets.insert(planet);
 }
 
-#[given(expr = "unit {int} exists gated by requirement HAVE_SPECIAL_LOCATION with second value {int}")]
-async fn unit_gated_by_special_location(world: &mut BddWorld, unit: i64, second_value: i64) {
+#[given(expr = "unit {int} exists gated by requirement {word} with second value {int}")]
+async fn unit_gated_by_requirement(
+    world: &mut BddWorld,
+    unit: i64,
+    requirement_code: String,
+    second_value: i64,
+) {
     // Fresh unit cloned from baseline unit 10 (all NOT NULL columns satisfied,
     // improvement shared — never mutated by these scenarios).
     sqlx::query("DELETE FROM obtained_units WHERE unit_id = ?")
@@ -117,15 +135,14 @@ async fn unit_gated_by_special_location(world: &mut BddWorld, unit: i64, second_
     .await
     .expect("Given: clone gated unit from baseline unit 10");
     let relation = find_or_create_relation(&world.db, "UNIT", unit).await;
-    gate_by_special_location(&world.db, relation, second_value).await;
+    gate_by_requirement(&world.db, relation, &requirement_code, second_value).await;
 }
 
-#[given(
-    expr = "time special {int} exists gated by requirement HAVE_SPECIAL_LOCATION with second value {int}"
-)]
-async fn time_special_gated_by_special_location(
+#[given(expr = "time special {int} exists gated by requirement {word} with second value {int}")]
+async fn time_special_gated_by_requirement(
     world: &mut BddWorld,
     time_special: i64,
+    requirement_code: String,
     second_value: i64,
 ) {
     sqlx::query("DELETE FROM time_specials WHERE id = ?")
@@ -144,7 +161,7 @@ async fn time_special_gated_by_special_location(
     .await
     .expect("Given: insert gated time special");
     let relation = find_or_create_relation(&world.db, "TIME_SPECIAL", time_special).await;
-    gate_by_special_location(&world.db, relation, second_value).await;
+    gate_by_requirement(&world.db, relation, &requirement_code, second_value).await;
 }
 
 #[given(expr = "planet {int} is owned by user {int}")]
