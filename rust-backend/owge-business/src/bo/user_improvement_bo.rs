@@ -133,14 +133,43 @@ impl UserImprovementBo {
         conn: &mut MySqlConnection,
         user_id: i32,
     ) -> OwgeResult<crate::dto::GroupedImprovementResponse> {
+        Self::find_user_improvement_response_impl(conn, user_id, false).await
+    }
+
+    /// The `user_improvements_change` SOCKET serialization: identical to
+    /// [`Self::find_user_improvement_response`] except each entry's `unitType`
+    /// also carries its own fully-hydrated `speedImpactGroup` (see
+    /// `UnitTypeBo::find_catalog_by_id_for_socket_aggregate`).
+    pub async fn find_user_improvement_response_for_socket(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+    ) -> OwgeResult<crate::dto::GroupedImprovementResponse> {
+        Self::find_user_improvement_response_impl(conn, user_id, true).await
+    }
+
+    async fn find_user_improvement_response_impl(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        for_socket: bool,
+    ) -> OwgeResult<crate::dto::GroupedImprovementResponse> {
         let aggregate = Self::find_user_improvement(&mut *conn, user_id).await?;
         let mut unit_types_upgrades = Vec::with_capacity(aggregate.unit_types_upgrades.len());
         for entry in &aggregate.unit_types_upgrades {
             // See `UnitTypeBo::find_catalog_by_id_for_aggregate`'s doc for the
             // exact (empirically-matched) hydration shape this path needs.
-            let unit_type =
-                crate::bo::UnitTypeBo::find_catalog_by_id_for_aggregate(&mut *conn, entry.unit_type_id)
-                    .await?;
+            let unit_type = if for_socket {
+                crate::bo::UnitTypeBo::find_catalog_by_id_for_socket_aggregate(
+                    &mut *conn,
+                    entry.unit_type_id,
+                )
+                .await?
+            } else {
+                crate::bo::UnitTypeBo::find_catalog_by_id_for_aggregate(
+                    &mut *conn,
+                    entry.unit_type_id,
+                )
+                .await?
+            };
             unit_types_upgrades.push(crate::dto::ImprovementUnitTypeDto {
                 id: entry.id.map(|v| v as u16),
                 r#type: Some(entry.improvement_type.code().to_string()),

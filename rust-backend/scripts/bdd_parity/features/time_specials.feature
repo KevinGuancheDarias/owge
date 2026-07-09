@@ -29,7 +29,10 @@ Feature: Time special activation
     # covers: B2
     Given user 2 has no unlocked relation for object TIME_SPECIAL reference 900
     When user 2 attempts to activate time special 900
-    Then the request is rejected with HTTP status 500
+    # D13 ruling: proper 400 + message is the contract (D5 re-parented
+    # SgtBackendTargetNotUnlocked -> SgtBackendInvalidInputException)
+    Then the request is rejected with HTTP status 400
+    And the request is rejected with error containing "The target object relation has not been unlocked"
     And table active_time_specials has no row where user_id=2 and time_special_id=900
 
   Scenario: Activating an already-active time special is a silent no-op

@@ -312,8 +312,11 @@ impl UnitMissionBo {
                     .termination_date
                     .map(|d| d.and_utc().timestamp_millis())
                     .unwrap_or(now_millis);
+                // Java: (long)((terminationMillis - nowMillis) / 1000D) — the
+                // remaining time TRUNCATES to whole seconds, so the resulting
+                // customRequiredTime is required_time minus an integer.
                 let duration_seconds = if termination_millis >= now_millis {
-                    ((termination_millis - now_millis) as f64) / 1000.0
+                    ((termination_millis - now_millis) / 1000) as f64
                 } else {
                     0.0
                 };
@@ -322,6 +325,7 @@ impl UnitMissionBo {
                     conn, &mission, Some(custom),
                 )
                 .await
+                .map(|_return_mission_id| ())
             })
         })
         .await?;

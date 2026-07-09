@@ -44,8 +44,13 @@ pub async fn process(
         None => Vec::new(),
     };
 
-    // returnMissionRegistrationBo.registerReturnMission(mission, null).
-    ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+    // returnMissionRegistrationBo.registerReturnMission(mission, null) — which
+    // itself emits emitLocalMissionChangeAfterCommit(returnMission).
+    let return_id = ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+    emits.push(super::DeferredEmit::LocalMissionChange {
+        mission_id: return_id,
+        user_id: mission.user_id.unwrap_or_default(),
+    });
 
     let builder = create_report_base(conn, mission, involved_units)
         .await?
@@ -113,7 +118,8 @@ async fn explore_planet_units(
     // TODO(M3/M4): hiddenUnitBo.defineHidden + ObtainedUnitUtil.handleInvisible.
     let mut units = Vec::with_capacity(ids.len());
     for id in ids {
-        if let Some(dto) = super::load_obtained_unit_dto(conn, id).await? {
+        if let Some(mut dto) = super::load_obtained_unit_dto(conn, id).await? {
+            super::enrich_unit_for_report(conn, &mut dto).await?;
             units.push(dto);
         }
     }

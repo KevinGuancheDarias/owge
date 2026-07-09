@@ -60,7 +60,13 @@ pub async fn process(
 
     if failed {
         if !outcome.removed {
-            ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+            // registerReturnMission emits emitLocalMissionChangeAfterCommit(returnMission).
+            let return_id =
+                ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+            emits.push(super::DeferredEmit::LocalMissionChange {
+                mission_id: return_id,
+                user_id,
+            });
             units_returning = true;
         }
         builder = append_conquest_information(

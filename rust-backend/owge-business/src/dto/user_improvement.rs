@@ -155,29 +155,6 @@ impl UserImprovementDto {
         }
     }
 
-    /// Build the `user_improvements_change` websocket value (the Jackson shape of
-    /// `GroupedImprovement` extending `AbstractImprovementDto`).
-    pub fn to_wire(&self) -> GroupedImprovementWire {
-        GroupedImprovementWire {
-            more_primary_resource_production: self.more_primary_resource_production,
-            more_secondary_resource_production: self.more_secondary_resource_production,
-            more_energy_production: self.more_energy_production,
-            more_charge_capacity: self.more_charge_capacity,
-            more_missions: self.more_missions,
-            more_upgrade_research_speed: self.more_upgrade_research_speed,
-            more_unit_build_speed: self.more_unit_build_speed,
-            unit_types_upgrades: self
-                .unit_types_upgrades
-                .iter()
-                .map(|e| ImprovementUnitTypeWire {
-                    improvement_type: e.improvement_type.code(),
-                    unit_type_id: e.unit_type_id,
-                    unit_type: UnitTypeRefWire { id: e.unit_type_id },
-                    value: e.value,
-                })
-                .collect(),
-        }
-    }
 }
 
 /// The `user_data_change` serialization of `GroupedImprovement` (Jackson
@@ -198,39 +175,10 @@ pub struct GroupedImprovementResponse {
     pub unit_types_upgrades: Vec<crate::dto::ImprovementUnitTypeDto>,
 }
 
-/// Wire shape of `GroupedImprovement` for the `user_improvements_change` socket
-/// event. The frontend's `ImprovementUtil.findUnitTypeImprovement` reads each
-/// unit-type entry's `type`, `value` and **`unitType.id`** (the legacy
-/// `unitTypeId`/`unitTypeName` are deprecated), so each entry carries a minimal
-/// nested `unitType { id }`; the full `UnitTypeDto` graph + `id`/`unitTypeName`
-/// Java also emits are unused by the consumer and omitted.
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct GroupedImprovementWire {
-    pub more_primary_resource_production: f64,
-    pub more_secondary_resource_production: f64,
-    pub more_energy_production: f64,
-    pub more_charge_capacity: f64,
-    pub more_missions: f64,
-    pub more_upgrade_research_speed: f64,
-    pub more_unit_build_speed: f64,
-    pub unit_types_upgrades: Vec<ImprovementUnitTypeWire>,
-}
-
-#[derive(serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ImprovementUnitTypeWire {
-    #[serde(rename = "type")]
-    pub improvement_type: &'static str,
-    pub unit_type_id: u16,
-    pub unit_type: UnitTypeRefWire,
-    pub value: i64,
-}
-
-#[derive(serde::Serialize)]
-pub struct UnitTypeRefWire {
-    pub id: u16,
-}
+// The former GroupedImprovementWire slim shape (unitTypeId-only entries) was
+// removed: the `user_improvements_change` socket event serializes the SAME
+// GroupedImprovement as `user_data_change` (id + fully-hydrated unitType per
+// entry) — use `UserImprovementBo::find_user_improvement_response`.
 
 #[cfg(test)]
 mod tests {

@@ -25,11 +25,15 @@ use serde::Serialize;
 pub struct TimeSpecialDto {
     pub id: u16,
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// The image id (`CommonDtoWithImageStore.image`), or null when no image.
+    /// The image id (`CommonDtoWithImageStore.image`); omitted when the special
+    /// has no image (Java `NON_NULL`).
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image: Option<u64>,
     /// The resolved image URL (`CommonDtoWithImageStore.imageUrl`). Built from
-    /// the image filename in the `Bo` query.
+    /// the image filename in the `Bo` query; omitted when imageless.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub image_url: Option<String>,
     /// `bigint unsigned` — duration in seconds.
     pub duration: u64,

@@ -101,9 +101,10 @@ impl MissionReportBo {
     }
 
     /// `MissionReportBo.toDto(MissionReport)` for a single row — the payload of
-    /// the `mission_report_new` websocket event. Loads the report by id, joins
-    /// its (optional) owning mission, and parses `jsonBody` into `parsedJson`
-    /// (nulling `jsonBody`), exactly like the paginated path does per-row.
+    /// the `mission_report_new` websocket event. Java's single-row `toDto` is a
+    /// plain `dtoFromEntity` copy: `parseMission` (which fills
+    /// `missionId`/`missionDate` from the owning mission) only runs on the
+    /// paginated `mission_report_change` path, so BOTH stay null → omitted here.
     ///
     /// Returns `None` if the report no longer exists (defensive; the emit is
     /// fired immediately after the row is inserted, so it normally exists).
@@ -114,9 +115,8 @@ impl MissionReportBo {
         let row = sqlx::query_as::<_, MissionReportRow>(
             "SELECT mr.id AS id, mr.json_body AS json_body, mr.report_date AS report_date, \
                     mr.user_read_date AS user_read_date, mr.is_enemy AS is_enemy, \
-                    m.id AS mission_id, m.termination_date AS mission_date \
+                    NULL AS mission_id, NULL AS mission_date \
              FROM mission_reports mr \
-             LEFT JOIN missions m ON m.report_id = mr.id \
              WHERE mr.id = ?",
         )
         .bind(report_id)
@@ -134,8 +134,8 @@ impl MissionReportBo {
                     id: Some(row.id),
                     json_body: None,
                     parsed_json,
-                    mission_id: row.mission_id,
-                    mission_date: row.mission_date,
+                    mission_id: None,
+                    mission_date: None,
                     report_date: row.report_date,
                     user_read_date: row.user_read_date,
                     is_enemy: row.is_enemy,

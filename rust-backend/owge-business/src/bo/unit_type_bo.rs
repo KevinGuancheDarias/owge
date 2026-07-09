@@ -326,6 +326,29 @@ impl UnitTypeBo {
         conn: &mut MySqlConnection,
         id: u16,
     ) -> OwgeResult<Option<UnitTypeDto>> {
+        Self::find_catalog_for_aggregate_impl(conn, id, false).await
+    }
+
+    /// The aggregate shape PLUS the entry's own `speedImpactGroup` fully
+    /// hydrated (with `requirementsGroups`) — the `unitType` Java serializes on
+    /// the `user_improvements_change` SOCKET emit. Path-dependence one more
+    /// time: the REST `user_data_change` aggregate leaves the own group
+    /// uninitialized (see `find_catalog_by_id_for_aggregate`), but the socket
+    /// emit runs in a session where it is initialized, so the same
+    /// GroupedImprovement serializes WITH it there (verified against captured
+    /// Java frames, bdd run 20260709_225812).
+    pub async fn find_catalog_by_id_for_socket_aggregate(
+        conn: &mut MySqlConnection,
+        id: u16,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
+        Self::find_catalog_for_aggregate_impl(conn, id, true).await
+    }
+
+    async fn find_catalog_for_aggregate_impl(
+        conn: &mut MySqlConnection,
+        id: u16,
+        hydrate_own_speed_impact_group: bool,
+    ) -> OwgeResult<Option<UnitTypeDto>> {
         let Some(r) = sqlx::query_as::<_, UnitTypeRow>(&format!("{SELECT_DTO} WHERE ut.id = ?"))
             .bind(id)
             .fetch_optional(&mut *conn)
@@ -347,6 +370,19 @@ impl UnitTypeBo {
         };
         let parent = build_nested_by_id(conn, r.parent_id, 0, true).await?;
         let share_max_count = build_nested_by_id(conn, r.share_max_count_id, 0, true).await?;
+        let speed_impact_group = if hydrate_own_speed_impact_group {
+            match r.speed_impact_group_id {
+                Some(group_id) => {
+                    crate::bo::SpeedImpactGroupBo::find_by_id_with_requirement_groups(
+                        &mut *conn, group_id,
+                    )
+                    .await?
+                }
+                None => None,
+            }
+        } else {
+            None
+        };
         Ok(Some(UnitTypeDto {
             id: r.id,
             name: r.name,
@@ -363,7 +399,7 @@ impl UnitTypeBo {
             can_counterattack: r.can_counterattack,
             can_conquest: r.can_conquest,
             can_deploy: r.can_deploy,
-            speed_impact_group: None,
+            speed_impact_group,
             attack_rule,
             critical_attack,
             computed_max_count: None,

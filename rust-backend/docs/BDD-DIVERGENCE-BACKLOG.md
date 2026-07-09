@@ -11,16 +11,30 @@ vs sweep 1 (36 scenarios: JAVA 36 · RUST 28 · PARITY 18✅/18🔴):
   report/unlock payload shapes (special_location ×4, reports/gather/explore
   ×4, upgrades completion, unit_build ×2, time_specials payloads) and D9
   (upgrade-register table rows) + D10 (Quartz structural, time_specials).
-- TWO NEW findings from the fix wave itself:
-  - **D13**: `time_specials :: not-unlocked rejection` — Java now 400
+- TWO NEW findings from the fix wave itself (BOTH RESOLVED 2026-07-09 night):
+  - **D13 — ✅ FIXED**: `time_specials :: not-unlocked rejection` — Java 400
     `SgtBackendTargetNotUnlocked` "The target object relation has not been
-    unlocked" (improved by the D5 re-parenting); Rust still answers 500
-    there. Fix Rust's activate-not-unlocked error to InvalidInput(400) and
-    update the scenario (currently pins the stale 500 → JAVA red).
-  - **D14 (investigate first)**: `explore` scenario went red on BOTH backends —
-    `planet_explored_event` not captured within 10 s. Passed in sweep 1 and
-    validation; suspect ws-capture timing flake (the event fires synchronously
-    at registration). RE-RUN before treating as real.
+    unlocked" (after the D5 re-parenting) vs Rust 500. Fixed:
+    `active_time_special_bo.rs` activate now returns `InvalidInput` (400, same
+    message) and the scenario asserts 400 + message. Verified FULL
+    three-verdict parity (`/tmp/bdd_parity_runs`, time_specials run
+    2026-07-09 ~22:4x).
+  - **D14 — ✅ ROOT-CAUSED, NOT A FLAKE, FIXED**: `explore` red on BOTH
+    backends because the run **baseline itself was dirty**: a run killed
+    during the 19:1x deadlock window (pre-`7aa8bcb7` fix) leaked
+    `explored_planets (user 1, planet 1234)` — the Gather/travel Givens'
+    row — and since the runner dumps the CURRENT db as each run's baseline,
+    every later baseline (incl. sweep 2) carried it. Both backends then
+    correctly skipped `defineAsExplored` (already explored) → no
+    `planet_explored_event`, while the scenario's `explored_planets` table
+    assertion still passed against the leaked row. Fixed by deleting the row
+    from the live db and adding `Given user 1 has not explored planet 1234`
+    to the explore scenario so the precondition is forced. Verified: explore
+    JAVA ✅ RUST ✅. **LESSON: baseline = current-db snapshot; any crashed
+    run can poison ALL later runs — scenarios must force their
+    preconditions with explicit Givens, and a dirty-baseline audit
+    (diff baseline.sql vs known-good) belongs in any both-backends-red
+    investigation.**
 
 Every RUST_SPEC / PARITY red from `bdd_parity` runs gets an entry here with
 the artifact path that proves it. Java is the default spec (plan §9.11) —
@@ -46,15 +60,33 @@ Player data repair still pending (BUG doc "Consequences").
   (establish-base scenario). Java serializes the full requirements groups of a
   speed impact group wherever it's embedded; Rust drops the field.
 - Same root cause suspected in both paths (shared DTO serialization).
+- **REPORT PATH FIXED 2026-07-09 night**: it is PATH-DEPENDENT, not universal —
+  Java's ws `unit_mission_change` frames have speedImpactGroup WITHOUT
+  requirementsGroups; only the report json (raw entity graph serialized by the
+  builder's own mapper) carries them. Rust now enriches report-bound DTOs only
+  (`mission_processor::enrich_unit_for_report` on the `create_report_base` +
+  `explore_planet_units` paths; first attempt inside `involved_units_to_dtos`
+  leaked into the ws finder and was moved out). `unit_unlocked_change` ws path
+  still open — verify which side Java actually emits there before "fixing".
 
 ### D3 — mission report `json_body` field-shape gaps (establish-base report)
-- `involvedUnits[0].storedUnits`: RUST-only (Java null-suppresses?).
-- `involvedUnits[0].unit.improvement`: RUST-only.
-- `senderUser.canAlterTwitchState`: JAVA-only.
-- `targetPlanet.specialLocation.{galaxyId,galaxyName,image,imageUrl,improvement}`:
+- ✅ `involvedUnits[0].storedUnits`: RUST-only — FIXED: Java's report path maps
+  the entity WITHOUT the UnitDataLoader chain so storedUnits stays null and
+  NON_NULL drops it (the loader-backed unit_obtained_change path emits `[]` —
+  keep that one). Rust `strip_units` now removes it.
+- ✅ `involvedUnits[0].unit.improvement`: RUST-only — FIXED: Java
+  `obtainedUnitToDto` explicitly nulls it; `strip_units` now removes it.
+- ✅ `senderUser.canAlterTwitchState`: JAVA-only — FIXED: Java's fresh
+  UserStorageDto has the `= false` field initializer (non-null survives
+  NON_NULL); Rust `with_sender_user` now emits it.
+- ⏳ `targetPlanet.specialLocation.{galaxyId,galaxyName,image,imageUrl,improvement}`:
   RUST-only — Rust embeds the rich specialLocation DTO in reports where Java
   writes a slimmer shape. (Conquest reports diverge the same way, plus
-  attackInformation subtree — see the conquest table.diff.)
+  attackInformation subtree — see the conquest table.diff.) STILL OPEN — not
+  exercised by explore/gather (planet 1234 has no SL); fix when re-running the
+  special_location / establish-base scenarios.
+- All three ✅ verified: explore + gather `mission_reports` TABLE now ✅ match
+  (run 20260709_224450).
 
 ### D4 — requirements ordering inside `requirementsGroups[].requirements[]`
 - `planet_owned_change` (leave scenario): identical items, different order
@@ -131,6 +163,62 @@ diffs — same D2 (`requirementsGroups` omission) and D3 (field-shape gaps)
 classes extended to more mission types. Also upgrade completion shows unlock-
 list payload diffs (`unit_unlocked_change`/`time_special_unlocked_change`)
 with the unlocked_relation TABLE matching — serialization-only.
+Progress 2026-07-09 night:
+- ✅ `mission_report_new` RUST-only `missionId`/`missionDate` — Java's single-row
+  `toDto` never runs `parseMission` (that's the paginated `mission_report_change`
+  path only); Rust `MissionReportBo::find_by_id` no longer joins the mission.
+- ✅ `unit_mission_change` frame count (Java 2 / Rust 1 after a unit mission
+  resolves) — Java's `doRegisterReturnMission` ends with
+  `emitLocalMissionChangeAfterCommit(returnMission)`; the Rust omission was
+  deliberate ("redundant") but the count is observable. `register_return_mission`
+  now returns the new mission id and all five processor call sites queue
+  `DeferredEmit::LocalMissionChange` (cancel path already matches with its own
+  single emit; `MissionBaseService::give_up` still lacks it — rare path, open).
+- ✅ ws `user_improvements_change` — Rust emitted the slim math-side wire shape
+  (`unitTypeId`-only entries, a deliberate departure); Java emits the same
+  GroupedImprovement as `user_data_change` (id + full hydrated `unitType`).
+  Emitter now uses `find_user_improvement_response` (byte-parity proven on the
+  REST sync path).
+
+### D15 — ✅ ROOT-CAUSED + FIXED (cancel-resolved-explore `required_time` drift: java 5 vs rust 3.025)
+FIRST HYPOTHESIS ("Rust fires missions early") was WRONG. Actual cause: the
+driver's registration nudge rewinds only the `scheduled_tasks` row, NOT
+`missions.termination_date` — so when the cancel runs on the "already
+resolved" explore, both backends compute remaining-time against a termination
+still ~30 s in the future, and the cancel-return's `required_time` equals the
+WALL-CLOCK elapsed between registration and cancel: nondeterministic across
+passes by construction (java pass took ~5 s, rust ~3 s — neither is wrong).
+Two real defects underneath, both fixed:
+1. Rust kept fractional seconds where Java truncates
+   (`(long)((term-now)/1000D)`) — `my_cancel_mission` now integer-divides.
+2. Harness: `fire_and_await_mission` now also rewinds the mission's own
+   `termination_date` into the past (a genuinely resolved mission's
+   termination IS past), so cancel-after-resolve deterministically clamps
+   remaining to 0 → cancel-return reuses the full `required_time` on BOTH
+   backends.
+LESSON for scenario authors: any assertion downstream of remaining-time math
+must pin the mission's wall-clock rows, not just the scheduler row.
+
+### D16 — NEW: wall-clock precision class — Java emits epoch-millis precision, Rust whole seconds
+`mission_report_new.reportDate` java=…801 vs rust=…000;
+`time_special_change.activeTimeSpecialDto.{activationDate,expiringDate}`
+java=…749 vs rust=…000. Java serializes the in-memory entity (millis); Rust
+re-reads the DATETIME row (second-truncated). Also these keys are NOT in
+`normalize_ws.py`'s DATEISH set (only terminationDate/startingDate/
+creationDate/browsingDate), so pass-to-pass clock noise shows up as VALUE
+diffs. NEEDS KEVIN'S RULING: (a) is millis precision contractual (→ Rust keeps
+the in-memory timestamp through to the emit, cf. [[websocket-lastsent-millis-parity]]),
+and (b) should reportDate/activationDate/expiringDate/readyDate/userReadDate
+join DATEISH with a precision-preserving placeholder (<TS-NUM-MS> vs <TS-NUM-S>)?
+
+### D17 — NEW: ws diff misalignment from intra-payload array ordering (extends D4)
+`time_special_change.value[]`: java […,614,193,…] vs rust […,193,614,…] — one
+transposition, and the element-by-element diff cascades into dozens of phantom
+field diffs (this is most of the "247 diffs" in the time_specials activation
+scenario; after sorting id-keyed arrays only ~30 real ones remain). Same
+Kevin's-ruling class as D4: is array order contractual? If not, the
+canonicalizer should sort id-keyed object arrays (the ws_verify REST harness
+already did exactly that).
 
 ## From the inventory wave (static analysis — not yet reproduced by a scenario)
 

@@ -66,11 +66,17 @@ impl UnitMissionReportBuilder {
         self.put("id", Value::from(id))
     }
 
-    /// `withSenderUser` — Java embeds only `{id, username}`.
+    /// `withSenderUser` — Java builds a fresh `UserStorageDto` setting only
+    /// id/username, but the `canAlterTwitchState = false` field initializer is
+    /// non-null so `Include.NON_NULL` still serializes it.
     pub fn with_sender_user(self, user_id: i32, username: &str) -> Self {
         self.put(
             "senderUser",
-            serde_json::json!({ "id": user_id, "username": username }),
+            serde_json::json!({
+                "id": user_id,
+                "username": username,
+                "canAlterTwitchState": false,
+            }),
         )
     }
 
@@ -141,6 +147,9 @@ fn to_value<T: Serialize>(value: &T) -> Value {
 
 /// Mirror the Java `obtainedUnitToDto` cleanup: drop the per-unit
 /// source/target/mission references so the embedded snapshot is compact.
+/// Java additionally nulls `unit.improvement`, and its report path maps the
+/// entity WITHOUT the `UnitDataLoader` chain, so `storedUnits` stays null —
+/// both vanish under the builder's own `Include.NON_NULL` mapper.
 fn strip_units(units: &[ObtainedUnitDto]) -> Value {
     let cleaned: Vec<Value> = units
         .iter()
@@ -150,6 +159,10 @@ fn strip_units(units: &[ObtainedUnitDto]) -> Value {
                 o.remove("sourcePlanet");
                 o.remove("targetPlanet");
                 o.remove("mission");
+                o.remove("storedUnits");
+                if let Some(Value::Object(unit)) = o.get_mut("unit") {
+                    unit.remove("improvement");
+                }
             }
             v
         })

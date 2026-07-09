@@ -41,7 +41,13 @@ pub async fn process(
     let has_max_planets = super::has_max_planets(conn, user_id).await?;
 
     if planet_owner.is_some() || has_max_planets {
-        ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+        // registerReturnMission emits emitLocalMissionChangeAfterCommit(returnMission).
+        let return_id =
+            ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+        emits.push(super::DeferredEmit::LocalMissionChange {
+            mission_id: return_id,
+            user_id,
+        });
         if planet_owner.is_some() {
             builder = builder.with_establish_base_information(false, "I18N_ALREADY_HAS_OWNER");
         } else {

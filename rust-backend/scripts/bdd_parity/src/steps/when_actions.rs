@@ -58,6 +58,22 @@ fn mission_verb(mission_type: &str) -> &'static str {
 /// follow-up missions the execution creates are never fired prematurely —
 /// the lesson mission_verify learned the hard way).
 async fn fire_and_await_mission(world: &BddWorld, mission_id: i64) {
+    // Rewind the mission's own termination_date too: a genuinely "resolved"
+    // mission has its termination in the past. Without this, a later cancel
+    // computes remaining-time from a termination still ~requiredTime in the
+    // future, making the cancel-return's required_time equal the WALL-CLOCK
+    // elapsed between registration and cancel — nondeterministic across passes
+    // (java 5 vs rust 3.025 in the cancel-resolved-explore scenario). With the
+    // rewind both backends clamp remaining to 0 and reuse the full
+    // required_time, deterministically.
+    sqlx::query(
+        "UPDATE missions SET termination_date = DATE_SUB(NOW(6), INTERVAL 5 SECOND) \
+         WHERE id = ?",
+    )
+    .bind(mission_id)
+    .execute(&world.db)
+    .await
+    .expect("rewind missions.termination_date");
     let nudge = "UPDATE scheduled_tasks \
                  SET execution_time = DATE_SUB(NOW(6), INTERVAL 5 SECOND), picked = 0 \
                  WHERE task_name = 'mission-run' AND task_instance = ?";
@@ -267,6 +283,24 @@ async fn user_registers_level_up(world: &mut BddWorld, user: i64, mode: String, 
             (200..300).contains(&status),
             "GET game/upgrade/registerLevelUp returned HTTP {status}: {response}"
         );
+        // FREEZE the level-up task: ZERO_UPGRADE_TIME collapses required_time
+        // to 3 s and DELAY_HANDLE is 2 s, so the task is due at +1 s and would
+        // auto-fire MID-SCENARIO on whichever backend's scheduler polls first
+        // (the D9 nondeterminism: Java completed + hard-deleted the mission
+        // before its dump, Rust hadn't). A "running" mission must stay running
+        // until an explicit completes/cancel step; the completion nudge
+        // rewinds execution_time anyway, so freezing is transparent to it.
+        sqlx::query(
+            "UPDATE scheduled_tasks \
+             SET execution_time = DATE_ADD(NOW(6), INTERVAL 1 HOUR) \
+             WHERE task_name = 'mission-run' \
+               AND task_instance = (SELECT CAST(MAX(id) AS CHAR) FROM missions \
+                                    WHERE user_id = ? AND resolved = 0)",
+        )
+        .bind(user)
+        .execute(&world.db)
+        .await
+        .expect("freeze level-up scheduled task");
     }
 }
 

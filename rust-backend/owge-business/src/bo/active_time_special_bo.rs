@@ -75,8 +75,8 @@ impl ActiveTimeSpecialBo {
                 })?;
 
         // 2. checkIsUnlocked: the TIME_SPECIAL relation must be unlocked for the
-        // user. Java throws SgtBackendTargetNotUnlocked (a bare CommonException),
-        // which the game-rest handler maps to HTTP 500.
+        // user. Java throws SgtBackendTargetNotUnlocked, which extends
+        // SgtBackendInvalidInputException since the D5 re-parenting → HTTP 400.
         let unlocked = UnlockedRelationBo::find_unlocked_reference_ids(
             &mut *conn,
             user_id,
@@ -84,7 +84,7 @@ impl ActiveTimeSpecialBo {
         )
         .await?;
         if !unlocked.contains(&(time_special_id as i16)) {
-            return Err(OwgeError::Common(
+            return Err(OwgeError::InvalidInput(
                 "The target object relation has not been unlocked".to_string(),
             ));
         }

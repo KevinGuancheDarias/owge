@@ -86,7 +86,10 @@ pub(crate) async fn create_report_base(
         Some(id) => load_planet_dto(conn, id as u64).await?,
         None => None,
     };
-    let involved_dtos = involved_units_to_dtos(conn, involved_units).await?;
+    let mut involved_dtos = involved_units_to_dtos(conn, involved_units).await?;
+    for dto in involved_dtos.iter_mut() {
+        enrich_unit_for_report(conn, dto).await?;
+    }
     Ok(UnitMissionReportBuilder::create_with(
         user_id,
         &username,
@@ -157,6 +160,23 @@ pub(crate) async fn involved_units_to_dtos(
         }
     }
     Ok(out)
+}
+
+/// Report-only enrichment: Java's report builder serializes the raw entity
+/// graph inside the open transaction, so the unit's `speedImpactGroup` carries
+/// its lazy `requirementsGroups` there — unlike every ws payload, where the
+/// finder paths leave the groups out. Mirror that by upgrading the group to
+/// the with-groups shape on DTOs bound for `UnitMissionReportBuilder` only.
+pub(crate) async fn enrich_unit_for_report(
+    conn: &mut MySqlConnection,
+    dto: &mut ObtainedUnitDto,
+) -> OwgeResult<()> {
+    if let Some(group_id) = dto.unit.speed_impact_group.as_ref().map(|g| g.id) {
+        dto.unit.speed_impact_group =
+            crate::bo::SpeedImpactGroupBo::find_by_id_with_requirement_groups(&mut *conn, group_id)
+                .await?;
+    }
+    Ok(())
 }
 
 /// Load one `obtained_units` row as a DTO (unit scalars + source/target planets).
@@ -559,6 +579,7 @@ impl DeferredEmit {
         match self {
             DeferredEmit::PlanetExplored { user_id, planet } => {
                 realtime_emitter::send_planet_explored_event(
+                    &mut *conn,
                     *user_id,
                     serde_json::to_value(planet.as_ref())?,
                 )
@@ -573,7 +594,7 @@ impl DeferredEmit {
                     "primaryResource": primary,
                     "secondaryResource": secondary,
                 });
-                realtime_emitter::send_gather_result(*user_id, value).await
+                realtime_emitter::send_gather_result(&mut *conn, *user_id, value).await
             }
             DeferredEmit::LocalMissionChange {
                 mission_id,

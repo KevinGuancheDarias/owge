@@ -10,6 +10,9 @@ Feature: Explore, gather, and mission cancel
 
   # covers: B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B21
   Scenario: Explore mission discovers an unowned, unexplored planet
+    # D14 lesson: a leaked explored_planets row silently suppresses the
+    # planet_explored_event emit on BOTH backends — force the precondition
+    Given user 1 has not explored planet 1234
     When user 1 runs an EXPLORE mission from planet 1002 to planet 1234 with 5 units of id 10
     Then table missions has a row where user_id=1 and type_code=EXPLORE and resolved=1
     And table explored_planets has a row where user=1 and planet=1234

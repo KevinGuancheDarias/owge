@@ -35,7 +35,7 @@ impl ReturnMissionRegistrationBo {
         conn: &mut MySqlConnection,
         source_mission: &Mission,
         custom_duration: Option<f64>,
-    ) -> OwgeResult<()> {
+    ) -> OwgeResult<u64> {
         let starting_date = chrono::Utc::now().naive_utc();
         // customRequiredTime ?? originMission.requiredTime
         let required_time = custom_duration
@@ -81,13 +81,15 @@ impl ReturnMissionRegistrationBo {
         // registration connection so the scheduled_tasks row commits atomically.
         schedule_mission(conn, return_mission_id, required_time).await?;
 
-        // Java emits emitLocalMissionChangeAfterCommit(returnMission) here. This
-        // runs on the borrowed `conn` (no post-commit hook), and every caller
-        // already refreshes the owner's running-mission list after commit
-        // (my_cancel_mission → emit_unit_missions; emit_after_run RETURN →
-        // emit_local_mission_change; the attack/conquest emit blocks → unit_mission /
-        // LocalMissionChange), so the extra emit would be redundant. Left out by design.
-        Ok(())
+        // Java emits emitLocalMissionChangeAfterCommit(returnMission) here — an
+        // EXTRA unit_mission_change frame on top of the end-of-run emit (the
+        // frames are duplicates content-wise, but the count is observable on the
+        // wire, so parity keeps both). This runs on the borrowed `conn` (no
+        // post-commit hook), so processor callers queue the equivalent
+        // `DeferredEmit::LocalMissionChange` for the returned mission id;
+        // my_cancel_mission's own post-commit emit_unit_missions already matches
+        // Java's single frame on the cancel path.
+        Ok(return_mission_id)
     }
 }
 

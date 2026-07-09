@@ -150,7 +150,13 @@ pub async fn process_attack(
     let removed = remaining == 0;
 
     if survivors_do_return && !removed {
-        ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+        // registerReturnMission emits emitLocalMissionChangeAfterCommit(returnMission).
+        let return_id =
+            ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+        emits.push(super::DeferredEmit::LocalMissionChange {
+            mission_id: return_id,
+            user_id: invoker_id,
+        });
     }
 
     // mission.setResolved(true) is persisted by the report save path below.

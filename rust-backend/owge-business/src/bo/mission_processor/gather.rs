@@ -34,7 +34,12 @@ pub async fn process(
         return Ok(None);
     }
 
-    ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+    // registerReturnMission emits emitLocalMissionChangeAfterCommit(returnMission).
+    let return_id = ReturnMissionRegistrationBo::register_return_mission(conn, mission, None).await?;
+    emits.push(super::DeferredEmit::LocalMissionChange {
+        mission_id: return_id,
+        user_id,
+    });
 
     // sum(charge * count) over the involved units (ObjectUtils.firstNonNull(charge, 0)).
     let mut gathered: u64 = 0;

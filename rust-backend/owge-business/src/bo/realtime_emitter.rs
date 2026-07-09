@@ -124,9 +124,15 @@ pub async fn emit_time_special_unlocked_change(
 pub async fn emit_user_improvements(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
     emitter::send_message(conn, user_id, "user_improvements_change", |conn| {
         Box::pin(async move {
-            let aggregate =
-                crate::bo::UserImprovementBo::find_user_improvement(&mut *conn, user_id).await?;
-            Ok(serde_json::to_value(aggregate.to_wire())?)
+            // Same GroupedImprovement Java serializes on user_data_change (id +
+            // catalog unitType per entry — not a slim shape), except the socket
+            // path additionally carries each unitType's own speedImpactGroup
+            // (lazy-init path-dependence; see find_catalog_by_id_for_socket_aggregate).
+            let response = crate::bo::UserImprovementBo::find_user_improvement_response_for_socket(
+                &mut *conn, user_id,
+            )
+            .await?;
+            Ok(serde_json::to_value(response)?)
         })
     })
     .await
@@ -301,20 +307,39 @@ pub async fn emit_twitch_state_change(
 
 // ─── one-time events (no watermark) ──────────────────────────────────────────
 
-/// Sends `planet_explored_event` as a one-time push (no watermark).
+/// Sends `planet_explored_event` (watermarked — the frame carries `lastSent`).
 ///
-/// Java: `socketIoService.sendOneTimeMessage(userId, "planet_explored_event", () -> planetJson)`.
+/// Java: `PlanetExplorationService.defineAsExplored` →
+/// `socketIoService.sendMessage(user, "planet_explored_event", () -> planetDto)`
+/// — the regular watermarked `sendMessage`, NOT `sendOneTimeMessage` (that one
+/// is only used for `account_deleted`).
 /// `planet_json` is the serialised `PlanetDto` of the newly-explored planet.
-pub async fn send_planet_explored_event(user_id: i32, planet_json: Value) -> OwgeResult<()> {
-    emitter::send_one_time_message(user_id, "planet_explored_event", planet_json).await
+pub async fn send_planet_explored_event(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    planet_json: Value,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "planet_explored_event", |_conn| {
+        Box::pin(async move { Ok(planet_json) })
+    })
+    .await
 }
 
-/// Sends `mission_gather_result` as a one-time push (no watermark).
+/// Sends `mission_gather_result` (watermarked — the frame carries `lastSent`).
 ///
-/// Java: `socketIoService.sendOneTimeMessage(userId, "mission_gather_result", () -> resultJson)`.
+/// Java: `GatherMissionProcessor` →
+/// `socketIoService.sendMessage(user, "mission_gather_result", () -> resultJson)`
+/// (after commit) — the regular watermarked `sendMessage`.
 /// `result_json` is the serialised gather-mission result object.
-pub async fn send_gather_result(user_id: i32, result_json: Value) -> OwgeResult<()> {
-    emitter::send_one_time_message(user_id, "mission_gather_result", result_json).await
+pub async fn send_gather_result(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    result_json: Value,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "mission_gather_result", |_conn| {
+        Box::pin(async move { Ok(result_json) })
+    })
+    .await
 }
 
 /// Sends `account_deleted` as a one-time push with a null payload (no watermark).
