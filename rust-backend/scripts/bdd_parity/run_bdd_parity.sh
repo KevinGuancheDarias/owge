@@ -229,11 +229,7 @@ for i in "${!SCN_FILES[@]}"; do
     # sequential Java and Rust passes by construction. Values are replaced with
     # placeholders that PRESERVE the serialization format (<TS-ARR> vs <TS-STR>)
     # so a Jackson-array vs ISO-string divergence still shows as a diff.
-    norm_ws() {
-      sed -E 's/"(terminationDate|startingDate|creationDate|browsingDate)":\[[0-9, ]*\]/"\1":"<TS-ARR>"/g;
-              s/"(terminationDate|startingDate|creationDate|browsingDate)":"[^"]*"/"\1":"<TS-STR>"/g;
-              s/"(pendingMillis)":[0-9.]+/"\1":"<NUM>"/g'
-    }
+    norm_ws() { python3 "$HERE/normalize_ws.py"; }
     for jf in "$ART"/java/ws_user*.jsonl; do
       [ -f "$jf" ] || continue
       rf="$ART/rust/$(basename "$jf")"

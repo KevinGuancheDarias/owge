@@ -43,3 +43,4 @@ pub fn serialize_opt_millis<S: Serializer>(
         None => serializer.serialize_none(),
     }
 }
+

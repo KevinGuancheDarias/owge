@@ -34,6 +34,14 @@ public class BootJacksonConfigurationService {
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.registerModule(new JavaTimeModule());
+        // LocalDateTime must serialize as an ISO string, never the Jackson
+        // [y,m,d,…] array — the frontend doesn't consume arrays (it derives
+        // countdowns from pendingMillis) and the Rust backend emits ISO.
+        // Scoped to LocalDateTime only: java.util.Date/Instant keep epoch
+        // millis (mission reports and the lastSent watermark depend on it).
+        mapper.configOverride(java.time.LocalDateTime.class)
+                .setFormat(com.fasterxml.jackson.annotation.JsonFormat.Value
+                        .forShape(com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING));
         DefaultFormattingConversionService defaultFormattingConversionService = (DefaultFormattingConversionService) conversionService;
         converters.forEach(defaultFormattingConversionService::addConverter);
         return mapper;
