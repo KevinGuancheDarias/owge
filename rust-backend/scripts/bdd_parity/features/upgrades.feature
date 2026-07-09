@@ -20,29 +20,33 @@ Feature: Upgrade level-up registration, completion, and cancellation
     And user 1 has obtained upgrade 1 at level 0 available
     When user 1 registers a LEVEL_UP mission for upgrade 1
     Then the request succeeded
-    And table missions has a row where user_id=1 and type_code=LEVEL_UP
-    And user 1 has primary resource 0 and secondary resource 0
+    # resources accrue per second in both backends, so the deduction is
+    # asserted via the cost the mission row recorded, not the live balance
+    And table missions has a row where user_id=1 and type_code=LEVEL_UP and primary_resource=490 and secondary_resource=330
     And user 1 received websocket event "running_upgrade_change"
     And user 1 received websocket event "missions_count_change"
     And user 1 received websocket event "user_data_change"
 
   Scenario: Registration is rejected when the user lacks the resources to pay for it
     # covers: B1
-    Given user 1 has 489 primary resource and 330 secondary resource
+    # 1/1: far below the 490/330 cost, so the few units of per-second accrual
+    # since the Given cannot make the registration affordable
+    Given user 1 has 1 primary resource and 1 secondary resource
     And user 1 has obtained upgrade 1 at level 0 available
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    Then the request is rejected with error containing "No enough resources!"
+    # Java swallows this business error into a generic 500 (observed:
+    # {"message":"Unexpected server error","exceptionType":"InternalServerError"})
+    Then the request is rejected with HTTP status 500
     And table missions has no row where user_id=1 and type_code=LEVEL_UP
-    And user 1 has primary resource 489 and secondary resource 330
 
   Scenario: Registration is rejected when the upgrade is not available
     # covers: B10
     Given user 1 has 490 primary resource and 330 secondary resource
     And user 1 has obtained upgrade 1 at level 0 unavailable
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    Then the request is rejected with error containing "Can't register mission, of type LEVEL_UP, when upgrade is not available!"
+    # Java swallows this business error into a generic 500 (observed live)
+    Then the request is rejected with HTTP status 500
     And table missions has no row where user_id=1 and type_code=LEVEL_UP
-    And user 1 has primary resource 490 and secondary resource 330
 
   Scenario: A second level-up cannot be registered while one is already running
     # covers: B4
@@ -51,7 +55,9 @@ Feature: Upgrade level-up registration, completion, and cancellation
     When user 1 registers a LEVEL_UP mission for upgrade 1
     Then the request succeeded
     When user 1 attempts to register a LEVEL_UP mission for upgrade 1
-    Then the request is rejected with error containing "There is already an upgrade going"
+    # Java swallows this business error into a generic 500 (observed live)
+    Then the request is rejected with HTTP status 500
+    And table missions has 1 row where user_id=1 and type_code=LEVEL_UP
 
   Scenario: Completing a level-up bumps the obtained-upgrade level
     # covers: B2
@@ -72,8 +78,9 @@ Feature: Upgrade level-up registration, completion, and cancellation
     When user 1 registers a LEVEL_UP mission for upgrade 1
     Then the request succeeded
     When user 1 cancels the running upgrade mission
-    Then user 1 has primary resource 490 and secondary resource 330
-    And table missions has no row where user_id=1 and type_code=LEVEL_UP
+    # refund exactness is unassertable (per-second accrual); the mission row
+    # deletion and the emitted events are the deterministic observables
+    Then table missions has no row where user_id=1 and type_code=LEVEL_UP
     And user 1 received websocket event "running_upgrade_change"
     And user 1 received websocket event "unit_type_change"
     And user 1 received websocket event "missions_count_change"
@@ -81,8 +88,10 @@ Feature: Upgrade level-up registration, completion, and cancellation
   Scenario: Cancelling with no running level-up mission is rejected
     # covers: B3
     Given user 1 has obtained upgrade 1 at level 0 available
-    When user 1 cancels the running upgrade mission
-    Then the request is rejected with HTTP status 404
+    When user 1 attempts to cancel the running upgrade mission
+    # Java NPEs into a raw servlet 500 here (observed live) — a candidate
+    # both-are-wrong spec item, but 500 is the current reference behavior
+    Then the request is rejected with HTTP status 500
 
   Scenario: ZERO_UPGRADE_TIME collapses the required time to 3 seconds
     # covers: B1

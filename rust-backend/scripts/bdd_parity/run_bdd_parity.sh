@@ -59,6 +59,12 @@ RUST_PID=""
 cleanup() {
   docker rm -f "$JAVA_CONTAINER" >/dev/null 2>&1 || true
   [ -n "$RUST_PID" ] && kill "$RUST_PID" >/dev/null 2>&1 || true
+  # leave the dev DB as we found it — otherwise the last scenario's residue
+  # becomes part of the NEXT run's baseline dump (self-inflicted pollution)
+  if [ -s "${BASELINE:-}" ]; then
+    docker exec -i "$DB_CONTAINER" mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" <"$BASELINE" 2>/dev/null || true
+    mysql_q "DELETE FROM scheduled_tasks WHERE task_name='mission-run';" >/dev/null 2>&1 || true
+  fi
 }
 trap cleanup EXIT
 

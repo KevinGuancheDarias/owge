@@ -270,18 +270,20 @@ async fn user_registers_level_up(world: &mut BddWorld, user: i64, mode: String, 
     }
 }
 
-#[when(expr = "user {int} cancels the running upgrade mission")]
-async fn user_cancels_upgrade(world: &mut BddWorld, user: i64) {
+#[when(regex = r"^user (\d+) (cancels|attempts to cancel) the running upgrade mission$")]
+async fn user_cancels_upgrade(world: &mut BddWorld, user: i64, mode: String) {
     world.captured_users.insert(user);
     ensure_ws_captures(world).await;
     let jwt = rest::mint_jwt(&world.db, user).await;
     let (status, response) =
         rest::get_query(backend(world), &jwt, "game/upgrade/cancelUpgrade", &[]).await;
     world.last_response = Some((status, response.clone()));
-    assert!(
-        (200..300).contains(&status),
-        "GET game/upgrade/cancelUpgrade returned HTTP {status}: {response}"
-    );
+    if mode == "cancels" {
+        assert!(
+            (200..300).contains(&status),
+            "GET game/upgrade/cancelUpgrade returned HTTP {status}: {response}"
+        );
+    }
     tokio::time::sleep(Duration::from_secs(1)).await;
 }
 

@@ -214,13 +214,21 @@ async fn configuration_is(world: &mut BddWorld, name: String, value: String) {
 
 #[given(expr = "user {int} has {int} primary resource and {int} secondary resource")]
 async fn user_has_resources(world: &mut BddWorld, user: i64, primary: i64, secondary: i64) {
-    sqlx::query("UPDATE user_storage SET primary_resource = ?, secondary_resource = ? WHERE id = ?")
-        .bind(primary)
-        .bind(secondary)
-        .bind(user)
-        .execute(&world.db)
-        .await
-        .expect("Given: set user resources");
+    // last_action = NOW() is load-bearing: both backends recompute resources
+    // as stored + generation_per_second * (now - last_action) on the next
+    // action, so a stale last_action silently replaces the seeded balance
+    // with hours of accrual. Exact post-action balances remain UNASSERTABLE
+    // (seconds of drift) — assert mission-row costs instead (§6.6).
+    sqlx::query(
+        "UPDATE user_storage SET primary_resource = ?, secondary_resource = ?, \
+         last_action = NOW() WHERE id = ?",
+    )
+    .bind(primary)
+    .bind(secondary)
+    .bind(user)
+    .execute(&world.db)
+    .await
+    .expect("Given: set user resources");
     world.captured_users.insert(user);
 }
 
@@ -307,18 +315,22 @@ async fn user_has_units_on_planet(
     .await
     .expect("Given: delete previous obtained_units");
 
-    sqlx::query(
-        "INSERT INTO obtained_units \
-         (user_id, unit_id, count, is_from_capture, source_planet, target_planet, mission_id) \
-         VALUES (?, ?, ?, 0, ?, NULL, NULL)",
-    )
-    .bind(user)
-    .bind(unit)
-    .bind(count)
-    .bind(planet)
-    .execute(&world.db)
-    .await
-    .expect("Given: insert obtained_units stack");
+    // count 0 = pure wipe (guarantees no baseline stack interferes with
+    // merge-on-completion assertions); no zero-count row is inserted
+    if count > 0 {
+        sqlx::query(
+            "INSERT INTO obtained_units \
+             (user_id, unit_id, count, is_from_capture, source_planet, target_planet, mission_id) \
+             VALUES (?, ?, ?, 0, ?, NULL, NULL)",
+        )
+        .bind(user)
+        .bind(unit)
+        .bind(count)
+        .bind(planet)
+        .execute(&world.db)
+        .await
+        .expect("Given: insert obtained_units stack");
+    }
 
     world.captured_users.insert(user);
     world.registered_planets.insert(planet);
