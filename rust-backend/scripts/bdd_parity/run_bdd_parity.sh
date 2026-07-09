@@ -27,6 +27,8 @@ MISSION_VERIFY="$SCRIPTS/mission_verify"
 RUN_ID="$(date +%Y%m%d_%H%M%S)"
 WORK="${WORK:-/tmp/bdd_parity_runs/$RUN_ID}"
 mkdir -p "$WORK"
+# mirror all output to a stable path so humans can `tail -f` any run
+exec > >(tee "$WORK/run.log" /tmp/bdd_parity_runs/latest.log) 2>&1
 
 # --- environment (same knobs as mission_verify) -------------------------------
 DB_CONTAINER="${DB_CONTAINER:-owge_backend_developer-db-1}"
@@ -190,17 +192,24 @@ for i in "${!SCN_FILES[@]}"; do
 
   JAVA_SPEC="-" RUST_SPEC="-" PARITY="-"
 
+  # INVARIANT: the Java container must be AWAKE during every restore — a
+  # paused JVM freezes mid-connection and its metadata locks deadlock the
+  # baseline's DROP TABLEs (observed: 40+ min hang). Java sleeps ONLY while
+  # the Rust driver runs (the anti-task-stealing window).
   if [ "$BACKENDS" = "java" ] || [ "$BACKENDS" = "both" ]; then
-    restore_baseline
     java_awake
+    sleep 1
+    restore_baseline
     if driver_pass java "$feature" "$scenario" "$ART/java"; then JAVA_SPEC="✅"; else JAVA_SPEC="🔴"; fi
     dump_state "$ART/java"
-    java_asleep
     [ "$JAVA_SPEC" = "🔴" ] && sed -n '/✘/,+6p' "$ART/java/driver.log" | sed 's/^/  JAVA  /'
   fi
 
   if [ "$BACKENDS" = "rust" ] || [ "$BACKENDS" = "both" ]; then
+    java_awake
+    sleep 1
     restore_baseline
+    java_asleep
     start_rust || { echo "  RUST  backend failed to start"; OVERALL=1; continue; }
     if driver_pass rust "$feature" "$scenario" "$ART/rust"; then RUST_SPEC="✅"; else RUST_SPEC="🔴"; fi
     dump_state "$ART/rust"

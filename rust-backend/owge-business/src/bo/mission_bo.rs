@@ -275,9 +275,8 @@ impl MissionBo {
         let mission = load_level_up_mission(&mut tx, user_id)
             .await?
             .ok_or_else(|| {
-                OwgeError::NotFound(
-                    "The mission was not found, or was not passed to cancelMission()".to_string(),
-                )
+                // same I18N message the Java side now throws (D5 fix)
+                OwgeError::NotFound("I18N_ERR_GENERIC_ITEM_NOT_FOUND".to_string())
             })?;
         // Ownership is implicit — the mission was queried by the invoker's id.
         let primary = mission.primary_resource.unwrap_or(0.0);
@@ -316,9 +315,11 @@ impl MissionBo {
 
         tx.commit().await?;
 
-        // M4 (Java MissionBo.cancelUpgradeMission): RUNNING_UPGRADE_CHANGE -> null +
-        // emitMissionCountChange.
+        // M4 (Java MissionBo.cancelUpgradeMission): RUNNING_UPGRADE_CHANGE -> null,
+        // plus cancelMission's emitUser after-commit block (unitTypeBo.emitUserChange
+        // + emitMissionCountChange).
         MissionEventEmitter::emit_running_upgrade(&mut *conn, user_id).await?;
+        UnitTypeEmitter::emit_unit_type_change(&mut *conn, user_id).await?;
         MissionEventEmitter::emit_mission_count_change(&mut *conn, user_id).await?;
         Ok(())
     }
@@ -1076,7 +1077,7 @@ async fn do_register_level_up(
         .value
         == "TRUE"
     {
-        required_time = 5.0;
+        required_time = 3.0;
     } else {
         let improvement = UserImprovementBo::find_user_improvement(&mut tx, user_id).await?;
         required_time = compute_improvement_value(

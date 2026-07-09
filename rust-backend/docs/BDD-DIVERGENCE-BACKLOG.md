@@ -72,11 +72,11 @@ handler coverage) and flip the specs to the proper statuses, or accept Java's
 500s as the contract and degrade Rust to match. Rust's behavior is clearly the
 intended design.
 
-### D6 — ZERO_UPGRADE_TIME drift CONFIRMED LIVE (was static finding #3)
+### D6 — ✅ RESOLVED 2026-07-09 — ZERO_UPGRADE_TIME drift (was static finding #3)
 `upgrades :: ZERO_UPGRADE_TIME…` red on Rust: missions.required_time = 5 vs
 Java 3. One-line fix in `mission_bo.rs:1079` (its own comment says 3s).
 
-### D7 — Rust cancel_upgrade_mission missing `unit_type_change` emit CONFIRMED LIVE (was static finding #4)
+### D7 — ✅ RESOLVED 2026-07-09 — Rust cancel_upgrade_mission missing `unit_type_change` emit (was static finding #4)
 `upgrades :: Cancelling a running level-up…` red: the event never arrives on Rust.
 
 ### D8 — deploy path: Rust emits `unit_obtained_change` TWICE (Java once)
