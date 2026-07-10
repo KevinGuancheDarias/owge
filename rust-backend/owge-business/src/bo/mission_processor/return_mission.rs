@@ -30,18 +30,14 @@ pub async fn process(
         if is_owned {
             super::move_unit_to_planet(conn, ou.id, user_id, source_planet_id).await?;
         } else {
-            // Returning to a planet no longer owned: leave the stack sitting on the
-            // planet (no mission). moveUnit's owned branch is the common case for a
-            // return; the non-owned fallback keeps state consistent.
-            sqlx::query(
-                "UPDATE obtained_units \
-                    SET source_planet = ?, target_planet = NULL, mission_id = NULL, owner_unit_id = NULL \
-                  WHERE id = ?",
-            )
-            .bind(source_planet_id)
-            .bind(ou.id)
-            .execute(&mut *conn)
-            .await?;
+            // Returning to a planet lost mid-flight: Java calls the same
+            // moveUnit as everywhere else, whose non-owned branch parks the
+            // stack under a DEPLOYED marker mission at the (now foreign)
+            // planet — exactly like a foreign deploy (bdd scenario "Units
+            // returning to a planet lost mid-flight park as a DEPLOYED
+            // stack"; the old fallback here left the stack mission-less).
+            super::deploy::move_unit_to_foreign_planet(conn, user_id, ou, source_planet_id)
+                .await?;
         }
     }
 
@@ -54,23 +50,27 @@ pub async fn process(
     // requirementBo.triggerUnitBuildCompletedOrKilled(user, unit) +
     // triggerUnitAmountChanged(user, unit) per returned unit. The former already
     // calls the latter, so one call per distinct unit re-evaluates HAVE_UNIT then
-    // UNIT_AMOUNT (idempotently).
-    let user = crate::bo::mission_bo::load_user_storage(conn, user_id).await?;
-    let mut seen: std::collections::HashSet<u16> = std::collections::HashSet::new();
-    let mut req_emits = Vec::new();
-    for ou in &units {
-        if seen.insert(ou.unit_id) {
-            crate::bo::requirement_bo::RequirementBo::trigger_unit_build_completed_or_killed(
-                conn,
-                &user,
-                ou.unit_id as i64,
-                &mut req_emits,
-            )
-            .await?;
+    // UNIT_AMOUNT (idempotently). Java gates the triggers on the source planet
+    // still belonging to the user (the async block checks planetOwner == user);
+    // a return parked on a lost planet triggers nothing.
+    if is_owned {
+        let user = crate::bo::mission_bo::load_user_storage(conn, user_id).await?;
+        let mut seen: std::collections::HashSet<u16> = std::collections::HashSet::new();
+        let mut req_emits = Vec::new();
+        for ou in &units {
+            if seen.insert(ou.unit_id) {
+                crate::bo::requirement_bo::RequirementBo::trigger_unit_build_completed_or_killed(
+                    conn,
+                    &user,
+                    ou.unit_id as i64,
+                    &mut req_emits,
+                )
+                .await?;
+            }
         }
-    }
-    for req in req_emits {
-        emits.push(super::DeferredEmit::Requirement(req));
+        for req in req_emits {
+            emits.push(super::DeferredEmit::Requirement(req));
+        }
     }
 
     // TODO(M3/M4): missionEventEmitterBo.emitLocalMissionChangeAfterCommit,

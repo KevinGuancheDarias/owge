@@ -67,6 +67,9 @@ public class AllianceBo implements WithNameBo<Integer, Alliance, AllianceDto>, U
     @Transactional
     public void delete(Alliance alliance) {
         defineAllianceByAllianceId(alliance.getId());
+        // alliance_join_request.alliance_id has no ON DELETE CASCADE — pending
+        // requests must go first or the alliance DELETE hits the FK (500)
+        allianceJoinRequestRepository.deleteByAlliance(alliance);
         repository.delete(alliance);
     }
 

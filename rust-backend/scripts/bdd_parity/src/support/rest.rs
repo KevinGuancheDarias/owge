@@ -45,14 +45,25 @@ pub async fn mint_jwt(db: &sqlx::MySqlPool, user_id: i64) -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
+    // The claims MUST carry the seed user's real username/email: the backends
+    // treat the token as the account system's source of truth and SYNC the
+    // user entity from it (Java UserSessionService.setUsername) — a hardcoded
+    // "rusttester" claim renamed user 2 inside Java's session and leaked into
+    // every DTO carrying a username (caught by the counterattack scenario).
+    let (username, email): (String, String) =
+        sqlx::query_as("SELECT username, email FROM user_storage WHERE id = ?")
+            .bind(user_id)
+            .fetch_one(db)
+            .await
+            .expect("mint_jwt: user must exist in user_storage");
     let claims = Claims {
         sub: user_id,
         iat: now,
         exp: now + 86400,
         data: ClaimData {
             id: user_id,
-            username: "rusttester".into(),
-            email: "rust@test.local".into(),
+            username,
+            email,
         },
     };
     jsonwebtoken::encode(
@@ -100,6 +111,21 @@ pub async fn get_query(
         .send()
         .await
         .unwrap_or_else(|e| panic!("GET {url} failed to send: {e}"));
+    let status = resp.status().as_u16();
+    let text = resp.text().await.unwrap_or_default();
+    (status, text)
+}
+
+/// DELETE with Bearer auth and no body (e.g. game/alliance,
+/// game/planet-list/{id}).
+pub async fn delete_path(backend: &Backend, jwt: &str, path: &str) -> (u16, String) {
+    let url = format!("{}/{}", backend.base_url.trim_end_matches('/'), path);
+    let resp = reqwest::Client::new()
+        .delete(&url)
+        .bearer_auth(jwt)
+        .send()
+        .await
+        .unwrap_or_else(|e| panic!("DELETE {url} failed to send: {e}"));
     let status = resp.status().as_u16();
     let text = resp.text().await.unwrap_or_default();
     (status, text)

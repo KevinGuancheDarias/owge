@@ -199,6 +199,38 @@ async fn user_has_unlocked_relation(
     world.captured_users.insert(user);
 }
 
+#[given(expr = "the unit type of unit {int} has {word} support {word}")]
+async fn unit_type_mission_support(
+    world: &mut BddWorld,
+    unit: i64,
+    mission: String,
+    support: String,
+) {
+    let column = match mission.as_str() {
+        "EXPLORE" => "can_explore",
+        "GATHER" => "can_gather",
+        "ATTACK" => "can_attack",
+        "COUNTERATTACK" => "can_counterattack",
+        "CONQUEST" => "can_conquest",
+        "DEPLOY" => "can_deploy",
+        "ESTABLISH_BASE" => "can_establish_base",
+        other => panic!("unknown mission capability {other:?}"),
+    };
+    assert!(
+        ["NONE", "OWNED_ONLY", "ANY"].contains(&support.as_str()),
+        "support must be NONE/OWNED_ONLY/ANY, got {support:?}"
+    );
+    sqlx::query(&format!(
+        "UPDATE unit_types SET {column} = ? \
+         WHERE id = (SELECT type FROM units WHERE id = ?)"
+    ))
+    .bind(&support)
+    .bind(unit)
+    .execute(&world.db)
+    .await
+    .expect("Given: set unit type mission support");
+}
+
 #[given(expr = "configuration {string} is {string}")]
 async fn configuration_is(world: &mut BddWorld, name: String, value: String) {
     sqlx::query(

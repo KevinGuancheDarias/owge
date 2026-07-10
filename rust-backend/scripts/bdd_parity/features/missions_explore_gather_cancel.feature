@@ -53,3 +53,20 @@ Feature: Explore, gather, and mission cancel
     And user 1 cancels their latest mission
     Then table missions has 2 rows where user_id=1 and type_code=RETURN_MISSION
     And user 1 received websocket event "unit_mission_change"
+
+  Scenario: A unit whose type cannot explore is rejected
+    # covers the MissionRegistrationUnitTypeChecker NONE branch (inventory:
+    # "explore/gather OWNED_ONLY" capability class)
+    Given the unit type of unit 10 has EXPLORE support NONE
+    When user 1 attempts an EXPLORE mission from planet 1002 to planet 1234 with 5 units of id 10
+    Then the request is rejected with HTTP status 400
+
+  Scenario: OWNED_ONLY gather is rejected on a foreign planet but allowed on an owned one
+    # covers EntityCanDoMissionChecker's OWNED_ONLY branch both ways
+    Given the unit type of unit 10 has GATHER support OWNED_ONLY
+    And user 1 has explored planet 1234
+    And user 1 has explored planet 1003
+    When user 1 attempts a GATHER mission from planet 1002 to planet 1234 with 5 units of id 10
+    Then the request is rejected with HTTP status 400
+    When user 1 runs a GATHER mission from planet 1002 to planet 1003 with 5 units of id 10
+    Then user 1 received websocket event "mission_gather_result"

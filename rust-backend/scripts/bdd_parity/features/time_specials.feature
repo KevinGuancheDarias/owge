@@ -45,3 +45,20 @@ Feature: Time special activation
     And user 1 activates time special 900
     Then the request succeeded
     And table active_time_specials has 1 rows where user_id=1 and time_special_id=900 and state=ACTIVE
+
+  Scenario: An active time special enters RECHARGE when its effect ends
+    # covers: B6-B8 (deactivate via the TIME_SPECIAL_EFFECT_END scheduled
+    # task — db-scheduler since the Quartz removal, D10)
+    Given user 1 has an unlocked relation for object TIME_SPECIAL reference 900
+    When user 1 activates time special 900
+    And the time special 900 effect of user 1 ends
+    Then table active_time_specials has a row where user_id=1 and time_special_id=900 and state=RECHARGE
+    And user 1 received websocket event "time_special_change" where some item has id 900
+
+  Scenario: A recharged time special becomes ready and its active row is removed
+    # covers: B9-B11 (TIME_SPECIAL_IS_READY deletes the active row)
+    Given user 1 has an unlocked relation for object TIME_SPECIAL reference 900
+    When user 1 activates time special 900
+    And the time special 900 effect of user 1 ends
+    And the time special 900 of user 1 becomes ready
+    Then table active_time_specials has no row where user_id=1 and time_special_id=900

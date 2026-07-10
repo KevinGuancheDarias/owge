@@ -85,7 +85,7 @@ pub async fn process(
 /// count (and this copy is deleted); otherwise the stack is attached to the
 /// user's existing unresolved DEPLOYED mission for that planet, creating one when
 /// none exists. `source_planet` (the origin) is preserved, mirroring Java.
-async fn move_unit_to_foreign_planet(
+pub(super) async fn move_unit_to_foreign_planet(
     conn: &mut MySqlConnection,
     user_id: i32,
     ou: &ObtainedUnit,

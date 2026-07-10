@@ -1,5 +1,53 @@
 # BDD parity — divergence backlog
 
+## SWEEP 6 (2026-07-11, coverage expansion: 37 → 52 scenarios, run `20260711_000215`)
+
+**52/52 FULL three-verdict parity.** Fifteen new scenarios covering the
+previously-untested inventory (all except tutorial + system messages, per
+Kevin: those features are not widely used): alliance lifecycle (5),
+planet-list (2), plain attack + counterattack (3), return-to-lost-planet (1),
+time-special RECHARGE/is-ready (2), unit-type mission-support NONE/OWNED_ONLY
+(2). Every scenario went red→green through the harness. Real bugs found and
+fixed:
+
+- **JAVA — alliance delete FK 500 (the JAVA-SUSPECT, confirmed live)**:
+  `AllianceBo.delete` never removed pending `alliance_join_request` rows and
+  the FK has no cascade → DELETE game/alliance with a pending request = 500.
+  Fixed: `deleteByAlliance` before the alliance delete.
+- **RUST — planet-list emits missing**: `PlanetListBo.{add,delete}` never
+  pushed `planet_user_list_change` (Java emits on both).
+- **RUST — OWNED_ONLY never enforced**: `check_units_can_do_mission` only
+  rejected `NONE`; the OWNED_ONLY branch (target planet must belong to the
+  sender, `EntityCanDoMissionChecker`) was missing entirely — a gameplay bug,
+  Rust accepted gathers Java rejects.
+- **RUST — registration check order burned ids**: the unit-type/cross-galaxy
+  checks ran AFTER the traveling stacks were INSERTed; a rejected
+  registration consumed obtained_units auto-increment ids (Java checks before
+  `saveAll`) — byte-visible as a +1 id skew in every later ws payload.
+- **RUST — return-to-lost-planet stranded units**: the return processor's
+  non-owned fallback parked stacks mission-less; Java's `moveUnit` parks them
+  under a DEPLOYED marker (reused `deploy::move_unit_to_foreign_planet`), and
+  its requirement triggers are gated on still owning the planet.
+- **RUST — give_up missing emit** (closed by inspection, still no scenario:
+  the path needs a mission to THROW 3× — not deterministically inducible
+  black-box): registerReturnMission's emitLocalMissionChangeAfterCommit
+  equivalent added to `MissionBaseService::give_up`.
+- **HARNESS — mint_jwt hardcoded `rusttester` for every user id**: the
+  backends sync the user entity's username/email FROM THE TOKEN (the account
+  system is the source of truth — `UserSessionService.setUsername`), so
+  Java renamed user 2 inside its session and every username-bearing DTO
+  leaked it. Claims now read user_storage per user id.
+- **NORMALIZER — terminationDate precision**: Java's string precision is
+  Hibernate-session-dependent (L1-cached entity serializes millis, fresh DB
+  read is second-truncated; observed attack-flow MS vs explore-flow S on the
+  same code path). Same class as the R2 lazy-presence ruling, and ruling #2
+  says the frontend ignores terminationDate → normalized to `<TS-STR>`
+  (pendingMillis and every other date keep precision-preserving placeholders).
+
+Also: alliance scenarios need `Given configuration "DISABLED_FEATURE_ALLIANCE"
+is "FALSE"` (seed ships with the feature off); dump_mission_state.sh now dumps
+alliances/alliance_join_request/planet_list + user_storage.alliance_id.
+
 ## SWEEP 5 (2026-07-10 night)
 
 **LAST RED ✅ FIXED — conquest `enemy_mission_change` frame counts** (scenario

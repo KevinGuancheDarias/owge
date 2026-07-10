@@ -47,7 +47,11 @@ QUERIES[obtained_units]="SELECT id,user_id,unit_id,count,source_planet,target_pl
 QUERIES[missions]="SELECT id,user_id,type,required_time,primary_resource,secondary_resource,required_energy,source_planet,target_planet,related_mission,report_id,attemps,resolved,invisible FROM missions WHERE user_id IN ($USERS) ORDER BY user_id,type,id;"
 QUERIES[mission_reports]="SELECT id,user_id,is_enemy,json_body FROM mission_reports WHERE user_id IN ($USERS) ORDER BY user_id,id;"
 QUERIES[mission_information]="SELECT mi.id,mi.mission_id,mi.relation_id,mi.value FROM mission_information mi JOIN missions m ON m.id=mi.mission_id WHERE m.user_id IN ($USERS) ORDER BY mi.mission_id,mi.relation_id,mi.id;"
-QUERIES[user_storage]="SELECT id,points,primary_resource,secondary_resource,energy FROM user_storage WHERE id IN ($USERS) ORDER BY id;"
+QUERIES[user_storage]="SELECT id,points,primary_resource,secondary_resource,energy,alliance_id FROM user_storage WHERE id IN ($USERS) ORDER BY id;"
+QUERIES[alliances]="SELECT id,name,description,owner_id FROM alliances ORDER BY id;"
+# request_date is wall-clock (differs between passes by construction) — excluded
+QUERIES[alliance_join_request]="SELECT id,alliance_id,user_id FROM alliance_join_request WHERE user_id IN ($USERS) ORDER BY user_id,alliance_id,id;"
+QUERIES[planet_list]="SELECT user_id,planet_id,name FROM planet_list WHERE user_id IN ($USERS) ORDER BY user_id,planet_id;"
 QUERIES[planets]="SELECT id,owner,home FROM planets WHERE id IN ($PLANETS) ORDER BY id;"
 QUERIES[unlocked_relation]="SELECT id,user_id,relation_id FROM unlocked_relation WHERE user_id IN ($USERS) ORDER BY user_id,relation_id,id;"
 QUERIES[active_time_specials]="SELECT id,user_id,time_special_id,state FROM active_time_specials WHERE user_id IN ($USERS) ORDER BY user_id,time_special_id,id;"

@@ -87,6 +87,16 @@ def norm(obj, sortable=True):
         for k, v in obj.items():
             if k in DATEISH and isinstance(v, list):
                 out[k] = "<TS-ARR>"
+            elif k == "terminationDate" and isinstance(v, str):
+                # Precision here is Hibernate-SESSION-dependent on the Java
+                # side: a supplier hitting the L1 cache serializes the
+                # in-memory entity (millis) while a fresh DB read is
+                # second-truncated (observed: attack-flow return missions MS,
+                # explore-flow S — same code path, different session state).
+                # Same nondeterminism class as the R2 lazy-presence ruling,
+                # and ruling #2 says the frontend ignores terminationDate
+                # (pendingMillis is the countdown contract, still asserted).
+                out[k] = "<TS-STR>"
             elif k in DATEISH and isinstance(v, str):
                 out[k] = "<TS-STR-MS>" if "." in v else "<TS-STR-S>"
             elif k in DATEISH and isinstance(v, (int, float)):

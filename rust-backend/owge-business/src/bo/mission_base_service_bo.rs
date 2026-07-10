@@ -89,7 +89,7 @@ impl MissionBaseService {
     ) -> OwgeResult<()> {
         if mission_type.is_unit_mission() {
             // returnMissionRegistrationBo.registerReturnMission(mission, null) — units fly home.
-            crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo::register_return_mission(
+            let return_id = crate::bo::return_mission_registration_bo::ReturnMissionRegistrationBo::register_return_mission(
                 conn, mission, None,
             )
             .await?;
@@ -97,6 +97,17 @@ impl MissionBaseService {
                 .bind(mission.id)
                 .execute(&mut *conn)
                 .await?;
+            // Java's doRegisterReturnMission ends with
+            // emitLocalMissionChangeAfterCommit(returnMission); Rust's
+            // register_return_mission leaves the emit to its caller, and this
+            // caller had none (the old "rare path, open" backlog item). Same
+            // direct-emit pattern as the reschedule branch below.
+            crate::bo::MissionEventEmitter::emit_local_mission_change(
+                &mut *conn,
+                return_id,
+                mission.user_id.unwrap_or_default(),
+            )
+            .await?;
         } else if mission_type == MissionType::BuildUnit {
             // obtainedUnitModificationBo.deleteByMissionId(mission.getId()); then delete the mission.
             sqlx::query("DELETE FROM obtained_units WHERE mission_id = ?")

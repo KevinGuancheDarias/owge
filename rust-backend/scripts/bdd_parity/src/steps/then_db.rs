@@ -23,7 +23,7 @@ const TABLE_WHITELIST: &[&str] = &[
     "obtained_unit_temporal_information",
     "explored_planets",
     "alliances",
-    "alliance_join_requests",
+    "alliance_join_request",
 ];
 
 /// Parse the `<col>=<val> and <col> is null and …` predicate chain into a safe

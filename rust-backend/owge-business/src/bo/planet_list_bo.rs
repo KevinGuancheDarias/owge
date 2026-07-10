@@ -117,6 +117,8 @@ impl PlanetListBo {
                 .execute(&mut *conn)
                 .await?;
         }
+        // Java myAdd's emitChangeToUser(user): push the updated list.
+        crate::bo::realtime_emitter::emit_planet_user_list_change(&mut *conn, user_id).await?;
         Ok(())
     }
 
@@ -131,6 +133,8 @@ impl PlanetListBo {
             .bind(planet_id)
             .execute(&mut *conn)
             .await?;
+        // Java myDelete's emitChangeToUser(user).
+        crate::bo::realtime_emitter::emit_planet_user_list_change(&mut *conn, user_id).await?;
         Ok(())
     }
 

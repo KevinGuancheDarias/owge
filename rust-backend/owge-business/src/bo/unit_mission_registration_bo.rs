@@ -113,12 +113,19 @@ impl UnitMissionRegistrationBo {
         // live Java deployment too, so it is an intentional no-op in the port.
         let _ = is_deploy;
 
-        // (4) materialise the per-mission obtained_units (carrier + stored).
-        let mission_units = manage_units_registration(&mut tx, &loaded, &mission).await?;
+        // (4) unit-type / speed-group + cross-galaxy checks — BEFORE the
+        // traveling stacks are persisted. Java runs checkUnitsCanDoMission on
+        // the in-memory entities and only saveAll()s them afterwards; checking
+        // after the INSERT burns obtained_units auto-increment ids on a
+        // rejected registration (byte-visible in every later ws payload — the
+        // bdd OWNED_ONLY scenario caught the +1 skew). The source stacks carry
+        // the same unit_id/owner_unit_id the checks look at.
+        let check_units = collect_loaded_units(&loaded);
+        check_units_can_do_mission(&mut tx, &check_units, user, &mission, mission_type).await?;
+        check_cross_galaxy(&mut tx, mission_type, &check_units, &mission).await?;
 
-        // (5) unit-type / speed-group + cross-galaxy checks.
-        check_units_can_do_mission(&mut tx, &mission_units, user, &mission, mission_type).await?;
-        check_cross_galaxy(&mut tx, mission_type, &mission_units, &mission).await?;
+        // (5) materialise the per-mission obtained_units (carrier + stored).
+        let mission_units = manage_units_registration(&mut tx, &loaded, &mission).await?;
 
         // (6) speed-adjusted time, custom duration, invisibility, persist, schedule.
         crate::bo::mission_time_manager_bo::MissionTimeManagerBo::handle_mission_time_calculation(
@@ -794,6 +801,24 @@ async fn find_mission_base_time(
 /// `obtained_units` row per selected stack (and per stored stack), pointing at
 /// the new mission, and return them re-read as [`ObtainedUnit`] for the downstream
 /// checks/time math.
+/// Flatten the loaded (pre-insert) stacks into the shape the registration
+/// checkers read: the source rows already carry unit_id + owner_unit_id
+/// (NULL for carriers, set for stored units), mirroring what Java's checkers
+/// see on the in-memory traveling entities.
+fn collect_loaded_units(loaded: &[LoadedUnit]) -> Vec<ObtainedUnit> {
+    fn push(out: &mut Vec<ObtainedUnit>, unit: &LoadedUnit) {
+        out.push(unit.db_unit.clone());
+        for stored in &unit.stored {
+            push(out, stored);
+        }
+    }
+    let mut out = Vec::new();
+    for unit in loaded {
+        push(&mut out, unit);
+    }
+    out
+}
+
 async fn manage_units_registration(
     conn: &mut MySqlConnection,
     loaded: &[LoadedUnit],
@@ -884,20 +909,21 @@ async fn read_obtained_unit(conn: &mut MySqlConnection, id: u64) -> OwgeResult<O
 async fn check_units_can_do_mission(
     conn: &mut MySqlConnection,
     units: &[ObtainedUnit],
-    _user: &UserStorage,
-    _mission: &Mission,
+    user: &UserStorage,
+    mission: &Mission,
     mission_type: MissionType,
 ) -> OwgeResult<()> {
-    // The full Java check resolves UnitTypeBo.canDoMission + EntityCanDoMissionChecker
-    // against the per-user/per-planet mission-support matrix
-    // (`<missionType>_mission_support` columns on unit_types/speed_impact_groups,
-    // plus requirement gating). Port the column-level guard here; the
-    // requirement/per-planet refinements come with the requirement-engine
-    // integration.
+    // Java resolves UnitTypeBo.canDoMission + EntityCanDoMissionChecker per
+    // involved unit type (and per non-stored unit's speed-impact-group):
+    // ANY => allowed, OWNED_ONLY => the TARGET planet must belong to the
+    // sender, NONE => rejected. (Refinement not yet ported: Java resolves the
+    // speed group through SpeedImpactGroupFinderBo.findApplicable gameplay
+    // inheritance; the unit's own FK is used here.)
     let column = mission_support_column(mission_type);
     let Some(column) = column else {
         return Ok(());
     };
+    let target_planet = mission.target_planet.unwrap_or_default();
 
     for unit in units {
         // Unit type support.
@@ -908,7 +934,7 @@ async fn check_units_can_do_mission(
         .bind(unit.unit_id)
         .fetch_optional(&mut *conn)
         .await?;
-        if matches!(type_supports, Some(Some(ref v)) if v == "NONE") {
+        if !mission_support_allows(conn, type_supports.flatten(), user.id, target_planet).await? {
             return Err(OwgeError::InvalidInput(
                 "At least one unit type doesn't support the specified mission.... don't try it \
                  dear hacker, you can't defeat the system, but don't worry nobody can"
@@ -925,7 +951,9 @@ async fn check_units_can_do_mission(
             .bind(unit.unit_id)
             .fetch_optional(&mut *conn)
             .await?;
-            if matches!(group_supports, Some(Some(ref v)) if v == "NONE") {
+            if !mission_support_allows(conn, group_supports.flatten(), user.id, target_planet)
+                .await?
+            {
                 return Err(OwgeError::InvalidInput(
                     "At least one unit speed group doesn't support the specified mission"
                         .to_string(),
@@ -934,6 +962,21 @@ async fn check_units_can_do_mission(
         }
     }
     Ok(())
+}
+
+/// `EntityCanDoMissionChecker.canDoMission` support-enum evaluation. A NULL
+/// column behaves like the schema default (`ANY`).
+async fn mission_support_allows(
+    conn: &mut MySqlConnection,
+    support: Option<String>,
+    user_id: i32,
+    target_planet_id: i64,
+) -> OwgeResult<bool> {
+    Ok(match support.as_deref() {
+        Some("NONE") => false,
+        Some("OWNED_ONLY") => is_of_user_property(conn, user_id, target_planet_id).await?,
+        _ => true, // ANY or NULL (schema default is ANY)
+    })
 }
 
 /// Maps a mission type to the `*_mission_support` column on `unit_types` /

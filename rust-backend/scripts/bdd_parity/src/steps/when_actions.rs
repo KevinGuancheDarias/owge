@@ -20,7 +20,7 @@ fn backend(world: &BddWorld) -> &crate::support::backends::Backend {
 /// Start ws_capture.js for every registered user (idempotent; called by every
 /// When). Waits for each capture's `authentication` frame so no delivery is
 /// missed.
-async fn ensure_ws_captures(world: &mut BddWorld) {
+pub(crate) async fn ensure_ws_captures(world: &mut BddWorld) {
     if ws::artifacts_dir().is_none() {
         return; // bare `cargo run` debugging without the runner
     }
@@ -193,6 +193,148 @@ async fn user_attempts_mission(
     unit: i64,
 ) {
     register_mission(world, user, &mission_type, source, target, count, unit, false).await;
+}
+
+/// Register a unit mission and FREEZE it in flight (no resolution) so the
+/// scenario can mutate world state mid-flight (e.g. flip the source planet's
+/// owner before a cancel/return). The mission's termination_date is rewound
+/// like fire_and_await_mission does, so a later cancel clamps remaining time
+/// to 0 and computes a deterministic full required_time for the return
+/// (the D15 wall-clock lesson).
+#[when(regex = r"^user (\d+) launches an? ([A-Z_]+) mission from planet (\d+) to planet (\d+) with (\d+) units? of id (\d+)$")]
+async fn user_launches_mission(
+    world: &mut BddWorld,
+    user: i64,
+    mission_type: String,
+    source: i64,
+    target: i64,
+    count: i64,
+    unit: i64,
+) {
+    world.captured_users.insert(user);
+    ensure_ws_captures(world).await;
+    let jwt = rest::mint_jwt(&world.db, user).await;
+    let body = serde_json::json!({
+        "userId": user,
+        "sourcePlanetId": source,
+        "targetPlanetId": target,
+        "involvedUnits": [{"id": unit, "count": count}],
+    });
+    let verb = mission_verb(&mission_type);
+    let (status, response) =
+        rest::post_json(backend(world), &jwt, &format!("game/mission/{verb}"), &body).await;
+    world.last_response = Some((status, response.clone()));
+    assert!(
+        (200..300).contains(&status),
+        "POST game/mission/{verb} returned HTTP {status}: {response}"
+    );
+    let mission_id: i64 = sqlx::query_scalar(
+        "SELECT CAST(MAX(id) AS SIGNED) FROM missions WHERE user_id = ? AND resolved = 0",
+    )
+    .bind(user)
+    .fetch_one(&world.db)
+    .await
+    .expect("read back launched mission id");
+    world.created_missions.push(mission_id);
+    sqlx::query(
+        "UPDATE scheduled_tasks SET execution_time = DATE_ADD(NOW(6), INTERVAL 1 HOUR) \
+         WHERE task_name = 'mission-run' AND task_instance = ?",
+    )
+    .bind(mission_id.to_string())
+    .execute(&world.db)
+    .await
+    .expect("freeze launched mission task");
+    sqlx::query(
+        "UPDATE missions SET termination_date = DATE_SUB(NOW(6), INTERVAL 5 SECOND) WHERE id = ?",
+    )
+    .bind(mission_id)
+    .execute(&world.db)
+    .await
+    .expect("rewind launched mission termination_date");
+    tokio::time::sleep(Duration::from_secs(1)).await;
+}
+
+/// Nudge the TIME_SPECIAL_EFFECT_END db-scheduler task of the user's active
+/// row for this time special, then poll for the RECHARGE transition.
+#[when(expr = "the time special {int} effect of user {int} ends")]
+async fn time_special_effect_ends(world: &mut BddWorld, time_special: i64, user: i64) {
+    ensure_ws_captures(world).await;
+    nudge_time_special_event(world, time_special, user, "TIME_SPECIAL_EFFECT_END", |state| {
+        state.as_deref() == Some("RECHARGE")
+    })
+    .await;
+}
+
+/// Nudge TIME_SPECIAL_IS_READY: the recharge finished, the active row is
+/// deleted by the handler.
+#[when(expr = "the time special {int} of user {int} becomes ready")]
+async fn time_special_becomes_ready(world: &mut BddWorld, time_special: i64, user: i64) {
+    ensure_ws_captures(world).await;
+    nudge_time_special_event(world, time_special, user, "TIME_SPECIAL_IS_READY", |state| {
+        state.is_none()
+    })
+    .await;
+}
+
+/// Shared nudge/poll for the two time-special scheduled events. `done` judges
+/// the polled `active_time_specials.state` (None = row deleted).
+async fn nudge_time_special_event(
+    world: &BddWorld,
+    time_special: i64,
+    user: i64,
+    task_name: &str,
+    done: impl Fn(Option<String>) -> bool,
+) {
+    let active_id: Option<i64> = sqlx::query_scalar(
+        "SELECT CAST(id AS SIGNED) FROM active_time_specials \
+         WHERE user_id = ? AND time_special_id = ?",
+    )
+    .bind(user)
+    .bind(time_special)
+    .fetch_optional(&world.db)
+    .await
+    .expect("find active_time_specials row");
+    let Some(active_id) = active_id else {
+        panic!("user {user} has no active row for time special {time_special}");
+    };
+    let nudge = format!(
+        "UPDATE scheduled_tasks \
+         SET execution_time = DATE_SUB(NOW(6), INTERVAL 5 SECOND), picked = 0 \
+         WHERE task_name = '{task_name}' AND task_instance = ?"
+    );
+    let deadline = std::time::Instant::now() + MISSION_RESOLVE_TIMEOUT;
+    loop {
+        sqlx::query(&nudge)
+            .bind(active_id.to_string())
+            .execute(&world.db)
+            .await
+            .expect("nudge time-special scheduled task");
+        let state: Option<String> = sqlx::query_scalar(
+            "SELECT state FROM active_time_specials WHERE id = ?",
+        )
+        .bind(active_id)
+        .fetch_optional(&world.db)
+        .await
+        .expect("poll active_time_specials state");
+        if done(state) {
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            return;
+        }
+        if std::time::Instant::now() >= deadline {
+            let rows = dump_rows(
+                world,
+                &format!(
+                    "SELECT * FROM scheduled_tasks WHERE task_name = '{task_name}'"
+                ),
+            )
+            .await;
+            panic!(
+                "{task_name} for active_time_specials id {active_id} did not fire within \
+                 {MISSION_RESOLVE_TIMEOUT:?}; tasks: {rows:#?}"
+            );
+        }
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
 }
 
 #[when(regex = r"^user (\d+) (builds|attempts to build) (\d+) units? of id (\d+) on planet (\d+)$")]

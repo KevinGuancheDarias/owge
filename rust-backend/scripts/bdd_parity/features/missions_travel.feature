@@ -107,3 +107,17 @@ Feature: Mission travel — deploy, establish-base edge cases, and returns
     When user 2 attempts an ESTABLISH_BASE mission from planet 1004 to planet 1234 with 5 units of id 10
     Then the request is rejected with HTTP status 400
     And planet 1234 has no owner
+
+  Scenario: Units returning to a planet lost mid-flight park as a DEPLOYED stack
+    # covers the ReturnMissionProcessor non-owned branch (inventory:
+    # "return_mission non-owned fallback"): the return lands on a planet the
+    # user no longer owns, so moveUnit's non-owned branch parks the stack
+    # under a DEPLOYED marker mission — exactly like a foreign deploy
+    Given user 1 has 5 units of id 10 on planet 1003
+    When user 1 launches an ESTABLISH_BASE mission from planet 1003 to planet 1234 with 5 units of id 10
+    And user 1 cancels their latest mission
+    Given planet 1003 is owned by user 2
+    When the RETURN_MISSION mission of user 1 completes
+    Then table obtained_units has a row where user_id=1 and unit_id=10 and target_planet=1003 and count=5 and mission_id is not null
+    And table missions has a row where user_id=1 and type_code=DEPLOYED and target_planet=1003
+    And planet 1003 is owned by user 2
