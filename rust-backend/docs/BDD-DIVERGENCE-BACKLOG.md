@@ -1,5 +1,34 @@
 # BDD parity — divergence backlog
 
+## SWEEP 4 (endgame, 2026-07-10 20:16, artifacts `/tmp/bdd_parity_runs/20260710_201632`)
+
+37 scenarios: JAVA_SPEC 37 ✅ · RUST_SPEC 37 ✅ · **PARITY 36 ✅ / 1 🔴**
+(day recap: sweep 2 was 18✅ → sweep 3 29✅ → sweep 4 36✅).
+Landed since sweep 3: R4 (unit_build + build-task freeze), R3 (establish-base
+emit block), R1 (slim specialLocation + SpecialLocationDto skips + enemy
+storedUnits/RG), R5 (JAVA FIXED: startAttack emits moved after-commit —
+mid-transaction suppliers raced the commit), R2 ruling (lazy-association
+presence normalized: nested speedImpactGroup.requirementsGroups +
+planet_owned_change specialLocation lazy fields), obtained_unit_change slim
+specialLocation hydration, attackInformation userInfo.canAlterTwitchState +
+unit.speedImpactGroup.
+
+### LAST RED — conquest `enemy_mission_change` frame counts (bounded, next session)
+java user1(conqueror) [empty,empty] vs rust [empty]; java user2(old owner)
+[CONQUEST, empty] vs rust [CONQUEST, empty, empty]:
+- Rust emits ONE EXTRA post-resolution frame to the old owner: both the
+  `DeferredEmit::Attack` block AND `ConquestSuccess`'s old-owner branch fire
+  `enemy_missions_change`; Java's attack-block emit is CONDITIONAL
+  (`!usersWithDeletedMissions.isEmpty() || usersWithChangedCounts.size()>1`,
+  AttackMissionManagerBo.java startAttack) and doesn't fire in this combat —
+  port the condition into the Attack emit drain.
+- Rust MISSES one frame to the new owner: Java emits enemy_mission_change to
+  user1 twice post-resolution (one is `definePlanetAsOwnedBy`'s
+  `emitEnemyMissionsChange(owner)` — carried by ConquestSuccess; identify the
+  second's source — candidates: `emitLocalMissionChange`'s
+  `emitEnemyMissionsChange(mission)` leg when the mission is visible, or the
+  updatePoints altered-users block) and mirror it.
+
 ## SWEEP 3 (post D16/D17/D10/D19, 2026-07-10 17:35, artifacts `/tmp/bdd_parity_runs/20260710_173518`)
 
 37 scenarios: JAVA_SPEC 37 ✅ · RUST_SPEC 37 ✅ · **PARITY 29 ✅ / 8 🔴**

@@ -109,24 +109,32 @@ public class AttackMissionManagerBo {
         ).toList()));
         doAttack(attackInformation);
         updatePoints(attackInformation);
+        // The websocket emits are deferred to AFTER the mission transaction
+        // commits (the project-wide emitter convention, and what updatePoints
+        // below already does): they used to fire mid-transaction, so their
+        // payload suppliers raced the commit and could serve the pre-resolution
+        // state — e.g. a conquest still listed as running in unit_mission_change
+        // (caught by the bdd_parity harness). Only the emits move: the
+        // changed-counts pruning stays synchronous because the loop below
+        // iterates the pruned set.
         attackInformation.getUsersWithDeletedMissions().forEach(userId -> {
-            missionEventEmitterBo.emitUnitMissions(userId);
+            missionEventEmitterBo.emitUnitMissionsAfterCommit(userId);
             improvementBo.clearSourceCache(users.get(userId).getUser(), obtainedUnitImprovementCalculationService);
-            userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
+            transactionUtilService.doAfterCommit(() -> userEventEmitterBo.emitUserData(userStorageRepository.getById(userId)));
             attackInformation.getUsersWithChangedCounts().remove(userId);
         });
         var targetPlanet = attackInformation.getTargetPlanet();
         attackInformation.getUsersWithChangedCounts().forEach(userId -> {
             if (targetPlanet.getOwner() != null && targetPlanet.getOwner().getId().equals(userId)) {
-                obtainedUnitEventEmitter.emitObtainedUnits(userStorageRepository.getById(userId));
+                obtainedUnitEventEmitter.emitObtainedUnitsAfterCommit(userStorageRepository.getById(userId));
                 if (!attackInformation.getUsersWithDeletedMissions().isEmpty()
                         || attackInformation.getUsersWithChangedCounts().size() > 1) {
-                    missionEventEmitterBo.emitEnemyMissionsChange(targetPlanet.getOwner());
+                    transactionUtilService.doAfterCommit(() -> missionEventEmitterBo.emitEnemyMissionsChange(targetPlanet.getOwner()));
                 }
             }
             improvementBo.clearSourceCache(users.get(userId).getUser(), obtainedUnitImprovementCalculationService);
-            missionEventEmitterBo.emitUnitMissions(userId);
-            userEventEmitterBo.emitUserData(userStorageRepository.getById(userId));
+            missionEventEmitterBo.emitUnitMissionsAfterCommit(userId);
+            transactionUtilService.doAfterCommit(() -> userEventEmitterBo.emitUserData(userStorageRepository.getById(userId)));
         });
         attackEventEmitter.emitAttackEnd(attackInformation);
     }

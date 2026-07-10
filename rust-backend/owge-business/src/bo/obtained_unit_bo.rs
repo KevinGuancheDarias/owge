@@ -178,6 +178,39 @@ struct ObtainedUnitJoinedRow {
     temporal_information: Option<TemporalInformationRow>,
 }
 
+/// The SLIM specialLocation for the planet carrying it (assigned planet = the
+/// planet pointing at the location) — the shape Java's NON_NULL mapper leaves
+/// when the location's lazy galaxy/image/improvement were never initialized,
+/// which is always the case on the `unit_obtained_change` payload (R-class/D19).
+async fn load_slim_special_location(
+    conn: &mut MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Option<crate::dto::special_location::SpecialLocationDto>> {
+    let row: Option<(u16, String, Option<String>, u64, Option<String>)> = sqlx::query_as(
+        "SELECT sl.id, sl.name, sl.description, p.id, p.name \
+           FROM planets p \
+           JOIN special_locations sl ON sl.id = p.special_location_id \
+          WHERE p.id = ?",
+    )
+    .bind(planet_id)
+    .fetch_optional(&mut *conn)
+    .await?;
+    Ok(row.map(|(id, name, description, assigned_planet_id, assigned_planet_name)| {
+        crate::dto::special_location::SpecialLocationDto {
+            id,
+            name,
+            description: description.unwrap_or_default(),
+            image: None,
+            image_url: None,
+            improvement: None,
+            galaxy_id: None,
+            galaxy_name: None,
+            assigned_planet_id: Some(assigned_planet_id),
+            assigned_planet_name,
+        }
+    }))
+}
+
 /// Mirrors `model::planet::planet_dto_from_parts` — both `SourcePlanetRow` and
 /// `TargetPlanetRow` decode to the same [`PlanetDto`] shape.
 #[allow(clippy::too_many_arguments)]
@@ -444,7 +477,18 @@ impl ObtainedUnitBo {
             // `HiddenUnitBo.isHiddenUnitInternal`: is_invisible = DB flag OR
             // an ACTIVE time-special DO_HIDE rule matches this unit.
 
-            let dto = row.to_dto(&mut *conn).await?;
+            let mut dto = row.to_dto(&mut *conn).await?;
+            // Java's PlanetDto mapping carries the planet's specialLocation in
+            // the SLIM shape on this payload (`unit_obtained_change`); the
+            // joined row here doesn't fetch it, so hydrate it per planet
+            // (R-class/D19; galaxy/image/improvement stay lazy-unset in Java
+            // and are omitted by NON_NULL).
+            if let Some(sp) = dto.source_planet.as_mut() {
+                sp.special_location = load_slim_special_location(&mut *conn, sp.id).await?;
+            }
+            if let Some(tp) = dto.target_planet.as_mut() {
+                tp.special_location = load_slim_special_location(&mut *conn, tp.id).await?;
+            }
             dtos.push(dto);
         }
         Ok(dtos)

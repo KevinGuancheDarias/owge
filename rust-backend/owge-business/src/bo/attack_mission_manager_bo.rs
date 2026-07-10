@@ -97,6 +97,10 @@ struct CombatUnitRow {
     unit_storage_capacity: Option<u32>,
     unit_has_to_display_in_requirements: i8,
     unit_cloned_improvements: i8,
+    /// The unit's own `speed_impact_group_id` FK — resolved to the shallow DTO
+    /// for the report's `attackInformation[].units[].obtainedUnit.unit`
+    /// (Java's session has the association initialized on this path; R-class/D19).
+    unit_speed_impact_group_id: Option<u16>,
 
     // --- owning user ---
     username: String,
@@ -136,6 +140,8 @@ impl CombatUnitRow {
             is_invisible: self.unit_is_invisible != 0,
             stored_weight: self.unit_stored_weight,
             storage_capacity: self.unit_storage_capacity,
+            // Filled by `to_attack_information_json` (needs a connection).
+            speed_impact_group: None,
         }
     }
 }
@@ -330,7 +336,8 @@ impl AttackMissionManagerBo {
             requirement_emits,
             capture_report_pairs: info.capture_report_pairs.clone(),
         };
-        Ok((Self::to_attack_information_json(&info), emit_data))
+        let attack_information_json = Self::to_attack_information_json(&mut *conn, &info).await?;
+        Ok((attack_information_json, emit_data))
     }
 
     /// `buildAttackInformation` — assemble every combat stack involved at the
@@ -1677,7 +1684,10 @@ impl AttackMissionManagerBo {
     /// objects `{ userInfo, earnedPoints, units: [{ initialCount, finalCount,
     /// obtainedUnit }] }`. The frontend reads this verbatim, so the keys match the
     /// Java map exactly.
-    fn to_attack_information_json(info: &AttackInformation) -> Value {
+    async fn to_attack_information_json(
+        conn: &mut MySqlConnection,
+        info: &AttackInformation,
+    ) -> OwgeResult<Value> {
         let mut users_json = Vec::new();
         // Java builds `attackInformation` by iterating `AttackInformation.users`,
         // a HashMap<Integer, ...>; for the small user ids in play its iteration is
@@ -1692,6 +1702,13 @@ impl AttackMissionManagerBo {
             let mut units_json = Vec::new();
             for &idx in &user.unit_indices {
                 let stack = &info.units[idx];
+                // Java's report serializes the unit's own speedImpactGroup
+                // (shallow — no requirementsGroups) on this path (R-class/D19).
+                let mut unit_dto = stack.row.to_unit_dto();
+                if let Some(sig_id) = stack.row.unit_speed_impact_group_id {
+                    unit_dto.speed_impact_group =
+                        crate::bo::SpeedImpactGroupBo::find_by_id(&mut *conn, sig_id).await?;
+                }
                 // `obtainedUnit.count` mirrors the ObtainedUnit ENTITY's count at
                 // report-build time, which is NOT always the final count: Java
                 // updates the entity via `saveWithChange` only for SURVIVING stacks
@@ -1708,7 +1725,7 @@ impl AttackMissionManagerBo {
                     "finalCount": stack.final_count,
                     "obtainedUnit": {
                         "id": stack.row.id,
-                        "unit": stack.row.to_unit_dto(),
+                        "unit": unit_dto,
                         "count": report_count,
                         "userId": stack.row.user_id,
                         "username": stack.row.username,
@@ -1716,12 +1733,15 @@ impl AttackMissionManagerBo {
                 }));
             }
             users_json.push(json!({
-                "userInfo": { "id": user.user_id, "username": user.username },
+                // canAlterTwitchState: Java's fresh UserStorageDto field
+                // initializer (`= false`) survives NON_NULL — same class as
+                // the report's senderUser (D3).
+                "userInfo": { "id": user.user_id, "username": user.username, "canAlterTwitchState": false },
                 "earnedPoints": user.earned_points,
                 "units": units_json,
             }));
         }
-        Value::Array(users_json)
+        Ok(Value::Array(users_json))
     }
 }
 
@@ -1835,6 +1855,7 @@ const SELECT_COMBAT_UNIT_BASE: &str = "\
            u.stored_weight AS unit_stored_weight, u.storage_capacity AS unit_storage_capacity, \
            u.display_in_requirements AS unit_has_to_display_in_requirements, \
            u.cloned_improvements AS unit_cloned_improvements, \
+           u.speed_impact_group_id AS unit_speed_impact_group_id, \
            us.username AS username, us.alliance_id AS user_alliance_id \
     FROM obtained_units ou \
     JOIN units u ON u.id = ou.unit_id \
@@ -1875,6 +1896,7 @@ const SELECT_DEFENDERS_SQL: &str = "\
            u.stored_weight AS unit_stored_weight, u.storage_capacity AS unit_storage_capacity, \
            u.display_in_requirements AS unit_has_to_display_in_requirements, \
            u.cloned_improvements AS unit_cloned_improvements, \
+           u.speed_impact_group_id AS unit_speed_impact_group_id, \
            us.username AS username, us.alliance_id AS user_alliance_id \
     FROM obtained_units ou \
     JOIN units u ON u.id = ou.unit_id \

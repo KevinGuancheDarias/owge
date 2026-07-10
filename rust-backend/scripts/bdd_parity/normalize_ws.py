@@ -35,6 +35,19 @@ NORMALIZATIONS, each justified, not suppressions):
    tolerated class as ws_verify; mission COSTS are asserted on the missions
    table rows instead. Scoped to the user_data_change payload only: the same
    key names on upgrades/units are prices and still diff.
+5. the lazy-association PRESENCE class (R2, Kevin's ruling 2026-07-10): the
+   depth of these nested graphs is per-session Hibernate hydration state and
+   Java itself is not reproducible run-to-run (same scenario mixed deep and
+   shallow frames; planet_owned_change specialLocation flipped rich/slim
+   between two identical fresh-JVM runs) — byte-porting is impossible by
+   construction, so BOTH sides are normalized:
+   (a) `requirementsGroups` is dropped from any object sitting under a
+       `speedImpactGroup` key (values inside, when both sides carry them, no
+       longer compare — the top-level `speed_impact_group_unlocked_change`
+       payload is NOT touched and still asserts them);
+   (b) `planet_owned_change` specialLocation drops its lazy fields
+       (galaxyId/galaxyName/image/imageUrl/improvement) — the slim identity
+       core {id,name,description,assignedPlanet*} still compares.
 
 Envelope fields (status, lastSent presence) are deliberately NOT normalized —
 Rust adding them where Java doesn't is a real, reportable divergence.
@@ -64,6 +77,10 @@ ORDERED_VALUE_EVENTS = {
 ORDERED_KEYS = {"reports"}
 
 
+# R2: lazy fields dropped from planet_owned_change specialLocation objects.
+SL_LAZY_FIELDS = ("galaxyId", "galaxyName", "image", "imageUrl", "improvement")
+
+
 def norm(obj, sortable=True):
     if isinstance(obj, dict):
         out = {}
@@ -76,6 +93,10 @@ def norm(obj, sortable=True):
                 out[k] = "<TS-NUM-S>" if v % 1000 == 0 else "<TS-NUM-MS>"
             elif k in NUMISH and isinstance(v, (int, float)):
                 out[k] = "<NUM>"
+            elif k == "speedImpactGroup" and isinstance(v, dict):
+                # R2(a): requirementsGroups presence here is session noise.
+                inner = {ik: iv for ik, iv in v.items() if ik != "requirementsGroups"}
+                out[k] = norm(inner, sortable)
             else:
                 out[k] = norm(v, sortable and k not in ORDERED_KEYS)
         return out
@@ -104,6 +125,13 @@ for line in sys.stdin:
         for k in ("primaryResource", "secondaryResource"):
             if isinstance(payload["value"].get(k), (int, float)):
                 payload["value"][k] = "<NUM>"
+    if event == "planet_owned_change" and isinstance(payload.get("value"), list):
+        # R2(b): specialLocation's lazy fields are session noise on this event.
+        for planet in payload["value"]:
+            sl = planet.get("specialLocation") if isinstance(planet, dict) else None
+            if isinstance(sl, dict):
+                for k in SL_LAZY_FIELDS:
+                    sl.pop(k, None)
     print(
         json.dumps(
             norm(frame, sortable=event not in ORDERED_VALUE_EVENTS),

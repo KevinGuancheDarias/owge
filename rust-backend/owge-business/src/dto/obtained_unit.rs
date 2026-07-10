@@ -71,6 +71,11 @@ pub struct ObtainedUnitUnitDto {
     pub stored_weight: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub storage_capacity: Option<u32>,
+    /// The unit's own speed impact group (shallow, no requirementsGroups) —
+    /// only the attack-report path fills it (R-class/D19); everywhere else it
+    /// stays `None` and is omitted like Java's uninitialized association.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub speed_impact_group: Option<crate::dto::speed_impact_group::SpeedImpactGroupDto>,
 }
 
 /// Compute the public image URL the way Java's `ImageStoreBo.computeImageUrl`
@@ -130,6 +135,7 @@ impl ObtainedUnitUnitDto {
             is_invisible,
             stored_weight,
             storage_capacity,
+            speed_impact_group: None,
         }
     }
 }
