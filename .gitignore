@@ -7,3 +7,4 @@
 *.iml
 .playwright-mcp
 tmp
+__pycache__/
