@@ -75,6 +75,44 @@ mysql_q()    { docker exec -i "$DB_CONTAINER" mysql -u"$DB_USER" -p"$DB_PASS" "$
 
 set_flags() {
   mysql_q "INSERT INTO configuration (name,value) VALUES ('ATTACK_DETERMINISTIC_RNG','TRUE') ON DUPLICATE KEY UPDATE value='TRUE';" || true
+  # Admin JWT secret for the per-scenario cache flush (must exist BEFORE the
+  # baseline dump so restores keep it and Java's boot-time @PostConstruct read
+  # stays valid for the whole run). INSERT IGNORE: never clobber a dev value.
+  mysql_q "INSERT IGNORE INTO configuration (name,value) VALUES ('ADMIN_JWT_SECRET','bdd_parity_admin_secret');" || true
+}
+
+# HS256 admin JWT over the ADMIN_JWT_SECRET configuration row — same claim shape
+# as AdminUserBo.createToken ({sub, iat, exp, data}). The admin/** filter only
+# validates the signature; /admin/cache/drop-all does no admin_users lookup.
+mint_admin_jwt() {
+  local secret
+  secret=$(mysql_q "SELECT value FROM configuration WHERE name='ADMIN_JWT_SECRET';")
+  [ -n "$secret" ] || { echo "ADMIN_JWT_SECRET missing" >&2; return 1; }
+  python3 - "$secret" <<'PYEOF'
+import base64, hashlib, hmac, json, sys, time
+def b64(b): return base64.urlsafe_b64encode(b).rstrip(b'=')
+secret = sys.argv[1].encode()
+now = int(time.time())
+header = b64(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
+payload = b64(json.dumps({
+    "sub": 1, "iat": now, "exp": now + 86400,
+    "data": {"id": 1, "username": "bdd_admin", "email": "bdd@admin.local", "enabled": True},
+}).encode())
+signing = header + b'.' + payload
+sig = b64(hmac.new(secret, signing, hashlib.sha256).digest())
+print((signing + b'.' + sig).decode())
+PYEOF
+}
+
+# DELETE admin/cache/drop-all — clears the taggable cache + improvement sources
+# + requirement-information + socket session caches (the D19 staleness class)
+# without paying the ~40s JVM boot. MUST run AFTER restore_baseline (flush after
+# the data flip, so nothing re-caches pre-restore rows).
+flush_java_caches() {
+  local code
+  code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
+    -H "Authorization: Bearer $ADMIN_JWT" "$JAVA_BASE/admin/cache/drop-all" || true)
+  [ "$code" = "200" ]
 }
 
 # --- baseline: full-DB dump taken ONCE at setup (§5.2: full restore beats
@@ -177,8 +215,14 @@ echo "artifacts: $WORK"
 [ -x "$DRIVER" ] || { echo "driver binary missing: $DRIVER"; exit 1; }
 set_flags
 take_baseline
-# Java now boots fresh inside the per-scenario loop (cold caches per scenario);
-# no global boot needed.
+# One JVM for the whole run: per-scenario cold state comes from the admin
+# cache-flush endpoint (see the loop). OWGE_BDD_FRESH_JVM=1 restores the old
+# boot-per-scenario behavior if cache staleness is ever suspected again.
+ADMIN_JWT=""
+if [ "$BACKENDS" != "rust" ] && [ "${OWGE_BDD_FRESH_JVM:-0}" != "1" ]; then
+  boot_java || exit 1
+  ADMIN_JWT=$(mint_admin_jwt) || exit 1
+fi
 
 # --- main loop -------------------------------------------------------------------
 OVERALL=0
@@ -198,15 +242,30 @@ for i in "${!SCN_FILES[@]}"; do
   # baseline's DROP TABLEs (observed: 40+ min hang). Java sleeps ONLY while
   # the Rust driver runs (the anti-task-stealing window).
   if [ "$BACKENDS" = "java" ] || [ "$BACKENDS" = "both" ]; then
-    # FRESH JVM per scenario (D19 lesson): Java's in-memory taggable caches
-    # survive DB restores — a prior scenario's improvement aggregate leaked
-    # into later scenarios' user_data_change frames as a false PARITY red
-    # (Rust already restarts per scenario, so the staleness was one-sided).
-    # The container is KILLED before the restore, so no frozen connections
-    # can deadlock the baseline's DROP TABLEs.
-    docker rm -f "$JAVA_CONTAINER" >/dev/null 2>&1 || true
-    restore_baseline
-    boot_java || { echo "  JAVA  backend failed to start"; OVERALL=1; continue; }
+    # D19 lesson: Java's in-memory taggable caches survive DB restores — a
+    # prior scenario's improvement aggregate leaked into later scenarios'
+    # user_data_change frames as a false PARITY red. Default: keep ONE JVM and
+    # hit the admin cache-flush endpoint after every restore (sequential
+    # scenarios only — a concurrent scenario would race the shared flush).
+    # OWGE_BDD_FRESH_JVM=1 = old boot-per-scenario mode (~40s/scenario).
+    if [ "${OWGE_BDD_FRESH_JVM:-0}" = "1" ]; then
+      # Container KILLED before the restore, so no frozen connections can
+      # deadlock the baseline's DROP TABLEs.
+      docker rm -f "$JAVA_CONTAINER" >/dev/null 2>&1 || true
+      restore_baseline
+      boot_java || { echo "  JAVA  backend failed to start"; OVERALL=1; continue; }
+    else
+      java_awake      # INVARIANT: Java awake during every restore (see below)
+      restore_baseline
+      if ! flush_java_caches; then
+        # Flush failed (container died?) — fall back to a fresh boot rather
+        # than risk stale caches poisoning the pass.
+        echo "  JAVA  cache flush failed — rebooting the JVM"
+        docker rm -f "$JAVA_CONTAINER" >/dev/null 2>&1 || true
+        boot_java || { echo "  JAVA  backend failed to start"; OVERALL=1; continue; }
+        ADMIN_JWT=$(mint_admin_jwt) || true
+      fi
+    fi
     if driver_pass java "$feature" "$scenario" "$ART/java"; then JAVA_SPEC="✅"; else JAVA_SPEC="🔴"; fi
     dump_state "$ART/java"
     [ "$JAVA_SPEC" = "🔴" ] && sed -n '/✘/,+6p' "$ART/java/driver.log" | sed 's/^/  JAVA  /'

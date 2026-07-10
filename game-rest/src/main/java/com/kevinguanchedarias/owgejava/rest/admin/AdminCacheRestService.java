@@ -5,10 +5,14 @@ import com.kevinguanchedarias.owgejava.business.SocketIoService;
 import com.kevinguanchedarias.owgejava.dao.RequirementInformationDao;
 import com.kevinguanchedarias.taggablecache.manager.TaggableCacheManager;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
+
+import java.util.Optional;
 
 /**
  * Temporary allows to drop all cache entries from admin panel
@@ -26,6 +30,7 @@ public class AdminCacheRestService {
     private final SocketIoService socketIoService;
     private final RequirementInformationDao requirementInformationDao;
     private final TaggableCacheManager taggableCacheManager;
+    private final CacheManager cacheManager;
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -37,5 +42,12 @@ public class AdminCacheRestService {
         improvementBo.getImprovementSources().forEach(improvementBo::clearCacheEntries);
         socketIoService.clearCache();
         taggableCacheManager.clear();
+        // The Spring CacheManager caches too: clearCacheEntries above skips the
+        // Integer keys on purpose (the per-user GroupedImprovement aggregates,
+        // @Cacheable key = "#user.id"), so without this a "drop all" left every
+        // user's improvement aggregate alive.
+        cacheManager.getCacheNames().forEach(
+                name -> Optional.ofNullable(cacheManager.getCache(name)).ifPresent(Cache::clear)
+        );
     }
 }

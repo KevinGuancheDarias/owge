@@ -3,6 +3,7 @@
 
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
+* __Fix:__ the admin panel's "drop caches" action now also clears the per-user improvement aggregates — they were skipped, so stale improvement totals could survive a cache drop until the backend restarted
 * __Improvement:__ Quartz has been removed from the Java backend: time-special expiry/recharge and temporal-unit expiry events now run on the same db-scheduler `scheduled_tasks` table as missions (matching the Rust backend); pending events are converted by migration v1.0.0.sql and the qrtz_* tables are dropped
 * __Fix:__ `RustBackend:` conquering or establishing a base on a planet with a special location now correctly unlocks the units/time specials gated by that special location (previously they never appeared for the new owner)
 * __Fix:__ dates in API and websocket payloads are now consistent ISO strings — LocalDateTime fields (e.g. mission terminationDate) were serialized as [y,m,d,…] arrays, which no client consumes
