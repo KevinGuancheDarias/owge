@@ -211,10 +211,10 @@ struct AttackInformation {
     det_seed: i64,
     /// Per-attack trace sequence counter (starts at 0, increments each draw).
     trace_seq: u64,
-    /// `(captor_user_id, report_id)` for each capture report written at
-    /// `emitAttackEnd`, surfaced so the processor can emit `mission_report_new` +
-    /// `mission_report_count_change` post-commit.
-    capture_report_pairs: Vec<(i32, u64)>,
+    /// `(captor_user_id, report_id, report_date)` for each capture report written
+    /// at `emitAttackEnd`, surfaced so the processor can emit
+    /// `mission_report_new` + `mission_report_count_change` post-commit.
+    capture_report_pairs: Vec<(i32, u64, chrono::NaiveDateTime)>,
 }
 
 impl AttackInformation {
@@ -300,10 +300,10 @@ pub struct AttackEmitData {
     /// changes (`AttackMissionProcessor.triggerUnitRequirementChange`), drained by
     /// the processor after the firing tx commits.
     pub requirement_emits: Vec<RequirementEmit>,
-    /// `(captor_user_id, report_id)` for each capture report written at
-    /// `emitAttackEnd`; the processor emits `mission_report_new` +
+    /// `(captor_user_id, report_id, report_date)` for each capture report written
+    /// at `emitAttackEnd`; the processor emits `mission_report_new` +
     /// `mission_report_count_change` for each after commit.
-    pub capture_report_pairs: Vec<(i32, u64)>,
+    pub capture_report_pairs: Vec<(i32, u64, chrono::NaiveDateTime)>,
 }
 
 pub struct AttackMissionManagerBo;
@@ -1251,7 +1251,7 @@ impl AttackMissionManagerBo {
         conn: &mut MySqlConnection,
         mission: &Mission,
         info: &AttackInformation,
-    ) -> OwgeResult<Vec<(i32, u64)>> {
+    ) -> OwgeResult<Vec<(i32, u64, chrono::NaiveDateTime)>> {
         if info.capture_contexts.is_empty() {
             return Ok(Vec::new());
         }

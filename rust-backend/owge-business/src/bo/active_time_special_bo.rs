@@ -145,18 +145,6 @@ impl ActiveTimeSpecialBo {
         crate::bo::TemporalUnitsBo::grant_on_activation(&mut tx, user_id, time_special_id).await?;
         tx.commit().await?;
 
-        // Requirement-trigger unlock pushes now that the special is ACTIVE.
-        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
-
-        // improvementBo.clearSourceCache(user, this): the new ACTIVE special adds an
-        // improvement source — evict the cache and push user_improvements_change.
-        crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, user_id).await?;
-        // emitTimeSpecialChange(user) + emitIfActivationAffectingUnits — post-commit
-        // websocket pushes (the applicationEventPublisher event remains unported;
-        // requirement-trigger unlock emits are a follow-up).
-        crate::bo::realtime_emitter::emit_time_special_change(&mut *conn, user_id).await?;
-        Self::emit_if_activation_affecting_units(&mut *conn, user_id, time_special_id).await?;
-
         let new_active = ActiveTimeSpecial {
             id: new_id,
             user_id,
@@ -166,6 +154,27 @@ impl ActiveTimeSpecialBo {
             expiring_date,
             ready_date: None,
         };
+
+        // Requirement-trigger unlock pushes now that the special is ACTIVE.
+        crate::bo::realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
+
+        // improvementBo.clearSourceCache(user, this): the new ACTIVE special adds an
+        // improvement source — evict the cache and push user_improvements_change.
+        crate::bo::UserImprovementBo::evict_and_emit(&mut *conn, user_id).await?;
+        // emitTimeSpecialChange(user) + emitIfActivationAffectingUnits — post-commit
+        // websocket pushes (the applicationEventPublisher event remains unported;
+        // requirement-trigger unlock emits are a follow-up). The freshly-inserted
+        // row is passed along because Java's emit serializes the still-managed
+        // entity whose dates keep millisecond precision, while a re-read of the
+        // DATETIME columns would truncate to whole seconds (D16).
+        crate::bo::realtime_emitter::emit_time_special_change_with_fresh(
+            &mut *conn,
+            user_id,
+            new_active.clone(),
+        )
+        .await?;
+        Self::emit_if_activation_affecting_units(&mut *conn, user_id, time_special_id).await?;
+
         Ok(Self::to_dto(new_active))
     }
 

@@ -109,7 +109,10 @@ impl MissionInterceptionManagerBo {
         mission: &Mission,
         report_builder: Option<UnitMissionReportBuilder>,
         interception_information: &InterceptionInformation,
-    ) -> OwgeResult<(Option<UnitMissionReportBuilder>, Vec<(i32, u64)>)> {
+    ) -> OwgeResult<(
+        Option<UnitMissionReportBuilder>,
+        Vec<(i32, u64, chrono::NaiveDateTime)>,
+    )> {
         if interception_information.total_intercepted_units != 0 {
             if let Some(builder) = report_builder {
                 // reportBuilder.withInvolvedUnits(originallyInvolved): the report
@@ -149,7 +152,10 @@ impl MissionInterceptionManagerBo {
         conn: &mut MySqlConnection,
         mission: &Mission,
         interception_information: &InterceptionInformation,
-    ) -> OwgeResult<((i32, u64), Vec<(i32, u64)>)> {
+    ) -> OwgeResult<(
+        (i32, u64, chrono::NaiveDateTime),
+        Vec<(i32, u64, chrono::NaiveDateTime)>,
+    )> {
         // `mission.setResolved(true)` — Java sets it on the entity; the report save
         // below also flips `resolved`, but set it eagerly so the state is correct
         // even if there were no rows to report on.
@@ -189,7 +195,7 @@ impl MissionInterceptionManagerBo {
         mission: &Mission,
         involved: &[ObtainedUnit],
         intercepted_units: &[InterceptedUnitsInformation],
-    ) -> OwgeResult<(i32, u64)> {
+    ) -> OwgeResult<(i32, u64, chrono::NaiveDateTime)> {
         let builder =
             crate::bo::mission_processor::create_report_base(conn, mission, involved).await?;
         let interception_json = Self::build_interception_info_json(conn, intercepted_units).await?;

@@ -62,13 +62,14 @@ impl MissionBaseService {
             Self::give_up(&mut *conn, &mission, mission_type).await?;
             Ok(())
         } else {
-            let (report_user_id, report_id) =
+            let (report_user_id, report_id, report_date) =
                 Self::reschedule(&mut *conn, mission, mission_type).await?;
             // Post-commit emits — the reschedule work has flushed on the same conn.
             crate::bo::realtime_emitter::emit_mission_report_new(
                 &mut *conn,
                 report_user_id,
                 report_id,
+                report_date,
             )
             .await?;
             crate::bo::realtime_emitter::emit_mission_report_count_change(
@@ -119,7 +120,7 @@ impl MissionBaseService {
         conn: &mut MySqlConnection,
         mut mission: Mission,
         mission_type: MissionType,
-    ) -> OwgeResult<(i32, u64)> {
+    ) -> OwgeResult<(i32, u64, chrono::NaiveDateTime)> {
         mission.attemps += 1;
         mission.termination_date = Some(
             crate::bo::mission_time_manager_bo::MissionTimeManagerBo::compute_termination_date(

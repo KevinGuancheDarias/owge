@@ -207,4 +207,33 @@ impl TimeSpecialBo {
     ) -> OwgeResult<Vec<TimeSpecialDto>> {
         Self::find_unlocked_dtos(&mut *conn, user_id).await
     }
+
+    /// [`Self::find_user_status_dtos`] with a just-written `active_time_specials`
+    /// row patched in: the DTO built from the DB re-read carries second-truncated
+    /// DATETIME dates, while Java serializes the still-managed entity whose dates
+    /// keep millisecond precision (D16). Only the row matching `fresh.id` is
+    /// patched — every other row comes from the DB on both backends.
+    pub async fn find_user_status_dtos_with_fresh(
+        conn: &mut MySqlConnection,
+        user_id: i32,
+        fresh: &crate::model::time_special::ActiveTimeSpecial,
+    ) -> OwgeResult<Vec<TimeSpecialDto>> {
+        let mut dtos = Self::find_unlocked_dtos(&mut *conn, user_id).await?;
+        for dto in &mut dtos {
+            if let Some(active) = dto.active_time_special_dto.as_mut() {
+                if active.id == fresh.id {
+                    active.activation_date = millis(fresh.activation_date);
+                    active.expiring_date = millis(fresh.expiring_date);
+                    active.ready_date = fresh.ready_date.map(millis);
+                    let target = if fresh.state == "ACTIVE" {
+                        active.expiring_date
+                    } else {
+                        active.ready_date.unwrap_or(active.expiring_date)
+                    };
+                    active.pending_millis = target - now_millis();
+                }
+            }
+        }
+        Ok(dtos)
+    }
 }

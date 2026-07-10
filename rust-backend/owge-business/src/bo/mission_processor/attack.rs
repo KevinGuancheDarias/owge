@@ -181,10 +181,11 @@ pub async fn process_attack(
             &affected,
         )
         .await?;
-        for (uid, rid) in enemy_pairs {
+        for (uid, rid, rdate) in enemy_pairs {
             emits.push(super::DeferredEmit::MissionReport {
                 user_id: uid,
                 report_id: rid,
+                report_date: rdate,
             });
         }
     }
@@ -196,12 +197,13 @@ pub async fn process_attack(
         let invoker_builder = create_report_base(conn, mission, &[])
             .await?
             .with_attack_information(attack_information.clone());
-        let (report_user_id, report_id) =
+        let (report_user_id, report_id, report_date) =
             MissionReportManagerBo::handle_mission_report_save(conn, mission, invoker_builder)
                 .await?;
         emits.push(super::DeferredEmit::MissionReport {
             user_id: report_user_id,
             report_id,
+            report_date,
         });
     }
 
@@ -213,10 +215,11 @@ pub async fn process_attack(
     }
 
     // Per-captor capture reports (`emitAttackEnd` / HandleUnitCaptureListener).
-    for (uid, rid) in emit_data.capture_report_pairs {
+    for (uid, rid, rdate) in emit_data.capture_report_pairs {
         emits.push(super::DeferredEmit::MissionReport {
             user_id: uid,
             report_id: rid,
+            report_date: rdate,
         });
     }
 

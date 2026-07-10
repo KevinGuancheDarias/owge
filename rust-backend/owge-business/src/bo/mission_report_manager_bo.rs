@@ -29,7 +29,7 @@
 //! (`bool`). `missions.report_id` is `bigint UNSIGNED`, `missions.resolved` is a
 //! bare `tinyint`.
 
-use chrono::Utc;
+use chrono::{NaiveDateTime, Utc};
 use sqlx::MySqlConnection;
 
 use crate::builder::UnitMissionReportBuilder;
@@ -43,14 +43,17 @@ impl MissionReportManagerBo {
     /// the owner's (non-enemy) report, links it onto the mission's `report_id`,
     /// and marks the mission `resolved`.
     ///
-    /// Returns `(owner_user_id, report_id)` so the caller can emit
+    /// Returns `(owner_user_id, report_id, report_date)` so the caller can emit
     /// `mission_report_new` + `mission_report_count_change` post-commit
-    /// (Java `MissionReportBo.save` → `emitOneToUser`).
+    /// (Java `MissionReportBo.save` → `emitOneToUser`). The `report_date` is the
+    /// in-memory insert-time wall clock: Java's emit serializes the still-managed
+    /// entity whose `reportDate` keeps millisecond precision, while the DATETIME
+    /// column truncates to whole seconds — a re-read would lose the millis (D16).
     pub async fn handle_mission_report_save(
         conn: &mut MySqlConnection,
         mission: &Mission,
         report: UnitMissionReportBuilder,
-    ) -> OwgeResult<(i32, u64)> {
+    ) -> OwgeResult<(i32, u64, NaiveDateTime)> {
         // Java: missionReport.setUser(mission.getUser()). A user-bound mission
         // always has an owner; bail loudly rather than write a NULL FK.
         let user_id = mission.user_id.ok_or_else(|| {
@@ -60,7 +63,8 @@ impl MissionReportManagerBo {
             ))
         })?;
 
-        let report_id = Self::insert_report(conn, user_id, report, /* is_enemy = */ false).await?;
+        let (report_id, report_date) =
+            Self::insert_report(conn, user_id, report, /* is_enemy = */ false).await?;
 
         // Java relies on the managed Mission entity being flushed with
         // report = savedReport and resolved = true; we write both explicitly.
@@ -70,7 +74,7 @@ impl MissionReportManagerBo {
             .execute(&mut *conn)
             .await?;
 
-        Ok((user_id, report_id))
+        Ok((user_id, report_id, report_date))
     }
 
     /// Java `handleMissionReportSave(Mission, builder, isEnemy, List<UserStorage>)`
@@ -78,16 +82,18 @@ impl MissionReportManagerBo {
     /// the owner path, these rows are not linked back onto the mission and do
     /// not touch `resolved`.
     ///
-    /// Returns one `(user_id, report_id)` per inserted row so the caller can
-    /// emit `mission_report_new` + `mission_report_count_change` to each
-    /// recipient post-commit (Java routes every report through
-    /// `MissionReportBo.create` → `save` → `emitOneToUser`).
+    /// Returns one `(user_id, report_id, report_date)` per inserted row so the
+    /// caller can emit `mission_report_new` + `mission_report_count_change` to
+    /// each recipient post-commit (Java routes every report through
+    /// `MissionReportBo.create` → `save` → `emitOneToUser`); `report_date` keeps
+    /// the in-memory millis the DATETIME column truncates (see
+    /// [`Self::handle_mission_report_save`]).
     pub async fn handle_mission_report_save_for_users(
         conn: &mut MySqlConnection,
         report: &UnitMissionReportBuilder,
         is_enemy: bool,
         user_ids: &[i32],
-    ) -> OwgeResult<Vec<(i32, u64)>> {
+    ) -> OwgeResult<Vec<(i32, u64, NaiveDateTime)>> {
         // The builder's payload is identical for every recipient (only `id`
         // differs, and the frontend keys off the surrounding row id). Build the
         // JSON once and reuse it; `withId` is purely cosmetic here.
@@ -105,12 +111,13 @@ impl MissionReportManagerBo {
             .bind(is_enemy)
             .execute(&mut *conn)
             .await?;
-            pairs.push((user_id, result.last_insert_id()));
+            pairs.push((user_id, result.last_insert_id(), now));
         }
         Ok(pairs)
     }
 
-    /// Insert one `mission_reports` row and return its AUTO_INCREMENT id.
+    /// Insert one `mission_reports` row and return its AUTO_INCREMENT id plus
+    /// the insert-time wall clock bound to `report_date`.
     ///
     /// Mirrors Java's two-step `save` then `withId(id).buildJson()`: the report
     /// payload embeds its own row id, so we insert an empty body first to obtain
@@ -120,7 +127,7 @@ impl MissionReportManagerBo {
         user_id: i32,
         report: UnitMissionReportBuilder,
         is_enemy: bool,
-    ) -> OwgeResult<u64> {
+    ) -> OwgeResult<(u64, NaiveDateTime)> {
         let now = Utc::now().naive_utc();
         let result = sqlx::query(
             "INSERT INTO mission_reports (json_body, user_id, report_date, is_enemy) \
@@ -140,6 +147,6 @@ impl MissionReportManagerBo {
             .execute(&mut *conn)
             .await?;
 
-        Ok(report_id)
+        Ok((report_id, now))
     }
 }

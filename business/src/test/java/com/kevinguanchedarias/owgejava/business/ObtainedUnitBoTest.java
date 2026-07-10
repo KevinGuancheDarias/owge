@@ -335,7 +335,7 @@ class ObtainedUnitBoTest {
 
         assertThatThrownBy(() -> obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, expirationId, isDeployedMission
-        )).isInstanceOf(NotFoundException.class).hasMessageContaining("dirty hacker");
+        )).isInstanceOf(NotFoundException.class).hasMessageContaining("I18N_ERR_GENERIC_ITEM_NOT_FOUND");
 
         verify(obtainedUnitHotFixRepository, times(timesDeployed)).findOneByUserIdAndUnitIdAndTargetPlanetIdAndExpirationIdIsNullAndMissionTypeCode(
                 USER_ID_1, UNIT_ID_1, TARGET_PLANET_ID, deployed

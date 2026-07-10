@@ -367,14 +367,14 @@ impl UnitInterceptionFinderBo {
     /// targetPlanet, [interceptorUnit]).withInterceptionInformation([info])` then
     /// `missionReportBo.create(builder, true, interceptorUser)` — i.e. an
     /// `is_enemy = true` report owned by the interceptor, NOT linked to the
-    /// in-flight mission. Returns one `(user_id, report_id)` per report so the
-    /// firing path can emit `mission_report_new` + `mission_report_count_change`
-    /// after commit.
+    /// in-flight mission. Returns one `(user_id, report_id, report_date)` per
+    /// report so the firing path can emit `mission_report_new` +
+    /// `mission_report_count_change` after commit.
     pub async fn send_report_to_interceptor_users(
         conn: &mut MySqlConnection,
         mission: &Mission,
         interceptions: &[InterceptedUnitsInformation],
-    ) -> OwgeResult<Vec<(i32, u64)>> {
+    ) -> OwgeResult<Vec<(i32, u64, chrono::NaiveDateTime)>> {
         use crate::bo::mission_interception_manager_bo::MissionInterceptionManagerBo;
         use crate::bo::mission_processor::{involved_units_to_dtos, load_planet_dto};
         use crate::bo::mission_report_manager_bo::MissionReportManagerBo;

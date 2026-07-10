@@ -548,8 +548,14 @@ pub enum DeferredEmit {
     Requirement(crate::bo::realtime_emitter::RequirementEmit),
     /// `MissionReportBo.emitOneToUser` — a report row was inserted (owner or
     /// enemy) inside the firing tx; after commit, push `mission_report_new` +
-    /// `mission_report_count_change` to its recipient.
-    MissionReport { user_id: i32, report_id: u64 },
+    /// `mission_report_count_change` to its recipient. `report_date` is the
+    /// insert-time wall clock with the millis the DATETIME column truncates
+    /// (D16 — Java emits the in-memory entity's precision).
+    MissionReport {
+        user_id: i32,
+        report_id: u64,
+        report_date: chrono::NaiveDateTime,
+    },
 }
 
 /// Data `AttackMissionManagerBo` collects during combat that drives the per-user
@@ -680,9 +686,19 @@ impl DeferredEmit {
                 Ok(())
             }
             DeferredEmit::Requirement(req) => req.run(&mut *conn).await,
-            DeferredEmit::MissionReport { user_id, report_id } => {
+            DeferredEmit::MissionReport {
+                user_id,
+                report_id,
+                report_date,
+            } => {
                 // MissionReportBo.emitOneToUser: the new report, then the count.
-                realtime_emitter::emit_mission_report_new(&mut *conn, *user_id, *report_id).await?;
+                realtime_emitter::emit_mission_report_new(
+                    &mut *conn,
+                    *user_id,
+                    *report_id,
+                    *report_date,
+                )
+                .await?;
                 realtime_emitter::emit_mission_report_count_change(&mut *conn, *user_id).await
             }
         }

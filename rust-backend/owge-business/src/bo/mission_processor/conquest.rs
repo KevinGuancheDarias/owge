@@ -137,10 +137,11 @@ pub async fn process(
                 &[owner_id],
             )
             .await?;
-            for (uid, rid) in pairs {
+            for (uid, rid, rdate) in pairs {
                 emits.push(super::DeferredEmit::MissionReport {
                     user_id: uid,
                     report_id: rid,
+                    report_date: rdate,
                 });
             }
         }

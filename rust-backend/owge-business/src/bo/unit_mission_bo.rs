@@ -447,14 +447,15 @@ async fn do_run_unit_mission(
             )
             .await?;
         // Per-interceptor reports (partial-interception path).
-        for (uid, rid) in interceptor_pairs {
+        for (uid, rid, rdate) in interceptor_pairs {
             emits.push(crate::bo::mission_processor::DeferredEmit::MissionReport {
                 user_id: uid,
                 report_id: rid,
+                report_date: rdate,
             });
         }
         if let Some(report_builder) = report_builder {
-            let (report_user_id, report_id) =
+            let (report_user_id, report_id, report_date) =
                 crate::bo::mission_report_manager_bo::MissionReportManagerBo::handle_mission_report_save(
                     &mut tx,
                     mission,
@@ -464,10 +465,11 @@ async fn do_run_unit_mission(
             emits.push(crate::bo::mission_processor::DeferredEmit::MissionReport {
                 user_id: report_user_id,
                 report_id,
+                report_date,
             });
         }
     } else {
-        let ((report_user_id, report_id), interceptor_pairs) =
+        let ((report_user_id, report_id, report_date), interceptor_pairs) =
             crate::bo::mission_interception_manager_bo::MissionInterceptionManagerBo::handle_mission_interception(
                 &mut tx,
                 mission,
@@ -477,11 +479,13 @@ async fn do_run_unit_mission(
         emits.push(crate::bo::mission_processor::DeferredEmit::MissionReport {
             user_id: report_user_id,
             report_id,
+            report_date,
         });
-        for (uid, rid) in interceptor_pairs {
+        for (uid, rid, rdate) in interceptor_pairs {
             emits.push(crate::bo::mission_processor::DeferredEmit::MissionReport {
                 user_id: uid,
                 report_id: rid,
+                report_date: rdate,
             });
         }
         // missionEventEmitterBo.emitLocalMissionChangeAfterCommit(mission): the

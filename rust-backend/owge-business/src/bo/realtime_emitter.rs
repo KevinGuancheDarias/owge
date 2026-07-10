@@ -251,6 +251,30 @@ pub async fn emit_time_special_change(conn: &mut MySqlConnection, user_id: i32) 
     .await
 }
 
+/// [`emit_time_special_change`] variant for the activation path: `fresh` is the
+/// `active_time_specials` row just written on this connection, whose in-memory
+/// dates keep the millisecond precision the DATETIME columns truncate. Java
+/// emits the still-managed entity (Hibernate session cache) and so carries the
+/// millis; the payload's other rows come from the DB re-read on both sides
+/// (D16 — millis are contractual).
+pub async fn emit_time_special_change_with_fresh(
+    conn: &mut MySqlConnection,
+    user_id: i32,
+    fresh: crate::model::time_special::ActiveTimeSpecial,
+) -> OwgeResult<()> {
+    emitter::send_message(conn, user_id, "time_special_change", |conn| {
+        Box::pin(async move {
+            Ok(serde_json::to_value(
+                crate::bo::TimeSpecialBo::find_user_status_dtos_with_fresh(
+                    &mut *conn, user_id, &fresh,
+                )
+                .await?,
+            )?)
+        })
+    })
+    .await
+}
+
 // ─── planet emitters ─────────────────────────────────────────────────────────
 
 /// Emits `planet_owned_change` — the planets owned by `user_id`.
@@ -377,16 +401,24 @@ pub async fn send_warning(
 /// Java: `MissionReportBo.emitOneToUser` →
 /// `socketIoService.sendMessage(user, "mission_report_new", () -> toDto(report))`.
 /// Uses `send_message` (with watermark), matching Java's `sendMessage(UserStorage, …)`.
+///
+/// `report_date` is the insert-time wall clock: Java serializes the still-managed
+/// entity whose `reportDate` carries millisecond precision, but the DATETIME
+/// column truncates to whole seconds, so `find_by_id`'s re-read must be
+/// overridden with the in-memory value (D16 — millis are contractual).
 pub async fn emit_mission_report_new(
     conn: &mut MySqlConnection,
     user_id: i32,
     report_id: u64,
+    report_date: chrono::NaiveDateTime,
 ) -> OwgeResult<()> {
     emitter::send_message(conn, user_id, "mission_report_new", |conn| {
         Box::pin(async move {
-            Ok(serde_json::to_value(
-                crate::bo::MissionReportBo::find_by_id(&mut *conn, report_id).await?,
-            )?)
+            let mut dto = crate::bo::MissionReportBo::find_by_id(&mut *conn, report_id).await?;
+            if let Some(dto) = dto.as_mut() {
+                dto.report_date = Some(report_date);
+            }
+            Ok(serde_json::to_value(dto)?)
         })
     })
     .await

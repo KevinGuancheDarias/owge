@@ -5,10 +5,29 @@ NORMALIZATIONS, each justified, not suppressions):
 1. sort JSON keys — serialization key order is not contractual (Jackson
    insertion order vs serde struct order would otherwise diff every frame);
 2. wall-clock-derived VALUES (terminationDate/startingDate/creationDate/
-   browsingDate/pendingMillis) become placeholders that PRESERVE the
-   serialization format: a Jackson [y,m,d,…] array becomes "<TS-ARR>" while an
-   ISO string becomes "<TS-STR>" — a format divergence stays visible, only the
-   pass-to-pass clock noise is removed.
+   browsingDate/reportDate/activationDate/expiringDate/readyDate/userReadDate/
+   pendingMillis) become placeholders that PRESERVE the serialization format
+   AND the sub-second precision class: a Jackson [y,m,d,…] array becomes
+   "<TS-ARR>", an ISO string "<TS-STR-MS>"/"<TS-STR-S>" (with/without a
+   fractional part), an epoch number "<TS-NUM-MS>"/"<TS-NUM-S>" (millis
+   present / whole-second, i.e. v % 1000 == 0). A format OR precision
+   divergence stays visible (D16: millis are contractual per Kevin's ruling),
+   only the pass-to-pass clock noise is removed. Caveat: a genuine
+   millis-precision clock has a 1/1000 chance of landing on …000 and
+   normalizing to <TS-NUM-S> — a lone single-key precision red on re-run is
+   that flake, not a regression.
+
+3. intra-payload ORDER of id-keyed object arrays (D17, Kevin's ruling
+   2026-07-10): both sides emit the same elements in an unspecified order
+   (Java = accidental unlocked_relation scan / Hibernate fill order, Rust =
+   ORDER BY id), and one transposition cascades into dozens of phantom
+   positional field diffs. Arrays whose EVERY element is an object carrying an
+   "id" are sorted by that id on BOTH sides before the diff — content, shape,
+   length and extra/missing elements still diff normally; only the position
+   information is discarded. EXCEPT where order IS the contract (Kevin's
+   ruling): report lists and the user's planet list — frames of the events in
+   ORDERED_VALUE_EVENTS and any subtree under a key in ORDERED_KEYS keep
+   positional comparison.
 
 Envelope fields (status, lastSent presence) are deliberately NOT normalized —
 Rust adding them where Java doesn't is a real, reportable divergence.
@@ -16,27 +35,50 @@ Rust adding them where Java doesn't is a real, reportable divergence.
 import json
 import sys
 
-DATEISH = {"terminationDate", "startingDate", "creationDate", "browsingDate"}
+DATEISH = {
+    "terminationDate",
+    "startingDate",
+    "creationDate",
+    "browsingDate",
+    "reportDate",
+    "activationDate",
+    "expiringDate",
+    "readyDate",
+    "userReadDate",
+}
 NUMISH = {"pendingMillis"}
+# D17 order-is-contractual exemptions: whole frames by eventName…
+ORDERED_VALUE_EVENTS = {
+    "planet_user_list_change",
+    "mission_report_change",
+    "mission_report_new",
+}
+# …and subtrees by parent key (paginated report responses embed "reports").
+ORDERED_KEYS = {"reports"}
 
 
-def norm(obj):
+def norm(obj, sortable=True):
     if isinstance(obj, dict):
         out = {}
         for k, v in obj.items():
             if k in DATEISH and isinstance(v, list):
                 out[k] = "<TS-ARR>"
             elif k in DATEISH and isinstance(v, str):
-                out[k] = "<TS-STR>"
+                out[k] = "<TS-STR-MS>" if "." in v else "<TS-STR-S>"
             elif k in DATEISH and isinstance(v, (int, float)):
-                out[k] = "<TS-NUM>"
+                out[k] = "<TS-NUM-S>" if v % 1000 == 0 else "<TS-NUM-MS>"
             elif k in NUMISH and isinstance(v, (int, float)):
                 out[k] = "<NUM>"
             else:
-                out[k] = norm(v)
+                out[k] = norm(v, sortable and k not in ORDERED_KEYS)
         return out
     if isinstance(obj, list):
-        return [norm(v) for v in obj]
+        items = [norm(v, sortable) for v in obj]
+        if sortable and items and all(isinstance(x, dict) and "id" in x for x in items):
+            # repr() gives a deterministic total order even for mixed/None ids;
+            # only consistency between the two sides matters for the diff.
+            items.sort(key=lambda x: repr(x["id"]))
+        return items
     return obj
 
 
@@ -49,4 +91,13 @@ for line in sys.stdin:
     except json.JSONDecodeError:
         print(line)
         continue
-    print(json.dumps(norm(frame), sort_keys=True, separators=(",", ":"), ensure_ascii=False))
+    payload = frame.get("payload") if isinstance(frame, dict) else None
+    event = payload.get("eventName") if isinstance(payload, dict) else None
+    print(
+        json.dumps(
+            norm(frame, sortable=event not in ORDERED_VALUE_EVENTS),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        )
+    )
