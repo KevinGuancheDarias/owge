@@ -8,8 +8,7 @@ public class IgnoreDbSchedulersLogbackFilter extends Filter<ILoggingEvent> {
     @Override
     public FilterReply decide(ILoggingEvent event) {
         return event.getLoggerName().startsWith("jdbc.")
-                && (event.getMessage().startsWith(" com.github.kagkarlsson.jdbc.JdbcRunner.lambda")
-                || event.getMessage().startsWith(" org.quartz.impl.jdbcjobstore"))
+                && event.getMessage().startsWith(" com.github.kagkarlsson.jdbc.JdbcRunner.lambda")
                 ? FilterReply.DENY
                 : FilterReply.NEUTRAL;
     }

@@ -56,7 +56,9 @@ public class TemporalUnitScheduleListener implements RequirementComplianceListen
     public void init() {
         scheduledTasksManagerService.addHandler(TASK_NAME, task -> {
             log.debug("Deleting expired unit: {}", task.getContent());
-            var expirationId = ((Double) task.getContent()).longValue();
+            var expirationId = task.getContent() instanceof Double doubleValue
+                    ? doubleValue.longValue()
+                    : (Long) task.getContent();
             if (obtainedUnitTemporalInformationRepository.existsById(expirationId)) {
                 transactionUtilService.runWithRequired(() ->
                         aggressiveLockAcquire(expirationId, () -> doDeleteExpiredOrOrDemand(expirationId))

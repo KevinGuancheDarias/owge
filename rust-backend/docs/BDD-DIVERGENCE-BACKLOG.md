@@ -162,11 +162,42 @@ Verified: upgrades feature now has ZERO table diffs (run 20260709_231926).
   (collation mix vs `task_instance` utf8mb4_unicode_ci) — bind the id as a
   parameter instead.
 
-### D10 — time-special expiry scheduling: Rust `scheduled_tasks` row vs Java Quartz
-`TIME_SPECIAL_EFFECT_END` row is B-only (Java schedules in QRTZ_* tables,
-outside the dump). STRUCTURAL, matches the known design difference —
-candidate for a documented differ suppression (needs Kevin's sign-off per
-plan §5.4; alternative: dump+normalize QRTZ triggers into pseudo-rows).
+### D10 — ✅ RULED + FIXED 2026-07-10: Rust `scheduled_tasks` row vs Java Quartz — Quartz REMOVED from Java
+`TIME_SPECIAL_EFFECT_END` row was B-only (Java scheduled in QRTZ_* tables,
+outside the dump). Investigation established: Java's Quartz was JDBC-backed
+(`LocalDataSourceJobStore`, `QRTZ_` prefix, same datasource) and served
+exactly THREE one-time event types — `TIME_SPECIAL_EFFECT_END`,
+`TIME_SPECIAL_IS_READY` (ActiveTimeSpecialBo) and `UNIT_EXPIRED`
+(TemporalUnitsListener/TemporalUnitScheduleListener); no cron jobs; the
+`cancelEvent` API had zero callers; `registerEvent` return value unused.
+- **KEVIN'S RULING (2026-07-10)**: rather than suppress or cross-map the
+  differ, REMOVE Quartz from Java — it is legacy from before the db-scheduler
+  lib was added; there is no good reason to keep two schedulers.
+- **FIX (Java)**: `DbSchedulerTasksManagerService` replaces
+  `QuartzScheduledTaskManagerService` — same `ScheduledTasksManagerService`
+  interface, `mission-run` pattern (`TaskWithoutDataDescriptor`,
+  `task_instance` = domain entity id, `task_data` NULL — byte-compatible with
+  the rows Rust already writes); 3 dispatch beans in
+  `DbSchedulerConfiguration`; `TemporalUnitScheduleListener` hard `(Double)`
+  Gson cast made Long-tolerant. DELETED: Quartz service + config +
+  `quartz-context.xml` + `quartz.properties` + `spring-boot-starter-quartz`
+  + the `SchedulerFactoryBeanCustomizer` bean. Migration
+  `migrations/v1.0.0.sql` rebuilds in-flight events FROM THE DOMAIN TABLES
+  (`active_time_specials.expiring_date`/`ready_date`,
+  `obtained_unit_temporal_information.expiration` — no qrtz blob parsing) and
+  drops the 11 `qrtz_*` tables; `02_schema.sql` no longer creates them.
+- **Rust: zero changes.** The table diff now compares the scheduling rows FOR
+  REAL on both sides — stronger than suppression (a backend that fails to
+  schedule an expiry goes red).
+- **VERIFIED (run `20260710_153410`)**: with the Quartz-free image + D16 + D17,
+  the ENTIRE time_specials feature is at FULL three-verdict parity (3/3
+  ✅✅✅), scheduled_tasks table included.
+- Footgun for posterity: the first rebuilt image kept the deleted
+  `QuartzScheduledTaskManagerService.class` — `target/classes` is COPY'd into
+  the image build and incremental `mvn install` re-packaged the orphan
+  (`ClassNotFoundException: org.quartz.Scheduler` at boot). `mvn clean` +
+  wipe `game-rest/target` before any compare-image rebuild that deletes
+  classes.
 
 ### D11 — report/event payload shapes across explore/gather/establish/conquest/cancel-return
 `mission_reports.json_body` + `mission_report_new`/`planet_explored_event`/
@@ -211,17 +242,65 @@ Two real defects underneath, both fixed:
 LESSON for scenario authors: any assertion downstream of remaining-time math
 must pin the mission's wall-clock rows, not just the scheduler row.
 
-### D16 — NEW: wall-clock precision class — Java emits epoch-millis precision, Rust whole seconds
+### D16 — ✅ RULED + FIXED 2026-07-10: wall-clock precision class — millis are contractual
 `mission_report_new.reportDate` java=…801 vs rust=…000;
 `time_special_change.activeTimeSpecialDto.{activationDate,expiringDate}`
 java=…749 vs rust=…000. Java serializes the in-memory entity (millis); Rust
-re-reads the DATETIME row (second-truncated). Also these keys are NOT in
-`normalize_ws.py`'s DATEISH set (only terminationDate/startingDate/
-creationDate/browsingDate), so pass-to-pass clock noise shows up as VALUE
-diffs. NEEDS KEVIN'S RULING: (a) is millis precision contractual (→ Rust keeps
-the in-memory timestamp through to the emit, cf. [[websocket-lastsent-millis-parity]]),
-and (b) should reportDate/activationDate/expiringDate/readyDate/userReadDate
-join DATEISH with a precision-preserving placeholder (<TS-NUM-MS> vs <TS-NUM-S>)?
+re-reads the DATETIME row (second-truncated).
+- **KEVIN'S RULING (2026-07-10): millis are contractual — Rust must send
+  millis.** Precise scope, verified in frontend + Java code:
+  - `pendingMillis` is the ONLY date-ish field with a functional client
+    contract: user machines keep imprecise clocks, so every countdown is
+    `browserComputedTerminationDate = new Date(Date.now() + pendingMillis)`
+    (`owge-core date.util.ts` → `widget-countdown`); `terminationDate` itself
+    is ignored. That is also why Java recomputes `pendingMillis` on cached
+    responses: `RunningMissionFinderBo.findUserRunningMissions` is
+    `@TaggableCacheable`, and the `unit_mission_change`/`enemy_mission_change`
+    sync handlers (`MissionRestService.findSyncHandlers`) re-wrap every cache
+    read with `MissionRestUtil.mutateRecalculatePendingMillis` →
+    `AbstractRunningMissionDto.recalculatePendingMillis()` =
+    `terminationDate.toEpochMilli() - now + 2000`.
+  - `reportDate` is a DISPLAY date: epoch-millis number fed to Angular's
+    `| date` pipe (`reports-list` `normalizedDate = reportDate ?? missionDate`);
+    sub-second precision is not functionally consumed.
+    `activationDate`/`expiringDate`/`readyDate` are consumed NOWHERE in the
+    frontend (time-special UI runs off `pendingMillis` + `state`).
+  - Therefore the sub-second-precision fix below is justified by WIRE PARITY
+    with Java (Java emits the in-memory entity's millis and Java is the spec,
+    plan §9.11) — not by a frontend need on the date fields themselves.
+- **FIX (a) Rust emits**: the in-memory insert-time value is now threaded to
+  the emit instead of re-reading the truncated DATETIME —
+  `MissionReportManagerBo::handle_mission_report_save{,_for_users}` return
+  `report_date`, carried via `DeferredEmit::MissionReport` into
+  `emit_mission_report_new` (overrides the re-read DTO); activation passes the
+  fresh `ActiveTimeSpecial` to `emit_time_special_change_with_fresh` →
+  `find_user_status_dtos_with_fresh` patches only that row (matching Java's
+  Hibernate-session-cache semantics: other rows stay DB-truncated on BOTH
+  sides).
+- **FIX (b) canonicalizer**: reportDate/activationDate/expiringDate/readyDate/
+  userReadDate joined DATEISH; placeholders now preserve the precision class
+  (`<TS-NUM-MS>`/`<TS-NUM-S>`, `<TS-STR-MS>`/`<TS-STR-S>`) so a truncation
+  regression stays red while clock noise is suppressed. Known ~1/1000 flake:
+  a real-millis clock landing exactly on …000 normalizes to `<TS-NUM-S>`.
+- **VERIFIED** (run `20260710_111731`): `time_special_change`
+  activationDate/expiringDate both normalize `<TS-NUM-MS>` on both backends;
+  the scenario's remaining reds are ONLY D17 (requirements[] ordering: the
+  value[] 614/193 transposition PLUS requirementsGroups[11].requirements[]
+  3936/3938 transposed inside ts-59/ts-60 improvement and
+  user_improvements_change — the WHOLE residual diff is that one class) + D10
+  (structural task row).
+- **VERIFIED report path** (run `20260710_111935`): raw frames java
+  `reportDate:…976` / rust `…299` — both true millis, both `<TS-NUM-MS>` —
+  and the ENTIRE `missions_explore_gather_cancel` feature (5 scenarios)
+  flipped to FULL three-verdict parity ✅✅✅.
+- **Remainders (not covered by scenarios yet)**: the deactivate→RECHARGE path
+  (`ready_date` in-memory millis) and `handle_is_ready` re-emit still re-read
+  truncated rows — same fix pattern applies when B6-B11 expiry scenarios land
+  (would need `RequirementEmit::TimeSpecialChange` to carry the fresh row).
+  Java `terminationDate` ISO strings observed second-precision on the wire
+  (no hidden mission-path divergence). Alternative root fix if ever desired:
+  widen the date columns to DATETIME(3) by migration (both backends would
+  then round-trip millis) — NOT done, prod schema decision.
 
 ### D18 — NEW (upgrades run 20260709_231926): socket `user_data_change` also carries `unitType.speedImpactGroup`
 Same socket-vs-REST path-dependence as `user_improvements_change`: Java's
@@ -249,14 +328,33 @@ From `Completing a level-up bumps…` ws diff:
   per-second accrual drift, unassertable (same tolerated class as ws_verify);
   candidate for a justified normalization of these two keys.
 
-### D17 — NEW: ws diff misalignment from intra-payload array ordering (extends D4)
+### D17 — ✅ RULED + FIXED 2026-07-10: ws diff misalignment from intra-payload array ordering (extends D4)
 `time_special_change.value[]`: java […,614,193,…] vs rust […,193,614,…] — one
 transposition, and the element-by-element diff cascades into dozens of phantom
-field diffs (this is most of the "247 diffs" in the time_specials activation
-scenario; after sorting id-keyed arrays only ~30 real ones remain). Same
-Kevin's-ruling class as D4: is array order contractual? If not, the
-canonicalizer should sort id-keyed object arrays (the ws_verify REST harness
-already did exactly that).
+field diffs (most of the "247 diffs" in the time_specials activation scenario;
+same class one level deeper: `requirementsGroups[].requirements[]` 3936/3938).
+Neither side's order is specified: Java's `findUnlocked` →
+`findByUserIdAndObjectType` has NO ORDER BY (accidental `unlocked_relation`
+scan order = grant-insertion order) and `RequirementGroup.requirements` is
+`@Transient` (code-filled, not even PK order); Rust does `ORDER BY id`.
+- **KEVIN'S RULING (2026-07-10): array order is NOT contractual — sort in the
+  canonicalizer (ws_verify precedent) — EXCEPT report lists and planet_list,
+  where order IS the contract.**
+- **FIX**: `normalize_ws.py` sorts (by `repr(id)`, both sides) any array whose
+  EVERY element is an object carrying an `id`; content/shape/length/missing
+  elements still diff normally. Exemptions keep positional comparison:
+  `ORDERED_VALUE_EVENTS = {planet_user_list_change, mission_report_change,
+  mission_report_new}` (whole value subtree) and `ORDERED_KEYS = {reports}`
+  (paginated report responses).
+- **VERIFIED by replaying the captured frames of runs `20260710_111731`,
+  `20260710_111935`, `20260709_232524`, `20260709_231926`**: time_specials
+  activation ws → byte-IDENTICAL (its residual was pure ordering); all 5
+  explore/gather scenarios stay identical (no masking regression); the
+  surviving upgrades diffs are exactly the enumerated D19 classes
+  (running_upgrade_change shape, user_data_change accrual drift,
+  completion-scenario unlock frame counts) — none of them ordering.
+- Time_specials activation scenario PARITY verdict still 🔴 pending D10 only
+  (structural scheduled_tasks row in the TABLE diff).
 
 ## From the inventory wave (static analysis — not yet reproduced by a scenario)
 
