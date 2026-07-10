@@ -57,6 +57,16 @@ pub async fn process(
         builder = builder.with_establish_base_information(true, "");
         super::define_planet_as_owned_by(conn, user_id, involved_units, target_planet_id, emits)
             .await?;
+        // PlanetBo.definePlanetAsOwnedBy's post-commit block fires on EVERY
+        // caller: emitPlanetOwnedChange + emitEnemyMissionsChange +
+        // emitObtainedUnits (new owner) + planetListBo.emitByChangedPlanet.
+        // Only the conquest processor pushed this before — establish-base was
+        // missing all four (R3/D19; no old owner on this path).
+        emits.push(super::DeferredEmit::ConquestSuccess {
+            new_owner_id: user_id,
+            target_planet_id,
+            old_owner_id: None,
+        });
     }
 
     // mission.setResolved(true) is persisted by the report save path.

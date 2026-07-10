@@ -372,7 +372,7 @@ impl ObtainedUnitJoinedRow {
             user_id: self.user_id,
             username: Some(self.owner.username),
             temporal_information,
-            stored_units: Vec::new(),
+            stored_units: Some(Vec::new()),
         })
     }
 }

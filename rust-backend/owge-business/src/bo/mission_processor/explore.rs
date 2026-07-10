@@ -29,8 +29,9 @@ pub async fn process(
         if !is_explored(conn, user_id, target_planet_id).await? {
             define_as_explored(conn, user_id, target_planet_id).await?;
             // PlanetExplorationService.defineAsExplored emits planet_explored_event
-            // with the planet DTO — only on a *new* exploration.
-            if let Some(planet) = super::load_planet_dto(conn, target_planet_id).await? {
+            // with the planet DTO — only on a *new* exploration. RICH
+            // specialLocation (status quo; see load_planet_dto's R1 note).
+            if let Some(planet) = super::load_planet_dto_rich(conn, target_planet_id).await? {
                 emits.push(super::DeferredEmit::PlanetExplored {
                     user_id,
                     planet: Box::new(planet),

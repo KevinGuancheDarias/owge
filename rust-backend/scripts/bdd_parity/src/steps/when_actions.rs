@@ -225,6 +225,29 @@ async fn user_builds_units(
             (200..300).contains(&status),
             "POST game/unit/build returned HTTP {status}: {response}"
         );
+        // FREEZE the build task — same D9 race as level-up: ZERO_BUILD_TIME
+        // collapses required_time to 3 s and DELAY_HANDLE is 2 s, so the task
+        // is due at +1 s and auto-fires MID-SCENARIO on whichever backend's
+        // scheduler polls first (the Then raced completion: java lost, rust
+        // won — flaky by construction). The completion nudge rewinds
+        // execution_time, so freezing is transparent to it.
+        let mission_id: Option<i64> = sqlx::query_scalar(
+            "SELECT CAST(MAX(id) AS SIGNED) FROM missions WHERE user_id = ? AND resolved = 0",
+        )
+        .bind(user)
+        .fetch_one(&world.db)
+        .await
+        .expect("find registered build mission id");
+        let mission_id = mission_id.expect("build succeeded but no unresolved mission");
+        sqlx::query(
+            "UPDATE scheduled_tasks \
+             SET execution_time = DATE_ADD(NOW(6), INTERVAL 1 HOUR) \
+             WHERE task_name = 'mission-run' AND task_instance = ?",
+        )
+        .bind(mission_id.to_string())
+        .execute(&world.db)
+        .await
+        .expect("freeze build scheduled task");
     }
     tokio::time::sleep(Duration::from_secs(1)).await;
 }

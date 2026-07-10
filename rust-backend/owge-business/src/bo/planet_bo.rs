@@ -65,7 +65,20 @@ impl PlanetBo {
         .await?;
         let mut out = Vec::with_capacity(rows.len());
         for row in rows {
-            out.push(hydrate_planet_row(&mut *conn, row).await?);
+            let mut dto = hydrate_planet_row(&mut *conn, row).await?;
+            // planet_owned_change emits the SLIM specialLocation like the
+            // mission payloads: on Java's emit path the location's lazy
+            // galaxy/image/improvement are never initialized (verified against
+            // fresh-JVM frames — earlier "rich" observations were warm-cache
+            // contamination; R1/D19). Navigate keeps the rich shape.
+            if let Some(sl) = dto.special_location.as_mut() {
+                sl.galaxy_id = None;
+                sl.galaxy_name = None;
+                sl.image = None;
+                sl.image_url = None;
+                sl.improvement = None;
+            }
+            out.push(dto);
         }
         Ok(out)
     }

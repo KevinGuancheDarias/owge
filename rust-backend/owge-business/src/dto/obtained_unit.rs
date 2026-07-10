@@ -179,8 +179,11 @@ pub struct ObtainedUnitDto {
     /// (Jackson `Include.NON_NULL`).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub temporal_information: Option<TemporalInformationDto>,
-    /// `ObtainedUnitDto.storedUnits` — units stored inside this one. The
-    /// completed-in-my-planets path emits an empty list (non-null), so it is
-    /// always serialized.
-    pub stored_units: Vec<ObtainedUnitDto>,
+    /// `ObtainedUnitDto.storedUnits` — units stored inside this one. Java's
+    /// loader-backed paths (`unit_obtained_change`, own `unit_mission_change`
+    /// involvedUnits) emit an empty list (non-null); the enemy-mission and
+    /// report paths map WITHOUT the UnitDataLoader chain so the field stays
+    /// null and NON_NULL drops it (D3/R-class) — `None` here omits it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stored_units: Option<Vec<ObtainedUnitDto>>,
 }

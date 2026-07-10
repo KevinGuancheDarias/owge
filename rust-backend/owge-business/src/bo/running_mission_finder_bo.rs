@@ -220,8 +220,18 @@ impl RunningMissionFinderBo {
 
             // Load involved units and nullify their planets.
             let units = load_mission_units_conn(&mut *conn, mission.id).await?;
-            let dtos =
+            let mut dtos =
                 crate::bo::mission_processor::involved_units_to_dtos(&mut *conn, &units).await?;
+            // Java's enemy-mission mapping runs WITHOUT the UnitDataLoader
+            // chain, so involvedUnits[].storedUnits stays null → key omitted
+            // (the own unit_mission_change path keeps its loader-backed `[]`).
+            // Its unit.speedImpactGroup, however, arrives DEEP (the entity load
+            // fires the @PostLoad requirement-groups listener) — same
+            // enrichment as the report path (D19/R-class).
+            for u in &mut dtos {
+                u.stored_units = None;
+                crate::bo::mission_processor::enrich_unit_for_report(&mut *conn, u).await?;
+            }
             dto.involved_units = Some(dtos);
             dto.nullify_involved_units_planets();
 
@@ -296,9 +306,34 @@ impl RunningMissionFinderBo {
 
             // missionInformation.getRelation() -> unboxObjectRelation -> unit id
             let unit_id = resolve_unit_id_for_mission(&mut *conn, mission_id).await?;
-            let unit = crate::bo::unit_bo::UnitBo::find_by_id(&mut *conn, unit_id)
+            let mut unit = crate::bo::unit_bo::UnitBo::find_by_id(&mut *conn, unit_id)
                 .await?
                 .ok_or_else(|| OwgeError::NotFound(format!("No unit with id {unit_id}")))?;
+            // Java's RunningUnitBuildDto maps the freshly-loaded Unit entity:
+            // `improvement` is always mapped (all-NULL improvement rows shrink
+            // to {id, unitTypesUpgrades:[]} via NON_NULL), and the unit's OWN
+            // speedImpactGroup arrives DEEP (the @PostLoad
+            // EntityWithRequirementGroupsListener fills requirementGroups on a
+            // real entity load) — R4/D19.
+            unit.improvement =
+                match crate::bo::ImprovementBo::find_for_entity(&mut *conn, "units", unit_id).await
+                {
+                    Ok(improvement) => Some(improvement),
+                    Err(OwgeError::NotFound(_)) => None,
+                    Err(e) => return Err(e),
+                };
+            let sig_id: Option<u16> =
+                sqlx::query_scalar("SELECT speed_impact_group_id FROM units WHERE id = ?")
+                    .bind(unit_id)
+                    .fetch_one(&mut *conn)
+                    .await?;
+            unit.speed_impact_group = match sig_id {
+                Some(id) => {
+                    crate::bo::SpeedImpactGroupBo::find_by_id_with_requirement_groups(&mut *conn, id)
+                        .await?
+                }
+                None => None,
+            };
 
             // missionInformation.getValue().longValue() -> build planet id
             let planet_id: Option<f64> =

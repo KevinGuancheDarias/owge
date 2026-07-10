@@ -190,7 +190,7 @@ async fn delete(
         user_id: user.id as i32,
         username: None,
         temporal_information: None,
-        stored_units: Vec::new(),
+        stored_units: None,
     };
     ObtainedUnitBo::save_with_subtraction(&mut conn, &dto, true).await?;
     Ok(Json("OK"))

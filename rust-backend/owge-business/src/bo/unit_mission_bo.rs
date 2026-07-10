@@ -813,8 +813,10 @@ async fn run_non_unit_mission(
                 UserImprovementBo::evict_and_emit(&mut *conn, owner).await?;
                 MissionEventEmitter::emit_unit_build_change(&mut *conn, owner).await?;
                 MissionEventEmitter::emit_mission_count_change(&mut *conn, owner).await?;
+                // Java processBuildUnit's delayed emitObtainedUnits pushes ONLY
+                // unit_obtained_change — NO unit_type_change on completion (the
+                // registration tail already emitted it once) — R4/D19.
                 ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, owner).await?;
-                UnitTypeEmitter::emit_unit_type_change(&mut *conn, owner).await?;
             }
             MissionType::LevelUp => {
                 // clearSourceCache(user, obtainedUpgradeBo): the upgrade level rose.

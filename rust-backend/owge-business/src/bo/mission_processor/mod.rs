@@ -114,15 +114,40 @@ pub(crate) async fn load_sender_user(
 }
 
 /// Load a single planet DTO by id (joined with galaxy/owner names and its
-/// special location), matching `PlanetBo.toDto` — Java is not lazy on
-/// `Planet.specialLocation` on this path, so the location's `improvement` is
-/// loaded too (same pattern as `GalaxyBo::find_planets_at` /
-/// `PlanetBo::find_owned_dtos`). Returns `None` when the planet no longer
-/// exists. `home` is left nullable (Java's Jackson `NON_NULL` omits it rather
-/// than coercing a NULL to `false`); `is_explored` is hardcoded `1` since
-/// mission source/target planets aren't masked on this path (the EXPLORE
+/// special location) for MISSION payloads (`unit_mission_change` /
+/// `enemy_mission_change`, report `json_body`, build-mission `sourcePlanet`):
+/// the specialLocation is the SLIM shape Java emits on these paths —
+/// `{id, name, description, assignedPlanetId, assignedPlanetName}` — because
+/// the location's lazy `galaxy`/`image`/`improvement` associations are never
+/// initialized in those transactions and `NON_NULL` drops them (R1/D19; the
+/// rich shape observed on `planet_owned_change`/navigate stays in
+/// `PlanetBo`). Returns `None` when the planet no longer exists. `home` is
+/// left nullable (Java's Jackson `NON_NULL` omits it rather than coercing a
+/// NULL to `false`); `is_explored` is hardcoded `1` since mission
+/// source/target planets aren't masked on this path (the EXPLORE
 /// target-planet masking is applied separately by the caller).
 pub(crate) async fn load_planet_dto(
+    conn: &mut MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Option<PlanetDto>> {
+    let Some(mut dto) = load_planet_dto_rich(&mut *conn, planet_id).await? else {
+        return Ok(None);
+    };
+    if let Some(sl) = dto.special_location.as_mut() {
+        sl.galaxy_id = None;
+        sl.galaxy_name = None;
+        sl.image = None;
+        sl.image_url = None;
+        sl.improvement = None;
+    }
+    Ok(Some(dto))
+}
+
+/// [`load_planet_dto`] with the RICH specialLocation (galaxy/image/improvement
+/// hydrated) — kept for `planet_explored_event`, whose shape follows
+/// `PlanetBo.toDto` (status quo; no scenario exercises a special-location
+/// planet on the explore path yet).
+pub(crate) async fn load_planet_dto_rich(
     conn: &mut MySqlConnection,
     planet_id: u64,
 ) -> OwgeResult<Option<PlanetDto>> {

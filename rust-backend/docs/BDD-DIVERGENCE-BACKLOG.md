@@ -23,13 +23,66 @@ The 8 remaining reds (4–16 diff lines each) decompose into FIVE classes:
   `enemy_mission_change` 1v0, `planet_owned_change` 1v0, `unit_obtained_change`
   2v1 (establish-base grant, compound probe, cancel-auto-return). Part of the
   definePlanetAsOwnedBy emit block not fully ported.
-- **R4 unit_build shapes**: `unit_build_mission_change.value[].unit.
-  {improvement,speedImpactGroup}` JAVA-only; plus `unit_type_change` java 1
-  rust 2 on registration — likely the dedup removal now DOUBLE-emitting on the
-  build path (Rust queues via requirement trigger AND the M4 block; Java once).
-- **R5 conquest unit_mission_change count j=1 r=0** (+ empty myUnitMissions):
-  at emit time Java still counts the resolving conquest mission, Rust doesn't —
-  emit-ordering/timing relative to mission resolution.
+- **R4 ✅ FIXED 2026-07-10 (run `20260710_183748`, unit_build 4/4 FULL parity)**:
+  `unit_build_mission_change.value[].unit` now hydrates `improvement` (always
+  mapped in Java; all-NULL improvement rows shrink to {id, unitTypesUpgrades}
+  via NON_NULL — improvements 22 vs 9003 proved shape is DATA-driven, not
+  hydration) + own-FK `speedImpactGroup` DEEP (the @PostLoad
+  EntityWithRequirementGroupsListener fills requirementsGroups on real entity
+  loads); the completion-path `unit_type_change` emit was REMOVED (Java's
+  processBuildUnit never emits it — the double came from Rust's M4 block, not
+  the dedup removal). BONUS harness race found: `ZERO_BUILD_TIME=TRUE` makes
+  builds fire at +1s, so the Then raced completion (java lost this time, rust
+  won — flaky by construction, D9 class); the build When step now FREEZES the
+  scheduled task like the level-up step.
+- **R3 ✅ FIXED (pending run)**: `establish_base.rs` never pushed the
+  `definePlanetAsOwnedBy` post-commit block (planet_owned_change +
+  enemy_mission_change + unit_obtained_change + planet_user_list_change) —
+  only the conquest processor did. Now pushes `DeferredEmit::ConquestSuccess`
+  with no old owner. Covers the establish-base scenarios AND
+  cancel-auto-return (whose flow contains an establish completion).
+- **R5 ROOT-CAUSED (needs Kevin)**: conquest emits THREE unit_mission_change
+  on java [1,1,0] vs rust [1,0,0]. Java's middle frame is a supplier evaluated
+  at an INNER commit (the attack sub-transaction) while the conquest mission
+  is genuinely still unresolved; Rust resolves everything in ONE tx and drains
+  emits after → 0. Options: (a) split Rust's conquest tx like Java (risky),
+  (b) snapshot that one payload mid-tx and emit it post-commit, (c) accept as
+  documented timing divergence. NOTE java's [1] is also what a player's client
+  briefly shows — arguably Java behavior is the worse UX.
+- **R2 (needs Kevin) — now with PROOF of Java nondeterminism**: the
+  requirementsGroups depth inside nested speedImpactGroups AND the
+  specialLocation lazy fields on planet_owned_change are per-SESSION Hibernate
+  hydration state. Decisive evidence (2026-07-10 evening, fresh-JVM runs):
+  (i) in run `20260710_185708` the SAME scenario's three java
+  enemy_mission_change frames mixed DEEP×2 + SHALLOW×1 for the same unit;
+  (ii) planet_owned_change.specialLocation came out SLIM in run
+  `20260710_185855` but RICH in `20260710_190555` — identical conditions.
+  Java's own output is not reproducible run-to-run, so byte-porting is
+  impossible by construction. RECOMMENDATION: rule this "lazy-association
+  presence" class NON-CONTRACTUAL and normalize in the canonicalizer —
+  scoped: (a) presence of `requirementsGroups` inside any nested
+  `speedImpactGroup` (both directions), (b) presence of the
+  galaxy/image/improvement fields inside `planet_owned_change`
+  specialLocation. Real content bugs (wrong ids/values when present) still
+  diff. Alternatives: catalog per path (ws_verify precedent — but (i)/(ii)
+  show even that can't be stable), or change JAVA to a deterministic shape.
+- **R1 VERIFIED on mission paths (run `20260710_190555`)**: mission_report_new
+  parsedJson.targetPlanet + unit/enemy_mission_change targetPlanet SLs now
+  byte-match (SLIM), mission_reports TABLE diff GONE. `SpecialLocationDto`
+  optional fields gained skip_serializing_if (they serialized `null` — Java
+  NON_NULL never does). Enemy-mission involvedUnits also fixed:
+  `storedUnits` omitted (no UnitDataLoader chain on that path) and the unit's
+  speedImpactGroup enriched deep via `enrich_unit_for_report`.
+- **Remaining enumerated targets (deterministic, not yet fixed)**:
+  1. `unit_obtained_change.value[].sourcePlanet.specialLocation` JAVA-only —
+     the obtained-units finder's source/target planet mapping must include
+     the SLIM specialLocation (needs the SL join in its SELECT).
+  2. Conquest report `attackInformation[].userInfo.canAlterTwitchState`
+     JAVA-only (same `= false` initializer class as senderUser, D3) and
+     `attackInformation[].units[].obtainedUnit.unit.speedImpactGroup`
+     JAVA-only (attack-info unit shape).
+  3. R5 (see above) — also covers conquest's old-owner
+     `enemy_mission_change` LEN j1 r0 (same inner-commit timing).
 
 storedUnits on enemy_mission_change (RUST-only, establish-changed-owner +
 conquest ws_user2) rides with R1/R2's finder — same `involved_units` builder.
