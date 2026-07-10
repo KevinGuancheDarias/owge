@@ -1,7 +1,7 @@
 use crate::OwgeResult;
 use crate::bo::unit_bo::SELECT_UNIT;
 use crate::bo::unit_bo::UnitRow;
-use crate::bo::{AttackRuleBo, CriticalAttackBo, ImprovementBo, SpeedImpactGroupBo, UnitInterceptionFinderBo};
+use crate::bo::{AttackRuleBo, CriticalAttackBo, ImprovementBo, SpeedImpactGroupBo};
 use crate::dto::UnitDto;
 use crate::error::OwgeError;
 use crate::model::object_relation::object_enum;
@@ -32,14 +32,17 @@ impl UnlockedUnitFinder {
         for row in rows {
             let attack_rule_id = row.attack_rule_id;
             let critical_attack_id = row.critical_attack_id;
+            let speed_impact_group_id = row.speed_impact_group_id;
             let mut dto: UnitDto = row.into();
             let unit_id = dto.id;
             dto.improvement = Self::resolve_improvement(&mut *conn, unit_id).await?;
-            dto.speed_impact_group = match UnitInterceptionFinderBo::find_applicable_speed_impact_group(
-                &mut *conn, user_id, unit_id,
-            )
-            .await?
-            {
+            // Java's UnitDto serializes the unit's OWN speedImpactGroup only: a
+            // NULL FK drops the key (NON_NULL). The unit-type inheritance
+            // fallback (`find_applicable_speed_impact_group`) is gameplay
+            // resolution and must not leak into this payload — D19: on level-up
+            // completion Java emitted unit 1 (NULL FK) without the key while
+            // Rust emitted the type-inherited group.
+            dto.speed_impact_group = match speed_impact_group_id {
                 Some(group_id) => SpeedImpactGroupBo::find_by_id(&mut *conn, group_id).await?,
                 None => None,
             };

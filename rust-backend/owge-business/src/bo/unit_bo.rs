@@ -43,6 +43,11 @@ pub(crate) struct UnitRow {
     /// `attackRule`/`criticalAttack` (the `From` impl is sync and cannot query).
     pub(crate) attack_rule_id: Option<u16>,
     pub(crate) critical_attack_id: Option<u16>,
+    /// The unit's OWN `speed_impact_group_id` FK — Java's `UnitDto` serializes
+    /// only this (NULL → key omitted, NON_NULL); the unit-type inheritance
+    /// fallback is gameplay resolution (`find_applicable_speed_impact_group`),
+    /// never part of the unit DTO (D19).
+    pub(crate) speed_impact_group_id: Option<u16>,
 }
 
 impl From<UnitRow> for UnitDto {
@@ -93,7 +98,7 @@ pub const SELECT_UNIT: &str = "\
            u.type AS type_id, ut.name AS type_name, u.attack, u.health, u.shield, u.charge, \
            u.is_unique, u.can_fast_explore, u.speed, u.cloned_improvements, u.bypass_shield, \
            u.is_invisible, u.stored_weight, u.storage_capacity, \
-           u.attack_rule_id, u.critical_attack_id \
+           u.attack_rule_id, u.critical_attack_id, u.speed_impact_group_id \
     FROM units u \
     LEFT JOIN unit_types ut ON ut.id = u.type \
     LEFT JOIN images_store i ON i.id = u.image_id ";

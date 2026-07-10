@@ -256,8 +256,12 @@ impl UpgradeBo {
             let mut dto: ObtainedUpgradeDto = row.into();
             let upgrade_id = dto.upgrade.id;
             // Java hydrates the nested upgrade's `@ManyToOne` improvement and the
-            // `@PostLoad` requirement-information list on this path.
-            dto.upgrade.improvement = match crate::bo::ImprovementBo::find_for_entity(
+            // `@PostLoad` requirement-information list on this path. The SHALLOW
+            // improvement shape: on the wire, obtained_upgrades_change's
+            // `unitTypesUpgrades[].unitType.speedImpactGroup` has NO
+            // requirementsGroups (that graph is only hydrated on paths that load
+            // it explicitly — running_upgrade_change DOES carry it; D19).
+            dto.upgrade.improvement = match crate::bo::ImprovementBo::find_for_entity_shallow(
                 &mut *conn,
                 "upgrades",
                 upgrade_id,

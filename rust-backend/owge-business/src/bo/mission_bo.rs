@@ -250,9 +250,30 @@ impl MissionBo {
             ))
         })?;
         let upgrade_id = resolve_upgrade_id(&mut *conn, relation_id).await?;
-        let upgrade = UpgradeBo::find_one(&mut *conn, upgrade_id)
+        let mut upgrade = UpgradeBo::find_one(&mut *conn, upgrade_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No upgrade with id {upgrade_id}")))?;
+        // Java's RunningUpgradeDto embeds the FULL UpgradeDto: the session-managed
+        // Upgrade entity serializes with its improvement (deep — the nested
+        // unitType.speedImpactGroup keeps requirementsGroups here, unlike the
+        // obtained_upgrades_change shallow shape) and its @PostLoad requirements
+        // list (D19).
+        upgrade.improvement =
+            match crate::bo::ImprovementBo::find_for_entity(&mut *conn, "upgrades", upgrade_id)
+                .await
+            {
+                Ok(improvement) => Some(improvement),
+                Err(OwgeError::NotFound(_)) => None,
+                Err(e) => return Err(e),
+            };
+        upgrade.requirements = Some(
+            crate::bo::requirement_bo::RequirementBo::find_requirements(
+                &mut *conn,
+                crate::model::object_relation::object_enum::UPGRADE,
+                upgrade_id as i16,
+            )
+            .await?,
+        );
         // missionInformation.getValue().intValue() — the level being researched.
         let level = info.value.unwrap_or(0.0) as i32;
         Ok(Some(RunningUpgradeDto::from_mission(

@@ -1,5 +1,39 @@
 # BDD parity — divergence backlog
 
+## SWEEP 3 (post D16/D17/D10/D19, 2026-07-10 17:35, artifacts `/tmp/bdd_parity_runs/20260710_173518`)
+
+37 scenarios: JAVA_SPEC 37 ✅ · RUST_SPEC 37 ✅ · **PARITY 29 ✅ / 8 🔴**
+(sweep 2 was 18✅/19🔴 — 11 scenarios flipped today; explore/gather 5/5,
+upgrades 8/8, time_specials 3/3, deploy family stays 7/7 green).
+
+The 8 remaining reds (4–16 diff lines each) decompose into FIVE classes:
+- **R1 specialLocation rich-vs-slim** (the old D3 leftover, now reproduced):
+  Rust emits the RICH specialLocation (galaxyId/galaxyName/image/…) inside
+  `mission_report_new.parsedJson.targetPlanet`, `unit_mission_change`/
+  `enemy_mission_change` targetPlanet and the mission_reports TABLE json_body;
+  Java emits the slim shape there. Opposite direction on conquest
+  `unit_obtained_change.value[].sourcePlanet.specialLocation` (JAVA-only).
+  Affects all 4 special_location scenarios + establish-changed-owner.
+- **R2 requirementsGroups path-pair (D2 remainder)**: `unit_unlocked_change`
+  unit.improvement…speedImpactGroup.requirementsGroups is JAVA-only (Java DEEP
+  here — establish/compound/leave), while `time_special_unlocked_change`
+  …unitType.{parent,shareMaxCount,speedImpactGroup}.requirementsGroups is
+  RUST-only (Rust over-emits). Same nested graph, opposite hydration per event.
+- **R3 missing Rust emits on ownership-change paths**: FRAMECOUNT java>rust —
+  `enemy_mission_change` 1v0, `planet_owned_change` 1v0, `unit_obtained_change`
+  2v1 (establish-base grant, compound probe, cancel-auto-return). Part of the
+  definePlanetAsOwnedBy emit block not fully ported.
+- **R4 unit_build shapes**: `unit_build_mission_change.value[].unit.
+  {improvement,speedImpactGroup}` JAVA-only; plus `unit_type_change` java 1
+  rust 2 on registration — likely the dedup removal now DOUBLE-emitting on the
+  build path (Rust queues via requirement trigger AND the M4 block; Java once).
+- **R5 conquest unit_mission_change count j=1 r=0** (+ empty myUnitMissions):
+  at emit time Java still counts the resolving conquest mission, Rust doesn't —
+  emit-ordering/timing relative to mission resolution.
+
+storedUnits on enemy_mission_change (RUST-only, establish-changed-owner +
+conquest ws_user2) rides with R1/R2's finder — same `involved_units` builder.
+
 ## SWEEP 2 (post-fix wave, 2026-07-09 22:02, artifacts `/tmp/bdd_parity_runs/20260709_220239`)
 
 37 scenarios: JAVA_SPEC 35 ✅ · RUST_SPEC 36 ✅ · PARITY 18 ✅ / 19 🔴.
@@ -309,6 +343,43 @@ the hydrated own `speedImpactGroup` while the REST websocket-sync response
 (byte-proven earlier) does NOT. Fixed: `UserStorageBo::find_data_for_socket`
 (socket emitter only; REST sync path unchanged). PENDING VERIFICATION.
 
+### D19 — ✅ FIXED 2026-07-10: upgrades feature 8/8 FULL parity (run `20260710_172904`)
+Six fixes, each verified red→green:
+1. `obtained_upgrades_change` — improvement hydrated via the SHALLOW builder
+   (`find_for_entity_shallow`): Java's payload carries
+   `unitTypesUpgrades[].unitType.speedImpactGroup` WITHOUT requirementsGroups
+   (`running_upgrade_change` keeps the deep shape — path-dependent as usual).
+2. `running_upgrade_change` — Rust's `find_running_level_up_mission` now
+   hydrates `upgrade.improvement` (deep) + `upgrade.requirements` like Java's
+   session-managed entity.
+3. Envelope — `WebsocketMessage.value` skips `Value::Null` (Java's NON_NULL
+   mapper drops the key; `() -> null` on completion/cancel).
+4. Emit multiplicity — `drain_requirement_emits` dedup REMOVED: Java emits one
+   `*_unlocked_change` per (un)registered relation (observed ×5
+   time_special_unlocked_change on completion); Kevin's D11-class ruling.
+5. `unit_unlocked_change` unit `speedImpactGroup` — NOT hydration-flavored
+   after all: Java serializes the unit's OWN `speed_impact_group_id` FK only
+   (unit 1 = NULL → key absent); Rust wrongly applied the gameplay
+   inheritance resolution (`find_applicable_speed_impact_group`) in
+   `UnlockedUnitFinder`. Now uses the own FK (shallow group via `find_by_id`).
+   The establish-base/leave `requirementsGroups` variance remains a D2-remainder
+   question for those scenarios.
+6. `unit_type_change` on completion — ported Java's
+   `improvementBo.triggerChange` → `UNIT_IMPROVEMENTS` listener: emitted when
+   the leveled upgrade's improvement has a type-AMOUNT unitTypesUpgrades entry.
+Plus two HARNESS lessons:
+- `user_data_change.value.{primaryResource,secondaryResource}` are normalized
+  (per-second wall-clock accrual, unassertable — ws_verify tolerated class);
+  scoped to that event so upgrade/unit PRICES still diff.
+- **FRESH JVM PER SCENARIO**: Java's in-memory taggable caches survive DB
+  restores — the Completing scenario's improvement aggregate leaked into the
+  later Cancelling/ZERO scenarios' `user_data_change` as a deterministic
+  false red (+35/+40, exactly one improvement-multiple). The runner now kills
+  and re-boots the Java container before every scenario's restore (Rust
+  already restarted per scenario; also removes the paused-JVM restore
+  deadlock hazard).
+
+#### (original entry, for history)
 ### D19 — NEW: upgrades-completion unlock-frame class (the remaining D11 chunk)
 From `Completing a level-up bumps…` ws diff:
 - `obtained_upgrades_change.value[].upgrade.improvement.unitTypesUpgrades[].unitType.speedImpactGroup.requirementsGroups`

@@ -758,6 +758,27 @@ async fn run_non_unit_mission(
         .bind(mission_id)
         .fetch_optional(&mut *conn)
         .await?;
+    // LEVEL_UP: Java's processLevelUpAnUpgrade runs improvementBo.triggerChange
+    // with the upgrade's improvement; the UNIT_IMPROVEMENTS listener
+    // (UnitTypeBo.init) emits unit_type_change when any unitTypesUpgrades entry
+    // is of type AMOUNT (D19). Capture the condition pre-run (the mission +
+    // mission_information rows are deleted on completion).
+    let level_up_emits_unit_type_change: bool = if mission_type == MissionType::LevelUp {
+        sqlx::query_scalar::<_, i64>(
+            "SELECT COUNT(*) \
+               FROM mission_information mi \
+               JOIN object_relations orel ON orel.id = mi.relation_id \
+               JOIN upgrades u ON u.id = orel.reference_id \
+               JOIN improvements_unit_types iut ON iut.improvement_id = u.improvement_id \
+              WHERE mi.mission_id = ? AND iut.type = 'AMOUNT'",
+        )
+        .bind(mission_id)
+        .fetch_one(&mut *conn)
+        .await?
+            > 0
+    } else {
+        false
+    };
     let keys: Vec<String> = if mission_type == MissionType::BuildUnit {
         let planet: Option<f64> =
             sqlx::query_scalar("SELECT value FROM mission_information WHERE mission_id = ?")
@@ -801,6 +822,11 @@ async fn run_non_unit_mission(
                 MissionEventEmitter::emit_running_upgrade(&mut *conn, owner).await?;
                 MissionEventEmitter::emit_obtained_upgrades(&mut *conn, owner).await?;
                 MissionEventEmitter::emit_mission_count_change(&mut *conn, owner).await?;
+                // improvementBo.triggerChange → UNIT_IMPROVEMENTS listener
+                // (UnitTypeBo): the leveled upgrade alters unit-type AMOUNTs.
+                if level_up_emits_unit_type_change {
+                    UnitTypeEmitter::emit_unit_type_change(&mut *conn, owner).await?;
+                }
             }
             _ => {}
         }

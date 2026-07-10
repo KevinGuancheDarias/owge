@@ -177,7 +177,8 @@ echo "artifacts: $WORK"
 [ -x "$DRIVER" ] || { echo "driver binary missing: $DRIVER"; exit 1; }
 set_flags
 take_baseline
-if [ "$BACKENDS" != "rust" ]; then boot_java || exit 1; java_asleep; fi
+# Java now boots fresh inside the per-scenario loop (cold caches per scenario);
+# no global boot needed.
 
 # --- main loop -------------------------------------------------------------------
 OVERALL=0
@@ -197,9 +198,15 @@ for i in "${!SCN_FILES[@]}"; do
   # baseline's DROP TABLEs (observed: 40+ min hang). Java sleeps ONLY while
   # the Rust driver runs (the anti-task-stealing window).
   if [ "$BACKENDS" = "java" ] || [ "$BACKENDS" = "both" ]; then
-    java_awake
-    sleep 1
+    # FRESH JVM per scenario (D19 lesson): Java's in-memory taggable caches
+    # survive DB restores — a prior scenario's improvement aggregate leaked
+    # into later scenarios' user_data_change frames as a false PARITY red
+    # (Rust already restarts per scenario, so the staleness was one-sided).
+    # The container is KILLED before the restore, so no frozen connections
+    # can deadlock the baseline's DROP TABLEs.
+    docker rm -f "$JAVA_CONTAINER" >/dev/null 2>&1 || true
     restore_baseline
+    boot_java || { echo "  JAVA  backend failed to start"; OVERALL=1; continue; }
     if driver_pass java "$feature" "$scenario" "$ART/java"; then JAVA_SPEC="✅"; else JAVA_SPEC="🔴"; fi
     dump_state "$ART/java"
     [ "$JAVA_SPEC" = "🔴" ] && sed -n '/✘/,+6p' "$ART/java/driver.log" | sed 's/^/  JAVA  /'

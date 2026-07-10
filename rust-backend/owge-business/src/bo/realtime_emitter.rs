@@ -32,6 +32,7 @@ use sqlx::MySqlConnection;
 /// the `unit_unlocked_change` event calls
 /// `socketIoService.sendMessage(userId, "unit_unlocked_change", () -> unitBo.findAllByUser(userId))`.
 /// Rust finder: `UnitBo::find_unlocked_by_user`.
+///
 pub async fn emit_unit_unlocked_change(conn: &mut MySqlConnection, user_id: i32) -> OwgeResult<()> {
     emitter::send_message(conn, user_id, "unit_unlocked_change", |conn| {
         Box::pin(async move {
@@ -224,11 +225,15 @@ pub async fn drain_requirement_emits(
     conn: &mut MySqlConnection,
     emits: &[RequirementEmit],
 ) -> OwgeResult<()> {
-    let mut seen = std::collections::HashSet::new();
+    // NO dedup: Java fires one emit per (un)registered relation, so multiple
+    // relations unlocking the same object type produce multiple identical
+    // frames (level-up completion emits time_special_unlocked_change once per
+    // registered TIME_SPECIAL relation — observed ×5). An earlier version
+    // coalesced by (event, user) as an "improvement"; Kevin ruled the Java
+    // multiplicity is the contract (same ruling as the registerReturnMission
+    // duplicate unit_mission_change, D11/D19).
     for emit in emits {
-        if seen.insert(*emit) {
-            emit.run(&mut *conn).await?;
-        }
+        emit.run(&mut *conn).await?;
     }
     Ok(())
 }

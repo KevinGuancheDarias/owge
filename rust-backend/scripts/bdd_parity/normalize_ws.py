@@ -29,6 +29,13 @@ NORMALIZATIONS, each justified, not suppressions):
    ORDERED_VALUE_EVENTS and any subtree under a key in ORDERED_KEYS keep
    positional comparison.
 
+4. `user_data_change.value.{primaryResource,secondaryResource}` (D19): the
+   balances regenerate per-second from wall-clock (and the resources Given
+   resets last_action), so the two backends' runs can never agree — the same
+   tolerated class as ws_verify; mission COSTS are asserted on the missions
+   table rows instead. Scoped to the user_data_change payload only: the same
+   key names on upgrades/units are prices and still diff.
+
 Envelope fields (status, lastSent presence) are deliberately NOT normalized —
 Rust adding them where Java doesn't is a real, reportable divergence.
 """
@@ -93,6 +100,10 @@ for line in sys.stdin:
         continue
     payload = frame.get("payload") if isinstance(frame, dict) else None
     event = payload.get("eventName") if isinstance(payload, dict) else None
+    if event == "user_data_change" and isinstance(payload.get("value"), dict):
+        for k in ("primaryResource", "secondaryResource"):
+            if isinstance(payload["value"].get(k), (int, float)):
+                payload["value"][k] = "<NUM>"
     print(
         json.dumps(
             norm(frame, sortable=event not in ORDERED_VALUE_EVENTS),

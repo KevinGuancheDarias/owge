@@ -23,6 +23,10 @@ use serde_json::Value;
 #[serde(rename_all = "camelCase")]
 pub struct WebsocketMessage {
     pub event_name: String,
+    /// Java's websocket mapper is NON_NULL, so a null payload drops the key
+    /// entirely (e.g. `running_upgrade_change` with `() -> null` on completion
+    /// / cancel) — mirror that instead of sending `"value":null`.
+    #[serde(skip_serializing_if = "Value::is_null")]
     pub value: Value,
     pub status: String,
     #[serde(skip_serializing_if = "Option::is_none")]
