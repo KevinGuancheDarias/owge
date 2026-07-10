@@ -1,5 +1,23 @@
 # BDD parity — divergence backlog
 
+## SWEEP 5 (2026-07-10 night)
+
+**LAST RED ✅ FIXED — conquest `enemy_mission_change` frame counts** (scenario
+run `20260710_211502` FULL three-verdict parity). Both halves of the sweep-4
+analysis turned out to be ONE root cause, and neither hypothesis was right:
+the gating condition was already ported (and TRUE on both sides — the report
+shows user1's stack went 5→4, so `usersWithChangedCounts = {1,2}`), and the
+"second new-owner emit" is not a separate emit site. Java's attack-block emit
+is `doAfterCommit(() -> emitEnemyMissionsChange(targetPlanet.getOwner()))` —
+the lambda re-reads the Hibernate entity's owner AFTER the mission tx commits,
+and on a successful conquest `definePlanetAsOwnedBy` has reassigned the planet
+by then. So the branch is gated on the COMBAT-TIME owner (user2's iteration)
+but DELIVERED to the post-commit owner (user1). Rust emitted to the
+combat-time `target_owner` — one extra frame to the old owner, one missing to
+the new. Fix: `AttackEmit` carries `target_planet_id`; the drain re-reads the
+planet's current owner (`planet_owner()`) at emit time, exactly like the Java
+lambda. Plain attacks are unaffected (owner unchanged → same recipient).
+
 ## SWEEP 4 (endgame, 2026-07-10 20:16, artifacts `/tmp/bdd_parity_runs/20260710_201632`)
 
 37 scenarios: JAVA_SPEC 37 ✅ · RUST_SPEC 37 ✅ · **PARITY 36 ✅ / 1 🔴**

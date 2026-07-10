@@ -231,6 +231,7 @@ pub async fn process_attack(
         mission_user_id: invoker_id,
         removed,
         target_owner: emit_data.target_owner,
+        target_planet_id: mission.target_planet.map(|p| p as u64),
         users_with_deleted_missions: emit_data.users_with_deleted_missions,
         users_with_changed_counts: emit_data.users_with_changed_counts,
         altered_users: emit_data.altered_users,

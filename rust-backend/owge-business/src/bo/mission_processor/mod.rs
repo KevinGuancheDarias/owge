@@ -593,6 +593,9 @@ pub struct AttackEmit {
     pub removed: bool,
     /// `targetPlanet.getOwner()` at combat time (pre-conquest reassignment).
     pub target_owner: Option<i32>,
+    /// The mission's target planet — the deferred enemy-missions emit re-reads
+    /// its owner at drain time (see the drain for why that matters on conquest).
+    pub target_planet_id: Option<u64>,
     /// `attackInformation.getUsersWithDeletedMissions()`.
     pub users_with_deleted_missions: Vec<i32>,
     /// `attackInformation.getUsersWithChangedCounts()`.
@@ -692,8 +695,23 @@ impl DeferredEmit {
                     if a.target_owner == Some(uid) {
                         ObtainedUnitEventEmitter::emit_obtained_units(&mut *conn, uid).await?;
                         if !deleted.is_empty() || changed.len() > 1 {
-                            MissionEventEmitter::emit_enemy_missions_change(&mut *conn, uid)
-                                .await?;
+                            // Java wraps this one in doAfterCommit AND the lambda
+                            // re-reads `targetPlanet.getOwner()` when it fires — so
+                            // while the combat-time owner (`target_owner`) gates the
+                            // branch, the RECIPIENT is the planet's owner after the
+                            // whole mission tx committed. On a successful conquest
+                            // definePlanetAsOwnedBy has reassigned the planet by
+                            // then, and the frame goes to the NEW owner.
+                            if let Some(planet_id) = a.target_planet_id {
+                                if let Some(recipient) =
+                                    planet_owner(&mut *conn, planet_id).await?
+                                {
+                                    MissionEventEmitter::emit_enemy_missions_change(
+                                        &mut *conn, recipient,
+                                    )
+                                    .await?;
+                                }
+                            }
                         }
                     }
                     MissionEventEmitter::emit_unit_missions(&mut *conn, uid).await?;
@@ -742,6 +760,18 @@ async fn find_planet_list_holders(
             .fetch_all(&mut *conn)
             .await?,
     )
+}
+
+/// The planet's current owner, read fresh (post-commit `targetPlanet.getOwner()`).
+async fn planet_owner(
+    conn: &mut MySqlConnection,
+    planet_id: u64,
+) -> OwgeResult<Option<i32>> {
+    let owner: Option<Option<i32>> = sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+        .bind(planet_id)
+        .fetch_optional(&mut *conn)
+        .await?;
+    Ok(owner.flatten())
 }
 
 /// `planetRepository.isOfUserProperty(userId, planetId)`.
