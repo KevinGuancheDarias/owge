@@ -178,37 +178,19 @@ struct ObtainedUnitJoinedRow {
     temporal_information: Option<TemporalInformationRow>,
 }
 
-/// The SLIM specialLocation for the planet carrying it (assigned planet = the
-/// planet pointing at the location) — the shape Java's NON_NULL mapper leaves
-/// when the location's lazy galaxy/image/improvement were never initialized,
-/// which is always the case on the `unit_obtained_change` payload (R-class/D19).
+/// The FULL specialLocation for the planet carrying it — same shape as every
+/// other planet payload (Java maps the complete SpecialLocationDto on all
+/// paths; absent fields are NULL DB columns, not a lazy-hydration variant).
+/// Reuses the mission-payload planet loader and takes its specialLocation.
 async fn load_slim_special_location(
     conn: &mut MySqlConnection,
     planet_id: u64,
 ) -> OwgeResult<Option<crate::dto::special_location::SpecialLocationDto>> {
-    let row: Option<(u16, String, Option<String>, u64, Option<String>)> = sqlx::query_as(
-        "SELECT sl.id, sl.name, sl.description, p.id, p.name \
-           FROM planets p \
-           JOIN special_locations sl ON sl.id = p.special_location_id \
-          WHERE p.id = ?",
+    Ok(
+        crate::bo::mission_processor::load_planet_dto(&mut *conn, planet_id)
+            .await?
+            .and_then(|dto| dto.special_location),
     )
-    .bind(planet_id)
-    .fetch_optional(&mut *conn)
-    .await?;
-    Ok(row.map(|(id, name, description, assigned_planet_id, assigned_planet_name)| {
-        crate::dto::special_location::SpecialLocationDto {
-            id,
-            name,
-            description: description.unwrap_or_default(),
-            image: None,
-            image_url: None,
-            improvement: None,
-            galaxy_id: None,
-            galaxy_name: None,
-            assigned_planet_id: Some(assigned_planet_id),
-            assigned_planet_name,
-        }
-    }))
 }
 
 /// Mirrors `model::planet::planet_dto_from_parts` — both `SourcePlanetRow` and

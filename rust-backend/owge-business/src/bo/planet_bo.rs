@@ -65,20 +65,14 @@ impl PlanetBo {
         .await?;
         let mut out = Vec::with_capacity(rows.len());
         for row in rows {
-            let mut dto = hydrate_planet_row(&mut *conn, row).await?;
-            // planet_owned_change emits the SLIM specialLocation like the
-            // mission payloads: on Java's emit path the location's lazy
-            // galaxy/image/improvement are never initialized (verified against
-            // fresh-JVM frames — earlier "rich" observations were warm-cache
-            // contamination; R1/D19). Navigate keeps the rich shape.
-            if let Some(sl) = dto.special_location.as_mut() {
-                sl.galaxy_id = None;
-                sl.galaxy_name = None;
-                sl.image = None;
-                sl.image_url = None;
-                sl.improvement = None;
-            }
-            out.push(dto);
+            // FULL specialLocation, like navigate: Java maps the complete
+            // SpecialLocationDto on EVERY path — the "slim" frames previously
+            // observed were special locations whose image/galaxy/improvement
+            // columns were simply NULL in the seed (NON_NULL drops them), not
+            // a lazy-hydration shape. The old slim-out here cost players the
+            // planet image in the owned list (frontend reads
+            // specialLocation.imageUrl; Kevin's 2026-07-11 report).
+            out.push(hydrate_planet_row(&mut *conn, row).await?);
         }
         Ok(out)
     }

@@ -130,17 +130,13 @@ pub(crate) async fn load_planet_dto(
     conn: &mut MySqlConnection,
     planet_id: u64,
 ) -> OwgeResult<Option<PlanetDto>> {
-    let Some(mut dto) = load_planet_dto_rich(&mut *conn, planet_id).await? else {
-        return Ok(None);
-    };
-    if let Some(sl) = dto.special_location.as_mut() {
-        sl.galaxy_id = None;
-        sl.galaxy_name = None;
-        sl.image = None;
-        sl.image_url = None;
-        sl.improvement = None;
-    }
-    Ok(Some(dto))
+    // FULL specialLocation on every mission/report path: Java always maps the
+    // complete SpecialLocationDto (PlanetDto.dtoFromEntity → SpecialLocationDto
+    // maps image/galaxy/improvement unconditionally; NON_NULL only drops
+    // columns that are NULL in the DB). The former slim-out here was fitted to
+    // an imageless seed location and cost players the planet image on mission
+    // source/target and report planets (frontend reads specialLocation.imageUrl).
+    load_planet_dto_rich(&mut *conn, planet_id).await
 }
 
 /// [`load_planet_dto`] with the RICH specialLocation (galaxy/image/improvement

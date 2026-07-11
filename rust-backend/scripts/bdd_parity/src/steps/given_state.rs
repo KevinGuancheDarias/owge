@@ -79,9 +79,13 @@ async fn gate_by_requirement(
 
 #[given(expr = "planet {int} has special location {int} and no owner")]
 async fn planet_has_special_location(world: &mut BddWorld, planet: i64, special_location: i64) {
+    // image_id = 1 (a baseline image_store row): specialLocation.imageUrl is
+    // the frontend's planet-image contract, and an imageless seed location
+    // masked a real Rust gap for a day (the payloads dropped image/imageUrl
+    // and the harness couldn't see it) — keep the fields exercised.
     sqlx::query(
-        "INSERT IGNORE INTO special_locations (id, name, description, cloned_improvements) \
-         VALUES (?, CONCAT('BDD SL ', ?), 'bdd-parity seeded', 0)",
+        "INSERT IGNORE INTO special_locations (id, name, description, cloned_improvements, image_id) \
+         VALUES (?, CONCAT('BDD SL ', ?), 'bdd-parity seeded', 0, 1)",
     )
     .bind(special_location)
     .bind(special_location)

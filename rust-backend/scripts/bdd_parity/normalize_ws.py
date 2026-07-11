@@ -77,10 +77,6 @@ ORDERED_VALUE_EVENTS = {
 ORDERED_KEYS = {"reports"}
 
 
-# R2: lazy fields dropped from planet_owned_change specialLocation objects.
-SL_LAZY_FIELDS = ("galaxyId", "galaxyName", "image", "imageUrl", "improvement")
-
-
 def norm(obj, sortable=True):
     if isinstance(obj, dict):
         out = {}
@@ -135,13 +131,11 @@ for line in sys.stdin:
         for k in ("primaryResource", "secondaryResource"):
             if isinstance(payload["value"].get(k), (int, float)):
                 payload["value"][k] = "<NUM>"
-    if event == "planet_owned_change" and isinstance(payload.get("value"), list):
-        # R2(b): specialLocation's lazy fields are session noise on this event.
-        for planet in payload["value"]:
-            sl = planet.get("specialLocation") if isinstance(planet, dict) else None
-            if isinstance(sl, dict):
-                for k in SL_LAZY_FIELDS:
-                    sl.pop(k, None)
+    # (2026-07-11) the former R2(b) planet_owned_change specialLocation
+    # lazy-field drop is GONE: the "session noise" was misdiagnosed — Java maps
+    # the full SpecialLocationDto everywhere and absent fields were just NULL
+    # DB columns on the imageless seed location. specialLocation.imageUrl is a
+    # frontend contract (planet-image pipe) and is asserted byte-for-byte now.
     print(
         json.dumps(
             norm(frame, sortable=event not in ORDERED_VALUE_EVENTS),

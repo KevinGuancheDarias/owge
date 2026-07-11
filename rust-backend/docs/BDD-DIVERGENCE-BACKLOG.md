@@ -1,5 +1,43 @@
 # BDD parity — divergence backlog
 
+## SWEEP 8 (2026-07-11, the specialLocation image bug — R1/R2(b) MISDIAGNOSIS corrected, run `20260711_105121`, 54/54)
+
+Kevin's live report: Rust showed the placeholder icon
+(`special-location-without-icon.png`) for special-location planets in the
+owned list, mission source/target, and reports, while Java showed the
+`/dynamic` image. Root cause chain — a harness self-own in three acts:
+
+1. **R1 was over-fitted to imageless seed data.** Java maps the FULL
+   `SpecialLocationDto` on EVERY path (`PlanetDto.dtoFromEntity` →
+   `SpecialLocationDto` maps image/galaxy/improvement unconditionally);
+   the "slim" Java frames were locations whose image/galaxy/improvement
+   columns were NULL (Jackson NON_NULL). The harness's seeded SL 500 had no
+   image, so Java legitimately emitted `{id,name,description,assignedPlanet*}`
+   and Rust was WRONGLY changed to hard-null those fields everywhere
+   (`load_planet_dto`, `find_owned_dtos`, `load_slim_special_location`).
+2. **R2(b) then normalized the evidence away**: the planet_owned_change
+   specialLocation "lazy-presence nondeterminism" was the same misread (rich
+   SL 201 vs imageless SL 500 across frames), and dropping
+   image/imageUrl/galaxy/improvement in normalize_ws made the harness blind
+   to exactly the fields the frontend consumes (`planet-image.pipe.ts` reads
+   `specialLocation.imageUrl`, falls back to the placeholder).
+3. Production Java (full DTO) vs Rust (forced-slim) = Kevin's bug, invisible
+   to a 54/54-green suite.
+
+FIX: Rust slim-outs deleted (`load_planet_dto` = rich, `find_owned_dtos`
+un-nulled, `load_slim_special_location` delegates to the full loader);
+normalize_ws SL_LAZY_FIELDS drop removed entirely (the R2(a)
+requirementsGroups-under-speedImpactGroup drop stays — that one had genuine
+within-run flip evidence); the harness Given now seeds SL 500 WITH image_id=1
+(a baseline images_store row) so every mission/report/owned/unlock path
+exercises image+imageUrl unnormalized. Verified: special_location 5/5 with
+byte-asserted imageUrl on both, full sweep 54/54.
+
+**LESSON (add to reviews of future normalizations): before ruling a field
+"session noise", split the evidence by the DATA ROW it came from — NULL
+columns under NON_NULL serialization mimic hydration nondeterminism. And a
+normalization that touches a field the frontend consumes is never safe.**
+
 ## SWEEP 6 (2026-07-11, coverage expansion: 37 → 52 scenarios, run `20260711_000215`)
 
 **52/52 FULL three-verdict parity.** Fifteen new scenarios covering the
