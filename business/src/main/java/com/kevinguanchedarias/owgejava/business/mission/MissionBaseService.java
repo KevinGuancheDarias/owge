@@ -19,7 +19,10 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 
 @Service
 @AllArgsConstructor
@@ -37,12 +40,23 @@ public class MissionBaseService {
     private final MissionSchedulerService missionSchedulerService;
 
     /**
+     * Handles a failed mission execution, returning the instant at which the execution should
+     * be retried, or null when the mission was given up (max attempts reached) <br>
+     * <b>NOTICE:</b> the retry must NOT be scheduled from here: this runs inside the failing
+     * db-scheduler execution, whose task instance still exists, so scheduling the same instance
+     * id is silently ignored and the retry would be lost when the execution completes. The caller
+     * (the db-scheduler task's completion handler) reschedules the current execution instead
+     *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    @Transactional
-    public void retryMissionIfPossible(Long missionId, MissionType missionType) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Instant retryMissionIfPossible(Long missionId, MissionType missionType) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         if (mission.getAttemps() >= MAX_ATTEMPTS) {
+            // The player is only notified when the mission is definitively given up; attempts that
+            // will still be retried used to save this report too, alarming players ("contact an
+            // admin!") over failures that ended up succeeding on a later attempt
+            missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
             if (missionType.isUnitMission()) {
                 returnMissionRegistrationBo.registerReturnMission(mission, null);
                 mission.setResolved(true);
@@ -54,12 +68,12 @@ public class MissionBaseService {
             } else {
                 throw new ProgrammingException("Should never ever happend");
             }
+            return null;
         } else {
             mission.setAttemps(mission.getAttemps() + 1);
             mission.setTerminationDate(missionTimeManagerBo.computeTerminationDate(mission.getRequiredTime()));
-            missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(mission, missionType));
-            missionSchedulerService.scheduleMission(mission);
             missionRepository.save(mission);
+            return missionSchedulerService.computeExecutionTime(mission);
         }
     }
 

@@ -13,7 +13,6 @@ import com.kevinguanchedarias.owgejava.fake.NonPostConstructSocketIoService;
 import com.kevinguanchedarias.owgejava.filter.OwgeJwtAuthenticationFilter;
 import com.kevinguanchedarias.owgejava.pojo.WebsocketMessage;
 import com.kevinguanchedarias.owgejava.repository.UserStorageRepository;
-import com.kevinguanchedarias.owgejava.test.answer.InvokeRunnableLambdaAnswer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -246,7 +244,6 @@ class SocketIoServiceTest {
         given(validClientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
         given(websocketEventsInformationBo.save(any(WebsocketEventsInformation.class))).will(returnsFirstArg());
         socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
 
         socketIoService.sendMessage(user, eventName, () -> content);
 
@@ -273,7 +270,6 @@ class SocketIoServiceTest {
         given(clientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
         given(userStorageRepository.findAll()).willReturn(List.of(user));
         socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
 
         socketIoService.sendMessage(0, eventName, () -> content);
 
@@ -287,38 +283,6 @@ class SocketIoServiceTest {
         var sentMessage = sentMessageCaptor.getValue();
         assertThat(sentMessage.getEventName()).isEqualTo(eventName);
         assertThat(sentMessage.getValue()).isEqualTo(content);
-    }
-
-    @Test
-    void sendMessage_should_work_for_all_users_and_log_transaction_active_warning(CapturedOutput capturedOutput) {
-        var user = givenUser1();
-        var content = "HelloWorld";
-        var server = mock(SocketIOServer.class);
-        var clientMock = mock(SocketIOClient.class);
-        var eventName = "HELLO";
-        given(server.getAllClients()).willReturn(List.of(clientMock));
-        given(clientMock.get(SocketIoService.USER_TOKEN_KEY)).willReturn(givenTokenUser());
-        given(userStorageRepository.findAll()).willReturn(List.of(user));
-        socketIoService.server = server;
-        doAnswer(new InvokeRunnableLambdaAnswer(0)).when(asyncRunnerBo).runAsyncWithoutContext(any());
-
-        try (var mockedStatic = mockStatic(TransactionSynchronizationManager.class)) {
-            mockedStatic.when(TransactionSynchronizationManager::isActualTransactionActive).thenReturn(true);
-
-            socketIoService.sendMessage(0, eventName, () -> content);
-
-            var saveCaptor = ArgumentCaptor.forClass(WebsocketEventsInformation.class);
-            verify(websocketEventsInformationBo, times(1)).save(saveCaptor.capture());
-            var saved = saveCaptor.getValue();
-            assertThat(saved.getEventNameUserId().getEventName()).isEqualTo(eventName);
-            assertThat(saved.getEventNameUserId().getUserId()).isEqualTo(TOKEN_USER_ID);
-            var sentMessageCaptor = ArgumentCaptor.forClass(WebsocketMessage.class);
-            verify(clientMock, times(1)).sendEvent(eq("deliver_message"), sentMessageCaptor.capture());
-            var sentMessage = sentMessageCaptor.getValue();
-            assertThat(sentMessage.getEventName()).isEqualTo(eventName);
-            assertThat(sentMessage.getValue()).isEqualTo(content);
-            assertThat(capturedOutput.getOut()).contains("if everything is nice");
-        }
     }
 
     @Test

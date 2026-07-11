@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.business.mission.unit.registration.UnitMi
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.user.listener.UserDeleteListener;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
@@ -60,6 +61,7 @@ public class UnitMissionBo implements UserDeleteListener {
     private final MissionReportManagerBo missionReportManagerBo;
     private final MissionBaseService missionBaseService;
     private final TransactionUtilService transactionUtilService;
+    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
 
     protected Map<MissionType, MissionProcessor> missionProcessorMap;
 
@@ -269,6 +271,11 @@ public class UnitMissionBo implements UserDeleteListener {
                 .stream()
                 .toList();
         planetLockUtilService.doInsideLock(affectedPlanets, () -> {
+            // Detach all obtained units that reference any of these missions before deleting the missions,
+            // so the obtained_units table stays consistent and any enemy units pointing at the deleted
+            // user's missions (e.g. units deployed on the deleted user's planets) are not left with a
+            // dangling mission_id that later blows up on lazy-proxy initialisation.
+            obtainedUnitModificationBo.detachMissions(missions);
             missionRepository.deleteAll(missions);
             transactionUtilService.doAfterCommit(
                     () -> missionEventEmitterBo.emitEnemyMissionsChange(missions)

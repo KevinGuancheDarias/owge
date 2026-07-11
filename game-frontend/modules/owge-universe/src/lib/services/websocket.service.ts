@@ -7,6 +7,7 @@ import {
   ProgrammingError, SessionService, SessionStore, StorageOfflineHelper
 } from '@owge/core';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
+import { filter, take } from 'rxjs/operators';
 import { WebsocketSyncResponse } from '../types/websocket-sync-response.type';
 import { UniverseCacheManagerService } from './universe-cache-manager.service';
 import { WsEventCacheService } from './ws-event-cache.service';
@@ -55,6 +56,14 @@ export class WebsocketService {
   private _reconnectTimer: any = null;
   private _lastSyncAt = 0;
 
+  // Buffer for deliver_message events that arrive before the client is ready to
+  // process them (i.e. before auth + initial sync have completed).
+  private _messageBuffer: any[] = [];
+  private _isReadyForMessages = false;
+
+  // Guard against stacking multiple suspension-triggered clearCache waiters.
+  private _pendingSuspensionClear = false;
+
   public constructor(
     private _wsEventCacheService: WsEventCacheService,
     private _sessionService: SessionService,
@@ -98,7 +107,13 @@ export class WebsocketService {
    */
   public initSocket(targetUrl?: string, jwtToken?: string): Promise<void> {
     this._isWantedDisconnection = false;
-    this.setAuthenticationToken(jwtToken);
+    // Only overwrite the stored token when a token was explicitly provided.
+    // This prevents a reconnect (which passes no token) from clobbering a
+    // fresher token that was set via setAuthenticationToken() after the
+    // original connection was made.
+    if (jwtToken !== undefined && jwtToken !== null) {
+      this.setAuthenticationToken(jwtToken);
+    }
     return new Promise<void>(resolve => {
       if (!this._socket) {
         if (!targetUrl) {
@@ -112,6 +127,18 @@ export class WebsocketService {
           reconnectionDelayMax: 3000,
           reconnectionAttempts: Number.MAX_SAFE_INTEGER
         });
+
+        // Register deliver_message immediately so no messages are lost during
+        // the auth + initial-sync window.  Messages received before the client
+        // is ready are buffered and flushed once _runWithSyncedData() finishes.
+        this._socket.on('deliver_message', message => {
+          this._handleDeliverMessage(message);
+        });
+
+        this._socket.on('cache_clear', async () => {
+          await this.clearCache();
+        });
+
         this._socket.io.on('connect_error', async () => {
           if (this._isFirstConnection && !this._hasTriggeredFirtsOffline) {
             await this._wsEventCacheService.createStores();
@@ -128,9 +155,21 @@ export class WebsocketService {
             this._log.info('Reconnected');
           }
           this._clearReconnectTimer();
-          this._reconnectAttempts = 0;
 
-          await this.authenticate();
+          try {
+            await this.authenticate();
+          } catch (e) {
+            // authenticate() logged the error and cleaned up the socket.
+            // Schedule a retry so the client doesn't stay deaf indefinitely.
+            // The outer initSocket promise is intentionally NOT resolved here —
+            // the caller should await the reconnect path instead.
+            this._scheduleReconnect(targetUrl);
+            return;
+          }
+          // Reset the backoff only once authentication succeeded, so repeated
+          // connect-then-auth-fail cycles keep backing off instead of looping at
+          // the base delay.
+          this._reconnectAttempts = 0;
           resolve();
           this._isConnected.next(true);
         });
@@ -141,10 +180,12 @@ export class WebsocketService {
             this._log.info('client unexpedctly disconnected');
             this._isAuthenticated = false;
             this._isConnected.next(false);
+            this._isReadyForMessages = false;
+            this._messageBuffer = [];
             this._socket.removeAllListeners();
             this._socket.close();
             delete this._socket;
-            this._scheduleReconnect(targetUrl, jwtToken);
+            this._scheduleReconnect(targetUrl);
           }
         });
       } else if (!this._socket.connected) {
@@ -165,8 +206,10 @@ export class WebsocketService {
    * immediately. A server that keeps dropping connections would otherwise cause a tight
    * reconnect loop, and every reconnect triggers a websocket-sync; the backoff keeps that
    * under control. Concurrent disconnect events collapse into a single pending attempt.
+   * Does NOT pass a token — it uses the current _credentialsToken at reconnect time so
+   * a token refresh between disconnect and reconnect is honoured.
    */
-  private _scheduleReconnect(targetUrl: string, jwtToken: string): void {
+  private _scheduleReconnect(targetUrl: string): void {
     if (this._reconnectTimer !== null) {
       return;
     }
@@ -178,7 +221,7 @@ export class WebsocketService {
     this._log.info(`Reconnecting in ${delay}ms (attempt ${this._reconnectAttempts})`);
     this._reconnectTimer = window.setTimeout(() => {
       this._reconnectTimer = null;
-      this.initSocket(targetUrl, jwtToken);
+      this.initSocket(targetUrl);
     }, delay);
   }
 
@@ -193,10 +236,8 @@ export class WebsocketService {
     if (!this._isAuthenticated) {
       this._log.debug('starting authentication');
       return await new Promise<void>((resolve, reject) => {
-        this._socket.emit('authentication', JSON.stringify({
-          value: this._credentialsToken,
-          protocol: WebsocketService.PROTOCOL_VERSION,
-        }));
+        // Register the response listener BEFORE emitting to avoid a race where
+        // the server replies before the listener is attached.
         this._socket.on('authentication', async response => {
           this._socket.removeEventListener('authentication');
           if (response.status === 'ok') {
@@ -214,16 +255,32 @@ export class WebsocketService {
             }
             await this._setupSync(response);
             this._isAuthenticated = true;
-            this._registerSocketHandlers();
+            await this._registerSocketHandlers();
             resolve();
           } else if (response.value === 'Invalid credentials') {
             this.close();
             this._sessionService.logout();
           } else {
             this._log.warn('An error occuring while trying to authenticate, response was', response);
+            // For non-credential errors (e.g. "invalid token sent from client") we
+            // must not leave the socket in a deaf state.  Close and let the caller
+            // schedule a reconnect.
+            this._isAuthenticated = false;
+            this._isConnected.next(false);
+            this._isReadyForMessages = false;
+            this._messageBuffer = [];
+            if (this._socket) {
+              this._socket.removeAllListeners();
+              this._socket.close();
+              delete this._socket;
+            }
             reject(response);
           }
         });
+        this._socket.emit('authentication', JSON.stringify({
+          value: this._credentialsToken,
+          protocol: WebsocketService.PROTOCOL_VERSION,
+        }));
       });
     }
   }
@@ -241,6 +298,8 @@ export class WebsocketService {
       this._socket.removeAllListeners();
       this._isFirstConnection = true;
       this._isAuthenticated = false;
+      this._isReadyForMessages = false;
+      this._messageBuffer = [];
       this._hasTriggeredFirtsOffline = false;
       delete this._socket;
     }
@@ -283,42 +342,64 @@ export class WebsocketService {
     );
   }
 
+  /**
+   * Handles a deliver_message event.  If the client is not yet ready (auth +
+   * initial sync still in progress) the message is queued; once ready it is
+   * processed immediately.
+   */
+  private _handleDeliverMessage(message: any): void {
+    if (!this._isReadyForMessages) {
+      this._messageBuffer.push(message);
+      return;
+    }
+    this._processDeliverMessage(message);
+  }
+
+  private _processDeliverMessage(message: any): void {
+    this._log.debug('An event from backend server received', message);
+    if (message && message.status && message.eventName) {
+      const eventName = message.eventName;
+      const handlers: AbstractWebsocketApplicationHandler[] = this._getValidHandlers(eventName);
+      if (handlers.length) {
+        // Save once per message, outside the handler loop, so we don't write
+        // the same data N times when multiple handlers subscribe to the event.
+        this._wsEventCacheService.saveEventData(message, message.value).then(() => {
+          handlers.forEach(async handler => {
+            try {
+              await handler.execute(eventName, message.value);
+            } catch (e) {
+              this._log.error(`Handler ${handler.constructor.name} failed for event ${eventName}`, e);
+            }
+          });
+        }).catch(e => {
+          this._log.error(`saveEventData failed for event ${eventName}`, e);
+        });
+      } else {
+        this._log.error('No handler for event ' + eventName, message);
+      }
+    } else {
+      this._log.warn('Bad message from backend', message);
+    }
+  }
+
   private async _registerSocketHandlers(): Promise<void> {
     try {
       await Promise.all([
         ...[...this._eventHandlers].map(handler => handler.beforeWorkaroundSync())
       ]);
       await Promise.all([...this._eventHandlers].map(handler => handler.createStores()));
-      this._runWithSyncedData();
+      // Await the initial sync so buffered live messages are processed AFTER
+      // the initial data is in place, not racing against it.
+      await this._runWithSyncedData();
     } catch (e) {
       this._log.error('Workaround WS sync failed ', e);
     }
-    this._log.debug('Subscribing to message events');
-    this._socket.on('deliver_message', message => {
-      this._log.debug('An event from backend server received', message);
-      if (message && message.status && message.eventName) {
-        const eventName = message.eventName;
-        const handlers: AbstractWebsocketApplicationHandler[] = this._getValidHandlers(eventName);
-        if (handlers.length) {
-          handlers.forEach(async handler => {
-            try {
-              await this._wsEventCacheService.saveEventData(message, message.value);
-              await handler.execute(eventName, message.value);
-            } catch (e) {
-              this._log.error(`Handler ${handler.constructor.name} failed for eent ${eventName}`, e);
-            }
-          });
-        } else {
-          this._log.error('No handler for event ' + eventName, message);
-        }
-      } else {
-        this._log.warn('Bad message from backend', message);
-      }
-    });
 
-    this._socket.on('cache_clear', async () => {
-      await this.clearCache();
-    });
+    // Mark the client as ready and flush any messages buffered during auth + sync.
+    this._isReadyForMessages = true;
+    const buffered = this._messageBuffer.splice(0);
+    this._log.debug(`Flushing ${buffered.length} buffered deliver_message(s)`);
+    buffered.forEach(msg => this._processDeliverMessage(msg));
   }
 
   private _timeoutPromise(inputPromise: Promise<any>): Promise<any> {
@@ -456,12 +537,32 @@ export class WebsocketService {
   }
 
   private async maybeTriggerCache(): Promise<void> {
-    const intervalId = setInterval(() => {
-      if(this.isConnectedInternal) {
-        clearInterval(intervalId);
-        this.clearCache().then(() => this._log.info('Clear cache due to background'));
+    // Guard: only one pending suspension-triggered clear at a time.
+    if (this._pendingSuspensionClear) {
+      return;
+    }
+    this._pendingSuspensionClear = true;
+    try {
+      if (this.isConnectedInternal) {
+        // Already connected — clear once immediately.
+        await this.clearCache();
+        this._log.info('Clear cache due to background suspension (was connected)');
+      } else {
+        // Not connected yet — wait for the next connected=true emission, then
+        // clear once.  Use a one-shot subscription so we don't stack listeners.
+        await new Promise<void>(resolve => {
+          this._isConnected.pipe(
+            filter(v => v),
+            take(1)
+          ).subscribe(async () => {
+            await this.clearCache();
+            this._log.info('Clear cache due to background suspension (waited for reconnect)');
+            resolve();
+          });
+        });
       }
-    },3000);
-    await this.clearCache();
+    } finally {
+      this._pendingSuspensionClear = false;
+    }
   }
 }

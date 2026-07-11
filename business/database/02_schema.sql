@@ -1018,7 +1018,7 @@ CREATE TABLE IF NOT EXISTS `visited_tutorial_entries` (
 CREATE TABLE IF NOT EXISTS `websocket_events_information` (
   `event_name` varchar(100) NOT NULL,
   `user_id` int NOT NULL,
-  `last_sent` datetime NOT NULL
+  `last_sent` datetime(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
@@ -1925,7 +1925,8 @@ ALTER TABLE `object_relation__object_relation`
 -- Contraintes pour la table `obtained_units`
 --
 ALTER TABLE `obtained_units`
-  ADD CONSTRAINT `obtained_units_ibfk_1` FOREIGN KEY (`first_deployment_mission`) REFERENCES `missions` (`id`);
+  ADD CONSTRAINT `obtained_units_ibfk_1` FOREIGN KEY (`first_deployment_mission`) REFERENCES `missions` (`id`),
+  ADD CONSTRAINT `obtained_units_mission_fk` FOREIGN KEY (`mission_id`) REFERENCES `missions` (`id`) ON DELETE SET NULL;
 
 --
 -- Contraintes pour la table `obtained_upgrades`

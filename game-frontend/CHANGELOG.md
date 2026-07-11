@@ -1,6 +1,5 @@
 
 # OWGE changelog
-
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
 * __Fix:__ the admin panel's "drop caches" action now also clears the per-user improvement aggregates — they were skipped, so stale improvement totals could survive a cache drop until the backend restarted
@@ -25,6 +24,24 @@ v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 * __Fix:__ `RustBackend:` websocket-sync payloads now byte-match the Java backend on every key: planets include their specialLocation, units their attackRule/criticalAttack/order, mission reports use epoch-millis dates and link their mission, null fields are omitted, the user improvements aggregate keeps Java's merge order, and mission payloads no longer expose the user email
 * __Fix:__ `RustBackend:` deploying units away from an existing DEPLOYED stack (the "redeploy" action from the home page) no longer fails with a server error when it empties that stack
 * __Improvement:__ `RustBackend:` migrate `/open/websocket-sync/rule_change` and `/open/websocket-sync/speed_group_change` endpoints from Java to Rust
+
+v0.11.14 (2026-07-11 00:41)
+============================
+* __Fix:__ Conquering a planet where the winner also has a DEPLOYED garrison of two or more unit stacks no longer crashes with a foreign key violation (error 1452) that rolled the whole conquest back. The ownership handover deleted the shared DEPLOYED mission while later garrison rows still referenced it in the persistence context, so their flush re-asserted the already-deleted mission id; the handover now detaches every garrison unit first and deletes the DEPLOYED missions once at the end (seen on dc12, mission 395869). The same handover is used by ESTABLISH_BASE, which is fixed too.
+* __Fix:__ The failure bookkeeping of a crashed mission execution (attempt counter, new termination date, final give-up report) now commits in its own transaction; it used to join the crashed execution's transaction, so it was rolled back along with it and the failure handling silently did nothing.
+
+v0.11.13 (2026-07-07 22:59)
+============================
+* __Fix:__ Mission executions no longer deadlock on the database planet locks: the locks are now acquired strictly one at a time in ascending order, stopping at the first unavailable one, instead of a single statement that kept acquiring (and holding) later locks after an earlier one had already failed — the ordering violation that allowed deadlock cycles and multi-minute lock convoys under heavy same-planet mission traffic.
+* __Fix:__ Players no longer receive a "Mission with id X failed, please contact an admin!" report for a mission failure that is going to be retried (and usually succeeds on retry); the report is now only sent when the mission definitively fails after exhausting all its attempts.
+* __Fix:__ Units nested inside other units ("stored" units) no longer get left behind when launching a mission from a non-owned planet where the units were DEPLOYED. The already-stored units now travel with their holder (carried proportionally to the amount of holders moved); previously they stayed on the planet still attached to the DEPLOYED mission, which got deleted once the holder left, leaving them uncontrollable.
+* __Fix:__ The available time specials list no longer goes stale: a time special whose unlock state changes through requirements (most visibly HAVE_SPECIAL_LOCATION when a special location is conquered or lost) is now correctly added to or removed from the list. The cached per-user list was only invalidated on activation/recharge, so unlock/lock changes that didn't touch an active time special were not reflected until the cache happened to be evicted by something else.
+
+v0.11.12 (2026-06-11 22:5)
+============================
+* __Fix:__ Failed missions now really retry: the retry was being silently discarded by the scheduler (it was scheduled while the failing execution still owned the task slot), so a failed mission would hang unresolved forever instead of retrying and eventually returning home after 3 attempts.
+* __Fix:__ Explore missions no longer crash on planets that hold units whose associated mission was already deleted; mission deletion now always detaches or removes the referencing obtained units first, and a database foreign key (ON DELETE SET NULL) is added as a safety backstop.
+* __Fix:__ Websocket reconnection reliability: auth failures no longer leave the client deaf (silent no-data state); stale JWTs on reconnect are prevented; live events arriving during the connect/auth/sync window are now buffered and replayed instead of dropped; cache-clear on device wake-up no longer triggers duplicate resync races.
 
 v0.11.11 (2026-06-06 11:58)
 ============================

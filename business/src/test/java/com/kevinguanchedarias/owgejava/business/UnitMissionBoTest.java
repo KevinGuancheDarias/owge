@@ -117,6 +117,7 @@ class UnitMissionBoTest {
     private final ExceptionUtilService exceptionUtilService;
     private final MissionProcessor missionProcessor;
     private final TransactionUtilService transactionUtilService;
+    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
 
     @Autowired
     public UnitMissionBoTest(
@@ -134,7 +135,8 @@ class UnitMissionBoTest {
             PlanetRepository planetRepository,
             ExceptionUtilService exceptionUtilService,
             MissionProcessor missionProcessor,
-            TransactionUtilService transactionUtilService
+            TransactionUtilService transactionUtilService,
+            ObtainedUnitModificationBo obtainedUnitModificationBo
     ) {
         this.unitMissionBo = unitMissionBo;
         this.userSessionService = userSessionService;
@@ -151,6 +153,7 @@ class UnitMissionBoTest {
         this.exceptionUtilService = exceptionUtilService;
         this.missionProcessor = missionProcessor;
         this.transactionUtilService = transactionUtilService;
+        this.obtainedUnitModificationBo = obtainedUnitModificationBo;
     }
 
     @BeforeEach
@@ -380,6 +383,8 @@ class UnitMissionBoTest {
                 .hasSize(2)
                 .containsExactly(validMission, otherValidMissionWithDifferentPlanet);
         verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(List.of(validMission, otherValidMissionWithDifferentPlanet));
+        // Obtained units referencing those missions must be detached before the missions are deleted
+        verify(obtainedUnitModificationBo, times(1)).detachMissions(List.of(validMission, otherValidMissionWithDifferentPlanet));
     }
 
     private static Stream<Arguments> myCancelMission_should_throw_arguments() {

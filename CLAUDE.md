@@ -14,7 +14,7 @@ OWGE (Open Web Game Engine) is an engine for non-graphical strategy web games (t
 - `static/`, `dynamic/` — image asset roots served by nginx (static is shared, dynamic is per-universe).
 
 ### Critical external dependency: kevinsuite-java
-`business` and `game-rest` depend on `com.kevinguanchedarias.owge:kevinsuite-java-*` (e.g. `kevinsuite-java-rest-commons`), which is **not on Maven Central**. It must be built and installed to the local `~/.m2` first, from `/public/kevinsuite-java/{common-backend,backend-rest-commons}`. The CI deploy script does this automatically; for a manual build you must install it yourself or the Maven build fails to resolve dependencies.
+`business` and `game-rest` depend on `com.kevinguanchedarias.owge:kevinsuite-java-*` (e.g. `kevinsuite-java-rest-commons`), which is **not on Maven Central** but **is published via [JitPack](https://jitpack.io)** (which builds it on demand from its GitHub repo). JitPack is declared as a `<repository>` in `business/pom.xml`, so an **online** build resolves kevinsuite automatically — no manual step needed. The only time you must provide it yourself is an **offline** build (`-o`) against a `~/.m2` that doesn't already have it. For that case (and in CI), it can be built from source and installed to `~/.m2` from `/public/kevinsuite-java/{common-backend,backend-rest-commons}` — which is what the deploy script does. Note `game-rest` has no JitPack repo of its own; it resolves kevinsuite transitively, so build/install `business` first (the JitPack repo comes from there).
 
 ## Build, run, and test
 

@@ -7,6 +7,7 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserLockUtilService;
@@ -84,6 +85,7 @@ public class MissionBo implements UserDeleteListener {
     private final MissionSchedulerService missionSchedulerService;
     private final MissionBaseService missionBaseService;
     private final UserEventEmitterBo userEventEmitterBo;
+    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -369,6 +371,14 @@ public class MissionBo implements UserDeleteListener {
 
     @Override
     public void doDeleteUser(UserStorage user) {
+        // BUILD_UNIT missions own ObtainedUnit rows (the not-yet-built units). Detach them before
+        // the bulk delete so the obtained_units table is consistent and the new FK (ON DELETE SET NULL)
+        // is never reached in anger.  LEVEL_UP missions never have referencing obtained_units.
+        var buildUnitMissions = missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(
+                user.getId(), MissionType.BUILD_UNIT.name());
+        if (!buildUnitMissions.isEmpty()) {
+            obtainedUnitModificationBo.detachMissions(buildUnitMissions);
+        }
         missionRepository.deleteByUserAndTypeCodeIn(user, List.of(MissionType.LEVEL_UP.name(), MissionType.BUILD_UNIT.name()));
     }
 

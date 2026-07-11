@@ -12,6 +12,7 @@ import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.UnitMissionInformation;
 import com.kevinguanchedarias.owgejava.pojo.storedunit.StoredUnitWithItsCount;
 import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -20,8 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,6 +35,7 @@ public class MissionRegistrationObtainedUnitLoader {
     private final PlanetRepository planetRepository;
     private final MissionRegistrationCanDeployChecker missionRegistrationCanDeployChecker;
     private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
     private final MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser;
     private final MissionRegistrationCanStoreUnitChecker missionRegistrationCanStoreUnitChecker;
 
@@ -51,16 +55,23 @@ public class MissionRegistrationObtainedUnitLoader {
         missionInformation.getInvolvedUnits().forEach(current -> {
             checkRepeatedUnitAndAdd(loadedUnits, current);
             var currentObtainedUnit = handleSelectedUnit(missionInformation, userId, sourcePlanetId, deletedMissions, true, current);
-            var unitWithItsStoredUnits = new UnitWithItsStoredUnits(currentObtainedUnit.obtainedUnit(), CollectionUtils.emptyIfNull(current.getStoredUnits()).stream()
-                    .map(
-                            storedUnit -> {
-                                checkRepeatedUnitAndAdd(loadedUnits, storedUnit);
-                                missionRegistrationCanStoreUnitChecker.checkCanStoreUnit(current.getId(), storedUnit.getId());
-                                return handleSelectedUnit(missionInformation, userId, sourcePlanetId, deletedMissions, false, storedUnit);
-                            }
-                    )
-                    .toList()
-            );
+            List<StoredUnitWithItsCount> storedUnits;
+            if (CollectionUtils.isEmpty(current.getStoredUnits())) {
+                // When relaunching from a DEPLOYED position the already-nested units (linked in the
+                // database by owner_unit_id) are not present in the request, so they must be carried
+                // automatically; otherwise they would be left behind referencing a mission that gets
+                // deleted once the holder leaves, making them uncontrollable for the player.
+                storedUnits = loadAutoCarriedStoredUnits(currentObtainedUnit, current.getCount(), deletedMissions);
+            } else {
+                storedUnits = current.getStoredUnits().stream()
+                        .map(storedUnit -> {
+                            checkRepeatedUnitAndAdd(loadedUnits, storedUnit);
+                            missionRegistrationCanStoreUnitChecker.checkCanStoreUnit(current.getId(), storedUnit.getId());
+                            return handleSelectedUnit(missionInformation, userId, sourcePlanetId, deletedMissions, false, storedUnit);
+                        })
+                        .toList();
+            }
+            var unitWithItsStoredUnits = new UnitWithItsStoredUnits(currentObtainedUnit.obtainedUnit(), storedUnits);
             retVal.put(
                     new UnitInMap(current.getId(), current.getExpirationId()),
                     unitWithItsStoredUnits
@@ -69,6 +80,38 @@ public class MissionRegistrationObtainedUnitLoader {
         });
         missionRegistrationOrphanMissionEraser.doMarkAsDeletedTheOrphanMissions(deletedMissions);
 
+        return retVal;
+    }
+
+    /**
+     * Builds the list of units nested inside a moving holder out of the database (owner_unit_id), used
+     * when the request doesn't declare them explicitly (the typical case when relaunching a mission from
+     * a DEPLOYED position, where the nesting already exists and the UI offers no way to redeclare it).
+     * Each nested unit is carried proportionally (floored) to the fraction of holders being moved, and is
+     * subtracted from its source obtained unit just like an explicitly requested stored unit.
+     */
+    private List<StoredUnitWithItsCount> loadAutoCarriedStoredUnits(
+            StoredUnitWithItsCount holder, Long movedCount, Set<Mission> deletedMissions
+    ) {
+        var holderObtainedUnit = holder.obtainedUnit();
+        var holderMission = holderObtainedUnit.getMission();
+        if (holderMission == null
+                || !MissionType.DEPLOYED.toString().equals(holderMission.getType().getCode())) {
+            return List.of();
+        }
+        var holderTotalCount = holderObtainedUnit.getCount();
+        List<StoredUnitWithItsCount> retVal = new ArrayList<>();
+        obtainedUnitRepository.findByOwnerUnitId(holderObtainedUnit.getId()).forEach(storedUnit -> {
+            var carriedCount = storedUnit.getCount() * movedCount / holderTotalCount;
+            if (carriedCount > 0) {
+                var unitAfterSubtraction = obtainedUnitBo.saveWithSubtraction(storedUnit, carriedCount, false);
+                if (unitAfterSubtraction == null && storedUnit.getMission() != null
+                        && storedUnit.getMission().getType().getCode().equals(MissionType.DEPLOYED.toString())) {
+                    deletedMissions.add(storedUnit.getMission());
+                }
+                retVal.add(new StoredUnitWithItsCount(storedUnit, carriedCount));
+            }
+        });
         return retVal;
     }
 

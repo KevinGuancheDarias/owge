@@ -12,6 +12,7 @@ import com.kevinguanchedarias.owgejava.exception.SgtBackendInvalidInputException
 import com.kevinguanchedarias.owgejava.pojo.UnitInMap;
 import com.kevinguanchedarias.owgejava.pojo.storedunit.StoredUnitWithItsCount;
 import com.kevinguanchedarias.owgejava.pojo.storedunit.UnitWithItsStoredUnits;
+import com.kevinguanchedarias.owgejava.repository.ObtainedUnitRepository;
 import com.kevinguanchedarias.owgejava.repository.PlanetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,6 +49,7 @@ import static org.mockito.Mockito.*;
         PlanetRepository.class,
         MissionRegistrationCanDeployChecker.class,
         ObtainedUnitBo.class,
+        ObtainedUnitRepository.class,
         MissionRegistrationOrphanMissionEraser.class,
         MissionRegistrationCanStoreUnitChecker.class
 })
@@ -57,6 +59,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
     private final PlanetRepository planetRepository;
     private final MissionRegistrationCanDeployChecker missionRegistrationCanDeployChecker;
     private final ObtainedUnitBo obtainedUnitBo;
+    private final ObtainedUnitRepository obtainedUnitRepository;
     private final MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser;
     private final MissionRegistrationCanStoreUnitChecker missionRegistrationCanStoreUnitChecker;
 
@@ -67,6 +70,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
             PlanetRepository planetRepository,
             MissionRegistrationCanDeployChecker missionRegistrationCanDeployChecker,
             ObtainedUnitBo obtainedUnitBo,
+            ObtainedUnitRepository obtainedUnitRepository,
             MissionRegistrationOrphanMissionEraser missionRegistrationOrphanMissionEraser,
             MissionRegistrationCanStoreUnitChecker missionRegistrationCanStoreUnitChecker) {
         this.missionRegistrationObtainedUnitLoader = missionRegistrationObtainedUnitLoader;
@@ -74,6 +78,7 @@ class MissionRegistrationObtainedUnitLoaderTest {
         this.planetRepository = planetRepository;
         this.missionRegistrationCanDeployChecker = missionRegistrationCanDeployChecker;
         this.obtainedUnitBo = obtainedUnitBo;
+        this.obtainedUnitRepository = obtainedUnitRepository;
         this.missionRegistrationOrphanMissionEraser = missionRegistrationOrphanMissionEraser;
         this.missionRegistrationCanStoreUnitChecker = missionRegistrationCanStoreUnitChecker;
     }
@@ -197,6 +202,63 @@ class MissionRegistrationObtainedUnitLoaderTest {
         assertThat(retVal).containsEntry(new UnitInMap(UNIT_ID_1, null), new UnitWithItsStoredUnits(ou, List.of(new StoredUnitWithItsCount(storedOu, 5L))));
         verify(obtainedUnitBo, times(1)).saveWithSubtraction(storedOu, 5L, false);
         verify(missionRegistrationCanStoreUnitChecker, times(1)).checkCanStoreUnit(UNIT_ID_1, UNIT_ID_2);
+    }
+
+    @Test
+    void checkAndLoadObtainedUnits_should_auto_carry_already_stored_units_when_relaunching_from_deployed() {
+        var deployedMission = givenDeployedMission();
+        var movedUnit = givenSelectedUnit(null).toBuilder().count(5L).build();
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, null).toBuilder()
+                .involvedUnits(List.of(movedUnit))
+                .build();
+        var holder = givenObtainedUnit1();
+        holder.setMission(deployedMission);
+        var storedChild = givenObtainedUnit2().toBuilder().count(4L).mission(deployedMission).build();
+        var negligibleChild = givenObtainedUnit2().toBuilder().id(OBTAINED_UNIT_2_ID + 1).count(1L).mission(deployedMission).build();
+        given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(false);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, null, true))
+                .willReturn(holder);
+        given(obtainedUnitBo.saveWithSubtraction(holder, 5L, false)).willReturn(holder);
+        given(obtainedUnitRepository.findByOwnerUnitId(OBTAINED_UNIT_1_ID)).willReturn(List.of(storedChild, negligibleChild));
+        given(obtainedUnitBo.saveWithSubtraction(storedChild, 2L, false)).willReturn(storedChild);
+
+        var retVal = missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information);
+
+        // holder moves 5 of 10 -> stored child carried proportionally floor(4 * 5 / 10) = 2; the count-1 child rounds to 0
+        assertThat(retVal).containsEntry(
+                new UnitInMap(UNIT_ID_1, null),
+                new UnitWithItsStoredUnits(holder, List.of(new StoredUnitWithItsCount(storedChild, 2L)))
+        );
+        verify(obtainedUnitBo, times(1)).saveWithSubtraction(storedChild, 2L, false);
+        verify(obtainedUnitBo, never()).saveWithSubtraction(eq(negligibleChild), anyLong(), anyBoolean());
+        verify(missionRegistrationCanStoreUnitChecker, never()).checkCanStoreUnit(anyInt(), anyInt());
+    }
+
+    @Test
+    void checkAndLoadObtainedUnits_should_orphan_deployed_mission_when_holder_fully_leaves_with_stored_units() {
+        var deployedMission = givenDeployedMission();
+        var movedUnit = givenSelectedUnit(null).toBuilder().count(10L).build();
+        var information = givenUnitMissionInformation(MissionType.EXPLORE, null).toBuilder()
+                .involvedUnits(List.of(movedUnit))
+                .build();
+        var holder = givenObtainedUnit1();
+        holder.setMission(deployedMission);
+        var storedChild = givenObtainedUnit2().toBuilder().count(4L).mission(deployedMission).build();
+        given(planetRepository.isOfUserProperty(USER_ID_1, SOURCE_PLANET_ID)).willReturn(false);
+        given(obtainedUnitBo.findObtainedUnitByUserIdAndUnitIdAndPlanetIdAndMission(USER_ID_1, UNIT_ID_1, SOURCE_PLANET_ID, null, true))
+                .willReturn(holder);
+        given(obtainedUnitBo.saveWithSubtraction(holder, 10L, false)).willReturn(null);
+        given(obtainedUnitRepository.findByOwnerUnitId(OBTAINED_UNIT_1_ID)).willReturn(List.of(storedChild));
+        given(obtainedUnitBo.saveWithSubtraction(storedChild, 4L, false)).willReturn(null);
+
+        var retVal = missionRegistrationObtainedUnitLoader.checkAndLoadObtainedUnits(information);
+
+        // whole holder leaves -> all stored units carried, leaving the deployed mission with no units, so it's marked orphan
+        assertThat(retVal).containsEntry(
+                new UnitInMap(UNIT_ID_1, null),
+                new UnitWithItsStoredUnits(holder, List.of(new StoredUnitWithItsCount(storedChild, 4L)))
+        );
+        verify(missionRegistrationOrphanMissionEraser, times(1)).doMarkAsDeletedTheOrphanMissions(Set.of(deployedMission));
     }
 
     private static Stream<Arguments> checkAndLoadObtainedUnits_should_work_arguments() {

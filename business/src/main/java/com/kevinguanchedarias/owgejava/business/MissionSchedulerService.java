@@ -39,8 +39,19 @@ public class MissionSchedulerService {
     public void scheduleMission(Mission mission) {
         scheduler.schedule(
                 DbSchedulerRealizationJob.BASIC_ONE_TIME_TASK.instance(mission.getId().toString()),
-                Instant.now().plusSeconds(mission.getRequiredTime().longValue() - DELAY_HANDLE)
+                computeExecutionTime(mission)
         );
+    }
+
+    /**
+     * Computes the instant at which the mission's job should run (slightly before the
+     * mission's termination date, see DELAY_HANDLE)
+     *
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     * @since 0.11.12
+     */
+    public Instant computeExecutionTime(Mission mission) {
+        return Instant.now().plusSeconds(mission.getRequiredTime().longValue() - DELAY_HANDLE);
     }
 
     /**

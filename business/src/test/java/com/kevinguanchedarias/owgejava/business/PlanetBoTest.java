@@ -38,6 +38,7 @@ import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.kevinguanchedarias.owgejava.business.PlanetBo.PLANET_OWNED_CHANGE;
@@ -254,13 +255,20 @@ class PlanetBoTest {
         doAnswer(planetOwnedChangedSocketAnswer).when(socketIoService).sendMessage(eq(USER_ID_1), eq(PLANET_OWNED_CHANGE), any());
         given(planetRepository.findByOwnerId(USER_ID_1)).willReturn(List.of(planet));
         given(dtoUtilService.convertEntireArray(PlanetDto.class, List.of(planet))).willReturn(List.of(mock(PlanetDto.class)));
-
+        var deployedUnitMission = maybeDeployedUnit == null ? null : maybeDeployedUnit.getMission();
 
         planetBo.definePlanetAsOwnedBy(user, List.of(ou), planet);
 
         verify(planetRepository, times(1)).save(planet);
         verify(obtainedUnitBo, times(timesMoveUnit)).moveUnit(maybeDeployedUnit, USER_ID_1, SOURCE_PLANET_ID);
-        verify(missionRepository, times(timesRemoveMission)).delete(maybeDeployedUnit == null ? null : maybeDeployedUnit.getMission());
+        verify(missionRepository, times(1))
+                .deleteAll(timesRemoveMission == 0 ? Set.of() : Set.of(deployedUnitMission));
+        if (maybeDeployedUnit != null) {
+            assertThat(maybeDeployedUnit.getMission()).isNull();
+            var order = inOrder(obtainedUnitBo, missionRepository);
+            order.verify(obtainedUnitBo).moveUnit(maybeDeployedUnit, USER_ID_1, SOURCE_PLANET_ID);
+            order.verify(missionRepository).deleteAll(anySet());
+        }
         verify(requirementBo, times(timesTriggerSpecialLocation)).triggerSpecialLocation(user, specialLocation);
         verify(planetListBo, times(1)).emitByChangedPlanet(planet);
         verify(dtoUtilService, times(1)).convertEntireArray(PlanetDto.class, List.of(planet));

@@ -27,6 +27,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.dao.PessimisticLockingFailureException;
 
 import javax.sql.DataSource;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -74,7 +75,7 @@ class DbSchedulerRealizationJobTest {
         var unitMission = givenExploreMission();
         given(missionRepository.findById(EXPLORE_MISSION_ID)).willReturn(Optional.of(unitMission));
 
-        dbSchedulerRealizationJob.execute(EXPLORE_MISSION_ID);
+        assertThat(dbSchedulerRealizationJob.execute(EXPLORE_MISSION_ID)).isNull();
 
         verify(transactionUtilService, times(1)).clearStatus();
         verify(unitMissionBo, times(1)).runUnitMission(EXPLORE_MISSION_ID, MissionType.EXPLORE);
@@ -92,7 +93,7 @@ class DbSchedulerRealizationJobTest {
         mission.setType(givenMissinType(missionType));
         given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
 
-        dbSchedulerRealizationJob.execute(MISSION_ID);
+        assertThat(dbSchedulerRealizationJob.execute(MISSION_ID)).isNull();
 
         verify(transactionUtilService, times(1)).clearStatus();
         verify(missionBo, times(1)).runMission(MISSION_ID, missionType);
@@ -117,8 +118,10 @@ class DbSchedulerRealizationJobTest {
         doThrow(e).when(missionBo).runMission(MISSION_ID, missionType);
         given(mysqlInformationRepository.findInnoDbStatus()).willReturn(mock(MysqlEngineInformation.class));
         given(mysqlInformationRepository.findFullProcessInformation()).willReturn(List.of());
+        var retryAt = Instant.now().plusSeconds(8);
+        given(missionBaseService.retryMissionIfPossible(MISSION_ID, missionType)).willReturn(retryAt);
 
-        dbSchedulerRealizationJob.execute(MISSION_ID);
+        assertThat(dbSchedulerRealizationJob.execute(MISSION_ID)).isSameAs(retryAt);
 
         assertThat(capturedOutput.getOut()).contains("fatal exception when ");
         verify(missionBaseService, times(1)).retryMissionIfPossible(MISSION_ID, missionType);
@@ -136,8 +139,10 @@ class DbSchedulerRealizationJobTest {
         mission.setUser(user);
         given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission));
         doThrow(new CommonException("OOPS")).when(unitMissionBo).runUnitMission(MISSION_ID, MissionType.EXPLORE);
+        var retryAt = Instant.now().plusSeconds(8);
+        given(missionBaseService.retryMissionIfPossible(MISSION_ID, MissionType.EXPLORE)).willReturn(retryAt);
 
-        dbSchedulerRealizationJob.execute(MISSION_ID);
+        assertThat(dbSchedulerRealizationJob.execute(MISSION_ID)).isSameAs(retryAt);
 
         verify(missionEventEmitterBo, times(1)).emitUnitMissions(USER_ID_1);
         verify(missionEventEmitterBo, times(1)).emitEnemyMissionsChange(mission);
@@ -150,7 +155,7 @@ class DbSchedulerRealizationJobTest {
         mission.setId(MISSION_ID);
         given(missionRepository.findById(MISSION_ID)).willReturn(Optional.of(mission)).willReturn(Optional.empty());
 
-        dbSchedulerRealizationJob.execute(MISSION_ID);
+        assertThat(dbSchedulerRealizationJob.execute(MISSION_ID)).isNull();
 
         verifyNoInteractions(missionBo, unitMissionBo, missionBaseService, missionEventEmitterBo);
     }

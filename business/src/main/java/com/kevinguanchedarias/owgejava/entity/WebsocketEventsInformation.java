@@ -36,7 +36,7 @@ public class WebsocketEventsInformation implements Serializable {
     private EventNameUserId eventNameUserId;
 
     @Column(nullable = false)
-    private Instant lastSent = dateWithoutMs();
+    private Instant lastSent = truncatedNow();
 
     /**
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
@@ -48,7 +48,7 @@ public class WebsocketEventsInformation implements Serializable {
         eventNameUserId.setUserId(userId);
     }
 
-    private Instant dateWithoutMs() {
-        return Instant.now().truncatedTo(ChronoUnit.SECONDS);
+    private Instant truncatedNow() {
+        return Instant.now().truncatedTo(ChronoUnit.MILLIS);
     }
 }

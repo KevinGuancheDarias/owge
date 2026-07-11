@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -116,13 +117,30 @@ class MissionBaseServiceTest {
     ) {
         var mission = givenExploreMission();
         long missionId = 192;
+        var user = givenUser1();
         mission.setId(missionId);
+        mission.setUser(user);
         mission.setType(givenMissionType(missionType));
         mission.setAttemps(5);
+        var involvedUnits = List.of(givenObtainedUnit1());
+        var reportBuilderMock = mock(UnitMissionReportBuilder.class);
         given(missionRepository.findById(missionId)).willReturn(Optional.of(mission));
+        given(reportBuilderMock.withSenderUser(user)).willReturn(reportBuilderMock);
+        given(reportBuilderMock.withId(missionId)).willReturn(reportBuilderMock);
+        given(reportBuilderMock.withSourcePlanet(mission.getSourcePlanet())).willReturn(reportBuilderMock);
+        given(reportBuilderMock.withTargetPlanet(mission.getTargetPlanet())).willReturn(reportBuilderMock);
+        given(obtainedUnitRepository.findByMissionId(missionId)).willReturn(involvedUnits);
+        given(reportBuilderMock.withInvolvedUnits(involvedUnits)).willReturn(reportBuilderMock);
 
-        missionBaseService.retryMissionIfPossible(missionId, missionType);
+        try (var mockedStatic = mockStatic(UnitMissionReportBuilder.class)) {
+            mockedStatic.when(UnitMissionReportBuilder::create).thenReturn(reportBuilderMock);
 
+            assertThat(missionBaseService.retryMissionIfPossible(missionId, missionType)).isNull();
+        }
+
+        // The player is notified only when the mission is definitively given up
+        verify(reportBuilderMock, times(1)).withErrorInformation(contains("please contact an admin"));
+        verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportBuilderMock);
         verify(returnMissionRegistrationBo, times(timesRegisterReturnMission)).registerReturnMission(mission, null);
         verify(obtainedUnitModificationBo, times(timesDeletedByMissionId)).deleteByMissionId(missionId);
         verify(missionRepository, times(timesDeleteMission)).delete(mission);
@@ -131,10 +149,10 @@ class MissionBaseServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-            "GATHER,1",
-            "LEVEL_UP,0"
+            "GATHER",
+            "LEVEL_UP"
     })
-    void retryMissionIfPossible_should__should_add_new_attempt(MissionType missionType, int timesIfUnitMission) {
+    void retryMissionIfPossible_should__should_add_new_attempt(MissionType missionType) {
         double requiredTime = 29;
         var mission = givenExploreMission();
         long missionId = 1420;
@@ -145,30 +163,20 @@ class MissionBaseServiceTest {
         mission.setRequiredTime(requiredTime);
         mission.setType(givenMissionType(missionType));
         var terminationDate = LocalDateTime.now();
-        var involvedUnits = List.of(givenObtainedUnit1());
-        var reportBuilderMock = mock(UnitMissionReportBuilder.class);
+        var retryAt = Instant.now().plusSeconds(27);
         given(missionRepository.findById(missionId)).willReturn(Optional.of(mission));
         given(missionTimeManagerBo.computeTerminationDate(requiredTime)).willReturn(terminationDate);
-        given(reportBuilderMock.withSenderUser(user)).willReturn(reportBuilderMock);
-        given(reportBuilderMock.withId(missionId)).willReturn(reportBuilderMock);
-        given(reportBuilderMock.withSourcePlanet(mission.getSourcePlanet())).willReturn(reportBuilderMock);
-        given(reportBuilderMock.withTargetPlanet(mission.getTargetPlanet())).willReturn(reportBuilderMock);
-        given(obtainedUnitRepository.findByMissionId(missionId)).willReturn(involvedUnits);
-        given(reportBuilderMock.withInvolvedUnits(involvedUnits)).willReturn(reportBuilderMock);
-        try (var mockedStatic = mockStatic(UnitMissionReportBuilder.class)) {
-            mockedStatic.when(UnitMissionReportBuilder::create)
-                    .thenReturn(reportBuilderMock);
+        given(missionSchedulerService.computeExecutionTime(mission)).willReturn(retryAt);
 
-            missionBaseService.retryMissionIfPossible(missionId, missionType);
+        assertThat(missionBaseService.retryMissionIfPossible(missionId, missionType)).isSameAs(retryAt);
 
-            assertThat(mission.getAttemps()).isEqualTo(3);
-            assertThat(mission.getTerminationDate()).isSameAs(terminationDate);
-            verify(reportBuilderMock, times(timesIfUnitMission)).withInvolvedUnits(involvedUnits);
-            verify(reportBuilderMock, times(1)).withErrorInformation(contains("please contact an admin"));
-            verify(missionReportManagerBo, times(1)).handleMissionReportSave(mission, reportBuilderMock);
-            verify(missionSchedulerService, times(1)).scheduleMission(mission);
-            verify(missionRepository, times(1)).save(mission);
-        }
+        assertThat(mission.getAttemps()).isEqualTo(3);
+        assertThat(mission.getTerminationDate()).isSameAs(terminationDate);
+        // Attempts that will still be retried must NOT alarm the player with an error report;
+        // only the definitive give-up does (see max-attempts test)
+        verifyNoInteractions(missionReportManagerBo);
+        verify(missionSchedulerService, never()).scheduleMission(mission);
+        verify(missionRepository, times(1)).save(mission);
     }
 
     @Test

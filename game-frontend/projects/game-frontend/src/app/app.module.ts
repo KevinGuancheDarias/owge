@@ -19,7 +19,7 @@ import {
 } from '@owge/universe';
 import { OwgeWidgetsModule } from '@owge/widgets';
 import { Level, Log } from 'ng2-logger/browser';
-import { take } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 import { environment } from '../environments/environment';
 import { AppComponent } from './app.component';
 import { BuildUnitsComponent } from './build-units/build-units.component';
@@ -242,30 +242,59 @@ export class AppModule {
 
   private _initWebsocket(): void {
     this._wsEventCacheService.addCacheListeners(this._configurationService);
+
+    // Keep the websocket service's credential token fresh whenever the JWT
+    // rotates (e.g. after a silent refresh).  This runs for the lifetime of
+    // the app, so a reconnect always uses the latest token.
+    this._userStorage.currentToken.subscribe(token => {
+      this._websocketService.setAuthenticationToken(token);
+    });
+
+    // Register event handlers exactly once.  observeParamOrDefault can
+    // re-emit (ConfigurationService is a cache listener), so guard with a flag
+    // to avoid duplicating handlers on every re-emission.
+    let handlersRegistered = false;
+
+    // Use switchMap so a config re-emission cancels the previous isInGame
+    // subscription and starts a fresh one, preventing N concurrent subscriptions
+    // from each triggering their own initSocket/close calls.
     this._configurationService.observeParamOrDefault('WEBSOCKET_ENDPOINT', '/websocket/socket.io')
-      .subscribe(conf => {
-        this._websocketService.addEventHandler(
-          new PingWebsocketApplicationHandler(this.themeService),
-          this._injector.get(UpgradeService),
-          this._injector.get(UnitService),
-          this._injector.get(PlanetService),
-          this._injector.get(ReportService),
-          this._injector.get(TimeSpecialService),
-          this._injector.get(UpgradeTypeService),
-          this._injector.get(PlanetListService),
-          this._injector.get(TwitchService),
-          this._injector.get(SystemMessageService),
-          this._injector.get(WarningWebsocketApplicationHandlerService),
-          this._injector.get(SessionService)
-        );
-        this._universeGameService.isInGame().subscribe(async isInGame => {
-          const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
-          if (isInGame) {
-            this._websocketService.initSocket(conf.value, token);
-          } else {
-            this._websocketService.close();
+      .pipe(
+        switchMap(conf => {
+          if (!handlersRegistered) {
+            handlersRegistered = true;
+            this._websocketService.addEventHandler(
+              new PingWebsocketApplicationHandler(this.themeService),
+              this._injector.get(UpgradeService),
+              this._injector.get(UnitService),
+              this._injector.get(PlanetService),
+              this._injector.get(ReportService),
+              this._injector.get(TimeSpecialService),
+              this._injector.get(UpgradeTypeService),
+              this._injector.get(PlanetListService),
+              this._injector.get(TwitchService),
+              this._injector.get(SystemMessageService),
+              this._injector.get(WarningWebsocketApplicationHandlerService),
+              this._injector.get(SessionService)
+            );
           }
-        });
+          // Return the isInGame observable paired with the current endpoint value.
+          // switchMap ensures only one active inner subscription at a time.
+          return this._universeGameService.isInGame().pipe(
+            switchMap(async isInGame => ({ isInGame, conf }))
+          );
+        })
+      )
+      .subscribe(async ({ isInGame, conf }) => {
+        if (isInGame) {
+          // Token is kept current by the currentToken subscription above;
+          // pass it here only for the very first initSocket call so the
+          // socket is created with the right token when isInGame first fires.
+          const token = await this._userStorage.currentToken.pipe(take(1)).toPromise();
+          this._websocketService.initSocket(conf.value, token);
+        } else {
+          this._websocketService.close();
+        }
       });
   }
 }

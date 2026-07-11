@@ -9,6 +9,7 @@ import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
 import com.kevinguanchedarias.owgejava.business.unit.ObtainedUnitEventEmitter;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitBo;
 import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitImprovementCalculationService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEnergyServiceBo;
 import com.kevinguanchedarias.owgejava.business.user.UserEventEmitterBo;
 import com.kevinguanchedarias.owgejava.business.user.UserLockUtilService;
@@ -117,7 +118,8 @@ import static org.mockito.Mockito.*;
         MissionEventEmitterBo.class,
         MissionCancelBuildService.class,
         MissionBaseService.class,
-        UserEventEmitterBo.class
+        UserEventEmitterBo.class,
+        ObtainedUnitModificationBo.class
 })
 class MissionBoTest {
     private final MissionBo missionBo;
@@ -153,6 +155,7 @@ class MissionBoTest {
     private final AsyncRunnerBo asyncRunnerBo;
     private final ObtainedUnitEventEmitter obtainedUnitEventEmitter;
     private final UserEventEmitterBo userEventEmitterBo;
+    private final ObtainedUnitModificationBo obtainedUnitModificationBo;
 
     @Autowired
     public MissionBoTest(
@@ -187,7 +190,8 @@ class MissionBoTest {
             MissionCancelBuildService missionCancelBuildService,
             AsyncRunnerBo asyncRunnerBo,
             ObtainedUnitEventEmitter obtainedUnitEventEmitter,
-            UserEventEmitterBo userEventEmitterBo
+            UserEventEmitterBo userEventEmitterBo,
+            ObtainedUnitModificationBo obtainedUnitModificationBo
     ) {
         this.missionBo = missionBo;
         this.planetBo = planetBo;
@@ -222,6 +226,7 @@ class MissionBoTest {
         this.asyncRunnerBo = asyncRunnerBo;
         this.obtainedUnitEventEmitter = obtainedUnitEventEmitter;
         this.userEventEmitterBo = userEventEmitterBo;
+        this.obtainedUnitModificationBo = obtainedUnitModificationBo;
     }
 
     @Test
@@ -640,9 +645,25 @@ class MissionBoTest {
     @Test
     void doDeleteUser_should_work() {
         var user = givenUser1();
+        var buildMission = givenBuildMission();
+        given(missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(USER_ID_1, MissionType.BUILD_UNIT.name()))
+                .willReturn(List.of(buildMission));
 
         missionBo.doDeleteUser(user);
 
+        verify(obtainedUnitModificationBo, times(1)).detachMissions(List.of(buildMission));
+        verify(missionRepository, times(1)).deleteByUserAndTypeCodeIn(user, List.of(MissionType.LEVEL_UP.name(), MissionType.BUILD_UNIT.name()));
+    }
+
+    @Test
+    void doDeleteUser_should_work_when_no_build_missions() {
+        var user = givenUser1();
+        given(missionRepository.findByUserIdAndTypeCodeAndResolvedFalse(USER_ID_1, MissionType.BUILD_UNIT.name()))
+                .willReturn(List.of());
+
+        missionBo.doDeleteUser(user);
+
+        verify(obtainedUnitModificationBo, never()).detachMissions(any());
         verify(missionRepository, times(1)).deleteByUserAndTypeCodeIn(user, List.of(MissionType.LEVEL_UP.name(), MissionType.BUILD_UNIT.name()));
     }
 

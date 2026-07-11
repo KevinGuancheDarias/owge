@@ -33,3 +33,6 @@ DROP TABLE IF EXISTS qrtz_fired_triggers;
 DROP TABLE IF EXISTS qrtz_locks;
 DROP TABLE IF EXISTS qrtz_paused_trigger_grps;
 DROP TABLE IF EXISTS qrtz_scheduler_state;
+
+-- websocket_events_information.last_sent gains millisecond precision.
+ALTER TABLE `websocket_events_information` MODIFY COLUMN `last_sent` DATETIME(3) NOT NULL;

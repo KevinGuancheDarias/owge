@@ -12,7 +12,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -24,8 +24,14 @@ import org.springframework.dao.CannotAcquireLockException;
 @AllArgsConstructor
 @Slf4j
 public class MysqlLockUtilService {
-    public static final int TIMEOUT_SECONDS = 10;
+    // Mission executions hold the locks for well under a second; 3s is already a generous wait
+    // for a single holder, and the 5-attempt retry (with backoff) covers anything longer
+    public static final int TIMEOUT_SECONDS = 3;
     public static final int MAX_LOCK_ATTEMPTS = 5;
+    public static final String GET_LOCK_SQL = "SELECT GET_LOCK(?,?);";
+
+    private static final long RETRY_BACKOFF_MS = 200;
+
     private final JdbcTemplate jdbcTemplate;
     private final TransactionUtilService transactionUtilService;
     private final MysqlInformationRepository mysqlInformationRepository;
@@ -58,18 +64,12 @@ public class MysqlLockUtilService {
                 .toList();
         var newKeysAsList = newKeys.stream().sorted().toList();
         log.trace("Applying the following locks {} (new = {}, already held = {})", fullUnion, newKeysAsList, previouslyHeld);
-        var commandLambda = (PreparedStatementCallback<String>) ps -> {
-            generateBindParams(fullUnion, ps);
-            var rs = ps.executeQuery();
-            rs.next();
-            return rs.getString(1);
-        };
 
         if (!previouslyHeld.isEmpty()) {
             doReleaseLock(previouslyHeld);
         }
         try {
-            tryGainLock(fullUnion, commandLambda, runnable, 1);
+            tryGainLock(fullUnion, runnable, 1);
         } finally {
             // This frame only owns the keys it introduced; the previously held keys (re-acquired as
             // part of the union) stay owned by the outer frame that first took them.
@@ -82,34 +82,62 @@ public class MysqlLockUtilService {
         }
     }
 
-    private void tryGainLock(
-            List<String> keysAsList, PreparedStatementCallback<String> preparedStatementCallback, Runnable action, int times
-    ) {
-        String result = doLock(keysAsList, preparedStatementCallback);
-        if (result == null) {
-            // A deadlock was detected (see doLock). Retry from scratch, but honour the retry budget
-            // so a persistently contended set can no longer recurse without bound.
-            doReleaseLock(keysAsList);
-            if (times < MAX_LOCK_ATTEMPTS) {
-                tryGainLock(keysAsList, preparedStatementCallback, action, times + 1);
-            } else {
-                surrender(keysAsList, "deadlock");
-            }
+    private void tryGainLock(List<String> keysAsList, Runnable action, int times) {
+        var failedKey = acquireInOrder(keysAsList);
+        if (failedKey == null) {
+            MysqlLockState.addAll(keysAsList);
+            action.run();
+        } else if (times < MAX_LOCK_ATTEMPTS) {
+            log.warn("Not able to obtain lock {} (wanted keys = {}), attempt {}/{}", failedKey, keysAsList, times, MAX_LOCK_ATTEMPTS);
+            ThreadUtil.sleep(RETRY_BACKOFF_MS * times);
+            tryGainLock(keysAsList, action, times + 1);
         } else {
-            int acquiredLocks = Arrays.stream(result.split(",")).mapToInt(Integer::valueOf).reduce(0, Integer::sum);
-            if (acquiredLocks == keysAsList.size()) {
-                MysqlLockState.addAll(keysAsList);
-                action.run();
-            } else if (times < MAX_LOCK_ATTEMPTS) {
-                ThreadUtil.sleep(200);
-                log.warn("Not able to obtain all required locks keys = {}, GET_LOCK results = {}", keysAsList, result);
-                doReleaseLock(keysAsList);
-                tryGainLock(keysAsList, preparedStatementCallback, action, times + 1);
+            surrender(keysAsList, "failed acquiring key " + failedKey);
+        }
+    }
+
+    /**
+     * Acquires the (already sorted) keys strictly one statement at a time, stopping at the first key
+     * that can't be acquired and releasing the acquired prefix before returning. <br>
+     * The old single-statement form, CONCAT(GET_LOCK(a),',',GET_LOCK(b),...), kept evaluating after a
+     * failed GET_LOCK, so a session that timed out on an early key still acquired -- and held for the
+     * rest of the statement -- the later ones. That silently broke the global ascending acquisition
+     * order and allowed real user-level lock deadlock cycles under contention (seen in production,
+     * e.g. dc12 mission 365832). Stopping at the first failure means a session never holds a key
+     * greater than one it is waiting for, which makes such cycles impossible.
+     *
+     * @return null when every key was acquired, otherwise the key that could not be acquired
+     */
+    private String acquireInOrder(List<String> keysAsList) {
+        var acquired = new ArrayList<String>(keysAsList.size());
+        for (var key : keysAsList) {
+            int lockResult;
+            try {
+                var result = jdbcTemplate.queryForObject(GET_LOCK_SQL, Integer.class, key, TIMEOUT_SECONDS);
+                lockResult = result == null ? 0 : result;
+            } catch (Exception e) {
+                if (e.getMessage() != null && e.getMessage().contains("Deadlock")) {
+                    // Should no longer be reported by MySQL now that the acquisition order can't be
+                    // violated, handle it as a normal failed attempt just in case
+                    log.debug("Handling deadlock for key {}", key);
+                    lockResult = 0;
+                } else {
+                    if (!acquired.isEmpty()) {
+                        doReleaseLock(acquired);
+                    }
+                    throw e;
+                }
+            }
+            if (lockResult == 1) {
+                acquired.add(key);
             } else {
-                doReleaseLock(keysAsList);
-                surrender(keysAsList, "last GET_LOCK result = " + result);
+                if (!acquired.isEmpty()) {
+                    doReleaseLock(acquired);
+                }
+                return key;
             }
         }
+        return null;
     }
 
     /**
@@ -131,19 +159,6 @@ public class MysqlLockUtilService {
                 "Could not acquire required MySQL user-level locks after " + MAX_LOCK_ATTEMPTS
                         + " attempts (" + reason + "), keys = " + keysAsList
         );
-    }
-
-    private String doLock(List<String> keysAsList, PreparedStatementCallback<String> preparedStatementCallback) {
-        try {
-            return jdbcTemplate.execute(generateSql("GET_LOCK(?,?)", keysAsList), preparedStatementCallback);
-        } catch (Exception e) {
-            if (e.getMessage().contains("Deadlock")) {
-                log.debug("Handling deadlock");
-                return null;
-            } else {
-                throw e;
-            }
-        }
     }
 
     private PreparedStatementCallback<String> releaseLockLambda(List<String> keysAsList) {
@@ -172,18 +187,6 @@ public class MysqlLockUtilService {
         if (!stillLockedKeys.isEmpty()) {
             log.debug("While keys {} has been deleted, the thread still contains {}", keysAsList, stillLockedKeys);
         }
-    }
-
-    private void generateBindParams(List<String> keys, PreparedStatement preparedStatement) {
-        var i = new AtomicInteger(1);
-        keys.forEach(key -> {
-            try {
-                preparedStatement.setString(i.getAndIncrement(), key);
-                preparedStatement.setInt(i.getAndIncrement(), TIMEOUT_SECONDS);
-            } catch (SQLException e) {
-                throw new IllegalArgumentException("Invalid param for db query", e);
-            }
-        });
     }
 
     private void generateBindParamsForReleaseLock(List<String> keys, PreparedStatement preparedStatement) {

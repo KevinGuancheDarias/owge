@@ -11,6 +11,7 @@ import com.kevinguanchedarias.owgejava.business.mission.unit.registration.UnitMi
 import com.kevinguanchedarias.owgejava.business.mission.unit.registration.returns.ReturnMissionRegistrationBo;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetExplorationService;
 import com.kevinguanchedarias.owgejava.business.planet.PlanetLockUtilService;
+import com.kevinguanchedarias.owgejava.business.unit.obtained.ObtainedUnitModificationBo;
 import com.kevinguanchedarias.owgejava.business.user.UserSessionService;
 import com.kevinguanchedarias.owgejava.business.util.TransactionUtilService;
 import com.kevinguanchedarias.owgejava.enumerations.MissionType;
@@ -34,9 +35,9 @@ public class NonPostConstructUnitMissionBo extends UnitMissionBo {
             List<MissionProcessor> missionProcessors, PlanetBo planetBo, PlanetExplorationService planetExplorationService,
             MissionRepository missionRepository, UserSessionService userSessionService, ExceptionUtilService exceptionUtilService,
             MissionReportManagerBo missionReportManagerBo, MissionBaseService missionBaseService, TransactionUtilService transactionUtilService,
-            Map<MissionType, MissionProcessor> missionProcessorMap
+            ObtainedUnitModificationBo obtainedUnitModificationBo, Map<MissionType, MissionProcessor> missionProcessorMap
     ) {
-        super(planetLockUtilService, unitMissionRegistrationBo, returnMissionRegistrationBo, planetRepository, missionEventEmitterBo, missionInterceptionManagerBo, missionProcessors, planetBo, planetExplorationService, missionRepository, userSessionService, exceptionUtilService, missionReportManagerBo, missionBaseService, transactionUtilService, null);
+        super(planetLockUtilService, unitMissionRegistrationBo, returnMissionRegistrationBo, planetRepository, missionEventEmitterBo, missionInterceptionManagerBo, missionProcessors, planetBo, planetExplorationService, missionRepository, userSessionService, exceptionUtilService, missionReportManagerBo, missionBaseService, transactionUtilService, obtainedUnitModificationBo, null);
     }
 
     @Override
