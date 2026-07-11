@@ -30,6 +30,8 @@ import jakarta.persistence.EntityManager;
 
 import java.io.Serial;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -182,15 +184,21 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto>, UserDelete
             current.setMission(null);
         });
         planetRepository.save(targetPlanet);
-        obtainedUnitRepository.findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED.name())
-                .forEach(unit -> {
-                    var mission = unit.getMission();
-                    obtainedUnitBo.moveUnit(unit, owner.getId(), targetPlanet.getId());
-                    if (mission != null) {
-                        missionRepository.delete(mission);
-                    }
-
-                });
+        var deployedUnits = obtainedUnitRepository
+                .findByUserIdAndTargetPlanetAndMissionTypeCode(owner.getId(), targetPlanet, MissionType.DEPLOYED.name());
+        var deployedMissions = deployedUnits.stream()
+                .map(ObtainedUnit::getMission)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        deployedUnits.forEach(unit -> {
+            // Detach before moveUnit: its lookup queries auto-flush this entity, and Hibernate
+            // writes all columns, so a still-set mission would be re-asserted against the db
+            unit.setMission(null);
+            obtainedUnitBo.moveUnit(unit, owner.getId(), targetPlanet.getId());
+        });
+        // Deleting only after every unit is detached, else the flush of a later unit's update
+        // references an already deleted mission, throwing FK violation 1452 (see mission 395869 dc12 incident)
+        missionRepository.deleteAll(deployedMissions);
         maybeTriggerSpecialLocation(targetPlanet, owner);
 
         transactionUtilService.doAfterCommit(() -> planetListBo.emitByChangedPlanet(targetPlanet));

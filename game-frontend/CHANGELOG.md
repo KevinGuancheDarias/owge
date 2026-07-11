@@ -1,5 +1,10 @@
 
 # OWGE changelog
+v0.11.14 (latest)
+===================
+* __Fix:__ Conquering a planet where the winner also has a DEPLOYED garrison of two or more unit stacks no longer crashes with a foreign key violation (error 1452) that rolled the whole conquest back. The ownership handover deleted the shared DEPLOYED mission while later garrison rows still referenced it in the persistence context, so their flush re-asserted the already-deleted mission id; the handover now detaches every garrison unit first and deletes the DEPLOYED missions once at the end (seen on dc12, mission 395869). The same handover is used by ESTABLISH_BASE, which is fixed too.
+* __Fix:__ The failure bookkeeping of a crashed mission execution (attempt counter, new termination date, final give-up report) now commits in its own transaction; it used to join the crashed execution's transaction, so it was rolled back along with it and the failure handling silently did nothing.
+
 v0.11.13 (2026-07-07 22:59)
 ============================
 * __Fix:__ Mission executions no longer deadlock on the database planet locks: the locks are now acquired strictly one at a time in ascending order, stopping at the first unavailable one, instead of a single statement that kept acquiring (and holding) later locks after an earlier one had already failed — the ordering violation that allowed deadlock cycles and multi-minute lock convoys under heavy same-planet mission traffic.

@@ -19,6 +19,7 @@ import com.kevinguanchedarias.owgejava.util.ExceptionUtilService;
 import com.kevinguanchedarias.owgejava.util.SpringRepositoryUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -48,7 +49,7 @@ public class MissionBaseService {
      *
      * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Instant retryMissionIfPossible(Long missionId, MissionType missionType) {
         var mission = SpringRepositoryUtil.findByIdOrDie(missionRepository, missionId);
         if (mission.getAttemps() >= MAX_ATTEMPTS) {
