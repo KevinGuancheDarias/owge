@@ -41,6 +41,23 @@ pub fn routes() -> Router<AppState> {
             "/admin/special-location/{id}/improvement/unitTypeImprovements/{unit_type_improvement_id}",
             axum::routing::delete(delete_unit_type_improvement),
         )
+        .route(
+            "/admin/special-location/repair-unlocks",
+            axum::routing::post(repair_unlocks),
+        )
+}
+
+/// One-shot data repair (see `PlanetBo::repair_special_location_unlocks`):
+/// re-run the HAVE_SPECIAL_LOCATION grant for every currently-owned
+/// special-location planet. Idempotent; returns the pair count re-evaluated.
+async fn repair_unlocks(
+    State(state): State<AppState>,
+    _admin: AdminUser,
+) -> ApiResult<Json<i64>> {
+    let mut conn = state.db.acquire().await?;
+    Ok(Json(
+        owge_business::bo::PlanetBo::repair_special_location_unlocks(&mut conn).await?,
+    ))
 }
 
 async fn find_all(

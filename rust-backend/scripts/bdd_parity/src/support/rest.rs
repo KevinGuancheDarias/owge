@@ -116,6 +116,35 @@ pub async fn get_query(
     (status, text)
 }
 
+/// Mint an ADMIN JWT: HS256 over the `ADMIN_JWT_SECRET` configuration row
+/// (seeded by the runner BEFORE the baseline dump, so restores keep it and
+/// both backends' boot-time read stays valid). Same claim shape as
+/// `AdminUserBo.createToken` ({sub, iat, exp, data}); the `/admin/**` filters
+/// only validate the signature.
+pub async fn mint_admin_jwt(db: &sqlx::MySqlPool) -> String {
+    let secret: String =
+        sqlx::query_scalar("SELECT value FROM configuration WHERE name = 'ADMIN_JWT_SECRET'")
+            .fetch_one(db)
+            .await
+            .expect("ADMIN_JWT_SECRET configuration row must exist (runner seeds it)");
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let claims = serde_json::json!({
+        "sub": 1,
+        "iat": now,
+        "exp": now + 86400,
+        "data": {"id": 1, "username": "bdd_admin", "email": "bdd@admin.local", "enabled": true},
+    });
+    jsonwebtoken::encode(
+        &jsonwebtoken::Header::default(), // HS256
+        &claims,
+        &jsonwebtoken::EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .expect("admin JWT encoding cannot fail with HS256")
+}
+
 /// DELETE with Bearer auth and no body (e.g. game/alliance,
 /// game/planet-list/{id}).
 pub async fn delete_path(backend: &Backend, jwt: &str, path: &str) -> (u16, String) {

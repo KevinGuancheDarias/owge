@@ -4,6 +4,7 @@
 package com.kevinguanchedarias.owgejava.rest.admin;
 
 import com.kevinguanchedarias.owgejava.builder.RestCrudConfigBuilder;
+import com.kevinguanchedarias.owgejava.business.PlanetBo;
 import com.kevinguanchedarias.owgejava.business.SpecialLocationBo;
 import com.kevinguanchedarias.owgejava.business.SupportedOperationsBuilder;
 import com.kevinguanchedarias.owgejava.dto.SpecialLocationDto;
@@ -14,6 +15,7 @@ import com.kevinguanchedarias.owgejava.rest.trait.CrudWithImprovementsRestServic
 import com.kevinguanchedarias.owgejava.rest.trait.WithImageRestServiceTrait;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.annotation.ApplicationScope;
@@ -34,6 +36,7 @@ public class AdminSpecialLocationRestService implements
     private final SpecialLocationRepository specialLocationRepository;
     private final AutowireCapableBeanFactory beanFactory;
     private final SpecialLocationBo specialLocationBo;
+    private final PlanetBo planetBo;
 
     /*
      * (non-Javadoc)
@@ -64,4 +67,17 @@ public class AdminSpecialLocationRestService implements
         return WithImageRestServiceTrait.super.beforeSave(parsedDto, entity);
     }
 
+    /**
+     * One-shot data repair: re-grants the HAVE_SPECIAL_LOCATION unlocks to
+     * every current owner of a special-location planet (idempotent — the
+     * requirement re-evaluation converges). Run once per universe after
+     * deploying the fix for the historic Rust-backend grant omission.
+     *
+     * @return the number of (planet, owner) pairs re-evaluated
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    @PostMapping("repair-unlocks")
+    public int repairUnlocks() {
+        return planetBo.repairSpecialLocationUnlocks();
+    }
 }

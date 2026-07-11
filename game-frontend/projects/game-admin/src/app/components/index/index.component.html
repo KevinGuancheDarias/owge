@@ -4,4 +4,6 @@
 <button (click)="notifyFrontendVersionUpdate()" class="owge-theme-base-colors">Notify frontend version update</button>
 <button [disabled]="runningHangMissions" (click)="runHangMissions()" class="owge-theme-base-colors btn btn-block">Run
     hang missions</button>
+<button [disabled]="runningUnlockRepair" (click)="runSpecialLocationUnlockRepair()"
+    class="owge-theme-base-colors btn btn-block">Repair special-location unlocks</button>
 <button (click)="clickSendSystemMessage()" class="owge-theme-base-colors btn btn-block">Send system message</button>

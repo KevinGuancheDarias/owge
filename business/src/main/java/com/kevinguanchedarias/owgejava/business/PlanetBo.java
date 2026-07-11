@@ -207,6 +207,24 @@ public class PlanetBo implements WithNameBo<Long, Planet, PlanetDto>, UserDelete
         obtainedUnitEventEmitter.emitObtainedUnits(owner);
     }
 
+    /**
+     * Admin data repair: re-runs the HAVE_SPECIAL_LOCATION grant trigger for
+     * every currently-owned special-location planet (see
+     * rust-backend/docs/BUG-SPECIAL-LOCATION-UNLOCK.md "Consequences" — the
+     * Rust backend historically never granted these unlocks on ownership
+     * change). The requirement re-evaluation converges, so running it is
+     * idempotent and safe universe-wide.
+     *
+     * @return the number of (planet, owner) pairs re-evaluated
+     * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+     */
+    @Transactional
+    public int repairSpecialLocationUnlocks() {
+        var planets = planetRepository.findByOwnerNotNullAndSpecialLocationNotNullOrderById();
+        planets.forEach(planet -> maybeTriggerSpecialLocation(planet, planet.getOwner()));
+        return planets.size();
+    }
+
     @Override
     public List<PlanetDto> toDto(List<Planet> entities) {
         return dtoUtilService.convertEntireArray(getDtoClass(), entities);

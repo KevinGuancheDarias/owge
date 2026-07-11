@@ -235,6 +235,39 @@ impl PlanetBo {
         Ok(())
     }
 
+    /// Admin data repair for the historic "special-location unlocks never
+    /// granted to the new owner" bug (docs/BUG-SPECIAL-LOCATION-UNLOCK.md
+    /// "Consequences"): re-run the HAVE_SPECIAL_LOCATION grant trigger for
+    /// every currently-owned special-location planet. The requirement
+    /// re-evaluation converges, so this is idempotent and safe to run
+    /// universe-wide. Returns the number of (planet, owner) pairs
+    /// re-evaluated, mirroring the Java `PlanetBo.repairSpecialLocationUnlocks`.
+    pub async fn repair_special_location_unlocks(conn: &mut MySqlConnection) -> OwgeResult<i64> {
+        let rows: Vec<(i32, i64)> = sqlx::query_as(
+            "SELECT CAST(owner AS SIGNED), CAST(special_location_id AS SIGNED) \
+             FROM planets \
+             WHERE owner IS NOT NULL AND special_location_id IS NOT NULL \
+             ORDER BY id",
+        )
+        .fetch_all(&mut *conn)
+        .await?;
+        let mut req_emits = Vec::new();
+        let mut tx = conn.begin().await?;
+        for (owner_id, special_location_id) in &rows {
+            let user = crate::bo::mission_bo::load_user_storage(&mut tx, *owner_id).await?;
+            crate::bo::requirement_bo::RequirementBo::trigger_special_location(
+                &mut tx,
+                &user,
+                *special_location_id,
+                &mut req_emits,
+            )
+            .await?;
+        }
+        tx.commit().await?;
+        realtime_emitter::drain_requirement_emits(&mut *conn, &req_emits).await?;
+        Ok(rows.len() as i64)
+    }
+
     /// `PlanetExplorationService.isExplored(userId, planetId)` — true when the user
     /// owns the planet or has an `explored_planets` row for it. `explored_planets`
     /// keys the user with column `user` (signed `int`) and `planet`.

@@ -47,6 +47,18 @@ Feature: Special-location unlocks
     Then planet 1234 is owned by user 1
     And table unlocked_relation has no row for user 1 and object UNIT reference 9101
 
+  Scenario: The admin unlock repair grants the missed unlocks to current owners
+    # simulates the data the historic D1 bug left behind: ownership was
+    # persisted but the HAVE_SPECIAL_LOCATION grant never ran (the Given sets
+    # the owner column directly, exactly like the buggy flow did)
+    Given planet 1234 is owned by user 1
+    When an admin runs the special-location unlock repair
+    Then the request succeeded
+    And table unlocked_relation has a row for user 1 and object UNIT reference 9100
+    And table unlocked_relation has a row for user 1 and object TIME_SPECIAL reference 900
+    And user 1 received websocket event "unit_unlocked_change" where some item has id 9100
+    And user 1 received websocket event "time_special_unlocked_change" where some item has id 900
+
   Scenario: Leaving the planet revokes the unlocks
     Given planet 1234 is owned by user 1
     And user 1 has an unlocked relation for object UNIT reference 9100

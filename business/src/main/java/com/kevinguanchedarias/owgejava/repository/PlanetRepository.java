@@ -42,6 +42,8 @@ public interface PlanetRepository extends WithNameRepository<Planet, Long>, Seri
 
     Planet findOneByIdAndHomeTrue(Long planetId);
 
+    List<Planet> findByOwnerNotNullAndSpecialLocationNotNullOrderById();
+
     /**
      * @author Kevin Guanche Darias
      * @since 0.9.0

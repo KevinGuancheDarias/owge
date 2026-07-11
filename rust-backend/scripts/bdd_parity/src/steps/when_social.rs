@@ -137,6 +137,28 @@ async fn user_deletes_alliance(world: &mut BddWorld, user: i64, mode: String) {
     settle().await;
 }
 
+/// The D1 data repair: POST admin/special-location/repair-unlocks with a
+/// minted admin JWT. Re-grants HAVE_SPECIAL_LOCATION unlocks to every current
+/// owner of a special-location planet.
+#[when(expr = "an admin runs the special-location unlock repair")]
+async fn admin_runs_unlock_repair(world: &mut BddWorld) {
+    super::when_actions::ensure_ws_captures(world).await;
+    let jwt = rest::mint_admin_jwt(&world.db).await;
+    let (status, response) = rest::post_json(
+        backend(world),
+        &jwt,
+        "admin/special-location/repair-unlocks",
+        &serde_json::json!({}),
+    )
+    .await;
+    world.last_response = Some((status, response.clone()));
+    assert!(
+        (200..300).contains(&status),
+        "POST admin/special-location/repair-unlocks returned HTTP {status}: {response}"
+    );
+    settle().await;
+}
+
 #[when(regex = r#"^user (\d+) adds planet (\d+) to their planet list as "([^"]+)"$"#)]
 async fn user_adds_planet_list(world: &mut BddWorld, user: i64, planet: i64, name: String) {
     world.captured_users.insert(user);

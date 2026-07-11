@@ -13,6 +13,7 @@ import { AdminSystemMessageService } from '../../services/admin-system-message.s
 export class IndexComponent {
 
   public runningHangMissions = false;
+  public runningUnlockRepair = false;
 
   constructor(
     private _loadingService: LoadingService,
@@ -60,6 +61,23 @@ export class IndexComponent {
     await this._universeGameService.requestWithAutorizationToContext('admin', 'post', 'system/run-hang-missions', 'true')
       .pipe(take(1)).toPromise();
     this.runningHangMissions = false;
+  }
+
+  /**
+   * Data repair: re-grants the special-location unlocks to every current
+   * owner of a special-location planet (idempotent). Run once after
+   * deploying the fix for the unlocks-never-granted bug.
+   *
+   * @author Kevin Guanche Darias <kevin@kevinguanchedarias.com>
+   * @since 1.0.0
+   */
+  public async runSpecialLocationUnlockRepair(): Promise<void> {
+    this.runningUnlockRepair = true;
+    const count = await this._universeGameService
+      .requestWithAutorizationToContext('admin', 'post', 'special-location/repair-unlocks', 'true')
+      .pipe(take(1)).toPromise();
+    this.runningUnlockRepair = false;
+    alert(`Repair done, re-evaluated ${count} planet-owner pairs`);
   }
 
   /**
