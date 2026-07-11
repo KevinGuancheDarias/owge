@@ -27,6 +27,25 @@ Feature: Upgrade level-up registration, completion, and cancellation
     And user 1 received websocket event "missions_count_change"
     And user 1 received websocket event "user_data_change"
 
+  Scenario: A level-up that keeps crashing is given up after exhausting its retries
+    # covers MissionBaseService.retryMissionIfPossible's give-up branch
+    # (attemps >= 3): the LEVEL_UP variant just hard-deletes the mission (no
+    # refund — give-up is not a cancel). The corruption trick (Kevin's):
+    # point the mission's ObjectRelation at a nonexistent upgrade —
+    # reference_id has no FK, and the missing upgrade makes the mission body
+    # throw identically on both backends. Unit-mission give-up stays
+    # untestable this way: its give-up re-INSERTs a return mission over the
+    # same corrupted graph and would fail again.
+    Given user 1 has 490 primary resource and 330 secondary resource
+    And user 1 has obtained upgrade 1 at level 0 available
+    When user 1 registers a LEVEL_UP mission for upgrade 1
+    Given the level-up mission of user 1 references a nonexistent upgrade
+    And the latest mission of user 1 has 3 failed attempts
+    When the LEVEL_UP mission of user 1 completes
+    Then table missions has no row where user_id=1 and type_code=LEVEL_UP
+    And table obtained_upgrades has a row where user_id=1 and upgrade_id=1 and level=0
+    And user 1 received websocket event "running_upgrade_change"
+
   Scenario: Registration is rejected when the user lacks the resources to pay for it
     # covers: B1
     # 1/1: far below the 490/330 cost, so the few units of per-second accrual

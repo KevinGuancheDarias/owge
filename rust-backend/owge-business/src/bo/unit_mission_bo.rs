@@ -733,10 +733,38 @@ impl MissionRunner {
             {
                 tracing::error!("retry handling for mission {mission_id} also failed: {retry_err}");
             }
-            // No extra emit here: Java `MissionBaseService.retryMissionIfPossible`
-            // fires no websocket events of its own — the only emit on the failure
-            // path is the rescheduled error report's `save → emitOneToUser`, which
-            // `retry_mission_if_possible` already performs after committing.
+            // DbSchedulerRealizationJob's catch block emits fresh state to the
+            // mission's user AFTER the retry handling (retryMissionIfPossible
+            // itself fires nothing, but the JOB does): unit missions get
+            // unit_mission_change + the enemy refresh, LEVEL_UP the running
+            // upgrade, BUILD_UNIT the build list. Uses the pre-run `mission`
+            // (the give-up branch may have deleted the row by now, like Java's
+            // captured entity).
+            let user_id = mission.user_id.unwrap_or_default();
+            if mission_type.is_unit_mission() {
+                crate::bo::MissionEventEmitter::emit_unit_missions(&mut conn, user_id).await?;
+                // emitEnemyMissionsChange(mission): target planet owner, if enemy.
+                if let Some(tp_id) = mission.target_planet {
+                    let owner: Option<Option<i32>> =
+                        sqlx::query_scalar("SELECT owner FROM planets WHERE id = ?")
+                            .bind(tp_id as u64)
+                            .fetch_optional(&mut *conn)
+                            .await?;
+                    if let Some(Some(owner)) = owner {
+                        if owner != user_id {
+                            crate::bo::MissionEventEmitter::emit_enemy_missions_change(
+                                &mut conn, owner,
+                            )
+                            .await?;
+                        }
+                    }
+                }
+            } else if mission_type == MissionType::LevelUp {
+                crate::bo::MissionEventEmitter::emit_running_upgrade(&mut conn, user_id).await?;
+            } else if mission_type == MissionType::BuildUnit {
+                crate::bo::MissionEventEmitter::emit_unit_build_change(&mut conn, user_id)
+                    .await?;
+            }
         }
         Ok(())
     }

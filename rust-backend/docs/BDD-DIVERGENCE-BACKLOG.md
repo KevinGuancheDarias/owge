@@ -28,10 +28,22 @@ fixed:
   non-owned fallback parked stacks mission-less; Java's `moveUnit` parks them
   under a DEPLOYED marker (reused `deploy::move_unit_to_foreign_planet`), and
   its requirement triggers are gated on still owning the planet.
-- **RUST — give_up missing emit** (closed by inspection, still no scenario:
-  the path needs a mission to THROW 3× — not deterministically inducible
-  black-box): registerReturnMission's emitLocalMissionChangeAfterCommit
-  equivalent added to `MissionBaseService::give_up`.
+- **RUST — give_up missing emit** (closed by inspection, then SCENARIO'D after
+  all — Kevin's corruption trick, sweep 6b): point the running LEVEL_UP's
+  mission_information at a fresh (UPGRADE, 9999) ObjectRelation —
+  reference_id has NO FK by design, so no FK toggling needed — and pre-set
+  attemps=3; the missing upgrade throws identically on both backends and the
+  first failure hits give-up, which for LEVEL_UP just hard-deletes the
+  mission (unit-mission give-up stays undrivable: it re-INSERTs a return over
+  the same corrupted graph and would fail again; gather/attack corruption of
+  unit_id does NOT work — Rust's loaders are join-tolerant and skip the row
+  where Java throws on the lazy proxy). This also caught that Rust missed the
+  ENTIRE DbSchedulerRealizationJob catch-block emit set (its comment claimed
+  Java emits nothing on failure — wrong: unit missions get unit_mission_change
+  + enemy refresh, LEVEL_UP running_upgrade_change, BUILD_UNIT
+  unit_build_mission_change); ported. 53/53 sweep `20260711_013556`.
+  registerReturnMission's emitLocalMissionChangeAfterCommit equivalent also
+  added to `MissionBaseService::give_up`.
 - **HARNESS — mint_jwt hardcoded `rusttester` for every user id**: the
   backends sync the user entity's username/email FROM THE TOKEN (the account
   system is the source of truth — `UserSessionService.setUsername`), so

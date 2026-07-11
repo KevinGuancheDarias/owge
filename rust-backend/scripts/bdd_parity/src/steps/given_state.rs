@@ -231,6 +231,50 @@ async fn unit_type_mission_support(
     .expect("Given: set unit type mission support");
 }
 
+/// Corrupt the running LEVEL_UP mission's upgrade reference: point its
+/// mission_information at a fresh (UPGRADE, 9999) relation. reference_id has
+/// NO foreign key by design (the generic ObjectRelation indirection), so this
+/// needs no FK toggling — the mission body then fails on the missing upgrade
+/// on BOTH backends, driving the retry/give-up path.
+#[given(expr = "the level-up mission of user {int} references a nonexistent upgrade")]
+async fn level_up_references_missing_upgrade(world: &mut BddWorld, user: i64) {
+    let relation = find_or_create_relation(&world.db, "UPGRADE", 9999).await;
+    let updated = sqlx::query(
+        "UPDATE mission_information mi \
+         JOIN missions m ON m.id = mi.mission_id \
+         JOIN mission_types mt ON mt.id = m.type \
+         SET mi.relation_id = ? \
+         WHERE m.user_id = ? AND mt.code = 'LEVEL_UP' AND m.resolved = 0",
+    )
+    .bind(relation)
+    .bind(user)
+    .execute(&world.db)
+    .await
+    .expect("Given: corrupt level-up relation");
+    assert!(
+        updated.rows_affected() > 0,
+        "user {user} has no unresolved LEVEL_UP mission to corrupt"
+    );
+}
+
+#[given(expr = "the latest mission of user {int} has {int} failed attempts")]
+async fn mission_has_failed_attempts(world: &mut BddWorld, user: i64, attempts: i64) {
+    let updated = sqlx::query(
+        "UPDATE missions SET attemps = ? \
+         WHERE user_id = ? AND resolved = 0 \
+         ORDER BY id DESC LIMIT 1",
+    )
+    .bind(attempts)
+    .bind(user)
+    .execute(&world.db)
+    .await
+    .expect("Given: set mission attemps");
+    assert!(
+        updated.rows_affected() > 0,
+        "user {user} has no unresolved mission to set attemps on"
+    );
+}
+
 #[given(expr = "configuration {string} is {string}")]
 async fn configuration_is(world: &mut BddWorld, name: String, value: String) {
     sqlx::query(
