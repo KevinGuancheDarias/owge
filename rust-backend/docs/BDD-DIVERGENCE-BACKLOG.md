@@ -1,5 +1,30 @@
 # BDD parity — divergence backlog
 
+## SWEEP 9 (2026-07-11, post v0.11.13/14 hotfix merge, run `20260711_120911`, 54/54)
+
+The other machine's production hotfixes (merged via rebase) changed Java
+behavior in tested systems. Sweep verdict: 53/54 stayed green — the conquest
+garrison handover (b46ee1e5), lock rework (17f266a2 part 1), stored-units
+travel (2b364d95) and time-special cache eviction (b5df77ab) are all
+behavior-compatible with Rust on the tested paths. ONE red, the give-up
+scenario, exposed the report-timing change AND (by code inspection during the
+port) a REAL Rust scheduler bug:
+
+- **Rust lost mission retries entirely** — the same bug class 17f266a2 fixed
+  in Java: `retry_mission_if_possible` rescheduled the task row from INSIDE
+  the failing execution, and the scheduler loop unconditionally
+  `delete_row`'d the claimed row right after the run, wiping the reschedule.
+  A crashed mission would silently never retry. Ported the Java fix shape:
+  retry returns the execution instant (now + requiredTime − DELAY_HANDLE),
+  `MissionDispatch::run_mission` surfaces it, and the loop RE-ARMS the
+  claimed row (execution_time reset, picked=0) instead of deleting.
+- **Error report moved to the give-up branch** (was per-retry): Java now only
+  saves "Mission with id X failed, please contact an admin!" on the FINAL
+  failure. Rust mirrored: report + emits in the give-up branch (before the
+  per-type actions, Java's order); the reschedule branch just bumps
+  attempts/termination (this also killed the old resolved=0 re-clear hack the
+  per-retry report save required).
+
 ## SWEEP 8 (2026-07-11, the specialLocation image bug — R1/R2(b) MISDIAGNOSIS corrected, run `20260711_105121`, 54/54)
 
 Kevin's live report: Rust showed the placeholder icon

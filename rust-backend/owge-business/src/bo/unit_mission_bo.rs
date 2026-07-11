@@ -690,7 +690,7 @@ impl MissionRunner {
         Self { db }
     }
 
-    async fn execute(&self, mission_id: u64) -> OwgeResult<()> {
+    async fn execute(&self, mission_id: u64) -> OwgeResult<Option<chrono::NaiveDateTime>> {
         // Acquire exactly ONE connection for the entire mission execution.
         let mut conn = self.db.acquire().await?;
 
@@ -698,19 +698,19 @@ impl MissionRunner {
             Some(m) => m,
             None => {
                 tracing::debug!("mission {mission_id} not found, nothing to run");
-                return Ok(());
+                return Ok(None);
             }
         };
 
         if mission.is_resolved() {
-            return Ok(());
+            return Ok(None);
         }
         let Some(mission_type) = mission.mission_type() else {
             tracing::warn!(
                 "mission {mission_id} has unknown type {}, skipping",
                 mission.type_id
             );
-            return Ok(());
+            return Ok(None);
         };
 
         tracing::debug!(
@@ -724,14 +724,19 @@ impl MissionRunner {
                 UnitMissionBo::run_unit_mission(&mut conn, mission_id, mission_type).await
             };
 
+        let mut retry_at = None;
         if let Err(e) = result {
             tracing::error!("Unexpected fatal exception when executing mission {mission_id}: {e}");
-            // missionBaseService.retryMissionIfPossible(missionId, missionType)
-            if let Err(retry_err) =
-                MissionBaseService::retry_mission_if_possible(&mut conn, mission_id, mission_type)
-                    .await
+            // retryAt = missionBaseService.retryMissionIfPossible(missionId, missionType)
+            match MissionBaseService::retry_mission_if_possible(&mut conn, mission_id, mission_type)
+                .await
             {
-                tracing::error!("retry handling for mission {mission_id} also failed: {retry_err}");
+                Ok(at) => retry_at = at,
+                Err(retry_err) => {
+                    tracing::error!(
+                        "retry handling for mission {mission_id} also failed: {retry_err}"
+                    );
+                }
             }
             // DbSchedulerRealizationJob's catch block emits fresh state to the
             // mission's user AFTER the retry handling (retryMissionIfPossible
@@ -766,7 +771,7 @@ impl MissionRunner {
                     .await?;
             }
         }
-        Ok(())
+        Ok(retry_at)
     }
 }
 
@@ -866,11 +871,17 @@ async fn run_non_unit_mission(
 
 #[async_trait]
 impl MissionDispatch for MissionRunner {
-    async fn run_mission(&self, mission_id: u64) {
+    async fn run_mission(&self, mission_id: u64) -> Option<chrono::NaiveDateTime> {
         // execute never propagates: like DbSchedulerRealizationJob.execute, it
-        // handles its own retry/give-up so the scheduler row is always cleared.
-        if let Err(e) = self.execute(mission_id).await {
-            tracing::error!("mission {mission_id} dispatch failed fatally: {e}");
+        // handles its own retry/give-up and surfaces only the retry instant —
+        // Some(at) makes the scheduler loop RE-ARM the claimed row instead of
+        // clearing it (the 17f266a2 lost-retry fix).
+        match self.execute(mission_id).await {
+            Ok(retry_at) => retry_at,
+            Err(e) => {
+                tracing::error!("mission {mission_id} dispatch failed fatally: {e}");
+                None
+            }
         }
     }
 }

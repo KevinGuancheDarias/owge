@@ -38,7 +38,13 @@ pub trait MissionDispatch: Send + Sync {
     /// Run the mission with this id. Must **not** return an error for a
     /// mission-level failure — handle retry/giving-up internally (mirroring
     /// `DbSchedulerRealizationJob.execute`).
-    async fn run_mission(&self, mission_id: u64);
+    /// Runs the mission; returns the instant a FAILED execution should be
+    /// retried at (`MissionBaseService::retry_mission_if_possible`), or `None`
+    /// when the run completed or was given up. The scheduler loop re-arms the
+    /// claimed row on `Some` instead of deleting it — scheduling from inside
+    /// the failing execution is a lost update (the loop clears the row after
+    /// the run; same bug class the Java hotfix 17f266a2 fixed).
+    async fn run_mission(&self, mission_id: u64) -> Option<chrono::NaiveDateTime>;
 }
 
 #[derive(Clone)]
@@ -125,11 +131,15 @@ async fn poll_once(
             }
         };
 
-        // The dispatcher swallows mission-level errors (retry handled inside),
-        // so the row is always cleared after the run. The mission run acquires
-        // its own connection internally (MissionRunner is an entry point).
-        dispatch.run_mission(mission_id).await;
-        delete_row(&mut conn, &task_instance).await?;
+        // The dispatcher swallows mission-level errors (retry handled inside).
+        // A failed run returns the retry instant: RE-ARM the claimed row for
+        // that time instead of deleting it (deleting would lose the retry —
+        // the Java hotfix 17f266a2 pattern). The mission run acquires its own
+        // connection internally (MissionRunner is an entry point).
+        match dispatch.run_mission(mission_id).await {
+            Some(retry_at) => rearm_row(&mut conn, &task_instance, retry_at).await?,
+            None => delete_row(&mut conn, &task_instance).await?,
+        }
     }
     Ok(())
 }
@@ -140,5 +150,26 @@ async fn delete_row(conn: &mut MySqlConnection, task_instance: &str) -> OwgeResu
         .bind(task_instance)
         .execute(&mut *conn)
         .await?;
+    Ok(())
+}
+
+/// Reset the claimed row to fire again at `retry_at` (the retry of a failed
+/// execution — `DbSchedulerRealizationJob.execute` returning a non-null Instant).
+async fn rearm_row(
+    conn: &mut MySqlConnection,
+    task_instance: &str,
+    retry_at: chrono::NaiveDateTime,
+) -> OwgeResult<()> {
+    sqlx::query(
+        "UPDATE scheduled_tasks \
+            SET execution_time = ?, picked = 0, picked_by = NULL, \
+                last_heartbeat = NULL, version = version + 1 \
+          WHERE task_name = ? AND task_instance = ?",
+    )
+    .bind(retry_at)
+    .bind(MISSION_TASK_NAME)
+    .bind(task_instance)
+    .execute(&mut *conn)
+    .await?;
     Ok(())
 }

@@ -34,9 +34,6 @@ use crate::model::mission::{Mission, MissionType};
 const MAX_ATTEMPTS: u8 = 3;
 /// `MissionSchedulerService.DELAY_HANDLE` — fire 2s before the nominal end.
 const DELAY_HANDLE: i64 = 2;
-/// `scheduled_tasks.task_name` for a mission row (see `mission_scheduler_bo`).
-const MISSION_TASK_NAME: &str = "mission-run";
-
 pub struct MissionBaseService;
 
 impl MissionBaseService {
@@ -49,22 +46,37 @@ impl MissionBaseService {
     /// need the planet locks (the return-mission registration it may do re-points
     /// obtained units by mission id, which is safe to run unlocked here for the
     /// retry/give-up path — matching the Java service's own transaction).
+    /// Returns the instant the failed execution should be RETRIED at, or `None`
+    /// when the mission was given up (max attempts). Mirrors the hotfixed Java
+    /// `retryMissionIfPossible` (17f266a2): the retry must NOT be scheduled
+    /// from inside the failing execution — the runner still holds the claimed
+    /// `scheduled_tasks` row and unconditionally clears it after the run, so an
+    /// inner reschedule was silently wiped and the retry lost. The caller
+    /// (the scheduler loop) re-arms the claimed row with the returned instant.
     pub async fn retry_mission_if_possible(
         conn: &mut MySqlConnection,
         mission_id: u64,
         mission_type: MissionType,
-    ) -> OwgeResult<()> {
+    ) -> OwgeResult<Option<chrono::NaiveDateTime>> {
         let mission = load_mission(&mut *conn, mission_id)
             .await?
             .ok_or_else(|| OwgeError::NotFound(format!("No mission with id {mission_id}")))?;
 
         if mission.attemps >= MAX_ATTEMPTS {
-            Self::give_up(&mut *conn, &mission, mission_type).await?;
-            Ok(())
-        } else {
+            // (17f266a2) the player is only notified when the mission is
+            // definitively given up; attempts that will still be retried used
+            // to save this report too, alarming players over failures that
+            // succeeded on a later attempt. Java saves the report BEFORE the
+            // per-type give-up actions.
+            let report = build_common_error_report(&mut *conn, &mission, mission_type).await?;
             let (report_user_id, report_id, report_date) =
-                Self::reschedule(&mut *conn, mission, mission_type).await?;
-            // Post-commit emits — the reschedule work has flushed on the same conn.
+                crate::bo::mission_report_manager_bo::MissionReportManagerBo::handle_mission_report_save(
+                    &mut *conn, &mission, report,
+                )
+                .await?;
+            Self::give_up(&mut *conn, &mission, mission_type).await?;
+            // handleMissionReportSave's emitOneToUser fires after Java's
+            // REQUIRES_NEW commit; here the give-up work has flushed on conn.
             crate::bo::realtime_emitter::emit_mission_report_new(
                 &mut *conn,
                 report_user_id,
@@ -77,7 +89,9 @@ impl MissionBaseService {
                 report_user_id,
             )
             .await?;
-            Ok(())
+            Ok(None)
+        } else {
+            Ok(Some(Self::reschedule(&mut *conn, mission).await?))
         }
     }
 
@@ -126,37 +140,21 @@ impl MissionBaseService {
         Ok(())
     }
 
-    /// Below-the-cap branch of `retryMissionIfPossible`.
+    /// Below-the-cap branch of `retryMissionIfPossible` (hotfixed shape,
+    /// 17f266a2): bump attempts + termination only — NO error report (the
+    /// player is only alarmed on the final give-up) and NO scheduling from in
+    /// here (the runner re-arms its claimed row with the returned instant,
+    /// `MissionSchedulerService.computeExecutionTime`).
     async fn reschedule(
         conn: &mut MySqlConnection,
         mut mission: Mission,
-        mission_type: MissionType,
-    ) -> OwgeResult<(i32, u64, chrono::NaiveDateTime)> {
+    ) -> OwgeResult<chrono::NaiveDateTime> {
         mission.attemps += 1;
         mission.termination_date = Some(
             crate::bo::mission_time_manager_bo::MissionTimeManagerBo::compute_termination_date(
                 mission.required_time.unwrap_or(0.0),
             ),
         );
-
-        // missionReportManagerBo.handleMissionReportSave(mission, buildCommonErrorReport(...))
-        let report = build_common_error_report(conn, &mission, mission_type).await?;
-        let report_pair =
-            crate::bo::mission_report_manager_bo::MissionReportManagerBo::handle_mission_report_save(
-                conn, &mission, report,
-            )
-            .await?;
-        // NOTE: handle_mission_report_save also flips resolved = 1; the Java retry
-        // path saves the mission below with resolved still false. Re-clear it so the
-        // re-scheduled run can fire (matches missionRepository.save(mission) where
-        // the entity's resolved is unchanged on the retry branch).
-        sqlx::query("UPDATE missions SET resolved = 0 WHERE id = ?")
-            .bind(mission.id)
-            .execute(&mut *conn)
-            .await?;
-
-        // missionSchedulerService.scheduleMission(mission)
-        schedule_mission(conn, mission.id, mission.required_time.unwrap_or(0.0)).await?;
 
         // missionRepository.save(mission) — persist the bumped attempts / new date.
         sqlx::query("UPDATE missions SET attemps = ?, termination_date = ? WHERE id = ?")
@@ -165,7 +163,10 @@ impl MissionBaseService {
             .bind(mission.id)
             .execute(&mut *conn)
             .await?;
-        Ok(report_pair)
+
+        // Instant.now().plusSeconds(requiredTime - DELAY_HANDLE)
+        Ok(chrono::Utc::now().naive_utc()
+            + chrono::Duration::seconds(mission.required_time.unwrap_or(0.0) as i64 - DELAY_HANDLE))
     }
 
     /// `isOfType` — is this mission of the given type?
@@ -282,32 +283,6 @@ async fn delete_mission(conn: &mut MySqlConnection, mission_id: u64) -> OwgeResu
         .bind(mission_id)
         .execute(&mut *conn)
         .await?;
-    Ok(())
-}
-
-/// `MissionSchedulerService.scheduleMission`, inlined on the caller's connection
-/// (identical SQL to `mission_scheduler_bo`).
-async fn schedule_mission(
-    conn: &mut MySqlConnection,
-    mission_id: u64,
-    required_time_seconds: f64,
-) -> OwgeResult<()> {
-    let delay = required_time_seconds as i64 - DELAY_HANDLE;
-    sqlx::query(
-        "INSERT INTO scheduled_tasks \
-             (task_name, task_instance, task_data, execution_time, picked, version) \
-         VALUES (?, ?, NULL, DATE_ADD(NOW(6), INTERVAL ? SECOND), 0, 1) \
-         ON DUPLICATE KEY UPDATE \
-             execution_time = DATE_ADD(NOW(6), INTERVAL ? SECOND), \
-             picked = 0, picked_by = NULL, last_heartbeat = NULL, \
-             version = version + 1",
-    )
-    .bind(MISSION_TASK_NAME)
-    .bind(mission_id.to_string())
-    .bind(delay)
-    .bind(delay)
-    .execute(&mut *conn)
-    .await?;
     Ok(())
 }
 
