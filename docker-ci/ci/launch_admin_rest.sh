@@ -2,7 +2,7 @@
 ##
 # This script is used to compile and mount the project into docker images
 #
-# @param $1 string Project version, for example 0.3.0 (should match a OWGE version tag)
+# @param $1 string Project version, for example 0.3.0 (should match a OWGE version tag), or the special keyword "master" to build from the current master branch HEAD instead of a tag
 # @param $2 string Directory where the static files will be located
 # @param $3 string Directory where the dynamic files will be located
 # @param $4 int UniverseId number of the universeId
@@ -49,15 +49,21 @@ envFailureCheck "OWGE_DB_URL" "$OWGE_DB_URL";
 envFailureCheck "OWGE_DB_USER" "$OWGE_DB_USER";
 envFailureCheck "OWGE_DB_PASS" "$OWGE_DB_PASS";
 
-if ! gitVersionExists "$1"; then
-	exit 1;
+if [ "$1" = "master" ]; then
+	echo "Special keyword 'master': building from the master branch HEAD instead of a version tag";
+	oldBranch=`gitGetCurrentBranch`;
+	git checkout master;
+else
+	if ! gitVersionExists "$1"; then
+		exit 1;
+	fi
+	echo "git checkingout tag v$1";
+	oldBranch=`gitGetCurrentBranch`;
+	oldDetachedHeadValue=`git config advice.detachedHead`;
+	git config advice.detachedHead false;
+	git checkout "v$1";
+	git config advice.detachedHead "$oldDetachedHeadValue";
 fi
-echo "git checkingout tag v$1";
-oldBranch=`gitGetCurrentBranch`;
-oldDetachedHeadValue=`git config advice.detachedHead`;
-git config advice.detachedHead false;
-git checkout "v$1";
-git config advice.detachedHead "$oldDetachedHeadValue";
 
 ##
 # After the execution of compileMavenProject() contains where the compile file is located

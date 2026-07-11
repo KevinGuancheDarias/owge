@@ -11,7 +11,7 @@
 # initialization. The ONLY differences are: it builds the Rust backend instead of
 # the Java war/kevinsuite, and runs the Rust docker stack.
 #
-# @param $1 string Project version, an existing OWGE git tag (e.g. 0.11.8)
+# @param $1 string Project version, an existing OWGE git tag (e.g. 0.11.8), or the special keyword "master" to build from the current master branch HEAD instead of a tag
 # @param $2 string Directory where the static (shared) image files live
 # @param $3 string Directory where the dynamic (per-universe) image files live
 # @param $4 int    Universe id
@@ -20,9 +20,10 @@
 # @env   [OWGE_WORLD_DIR] required only when the DB is empty (fresh universe init)
 # @env   [NO_COMPILE] If set, skip compilation (work in progress, as in the Java script)
 #
-# NOTE: rust-backend/ is git-untracked, so `git checkout v$1` does NOT alter it;
-# the Rust backend is built from the current working tree (the tag only pins the
-# frontend + the database schema SQL). The frontend version still tracks the tag.
+# NOTE: rust-backend/ is git-untracked, so the `git checkout` (of v$1, or of the
+# master branch when "master" is passed) does NOT alter it; the Rust backend is
+# built from the current working tree (the checkout only pins the frontend + the
+# database schema SQL). The frontend version still tracks the checked-out ref.
 #
 # @author Kevin Guanche Darias
 ##
@@ -60,15 +61,21 @@ envFailureCheck "OWGE_DB_URL" "$OWGE_DB_URL";
 envFailureCheck "OWGE_DB_USER" "$OWGE_DB_USER";
 envFailureCheck "OWGE_DB_PASS" "$OWGE_DB_PASS";
 
-if ! gitVersionExists "$1"; then
-	exit 1;
+if [ "$1" = "master" ]; then
+	echo "Special keyword 'master': building from the master branch HEAD instead of a version tag";
+	oldBranch=`gitGetCurrentBranch`;
+	git checkout master;
+else
+	if ! gitVersionExists "$1"; then
+		exit 1;
+	fi
+	echo "git checkingout tag v$1";
+	oldBranch=`gitGetCurrentBranch`;
+	oldDetachedHeadValue=`git config advice.detachedHead`;
+	git config advice.detachedHead false;
+	git checkout "v$1";
+	git config advice.detachedHead "$oldDetachedHeadValue";
 fi
-echo "git checkingout tag v$1";
-oldBranch=`gitGetCurrentBranch`;
-oldDetachedHeadValue=`git config advice.detachedHead`;
-git config advice.detachedHead false;
-git checkout "v$1";
-git config advice.detachedHead "$oldDetachedHeadValue";
 
 ##
 # node:14 runner (overrides lib.sh's node:8 version — the Angular 11 frontend
