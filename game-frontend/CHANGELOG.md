@@ -2,6 +2,7 @@
 # OWGE changelog
 v1.0.0 (latest) Rewrite of backend in Rust lang!!!
 =================================================
+* __Fix:__ `RustBackend:` combat crashed (and after 3 retries killed the mission with a "contact an admin" report) when any involved unit was a legacy row with NULL display-in-requirements — the column is nullable and old universes have such rows; it is now read as optional like everywhere else
 * __Fix:__ the admin panel's "drop caches" action now also clears the per-user improvement aggregates — they were skipped, so stale improvement totals could survive a cache drop until the backend restarted
 * __Fix:__ deleting an alliance that had pending join requests failed with a server error; the pending requests are now removed with the alliance
 * __Fix:__ `RustBackend:` adding or removing a planet-list bookmark now pushes the updated list to the client (the panel previously only refreshed on relogin/resync)

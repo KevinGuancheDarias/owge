@@ -95,7 +95,9 @@ struct CombatUnitRow {
     unit_is_invisible: i8,
     unit_stored_weight: u32,
     unit_storage_capacity: Option<u32>,
-    unit_has_to_display_in_requirements: i8,
+    // Nullable in legacy universes (pre-backfill content rows); Java's Boolean
+    // treats NULL as falsy, so decode as Option like every other read site.
+    unit_has_to_display_in_requirements: Option<i8>,
     unit_cloned_improvements: i8,
     /// The unit's own `speed_impact_group_id` FK — resolved to the shallow DTO
     /// for the report's `attackInformation[].units[].obtainedUnit.unit`
@@ -120,7 +122,7 @@ impl CombatUnitRow {
                 .unit_image_filename
                 .as_deref()
                 .map(crate::dto::obtained_unit::compute_unit_image_url),
-            has_to_display_in_requirements: self.unit_has_to_display_in_requirements != 0,
+            has_to_display_in_requirements: self.unit_has_to_display_in_requirements.unwrap_or(0) != 0,
             points: self.unit_points,
             time: self.unit_time,
             primary_resource: self.unit_primary_resource,
