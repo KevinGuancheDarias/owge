@@ -13,7 +13,7 @@ else
     mode='-d';
     command="";
 fi
-`winPtyPrefix`  docker run $mode -p 8087:8080 --rm \
+docker run $mode -p 8087:8080 --rm \
     --env OWGE_INTERACTIVE="$OWGE_INTERACTIVE" \
     --env MYSQL_HOST="$MYSQL_HOST" \
     --env MYSQL_USER="$MYSQL_USER" \

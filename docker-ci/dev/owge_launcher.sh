@@ -9,8 +9,10 @@ source '../ci/lib.sh';
 # Re-exec under low CPU/IO priority (Linux) so building doesn't degrade running universes
 lowerHostPriority "$@";
 
-if ! commandExists "docker"; then
-    echo -e "\e[31mDocker MUST be installed\e[39m";
+# Pick the container runtime (podman preferred, docker otherwise) and, for
+# podman, make sure its Docker-compatible API is serving (it is auto-started
+# in a detached tmux session if it isn't). Force one with OWGE_RUNTIME=podman|docker.
+if ! initContainerRuntime; then
     exit 1;
 fi
 
@@ -40,28 +42,25 @@ log info "Info level is enabled";
 log warning "Warning level is enabled";
 log error "Error level if enabled";
 
-if [ -n "$DOCKER_HOST" ] && which docker-machine &> /dev/null; then
-    log error "Docker using Virtualbox is no longer supported"
-    exit 1;
-fi
-if uname | grep -i mingw &> /dev/null && docker --version | grep 'failed to get console mode for stdout' &> /dev/null ; then
-    log warning "applying hotfix for known docker bug, more info docker/for-win#13891"
-    function docker () {
-        com.docker.cli $@;
-    }
-fi
+# Toolbox (docker-machine) and the mingw console hotfix were removed: the
+# launcher targets local runtimes (docker or podman), and both dead branches
+# predate podman support.
 
 function _menu () {
+    # Detects whether the compose project $1 is up, checking both the label
+    # docker-compose stamps and the one podman quad stamps. Echoes (UP)/
+    # (UNHEALTHY)/(DOWN); echoes nothing else (menu consumes stdout).
     function __findRunningComposerProject() {
-        if [ `docker ps --filter "label=com.docker.compose.project" -q | wc -l ` -ge 1 ] && docker ps --filter "label=com.docker.compose.project" -q | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}'| uniq | grep "$1" &> /dev/null; then
-            return 0;
-            if [ `docker ps --filter "label=com.docker.compose.project" -q | xargs docker inspect --format='{{index .Config.Labels "com.docker.compose.project"}}' | grep "$1" | wc -l` -eq "$2" ]; then
-                echo -e "\e[32m(UP)\e[39m";
-            else 
-                echo -e "\e[33m(UNHEALTHY)\e[39m";
-            fi
-        else
+        _composeProjectLabel="";
+        for _label in "com.docker.compose.project" "io.podman.quad.project"; do
+            docker ps --filter "label=$_label" -q 2> /dev/null | xargs docker inspect --format="{{index .Config.Labels \"$_label\"}}" 2> /dev/null | grep -q "$1" && { _composeProjectLabel="$_label"; break; };
+        done
+        if [ -z "$_composeProjectLabel" ]; then
             echo -e "\e[31m(DOWN)\e[39m";
+        elif [ `docker ps --filter "label=$_composeProjectLabel" -q | xargs docker inspect --format="{{index .Config.Labels \"$_composeProjectLabel\"}}" 2> /dev/null | grep "$1" | wc -l` -eq "$2" ]; then
+            echo -e "\e[32m(UP)\e[39m";
+        else
+            echo -e "\e[33m(UNHEALTHY)\e[39m";
         fi
     }
 
@@ -170,7 +169,7 @@ function _menu () {
                         exit 1;
                     fi
                 done
-                `winPtyPrefix` docker exec -it --env "OWGE_INTERACTIVE=1" $_container console;
+                docker exec -it --env "OWGE_INTERACTIVE=1" $_container console;
             fi
             _menu;
             ;;

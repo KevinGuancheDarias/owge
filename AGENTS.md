@@ -1,144 +1,108 @@
-# Automated Production Environment Verification
+# Project Agent Notes
 
-This document describes how automated agents or test scripts can verify the status of a production universe environment using a test account. 
+## What this is
 
-## Environment Variables
+OWGE (Open Web Game Engine) is an engine for non-graphical strategy web games (think OGame-style: planets, units, upgrades, missions). It is a multi-language monorepo with **no root aggregator** — each part builds independently:
 
-To perform the verification, the following environment variables must be set:
+- `business/` — the core game engine, a Spring Boot **library** (`com.kevinguanchedarias.owge:owgejava-backend`). Contains all entities, repositories, and game logic (`*Bo` "business objects"). Builds to a jar, not a runnable app.
+- `game-rest/` — the runnable Spring Boot **web app** (`game-rest`, packaged as a WAR). Depends on `owgejava-backend` and exposes the REST API + websocket server. This is what actually runs in production.
+- `game-frontend/` — Angular 11 client (player UI + admin UI) — see its own `README.md`/`CHANGELOG.md`.
+- `mock_account/` — a small PHP (Yii) app that emulates the external account/SSO system in dev. OWGE delegates authentication to an external "account system"; this stands in for it.
+- `docker-ci/` — build + deploy automation (CI scripts and per-universe Docker Compose). See "Deployment".
+- `static/`, `dynamic/` — image asset roots served by nginx (static is shared, dynamic is per-universe).
 
-| Variable | Description | Example Value |
-|----------|-------------|---------------|
-| `OWGE_AI_USERNAME` | The username or email of the test account. | `test_agent@owge.com` |
-| `OWGE_AI_PASSWORD` | The password of the test account. | `securepassword123` |
-| `OWGE_AI_KGDW_URL` | The base URL of the central account authentication server (KGDW). | `https://account.owge.com` |
-| `OWGE_AI_KGDW_U` | The target universe ID to resolve and verify. | `0` |
+### Critical external dependency: kevinsuite-java
+`business` and `game-rest` depend on `com.kevinguanchedarias.owge:kevinsuite-java-*` (e.g. `kevinsuite-java-rest-commons`), which is **not on Maven Central** but **is published via [JitPack](https://jitpack.io)** (which builds it on demand from its GitHub repo). JitPack is declared as a `<repository>` in `business/pom.xml`, so an **online** build resolves kevinsuite automatically — no manual step needed. The only time you must provide it yourself is an **offline** build (`-o`) against a `~/.m2` that doesn't already have it. For that case (and in CI), it can be built from source and installed to `~/.m2` from `/public/kevinsuite-java/{common-backend,backend-rest-commons}` — which is what the deploy script does. Note `game-rest` has no JitPack repo of its own; it resolves kevinsuite transitively, so build/install `business` first (the JitPack repo comes from there).
 
----
+## Build, run, and test
 
-## Step-by-Step Flow
-
-### Step 1: Obtain Access Token (`/oauth/token`)
-First, authenticate the test account using the OAuth2 password grant to retrieve a JWT token. Send a `POST` request to the account server's token endpoint:
-
-* **Endpoint:** `POST $OWGE_AI_KGDW_URL/oauth/token`
-* **Content-Type:** `application/x-www-form-urlencoded`
-* **Request Parameters:**
-  * `grant_type`: `password`
-  * `client_id`: `1e39e154-8ec1-4c72-81ed-48b47a2a7dd2` (Default production Client ID, see [environment.prod.ts](file:///home/kevin/projects/owge/game-frontend/projects/game-frontend/src/environments/environment.prod.ts))
-  * `client_secret`: `1234` (Default client secret, see [login.service.ts](file:///home/kevin/projects/owge/game-frontend/modules/owge-core/src/lib/services/login.service.ts))
-  * `username`: `$OWGE_AI_USERNAME`
-  * `password`: `$OWGE_AI_PASSWORD`
-
-* **Response:**
-  The server returns a JSON payload containing the JWT token under the `access_token` or `token` property.
-
----
-
-### Step 2: Fetch Universe List (`/universe/findOfficials`)
-Get the list of official, active universes registered with the account system:
-
-* **Endpoint:** `GET $OWGE_AI_KGDW_URL/universe/findOfficials`
-* **Response:** A JSON array of universe configurations (see [UniverseController.php](file:///home/kevin/projects/owge/mock_account/src/Controller/UniverseController.php)):
-  ```json
-  [
-    {
-      "id": 0,
-      "name": "Beta Universe",
-      "description": "Public test universe",
-      "restBaseUrl": "https://api-beta.owge.com",
-      "frontendUrl": "https://beta.owge.com"
-    }
-  ]
-  ```
-
----
-
-### Step 3: Resolve the Target Universe
-1. Iterate over the array returned in **Step 2**.
-2. Locate the universe object whose `id` matches `$OWGE_AI_KGDW_U`.
-3. Extract the `restBaseUrl` property from that object.
-
----
-
-### Step 4: Verify Universe Status (`/game/user/exists`)
-Using the retrieved `restBaseUrl` and the JWT token from **Step 1**, verify the game server's status and check if the user profile exists within the universe.
-
-> [!IMPORTANT]
-> All endpoints starting with `/game` in a universe require the JWT bearer token for authorization.
-
-* **Endpoint:** `GET <restBaseUrl>/game/user/exists`
-* **Headers:**
-  * `Authorization: Bearer <JWT_TOKEN>`
-* **Response:**
-  * A JSON boolean (`true` or `false`) indicating if the user has subscribed/registered within this universe.
-  * Status code `200 OK` indicates the universe REST backend is healthy and responding.
-
----
-
-## Actionable Bash Script Example
-
-You can use the following script to automate the entire validation workflow:
+Java 21, Spring Boot 3.2.2 (Jakarta namespace). This host has **no local `mvn`/JDK** — builds run in Docker with the shared `~/.m2` mounted. The canonical pattern (used by CI too):
 
 ```bash
-#!/usr/bin/env bash
-# verify_universe.sh
-set -e
+# Build/test the business engine (run from repo root)
+docker run --rm -v /public/owge:/work -v /root/.m2:/root/.m2 -w /work/business \
+  maven:3.9-eclipse-temurin-21 mvn -o test
 
-# 1. Verify required environment variables
-if [ -z "$OWGE_AI_USERNAME" ] || [ -z "$OWGE_AI_PASSWORD" ] || [ -z "$OWGE_AI_KGDW_URL" ] || [ -z "$OWGE_AI_KGDW_U" ]; then
-  echo "Error: Missing required environment variables."
-  echo "Please set: OWGE_AI_USERNAME, OWGE_AI_PASSWORD, OWGE_AI_KGDW_URL, and OWGE_AI_KGDW_U"
-  exit 1
-fi
-
-echo "Authenticating against account server ($OWGE_AI_KGDW_URL)..."
-
-# 2. Authenticate and extract the JWT token
-TOKEN_RESPONSE=$(curl -s -X POST "$OWGE_AI_KGDW_URL/oauth/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=password" \
-  -d "client_id=1e39e154-8ec1-4c72-81ed-48b47a2a7dd2" \
-  -d "client_secret=1234" \
-  -d "username=$OWGE_AI_USERNAME" \
-  -d "password=$OWGE_AI_PASSWORD")
-
-JWT_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token // .token // empty')
-
-if [ -z "$JWT_TOKEN" ] || [ "$JWT_TOKEN" = "null" ]; then
-  echo "Error: Failed to obtain JWT token. Response: $TOKEN_RESPONSE"
-  exit 1
-fi
-
-echo "Successfully authenticated. Fetching universe list..."
-
-# 3. Retrieve available universes
-UNIVERSES=$(curl -s "$OWGE_AI_KGDW_URL/universe/findOfficials")
-
-# 4. Resolve the target universe's restBaseUrl
-REST_BASE_URL=$(echo "$UNIVERSES" | jq -r --arg id "$OWGE_AI_KGDW_U" '.[] | select((.id | tostring) == ($id | tostring)) | .restBaseUrl')
-
-if [ -z "$REST_BASE_URL" ] || [ "$REST_BASE_URL" = "null" ]; then
-  echo "Error: Universe ID $OWGE_AI_KGDW_U not found in official universes."
-  echo "Available universes:"
-  echo "$UNIVERSES" | jq -r '.[] | "  - ID: \(.id), Name: \(.name)"'
-  exit 1
-fi
-
-echo "Resolved Universe ID $OWGE_AI_KGDW_U to base URL: $REST_BASE_URL"
-echo "Querying universe status endpoint /game/user/exists..."
-
-# 5. Invoke the /game/user/exists endpoint with Bearer auth
-EXISTS_RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$REST_BASE_URL/game/user/exists" \
-  -H "Authorization: Bearer $JWT_TOKEN")
-
-HTTP_STATUS=$(echo "$EXISTS_RESPONSE" | tail -n1)
-BODY=$(echo "$EXISTS_RESPONSE" | sed '$d')
-
-if [ "$HTTP_STATUS" -ne 200 ]; then
-  echo "Error: Target universe returned status code $HTTP_STATUS"
-  echo "Response body: $BODY"
-  exit 1
-fi
-
-echo "Success! Response: $BODY (HTTP Status: $HTTP_STATUS)"
+# Run a single test class / method
+docker run --rm -v /public/owge:/work -v /root/.m2:/root/.m2 -w /work/business \
+  maven:3.9-eclipse-temurin-21 mvn -o test -Dtest='AttackMissionManagerBoTest'
+docker run --rm -v /public/owge:/work -v /root/.m2:/root/.m2 -w /work/business \
+  maven:3.9-eclipse-temurin-21 mvn -o test -Dtest='AttackMissionManagerBoTest#startAttack_should_work'
 ```
+`-o` (offline) works because `~/.m2` is already populated; drop it if you need to fetch new deps. Build `game-rest` the same way with `-w /work/game-rest` (it needs `owgejava-backend` installed first via `mvn install` in `business`). Where a real `mvn` is on PATH, the same `mvn` goals apply directly.
+
+Tests use **JUnit 5 + Mockito** (`mockito-inline`, `BDDMockito`). Most engine tests are pure unit tests with mocked collaborators and `*Mock` helper factories under `src/test/.../mock/`.
+
+Dev container runtime (`docker-ci/dev`): the launcher (`owge_launcher.sh`) and the `images_creation` scripts run against **Docker or Podman, transparently** — `ci/lib.sh` installs a `docker` PATH wrapper that dispatches to whichever runtime is available (Podman preferred on Podman-only hosts). On a Podman host the Docker-compatible API is served from a detached tmux session (`podman system service`), and `DOCKER_HOST` is set to the rootless socket; a real `docker` CLI, if present, is left untouched. Deploy scripts (`launch_admin_rest.sh`, `launch_rust_rest.sh`, `jenkins_install*.sh`, `main_reverse_proxy/install.sh`) stay pinned to Docker via `pinDockerRuntime`. Known rootless quirk: API-driven `compose down` can fail on the slirp4netns kill — `owgeComposeDown` in `ci/lib.sh` falls back to the Podman CLI to finish the teardown. Second quirk: if **more than one** `podman system service` daemon is left bound to the rootless socket (e.g. from repeated starts), `compose up` fails on its first state write with `attempt to write a readonly database` (volume/network create) — the daemons contend on the graphroot `db.sql` and the loser falls back to read-only. Fix: kill all `podman system service` PIDs (and any `tmux ... -s podman-svc` launcher), remove the stale socket, then start exactly **one** daemon in the `podman-svc` tmux session; confirm a single `LISTEN` holder on the socket via `lsof`.
+
+Frontend (run in `game-frontend/`, **Node 14** — Angular 11; pinned via `engines` + `.nvmrc`, and CI builds with the `node:14` image):
+```bash
+npm install
+npm start           # ng serve (player frontend)
+npm run startAdmin  # ng serve game-admin
+npm run build       # prod build (player) ; npm run buildAdmin for admin
+npm run lint        # tslint
+```
+
+## Architecture (the parts that span multiple files)
+
+**Layering.** REST controllers in `game-rest` (`rest/{game,admin,open}`) are thin; all logic lives in `business` `*Bo` services. `game-rest` adds web concerns only: security/JWT filters, exception handlers, websocket wiring. When adding a feature, the entity + repository + `*Bo` go in `business`; only the endpoint goes in `game-rest`.
+
+**The mission system is the core game loop.** Player actions (attack, explore, gather, conquest, deploy, establish base, return, counterattack) are *missions* with a delay. They are scheduled and executed asynchronously via **db-scheduler** (table `scheduled_tasks`, scheduler name `OWGE_BACKGROUND`, configured in `application.properties` + `DbSchedulerConfiguration`). `DbSchedulerRealizationJob` is the entry point that fires a due mission; `UnitMissionBo` dispatches to a `MissionProcessor` implementation (`business/mission/processor/*MissionProcessor`) per mission type. Combat math lives in `business/mission/attack/` (notably `AttackMissionManagerBo`). Quartz also exists (`QuartzConfiguration`) for other scheduled tasks, so don't assume "scheduler" == db-scheduler.
+
+**ObjectRelation / unlockable system.** Game content types (units, upgrades, time specials, etc.) are modeled generically as `ObjectEntity` + `ObjectRelation` (`object_relations` table) + `ObjectRelationToObjectRelation`. Requirements (`RequirementBo`, `business/requirement/`) and unlocks (`UnlockedRelationBo`, `WithUnlockableBo`) are expressed against these relations rather than concrete types. Understanding this indirection is necessary before touching requirements/unlock logic — it's not a direct FK per content type.
+
+**Real-time sync.** The server pushes state to clients over a **netty-socketio** websocket (not STOMP), configured in `WebsocketConfiguration` and driven by `SocketIoService` / `WebsocketSyncService` / `*EventEmitter` classes. Many `*Bo` methods emit websocket events after mutating state (often `transactionUtilService.doAfterCommit(...)`); keep emissions after commit.
+
+**Concurrency & caching.** Mission execution serializes contended work with application-level **MySQL named locks** via `MysqlLockUtilService` (e.g. `planet_lock_<id>`) — its package logs at TRACE. Read caching uses the `taggable-cache` library with by-user cache tags (`@TaggableCacheEvictByTag`, `getByUserCacheTag()`); when a bulk/`@Modifying` update bypasses entity listeners, the cache tag must be evicted manually.
+
+**Persistence gotchas.** `spring.jpa.open-in-view=false` and `hibernate.enable_lazy_load_no_trans=true`. Some helpers (`EntityRefreshUtilService.refresh`) fall back to `getReferenceById`, returning a **lazy proxy**; dereferencing a proxy whose row was deleted throws `EntityNotFoundException`. Be careful passing entities that may have been deleted earlier in the same transaction into save/update paths.
+
+## Database
+
+Schema and seed data are plain SQL in `business/database/` (`02_schema.sql`, `04_insert_data.sql`, `05_mysql_procedures.sql`), with versioned `migrations/v*.sql`. There is **no automatic migration tool** — new schema changes go in a `migrations/v<next>.sql` file and are applied manually/by deploy. A brand-new universe is initialized by the deploy script (schema + base data + a "world" `init.sql`). MySQL/MariaDB; some log tables (e.g. `tor_ip_data`) use MyISAM.
+
+## Versioning & releases
+
+A single version string spans both backends and the frontend. To bump it, run from `game-frontend/`:
+```bash
+npm run setVersion <X.Y.Z>   # no "v" prefix
+```
+This rewrites `business/pom.xml` and `game-rest/pom.xml` to `<X.Y.Z>-SNAPSHOT` (and the `<owge.version>` property where present) and `package.json` to `X.Y.Z`. Commit the result as-is — the poms intentionally stay on `-SNAPSHOT` while the version is in development (this is why deploy refuses an untagged/`-SNAPSHOT` version; see below).
+
+The changelog date doubles as release state. In `game-frontend/CHANGELOG.md`, the in-progress version's header uses `(latest)` as its date (e.g. `v0.11.8 (latest)`); add user-facing entries under it as you go. When you tag the release, **replace `(latest)` with the datetime the tag was created** (e.g. `v0.11.8 (2026-05-31 22:13)`) and then create the `v<X.Y.Z>` git tag. So: untagged + `(latest)` = unreleased; dated header + matching git tag = released and deployable.
+
+## Deployment (universes)
+
+Each game world is a "universe" `dc<N>` deployed as its own Docker Compose project. Deploy from `docker-ci/ci/`:
+```bash
+OWGE_DB_URL=<host:port/dbname> OWGE_DB_USER=... OWGE_DB_PASS=... \
+  ./launch_admin_rest.sh <version> /public/owge-data/static /public/owge-data/dynamic/<N> <N>
+```
+Key facts:
+- **`<version>` must be an existing git tag** (`v<version>`); the script does `git checkout v$version` and rejects `-SNAPSHOT`. Tag + push before deploying a new version.
+- The script builds kevinsuite, `business`, `game-rest`, and the Angular frontend (tests skipped), then `docker-compose up --build -d` (uses **docker-compose v1**) with `COMPOSE_PROJECT_NAME=dc<N>`.
+- **Dynamic** images dir is per-universe (`/public/owge-data/dynamic/<N>`); **static** is shared (`/public/owge-data/static`). Passing the wrong dynamic dir makes all dynamic images 404.
+- Published host port = `8110 + N` (e.g. dc12 → 8122).
+
+## Live environment verification
+
+Verification of a live OWGE production universe (test-account OAuth login,
+universe list resolution, and the `/game/user/exists` health check) lives in
+the **`verify-production-universe` skill**, not in this file.
+
+- Location: `.pi/skills/verify-production-universe/`
+- It provides composable scripts (`oauth_login.sh`, `list_universes.sh`,
+  `check_universe.sh`) plus the 4-step flow and failure-code reference.
+- Load it on demand, or run the one-liner:
+  `TOKEN=$(./scripts/oauth_login.sh) && ./scripts/check_universe.sh "$TOKEN" "$OWGE_AI_KGDW_U"`
+  (from the skill dir).
+
+Use the skill whenever you need to verify a live universe, resolve a universe
+ID to its `restBaseUrl`, or make an authenticated call into an OWGE universe.
+
+## Conventions
+
+- Per the user's global rule: **never add AI/assistant attribution** (no `Co-Authored-By` etc.) to commits or PRs.
+- `CONTRIBUTING.md` documents the contributor convention of PRs into `master`/version branches rather than direct pushes; the repo owner commits to `master` directly. Match the existing commit-message style (`Fix:` / `Improvement:` / `Docs:` prefixes) and add a matching line to `game-frontend/CHANGELOG.md` under the latest version for user-facing changes.
+- `business` service classes are named `*Bo`; prefer adding logic there over controllers.

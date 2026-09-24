@@ -6,6 +6,7 @@
 # @author Kevin Guanche Darias
 ##
 source ./lib.sh
+pinDockerRuntime;   # deploy scripts target a stable docker runtime
 
 ##
 # Will check that the file (or directory) exists

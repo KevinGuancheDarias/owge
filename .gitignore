@@ -8,3 +8,4 @@
 .playwright-mcp
 tmp
 __pycache__/
+.pi/remote-pi

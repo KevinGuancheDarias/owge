@@ -2,6 +2,11 @@ version: '3.4'
 
 services:
   nginx:
+    # Tolerates startup-order races: nginx renders its proxy_pass targets at
+    # startup and dies on a peer that has not joined the network yet (Podman
+    # netavark only resolves joined containers, unlike Docker's embedded DNS).
+    # Retrying until the peers are up heals the race without depends_on.
+    restart: unless-stopped
     build:
       context: ../images_creation/nginx
       

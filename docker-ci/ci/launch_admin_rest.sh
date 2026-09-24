@@ -41,6 +41,9 @@ if ! [ "$4" -eq "$4" ]; then
 	exit 1;
 fi
 . ./lib.sh;
+# Deploy targets a stable docker runtime; keep it pinned even on hosts that
+# also have podman (the dev launcher in dev/ auto-detects podman instead).
+pinDockerRuntime;
 
 # Re-exec under low CPU/IO priority (Linux) so the build doesn't degrade running universes
 lowerHostPriority "$@";

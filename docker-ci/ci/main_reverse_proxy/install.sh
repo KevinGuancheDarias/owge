@@ -6,6 +6,7 @@
 dockerImageName="kevinguanchedarias/owgejava_main_proxy";
 
 source ../lib.sh;
+pinDockerRuntime;
 
 if [ -z "$1" ]; then
         log error "No se ha especificado el directorio donde se encuentra el cdigo del frontend";
